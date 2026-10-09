@@ -27,6 +27,7 @@
  */
 
 import { getAlibabaBillingMode, isAlibabaModelStudioProvider } from "./alibabaFreeTier.ts";
+import { fetchWithConnectionProxy } from "./connectionProxyFetch.ts";
 import {
   asRecord,
   getAlibabaFreeTierQuotaLastSyncAt,
@@ -302,6 +303,7 @@ function buildRequestBody(
 }
 
 async function postConsoleFreeTierQuota(
+  connectionId: string | null,
   region: AlibabaProviderRegion,
   api: string,
   cookie: string,
@@ -314,7 +316,10 @@ async function postConsoleFreeTierQuota(
     body.set("sec_token", secToken);
   }
 
-  const response = await fetch(buildGatewayUrl(region, api), {
+  const response = await fetchWithConnectionProxy(
+    connectionId ?? "",
+    buildGatewayUrl(region, api),
+    {
     method: "POST",
     headers: {
       Accept: "*/*",
@@ -328,6 +333,7 @@ async function postConsoleFreeTierQuota(
     body: body.toString(),
     signal: AbortSignal.timeout(15_000),
   });
+  if (!response) return null;
 
   return response.json();
 }
@@ -350,7 +356,8 @@ async function delay(ms: number): Promise<void> {
 
 async function fetchAlibabaFreeTierQuotaEntriesForPath(
   providerSpecificData: Record<string, unknown> | null | undefined,
-  fePath: string
+  fePath: string,
+  connectionId?: string | null
 ): Promise<AlibabaFreeTierQuotaEntry[] | null> {
   const cookie = getAlibabaConsoleCookie(providerSpecificData);
   if (!cookie) return null;
@@ -359,6 +366,7 @@ async function fetchAlibabaFreeTierQuotaEntriesForPath(
   const secToken = getAlibabaConsoleSecToken(providerSpecificData);
 
   let payload = await postConsoleFreeTierQuota(
+    connectionId ?? null,
     region,
     FREE_TIER_QUOTA_START_API,
     cookie,
@@ -369,6 +377,7 @@ async function fetchAlibabaFreeTierQuotaEntriesForPath(
 
   if (!hasQuotaPayload(payload)) {
     payload = await postConsoleFreeTierQuota(
+      connectionId ?? null,
       region,
       FREE_TIER_QUOTA_API,
       cookie,
@@ -387,6 +396,7 @@ async function fetchAlibabaFreeTierQuotaEntriesForPath(
         await delay(400);
       }
       payload = await postConsoleFreeTierQuota(
+        connectionId ?? null,
         region,
         FREE_TIER_QUOTA_API,
         cookie,
@@ -403,27 +413,31 @@ async function fetchAlibabaFreeTierQuotaEntriesForPath(
 }
 
 export async function fetchAlibabaFreeTierQuotaEntries(
-  providerSpecificData: Record<string, unknown> | null | undefined
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  connectionId?: string | null
 ): Promise<AlibabaFreeTierQuotaEntry[] | null> {
-  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_TEXT_FE_PATH);
+  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_TEXT_FE_PATH, connectionId);
 }
 
 export async function fetchAlibabaFreeTierVisionQuotaEntries(
-  providerSpecificData: Record<string, unknown> | null | undefined
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  connectionId?: string | null
 ): Promise<AlibabaFreeTierQuotaEntry[] | null> {
-  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_VISION_FE_PATH);
+  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_VISION_FE_PATH, connectionId);
 }
 
 export async function fetchAlibabaFreeTierMultimodalQuotaEntries(
-  providerSpecificData: Record<string, unknown> | null | undefined
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  connectionId?: string | null
 ): Promise<AlibabaFreeTierQuotaEntry[] | null> {
-  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_MULTIMODAL_FE_PATH);
+  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_MULTIMODAL_FE_PATH, connectionId);
 }
 
 export async function fetchAlibabaFreeTierAudioQuotaEntries(
-  providerSpecificData: Record<string, unknown> | null | undefined
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  connectionId?: string | null
 ): Promise<AlibabaFreeTierQuotaEntry[] | null> {
-  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_AUDIO_FE_PATH);
+  return fetchAlibabaFreeTierQuotaEntriesForPath(providerSpecificData, DEFAULT_AUDIO_FE_PATH, connectionId);
 }
 
 function mergeUniqueQuotaEntries(
@@ -442,17 +456,18 @@ function mergeUniqueQuotaEntries(
 }
 
 export async function buildAlibabaFreeTierQuotaSnapshot(
-  providerSpecificData: Record<string, unknown> | null | undefined
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  connectionId?: string | null
 ): Promise<AlibabaFreeTierQuotaSnapshot | null> {
-  const textEntries = await fetchAlibabaFreeTierQuotaEntries(providerSpecificData);
+  const textEntries = await fetchAlibabaFreeTierQuotaEntries(providerSpecificData, connectionId);
   if (!textEntries) return null;
 
   const visionEntries =
-    (await fetchAlibabaFreeTierVisionQuotaEntries(providerSpecificData)) || textEntries;
+    (await fetchAlibabaFreeTierVisionQuotaEntries(providerSpecificData, connectionId)) || textEntries;
   const multimodalEntries =
-    (await fetchAlibabaFreeTierMultimodalQuotaEntries(providerSpecificData)) || textEntries;
+    (await fetchAlibabaFreeTierMultimodalQuotaEntries(providerSpecificData, connectionId)) || textEntries;
   const audioEntries =
-    (await fetchAlibabaFreeTierAudioQuotaEntries(providerSpecificData)) || textEntries;
+    (await fetchAlibabaFreeTierAudioQuotaEntries(providerSpecificData, connectionId)) || textEntries;
 
   const text = classifyAlibabaFreeTierQuotaEntries(textEntries, { textOnly: true });
   const vision = classifyAlibabaVisionFreeTierQuotaEntries(visionEntries);
@@ -470,7 +485,8 @@ export async function buildAlibabaFreeTierQuotaSnapshot(
 
 export async function refreshAlibabaFreeTierQuotaClassification(
   provider: string,
-  providerSpecificData: Record<string, unknown> | null | undefined
+  providerSpecificData: Record<string, unknown> | null | undefined,
+  connectionId?: string | null
 ): Promise<Record<string, unknown> | null> {
   if (
     !isAlibabaModelStudioProvider(provider) ||
@@ -482,7 +498,7 @@ export async function refreshAlibabaFreeTierQuotaClassification(
     return null;
   }
 
-  const snapshot = await buildAlibabaFreeTierQuotaSnapshot(providerSpecificData);
+  const snapshot = await buildAlibabaFreeTierQuotaSnapshot(providerSpecificData, connectionId);
   if (!snapshot) return null;
 
   return mergeAlibabaFreeTierQuotaClassification(providerSpecificData, snapshot);
@@ -503,7 +519,8 @@ export function scheduleAlibabaFreeTierQuotaRefresh(
     try {
       const merged = await refreshAlibabaFreeTierQuotaClassification(
         provider,
-        connection.providerSpecificData
+        connection.providerSpecificData,
+        connection.id
       );
       if (!merged) return;
       const { updateProviderConnection } = await import("../../src/lib/db/providers.ts");

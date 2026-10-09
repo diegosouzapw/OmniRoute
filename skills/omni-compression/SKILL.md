@@ -19,7 +19,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 Preview compression for a message payload
 
 ```bash
-curl -X POST https://localhost:20128/api/compression/preview \
+curl -X POST http://localhost:20128/api/compression/preview \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -30,7 +30,7 @@ curl -X POST https://localhost:20128/api/compression/preview \
 List Caveman compression language packs
 
 ```bash
-curl https://localhost:20128/api/compression/language-packs \
+curl http://localhost:20128/api/compression/language-packs \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -39,7 +39,7 @@ curl https://localhost:20128/api/compression/language-packs \
 List Caveman compression rule metadata
 
 ```bash
-curl https://localhost:20128/api/compression/rules \
+curl http://localhost:20128/api/compression/rules \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -48,7 +48,7 @@ curl https://localhost:20128/api/compression/rules \
 POST compression › compare
 
 ```bash
-curl -X POST https://localhost:20128/api/compression/compare \
+curl -X POST http://localhost:20128/api/compression/compare \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -59,7 +59,7 @@ curl -X POST https://localhost:20128/api/compression/compare \
 POST compression › compare › verify
 
 ```bash
-curl -X POST https://localhost:20128/api/compression/compare/verify \
+curl -X POST http://localhost:20128/api/compression/compare/verify \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -70,7 +70,7 @@ curl -X POST https://localhost:20128/api/compression/compare/verify \
 GET compression › engines
 
 ```bash
-curl https://localhost:20128/api/compression/engines \
+curl http://localhost:20128/api/compression/engines \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -79,7 +79,7 @@ curl https://localhost:20128/api/compression/engines \
 POST compression › retrieve
 
 ```bash
-curl -X POST https://localhost:20128/api/compression/retrieve \
+curl -X POST http://localhost:20128/api/compression/retrieve \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'

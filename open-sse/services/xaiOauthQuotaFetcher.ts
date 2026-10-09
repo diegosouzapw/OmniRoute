@@ -106,7 +106,7 @@ export async function fetchXaiOauthQuota(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const snap = await fetchGrokBillingWithToken(accessToken, controller.signal);
+      const snap = await fetchGrokBillingWithToken(accessToken, controller.signal, connectionId);
       const quota = grokBillingSnapshotToQuotaInfo(snap);
       quotaCache.set(connectionId, { quota, fetchedAt: Date.now() });
       return quota;

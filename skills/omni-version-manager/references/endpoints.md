@@ -59,6 +59,14 @@
 - [`DELETE /api/services/dario/admin/accounts`](#delete-apiservicesdarioadminaccounts)
 - [`GET /api/services/dario/admin/import-from-omniroute`](#get-apiservicesdarioadminimport-from-omniroute)
 - [`POST /api/services/dario/admin/import-from-omniroute`](#post-apiservicesdarioadminimport-from-omniroute)
+- [`POST /api/services/llmlingua/install`](#post-apiservicesllmlinguainstall)
+- [`POST /api/services/llmlingua/start`](#post-apiservicesllmlinguastart)
+- [`POST /api/services/llmlingua/stop`](#post-apiservicesllmlinguastop)
+- [`POST /api/services/llmlingua/restart`](#post-apiservicesllmlinguarestart)
+- [`POST /api/services/llmlingua/update`](#post-apiservicesllmlinguaupdate)
+- [`GET /api/services/llmlingua/status`](#get-apiservicesllmlinguastatus)
+- [`POST /api/services/llmlingua/auto-start`](#post-apiservicesllmlinguaauto-start)
+- [`POST /api/services/llmlingua/auto-restart-adopted`](#post-apiservicesllmlinguaauto-restart-adopted)
 - [`GET /api/services/{name}/logs`](#get-apiservicesnamelogs)
 - [`GET /api/services/9router/models`](#get-apiservices9routermodels)
 - [`POST /api/services/9router/provider-expose`](#post-apiservices9routerprovider-expose)
@@ -72,7 +80,7 @@ Install 9Router from npm
 Installs the `9router` npm package under DATA_DIR/services/9router/. Uses execFile (no shell interpolation — hard rule #13). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/install \
+curl -X POST http://localhost:20128/api/services/9router/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -85,7 +93,7 @@ Start 9Router
 Spawns the 9Router process. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/start \
+curl -X POST http://localhost:20128/api/services/9router/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -98,7 +106,7 @@ Stop 9Router
 Gracefully stops 9Router (SIGTERM → 15 s → SIGKILL). Idempotent. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/stop \
+curl -X POST http://localhost:20128/api/services/9router/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -111,7 +119,7 @@ Restart 9Router
 Equivalent to stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/restart \
+curl -X POST http://localhost:20128/api/services/9router/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -124,7 +132,7 @@ Update 9Router to a newer npm version
 Stops the service (if running), installs the newer npm version, then restarts. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/update \
+curl -X POST http://localhost:20128/api/services/9router/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -137,7 +145,7 @@ Rotate the 9Router API key
 Generates a new API key, encrypts it at-rest, and restarts the service to apply it. The plaintext key is never returned. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/rotate-key \
+curl -X POST http://localhost:20128/api/services/9router/rotate-key \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -150,7 +158,7 @@ Get 9Router status
 Returns combined live supervisor state and DB metadata. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/9router/status \
+curl http://localhost:20128/api/services/9router/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -161,7 +169,7 @@ Toggle 9Router auto-start
 When enabled, 9Router starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/auto-start \
+curl -X POST http://localhost:20128/api/services/9router/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -174,7 +182,7 @@ Toggle 9Router auto-restart-when-adopted
 When enabled, an externally-adopted (not OmniRoute-spawned) 9Router process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/auto-restart-adopted \
+curl -X POST http://localhost:20128/api/services/9router/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -187,7 +195,7 @@ Install CLIProxyAPI from npm
 Installs the CLIProxyAPI package under DATA_DIR/services/cliproxy/. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/install \
+curl -X POST http://localhost:20128/api/services/cliproxy/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -200,7 +208,7 @@ Start CLIProxyAPI
 Spawns the CLIProxyAPI process. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/start \
+curl -X POST http://localhost:20128/api/services/cliproxy/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -213,7 +221,7 @@ Stop CLIProxyAPI
 Gracefully stops CLIProxyAPI. Idempotent. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/stop \
+curl -X POST http://localhost:20128/api/services/cliproxy/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -226,7 +234,7 @@ Restart CLIProxyAPI
 stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/restart \
+curl -X POST http://localhost:20128/api/services/cliproxy/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -239,7 +247,7 @@ Update CLIProxyAPI to a newer npm version
 Stops, installs newer version, restarts. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/update \
+curl -X POST http://localhost:20128/api/services/cliproxy/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -252,7 +260,7 @@ Get CLIProxyAPI status
 Returns live supervisor state and DB metadata (no apiKeyMasked — CLIProxyAPI does not use an injected API key). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/cliproxy/status \
+curl http://localhost:20128/api/services/cliproxy/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -263,7 +271,7 @@ Toggle CLIProxyAPI auto-start
 When enabled, CLIProxyAPI starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/auto-start \
+curl -X POST http://localhost:20128/api/services/cliproxy/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -276,7 +284,7 @@ Toggle CLIProxyAPI auto-restart-when-adopted
 When enabled, an externally-adopted (not OmniRoute-spawned) CLIProxyAPI process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/auto-restart-adopted \
+curl -X POST http://localhost:20128/api/services/cliproxy/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -289,7 +297,7 @@ Install Mux from npm
 Installs the `mux` npm package (coder/mux — local agent-orchestration daemon) under DATA_DIR/services/mux/. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/install \
+curl -X POST http://localhost:20128/api/services/mux/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -302,7 +310,7 @@ Start Mux
 Spawns `mux server --host 127.0.0.1 --port <port>`. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/start \
+curl -X POST http://localhost:20128/api/services/mux/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -315,7 +323,7 @@ Stop Mux
 Gracefully stops Mux. Idempotent. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/stop \
+curl -X POST http://localhost:20128/api/services/mux/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -328,7 +336,7 @@ Restart Mux
 stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/restart \
+curl -X POST http://localhost:20128/api/services/mux/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -341,7 +349,7 @@ Update Mux to a newer npm version
 Stops, installs newer version, restarts. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/update \
+curl -X POST http://localhost:20128/api/services/mux/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -354,7 +362,7 @@ Get Mux status
 Returns live supervisor state and DB metadata. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/mux/status \
+curl http://localhost:20128/api/services/mux/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -365,7 +373,7 @@ Toggle Mux auto-start
 When enabled, Mux starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/auto-start \
+curl -X POST http://localhost:20128/api/services/mux/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -378,7 +386,7 @@ Toggle Mux auto-restart-when-adopted
 When enabled, an externally-adopted (not OmniRoute-spawned) Mux process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/mux/auto-restart-adopted \
+curl -X POST http://localhost:20128/api/services/mux/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -391,7 +399,7 @@ Install open-wa from npm
 Installs the `@open-wa/wa-automate` npm package (WhatsApp Web automation via headless Chromium/Puppeteer) under DATA_DIR/services/openwa/. Bundles a Puppeteer Chromium download, so this install is much slower than the other embedded services. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/openwa/install \
+curl -X POST http://localhost:20128/api/services/openwa/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -404,7 +412,7 @@ Start open-wa
 Spawns `wa-automate --port <port> --host 127.0.0.1 --session-data-path data`. The HTTP API does not start listening until the WhatsApp client handshake resolves, which blocks on a human scanning the pairing QR code (shown in the logs panel) on first pairing — state stays `starting` well past the other services' typical cold-start window. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/openwa/start \
+curl -X POST http://localhost:20128/api/services/openwa/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -417,7 +425,7 @@ Stop open-wa
 Gracefully stops open-wa. Idempotent. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/openwa/stop \
+curl -X POST http://localhost:20128/api/services/openwa/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -430,7 +438,7 @@ Restart open-wa
 stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/openwa/restart \
+curl -X POST http://localhost:20128/api/services/openwa/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -443,7 +451,7 @@ Update open-wa to a newer npm version
 Stops, installs newer version, restarts. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/openwa/update \
+curl -X POST http://localhost:20128/api/services/openwa/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -456,7 +464,7 @@ Get open-wa status
 Returns live supervisor state and DB metadata. `health` only reflects whether `/api-docs/` answered — it does not indicate whether a WhatsApp session is paired. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/openwa/status \
+curl http://localhost:20128/api/services/openwa/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -467,7 +475,7 @@ Toggle open-wa auto-start
 When enabled, open-wa starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/openwa/auto-start \
+curl -X POST http://localhost:20128/api/services/openwa/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -480,7 +488,7 @@ Toggle open-wa auto-restart-when-adopted
 When enabled, an externally-adopted (not OmniRoute-spawned) open-wa process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/openwa/auto-restart-adopted \
+curl -X POST http://localhost:20128/api/services/openwa/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -493,7 +501,7 @@ Install Bifrost
 Installs the `@maximhq/bifrost` npm package under DATA_DIR/services/bifrost/. The package downloads the Go binary on first run. Accepts an optional `version` field (semver or `latest`). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/install \
+curl -X POST http://localhost:20128/api/services/bifrost/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -506,7 +514,7 @@ Start Bifrost
 Starts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/start \
+curl -X POST http://localhost:20128/api/services/bifrost/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -519,7 +527,7 @@ Stop Bifrost
 Stops the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/stop \
+curl -X POST http://localhost:20128/api/services/bifrost/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -532,7 +540,7 @@ Restart Bifrost
 Restarts the supervised Bifrost process. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/restart \
+curl -X POST http://localhost:20128/api/services/bifrost/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -545,7 +553,7 @@ Update Bifrost
 Updates Bifrost to the latest npm version. Stops the running process, installs the new version, and restarts if it was previously running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/update \
+curl -X POST http://localhost:20128/api/services/bifrost/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -558,7 +566,7 @@ Get Bifrost status
 Returns live and DB status for the supervised Bifrost service. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/bifrost/status \
+curl http://localhost:20128/api/services/bifrost/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -569,7 +577,7 @@ Toggle Bifrost auto-start
 When enabled, Bifrost starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/auto-start \
+curl -X POST http://localhost:20128/api/services/bifrost/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -582,7 +590,7 @@ Toggle Bifrost auto-restart-when-adopted
 When enabled, an externally-adopted (not OmniRoute-spawned) Bifrost process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/bifrost/auto-restart-adopted \
+curl -X POST http://localhost:20128/api/services/bifrost/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -595,7 +603,7 @@ Install Dario from npm
 Installs the `@askalf/dario` npm package (Claude-account-pool proxy) under DATA_DIR/services/dario/. Uses execFile (no shell interpolation — hard rule #13). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/install \
+curl -X POST http://localhost:20128/api/services/dario/install \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -608,7 +616,7 @@ Start Dario
 Spawns the Dario process. Idempotent if already running. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/start \
+curl -X POST http://localhost:20128/api/services/dario/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -621,7 +629,7 @@ Stop Dario
 Gracefully stops Dario. Idempotent — returns a stopped status even if no supervisor is currently tracking the process. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/stop \
+curl -X POST http://localhost:20128/api/services/dario/stop \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -634,7 +642,7 @@ Restart Dario
 Equivalent to stop() then start() under the operation lock. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/restart \
+curl -X POST http://localhost:20128/api/services/dario/restart \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -647,7 +655,7 @@ Update Dario to a newer npm version
 Stops the service (if running), installs the newer npm version, then restarts it if it was running before the update. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/update \
+curl -X POST http://localhost:20128/api/services/dario/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -660,7 +668,7 @@ Get Dario status
 Returns combined live supervisor state and DB metadata, including the auto-start / auto-restart-adopted flags and whether an update is available. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/dario/status \
+curl http://localhost:20128/api/services/dario/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -671,7 +679,7 @@ Toggle Dario auto-start
 When enabled, Dario starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/auto-start \
+curl -X POST http://localhost:20128/api/services/dario/auto-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -684,7 +692,7 @@ Toggle Dario auto-restart-when-adopted
 When enabled, an externally-adopted (not OmniRoute-spawned) Dario process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/auto-restart-adopted \
+curl -X POST http://localhost:20128/api/services/dario/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -697,7 +705,7 @@ Start a Dario account-pool login (device-code style)
 Forwards to the running Dario instance's `POST /admin/login/start` using the stored admin token. The operator opens the returned `authorize_url`, approves in their own Claude account, then posts the displayed code to `/admin/login-complete`. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/admin/login-start \
+curl -X POST http://localhost:20128/api/services/dario/admin/login-start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -710,7 +718,7 @@ Complete a Dario account-pool login
 Forwards to the running Dario instance's `POST /admin/login/complete`. On success the account becomes routable immediately (Dario hot-reloads its pool). **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/admin/login-complete \
+curl -X POST http://localhost:20128/api/services/dario/admin/login-complete \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -723,7 +731,7 @@ List Dario account-pool accounts
 Forwards to the running Dario instance's `GET /admin/accounts`. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/dario/admin/accounts \
+curl http://localhost:20128/api/services/dario/admin/accounts \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -734,7 +742,7 @@ Remove a Dario account-pool account
 Forwards to the running Dario instance's `DELETE /admin/accounts/<alias>`. The alias is taken from a `?alias=` query param or a `{ alias }` JSON body. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X DELETE https://localhost:20128/api/services/dario/admin/accounts \
+curl -X DELETE http://localhost:20128/api/services/dario/admin/accounts \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -745,7 +753,7 @@ List OmniRoute claude connections eligible for Dario import
 Returns eligible OmniRoute `claude` OAuth provider connections (metadata only — id/name/email/org tier, never tokens) so the UI can offer a picker when more than one exists. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/dario/admin/import-from-omniroute \
+curl http://localhost:20128/api/services/dario/admin/import-from-omniroute \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -756,7 +764,109 @@ Import an OmniRoute claude connection's OAuth tokens into Dario
 Writes the source connection's access/refresh token pair directly into Dario's own account-file store (`~/.dario/accounts/<alias>.json`), reusing the shared Claude Code OAuth client_id, then restarts the Dario supervisor so it picks up the new account. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl -X POST https://localhost:20128/api/services/dario/admin/import-from-omniroute \
+curl -X POST http://localhost:20128/api/services/dario/admin/import-from-omniroute \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/llmlingua/install
+
+Install LLMLingua
+
+Installs `@atjsh/llmlingua-2` (real LLMLingua-2 ONNX prompt-compression package) plus its `@huggingface/transformers`/`js-tiktoken` peers under DATA_DIR/services/llmlingua/, and writes the sidecar server script. Accepts an optional `version` field (semver or `latest`). **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST http://localhost:20128/api/services/llmlingua/install \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/llmlingua/start
+
+Start LLMLingua
+
+Starts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST http://localhost:20128/api/services/llmlingua/start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/llmlingua/stop
+
+Stop LLMLingua
+
+Stops the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST http://localhost:20128/api/services/llmlingua/stop \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/llmlingua/restart
+
+Restart LLMLingua
+
+Restarts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST http://localhost:20128/api/services/llmlingua/restart \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/llmlingua/update
+
+Update LLMLingua
+
+Updates LLMLingua to the latest npm version. Stops the running process, installs the new version, and restarts if it was previously running. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST http://localhost:20128/api/services/llmlingua/update \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/services/llmlingua/status
+
+Get LLMLingua status
+
+Returns live and DB status for the supervised LLMLingua service. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl http://localhost:20128/api/services/llmlingua/status \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/services/llmlingua/auto-start
+
+Toggle LLMLingua auto-start
+
+When enabled, LLMLingua starts automatically on the next OmniRoute boot. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST http://localhost:20128/api/services/llmlingua/auto-start \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### POST /api/services/llmlingua/auto-restart-adopted
+
+Toggle LLMLingua auto-restart-when-adopted
+
+When enabled, an externally-adopted (not OmniRoute-spawned) LLMLingua process is restarted under OmniRoute's own supervisor on the next health-check cycle instead of being left as adopted-only. **LOCAL_ONLY** — loopback only.
+
+```bash
+curl -X POST http://localhost:20128/api/services/llmlingua/auto-restart-adopted \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -769,7 +879,7 @@ Stream service logs via SSE
 Returns a Server-Sent Events stream from the service's in-memory ring buffer (5 MB, circular). Sends a `snapshot` event with historical lines first, then live `log` events, plus a `heartbeat` every 15 s. **LOCAL_ONLY** — loopback only.
 
 ```bash
-curl https://localhost:20128/api/services/{name}/logs \
+curl http://localhost:20128/api/services/{name}/logs \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -778,7 +888,7 @@ curl https://localhost:20128/api/services/{name}/logs \
 GET services › 9router › models
 
 ```bash
-curl https://localhost:20128/api/services/9router/models \
+curl http://localhost:20128/api/services/9router/models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -787,7 +897,7 @@ curl https://localhost:20128/api/services/9router/models \
 POST services › 9router › provider expose
 
 ```bash
-curl -X POST https://localhost:20128/api/services/9router/provider-expose \
+curl -X POST http://localhost:20128/api/services/9router/provider-expose \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -798,7 +908,7 @@ curl -X POST https://localhost:20128/api/services/9router/provider-expose \
 GET services › cliproxy › accounts
 
 ```bash
-curl https://localhost:20128/api/services/cliproxy/accounts \
+curl http://localhost:20128/api/services/cliproxy/accounts \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -807,7 +917,7 @@ curl https://localhost:20128/api/services/cliproxy/accounts \
 POST services › cliproxy › provider expose
 
 ```bash
-curl -X POST https://localhost:20128/api/services/cliproxy/provider-expose \
+curl -X POST http://localhost:20128/api/services/cliproxy/provider-expose \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'

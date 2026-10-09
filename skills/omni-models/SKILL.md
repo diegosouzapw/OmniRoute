@@ -21,7 +21,7 @@ List available models
 Returns all models available across configured providers.
 
 ```bash
-curl https://localhost:20128/api/v1/models \
+curl http://localhost:20128/api/v1/models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -30,7 +30,7 @@ curl https://localhost:20128/api/v1/models \
 List models (management)
 
 ```bash
-curl https://localhost:20128/api/models \
+curl http://localhost:20128/api/models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -39,7 +39,7 @@ curl https://localhost:20128/api/models \
 Create or update a model alias
 
 ```bash
-curl -X POST https://localhost:20128/api/models/alias \
+curl -X POST http://localhost:20128/api/models/alias \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -50,7 +50,7 @@ curl -X POST https://localhost:20128/api/models/alias \
 Get full model catalog
 
 ```bash
-curl https://localhost:20128/api/models/catalog \
+curl http://localhost:20128/api/models/catalog \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -59,7 +59,7 @@ curl https://localhost:20128/api/models/catalog \
 GET models › openrouter catalog
 
 ```bash
-curl https://localhost:20128/api/models/openrouter-catalog \
+curl http://localhost:20128/api/models/openrouter-catalog \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -68,7 +68,7 @@ curl https://localhost:20128/api/models/openrouter-catalog \
 POST models › test
 
 ```bash
-curl -X POST https://localhost:20128/api/models/test \
+curl -X POST http://localhost:20128/api/models/test \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -79,7 +79,7 @@ curl -X POST https://localhost:20128/api/models/test \
 POST models › test all
 
 ```bash
-curl -X POST https://localhost:20128/api/models/test-all \
+curl -X POST http://localhost:20128/api/models/test-all \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -90,7 +90,7 @@ curl -X POST https://localhost:20128/api/models/test-all \
 GET models › <model>
 
 ```bash
-curl https://localhost:20128/api/v1/models/{model} \
+curl http://localhost:20128/api/v1/models/{model} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

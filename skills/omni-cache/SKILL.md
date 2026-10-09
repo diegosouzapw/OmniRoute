@@ -19,7 +19,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 Get cache statistics
 
 ```bash
-curl https://localhost:20128/api/cache \
+curl http://localhost:20128/api/cache \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -28,7 +28,7 @@ curl https://localhost:20128/api/cache \
 Clear all caches
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cache \
+curl -X DELETE http://localhost:20128/api/cache \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -39,7 +39,7 @@ Get detailed cache statistics
 Returns detailed statistics for all cache layers.
 
 ```bash
-curl https://localhost:20128/api/cache/stats \
+curl http://localhost:20128/api/cache/stats \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -48,7 +48,7 @@ curl https://localhost:20128/api/cache/stats \
 Clear cache statistics
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cache/stats \
+curl -X DELETE http://localhost:20128/api/cache/stats \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -57,7 +57,7 @@ curl -X DELETE https://localhost:20128/api/cache/stats \
 GET cache › entries
 
 ```bash
-curl https://localhost:20128/api/cache/entries \
+curl http://localhost:20128/api/cache/entries \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -66,7 +66,7 @@ curl https://localhost:20128/api/cache/entries \
 DELETE cache › entries
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cache/entries \
+curl -X DELETE http://localhost:20128/api/cache/entries \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -75,7 +75,7 @@ curl -X DELETE https://localhost:20128/api/cache/entries \
 GET cache › reasoning
 
 ```bash
-curl https://localhost:20128/api/cache/reasoning \
+curl http://localhost:20128/api/cache/reasoning \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -84,7 +84,7 @@ curl https://localhost:20128/api/cache/reasoning \
 DELETE cache › reasoning
 
 ```bash
-curl -X DELETE https://localhost:20128/api/cache/reasoning \
+curl -X DELETE http://localhost:20128/api/cache/reasoning \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

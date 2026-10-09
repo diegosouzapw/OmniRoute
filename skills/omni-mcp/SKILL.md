@@ -19,7 +19,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 GET mcp › audit
 
 ```bash
-curl https://localhost:20128/api/mcp/audit \
+curl http://localhost:20128/api/mcp/audit \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -28,7 +28,7 @@ curl https://localhost:20128/api/mcp/audit \
 GET mcp › audit › stats
 
 ```bash
-curl https://localhost:20128/api/mcp/audit/stats \
+curl http://localhost:20128/api/mcp/audit/stats \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -37,7 +37,7 @@ curl https://localhost:20128/api/mcp/audit/stats \
 GET mcp › sse
 
 ```bash
-curl https://localhost:20128/api/mcp/sse \
+curl http://localhost:20128/api/mcp/sse \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -46,7 +46,7 @@ curl https://localhost:20128/api/mcp/sse \
 POST mcp › sse
 
 ```bash
-curl -X POST https://localhost:20128/api/mcp/sse \
+curl -X POST http://localhost:20128/api/mcp/sse \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -57,7 +57,7 @@ curl -X POST https://localhost:20128/api/mcp/sse \
 GET mcp › status
 
 ```bash
-curl https://localhost:20128/api/mcp/status \
+curl http://localhost:20128/api/mcp/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -66,7 +66,7 @@ curl https://localhost:20128/api/mcp/status \
 GET mcp › stream
 
 ```bash
-curl https://localhost:20128/api/mcp/stream \
+curl http://localhost:20128/api/mcp/stream \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -75,7 +75,7 @@ curl https://localhost:20128/api/mcp/stream \
 POST mcp › stream
 
 ```bash
-curl -X POST https://localhost:20128/api/mcp/stream \
+curl -X POST http://localhost:20128/api/mcp/stream \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -86,7 +86,7 @@ curl -X POST https://localhost:20128/api/mcp/stream \
 DELETE mcp › stream
 
 ```bash
-curl -X DELETE https://localhost:20128/api/mcp/stream \
+curl -X DELETE http://localhost:20128/api/mcp/stream \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -95,7 +95,7 @@ curl -X DELETE https://localhost:20128/api/mcp/stream \
 GET mcp › tools
 
 ```bash
-curl https://localhost:20128/api/mcp/tools \
+curl http://localhost:20128/api/mcp/tools \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
