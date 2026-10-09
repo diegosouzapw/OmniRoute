@@ -128,11 +128,36 @@ export function createVideoBridgePromotionHoldReport(
   };
 }
 
-function toAggregate(aggregate: VideoBridgePromotionAggregate | undefined): {
+function toAggregate(
+  aggregate: VideoBridgePromotionAggregate | undefined,
+  qualityMean?: number
+): {
+  qualityMean?: number;
   medians: VideoBridgePromotionAggregate["medians"];
   p95: VideoBridgePromotionAggregate["p95"];
 } {
-  return { medians: aggregate?.medians ?? {}, p95: aggregate?.p95 ?? {} };
+  return { medians: aggregate?.medians ?? {}, p95: aggregate?.p95 ?? {}, qualityMean };
+}
+
+function meanRecallByRole(
+  runFile: VideoBridgePromotionRunFile,
+  role: "baseline" | "candidate"
+): number | undefined {
+  const caseMeans: number[] = [];
+  for (const currentCase of runFile.cases) {
+    const values = currentCase.runs
+      .filter((run) => run.role === role)
+      .map((run) => run.metrics.factRetention);
+    if (
+      values.length === 0 ||
+      values.some((value) => typeof value !== "number" || !Number.isFinite(value))
+    )
+      return undefined;
+    caseMeans.push(values.reduce((sum, value) => sum + value!, 0) / values.length);
+  }
+  return caseMeans.length
+    ? caseMeans.reduce((sum, value) => sum + value, 0) / caseMeans.length
+    : undefined;
 }
 
 function aggregateByRole(
@@ -212,8 +237,8 @@ export function buildVideoBridgePromotionReport(
 
   const baselineAggregate = aggregateByRole(runFile, "baseline");
   const candidateAggregate = aggregateByRole(runFile, "candidate");
-  const baseline = toAggregate(baselineAggregate);
-  const candidate = toAggregate(candidateAggregate);
+  const baseline = toAggregate(baselineAggregate, meanRecallByRole(runFile, "baseline"));
+  const candidate = toAggregate(candidateAggregate, meanRecallByRole(runFile, "candidate"));
   const criticalFactLoss = overallCriticalFactLoss(runFile);
   const securityCasesPassed = overallSecurityCasesPassed(runFile);
   const usageAvailable = tokenUsageAvailable(runFile);
