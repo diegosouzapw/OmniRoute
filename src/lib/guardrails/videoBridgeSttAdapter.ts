@@ -29,7 +29,7 @@ export function createVideoSttAdapter(input: {
   const operator = resolveVideoAudioTranscriptionRuntimeSettings(input.settings);
   const audio = resolveAudioBridgeRuntimeSettings(input.settings);
   return async (part, options, caption, dependencies = {}, preloadedBytes) => {
-    if (!operator.enabled || part.audioTranscription !== true) {
+    if (!audio.enabled || !operator.enabled || part.audioTranscription !== true) {
       return describeVideoPart(part, options, caption, dependencies, preloadedBytes);
     }
     const started = Date.now();

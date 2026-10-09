@@ -110,9 +110,9 @@ function readCache(
   sttModel: string
 ): CachedOrchestration | null {
   if (!options.cache || !options.cacheKeyRef) return null;
-  const entry = options.cache.getEntry(cacheKeyFor(options.cacheKeyRef, sttModel));
-  if (!entry) return null;
   try {
+    const entry = options.cache.getEntry(cacheKeyFor(options.cacheKeyRef, sttModel));
+    if (!entry) return null;
     const parsed = JSON.parse(entry.value) as Partial<CachedOrchestration>;
     if (!parsed.track || !Array.isArray(parsed.track.observations)) return null;
     if (parsed.timingPrecision !== "coarse" && parsed.timingPrecision !== "exact") return null;
@@ -128,9 +128,13 @@ function writeCache(
   value: CachedOrchestration
 ): void {
   if (!options.cache || !options.cacheKeyRef) return;
-  options.cache.setEntry(cacheKeyFor(options.cacheKeyRef, sttModel), {
-    value: JSON.stringify(value),
-  });
+  try {
+    options.cache.setEntry(cacheKeyFor(options.cacheKeyRef, sttModel), {
+      value: JSON.stringify(value),
+    });
+  } catch {
+    // An optional, ephemeral cache must never discard the successful transcription.
+  }
 }
 
 async function runExtraction(
@@ -167,7 +171,11 @@ async function runTranscription(
     shape: "input_audio",
   };
   try {
-    const value = await transcribe(audioPart, { model: sttModel, timeoutMs: options.timeoutMs });
+    const value = await transcribe(audioPart, {
+      model: sttModel,
+      signal: options.signal,
+      timeoutMs: options.timeoutMs,
+    });
     return { ok: true, value };
   } catch (error) {
     const outcome = classifyStepFailure(error, options.signal, /timed out/i);
@@ -223,6 +231,8 @@ export async function orchestrateVideoAudioTranscription(
 ): Promise<VideoAudioOrchestrationResult> {
   if (!options.operatorOptIn) return optedOut("OPERATOR_OPT_OUT");
   if (!options.requestOptIn) return optedOut("REQUEST_OPT_OUT");
+  if (options.signal?.aborted) return failed("ABORTED", null);
+  const deadline = Date.now() + options.timeoutMs;
 
   const selectModel = options.selectModel ?? selectAudioBridgeModel;
   let sttModel: string | null;
@@ -243,10 +253,15 @@ export async function orchestrateVideoAudioTranscription(
     };
   }
 
-  const extraction = await runExtraction(options, sttModel);
+  const remaining = () => ({ ...options, timeoutMs: Math.max(0, deadline - Date.now()) });
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
+  if (remaining().timeoutMs === 0) return failed("TIMEOUT", sttModel);
+  const extraction = await runExtraction(remaining(), sttModel);
   if (extraction.ok === false) return extraction.result;
 
-  const transcription = await runTranscription(options, sttModel, extraction.value);
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
+  if (remaining().timeoutMs === 0) return failed("TIMEOUT", sttModel);
+  const transcription = await runTranscription(remaining(), sttModel, extraction.value);
   if (transcription.ok === false) return transcription.result;
 
   const { observations, timingPrecision } = buildObservations(

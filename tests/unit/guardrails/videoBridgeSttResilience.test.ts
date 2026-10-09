@@ -79,9 +79,34 @@ test("global Audio Bridge opt-out blocks paid STT even with video dual consent",
   const getSettings = deps.getSettings!;
   deps.getSettings = async () => ({ ...(await getSettings()), modalityBridgeAudioEnabled: false });
   let calls = 0;
-  deps.selectAudioModel = async () => { calls += 1; return "deepgram/nova-3"; };
+  deps.selectAudioModel = async () => {
+    calls += 1;
+    return "deepgram/nova-3";
+  };
   const result = await new VideoBridgeGuardrail({ deps }).preCall(request(), {});
   assert.equal(calls, 0);
   assert.ok(JSON.stringify(result.modifiedPayload).includes("visible blue screen"));
   assert.equal(result.meta?.audioFusionPartials, 0);
+});
+
+test("cache read and write outages cannot discard successful STT or visual output", async () => {
+  const deps = await dependencies();
+  const getSettings = deps.getSettings!;
+  deps.getSettings = async () => ({ ...(await getSettings()), modalityBridgeCacheEnabled: true });
+  deps.resultCache = {
+    delete: () => {},
+    getEntry: () => {
+      throw new Error("private cache read");
+    },
+    setEntry: () => {
+      throw new Error("private cache write");
+    },
+  };
+  const result = await new VideoBridgeGuardrail({ deps }).preCall(request(), {
+    apiKeyInfo: { id: "tenant-a" },
+  });
+  const payload = JSON.stringify(result.modifiedPayload);
+  assert.ok(payload.includes("visible blue screen"));
+  assert.ok(payload.includes("private speech"));
+  assert.ok(!JSON.stringify(result).includes("private cache"));
 });

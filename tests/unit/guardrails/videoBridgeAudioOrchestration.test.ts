@@ -6,7 +6,9 @@ import { orchestrateVideoAudioTranscription } from "../../../src/lib/guardrails/
 
 const VIDEO_BYTES = Buffer.from("fake video bytes");
 
-function baseOptions(overrides: Partial<Parameters<typeof orchestrateVideoAudioTranscription>[0]> = {}) {
+function baseOptions(
+  overrides: Partial<Parameters<typeof orchestrateVideoAudioTranscription>[0]> = {}
+) {
   return {
     extractAudio: async () => {
       throw new Error("extractAudio must not be called in this test");
@@ -297,7 +299,8 @@ test("every failure path stays a well-defined partial — never throws, always t
           },
         })
       ),
-    () => orchestrateVideoAudioTranscription(baseOptions({ hasUsableCredentials: async () => false })),
+    () =>
+      orchestrateVideoAudioTranscription(baseOptions({ hasUsableCredentials: async () => false })),
   ]) {
     const result = await scenario();
     assert.equal(result.track, null, "visual-only fallback must remain available");
@@ -357,7 +360,7 @@ test("a different cache key (different video) does not share another video's cac
 
 // --- Shared budgets ----------------------------------------------------------
 
-test("the same timeoutMs and signal thread through both the extraction and transcription steps", async () => {
+test("the remaining shared budget and signal thread through extraction and transcription", async () => {
   const controller = new AbortController();
   const seen: Array<{ signal?: AbortSignal; timeoutMs: number }> = [];
   await orchestrateVideoAudioTranscription(
@@ -369,13 +372,14 @@ test("the same timeoutMs and signal thread through both the extraction and trans
         return extraction();
       },
       transcribe: async (_part, config) => {
-        seen.push({ timeoutMs: config.timeoutMs });
+        seen.push({ signal: config.signal, timeoutMs: config.timeoutMs });
         return { text: "ok" };
       },
     })
   );
 
-  assert.equal(seen[0].timeoutMs, 42_000);
+  assert.ok(seen[0].timeoutMs > 0 && seen[0].timeoutMs <= 42_000);
   assert.equal(seen[0].signal, controller.signal);
-  assert.equal(seen[1].timeoutMs, 42_000, "the transcription boundary must reuse the same shared budget");
+  assert.ok(seen[1].timeoutMs > 0 && seen[1].timeoutMs <= seen[0].timeoutMs);
+  assert.equal(seen[1].signal, controller.signal);
 });
