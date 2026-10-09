@@ -278,3 +278,56 @@ test("the live-validated Flash model advertises vision to combo routing", () => 
     true
   );
 });
+
+const { requestDeepSeekPowChallenge } =
+  await import("../../open-sse/executors/deepseek-web/pow.ts");
+test("upload PoW rejects HTTP failures and invalid challenge envelopes", async () => {
+  for (const response of [
+    new Response("private error", { status: 403 }),
+    json({}),
+    json({ challenge: { difficulty: -1 } }),
+  ]) {
+    await withImageFetch(
+      async () => response,
+      async () => {
+        await assert.rejects(
+          requestDeepSeekPowChallenge({
+            accessToken: "synthetic",
+            headers: {},
+            targetPath: "/api/v0/file/upload_file",
+          }),
+          (error: unknown) => error instanceof Error && !error.message.includes("private error")
+        );
+      }
+    );
+  }
+});
+
+test("upload PoW accepts the legacy envelope and binds proof to the requested target", async () => {
+  await withImageFetch(
+    async () =>
+      new Response(
+        JSON.stringify({
+          biz_data: {
+            challenge: {
+              algorithm: "DeepSeekHashV1",
+              challenge: "synthetic-challenge",
+              salt: "salt",
+              signature: "signature",
+              difficulty: 1,
+              expire_at: 1,
+              target_path: "/api/v0/chat/completion",
+            },
+          },
+        })
+      ),
+    async () => {
+      const challenge = await requestDeepSeekPowChallenge({
+        accessToken: "synthetic",
+        headers: {},
+        targetPath: "/api/v0/file/upload_file",
+      });
+      assert.equal(challenge.target_path, "/api/v0/file/upload_file");
+    }
+  );
+});
