@@ -1,0 +1,1 @@
+- Prevent externally supplied Video Bridge `audioTranscript` metadata from claiming server-owned provenance; preserve client transcript fusion and log-safe redaction while reserving `audio-bridge` labels for the server STT adapter.

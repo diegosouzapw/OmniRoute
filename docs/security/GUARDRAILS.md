@@ -455,15 +455,16 @@ OmniRoute never starts transcription from this metadata: validated cues are
 copied into the described result with source, confidence, and interval, and
 are rendered as untrusted observations alongside the frame captions. Invalid,
 out-of-range, or provenance-free text is rejected rather than mixed into the
-caption stream. The `source` field is presently caller-declared, not
-server-verified: OmniRoute enforces that the value is one of the three
-allowed strings, but does not yet cryptographically confirm that an
-`embedded` or `audio-bridge` label actually came from a server-owned
-extraction. Treat `source` as an untrusted hint until that verification
-lands; do not build authorization decisions on it.
+caption stream. Both request-body transcript channels normalize supplied
+provenance to `client`, including self-asserted `embedded` or `audio-bridge`
+labels. Only a server-owned adapter can assign those trusted labels through
+the code-only `trustedSource` argument; a request JSON field cannot reach
+that argument. Transcript text remains untrusted media-derived content,
+regardless of its provenance, and must never determine authorization.
 
-An advanced caller may provide an already-authorized `audioTranscript` track
-for the same video. The fusion seam runs visual and audio observations under
+An advanced caller may provide an `audioTranscript` track for the same video;
+it is treated as client-provided text, not proof of server transcription.
+The fusion seam runs visual and audio observations under
 one deadline and abort signal, orders them on a common timeline, collapses
 exact duplicates, and reports a partial result when only one side succeeds.
 An invalid `audioTranscript` degrades to that partial result — the visual

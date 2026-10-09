@@ -434,7 +434,7 @@ test("result-cache metadata carries the exact visual dedup policy identity", asy
   // addition (see videoBridgeTranscriptCacheIdentity.test.ts for the
   // dedicated contract-version regression guard).
   assert.equal(storedMetadata.cacheVersion, "v6");
-  assert.equal(storedMetadata.policyVersion, "sampling-then-dedup-v2");
+  assert.equal(storedMetadata.policyVersion, "sampling-then-dedup-v3-client-transcript");
   assert.equal(storedMetadata.dedupPolicyVersion, "grayscale-16x16-mean-cells-v2");
   assert.equal(storedMetadata.dedupThreshold, 0.04);
   assert.equal(storedMetadata.dedupCandidateFrameCount, 16);
@@ -453,7 +453,7 @@ test("a corrupt result-cache payload is discarded and recomputed", async () => {
         dedupCandidateFrameCount: 16,
         dedupPolicyVersion: "grayscale-16x16-mean-cells-v2",
         dedupThreshold: 0.04,
-        policyVersion: "sampling-then-dedup-v2",
+        policyVersion: "sampling-then-dedup-v3-client-transcript",
         extractorVersion: "v5",
         strategy: "uniform",
         model: "openai/gpt-4o-mini",
@@ -517,7 +517,7 @@ test("invalid numeric result-cache metadata is deleted and recomputed", async (t
     dedupCandidateFrameCount: 16,
     dedupPolicyVersion: "grayscale-16x16-mean-cells-v2",
     dedupThreshold: 0.04,
-    policyVersion: "sampling-then-dedup-v2",
+    policyVersion: "sampling-then-dedup-v3-client-transcript",
     extractorVersion: "v5",
     strategy: "uniform",
     model: "openai/gpt-4o-mini",

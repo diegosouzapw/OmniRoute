@@ -66,7 +66,10 @@ import {
   safeSetCacheEntry,
   videoBridgeAbortError,
 } from "./videoBridgeResultCache";
-import { callVisionModel as defaultCallVisionModel, type VisionModelConfig } from "./visionBridgeHelpers";
+import {
+  callVisionModel as defaultCallVisionModel,
+  type VisionModelConfig,
+} from "./visionBridgeHelpers";
 
 export interface VideoAnalysisContext {
   /** Effective prompt behavior after the no-text fallback. */
@@ -145,7 +148,7 @@ function waitForVideoBridgePromise<T>(promise: Promise<T>, signal: AbortSignal):
 // silently undefined, which would read as "no transcript" / mark
 // `videoBridgeObserved: false` for a video that does carry one.
 const VIDEO_BRIDGE_RESULT_CACHE_VERSION = "v6";
-const VIDEO_BRIDGE_RESULT_CACHE_POLICY = "sampling-then-dedup-v2";
+const VIDEO_BRIDGE_RESULT_CACHE_POLICY = "sampling-then-dedup-v3-client-transcript";
 const VIDEO_BRIDGE_RESULT_CACHE_KEY_KIND = "video-result-v4";
 const VIDEO_BRIDGE_DOWNLOAD_FLIGHT_VERSION = "v1";
 
@@ -455,7 +458,11 @@ async function describeWithVisionModel(
       timeoutMs: runtime.timeoutMs,
     },
     async (frameDataUri, timestampSeconds, signal) => {
-      const prompt = composeVideoFramePrompt(visionRuntime.prompt, timestampSeconds, analysis.focusHint);
+      const prompt = composeVideoFramePrompt(
+        visionRuntime.prompt,
+        timestampSeconds,
+        analysis.focusHint
+      );
       const key = cache
         ? bridgeCacheKey(frameDataUri, `${prompt}@${timestampSeconds.toFixed(3)}`, selectedModel)
         : null;
@@ -502,7 +509,10 @@ export interface ProcessVideoPartDeps {
   selectVideoModel: () => Promise<string | null>;
   /** Mirrors `VideoBridgeDependencies.describePart` — bypasses the internal
    * vision-model path entirely when supplied (test/override seam). */
-  overrideDescribePart?: (part: VideoPart, analysis: VideoAnalysisContext) => Promise<DescribedVideo>;
+  overrideDescribePart?: (
+    part: VideoPart,
+    analysis: VideoAnalysisContext
+  ) => Promise<DescribedVideo>;
   callVisionModel?: (
     imageDataUri: string,
     config: VisionModelConfig,
@@ -575,13 +585,25 @@ export async function processVideoPart(
             buildVideoDownloadFlightKey(part, context, VIDEO_BRIDGE_MAX_BYTES, runtime.timeoutMs),
             attemptSignal,
             (downloadSignal) =>
-              deps.broker.loadVideoPartBytes(part, VIDEO_BRIDGE_MAX_BYTES, runtime.timeoutMs, downloadSignal, {
-                fetchRemote: deps.broker.fetchRemote,
-              })
+              deps.broker.loadVideoPartBytes(
+                part,
+                VIDEO_BRIDGE_MAX_BYTES,
+                runtime.timeoutMs,
+                downloadSignal,
+                {
+                  fetchRemote: deps.broker.fetchRemote,
+                }
+              )
           )
-        : await deps.broker.loadVideoPartBytes(part, VIDEO_BRIDGE_MAX_BYTES, runtime.timeoutMs, attemptSignal, {
-            fetchRemote: deps.broker.fetchRemote,
-          })
+        : await deps.broker.loadVideoPartBytes(
+            part,
+            VIDEO_BRIDGE_MAX_BYTES,
+            runtime.timeoutMs,
+            attemptSignal,
+            {
+              fetchRemote: deps.broker.fetchRemote,
+            }
+          )
       : null;
     const contentFingerprint =
       deps.cache && videoBytes
@@ -650,7 +672,11 @@ export async function processVideoPart(
             analysis,
             processingSignal,
             videoBytes ?? undefined,
-            { broker: deps.broker, transcription: deps.transcription, callVisionModel: deps.callVisionModel }
+            {
+              broker: deps.broker,
+              transcription: deps.transcription,
+              callVisionModel: deps.callVisionModel,
+            }
           );
       if (processingSignal.aborted) throw videoBridgeAbortError();
       const resultCacheBytes = Buffer.byteLength(described.description, "utf8");
@@ -674,7 +700,8 @@ export async function processVideoPart(
               modelUsed: described.modelUsed ?? resultCacheIdentity.model,
               samplingCandidateCount: described.sampling?.candidateCount ?? 0,
               samplingPolicyEffective: described.sampling?.policyEffective ?? "uniform",
-              samplingPolicyRequested: described.sampling?.policyRequested ?? runtime.samplingPolicy,
+              samplingPolicyRequested:
+                described.sampling?.policyRequested ?? runtime.samplingPolicy,
               transcriptCuesApplied: described.transcriptCues?.length ?? 0,
               contactSheetUsed: described.contactSheetUsed ?? false,
               ...(described.fusion ? { fusion: described.fusion } : {}),
