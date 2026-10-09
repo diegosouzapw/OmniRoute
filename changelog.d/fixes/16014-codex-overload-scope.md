@@ -1,0 +1,1 @@
+- Keep explicit Codex model-overload cooldowns on the exact model while preserving transient duration, Retry-After, quota/auth protections and generic connection-failure handling ([#16014](https://github.com/diegosouzapw/OmniRoute/pull/16014)).
