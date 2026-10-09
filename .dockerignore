@@ -100,8 +100,8 @@ vscode-extension
 *.deb
 *.rpm
 
-# Package manager lock (bun)
-bun.lock
+# Package manager lockfiles from independent subprojects
+@omniroute/*/package-lock.json
 
 # Agent config
 .agents
