@@ -92,3 +92,29 @@ test("keeps error.message when details are empty or malformed", async () => {
   );
   assert.equal(await readFetchErrorMessage(junk, FALLBACK), "Invalid request");
 });
+
+// The resilience settings PATCH is rejected by validateBody when the dashboard
+// sends a field the schema does not accept (e.g. globalConcurrentRequests on
+// builds where it is not in requestQueueSettingsSchema). The toast must name
+// the offending field instead of the generic "Invalid request".
+test("surfaces the offending field for a resilience requestQueue rejection", async () => {
+  const res = jsonResponse(
+    {
+      error: {
+        message: "Invalid request",
+        details: [
+          {
+            field: "requestQueue",
+            message: 'Unrecognized key: "globalConcurrentRequests"',
+            keys: ["globalConcurrentRequests"],
+          },
+        ],
+      },
+    },
+    400
+  );
+  assert.equal(
+    await readFetchErrorMessage(res, FALLBACK),
+    'requestQueue: Unrecognized key: "globalConcurrentRequests"'
+  );
+});

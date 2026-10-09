@@ -8,6 +8,7 @@ import AutoDisableCard from "./AutoDisableCard";
 import ModelLockoutCard from "./ModelLockoutCard";
 import TokenRefreshBreakerCard, { type TokenRefreshBreakerValue } from "./TokenRefreshBreakerCard";
 import { NumberField, BooleanField } from "./ResilienceFields";
+import { readFetchErrorMessage } from "@/shared/utils/fetchError";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -100,43 +101,6 @@ function toResilienceResponse(json: ResilienceResponse): ResilienceResponse {
 function formatMs(value: number | null | undefined) {
   if (typeof value !== "number") return "—";
   return `${value}ms`;
-}
-
-/**
- * Build a human-readable message from a failed API response.
- *
- * The API returns structured validation errors shaped as:
- *   { error: { message: "Invalid request",
- *              details: [{ field: "requestQueue",
- *                          message: 'Unrecognized key: "globalConcurrentRequests"',
- *                          keys: ["globalConcurrentRequests"] }] } }
- *
- * Without this, the UI only ever surfaces the generic `message`
- * ("Invalid request"), which tells the operator nothing about which
- * field to fix or why it was rejected.
- */
-function formatApiError(json: unknown, status: number): string {
-  const error = (json as { error?: unknown })?.error;
-  if (!error) return `HTTP ${status}`;
-
-  const base = typeof error === "string" ? error : (error as { message?: string }).message;
-  const details = (error as { details?: unknown })?.details;
-
-  // Only string errors carry no detail to expand.
-  if (typeof error === "string" || !Array.isArray(details) || details.length === 0) {
-    return base || `HTTP ${status}`;
-  }
-
-  const lines = details
-    .map((detail) => {
-      const { field, message } = detail as { field?: string; message?: string };
-      if (!field && !message) return null;
-      return field ? `${field}: ${message ?? "invalid"}` : (message ?? "invalid");
-    })
-    .filter((line): line is string => line !== null);
-
-  if (lines.length === 0) return base || `HTTP ${status}`;
-  return [base, ...lines].join(" — ");
 }
 
 function SectionDescription({
@@ -1219,7 +1183,9 @@ export default function ResilienceTab() {
       });
       const json = await response.json();
       if (!response.ok) {
-        throw new Error(formatApiError(json, response.status));
+        throw new Error(
+          await readFetchErrorMessage(response, tx("saveFailed", "Failed to save resilience settings"))
+        );
       }
       setData(toResilienceResponse(json));
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
