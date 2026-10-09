@@ -81,6 +81,7 @@ import {
   isModelLocked,
   getModelLockoutInfo,
   lockModel,
+  lockExactModel,
   hasPerModelQuota,
   hasPerModelFailureScope,
   getRuntimeProviderProfile,
@@ -2716,6 +2717,7 @@ export async function markAccountUnavailable(
     headers?: Headers | Record<string, string> | null;
     correlationId?: string | null;
     streamOutputEmitted?: boolean;
+    structuredError?: { code?: string | null; type?: string | null } | null;
   } = {}
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
@@ -2855,7 +2857,7 @@ export async function markAccountUnavailable(
       provider,
       options.headers ?? null,
       effectiveProviderProfile,
-      null,
+      options.structuredError ?? null,
       null,
       await resolveDailyResetForProvider(provider)
     );
@@ -3303,6 +3305,31 @@ export async function markAccountUnavailable(
       baseCooldownMs: effectiveProviderProfile?.baseCooldownMs,
     });
     const cooldownMs = oauthAuthCooldownMs ?? resolvedCooldownMs;
+
+    // An explicit capacity failure is not evidence that this account's other
+    // model endpoints are unavailable. Keep the existing transient duration,
+    // but only suppress the failing tuple. Do not reuse the escalating quota
+    // lockout policy or reset an existing connection/terminal/quota lock.
+    if (
+      provider === "codex" &&
+      (status === 502 || status === 503) &&
+      options.structuredError?.code === "server_is_overloaded" &&
+      model?.trim() &&
+      (reason === RateLimitReason.SERVER_ERROR || reason === RateLimitReason.MODEL_CAPACITY) &&
+      !terminalStatus
+    ) {
+      const modelCooldownMs = disableCooling ? 0 : cooldownMs;
+      if (modelCooldownMs > 0) {
+        lockExactModel(provider, connectionId, model, "server_is_overloaded", modelCooldownMs);
+      }
+      await updateProviderConnection(connectionId, {
+        lastErrorType: "server_error",
+        lastError: "Upstream model temporarily overloaded",
+        lastErrorAt: new Date().toISOString(),
+        errorCode: status,
+      });
+      return { shouldFallback: true, cooldownMs: modelCooldownMs };
+    }
 
     // ── #3027 / #12242 (402 variant): per-model subscription (403) or
     // per-model billing (402) error on a passthrough/gateway provider →
