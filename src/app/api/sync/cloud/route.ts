@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { getApiKeys, createApiKey, pickApiKeyForInternalUse } from "@/lib/db/apiKeys";
 import { updateSettings } from "@/lib/db/settings";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
@@ -66,6 +67,9 @@ export async function GET() {
  * Sync data with Cloud
  */
 export async function POST(request: any) {
+  if (!(await isAuthenticated(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   let rawBody;
   try {
     rawBody = await request.json();
@@ -135,7 +139,7 @@ export async function POST(request: any) {
  */
 async function syncAndVerify(machineId: string, createdKey: any, existingKeys: any[]) {
   // Step 1: Sync data to cloud
-  const syncResult: any = await syncToCloud(machineId, createdKey);
+  const syncResult: any = await syncToCloud(machineId, createdKey, { explicitEnable: true });
   if (syncResult.error) {
     return NextResponse.json({ error: `Cloud sync failed: ${syncResult.error}` }, { status: 502 });
   }

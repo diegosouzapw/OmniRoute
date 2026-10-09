@@ -391,18 +391,18 @@ Model təriflərini `open-sse/config/providerRegistry.ts` faylına əlavə edin.
 
 - [ ] Testlər uğurla keçir (`npm test`)
 - [ ] Lint yoxlaması uğurla keçir (`npm run lint`)
-- [ ] Yığma uğurla tamamlanır (`npm run build`)
+- [ ] Build uğurla tamamlanır (`npm run build`)
 - [ ] Yeni ictimai funksiyalar və interfeyslər üçün TypeScript tipləri əlavə edilib
 - [ ] Sərt kodlaşdırılmış məxfi məlumatlar və ya ehtiyat dəyərlər yoxdur
 - [ ] İctimai upstream giriş məlumatları literal kimi deyil, `resolvePublicCred()` vasitəsilə daxil edilib (bax: [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md))
-- [ ] Xəta cavabları `buildErrorBody()` / `sanitizeErrorMessage()` vasitəsilə yönləndirilir — cavab gövdələrində emal edilməmiş stek izləri yoxdur (bax: [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell əmrləri (`exec` / `spawn`) icra vaxtı dəyərlərini sətir interpolyasiyası ilə deyil, `env` vasitəsilə ötürür
-- [ ] Bütün giriş məlumatları Zod sxemləri ilə doğrulanıb
-- [ ] İstifadəçiyə təsir edən dəyişikliklər üçün `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` altında dəyişiklik jurnalı **fraqmenti** əlavə edilib (bax: [`changelog.d/README.md`](./changelog.d/README.md)) — `CHANGELOG.md` faylını birbaşa redaktə **etməyin**; fraqmentlər buraxılış zamanı birləşdirilir və PR-lar arasında heç vaxt ziddiyyət yaratmır
+- [ ] Xəta cavabları `buildErrorBody()` / `sanitizeErrorMessage()` vasitəsilə yönləndirilir — cavab gövdələrində emal edilməmiş stack trace-lər yoxdur (bax: [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell komandaları (`exec` / `spawn`) icra vaxtı dəyərlərini sətir interpolasiyası ilə deyil, `env` vasitəsilə ötürür
+- [ ] Bütün girişlər Zod sxemləri ilə yoxlanılır
+- [ ] İstifadəçiyə təsir edən dəyişikliklər üçün `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` altında dəyişiklik jurnalının **fraqmenti** əlavə edilib (bax: [`changelog.d/README.md`](./changelog.d/README.md)) — `CHANGELOG.md` faylını birbaşa redaktə **etməyin**; fraqmentlər buraxılış zamanı birləşdirilir və PR-lər arasında heç vaxt ziddiyyət yaratmır
 - [ ] Sənədləşmə yenilənib (tətbiq olunduğu halda)
 - [ ] Yeni CodeQL / Secret-Scanning xəbərdarlıqları açılmayıb və ya hər biri müvafiq `docs/security/` sənədinə istinad edən texniki əsaslandırma ilə rədd edilib
-- [ ] Alt proseslər yaradan marşrutlar (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` daxilində `isLocalOnlyPath()` kimi təsnif edilib — bax: [Sərt Qayda #15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Commit mesajlarında `Co-Authored-By` treylerləri yoxdur — commitlər yalnız repozitoriya sahibinin Git identifikasiyası altında görünməlidir (Sərt Qayda #16)
+- [ ] Alt proseslər yaradan marşrutlar (`/api/mcp/`, `/api/cli-tools/runtime/`) `src/server/authz/routeGuard.ts` faylında `isLocalOnlyPath()` kimi təsnif edilib — bax: [Sərt Qayda #15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Commit mesajlarında AI/bot `Co-authored-by` treylerləri yoxdur (Sərt Qayda #16) — işindən yenidən istifadə edilən insan əməkdaşlara standart `Co-authored-by: Name <email>` treylerləri ilə istinad edilir
 
 ---
 
@@ -415,8 +415,7 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 ## Yardım Almaq
 
 - **Arxitektura**: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) sənədinə baxın
-- **API arayışı**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) sənədinə baxın
+- **API Arayışı**: [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md) sənədinə baxın
 - **Təhlükəsizlik sənədləri**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Əməliyyat sənədləri**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Problemlər**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR-lər**: Arxitektura qərarlarının qeydləri üçün `docs/adr/` qovluğuna baxın

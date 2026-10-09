@@ -3,6 +3,7 @@ import {
   FEATURE_FLAG_DEFINITIONS,
   type FeatureFlagDefinition,
 } from "@/shared/constants/featureFlagDefinitions";
+import { registerFeatureFlagResolver } from "@/shared/utils/featureFlagResolverBridge";
 
 /**
  * Resolve the effective value of a feature flag.
@@ -27,6 +28,10 @@ export function isFeatureFlagEnabled(key: string): boolean {
   const value = resolveFeatureFlag(key);
   return value === "true" || value === "1" || value === "yes";
 }
+
+// Expose the DB-aware resolver to client-reachable pure-data registries
+// (imageRegistry) without them importing this server-only module (#10692).
+registerFeatureFlagResolver(isFeatureFlagEnabled);
 
 /**
  * Resolve all feature flags with their effective values and sources.
@@ -140,13 +145,19 @@ export type UnpricedUsageBudgetPolicy = "fail_closed" | "count_as_zero";
  *
  * Fail-safe closed: an unreadable flag store or an unknown value keeps the
  * default `fail_closed` behavior, so a hard budget cap is never silently
- * relaxed. Only an explicit `count_as_zero` override opts out.
+ * relaxed. An explicit enum (DB before env) takes precedence over the upstream
+ * USAGE_LIMIT_IGNORE_UNPRICED opt-out; the boolean is consulted only when no
+ * enum was configured. An invalid explicit enum must not fall through to it.
  */
 export function getUnpricedUsageBudgetPolicy(): UnpricedUsageBudgetPolicy {
   try {
-    return resolveFeatureFlag("UNPRICED_USAGE_BUDGET_POLICY") === "count_as_zero"
-      ? "count_as_zero"
-      : "fail_closed";
+    const explicitPolicy =
+      getFeatureFlagOverride("UNPRICED_USAGE_BUDGET_POLICY") ??
+      (process.env.UNPRICED_USAGE_BUDGET_POLICY || undefined);
+    if (explicitPolicy !== undefined) {
+      return explicitPolicy === "count_as_zero" ? "count_as_zero" : "fail_closed";
+    }
+    return isFeatureFlagEnabled("USAGE_LIMIT_IGNORE_UNPRICED") ? "count_as_zero" : "fail_closed";
   } catch (error) {
     console.error(
       "[featureFlags] Failed to resolve UNPRICED_USAGE_BUDGET_POLICY, defaulting to fail_closed:",
@@ -278,6 +289,23 @@ export function isPoolEgressObservationEnabled(): boolean {
   } catch (error) {
     console.error(
       "[featureFlags] Failed to resolve PROXY_POOL_EGRESS_OBSERVATION, defaulting to disabled:",
+      error instanceof Error ? error.message : error
+    );
+    return false;
+  }
+}
+
+/**
+ * Operator-provided dated egress observations: opt-in push + merged reads.
+ * Opt-in; an unreadable flag store keeps the push route at 404 and pool reads
+ * on the journal-only behavior.
+ */
+export function isOperatorEgressEnabled(): boolean {
+  try {
+    return isFeatureFlagEnabled("PROXY_OPERATOR_EGRESS_ENABLED");
+  } catch (error) {
+    console.error(
+      "[featureFlags] Failed to resolve PROXY_OPERATOR_EGRESS_ENABLED, defaulting to disabled:",
       error instanceof Error ? error.message : error
     );
     return false;

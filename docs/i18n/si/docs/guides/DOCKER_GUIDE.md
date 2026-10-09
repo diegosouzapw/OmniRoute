@@ -238,14 +238,14 @@ prod stack එක dev compose එකට සමාන්තරව ක්රිය
 
 ## Dockerfile අදියර
 
-ගබඩාව සමඟ බහු-අදියර Dockerfile එකක් (`Dockerfile`) සපයනු ලැබේ. අදියර හතරක් නිරාවරණය කර ඇත; ඔබේ භාවිත අවස්ථාව සඳහා නිවැරදි `target` එක තෝරන්න.
+රිපොසිටරිය සමඟ බහු-අදියර Dockerfile එකක් (`Dockerfile`) සපයනු ලැබේ. අදියර හතරක් නිරාවරණය කර ඇත; ඔබේ භාවිත අවස්ථාව සඳහා නිවැරදි `target` එක තෝරන්න.
 
-| අදියර         | මූලික image එක        | අරමුණ                                                                                                                                                                                                                                                                                |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `builder`     | `node:26-trixie-slim` | පරායත්තතා ස්ථාපනය කරයි (`npm ci --legacy-peer-deps`) සහ `npm run build` ධාවනය කරයි (පෙරනිමියෙන් Turbopack — පහත ගොඩනැගීම්-කාලීන සම්පත් බලන්න)                                                                                                                                        |
-| `runner-base` | `node:26-trixie-slim` | Next.js ස්වාධීන ප්රතිදානය සහිත නිෂ්පාදන ධාවන පරිසරය. **සපයන්නන්ගේ CLI කිසිවක් ඇතුළත් කර නැත.**                                                                                                                                                                                       |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` සහ ගෝලීය CLI එක් කරයි: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **නියෝජිත-පාදක කාර්ය ප්රවාහ සඳහා මෙය තෝරන්න.**                                                                                                        |
-| `runner-web`  | `runner-base`         | වෙබ්-සැසි සපයන්නන් සඳහා Playwright + Chromium බ්රවුසරයක් (`--with-deps`) එක් කරයි: `gemini-web`, `claude-web`, `claude-turnstile`. **ඔබ එම සපයන්නන් භාවිත කරන විට මෙය තෝරන්න** — මෙය නොමැති සාමාන්ය image එක ඉල්ලීම් අවස්ථාවේ අසාර්ථක වේ (නිකුතු නාලිකා යටතේ ඇති `-web` සටහන බලන්න). |
+| අදියර         | මූලික image එක        | අරමුණ                                                                                                                                                                                                                                                                                                     |
+| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | dependencies ස්ථාපනය කරයි (`npm ci --legacy-peer-deps`) සහ `npm run build` ධාවනය කරයි (පෙරනිමියෙන් Turbopack — පහත ගොඩනැගීමේ-කාලීන සම්පත් බලන්න)                                                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | Next.js standalone ප්රතිදානය සහිත නිෂ්පාදන ධාවන පරිසරය. **කිසිදු සැපයුම්කරු CLI එකක් ඇතුළත් නොවේ.**                                                                                                                                                                                                       |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` සහ ගෝලීය CLI එක් කරයි: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **නියෝජිත-පාදක කාර්ය ප්රවාහ සඳහා මෙය තෝරන්න.**                                                                                                                             |
+| `runner-web`  | `runner-base`         | වෙබ්-සැසි සැපයුම්කරුවන් සඳහා Playwright + Chromium බ්රවුසරයක් (`--with-deps`) එක් කරයි: `gemini-web`, `claude-web`, `claude-turnstile`. **ඔබ එම සැපයුම්කරුවන් භාවිත කරන විට මෙය තෝරන්න** — මෙය නොමැති සාමාන්ය image එක ඉල්ලීම සිදු කරන අවස්ථාවේ අසාර්ථක වේ (Release Channels යටතේ ඇති `-web` සටහන බලන්න). |
 
 නිශ්චිත target එකක් අතින් ගොඩනඟන්න:
 
@@ -255,39 +255,36 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### ගොඩනැගීම්-කාලීන සම්පත්
+### ගොඩනැගීමේ-කාලීන සම්පත්
 
-`builder` අදියරේ සම්පත් පිරිවැය පාලනය කරන්නේ build args තුනකි. ඒවා ගොඩනැගීම් කාලයට පමණක් අදාළ වේ —
+build args තුනක් මඟින් `builder` අදියරේ සම්පත් පිරිවැය පාලනය කරයි. ඒවා ගොඩනැගීමේ කාලයට පමණක් අදාළ වේ —
 `OMNIROUTE_MEMORY_MB` (පහත) යනු වෙනම ධාවන-කාලීන පාලකයකි.
 
-| Build arg                   | පෙරනිමිය | බලපෑම                                                                                                       |
-| --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` නම් ඒ වෙනුවට webpack සමඟ ගොඩනඟයි. උපරිම මතක භාවිතය අඩු නමුත් මන්දගාමී වේ.                               |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | ආරම්භ කරන `next build` සඳහා V8 heap සීමාව (`--max-old-space-size`).                                         |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` වෙත අගය සපයයි; පිටු-දත්ත රැස් කිරීම සඳහා Next විසින් `workers = N - 1` ව්යුත්පන්න කරයි. |
+| Build arg                   | පෙරනිමිය | බලපෑම                                                                                                             |
+| --------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`      | `0` webpack සමඟ ගොඩනඟයි: උපරිම මතක භාවිතය අඩු නමුත් මන්දගාමී වේ. `1` Turbopack සක්රිය කරයි.                       |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | ආරම්භ කරන ලද `next build` සඳහා V8 heap සීමාව (`--max-old-space-size`).                                            |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | `CIRCLE_NODE_TOTAL` වෙත අගයක් සපයයි; පිටු-දත්ත රැස් කිරීම සඳහා Next විසින් `workers = N - 1` ලෙස ව්යුත්පන්න කරයි. |
 
-විශාල builder එකකදී වැඩි කළ යුතු සහ සම්පත් සීමිත ගොඩනැගීමක් `✓ Compiled successfully` **පසු** නතර වුවහොත් සැක කළ යුතු අගය වන්නේ `OMNIROUTE_BUILD_WORKERS` ය.
-සෑම පිටු-දත්ත worker එකක්ම වෙනම ක්රියාවලියක් වන අතර, මව් `next build` එකද වෙනම ක්රියාවලියකි;
-සජීවී VPS ප්රතිනිෂ්පාදනයකදී (issue #7518), `NODE_OPTIONS` heap flag එකෙන් ස්වාධීනව සෑම ක්රියාවලියකම උපරිම RSS අගය ~4.5 GB ලෙස මනින ලදී (Turbopack, V8 heap එකෙන් පිටත native/Rust මතකයේ compile කරයි). `2` පෙරනිමිය (→ worker 1ක්, සමස්ත ක්රියාවලි 2ක්) ප්රකාශන pipeline එක භාවිත කරන 16 GB / 4 vCPU GitHub-hosted runner සඳහා සකසා ඇත. `8` දී (→ workers 7ක්) එම runner එකේ මතකය අවසන් වූ අතර buildkit විසින් `ResourceExhausted: ... cannot allocate memory` සමඟ පියවර අසාර්ථක කරන ලදී;
-එක් එක් ක්රියාවලියේ RSS අගය අනුමාන කිරීම වෙනුවට සෘජුව මැනීමෙන් පසුව `3` (→ workers 2ක්) පවා ප්රමාණවත් නොවීය. `tests/unit/docker-build-memory-budget.test.ts` මනින ලද අගයට එරෙහිව ගණනය කිරීම් සිදු කරන අතර, ඕනෑම පාලකයක් runner එකේ ධාරිතාව ඉක්මවන්නේ නම් අසාර්ථක වේ.
+විශාල builder එකකදී වැඩි කළ යුතු අගයත්, සීමිත සම්පත් සහිත build එකක් `✓ Compiled successfully` යන්නෙන් **පසුව** නතර වූ විට සැක කළ යුතු අගයත් `OMNIROUTE_BUILD_WORKERS` වේ. සෑම පිටු-දත්ත worker එකක්ම වෙනම ක්රියාවලියක් වන අතර, මව් `next build` ක්රියාවලියද එසේමය; සජීවී VPS ප්රතිනිෂ්පාදනයකදී (ගැටලුව #7518), `NODE_OPTIONS` heap ධජයෙන් ස්වාධීනව සෑම ක්රියාවලියකම උපරිම RSS අගය ~4.5 GB ලෙස මනින ලදී (Turbopack, V8 heap එකෙන් පිටත native/Rust මතකය තුළ compile කරයි). `2` යන පෙරනිමිය (→ worker 1ක්, සමස්ත ක්රියාවලි 2ක්) publish pipeline එක භාවිත කරන 16 GB / 4 vCPU GitHub-hosted runners සඳහා සකසා ඇත. `8` දී (→ workers 7ක්) එම runner එකේ මතකය අවසන් වූ අතර buildkit විසින් `ResourceExhausted: ... cannot allocate memory` සමඟ පියවර අසාර්ථක කරන ලදී; එක් එක් ක්රියාවලියේ RSS අගය අනුමාන කිරීම වෙනුවට සෘජුව මැනීමෙන් පසුව `3` (→ workers 2ක්) පවා ප්රමාණවත් නොවීය. `tests/unit/docker-build-memory-budget.test.ts` මනින ලද අගයට එරෙහිව ගණනය කිරීම් සිදු කරන අතර, ඕනෑම පාලකයක් runner එකේ ධාරිතාව ඉක්මවා ගියහොත් අසාර්ථක වේ.
 
-Turbopack, V8 heap එකෙන් **පිටත** පවතින native Rust මතකයේ compile කරන බැවින් `OMNIROUTE_BUILD_MEMORY_MB` මඟින් එය සීමා නොවේ. මතක සීමාවක් සහිත host එකකදී OOM killer විසින් කිසිදු දෝෂ පෙළක් නොමැතිව ගොඩනැගීම SIGKILL කරනු ලැබේ — එය `Creating an optimized production build` අතරමැද සරලව නවතින බැවින්, මතකය අවසන් වීමක් වෙනුවට සිරවීමක් මෙන් පෙනේ. ගොඩනැගීම් host එක සම්පත් සීමිත නම්, bundler එක මාරු කරන්න:
+Turbopack, V8 heap එකෙන් **පිටත** පවතින native Rust මතකය තුළ compile කරන බැවින් `OMNIROUTE_BUILD_MEMORY_MB` මඟින් එය සීමා නොවේ. මතක සීමාවක් සහිත host එකකදී OOM killer විසින් කිසිදු දෝෂ පෙළක් නොමැතිව build එක SIGKILL කරනු ලැබේ — එය `Creating an optimized production build` අතරමඟ සරලව නතර වන නිසා, මතකය අවසන් වීමක් වෙනුවට සිරවීමක් ලෙස පෙනේ. `npm run dev` / `npm run build` හි Turbopack කේතමය පෙරනිමිය වුවත්, `Dockerfile` එක webpack (`OMNIROUTE_USE_TURBOPACK=0`) පෙරනිමිය ලෙස භාවිත කරන්නේ එබැවිනි: build args නොමැති හිස් `docker build .` විධානයක් (Railway සහ වෙනත් එක්-ක්ලික් host සේවා ධාවනය කරන ආකාරය) මතකය සීමා කළ builder එකකදී නිහඬව නතර නොවිය යුතුය. ප්රකාශිත images දැනටමත් `docker-publish.yml` තුළ `OMNIROUTE_USE_TURBOPACK=0` පැහැදිලිව සපයයි. ප්රමාණවත් RAM ඇති builder එකකදී වඩා වේගවත් build එකක් සඳහා Turbopack සක්රිය කරන්න:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` සක්රීය කර ඇති බැවින්, `next build` මව් ක්රියාවලියක් **සහ** worker ක්රියාවලියක් ධාවනය කරන අතර ඒ සෑම එකක්ම `OMNIROUTE_BUILD_MEMORY_MB` සඳහා වෙන වෙනම අනුගත වේ. Container සීමාව එම අගයේ එක් ගුණයකට නොව, දළ වශයෙන් දෙගුණයකට වඩා ඉහළින් සකසන්න.
+`webpackBuildWorker` සක්රිය කර ඇති බැවින්, `next build` මව් ක්රියාවලියක් **සහ** worker ක්රියාවලියක් ධාවනය කරන අතර, ඒ සෑම එකක්ම `OMNIROUTE_BUILD_MEMORY_MB` වෙන වෙනම පිළිපදියි. container සීමාව එම අගය මෙන් එක් ගුණයකට නොව, දළ වශයෙන් දෙගුණයකට වඩා ඉහළින් සකසන්න.
 
 මෙම tree එක මත මනින ලදී (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Container සීමාව | ප්රතිඵලය                           |
-| --------- | --------------- | ---------------------------------- |
-| Turbopack | 8 GiB / 16 GiB  | දෙකේදීම නිහඬව OOM-killed විය       |
-| webpack   | 8 GiB           | build worker එක SIGKILL කරන ලදී    |
-| webpack   | 12 GiB          | සාර්ථක විය, උපරිම අගය 11.1 GiB විය |
+| Bundler   | Container සීමාව | ප්රතිඵලය                        |
+| --------- | --------------- | ------------------------------- |
+| Turbopack | 8 GiB / 16 GiB  | දෙකේදීම නිහඬව OOM-killed විය    |
+| webpack   | 8 GiB           | build worker එක SIGKILL විය     |
+| webpack   | 12 GiB          | සාර්ථක විය, උපරිමය 11.1 GiB විය |
 
 ### ධාවන-කාලීන පෙරනිමි
 
@@ -296,24 +293,24 @@ docker build --target runner-base \
 Docker තුළ මතක හැසිරීම:
 
 - රූපය `OMNIROUTE_MEMORY_MB=1024` ලෙස සකසා, එයින් `NODE_OPTIONS=--max-old-space-size=1024` ව්යුත්පන්න කරයි.
-- සැබෑ සේවාදායක ක්රියාවලිය standalone launcher මඟින් ආරම්භ කරන අතර, එය `OMNIROUTE_MEMORY_MB` කියවා `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` එක් කරයි.
-- නැවත නැවත සඳහන් කළ `--max-old-space-size` අගයන්ගෙන් අවසාන අගය Node භාවිත කරන බැවින්, `OMNIROUTE_MEMORY_MB` සැකසීමෙන් සත්ය වශයෙන් ක්රියාත්මක වන Docker heap සීමාව පාලනය වේ.
-- රූපය සැමවිටම එය සකසන බැවින්, launcher සතු RAM අනුව ක්රමාංකනය කළ fallback අගය Docker යටතේ කිසිවිටෙක යෙදෙන්නේ නැත. කාර්යභාරයට ගැළපෙන පරිදි එය පැහැදිලිව වැඩි කරන්න (පහත වගුව බලන්න). coding-agent `/v1/responses` සඳහා `2048` තවමත් ඉතා කුඩාය.
+- සැබෑ සේවාදායක ක්රියාවලිය ස්වාධීන දියත්කාරකය මඟින් ආරම්භ කරනු ලබන අතර, එය `OMNIROUTE_MEMORY_MB` කියවා `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` එක් කරයි.
+- Node නැවත නැවත ලබා දුන් `--max-old-space-size` අගයන්ගෙන් අවසාන අගය භාවිත කරන බැවින්, `OMNIROUTE_MEMORY_MB` සැකසීමෙන් සක්රිය Docker heap සීමාව පාලනය වේ.
+- රූපය සෑම විටම එය සකසන බැවින්, දියත්කාරකයේම RAM අනුව ක්රමාංකනය කළ පෙරනිමි විකල්පය Docker යටතේ කිසි විටෙක යෙදෙන්නේ නැත. කාර්ය භාරය සඳහා එය පැහැදිලිව වැඩි කරන්න (පහත වගුව). කේතකරණ නියෝජිත `/v1/responses` සඳහා `2048` තවමත් ප්රමාණවත් නොවේ.
 
-### coding agents සඳහා runtime RAM
+### කේතකරණ නියෝජිතයන් සඳහා ධාවනකාල RAM
 
-1 GiB Docker පෙරනිමිය යනු dashboard/සැහැල්ලු chat සඳහා අවම මට්ටමක් මිස නිෂ්පාදන භාවිතයට සුදුසු ප්රමාණයක් නොවේ. දිගු `POST /v1/responses` body (පණිවිඩ සිය ගණනක් සහ මෙවලම් දස ගණනක්) compression අතරතුර මතකය තුළ graphs කිහිපයක් රඳවා තබයි. එකිනෙක අතිච්ඡාදනය වන ~3 MiB / ~750k-token ඉල්ලීම් දෙකක් **12 GiB** old-space එකකදී V8 නවතා දමා ඇත (`FATAL ERROR: Reached heap limit`), එමෙන්ම 16 GiB cgroup OOM සීමාවටද ළඟා වී ඇත. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) බලන්න.
+1 GiB Docker පෙරනිමිය උපකරණ පුවරුව/සැහැල්ලු සංවාදය සඳහා අවම මට්ටමක් මිස නිෂ්පාදන භාවිතය සඳහා සුදුසු ප්රමාණයක් නොවේ. දිගු `POST /v1/responses` ඉල්ලීම් අන්තර්ගත (පණිවිඩ සිය ගණනක් සහ මෙවලම් දස ගණනක්) සම්පීඩනය අතරතුර මතකය තුළ ඇති ප්රස්තාර කිහිපයක් රඳවා ගනී. එකිනෙක අතිච්ඡාදනය වන ~3 MiB / ~750k-token ඉල්ලීම් දෙකක් **12 GiB** old-space එකකදී V8 නවතා දමා ඇත (`FATAL ERROR: Reached heap limit`), එමෙන්ම 16 GiB cgroup OOM සීමාවකටද ළඟා වී ඇත. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) බලන්න.
 
-cgroup `--memory` ප්රමාණය **heap එකට වඩා වැඩිව** සකසන්න — native buffers, SQLite සහ compression අතරමැදි දත්ත V8 පිටත පවතී.
+**cgroup `--memory` heap එකට වඩා ඉහළින්** ප්රමාණගත කරන්න — ස්වදේශීය බෆර, SQLite සහ සම්පීඩන අතරමැදි දත්ත V8 පිටත පවතී.
 
-| කාර්යභාරය                                 | `OMNIROUTE_MEMORY_MB`   | Container / cgroup                     | සටහන්                                                                                                           |
-| ----------------------------------------- | ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Dashboard, එක් සැහැල්ලු chat එකක්         | `1024` (රූපයේ පෙරනිමිය) | ≥2 GiB                                 |                                                                                                                 |
-| එක් coding agent එකක් (Claude/Codex/Grok) | `8192`                  | ≥10 GiB                                | සාමාන්ය single-session `/v1/responses`                                                                          |
-| සමගාමී දිගු `/v1/responses` දෙකක්         | `10240`–`12288`         | ≥12–16 GiB                             | ~12 GiB heap එකකදී V8 නවතා දැමීම මැන ඇත                                                                         |
-| සමගාමී දිගු contexts තුනක් හෝ වැඩි ගණනක්  | එක් ක්රියාවලියක නොකරන්න | අනුක්රමිකව ක්රියාත්මක කරන්න / වැඩි RAM | පෙරනිමි heavyweight admission අගය එකවර ක්රියාත්මක වන 1කි; RAM වැඩි නොකර එය ඉහළ දැමීමෙන් නැවත නවතා දැමීම සිදු වේ |
+| කාර්ය භාරය                                 | `OMNIROUTE_MEMORY_MB`   | බහාලුම / cgroup            | සටහන්                                                                                                                        |
+| ------------------------------------------ | ----------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| උපකරණ පුවරුව, එක් සැහැල්ලු සංවාදයක්        | `1024` (රූපයේ පෙරනිමිය) | ≥2 GiB                     |                                                                                                                              |
+| එක් කේතකරණ නියෝජිතයෙක් (Claude/Codex/Grok) | `8192`                  | ≥10 GiB                    | සාමාන්ය තනි-සැසි `/v1/responses`                                                                                             |
+| සමගාමී දිගු `/v1/responses` දෙකක්          | `10240`–`12288`         | ≥12–16 GiB                 | ~12 GiB heap එකකදී V8 නැවතීම මනින ලදී                                                                                        |
+| සමගාමී දිගු සන්දර්භ තුනක් හෝ වැඩි ගණනක්    | එක් ක්රියාවලියක නොකරන්න | අනුක්රමික කරන්න / වැඩි RAM | පෙරනිමි බර වැඩි ඇතුළත් කිරීමේ සීමාව ක්රියාත්මක වෙමින් පවතින ඉල්ලීම් 1කි; RAM වැඩි නොකර එය ඉහළ දැමීමෙන් නැවත එම නැවතීම ඇති වේ |
 
-`OMNIROUTE_MEMORY_MB` **සකසා නොමැති** විට, bare metal මත `omniroute serve` RAM ප්රමාණයෙන් ~35%කට ක්රමාංකනය කරයි (`[512, 4096]` පරාසයට සීමා කරයි). Docker සැමවිටම `1024` සකසන බැවින්, නිල රූපය තුළ එම ක්රමාංකනය කිසිවිටෙක ක්රියාත්මක නොවේ.
+`OMNIROUTE_MEMORY_MB` **සකසා නොමැති** විට, bare metal මත `omniroute serve` RAM ප්රමාණයෙන් ~35%කට ක්රමාංකනය කරයි (`[512, 4096]` පරාසයට සීමා කරයි). Docker සෑම විටම `1024` සකසන බැවින්, එම ක්රමාංකනය නිල රූපය තුළ කිසි විටෙක ක්රියාත්මක නොවේ.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

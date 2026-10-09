@@ -93,6 +93,25 @@ export const cursorProvider: RegistryEntry = {
     ),
     ...withOneMillionContext(
       [
+        { id: "claude-opus-5-5-max-fast", name: "Claude Opus 5.5 Max Fast" },
+        { id: "claude-opus-5-5-max", name: "Claude Opus 5.5 Max" },
+        { id: "claude-opus-5-5-xhigh-fast", name: "Claude Opus 5.5 Xhigh Fast" },
+        { id: "claude-opus-5-5-xhigh", name: "Claude Opus 5.5 Xhigh" },
+        { id: "claude-opus-5-5-high-fast", name: "Claude Opus 5.5 High Fast" },
+        { id: "claude-opus-5-5-high", name: "Claude Opus 5.5 High" },
+        { id: "claude-opus-5-5-medium-fast", name: "Claude Opus 5.5 Medium Fast" },
+        { id: "claude-opus-5-5-medium", name: "Claude Opus 5.5 Medium" },
+        { id: "claude-opus-5-5-low-fast", name: "Claude Opus 5.5 Low Fast" },
+        { id: "claude-opus-5-5-low", name: "Claude Opus 5.5 Low" },
+      ],
+      "Claude Opus 5.5",
+      300_000,
+      "claude-opus-5-5",
+      // No `-1m` wire mapping exists for this family in requestedModelParameters yet.
+      () => false
+    ),
+    ...withOneMillionContext(
+      [
         { id: "claude-opus-5-thinking-max-fast", name: "Claude Opus 5 Max Thinking Fast" },
         { id: "claude-opus-5-thinking-max", name: "Claude Opus 5 Max Thinking" },
         {

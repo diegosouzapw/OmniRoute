@@ -127,7 +127,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | Header                                      | Value                                                                                                               |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `Authorization`                             | `Bearer <api-key>`                                                                                                  |
-| `User-Agent`                                | `claude-cli/2.1.258 (external, sdk-cli)`                                                                            |
+| `User-Agent`                                | `claude-cli/2.1.280 (external, sdk-cli)`                                                                            |
 | `anthropic-version`                         | `2023-06-01`                                                                                                        |
 | `anthropic-beta`                            | `claude-code-20250219,interleaved-thinking-2025-05-14,effort-2025-11-24`                                            |
 | فی connection redact-thinking beta toggle   | ان upstreams کے لیے `redact-thinking-2026-02-12` شامل کرتا ہے جنہیں بالخصوص redacted thinking streams درکار ہوں     |

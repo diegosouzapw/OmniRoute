@@ -63,6 +63,7 @@ import {
 } from "@/lib/combos/builderDraft";
 import { normalizeComboConfigMode } from "@/shared/constants/comboConfigMode";
 import AutoComboCatalog from "./AutoComboCatalog";
+import { AutoComboTruncatedNote, getI18nOrFallback } from "./comboPageHelpers";
 import KimiComboPresetCard from "./KimiComboPresetCard";
 import { KIMI_CODING_PRESET, hasKimiCodingPreset } from "./kimiComboPreset";
 import BuilderIntelligentStep from "./BuilderIntelligentStep";
@@ -596,13 +597,6 @@ function getStrategyBadgeClass(strategy) {
   return "bg-blue-500/15 text-blue-600 dark:text-blue-400";
 }
 
-function getI18nOrFallback(t, key, fallback, values = undefined) {
-  try {
-    if (typeof t.has === "function" && t.has(key)) return t(key, values);
-  } catch {}
-  return fallback;
-}
-
 function moveArrayItem(items, fromIndex, toIndex) {
   const nextItems = [...items];
   const [movedItem] = nextItems.splice(fromIndex, 1);
@@ -704,7 +698,6 @@ function computeAllowedRestrictionSync(
 
   return result;
 }
-
 
 function getModelString(entry) {
   if (typeof entry === "string") return entry;
@@ -834,7 +827,6 @@ function formatComboEntryDisplay(
 function CombosPageContent() {
   const t = useTranslations("combos");
   const tc = useTranslations("common");
-  const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [combos, setCombos] = useState([]);
@@ -974,7 +966,7 @@ function CombosPageContent() {
         const err = await res.json();
         notify.error(err.error?.message || err.error || t("failedCreate"));
       }
-    } catch (error) {
+    } catch {
       notify.error(t("errorCreating"));
     }
   };
@@ -994,7 +986,7 @@ function CombosPageContent() {
         const err = await res.json();
         notify.error(err.error?.message || err.error || t("failedUpdate"));
       }
-    } catch (error) {
+    } catch {
       notify.error(t("errorUpdating"));
     }
   };
@@ -1019,7 +1011,7 @@ function CombosPageContent() {
         const err = await res.json().catch(() => null);
         notify.error(err?.error?.message || err?.error || t("errorDeleting"));
       }
-    } catch (error) {
+    } catch {
       notify.error(t("errorDeleting"));
     }
   };
@@ -1067,7 +1059,7 @@ function CombosPageContent() {
       });
       const data = await res.json();
       setTestResults(data);
-    } catch (error) {
+    } catch {
       setTestResults({ error: t("testFailed") });
       notify.error(t("testFailed"));
     }
@@ -1093,7 +1085,7 @@ function CombosPageContent() {
         );
         notify.error(resolveServerErrorMessage(errorBody, t("failedToggle")));
       }
-    } catch (error) {
+    } catch {
       // Revert on network error
       setCombos((prev) =>
         prev.map((c) => (c.id === combo.id ? { ...c, isActive: previousActive } : c))
@@ -1237,7 +1229,11 @@ function CombosPageContent() {
         </div>
       </div>
 
-      <AutoComboCatalog onComboCreated={handleComboCreated} />
+      <AutoComboCatalog
+        onComboCreated={handleComboCreated}
+        onTestCombo={handleTestCombo}
+        testingName={testingCombo}
+      />
 
       <KimiComboPresetCard
         alreadyCreated={hasKimiCodingPreset(combos)}
@@ -2026,6 +2022,11 @@ function TestResultsView({ results }) {
 
   return (
     <div className="flex flex-col gap-2">
+      <p className="text-xs text-text-muted">
+        Targets are tested independently. This checks model health, not the combo’s routing strategy
+        or fallback order.
+      </p>
+      <AutoComboTruncatedNote results={results} />
       {results.resolvedBy && (
         <div className="flex items-center gap-2 text-sm">
           <span className="material-symbols-outlined text-emerald-500 text-[18px]">
@@ -2033,7 +2034,7 @@ function TestResultsView({ results }) {
           </span>
           <div className="min-w-0">
             <div>
-              Resolved by:{" "}
+              First healthy target in combo order:{" "}
               <code className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded">
                 {results.resolvedBy}
               </code>
@@ -2078,6 +2079,12 @@ function TestResultsView({ results }) {
                 {r.stepId ? ` · ${r.stepId}` : ""}
               </div>
             ) : null}
+            {r.error && (
+              <p className="mt-2 whitespace-pre-wrap break-words text-red-500">
+                {r.statusCode ? `HTTP ${r.statusCode}: ` : ""}
+                {r.error}
+              </p>
+            )}
           </div>
           {r.latencyMs !== undefined && <span className="text-text-muted">{r.latencyMs}ms</span>}
           <span
@@ -2097,7 +2104,15 @@ function TestResultsView({ results }) {
   );
 }
 
-function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, comboConfigMode, routingSettings }) {
+function ComboFormModal({
+  isOpen,
+  combo,
+  onClose,
+  onSave,
+  activeProviders,
+  comboConfigMode,
+  routingSettings,
+}) {
   type CreateDraftSnapshot = {
     name: string;
     models: unknown[];
@@ -2961,18 +2976,29 @@ function ComboFormModal({ isOpen, combo, onClose, onSave, activeProviders, combo
     );
   };
 
+  // #14077: these ids are a literal, so they drift whenever a provider catalog
+  // changes and the combo is created with targets that resolve to nothing. The
+  // three Qoder entries below replace `kimi-k2-thinking`, `qwen3-coder-plus` and
+  // `deepseek-v3.2`, which the Qoder registry no longer carries.
+  // `tests/unit/combo-preset-models-resolve-14077.test.ts` pins every entry
+  // against the registry so the next catalog change fails there instead of in a
+  // user's combo.
   const FREE_STACK_PRESET_MODELS = [
     { model: "agy/gemini-3.7-flash-low", weight: 0 },
     { model: "kr/claude-sonnet-4.5", weight: 0 },
-    { model: "if/kimi-k2-thinking", weight: 0 },
-    { model: "if/qwen3-coder-plus", weight: 0 },
-    { model: "if/deepseek-v3.2", weight: 0 },
+    { model: "if/kimi-k2.7-code", weight: 0 },
+    { model: "if/qwen3.7-plus", weight: 0 },
+    { model: "if/deepseek-v4-pro", weight: 0 },
     { model: "nvidia/llama-3.3-70b-instruct", weight: 0 },
     { model: "groq/openai/gpt-oss-120b", weight: 0 },
   ];
 
+  // Found by the #14077 guard, not reported in the issue: Cursor carries no
+  // `claude-4.6-opus-*` at all — that generation is sonnet-only there, and opus
+  // lives under `claude-opus-5-*`. The sibling sonnet entry below resolves, which
+  // is why this one went unnoticed.
   const PAID_PREMIUM_PRESET_MODELS = [
-    { model: "cu/claude-4.6-opus-high", weight: 0 },
+    { model: "cu/claude-opus-5-high", weight: 0 },
     { model: "antigravity/claude-sonnet-4-6", weight: 0 },
     { model: "cu/claude-4.6-sonnet-high", weight: 0 },
     { model: "antigravity/gemini-pro-agent", weight: 0 },

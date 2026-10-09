@@ -188,16 +188,16 @@ láti inú `PlaygroundState` lọ́wọ́lọ́wọ́. Ààyè ìrọ́pò́ k�
 
 ---
 
-## Ìṣàwárí àti Àtúnṣe Ìṣòro
+## Yíyanjú Àwọn Ìṣòro
 
-| Àmì Ìṣòro                               | Okùnfà                         | Àtúnṣe                                                                                       |
-| --------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
-| Olootu Monaco kò farahàn nínú taabu API | SSR ṣàkójọ Monaco              | Ṣàyẹ̀wò pé `ApiTab` ń lo `dynamic(..., { ssr: false })`                                       |
-| Àwọn ṣiṣàn àfiwé ń ṣiṣẹ́ lọ́kọ̀ọ̀kan        | Lílo `Promise.all` tí kò tọ́    | Gbogbo ìbẹ̀rẹ̀ ṣiṣàn gbọ́dọ̀ jẹ́ fífi ránṣẹ́ nínú ìpè `Promise.all` kan ṣoṣo                       |
-| Àwọn òṣùwọ̀n fi TTFT `null` hàn          | A kò so olùdarí àjákù àkọ́kọ́ mọ́ | Ṣàyẹ̀wò pé a pe `useStreamMetrics.onFirstChunk()` nínú lúpù olùkà SSE                         |
-| Àgbékalẹ̀ tí a ti yan kò dúró            | A kò ṣe ìṣíkiri DB             | Ṣiṣe `npm run db:migrate` tàbí tún olupin náà bẹ̀rẹ̀ (ìṣíkiri máa ń ṣiṣẹ́ fúnra rẹ̀ nígbà ìbẹ̀rẹ̀) |
-| Ìmúdára ìtọ́ni dá 502 padà               | A kò ṣètò awoṣe nínú Config    | Olùlò gbọ́dọ̀ tẹ orúkọ awoṣe sínú páànù Config kí ó tó ṣe ìmúdára                              |
-| Kóòdù àgbéjáde fi `MISSING_API_KEY` hàn | A kò fi àpò-àyè sí i           | `codeExport.ts` máa ń lo `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` ní gbogbo ìgbà         |
+| Àmì ìṣòro                                 | Ohun tó fà á                   | Àtúnṣe                                                                             |
+| ----------------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
+| Olootu Monaco kò hàn nínú taabu API       | SSR ti gbé Monaco wọlé         | Ṣàyẹ̀wò pé `ApiTab` ń lo `dynamic(..., { ssr: false })`                             |
+| Àwọn stream ìfiwéra ń ṣiṣẹ́ lọ́kọ̀ọ̀kan       | Lílò `Promise.all` tí kò tọ́    | A gbọ́dọ̀ rán gbogbo ìbẹ̀rẹ̀ stream jáde nínú ìpè `Promise.all` kan ṣoṣo               |
+| Àwọn metrics fi TTFT `null` hàn           | A kò so handler chunk àkọ́kọ́ pọ̀ | Ṣàyẹ̀wò pé a pe `useStreamMetrics.onFirstChunk()` nínú loop olùkà SSE               |
+| Preset kò dúró mọ́                         | A kò tíì ṣiṣẹ́ migration DB     | Tun server náà bẹ̀rẹ̀: àwọn migration máa ń ṣiṣẹ́ fúnra wọn nígbà ìbẹ̀rẹ̀               |
+| Ìmúdára prompt dá 502 padà                | A kò ṣètò model nínú Config    | Olùlò gbọ́dọ̀ tẹ orúkọ model sínú pane Config kí ó tó ṣe ìmúdára                     |
+| Code tí a export fi `MISSING_API_KEY` hàn | A kò fi placeholder sí i       | `codeExport.ts` máa ń lo `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` nígbà gbogbo |
 
 ---
 

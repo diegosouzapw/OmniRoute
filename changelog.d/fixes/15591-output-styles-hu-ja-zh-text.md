@@ -1,0 +1,1 @@
+- **fix(compression):** legacy `cavemanOutputMode` injection now matches the old caveman text in Hungarian (it no longer falls back to English) and drops the extra space before the shared boundary sentence in Japanese and Chinese, including `terse-cjk` and multi-style selections. Prompt-cache prefixes for existing ja/zh selections change once on upgrade.

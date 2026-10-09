@@ -2,6 +2,7 @@ import { getProxyHealthStats } from "@/lib/db/proxies";
 import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getSweepVerdicts } from "@/lib/proxyHealth/sweepVerdict";
+import { getBlockedHistory } from "@/lib/proxyHealth/blockedHistory";
 
 export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
@@ -14,10 +15,13 @@ export async function GET(request: Request) {
     const verdicts = getSweepVerdicts(items.map((item) => String(item.proxyId ?? "")));
     const now = Date.now();
     const withSweep = items.map((item) => {
-      const verdict = verdicts[String(item.proxyId ?? "")];
-      if (!verdict) return item;
-      const sweep = { ...verdict, ageMs: Math.max(0, now - verdict.at) };
-      return { ...item, sweep };
+      const id = String(item.proxyId ?? "");
+      const verdict = verdicts[id];
+      const out: Record<string, unknown> = { ...item };
+      if (verdict) out.sweep = { ...verdict, ageMs: Math.max(0, now - verdict.at) };
+      const history = getBlockedHistory(id);
+      if (history) out.blockedHistory = { ...history, ageMs: Math.max(0, now - history.lastSeen) };
+      return out;
     });
     return Response.json({ items: withSweep, total: withSweep.length, windowHours: hours });
   } catch (error) {

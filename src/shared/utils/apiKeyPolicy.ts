@@ -32,6 +32,7 @@ import { resolveQuotaKeyScope } from "@/lib/quota/quotaKey";
 import { isQuotaModelName, parseQuotaModelName } from "@/lib/quota/quotaModelNaming";
 import { buildApiKeyUsageLimitPolicyRejection } from "@/lib/usage/apiKeyUsageLimits";
 import { ALL_COMBOS_ACCESS_RULE } from "@/shared/constants/comboAccess";
+import { hasApiKeyModelRestrictions } from "./resolvedModelAccess";
 
 // Default to no per-key request cap. API keys can still opt into explicit
 // limits via Settings/API Keys, while provider/account quota controls remain
@@ -72,6 +73,7 @@ interface AccessSchedule {
 
 /** Metadata stored for an API key in the local database. */
 export interface ApiKeyMetadata {
+  codexServiceMode?: import("../constants/codexServiceMode").ApiKeyCodexServiceMode;
   id: string;
   name?: string;
   modelAccessMode?: "all" | "restricted";
@@ -177,7 +179,7 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function normalizeComboAccessName(value: unknown): string | null {
+export function normalizeComboAccessName(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
@@ -271,11 +273,24 @@ async function resolveRequestedComboName(modelStr: string): Promise<string | nul
   return mappedName;
 }
 
+/**
+ * Built-in virtual routes (`auto/*`, `qtSd/*`) dispatch like combos but are not
+ * persisted combo rows, so `resolveRequestedComboName` cannot find them. They
+ * must still be matched against the key's combo allow-list; otherwise a key
+ * restricted to one named combo could reach every provider through them
+ * (GHSA-7j4q-6gx6-pg77).
+ */
+function isVirtualComboModel(modelStr: string): boolean {
+  return modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/");
+}
+
 async function isComboAllowedForKey(
   allowedCombos: string[],
   modelStr: string
 ): Promise<{ allowed: boolean; comboName: string | null }> {
-  const comboName = await resolveRequestedComboName(modelStr);
+  const comboName =
+    (await resolveRequestedComboName(modelStr)) ??
+    (isVirtualComboModel(modelStr) ? modelStr : null);
   if (!comboName) return { allowed: true, comboName: null };
 
   const allowed = allowedCombos.some((rule) => matchesComboAccessRule(comboName, modelStr, rule));
@@ -364,11 +379,7 @@ async function validateStandardRoutingTarget(
     }
   }
 
-  const hasModelRestrictions =
-    apiKeyInfo.modelAccessMode === "restricted" ||
-    Boolean(apiKeyInfo.allowedModels?.length) ||
-    Boolean(apiKeyInfo.blockedModels?.length) ||
-    apiKeyInfo.disableNonPublicModels === true;
+  const hasModelRestrictions = hasApiKeyModelRestrictions(apiKeyInfo);
   if (!requestedComboName && hasModelRestrictions && modelStr.startsWith("auto/")) {
     requestedComboName = modelStr;
   }
@@ -628,13 +639,9 @@ async function validateModelAccess(context: PolicyContext): Promise<Response | n
   if (comboAccess.rejection) return comboAccess.rejection;
   let requestedComboName = comboAccess.comboName;
 
-  const hasModelRestrictions =
-    apiKeyInfo.modelAccessMode === "restricted" ||
-    Boolean(apiKeyInfo.allowedModels?.length) ||
-    Boolean(apiKeyInfo.blockedModels?.length) ||
-    apiKeyInfo.disableNonPublicModels === true;
+  const hasModelRestrictions = hasApiKeyModelRestrictions(apiKeyInfo);
   if (!requestedComboName && hasModelRestrictions) {
-    if (modelStr.startsWith("auto/") || modelStr.startsWith("qtSd/")) {
+    if (isVirtualComboModel(modelStr)) {
       requestedComboName = modelStr;
     } else {
       try {

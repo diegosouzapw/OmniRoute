@@ -13,176 +13,192 @@ Wszystkie trasy interfejsu API zarządzania OmniRoute są klasyfikowane według 
 ### Poziom 1 — LOCAL_ONLY
 
 **Egzekwowanie przez:** `isLocalOnlyPath(path)` → sprawdzenie hosta pętli zwrotnej  
-**Obejście:** Domyślnie brak. Wąsko określony wyjątek dla ścieżek w `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES`, gdy żądanie zawiera prawidłowy klucz API z zakresem `manage` (zobacz [Wyjątek dla zakresu manage](#manage-scope-carve-out)).
+**Obejście:** Domyślnie brak. Wąski wyjątek dla ścieżek określonych w
+`LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES`, gdy żądanie zawiera prawidłowy
+klucz API z zakresem `manage` (zobacz [Wyjątek dla zakresu manage](#manage-scope-carve-out)).
 
-Te trasy uruchamiają procesy potomne lub wykonują kod w środowisku uruchomieniowym. Udostępnienie ich dla ruchu spoza interfejsu pętli zwrotnej umożliwiłoby atakującemu, który uzyskał prawidłowy token JWT (np. za pośrednictwem tunelu Cloudflared/Ngrok), wywoływanie procesów — jest to znana klasa podatności CVE ([GHSA-fhh6-4qxv-rpqj](https://github.com/advisories/GHSA-fhh6-4qxv-rpqj)).
+Te trasy uruchamiają procesy potomne lub wykonują kod środowiska uruchomieniowego.
+Udostępnienie ich dla ruchu spoza interfejsu pętli zwrotnej pozwoliłoby atakującemu,
+który uzyskał prawidłowy token JWT (np. za pośrednictwem tunelu Cloudflared/Ngrok),
+wywoływać uruchamianie procesów — jest to znana klasa podatności CVE
+([GHSA-fhh6-4qxv-rpqj](https://github.com/advisories/GHSA-fhh6-4qxv-rpqj)).
 
-**Czym jest GHSA-fhh6-4qxv-rpqj (klasa ataku):** serwer zarządzający/agenta udostępnia punkt końcowy, który uruchamia podproces (`npm install`, `node`, przeglądarkę, serwer proxy, `git`, `tar`, …). Jeśli ten punkt końcowy jest dostępny spoza hosta — ponieważ operator umieścił OmniRoute za tunelem nginx/Cloudflare/Tailscale, a token JWT wyciekł, albo uwierzytelnianie zostało nieprawidłowo skonfigurowane — atakujący zamienia „wywołanie API” w „uruchomienie polecenia na hoście” (zdalne wykonanie kodu). OmniRoute zapobiega temu, bezwarunkowo wymuszając **sprawdzenie hosta pętli zwrotnej przed jakimkolwiek sprawdzeniem uwierzytelniania** dla każdej trasy mogącej uruchamiać procesy: token, który wyciekł przez tunel, nadal nie umożliwia uruchomienia procesu.
+**Czym jest GHSA-fhh6-4qxv-rpqj (klasa ataku):** serwer zarządzający/agenta
+udostępnia punkt końcowy, który uruchamia podproces (`npm install`, `node`,
+przeglądarkę, serwer proxy, `git`, `tar`, …). Jeśli ten punkt końcowy jest
+dostępny spoza hosta — ponieważ operator umieścił OmniRoute za tunelem
+nginx/Cloudflare/Tailscale, a token JWT wyciekł lub uwierzytelnianie zostało
+nieprawidłowo skonfigurowane — atakujący zamienia „wywołanie API” w „uruchomienie
+polecenia na hoście” (zdalne wykonanie kodu). OmniRoute zapobiega temu, wymuszając
+**bezwarunkowe sprawdzenie hosta pętli zwrotnej, przed jakimkolwiek sprawdzeniem
+uwierzytelniania**, dla każdej trasy mogącej uruchamiać procesy: token, który
+wyciekł przez tunel, nadal nie umożliwia uruchomienia procesu.
 
-**Pełny zestaw LOCAL_ONLY.** Źródłem referencyjnym są `LOCAL_ONLY_API_PREFIXES` / `LOCAL_ONLY_API_PATTERNS` w `src/server/authz/routeGuard.ts`; poniższa tabela odzwierciedla bieżący stan. Mechanizm kontrolny `check-route-guard-membership` wylicza każdy plik `route.ts` w prefiksach umożliwiających uruchamianie procesów i powoduje niepowodzenie CI, jeśli którykolwiek z nich nie jest sklasyfikowany jako dostępny wyłącznie lokalnie.
+**Pełny zestaw LOCAL_ONLY.** Źródłem nadrzędnym są
+`LOCAL_ONLY_API_PREFIXES` / `LOCAL_ONLY_API_PATTERNS` w
+`src/server/authz/routeGuard.ts`; poniższa tabela odzwierciedla bieżący stan.
+Mechanizm kontrolny `check-route-guard-membership` wylicza każdy plik `route.ts`
+w prefiksach umożliwiających uruchamianie procesów i powoduje niepowodzenie CI,
+jeśli którykolwiek z nich nie jest sklasyfikowany jako dostępny wyłącznie lokalnie.
 
-| Prefiks / wzorzec                                                                                        | Dlaczego jest dostępny tylko lokalnie                                                                                                 |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/mcp/`                                                                                              | Serwer MCP — uruchamia mosty stdio i procedury obsługi SSE                                                                            |
-| `/api/cli-tools/runtime/`                                                                                | Środowisko uruchomieniowe narzędzi CLI — wykonuje dowolny kod wtyczek                                                                 |
-| `/api/cli-tools/{omp,letta,grok-build,forge,jcode,qwen}-settings`                                        | Moduły zapisujące ustawienia poszczególnych narzędzi, które mogą modyfikować pliki binarne/konfigurację narzędzi na hoście            |
-| `/api/cli-tools/{claude,cline,codewhale,codex,crush,deepseek-tui,droid,kilo,openclaw,pi,smelt}-settings` | To samo uruchomienie `getCliRuntimeStatus()` co w przypadku sześciu powyższych narzędzi (GHSA-35fw-cv32-2373)                         |
-| `/api/cli-tools/{all-statuses,status,detect}`                                                            | Sondy inwentaryzujące narzędzia CLI — uruchamiają `command -v` / `--version` dla każdego narzędzia (GHSA-35fw-cv32-2373)              |
-| `/api/cli-tools/antigravity-mitm`                                                                        | Sterowanie serwerem proxy MITM Antigravity (uruchamia/konfiguruje systemowy serwer proxy)                                             |
-| `/api/modality-bridge/video/`                                                                            | Sonda środowiska uruchomieniowego Video Bridge ograniczona ściśle do zaufanego interfejsu loopback oraz wewnętrzny most wyodrębniania |
-| `/api/services/`                                                                                         | Usługi wbudowane (9Router / CLIProxy / Bifrost / Mux / Dario) — `npm install` i uruchamianie                                          |
-| `/dashboard/providers/services/`                                                                         | Odwrotny serwer proxy do interfejsów usług wbudowanych                                                                                |
-| `/api/tunnels/cloudflared`                                                                               | Instaluje/uruchamia plik binarny cloudflared                                                                                          |
-| `/api/tunnels/tailscale/{install,enable,disable,login,start-daemon}`                                     | Instaluje/kontroluje tailscaled na hoście                                                                                             |
-| `/api/copilot/`                                                                                          | Nieuwierzytelniony sterownik LLM — domyślnie tylko przez CLI                                                                          |
-| `/api/tools/agent-bridge/`                                                                               | AgentBridge — uruchamia serwer MITM i modyfikuje ustawienia DNS                                                                       |
-| `/api/tools/traffic-inspector/`                                                                          | Traffic Inspector — nasłuchiwanie http-proxy i systemowy serwer proxy                                                                 |
-| `/api/settings/mitm`                                                                                     | Włącza przechwytywanie MITM (stan serwera proxy na poziomie systemu)                                                                  |
-| `/api/issue-agent/`                                                                                      | Agent zgłoszeń — uruchamia lokalne narzędzia względem repozytorium                                                                    |
-| `/api/plugins/`, `/api/plugins`                                                                          | Wtyczki — ładowanie/wykonywanie za pomocą `worker_threads` i `child_process`                                                          |
-| `/api/middleware/`                                                                                       | Oprogramowanie pośredniczące użytkownika — ładuje/wykonuje kod operatora w procesie                                                   |
-| `/api/system/version`                                                                                    | Automatyczna aktualizacja (tylko POST; GET/HEAD/OPTIONS są wyłączone) — uruchamia `git checkout` i `npm install`                      |
-| `/api/db-backups/exportAll`                                                                              | Uruchamia `tar`, aby utworzyć archiwum eksportu                                                                                       |
-| `/api/local/`                                                                                            | Lokalne programy uruchamiane jednym kliknięciem (obecnie Redis) — uruchamiają podman/docker                                           |
-| `/api/headroom/start`, `/api/headroom/stop`                                                              | Cykl życia serwera proxy Headroom — uruchamia CLI python lub wysyła sygnały do PID                                                    |
-| `/api/jobs`, `/api/jobs/`                                                                                | Sterowanie mechanizmem zadań — wykonuje zaplanowane operacje po stronie hosta                                                         |
-| `/api/oauth/cursor/auto-import`                                                                          | `execFile("which", ["cursor"])` przed zaimportowaniem danych uwierzytelniających                                                      |
-| `/api/oauth/kiro/auto-import`                                                                            | Odczytuje pliki danych uwierzytelniających Kiro CLI z hosta                                                                           |
-| `/api/skills/collect/`                                                                                   | Zbieranie umiejętności — wykrywa/instaluje lokalne narzędzia                                                                          |
-| `/api/skills/install`, `/api/skills/executions`                                                          | Rejestracja i wykonywanie procedur obsługi umiejętności — umożliwiają uruchomienie kontenera piaskownicy (GHSA-jx89)                  |
-| `/api/discovery/`                                                                                        | Sondy wykrywania sieci lokalnej/dostawców                                                                                             |
-| `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                                                                  | Uruchamia przeglądarkę z interfejsem graficznym oraz sesję VNC na potrzeby interaktywnych logowań                                     |
-| `/api/acp/agents`                                                                                        | ACP — wykrywa i uruchamia lokalne pliki binarne agentów CLI                                                                           |
-| `/api/resilience/connections`, `/dashboard/resilience/connections`                                       | Operacje utrzymania połączeń, które mogą modyfikować lokalny stan CLI                                                                 |
-| `/api/providers/cursor/agent-availability`                                                               | Kontrola zachęty do instalacji w panelu — uruchamia `cursor-agent status --format json`                                               |
-| `/api/providers/{id}/login` (regex)                                                                      | Uruchamia Chromium Playwright z interfejsem graficznym w celu logowania za pomocą plików cookie                                       |
-| `/api/providers/volcengine-plan/connect` (regex)                                                         | Ręczny przepływ z interfejsem graficznym oraz automatyczne logowanie telefonem/SMS oparte na sesji (uruchamia Playwright)             |
-| `/api/providers/{id}/refresh-cursor` (regex)                                                             | Ręczne odnawianie sesji Cursor — wywołuje `cursor-agent`                                                                              |
-| `/api/providers/{id}/chatgpt-web-codex-doctor` (regex)                                                   | Diagnozuje lokalną instalację CLI Codex (uruchamia plik binarny)                                                                      |
+| Prefiks / wzorzec                                                                                        | Dlaczego jest dostępny tylko lokalnie                                                                                                           |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/mcp/`                                                                                              | Serwer MCP — uruchamia mosty stdio i procedury obsługi SSE                                                                                      |
+| `/api/cli-tools/runtime/`                                                                                | Środowisko uruchomieniowe narzędzi CLI — wykonuje dowolny kod wtyczek                                                                           |
+| `/api/cli-tools/{omp,letta,grok-build,forge,jcode,qwen}-settings`                                        | Moduły zapisu ustawień poszczególnych narzędzi, które mogą modyfikować pliki binarne lub konfigurację narzędzi na hoście                        |
+| `/api/cli-tools/{claude,cline,codewhale,codex,crush,deepseek-tui,droid,kilo,openclaw,pi,smelt}-settings` | To samo wywołanie `getCliRuntimeStatus()`, które uruchamia proces, jak w przypadku sześciu powyższych narzędzi (GHSA-35fw-cv32-2373)            |
+| `/api/cli-tools/{all-statuses,status,detect}`                                                            | Sondy inwentaryzacyjne CLI — uruchamiają `command -v` / `--version` dla każdego narzędzia (GHSA-35fw-cv32-2373)                                 |
+| `/api/cli-tools/antigravity-mitm`                                                                        | Sterowanie serwerem proxy MITM Antigravity (uruchamia/wskazuje systemowy serwer proxy)                                                          |
+| `/api/modality-bridge/video/`                                                                            | Sonda środowiska uruchomieniowego Video Bridge, ściśle ograniczona do zaufanego interfejsu loopback, oraz wewnętrzny most ekstrakcji            |
+| `/api/services/`                                                                                         | Usługi osadzone (9Router / CLIProxy / Bifrost / Mux / Dario) — `npm install` i uruchamianie procesów                                            |
+| `/dashboard/providers/services/`                                                                         | Odwrotny serwer proxy do interfejsów usług osadzonych                                                                                           |
+| `/api/tunnels/cloudflared`                                                                               | Instaluje/uruchamia plik binarny cloudflared                                                                                                    |
+| `/api/tunnels/tailscale/{install,enable,disable,login,start-daemon}`                                     | Instaluje/kontroluje tailscaled na hoście                                                                                                       |
+| `/api/copilot/`                                                                                          | Nieuwierzytelniony sterownik LLM — domyślnie dostępny tylko przez CLI                                                                           |
+| `/api/tools/agent-bridge/`                                                                               | AgentBridge — uruchamia serwer MITM i modyfikuje ustawienia DNS                                                                                 |
+| `/api/tools/traffic-inspector/`                                                                          | Traffic Inspector — nasłuchiwanie http-proxy i systemowy serwer proxy                                                                           |
+| `/api/settings/mitm`                                                                                     | Włącza przechwytywanie MITM (stan serwera proxy na poziomie systemu)                                                                            |
+| `/api/issue-agent/`                                                                                      | Agent zgłoszeń — uruchamia lokalne narzędzia względem repozytorium                                                                              |
+| `/api/plugins/`, `/api/plugins`                                                                          | Wtyczki — ładowanie/wykonywanie za pomocą `worker_threads` i `child_process`                                                                    |
+| `/api/middleware/`                                                                                       | Oprogramowanie pośredniczące użytkownika — ładuje/wykonuje kod operatora w bieżącym procesie                                                    |
+| `/api/system/version`                                                                                    | Automatyczna aktualizacja (tylko POST; GET/HEAD/OPTIONS są zwolnione) — uruchamia `git checkout` i `npm install`                                |
+| `/api/db-backups/exportAll`                                                                              | Uruchamia `tar` w celu utworzenia archiwum eksportu                                                                                             |
+| `/api/local/`                                                                                            | Lokalne programy uruchamiające jednym kliknięciem (obecnie Redis) — uruchamia podman/docker                                                     |
+| `/api/headroom/start`, `/api/headroom/stop`                                                              | Cykl życia serwera proxy Headroom — uruchamia CLI python / wysyła sygnały do PID                                                                |
+| `/api/jobs`, `/api/jobs/`                                                                                | Sterowanie mechanizmem zadań — wykonuje zaplanowane operacje po stronie hosta                                                                   |
+| `/api/oauth/cursor/auto-import`                                                                          | `execFile("which", ["cursor"])` przed zaimportowaniem danych uwierzytelniających                                                                |
+| `/api/oauth/kiro/auto-import`                                                                            | Odczytuje pliki danych uwierzytelniających Kiro CLI z hosta                                                                                     |
+| `/api/skills/collect/`                                                                                   | Zbieranie umiejętności — wykrywa/instaluje lokalne narzędzia                                                                                    |
+| `/api/skills/install`, `/api/skills/executions`                                                          | Rejestracja i wykonywanie procedur obsługi umiejętności — sięgają do mechanizmu uruchamiania kontenera piaskownicy (GHSA-jx89)                  |
+| `/api/discovery/`                                                                                        | Sondy wykrywania sieci lokalnej/dostawców                                                                                                       |
+| `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                                                                  | Uruchamia przeglądarkę w trybie graficznym oraz sesję VNC na potrzeby interaktywnych logowań                                                    |
+| `/api/acp/agents`                                                                                        | ACP — wykrywa i uruchamia lokalne pliki wykonywalne agentów CLI                                                                                 |
+| `/api/resilience/connections`                                                                            | Dane JSON odporności dla poszczególnych kont (cooldown, breaker, lockout). Kod HTML panelu nie jest ograniczony wyłącznie do dostępu lokalnego. |
+| `/api/providers/cursor/agent-availability`                                                               | Sprawdzenie instalacji na potrzeby monitu w panelu — uruchamia `cursor-agent status --format json`                                              |
+| `/api/providers/{id}/login` (wyrażenie regularne)                                                        | Uruchamia przeglądarkę Playwright Chromium w trybie graficznym na potrzeby logowania za pomocą ciasteczek internetowych                         |
+| `/api/providers/volcengine-plan/connect` (wyrażenie regularne)                                           | Ręczny proces w trybie graficznym oraz automatyczne logowanie telefonem/SMS oparte na sesji (uruchamia Playwright)                              |
+| `/api/providers/{id}/refresh-cursor` (wyrażenie regularne)                                               | Ręczne odnowienie sesji Cursor — wywołuje `cursor-agent`                                                                                        |
+| `/api/providers/{id}/chatgpt-web-codex-doctor` (wyrażenie regularne)                                     | Diagnozuje lokalną instalację Codex CLI (uruchamia plik wykonywalny)                                                                            |
 
 **Odpowiedź w przypadku naruszenia:** `403 LOCAL_ONLY`
 
-#### Wyjątek dla zakresu zarządzania
+#### Wyjątek dla zakresu manage
 
-Podzbiór ścieżek LOCAL_ONLY MOŻE być również dostępny spoza interfejsu pętli zwrotnej wtedy i
+Podzbiór ścieżek LOCAL_ONLY MOŻE być również dostępny spoza interfejsu loopback wtedy i
 tylko wtedy, gdy żądanie zawiera nagłówek `Authorization: Bearer <api-key>`, którego
-metadane obejmują zakres `manage` (lub `admin`). Wyjątek jest jawnie włączany
-dla każdej ścieżki za pomocą `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES`, dzięki czemu
-domyślnym ustawieniem każdej nowej ścieżki LOCAL_ONLY pozostaje ścisłe ograniczenie do pętli zwrotnej. Nieuwierzytelnione
-żądania oraz żądania z kluczami bez zakresu zarządzania są nadal odrzucane z odpowiedzią
+metadane obejmują zakres `manage` (lub `admin`). Wyjątek jest włączany
+jawnie dla każdej ścieżki za pomocą `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES`, dzięki czemu
+domyślne ustawienie dla każdej nowej ścieżki LOCAL_ONLY nadal wymaga ściśle dostępu przez loopback. Nieuwierzytelnione
+żądania oraz żądania z kluczami bez zakresu manage są nadal odrzucane odpowiedzią
 `403 LOCAL_ONLY`.
 
-Obecnie jedynym prefiksem dopuszczającym wyjątek jest `/api/mcp/`. `/api/cli-tools/runtime/` oraz
+Obecnie jedynym prefiksem obsługującym ten wyjątek jest `/api/mcp/`. `/api/cli-tools/runtime/` oraz
 `/api/services/` są celowo wykluczone, ponieważ mogą uruchamiać dowolne
-podprocesy (`npm install`, `node`), co odpowiada dokładnie klasie CVE, przed którą
-ma chronić poziom LOCAL_ONLY.
+podprocesy (`npm install`, `node`), czyli dokładnie tę klasę CVE, której
+warstwa LOCAL_ONLY ma zapobiegać.
 
 **#7895 — wąski zakres `mcp:connect`:** wyjątek dla `/api/mcp/` akceptuje RÓWNIEŻ
-klucz Bearer posiadający wąski zakres `mcp:connect`
-(`src/shared/constants/managementScopes.ts::MCP_CONNECT_SCOPE`), sprawdzany za pomocą
+klucz Bearer z wąskim zakresem `mcp:connect`
+(`src/shared/constants/managementScopes.ts::MCP_CONNECT_SCOPE`), sprawdzanym za pomocą
 `hasMcpConnectOrManageScope()` w `src/server/authz/policies/management.ts`.
-Obowiązuje on WYŁĄCZNIE dla `/api/mcp/` — `mcp:connect` nie przyznaje żadnych uprawnień do innych
-tras zarządzania (w tym do każdego innego prefiksu LOCAL_ONLY dopuszczającego wyjątek, jeśli
-kiedykolwiek zostanie dodany) i jest celowo wykluczony z
-`MANAGEMENT_API_KEY_SCOPES`. Klucz posiadający zakres `manage`/`admin` nadal korzysta
-z wyjątku dokładnie tak jak wcześniej; `mcp:connect` stanowi alternatywę o niższych uprawnieniach
-dla zdalnych klientów korzystających wyłącznie z MCP, którzy nie powinni potrzebować szerokiego dostępu do funkcji zarządzania.
+Jest on ograniczony WYŁĄCZNIE do `/api/mcp/` — `mcp:connect` nie przyznaje żadnych uprawnień do innych
+tras zarządzania (w tym do wszystkich pozostałych prefiksów wyjątków LOCAL_ONLY, gdyby
+kiedykolwiek je dodano) i jest celowo wykluczony z
+`MANAGEMENT_API_KEY_SCOPES`. Klucz z zakresem `manage`/`admin` nadal korzysta z
+wyjątku dokładnie tak jak wcześniej; `mcp:connect` jest alternatywą o niższych uprawnieniach
+dla zdalnych klientów korzystających wyłącznie z MCP, którzy nie powinni potrzebować szerokiego dostępu do zarządzania.
 
-| Żądanie                                                 | Ścieżka                    | Wynik                        |
-| ------------------------------------------------------- | -------------------------- | ---------------------------- |
-| Spoza pętli zwrotnej, bez Bearer                        | `/api/mcp/*`               | 403 LOCAL_ONLY               |
-| Spoza pętli zwrotnej, Bearer z zakresem `manage`        | `/api/mcp/*`               | Zezwól                       |
-| Spoza pętli zwrotnej, Bearer z zakresem `mcp:connect`   | `/api/mcp/*`               | Zezwól                       |
-| Spoza pętli zwrotnej, Bearer bez `manage`/`mcp:connect` | `/api/mcp/*`               | 403 LOCAL_ONLY               |
-| Spoza pętli zwrotnej, Bearer z zakresem `mcp:connect`   | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY               |
-| Spoza pętli zwrotnej, Bearer z zakresem `manage`        | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY               |
-| Z pętli zwrotnej, dowolny/brak Bearer                   | dowolna ścieżka LOCAL_ONLY | Zezwól (kontrola przechodzi) |
+| Żądanie                                           | Ścieżka                    | Wynik                      |
+| ------------------------------------------------- | -------------------------- | -------------------------- |
+| Spoza loopback, bez Bearer                        | `/api/mcp/*`               | 403 LOCAL_ONLY             |
+| Spoza loopback, Bearer z zakresem `manage`        | `/api/mcp/*`               | Zezwól                     |
+| Spoza loopback, Bearer z zakresem `mcp:connect`   | `/api/mcp/*`               | Zezwól                     |
+| Spoza loopback, Bearer bez `manage`/`mcp:connect` | `/api/mcp/*`               | 403 LOCAL_ONLY             |
+| Spoza loopback, Bearer z zakresem `mcp:connect`   | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY             |
+| Spoza loopback, Bearer z zakresem `manage`        | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY             |
+| Z loopback, dowolny/brak Bearer                   | dowolna LOCAL_ONLY         | Zezwól (brama przepuszcza) |
 
 #### Wskazówki dla operatorów i audytowanie
 
 Jeśli uruchamiasz OmniRoute za odwrotnym serwerem proxy lub tunelem (nginx, Caddy, Cloudflare
-Tunnel, Tailscale, Ngrok), kontrola pętli zwrotnej nadal chroni powyższe trasy
-umożliwiające uruchamianie procesów — żądanie, którego adres klienta nie należy do pętli zwrotnej, jest odrzucane z odpowiedzią
-`403 LOCAL_ONLY` **przed wykonaniem uwierzytelniania**, więc wyciekły JWT nie może doprowadzić do uruchomienia procesu. Nadal
-obowiązują dwa wymagania wobec operatora:
+Tunnel, Tailscale, Ngrok), kontrola loopback nadal chroni wymienione powyżej trasy
+zdolne do uruchamiania procesów — żądanie, którego adres klienta nie jest adresem loopback, zostaje odrzucone odpowiedzią
+`403 LOCAL_ONLY` **przed uruchomieniem uwierzytelniania**, więc ujawniony JWT nie może doprowadzić do uruchomienia procesu. Nadal
+obowiązują dwa zadania operatora:
 
-- **Nie „naprawiaj” błędu 403 przez fałszowanie adresu IP klienta jako adresu pętli zwrotnej.** Ustawienie
+- **Nie „naprawiaj” błędu 403, fałszując adres IP klienta jako loopback.** Ustawienie
   `X-Forwarded-For: 127.0.0.1` lub użycie serwera proxy, który przepisuje adres źródłowy na
-  adres pętli zwrotnej, ponownie otwiera dokładnie tę klasę RCE, przed którą chroni ten poziom. Udostępniaj
-  panel/API przez serwer proxy — nigdy tras umożliwiających uruchamianie procesów.
-- **Ogranicz wyjątek dla zakresu zarządzania do minimum.** Wyjątek może obejmować wyłącznie `/api/mcp/`
-  i tylko w przypadku klucza API z zakresem `manage`. Elementów `SPAWN_CAPABLE_PREFIXES` nigdy nie można
+  loopback, ponownie otwiera dokładnie tę klasę RCE, którą ta warstwa eliminuje. Udostępniaj
+  panel/API przez serwer proxy — nigdy tras zdolnych do uruchamiania procesów.
+- **Ogranicz wyjątek dla zakresu manage do minimum.** Wyjątek może obejmować tylko `/api/mcp/` i
+  wyłącznie z kluczem API o zakresie `manage`. Elementów `SPAWN_CAPABLE_PREFIXES` nigdy nie można
   dodać do listy wyjątków — schemat zod je odrzuca, a
-  `isLocalOnlyBypassableByManageScope` blokuje je w czasie wykonywania (ochrona wielowarstwowa);
-  właśnie to oznacza komunikat panelu „nie można dopuścić wyjątku”. Trasy umożliwiające
-  uruchamianie procesów, zawierające segmenty dynamiczne i ścieżki statyczne w obrębie `/api/providers/`
-  (np. `/login`, `/refresh-cursor`), są obsługiwane przez oparte na wyrażeniach regularnych
-  mechanizmy towarzyszące `SPAWN_CAPABLE_PATTERNS` /
+  `isLocalOnlyBypassableByManageScope` blokuje je w czasie wykonywania (ochrona warstwowa),
+  co panel określa jako „nie można włączyć wyjątku”. Trasy zdolne do uruchamiania procesów z segmentami
+  dynamicznymi i ścieżkami statycznymi w ramach `/api/providers/` (np. `/login`,
+  `/refresh-cursor`) są obsługiwane przez oparty na wyrażeniach regularnych mechanizm towarzyszący `SPAWN_CAPABLE_PATTERNS` /
   `SPAWN_CAPABLE_PATTERN_ANCESTORS` w
-  `src/shared/constants/spawnCapablePrefixes.ts`, a nie przez płaską
-  tablicę `SPAWN_CAPABLE_PREFIXES` — aby je uwzględnić, płaska tablica musiałaby obejmować
-  cały prefiks `/api/providers/`, co nadmiernie rozszerzyłoby ograniczenie na drzewo tras,
-  z którego zdalne panele zasadnie korzystają do operacji CRUD na dostawcach.
+  `src/shared/constants/spawnCapablePrefixes.ts`, a nie przez płaską tablicę
+  `SPAWN_CAPABLE_PREFIXES` — aby je uwzględnić, płaska tablica musiałaby obejmować
+  cały prefiks `/api/providers/`, co nadmiernie rozszerzyłoby ograniczenia na drzewo tras,
+  którego zdalne panele zasadnie używają do operacji CRUD dostawców.
 
 **Audytowanie dostępu** — aby sprawdzić, czy żadne żądania spoza hosta nie docierają do tych tras:
 
-- Otwórz **Inwentarz autoryzacji** na stronie `/dashboard/settings/security`: wyświetla on
-  aktualną listę prefiksów LOCAL_ONLY, prefiksy, dla których można włączyć obejście, oraz ustalany
-  podczas kompilacji zestaw tras umożliwiających uruchamianie procesów („nie można włączyć obejścia”).
-- Przeszukaj logi reverse proxy / dostępu pod kątem powyższych prefiksów powiązanych z
-  adresem klienta spoza interfejsu loopback. Każde takie żądanie, które zwróciło `200` zamiast
+- Otwórz **Authorization Inventory** pod adresem `/dashboard/settings/security`: wyświetla on
+  bieżącą listę prefiksów LOCAL_ONLY, prefiksy, dla których można włączyć obejście, oraz określony podczas kompilacji
+  zestaw obsługujący uruchamianie procesów („nie można włączyć obejścia”).
+- Przeszukaj logi reverse proxy / dostępu pod kątem powyższych prefiksów występujących wraz z
+  adresem klienta spoza interfejsu loopback. Każde takie trafienie, które zwróciło `200` zamiast
   `403 LOCAL_ONLY`, oznacza, że proxy maskuje rzeczywisty adres IP klienta — popraw konfigurację proxy.
-- Wpis `403 LOCAL_ONLY` w logach OmniRoute dla jednej z tych ścieżek oznacza, że mechanizm ochronny
+- Wpis `403 LOCAL_ONLY` w logach OmniRoute dla jednej z tych ścieżek oznacza, że zabezpieczenie
   działa zgodnie z przeznaczeniem, a nie błąd, który należy wyciszyć.
 
 ### Poziom 2 — ALWAYS_PROTECTED
 
-**Wymuszane przez:** `isAlwaysProtectedPath(path)` → pominięcie obejścia `requireLogin=false`
+**Egzekwowane przez:** `isAlwaysProtectedPath(path)` → pominięcie obejścia `requireLogin=false`
 **Obejście:** Brak, gdy `requireLogin=false`; JWT jest zawsze wymagany
 
 Te trasy wykonują operacje destrukcyjne lub nieodwracalne. Zezwolenie na nie w instalacji
-„bez hasła” oznaczałoby, że każda osoba w tej samej sieci LAN mogłaby wyczyścić bazę danych
-lub zakończyć proces serwera.
+„bez hasła” oznaczałoby, że dowolna osoba w tej samej sieci LAN mogłaby wyczyścić bazę danych lub zakończyć
+proces serwera.
 
 | Ścieżka                                   | Powód                                                                                       |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `/api/shutdown`                           | Kończy proces serwera                                                                       |
 | `/api/settings/database`                  | Eksportowanie, importowanie i czyszczenie bazy danych                                       |
 | `/api/db-backups`                         | Dostęp do pełnego archiwum kopii zapasowej bazy danych                                      |
-| `/api/settings/export-json`               | Eksportuje pełny zestaw ustawień (w tym dane tajne)                                         |
-| `/api/settings/import-json`               | Zastępuje pełny zestaw ustawień                                                             |
+| `/api/settings/export-json`               | Eksportuje pełny obiekt ustawień (w tym dane poufne)                                        |
+| `/api/settings/import-json`               | Zastępuje pełny obiekt ustawień                                                             |
 | `/api/providers/health-autopilot/actions` | Wykonuje działania naprawcze autopilota                                                     |
 | `/api/settings/obsidian`                  | Generuje dane logowania WebDAV wielokrotnego użytku dla dowolnego katalogu głównego skarbca |
 
 **Odpowiedź w przypadku naruszenia:** `401 Authentication required`
 
-`/api/settings/obsidian` obejmuje swoją trasę podrzędną `/webdav`: `POST` kieruje usługę plików WebDAV —
-obsługiwaną przez niestandardową warstwę Node przed Next.js, poza tym potokiem — do katalogu głównego
-wybranego przez wywołującego i zwraca nowo wygenerowane dane logowania Basic, `DELETE` je zmienia,
-a nadrzędne żądanie `POST` zapisuje token REST API Obsidian. GHSA-62vw maskowało jedynie ujawnienie
-hasła przez `GET`; jego wydawanie nadal znajdowało się na poziomie fail-open (GHSA-7pq4-8pvv-rx7r).
-`enableObsidianVaultSync()` dodatkowo odrzuca skarbiec, który jest katalogiem danych, znajduje się
-wewnątrz niego lub go zawiera.
+`/api/settings/obsidian` obejmuje swoją ścieżkę podrzędną `/webdav`: `POST` kieruje usługę plików WebDAV —
+obsługiwaną przez niestandardową warstwę Node przed Next.js, poza tym potokiem — na katalog główny wybrany przez
+wywołującego i zwraca nowo wygenerowane dane logowania Basic, `DELETE` powoduje ich rotację, a nadrzędne żądanie `POST` zapisuje
+token REST API Obsidian. GHSA-62vw jedynie maskował ujawnianie hasła przez `GET`; mechanizm generowania
+nadal znajdował się na poziomie otwartym w razie błędu (GHSA-7pq4-8pvv-rx7r). `enableObsidianVaultSync()` dodatkowo
+odrzuca skarbiec, który jest katalogiem danych, znajduje się w nim albo go zawiera.
 
-### Inicjalizacja nowej instalacji jest dostępna wyłącznie przez loopback — według rzeczywistego peera, a nie `Host`
+### Inicjalizacja nowej instalacji jest dostępna tylko przez interfejs loopback — na podstawie rzeczywistego peera, a nie `Host`
 
-Gdy nie skonfigurowano hasła zarządzania (ani `INITIAL_PASSWORD`), `isAuthRequired()` w
-`src/shared/utils/apiAuth.ts` pozostawia anonimową inicjalizację dostępną **wyłącznie dla peerów
-loopback**. Loopback jest ustalany na podstawie zaufanych sygnałów peera, w następującej kolejności:
-rzeczywistego peera TCP oznaczonego tokenem (`PEER_IP_HEADER` + `VIA_PROXY_HEADER`, czyli danych
-widzianych przez politykę), własnego werdyktu potoku `AUTHZ_HEADER_PEER_LOCALITY` (czyli danych
-widzianych przez procedury obsługi tras, uznawanych za zaufane tylko wtedy, gdy ustawiono
-`OMNIROUTE_PEER_STAMP_TOKEN`) albo rzeczywistego peera gniazda dla wywołań bezpośrednich. `Host` /
+Gdy nie skonfigurowano hasła administracyjnego (ani `INITIAL_PASSWORD`), funkcja `isAuthRequired()` w
+`src/shared/utils/apiAuth.ts` zezwala na anonimową inicjalizację **wyłącznie peerom loopback**.
+Interfejs loopback jest ustalany na podstawie zaufanych sygnałów peera, w następującej kolejności: oznaczonego tokenem rzeczywistego peera TCP
+(`PEER_IP_HEADER` + `VIA_PROXY_HEADER`, czyli informacji widocznej dla polityki), własnej decyzji potoku
+`AUTHZ_HEADER_PEER_LOCALITY` (widocznej dla programów obsługi tras i uznawanej za zaufaną tylko wtedy, gdy ustawiono
+`OMNIROUTE_PEER_STAMP_TOKEN`) lub rzeczywistego peera gniazda w przypadku wywołań bezpośrednich. `Host` /
 `nextUrl.hostname` nigdy nie są brane pod uwagę, a zapis pierwszego hasła
-(`POST /api/settings/require-login`) podlega temu samemu ograniczeniu, zamiast być dostępny dla
-każdego peera sieciowego (GHSA-7pq4-8pvv-rx7r). `managementPolicy` jawnie przekazuje dalej własny
-werdykt `peerContext`, dzięki czemu nagłówki ORYGINALNEGO żądania (sprzed ich usunięcia) nigdy
-nie wpływają na tę decyzję.
+(`POST /api/settings/require-login`) podlega temu samemu ograniczeniu, zamiast być dostępny dla każdego
+peera sieciowego (GHSA-7pq4-8pvv-rx7r). `managementPolicy` jawnie przekazuje dalej własną decyzję
+`peerContext`, dzięki czemu nagłówki ORYGINALNEGO żądania (sprzed ich usunięcia) nigdy o tym nie decydują.
 
 ### Poziom 3 — MANAGEMENT (domyślny)
 
-Wszystkie pozostałe trasy zarządzania. Uwierzytelnienie jest wymagane, chyba że skonfigurowano
-`requireLogin=false`. Tokeny CLI mogą uwierzytelniać dostęp do tych tras (loopback + prawidłowy HMAC).
+Wszystkie pozostałe trasy administracyjne. Uwierzytelnianie jest wymagane, chyba że skonfigurowano
+`requireLogin=false`. Tokeny CLI mogą uwierzytelniać te trasy (loopback + prawidłowy HMAC).
 
 ## Kolejność ewaluacji
 

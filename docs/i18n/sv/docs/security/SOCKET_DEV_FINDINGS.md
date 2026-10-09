@@ -232,13 +232,12 @@ Webpack-insticksprogrammet `NormalModuleReplacementPlugin` aliaserar fyra module
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Varje stubb exporterar samma gränssnitt, men varje funktion utlöser
+Varje stubb exporterar samma gränssnitt, men varje funktion utlöser ett
 `featureDisabledError(name)` vid körning. Rutter som är beroende av den inaktiverade
 modulen returnerar HTTP 503 med ett tydligt meddelande i stället för att aktivera den
-känsliga kodvägen.
+känsliga kodsökvägen.
 
-Det resulterande paketet är avsett att publiceras som `omniroute-secure`. Se
-`docs/ops/PUBLISHING_SECURE.md` för publiceringsanvisningar.
+Det resulterande paketet är avsett att publiceras som `omniroute-secure`.
 
 ---
 

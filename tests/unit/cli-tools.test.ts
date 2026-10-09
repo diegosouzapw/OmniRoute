@@ -119,7 +119,7 @@ test("CLI fingerprint preserves Codex executor User-Agent and maps legacy Copilo
 
   // #10952 bumped GITHUB_COPILOT_CLI_VERSION 0.54.0 -> 1.0.88; the fingerprint
   // pin tracks the advertised upstream CLI version.
-  assert.equal(copilot.headers["User-Agent"], "GitHubCopilotChat/1.0.88");
+  assert.equal(copilot.headers["User-Agent"], "GitHubCopilotChat/1.0.91");
 });
 
 test("CLI fingerprint keeps legacy Copilot settings functional without exposing duplicate UI toggles", () => {

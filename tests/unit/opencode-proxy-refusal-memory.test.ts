@@ -141,7 +141,11 @@ describe("OpencodeExecutor proxy refusal memory", () => {
     const exec = new OpencodeExecutor("opencode-zen");
     await run(exec, proxied(), [429, 200]);
 
+    // The previous two-minute default would already have returned it.
     mock.timers.tick(2 * 60_000 + 1);
+    assert.strictEqual(memory.isProxyAvoided(keyFor(0)), true);
+
+    mock.timers.tick(3 * 60_000);
     clearCooldowns(exec);
     assert.deepStrictEqual((await run(exec, proxied(), [200])).observed, [port(2)]);
     clearCooldowns(exec);

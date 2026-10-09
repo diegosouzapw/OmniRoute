@@ -189,14 +189,14 @@ API 密钥占位符始终为 `$OMNIROUTE_API_KEY`（D11）。
 
 ## 故障排除
 
-| 症状                               | 原因                     | 修复方法                                                              |
-| ---------------------------------- | ------------------------ | --------------------------------------------------------------------- |
-| Monaco 编辑器未在 API 选项卡中渲染 | SSR 加载了 Monaco        | 验证 `ApiTab` 是否使用了 `dynamic(..., { ssr: false })`               |
-| 对比流按顺序触发                   | `Promise.all` 使用错误   | 必须在一次 `Promise.all` 调用中分派所有流启动操作                     |
-| 指标显示 TTFT 为 `null`            | 未连接首个数据块处理程序 | 检查 SSE 读取器循环中是否调用了 `useStreamMetrics.onFirstChunk()`     |
-| 预设未持久化                       | 未运行数据库迁移         | 运行 `npm run db:migrate` 或重启服务器（迁移会在启动时自动运行）      |
-| 改进提示词时返回 502               | 配置中未设置模型         | 用户必须先在配置窗格中输入模型名称，然后再进行改进                    |
-| 导出的代码显示 `MISSING_API_KEY`   | 未插入占位符             | `codeExport.ts` 始终使用 `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` |
+| 症状                             | 原因                     | 修复方法                                                              |
+| -------------------------------- | ------------------------ | --------------------------------------------------------------------- |
+| API 选项卡中未渲染 Monaco 编辑器 | SSR 加载了 Monaco        | 验证 `ApiTab` 是否使用 `dynamic(..., { ssr: false })`                 |
+| 对比流按顺序触发                 | `Promise.all` 使用错误   | 所有流都必须在一次 `Promise.all` 调用中启动                           |
+| 指标显示 `null` TTFT             | 未连接首个数据块处理程序 | 检查 SSE 读取器循环中是否调用了 `useStreamMetrics.onFirstChunk()`     |
+| 预设未持久化                     | 未运行数据库迁移         | 重启服务器：迁移会在启动时自动运行                                    |
+| 改进提示词时返回 502             | Config 中未设置模型      | 用户必须先在 Config 窗格中输入模型名称，然后才能改进提示词            |
+| 导出的代码显示 `MISSING_API_KEY` | 未插入占位符             | `codeExport.ts` 始终使用 `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` |
 
 ---
 

@@ -4,11 +4,13 @@
 
 ---
 
-OmniRoute dodáva rodinu príkazov `setup-*`, ktoré konfigurujú kódovacie CLI (Codex, Claude Code, OpenCode, Cline, …) tak, aby používalo OmniRoute ako svoj backend — takže nástroj komunikuje s **jedným** koncovým bodom a OmniRoute smeruje k správnemu poskytovateľovi s automatickým zálohovaním. Každý príkaz číta **živý** katalóg modelov z bežiaceho OmniRoute (lokálneho alebo vzdialeného) a zapisuje vlastný konfiguračný súbor nástroja na **váš** počítač. API kľúč je odkazovaný prostredníctvom premennej prostredia všade tam, kde to nástroj podporuje. Príkazy, ktoré uchovávajú lokálny súbor prostredia nástroja, sú uvedené nižšie.
+Informácie o zdieľanom manifeste spustiteľných súborov, obmedzených prostrediach podradených procesov a trvalom nastavení Gemini nájdete v dokumente [Kontrakty spúšťania CLI](./CLI-LAUNCH-CONTRACTS.md).
 
-Existuje aj generický spúšťač — `omniroute run <target>` — ktorý spúšťa `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` alebo `gemini` s injektovaným správnym prostredím, bez zápisu akejkoľvek konfigurácie. Ciele a ich aliasy pochádzajú z kanonického manifestu `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`), a `omniroute completion` ponúka rovnaké slová cieľov odvodené z manifestu. Staršie spúšťače pre jednotlivé nástroje — `omniroute launch` (Claude Code) a `omniroute launch-codex` (Codex) — zostávajú k dispozícii.
+OmniRoute poskytuje rodinu príkazov `setup-*`, ktoré nakonfigurujú programátorské CLI (Codex, Claude Code, OpenCode, Cline, …) tak, aby používalo OmniRoute ako svoj backend — nástroj tak komunikuje s **jedným** koncovým bodom a OmniRoute smeruje požiadavky k správnemu poskytovateľovi s automatickým záložným prepnutím. Každý príkaz načíta **aktuálny** katalóg modelov zo spustenej inštancie OmniRoute (lokálnej alebo vzdialenej) a zapíše konfiguračný súbor daného nástroja na **vašom** počítači. Kľúč API sa všade, kde to nástroj podporuje, odkazuje prostredníctvom premennej prostredia. Príkazy, ktoré trvalo ukladajú lokálny súbor prostredia nástroja, sú uvedené nižšie.
 
-Registrácia poskytovateľa je dostupná z rovnakého lokálneho/vzdialeného kontextu. Nižšie uvedené príkazy API-first udržiavajú autentifikáciu správy oddelenú od poverení poskytovateľa a nikdy nevytlačia poverenie v štruktúrovanom výstupe:
+K dispozícii je aj všeobecný spúšťač — `omniroute run <target>` — ktorý spustí `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` alebo `gemini` so správne nastaveným prostredím bez zapisovania akejkoľvek konfigurácie. Ciele a ich aliasy pochádzajú z kanonického manifestu `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) a `omniroute completion` ponúka rovnaké názvy cieľov odvodené z manifestu. Staršie spúšťače pre jednotlivé nástroje — `omniroute launch` (Claude Code) a `omniroute launch-codex` (Codex) — zostávajú dostupné.
+
+Pridávanie poskytovateľov je dostupné z rovnakého lokálneho alebo vzdialeného kontextu. Nižšie uvedené príkazy orientované primárne na API udržiavajú overenie totožnosti pre správu oddelené od prihlasovacích údajov poskytovateľov a nikdy nevypisujú prihlasovacie údaje v štruktúrovanom výstupe:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +20,17 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Pre skripty uprednostnite `--credential-stdin` alebo `--credential-env`; `--credential` je zachované pre kontrolované lokálne použitie. `providers remove` vyžaduje `--yes` na neinteraktívnom termináli a všetkých päť príkazov rešpektuje aktívny kontext alebo globálne možnosti `--base-url`/`--api-key`.
+V skriptoch uprednostnite `--credential-stdin` alebo `--credential-env`; možnosť `--credential` je zachovaná na kontrolované lokálne použitie. Príkaz `providers remove` vyžaduje na neinteraktívnom termináli možnosť `--yes` a všetkých päť príkazov rešpektuje aktívny kontext alebo globálne možnosti `--base-url`/`--api-key`.
 
-Selektory poskytovateľov odmietajú nejednoznačné predpony ID, názvy alebo názvy poskytovateľov; použite úplné ID pripojenia, ak sa zhoduje viacero pripojení. Príkazy na vytvorenie a úpravu načítajú uložené pripojenie späť a odstránenie overí, že už nie je čitateľné. Import preskočí existujúci pár poskytovateľ/názov. Importované záznamy nemôžu prepísať koncový bod správy, kontext ani poverenia správy dodané do CLI.
+Selektory poskytovateľov odmietnu nejednoznačné predpony ID, názvy alebo názvy poskytovateľov; ak sa zhoduje viacero pripojení, použite úplné ID pripojenia. Príkazy na vytvorenie a úpravu spätne načítajú uložené pripojenie a odstránenie overí, že ho už nemožno načítať. Import preskočí existujúcu dvojicu poskytovateľa a názvu. Importované položky nemôžu prepísať koncový bod správy, kontext ani prihlasovacie údaje pre správu poskytnuté rozhraniu CLI.
 
-Pre jednorazové, ručne písané základné nastavenie dvoch najbohatších integrácií si pozrite podrobné prehľady pre jednotlivé nástroje:
+Informácie o jednorazovom, ručne vykonanom základnom nastavení dvoch najbohatších integrácií nájdete v podrobných príručkách pre jednotlivé nástroje:
 
-- [Claude Code configuration](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI configuration](./CODEX-CLI-CONFIGURATION.md)
-- [Remote Mode](./REMOTE-MODE.md) — ovládajte vzdialený OmniRoute (VPS / Tailnet) z vášho notebooku
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — rozšírenie OmniCopilot; môže tiež spúšťať tieto príkazy `setup-*` za vás priamo z editora
+- [Konfigurácia Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
+- [Konfigurácia Codex CLI](./CODEX-CLI-CONFIGURATION.md)
+- [Vzdialený režim](./REMOTE-MODE.md) — ovládajte vzdialenú inštanciu OmniRoute (VPS / Tailnet) zo svojho notebooku
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — rozšírenie OmniCopilot; tieto príkazy
+  `setup-*` môže za vás spúšťať aj priamo v editore
 
 ---
 

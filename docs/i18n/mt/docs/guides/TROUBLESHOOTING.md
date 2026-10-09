@@ -39,31 +39,31 @@ Problemi komuni u soluzzjonijiet għal OmniRoute.
 
 ### Limitazzjoni tar-Rata fuq Fornituri Bla Ħlas (429 / 400 / 401)
 
-**Sintomu**: Meta tuża `model: "auto"` ma' fornituri bla ħlas/li ma jeħtiġux awtentikazzjoni (opencode, auggie, eċċ.), kultant tirċievi `HTTP 429`, `400`, jew `401` minflok tweġibiet. It-talbiet jirnexxu meta terġa' tipprova l-istess prompt ftit mumenti wara, iżda l-awtomazzjoni (cron jobs, aġenti, scripts) tieqaf mal-ewwel falliment.
+**Sintomu**: Meta tuża `model: "auto"` ma’ fornituri bla ħlas/li ma jeħtiġux awtentikazzjoni (opencode, auggie, eċċ.), kultant tirċievi `HTTP 429`, `400`, jew `401` minflok tweġibiet. It-talbiet jirnexxu meta terġa’ tipprova l-istess prompt ftit mumenti wara, iżda l-awtomazzjoni (kompiti cron, aġenti, scripts) tieqaf mal-ewwel falliment.
 
-**Kawża ewlenija**: Tliet modi indipendenti ta' falliment jakkumulaw:
+**Kawża ewlenija**: Hemm tliet modi indipendenti ta’ falliment li jakkumulaw:
 
-1. **Limitu tar-rata tal-fornitur (`429`)**: Il-livelli bla ħlas jistgħu jinfurzaw kwota għal kull intervall ta' żmien. Għadd kbir ta' sejħiet paralleli jeżawrixxiha, għalhekk it-talba li jmiss tiġi miċħuda sakemm l-intervall jerġa' jibda.
-2. **Mudell imkisser fil-passthrough (`400`/`401`)**: Il-pools `auto/*` jistgħu jinkludu mudelli passthrough minn `opencode` li huma rreġistrati fil-katalgu iżda m'għandhomx kredenzjali attivi (eż. `oc/north-mini-code-free` → `401`). L-auto-router jipprova wieħed, ifalli, u l-iżball jiġi propagat qabel ma jibda l-fallback.
-3. **Amplifikazzjoni tal-konkurrenza (`429` taħt tagħbija)**: Meta diversi sessjonijiet ta' aġenti/cron jużaw `auto` fl-istess ħin, ir-rata aggregata tat-talbiet taqbeż dak li jittolleraw il-fornituri bla ħlas, għalhekk sejħiet leġittimi jiġu mmarkati bħala abbużivi.
+1. **Limitu tar-rata tal-fornitur (`429`)**: Il-livelli bla ħlas jistgħu jinfurzaw kwota għal kull intervall ta’ żmien. Għadd kbir ta’ sejħiet paralleli jeżawrixxiha, u għalhekk it-talba li jmiss tiġi rrifjutata sakemm l-intervall jerġa’ jiġi ssettjat.
+2. **Mudell bil-ħsara fil-passthrough (`400`/`401`)**: Il-pools `auto/*` jistgħu jinkludu mudelli passthrough minn `opencode` li huma rreġistrati fil-katalgu iżda ma għandhomx kredenzjali attivi (eż. `oc/north-mini-code-free` → `401`). L-auto-router jipprova wieħed, ifalli, u l-iżball jiġi propagat qabel ma jibda l-fallback.
+3. **Amplifikazzjoni minħabba l-konkorrenza (`429` taħt tagħbija)**: Meta diversi sessjonijiet ta’ aġenti/cron jużaw `auto` fl-istess ħin, ir-rata aggregata tat-talbiet taqbeż dak li jittolleraw il-fornituri bla ħlas, u għalhekk sejħiet leġittimi jiġu mmarkati bħala abbużivi.
 
-**Soluzzjoni vverifikata (irrappurtata mill-komunità, 2026-08-10)**: irregola tliet varjabbli tal-ambjent sabiex ir-rotazzjoni, il-konkurrenza u l-fallback jassorbu l-instabbiltà tal-livell bla ħlas minflok ma jfallu minħabba fiha:
+**Soluzzjoni vverifikata (irrappurtata mill-komunità, 2026-08-10)**: irfina tliet varjabbli tal-ambjent sabiex ir-rotazzjoni, il-konkorrenza u l-fallback jassorbu l-instabbiltà tal-livell bla ħlas minflok ma jieqfu minħabba fiha:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # aqbeż għal mudell/fornitur ieħor f'każ ta' 400/401 (taqbeż il-mudelli passthrough imkissrin)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # limitu espliċitu ta' ammissjoni għal tagħbijiet kbar (mhux issettjat awtomatikament: ebda limitu fuq l-għadd ta' talbiet, ara n-nota hawn taħt)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # stennija limitata itwal għall-kapaċità ta' tagħbijiet kbar minflok 503 immedjat li jista' jerġa' jiġi ppruvat
+export OMNIROUTE_ROTATE_ON_400=true           # aqleb għal mudell/fornitur ieħor meta jkun hemm 400/401 (jaqbeż mudelli passthrough bil-ħsara)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # limitu espliċitu ta’ ammissjoni għal talbiet tqal (mhux issettjat awtomatikament: l-ebda limitu fuq l-għadd ta’ talbiet, ara n-nota hawn taħt)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # żid l-istennija limitata lil hinn mill-valur predefinit ta’ RATE_LIMIT_MAX_WAIT_MS għal sistemi upstream bil-mod
 ```
 
-Issettja dawn fl-ambjent tal-proċess ta' OmniRoute (id-daemon, eż. permezz tal-LaunchAgent plist jew `systemctl edit`), imbagħad erġa' ibda OmniRoute. Il-flag tar-rotazzjoni huwa l-aktar mekkaniżmu effettiv: jibdel falliment definittiv fi prova mill-ġdid trasparenti ma' fornitur li qed jaħdem tajjeb fil-pool.
+Issettjahom fl-ambjent tal-proċess OmniRoute (id-daemon, eż. permezz tal-LaunchAgent plist jew `systemctl edit`), imbagħad erġa’ ibda OmniRoute. Il-flag tar-rotazzjoni huwa l-aktar lieva waħda effettiva: jibdel falliment definittiv f’tentattiv mill-ġdid trasparenti ma’ fornitur f’saħħtu fil-pool.
 
-**Nota**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` jillimita kemm-il talba ta' tagħbija kbira — b'kuntest twil — tista' taħdem fl-istess ħin; il-limitu huwa kontroll tal-ammissjoni, mhux limitatur tar-rata tal-fornitur. **Aġġornament dwar il-fanout ta' #503:** din il-varjabbli m'għadhiex tiġi ssettjata awtomatikament (issa tapplika biss meta tiġi kkonfigurata espliċitament, kif muri hawn fuq) — minflok, l-ammissjoni ta' tagħbijiet kbar hija kkontrollata minn baġit tal-bytes derivat awtomatikament (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) li jaġġusta ruħu skont il-limitu reali tal-memorja tal-host, għalhekk deployment ġdid għandu jesperjenza ħafna inqas rifjuti `503 chat_admission_busy` mingħajr ma jkollu għalfejn jissettja din il-varjabbli; jekk tiġi ssettjata espliċitament hawnhekk, xorta taħdem eżatt kif dokumentat. Overrides espliċiti tal-baġit tal-bytes jiġu limitati għal 8 MiB–2 GiB. `413 body_exceeds_budget` mhuwiex temporanju: żid dak il-baġit tal-bytes, naqqas `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, jew żid il-limitu tal-memorja tal-proċess. Tneħħija minħabba `inflight_bytes_budget` hija kontenzjoni temporanja u tista' terġa' tiġi ppruvata. Il-limitazzjoni tar-rata għal kull fornitur (`open-sse/services/rateLimitManager.ts`) hija rregolata separatament minn `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, u `RATE_LIMIT_AUTO_ENABLE` — ara `.env.example`.
+**Nota**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` jillimita kemm-il talba tqila — b’kuntest twil — tista’ taħdem fl-istess ħin; il-limitu huwa gate ta’ ammissjoni, mhux limitatur tar-rata tal-fornitur. **Aġġornament #503-fanout:** din il-varjabbli ma għadhiex tiġi ssettjata awtomatikament (issa torbot biss meta tiġi kkonfigurata b’mod espliċitu, bħal hawn fuq) — minflok, l-ammissjoni ta’ talbiet tqal tiġi kkontrollata minn baġit ta’ bytes idderivat awtomatikament (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) li jadatta ruħu għal-limitu reali tal-memorja tal-host, għalhekk deployment ġdid għandu jesperjenza ferm inqas rifjuti `503 chat_admission_busy` mingħajr ma din il-varjabbli tiġi ssettjata; jekk tiġi ssettjata b’mod espliċitu hawn, xorta taħdem eżattament kif dokumentat. Is-sostituzzjonijiet espliċiti tal-baġit ta’ bytes jiġu limitati għal 8 MiB–2 GiB. `413 body_exceeds_budget` mhuwiex tranżitorju: żid dak il-baġit ta’ bytes, naqqas `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, jew żid il-limitu tal-memorja tal-proċess. Tnaqqis `inflight_bytes_budget` huwa kontenzjoni temporanja u jibqa’ jista’ jerġa’ jiġi ppruvat. Il-limitazzjoni tar-rata għal kull fornitur (`open-sse/services/rateLimitManager.ts`) hija rregolata separatament minn `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, u `RATE_LIMIT_AUTO_ENABLE` — ara `.env.example`.
 
-**Kif tivverifika li ħadmet**: ħaddem l-agent/cron tiegħek darbtejn wara xulxin fi żmien qasir u kkonferma li t-tnejn jirnexxu. Qabel it-tiswija, it-tieni eżekuzzjoni tipikament tirritorna `429`/`401`. Wara t-tiswija, il-fallimenti (jekk ikun hemm) jerġgħu jiġu ppruvati b’mod trasparenti u s-sejħa titlesta. Tista’ wkoll tuża `curl /monitoring/health` u tosserva l-field `rateLimitedUntil` fuq il-konnessjonijiet tal-fornituri u `circuitBreakers.providerBreakers[].state` għall-fornituri affettwati — l-istat ikun wieħed minn `CLOSED`, `DEGRADED`, `OPEN`, jew `HALF_OPEN` (ara `src/shared/utils/circuitBreaker.ts`), u fornitur li jibqa’ jfalli jgħaddi minn `CLOSED → DEGRADED → OPEN` qabel ma t-tieqa tar-reset tippermetti li jgħaddi test (`HALF_OPEN`).
+**Kif tivverifika li ħadmet**: ħaddem l-aġent/cron tiegħek darbtejn wara xulxin f’intervall qasir u kkonferma li t-tnejn jirnexxu. Qabel is-soluzzjoni, it-tieni eżekuzzjoni tipikament tirritorna `429`/`401`. Wara s-soluzzjoni, il-fallimenti (jekk ikun hemm) jerġgħu jiġu ppruvati b’mod trasparenti u s-sejħa titlesta. Tista’ wkoll tuża `curl /monitoring/health` u tosserva l-field `rateLimitedUntil` fuq il-konnessjonijiet tal-fornituri u `circuitBreakers.providerBreakers[].state` għall-fornituri affettwati — l-istat ikun wieħed minn `CLOSED`, `DEGRADED`, `OPEN`, jew `HALF_OPEN` (ara `src/shared/utils/circuitBreaker.ts`), u fornitur li jibqa’ jfalli jinbidel minn `CLOSED → DEGRADED → OPEN` qabel ma l-intervall ta’ reset jippermetti li jgħaddi probe (`HALF_OPEN`).
 
-**Jekk xorta tara 429**: il-kont attiv għal dak il-fornitur ikun ġenwinament eżawrixxa l-_kwota_ tiegħu (mhux biss il-limitu tar-rata). Żid kont ieħor għall-istess fornitur fid-dashboard ta’ OmniRoute → Providers → Accounts, jew inkludi fornitur bla ħlas ieħor (eż. `routeway`, `auggie`). Ir-rotazzjoni tgħin biss b’limiti tar-rata temporanji/400/401; eżawriment sħiħ tal-kwota jeħtieġ kredenzjali oħra jew fornitur differenti.
+**Jekk xorta tara 429**: il-kont attiv għal dak il-fornitur ikun verament eżawrixxa l-_kwota_ tiegħu (mhux biss ir-rata). Żid kont ieħor għall-istess fornitur fid-dashboard ta’ OmniRoute → Providers → Accounts, jew inkludi fornitur ieħor bla ħlas (eż. `routeway`, `auggie`). Ir-rotazzjoni tgħin biss b’limitazzjoni tranżitorja tar-rata/400/401; eżawriment definittiv tal-kwota jeħtieġ kredenzjali oħra jew fornitur differenti.
 
-**Jekk tara 403 fuq mudelli tal-viżjoni (`auto/vision`, `bazaarlink/*`)**: il-kont konness m’għandux pjan imħallas li jinkludi l-viżjoni, jew l-API key m’għandhiex biżżejjed permessi. Ivverifika fid-dashboard tal-fornitur li l-ambitu tal-key jinkludi viżjoni/multimodali, jew qabbad kont ta’ livell imħallas u żommu bħala l-mira tal-viżjoni.
+**Jekk tara 403 fuq mudelli tal-viżjoni (`auto/vision`, `bazaarlink/*`)**: il-kont konness ma għandux pjan bi ħlas li jinkludi l-viżjoni, jew l-API key ma għandhiex biżżejjed permessi. Ivverifika fid-dashboard tal-fornitur li l-ambitu tal-key jinkludi viżjoni/multimodalità, jew qabbad kont ta’ livell bi ħlas u żommu bħala l-mira għall-viżjoni.
 
 ---
 
@@ -547,13 +547,13 @@ Uża **Dashboard → Translator** biex tiddibaggja problemi fit-traduzzjoni tal-
 
 ## Settings tar-Reżiljenza
 
-### Il-limitu awtomatiku tar-rata ma jiġix attivat
+### Il-limitazzjoni awtomatika tar-rata mhix qed tiġi attivata
 
-- Il-limitu awtomatiku tar-rata japplika biss għall-fornituri b’API key (mhux OAuth/abbonament)
-- Ivverifika li **Settings → Resilience → Provider Profiles** għandu l-limitu awtomatiku tar-rata attivat
+- Il-limitazzjoni awtomatika tar-rata tapplika biss għall-fornituri b’ċavetta API (mhux OAuth/abbonament)
+- Ivverifika li **Settings → Resilience → Provider Profiles** għandha l-limitazzjoni awtomatika tar-rata attivata
 - Iċċekkja jekk il-fornitur jirritornax kodiċijiet tal-istatus `429` jew headers `Retry-After`
 
-### Irfinar tal-backoff esponenzjali
+### Aġġustament tal-backoff esponenzjali
 
 Il-profili tal-fornituri jappoġġjaw dawn is-settings:
 
@@ -563,24 +563,24 @@ Il-profili tal-fornituri jappoġġjaw dawn is-settings:
 
 ### Prevenzjoni tat-thundering herd
 
-Meta ħafna talbiet konkorrenti jilħqu fornitur b’limitu tar-rata, OmniRoute juża mutex + limitu awtomatiku tar-rata biex jissarjalizza t-talbiet u jipprevjeni fallimenti kaskata. Dan huwa awtomatiku għall-fornituri b’API key.
+Meta ħafna talbiet konkorrenti jilħqu fornitur b’rata limitata, OmniRoute juża mutex + limitazzjoni awtomatika tar-rata biex jissekwenzjalizza t-talbiet u jipprevjeni fallimenti kaskata. Dan iseħħ awtomatikament għall-fornituri b’ċavetta API.
 
 ### It-talbiet taċ-chat ifallu b’503 / chat_admission_busy
 
 **Sintomi:**
 
-- L-endpoint tal-kompletamenti taċ-chat jirritorna rispons `503` li jista’ jerġa’ jiġi ppruvat u li l-kodiċi tal-iżball tiegħu huwa
+- L-endpoint tal-kompletamenti taċ-chat jirritorna risposta `503` li tista’ terġa’ tiġi ppruvata u li l-kodiċi tal-iżball tagħha huwa
   `chat_admission_busy`.
-- Ir-rispons jinkludi `Retry-After`. Minn #12135, il-valur jiġi dderivat mill-okkupanza osservata
-  — l-akbar bejn it-tieqa `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` li matulha t-talba tkun diġà
-  stenniet u ż-żmien li matulu l-leases heavyweight attwali jkunu nżammu — arrotondat ’il fuq għal
-  sekondi sħaħ u limitat għal 60. Meta l-gate jkun inattiv, iżomm il-limiti minimi storiċi: 2 sekondi fuq
-  il-perkors ibbażat fuq il-bytes, 1 sekonda fuq il-perkors ibbażat fuq l-istruttura (li jinkludi wkoll
+- Ir-risposta tinkludi `Retry-After`. Minn #12135 ’il quddiem, il-valur jiġi dderivat mill-okkupazzjoni osservata
+  — l-akbar valur bejn it-tieqa `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` li matulha t-talba tkun diġà
+  stenniet u l-ħin li għalih ikunu nżammu l-heavyweight leases attwali — imqarreb ’il fuq għal sekondi
+  sħaħ u limitat għal 60. Fuq gate inattiv, jinżammu l-limiti minimi storiċi: 2 sekondi fuq il-
+  fluss ibbażat fuq il-bytes, u sekonda fuq il-fluss ibbażat fuq l-istruttura (li jinkludi wkoll
   `reason: "structure_limit"`).
-- Dan jista’ jiġri waqt li chat heavyweight ieħor jew rispons ta’ streaming li jdum għaddej
-  ikun għadu qed jiġi pproċessat.
+- Dan jista’ jseħħ waqt li chat heavyweight ieħor jew risposta ta’ streaming li ddum għaddejja tkun għadha
+  qed tiġi pproċessata.
 
-Il-body tar-rispons ibbażat fuq il-bytes huwa:
+Il-body tar-risposta bbażata fuq il-bytes huwa:
 
 ```json
 {
@@ -592,53 +592,53 @@ Il-body tar-rispons ibbażat fuq il-bytes huwa:
 }
 ```
 
-Ir-rispons ibbażat fuq l-istruttura juża l-istess tip u kodiċi, bil-messaġġ
+Ir-risposta bbażata fuq l-istruttura tuża l-istess tip u kodiċi, bil-messaġġ
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 u `reason: "structure_limit"`.
-Bil-limiti default, talba tkun strutturalment heavyweight meta jkollha mill-inqas `200` messaġġ,
-mill-inqas `64` għodda, jew mill-inqas `32,000` token stmat, jew meta l-istima limitata tal-istruttura
-teżawrixxi l-limiti tagħha ta’ `10,000` node miżjur jew fond `12`.
+Bil-limiti default, talba titqies strutturalment tqila meta jkollha mill-inqas `200` messaġġ,
+mill-inqas `64` għodda, jew mill-inqas `32,000` token stmati, jew meta l-istima limitata tal-istruttura
+teżawrixxi l-limiti tagħha ta’ `10,000` node miżjur jew fond ta’ `12`.
 
-**Kawża:** Dan huwa tnaqqis intenzjonat tat-tagħbija fi ħdan OmniRoute, mhux falliment tal-fornitur upstream.
-Kull proċess juża guard lokali għall-proċess biex jirriżerva kapaċità heavyweight limitata qabel ma jżomm
-u jipparsja body kbir ta’ talba. Lease heavyweight jibqa’ miżmum tul il-ħajja kollha ta’ rispons
-SSE.
+**Kawża:** Dan huwa tnaqqis intenzjonat tat-tagħbija fi ħdan OmniRoute, mhux falliment ta’ fornitur upstream.
+Kull proċess juża guard lokali għall-proċess biex jirriżerva kapaċità heavyweight limitata qabel iżomm
+u jipparsja body kbir ta’ talba. Heavyweight lease jibqa’ miżmum tul il-ħajja kollha ta’ risposta SSE.
 
-**#503-fanout:** qabel din it-tiswija, il-guard kien jillimita l-konkorrenza għal GĦADD fiss ta’ talbiet
+**#503-fanout:** qabel din il-korrezzjoni, il-guard kien jillimita l-konkorrenza għal GĦADD fiss ta’ talbiet
 (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, default `1`) irrispettivament mill-memorja tal-host, għalhekk il-
-fan-out tal-aġenti tal-kodifikazzjoni (diversi subaġenti/CLIs, b’body li regolarment jaqbeż 256 KB) kien jinżel għal
-konkorrenza effettiva ta’ ~1 u jirritorna 503 taħt tagħbija kompletament normali. Issa l-guard jirfina ruħu
-awtomatikament: huwa kkontrollat minn baġit awtoderivat ta’ BYTES għall-ingestjoni (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ikkalkulat mil-
-limitu reali tal-memorja tal-proċess, u jikkonsulta wkoll sinjal dirett tal-pressjoni fuq ir-riżorsi — għalhekk
-inaqqas it-tagħbija biss meta l-host ikun tassew taħt pressjoni tal-memorja, mhux sempliċement għax tkun waslet aktar minn
-talba heavyweight waħda fl-istess ħin. Il-limitu l-antik tal-għadd (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) għadu
-jiġi rispettat, iżda biss jekk tissettjah b’mod espliċitu.
+fan-out tal-coding agents (diversi subagents/CLIs, b’bodies li regolarment jaqbżu 256 KB) kien jirriduċi l-
+konkorrenza effettiva għal ~1 u jirritorna 503 taħt tagħbija kompletament normali. Issa l-guard jaġġusta
+ruħu awtomatikament: huwa kkontrollat minn baġit ta’ ingest f’BYTES idderivat awtomatikament
+(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) u kkalkolat mil-limitu reali tal-memorja tal-proċess, u jikkonsulta
+wkoll sinjal dirett tal-pressjoni fuq ir-riżorsi — għalhekk inaqqas it-tagħbija biss meta l-host ikun
+ġenwinament taħt pressjoni tal-memorja, mhux sempliċement għax tkun waslet aktar minn talba tqila waħda
+fl-istess ħin. Il-limitu l-antik tal-għadd (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) għadu jiġi rispettat,
+iżda biss jekk tissettjah espliċitament.
 
 Meta l-kapaċità tkun okkupata, talba heavyweight l-ewwel tistenna sa
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default `2000`, `0` jiddiżattiva l-istennija) biex jinħeles slot
-qabel ma twieġeb bil-`503` li jista’ jerġa’ jiġi ppruvat. L-istennija limitata teżisti sabiex klijenti tat-tip aġent
-(OpenCode, Claude Code, Cursor) li jagħmlu fan-out ta’ sottotalbiet heavyweight b’mod konkorrenti jissarjalizzaw il-burst
-minflok jeżawrixxu l-baġit kollu tagħhom ta’ tentattivi mill-ġdid fuq rifjuti immedjati u jieqfu f’nofs kompitu.
-L-okkupanza attwali tal-leases heavyweight, il-baġit tal-bytes riżolt, u s-severità diretta tal-pressjoni huma
-esposti f’`GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — iċċekkja dawn qabel ma tibdel kwalunkwe varjabbli tal-ambjent.
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (default: `RATE_LIMIT_MAX_WAIT_MS`; `0` jiddiżattiva l-istennija) biex jinħeles slot
+qabel ma tirritorna l-`503` li jista’ jerġa’ jiġi ppruvat. L-istennija limitata teżisti sabiex klijenti tat-tip agent
+(OpenCode, Claude Code, Cursor) li jagħmlu fan-out ta’ sub-talbiet tqal b’mod konkorrenti jissekwenzjalizzaw il-burst
+minflok jeżawrixxu l-baġit kollu tagħhom ta’ tentattivi mill-ġdid fuq rifjuti immedjati u jfallu f’nofs biċċa xogħol.
+L-okkupazzjoni attwali tal-heavyweight leases, il-baġit tal-bytes riżolt, u s-severità tal-pressjoni diretta
+jintwerew f’`GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — iċċekkja dawn qabel tibdel kwalunkwe varjabbli tal-ambjent.
 Settings → Resilience → Request Queue → Concurrent Requests ma jikkontrollax dan; dak is-setting
 jirregola mekkaniżmu separat tal-kju tat-talbiet tal-fornitur.
 
-**Tiswija:**
+**Soluzzjoni:**
 
-1. Erġa’ pprova l-ewwel. Il-klijenti għandhom jirrispettaw `Retry-After` u jużaw backoff minflok ma
-   jirrepetu t-talba immedjatament.
-2. Iċċekkja `/api/monitoring/health` → `chatAdmission` qabel ma tirfina xi ħaġa. `countCapEnabled:
-false` u `maxInflightBytes` ġeneruż ifissru li l-baġit awtoderivat diġà qed jagħmel
-   xogħlu; `pressureSeverity` ta’ `high`/`critical` ifisser li l-host tassew għandu ftit memorja —
-   dan ma jistax jissewwa b’varjabbli tal-ambjent tal-ammissjoni; jeħtieġ aktar RAM jew workload iżgħar.
-3. Huwa biss jekk `/api/monitoring/health` juri li l-baġit awtoderivat huwa tassew żgħir wisq għall-
-   host tiegħek (ħaġa rari — dan diġà jadatta minn container sa bare-metal), li għandek tissovraskrivih direttament b’
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` minflok terġa’ tuża l-limitu legacy tal-għadd tat-talbiet.
+1. Erġa’ pprova l-ewwel. Il-klijenti għandhom jirrispettaw `Retry-After` u jużaw backoff minflok jirrepetu
+   t-talba immedjatament.
+2. Iċċekkja `/api/monitoring/health` → `chatAdmission` qabel taġġusta xi ħaġa. `countCapEnabled:
+false` u `maxInflightBytes` ġeneruż ifissru li l-baġit idderivat awtomatikament diġà qed jagħmel
+   xogħlu; `pressureSeverity` ta’ `high`/`critical` tfisser li l-host ġenwinament għandu ftit memorja —
+   dan ma jistax jiġi solvut b’varjabbli tal-ambjent tal-admission; jeħtieġ aktar RAM jew workload iżgħar.
+3. Huwa biss jekk `/api/monitoring/health` juri li l-baġit idderivat awtomatikament huwa ġenwinament żgħir wisq għall-
+   host tiegħek (ħaġa rari — diġà jiskala minn container għal bare-metal), li għandek tissostitwih direttament permezz ta’
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` minflok terġa’ tuża l-limitu l-antik ibbażat fuq l-għadd tat-talbiet.
 
 Ara r-[referenza tal-varjabbli tal-ambjent](../reference/ENVIRONMENT.md#4-security--authentication)
-għas-settings awtorevoli tal-ammissjoni.
+għas-settings awtorevoli tal-admission.
 
 ---
 

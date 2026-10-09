@@ -110,7 +110,7 @@ describe("handleChaosChat", () => {
   it("emits ONLY SSE comments (no custom event) by default + final OpenAI chunk", async () => {
     const handle = fakeHandle(async (model) => textResponse(`ans-${model}`));
     const res = await handleChaosChat({
-      body: { messages: [] },
+      body: { stream: true, messages: [] },
       models: ["a/gpt", "b/opus"],
       handleSingleModel: handle,
     });
@@ -128,7 +128,7 @@ describe("handleChaosChat", () => {
   it("emits omni-chaos-part events when stream_options.include_chaos_parts is set", async () => {
     const handle = fakeHandle(async (model) => textResponse(`ans-${model}`));
     const res = await handleChaosChat({
-      body: { messages: [], stream_options: { include_chaos_parts: true } },
+      body: { stream: true, messages: [], stream_options: { include_chaos_parts: true } },
       models: ["a/gpt", "b/opus"],
       handleSingleModel: handle,
     });
@@ -155,7 +155,7 @@ describe("handleChaosChat", () => {
       throw new Error("dead");
     });
     const res = await handleChaosChat({
-      body: {},
+      body: { stream: true },
       models: ["a/x", "b/y"],
       handleSingleModel: handle,
     });

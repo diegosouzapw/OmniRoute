@@ -129,21 +129,25 @@ mingħajr restart.
 
 ## Eżempju: reverse proxy quddiem OmniRoute
 
-CORS jiġi infurzat minn OmniRoute nnifsu, għalhekk il-proxy ġeneralment **m’għandux** iżid jew
-jikteb mill-ġdid l-headers `Access-Control-*` (headers doppji jikkawżaw problemi fil-browsers). Ittemm TLS
-u għaddi t-traffiku — ħalli lil OmniRoute iwieġeb għall-preflight:
+CORS jiġi infurzat minn OmniRoute stess, għalhekk ġeneralment il-proxy **m’għandux** iżid jew
+jikteb mill-ġdid l-headers `Access-Control-*` (headers doppji jikkawżaw problemi fil-browsers). Ittermina t-TLS
+u għaddi t-traffiku — ħalli lil OmniRoute jwieġeb għall-preflight:
 
 ```nginx
-# nginx — għaddi lil OmniRoute; IDDAĦĦALX Access-Control-* hawn
+# nginx — għaddi t-traffiku lil OmniRoute; IDDAĦĦALX Access-Control-* hawnhekk
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # Tissettjax X-Forwarded-For għal 127.0.0.1 — dan jegħleb il-protezzjoni tar-rotot loopback.
+    # Żomm l-headers tat-trażmissjoni: proxy fuq l-istess host jikkonnettja mil-loopback, u huma
+    # dawn li jgħidu lil OmniRoute li min qed jagħmel it-talba mhuwiex l-operatur lokali. Proxy li ma jżid ebda wieħed minnhom
+    # iġiegħel lil kull min jagħmel talba mill-bogħod jidher lokali. Lanqas qatt tissettja X-Forwarded-For għal 127.0.0.1.
 }
 ```
 
-Issettja l-oriġini tal-browser permessi f’OmniRoute (`CORS_ALLOWED_ORIGINS` jew it-tab
+Issettja l-oriġini permessi tal-browser f’OmniRoute (`CORS_ALLOWED_ORIGINS` jew it-tab
 Security), mhux fil-proxy.
 
 ## Fajls tas-sors

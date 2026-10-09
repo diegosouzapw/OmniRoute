@@ -240,16 +240,16 @@ Produkcijas steks darbojas paralēli izstrādes Compose videi (atšķirīgi kont
 
 ## Dockerfile posmi
 
-Repozitorijā ir iekļauts vairākposmu Dockerfile (`Dockerfile`). Ir pieejami četri posmi; izvēlieties savam lietojumam atbilstošo `target`.
+Repozitorijā ir iekļauts vairākposmu Dockerfile (`Dockerfile`). Ir pieejami četri posmi; izvēlieties savam lietošanas gadījumam atbilstošo `target`.
 
-| Posms         | Bāzes attēls          | Mērķis                                                                                                                                                                                                                                                                                                                                         |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Instalē atkarības (`npm ci --legacy-peer-deps`) un izpilda `npm run build` (pēc noklusējuma Turbopack — skatiet tālāk sadaļu par būvēšanas laika resursiem)                                                                                                                                                                                    |
-| `runner-base` | `node:26-trixie-slim` | Produkcijas izpildlaika vide ar Next.js savrupo izvadi. **Pakalpojumu sniedzēju CLI nav iekļautas.**                                                                                                                                                                                                                                           |
-| `runner-cli`  | `runner-base`         | Pievieno `git`, `docker.io`, `docker-compose` un globālās CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Izvēlieties šo posmu aģentu darbplūsmām.**                                                                                                                                                                 |
-| `runner-web`  | `runner-base`         | Pievieno Playwright un Chromium pārlūkprogrammu (`--with-deps`) tīmekļa sesiju pakalpojumu sniedzējiem: `gemini-web`, `claude-web`, `claude-turnstile`. **Izvēlieties šo posmu, ja izmantojat šos pakalpojumu sniedzējus** — parastajā attēlā bez tā pieprasījuma laikā rodas kļūme (skatiet piezīmi par `-web` sadaļā par laidienu kanāliem). |
+| Posms         | Bāzes attēls          | Mērķis                                                                                                                                                                                                                                                                                                                           |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Instalē atkarības (`npm ci --legacy-peer-deps`) un izpilda `npm run build` (pēc noklusējuma ar Turbopack — skatiet tālāk sadaļu par būvēšanas laika resursiem)                                                                                                                                                                   |
+| `runner-base` | `node:26-trixie-slim` | Produkcijas izpildlaika vide ar Next.js savrupo izvadi. **Pakalpojumu sniedzēju CLI nav iekļauti.**                                                                                                                                                                                                                              |
+| `runner-cli`  | `runner-base`         | Pievieno `git`, `docker.io`, `docker-compose` un globālos CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Izvēlieties šo aģentiskām darbplūsmām.**                                                                                                                                                     |
+| `runner-web`  | `runner-base`         | Pievieno Playwright un Chromium pārlūku (`--with-deps`) tīmekļa sesiju pakalpojumu sniedzējiem: `gemini-web`, `claude-web`, `claude-turnstile`. **Izvēlieties šo, ja izmantojat šos pakalpojumu sniedzējus** — parastais attēls bez tā pieprasījuma laikā nedarbosies (skatiet piezīmi par `-web` sadaļā par laidienu kanāliem). |
 
-Manuāli būvējiet konkrētu mērķi:
+Konkrētu mērķi var manuāli būvēt šādi:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -259,52 +259,58 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Būvēšanas laika resursi
 
-Trīs būvēšanas argumenti nosaka `builder` posma resursu patēriņu. Tie attiecas tikai uz būvēšanas laiku —
-`OMNIROUTE_MEMORY_MB` (tālāk) ir atsevišķs izpildlaika parametrs.
+Trīs būvēšanas argumenti kontrolē `builder` posma resursu patēriņu. Tie tiek izmantoti tikai būvēšanas laikā —
+`OMNIROUTE_MEMORY_MB` (tālāk) ir atsevišķs izpildlaika iestatījums.
 
-| Būvēšanas arguments         | Noklusējums | Ietekme                                                                                             |
-| --------------------------- | ----------- | --------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`         | Ar `0` būvēšanai tā vietā izmanto webpack. Mazāks maksimālais atmiņas patēriņš, bet lēnāka darbība. |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`      | V8 kaudzes ierobežojums (`--max-old-space-size`) palaistajam `next build` procesam.                 |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`         | Iestata `CIRCLE_NODE_TOTAL`; Next lapu datu apkopošanai aprēķina `workers = N - 1`.                 |
+| Būvēšanas arguments         | Noklusējums | Ietekme                                                                                     |
+| --------------------------- | ----------- | ------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`         | `0` būvē ar webpack: mazāks maksimālais atmiņas patēriņš, bet lēnāk. `1` iespējo Turbopack. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`      | V8 kaudzes ierobežojums (`--max-old-space-size`) palaistajam `next build`.                  |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`         | Padod vērtību `CIRCLE_NODE_TOTAL`; Next lapu datu apkopošanai atvasina `workers = N - 1`.   |
 
-`OMNIROUTE_BUILD_WORKERS` ir parametrs, kas jāpalielina jaudīgā būvēšanas vidē un
-par kuru jādomā vispirms, ja būvēšana ierobežotā vidē pārtrūkst **pēc** `✓ Compiled successfully`. Katrs
-lapu datu darbinātājprocess ir atsevišķs process, un arī vecākprocess `next build` ir
-atsevišķs; reālā VPS reprodukcijā (problēma #7518) katra procesa maksimālais RSS tika izmērīts kā
-~4.5 GB neatkarīgi no `NODE_OPTIONS` kaudzes karoga (Turbopack kompilēšanai izmanto
-vietējo/Rust atmiņu ārpus V8 kaudzes). Noklusējuma vērtība `2` (→ 1 darbinātājprocess, kopā 2
-procesi) ir pielāgota 16 GB / 4 vCPU GitHub mitinātajiem izpildītājiem, kurus
-izmanto publicēšanas konveijers. Ar `8` (→ 7 darbinātājprocesi) šim izpildītājam beidzās atmiņa un
+`OMNIROUTE_BUILD_WORKERS` ir parametrs, kuru palielināt jaudīgā būvēšanas vidē un
+par kuru jādomā vispirms, ja ierobežotā vidē būvēšana beidzas **pēc** `✓ Compiled successfully`. Katrs
+lapu datu darbinieks ir atsevišķs process, tāpat kā pats vecākprocess `next build`;
+reālas VPS vides reprodukcijā (problēma #7518) tika izmērīts katra procesa maksimālais RSS
+~4,5 GB apmērā neatkarīgi no `NODE_OPTIONS` kaudzes karoga (Turbopack kompilē
+vietējā/Rust atmiņā ārpus V8 kaudzes). Noklusējuma vērtība `2` (→ 1 darbinieks, kopā 2
+procesi) ir pielāgota 16 GB / 4 vCPU GitHub mitinātajiem izpildītājiem, kurus izmanto
+publicēšanas konveijers. Ar `8` (→ 7 darbinieki) šim izpildītājam pietrūka atmiņas, un
 buildkit pārtrauca darbību ar `ResourceExhausted: ... cannot allocate memory`;
-arī `3` (→ 2 darbinātājprocesi) neietilpa pieejamajā atmiņā, kad katra procesa RSS tika mērīts
-tieši, nevis secināts. `tests/unit/docker-build-memory-budget.test.ts`
+arī `3` (→ 2 darbinieki) neietilpa atmiņā, kad katra procesa RSS tika izmērīts
+tieši, nevis secināts netieši. `tests/unit/docker-build-memory-budget.test.ts`
 veic aprēķinus, izmantojot izmērīto vērtību, un neizdodas, ja kāds no parametriem
 pārsniedz izpildītāja iespējas.
 
-Turbopack kompilēšanai izmanto vietējo Rust atmiņu, kas atrodas **ārpus** V8 kaudzes, tādēļ
-`OMNIROUTE_BUILD_MEMORY_MB` to neierobežo. Resursdatorā ar atmiņas ierobežojumu OOM likvidētājs
-pārtrauc būvēšanu ar SIGKILL, neizvadot nekādu kļūdas tekstu — tā vienkārši
-apstājas `Creating an optimized production build` procesa vidū, kas izskatās pēc iestrēgšanas,
-nevis atmiņas izbeigšanās. Ja būvēšanas resursdatora resursi ir ierobežoti, mainiet komplektētāju:
+Turbopack kompilē vietējā Rust atmiņā, kas atrodas **ārpus** V8 kaudzes, tāpēc
+`OMNIROUTE_BUILD_MEMORY_MB` to neierobežo. Resursdatorā ar atmiņas ierobežojumu
+OOM pārtraucējs nosūta būvēšanas procesam SIGKILL bez jebkāda kļūdas teksta — tas vienkārši
+apstājas `Creating an optimized production build` izpildes vidū, un tas vairāk izskatās pēc
+iestrēgšanas, nevis atmiņas trūkuma. Tāpēc `Dockerfile` pēc noklusējuma izmanto webpack
+(`OMNIROUTE_USE_TURBOPACK=0`), atšķirībā no `npm run dev` / `npm run build`, kur
+Turbopack ir koda noklusējums: vienkārša `docker build .` izpilde bez būvēšanas argumentiem (kādu
+palaiž Railway un citas viena klikšķa mitināšanas platformas) nedrīkst klusi beigties būvēšanas
+vidē ar ierobežotu atmiņu. Publicētajos attēlos `OMNIROUTE_USE_TURBOPACK=0`
+jau tiek nepārprotami padots failā `docker-publish.yml`. Būvēšanas vidē ar lielu RAM apjomu
+iespējojiet Turbopack ātrākai būvēšanai:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` ir iespējots, tādēļ `next build` palaiž vecākprocesu **un** darbinātājprocesu,
-un katrs no tiem atsevišķi ievēro `OMNIROUTE_BUILD_MEMORY_MB`. Iestatiet konteinera
+`webpackBuildWorker` ir iespējots, tāpēc `next build` palaiž vecākprocesu **un** darbinieka
+procesu, un katrs no tiem atsevišķi ievēro `OMNIROUTE_BUILD_MEMORY_MB`. Iestatiet konteinera
 ierobežojumu aptuveni divreiz lielāku par šo vērtību, nevis vienreiz.
 
 Mērījumi šajā kokā (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Komplektētājs | Konteinera ierobežojums | Rezultāts                                         |
-| ------------- | ----------------------- | ------------------------------------------------- |
-| Turbopack     | 8 GiB / 16 GiB          | Abos gadījumos OOM pārtraukums bez ziņojuma       |
-| webpack       | 8 GiB                   | Būvēšanas darbinātājprocess pārtraukts ar SIGKILL |
-| webpack       | 12 GiB                  | Izdevās, maksimālais patēriņš bija 11.1 GiB       |
+| Komplektētājs | Konteinera ierobežojums | Rezultāts                                   |
+| ------------- | ----------------------- | ------------------------------------------- |
+| Turbopack     | 8 GiB / 16 GiB          | abos gadījumos klusi apturēts ar OOM        |
+| webpack       | 8 GiB                   | darbinieka būvēšanas process saņēma SIGKILL |
+| webpack       | 12 GiB                  | veiksmīgs, maksimums sasniedza 11,1 GiB     |
 
 ### Izpildlaika noklusējumi
 
@@ -315,22 +321,22 @@ Atmiņas darbība Docker vidē:
 - Attēls iestata `OMNIROUTE_MEMORY_MB=1024` un no tā atvasina `NODE_OPTIONS=--max-old-space-size=1024`.
 - Faktisko servera procesu palaiž savrupais palaidējs, kas nolasa `OMNIROUTE_MEMORY_MB` un pievieno `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
 - Node izmanto pēdējo atkārtoto `--max-old-space-size` vērtību, tāpēc `OMNIROUTE_MEMORY_MB` iestatīšana nosaka faktisko Docker kaudzes ierobežojumu.
-- Tā kā attēls to vienmēr iestata, palaidēja paša operatīvās atmiņas apjomam pielāgotā rezerves vērtība Docker vidē nekad netiek izmantota. Palieliniet to atbilstoši darba slodzei (skatiet tabulu tālāk). `2048` joprojām ir par maz kodēšanas aģentu `/v1/responses` pieprasījumiem.
+- Tā kā attēls to vienmēr iestata, palaidēja paša RAM apjomam pielāgotā rezerves vērtība Docker vidē nekad netiek izmantota. Palieliniet to atbilstoši darba slodzei (skatiet tabulu tālāk). `2048` joprojām ir par maz kodēšanas aģentu `/v1/responses` pieprasījumiem.
 
-### Izpildlaika operatīvā atmiņa kodēšanas aģentiem
+### Izpildlaika RAM kodēšanas aģentiem
 
-Docker noklusējuma 1 GiB ir minimālais apjoms informācijas panelim un vienkāršai tērzēšanai, nevis produkcijas vides konfigurācija. Gari `POST /v1/responses` pieprasījumu ķermeņi (simtiem ziņojumu, desmitiem rīku) saspiešanas laikā atmiņā saglabā vairākus grafus. Divi pārklājošies ~3 MiB / ~750k-token pieprasījumi ir izraisījuši V8 avāriju ar **12 GiB** vecās paaudzes apgabalu (`FATAL ERROR: Reached heap limit`) un arī sasnieguši 16 GiB cgroup OOM ierobežojumu. Skatiet [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Docker noklusējuma 1 GiB ir minimālais apjoms informācijas panelim un vienkāršai tērzēšanai, nevis produkcijas videi piemērots lielums. Gari `POST /v1/responses` pieprasījumu ķermeņi (simtiem ziņojumu, desmitiem rīku) saspiešanas laikā atmiņā saglabā vairākus grafus. Divi vienlaicīgi ~3 MiB / ~750k marķieru pieprasījumi ir izraisījuši V8 avārijas pārtraukšanu ar **12 GiB** vecās paaudzes apgabalu (`FATAL ERROR: Reached heap limit`), kā arī sasnieguši 16 GiB cgroup OOM robežu. Skatiet [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Iestatiet **cgroup `--memory` lielāku par kaudzes apjomu** — vietējie buferi, SQLite un saspiešanas starprezultāti atrodas ārpus V8.
+Iestatiet **cgroup `--memory` virs kaudzes apjoma** — vietējie buferi, SQLite un saspiešanas starprezultāti atrodas ārpus V8.
 
-| Darba slodze                                       | `OMNIROUTE_MEMORY_MB`       | Konteiners / cgroup                       | Piezīmes                                                                                                                                                |
-| -------------------------------------------------- | --------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Informācijas panelis, viena vienkārša tērzēšana    | `1024` (attēla noklusējums) | ≥2 GiB                                    |                                                                                                                                                         |
-| Viens kodēšanas aģents (Claude/Codex/Grok)         | `8192`                      | ≥10 GiB                                   | Tipiska vienas sesijas `/v1/responses` darba slodze                                                                                                     |
-| Divi vienlaicīgi gari `/v1/responses` pieprasījumi | `10240`–`12288`             | ≥12–16 GiB                                | Novērota V8 avārija ar ~12 GiB kaudzi                                                                                                                   |
-| Trīs vai vairāk vienlaicīgi gari konteksti         | nedarbiniet vienā procesā   | serializējiet / vairāk operatīvās atmiņas | Pēc noklusējuma vienlaikus tiek apstrādāta 1 resursietilpīga darba slodze; šī limita palielināšana bez papildu operatīvās atmiņas atkal izraisa avāriju |
+| Darba slodze                                    | `OMNIROUTE_MEMORY_MB`       | Konteiners / cgroup           | Piezīmes                                                                                                                                   |
+| ----------------------------------------------- | --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Informācijas panelis, viena vienkārša tērzēšana | `1024` (attēla noklusējums) | ≥2 GiB                        |                                                                                                                                            |
+| Viens kodēšanas aģents (Claude/Codex/Grok)      | `8192`                      | ≥10 GiB                       | Tipiska vienas sesijas `/v1/responses`                                                                                                     |
+| Divi vienlaicīgi gari `/v1/responses`           | `10240`–`12288`             | ≥12–16 GiB                    | Novērota V8 avārijas pārtraukšana pie ~12 GiB kaudzes                                                                                      |
+| Trīs vai vairāk vienlaicīgu garu kontekstu      | nedarbiniet vienā procesā   | izpildiet secīgi / vairāk RAM | Pēc noklusējuma ir atļauta 1 aktīva resursietilpīga operācija; šī skaita palielināšana bez papildu RAM atkal izraisa avārijas pārtraukšanu |
 
-`omniroute serve` fiziskā serverī pielāgo vērtību līdz ~35% no operatīvās atmiņas (ierobežojot diapazonā `[512, 4096]`), ja `OMNIROUTE_MEMORY_MB` **nav iestatīts**. Docker vienmēr iestata `1024`, tāpēc oficiālajā attēlā šī pielāgošana nekad netiek veikta.
+`omniroute serve` fiziskā serverī pielāgo aptuveni 35% no RAM (ierobežojot diapazonā `[512, 4096]`), ja `OMNIROUTE_MEMORY_MB` **nav iestatīts**. Docker vienmēr iestata `1024`, tāpēc oficiālajā attēlā šī pielāgošana nekad netiek veikta.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

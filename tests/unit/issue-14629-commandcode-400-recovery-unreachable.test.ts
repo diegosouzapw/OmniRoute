@@ -25,7 +25,7 @@ describe("issue #14629 — commandCode reaches the reactive 400-recovery chain",
         return new Response(
           JSON.stringify({
             error: {
-              message: 'Invalid option: expected one of "low", "medium", "high", "xhigh", "max"',
+              message: 'Invalid option: expected one of "low", "medium", "high"',
               param: "reasoning_effort",
             },
           }),
@@ -50,7 +50,11 @@ describe("issue #14629 — commandCode reaches the reactive 400-recovery chain",
       const executor = new mod.CommandCodeExecutor();
       const result = await executor.execute({
         model: "command-code/meituan/LongCat-2.0",
-        body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "none" },
+        // #14873 made the sanitizer map `none`/`minimal` → `low` for command-code
+        // BEFORE the first send, so those no longer reach the reactive path. Drive it
+        // with `xhigh` (passed through natively since #14929) against an upstream
+        // whose validator only accepts low|medium|high.
+        body: { messages: [{ role: "user", content: "hi" }], reasoning_effort: "xhigh" },
         stream: false,
         credentials: { apiKey: "fake-key" },
         signal: null,
@@ -61,8 +65,8 @@ describe("issue #14629 — commandCode reaches the reactive 400-recovery chain",
       const retriedBody = JSON.parse(seenBodies[1]);
       assert.equal(
         retriedBody.reasoning_effort,
-        "low",
-        "reasoning_effort must be clamped to the nearest accepted value >= the original demand"
+        "high",
+        "reasoning_effort must be clamped to the nearest accepted tier"
       );
     } finally {
       globalThis.fetch = originalFetch;

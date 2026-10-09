@@ -242,14 +242,14 @@ Ishlab chiqarish steki dasturlash compose muhiti bilan parallel ravishda ishlayd
 
 Repozitoriy ko‘p bosqichli Dockerfile (`Dockerfile`) bilan taqdim etiladi. To‘rtta bosqich mavjud; foydalanish holatingizga mos `target`ni tanlang.
 
-| Bosqich       | Asosiy obraz          | Maqsad                                                                                                                                                                                                                                                                                                 |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `builder`     | `node:26-trixie-slim` | Bog‘liqliklarni o‘rnatadi (`npm ci --legacy-peer-deps`) va `npm run build`ni ishga tushiradi (standart bo‘yicha Turbopack — quyidagi Qurish vaqtidagi resurslar bo‘limiga qarang)                                                                                                                      |
-| `runner-base` | `node:26-trixie-slim` | Next.js mustaqil chiqishi bilan ishlab chiqarish muhiti. **Provayder CLI vositalari kiritilmagan.**                                                                                                                                                                                                    |
-| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` va global CLI vositalarini qo‘shadi: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agentga asoslangan ish jarayonlari uchun shuni tanlang.**                                                                                               |
-| `runner-web`  | `runner-base`         | Veb-sessiya provayderlari uchun Playwright + Chromium brauzerini (`--with-deps`) qo‘shadi: `gemini-web`, `claude-web`, `claude-turnstile`. **Ushbu provayderlardan foydalansangiz, shuni tanlang** — oddiy obraz usiz so‘rov vaqtida xatoga uchraydi (Reliz kanallari ostidagi `-web` izohiga qarang). |
+| Bosqich       | Asosiy tasvir         | Maqsad                                                                                                                                                                                                                                                                                             |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Bog‘liqliklarni o‘rnatadi (`npm ci --legacy-peer-deps`) va `npm run build`ni ishga tushiradi (standart bo‘yicha Turbopack — quyidagi Yig‘ish vaqtidagi resurslar bo‘limiga qarang)                                                                                                                 |
+| `runner-base` | `node:26-trixie-slim` | Next.js mustaqil chiqishiga ega ishlab chiqarish muhiti. **Provayder CLI vositalari kiritilmagan.**                                                                                                                                                                                                |
+| `runner-cli`  | `runner-base`         | `git`, `docker.io`, `docker-compose` hamda global CLI vositalarini qo‘shadi: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Agentli ish jarayonlari uchun shuni tanlang.**                                                                                                   |
+| `runner-web`  | `runner-base`         | Veb-sessiya provayderlari uchun Playwright + Chromium brauzerini (`--with-deps`) qo‘shadi: `gemini-web`, `claude-web`, `claude-turnstile`. **Ushbu provayderlardan foydalansangiz, shuni tanlang** — oddiy tasvir usiz so‘rov vaqtida ishlamaydi (Reliz kanallari ostidagi `-web` izohiga qarang). |
 
-Muayyan targetni qo‘lda quring:
+Muayyan targetni qo‘lda yig‘ing:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -257,42 +257,36 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Qurish vaqtidagi resurslar
+### Yig‘ish vaqtidagi resurslar
 
-Uchta qurish argumenti `builder` bosqichi sarfini boshqaradi. Ular faqat qurish vaqtida amal qiladi —
-`OMNIROUTE_MEMORY_MB` (quyida) esa alohida, bajarilish vaqtidagi sozlamadir.
+Uchta yig‘ish argumenti `builder` bosqichining resurs sarfini boshqaradi. Ular faqat yig‘ish vaqtida amal qiladi —
+`OMNIROUTE_MEMORY_MB` (quyida) esa bajarilish vaqtiga oid alohida sozlamadir.
 
-| Qurish argumenti            | Standart qiymat | Ta’siri                                                                                                           |
-| --------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`             | `0` o‘rniga webpack bilan quradi. Xotiraning eng yuqori sarfi kamroq, ammo sekinroq.                              |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`          | Ishga tushirilgan `next build` uchun V8 uyum chegarasi (`--max-old-space-size`).                                  |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`             | `CIRCLE_NODE_TOTAL`ga uzatiladi; Next sahifa ma’lumotlarini yig‘ish uchun `workers = N - 1`ni hisoblab chiqaradi. |
+| Yig‘ish argumenti           | Standart qiymat | Ta’siri                                                                                                   |
+| --------------------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`             | `0` webpack bilan yig‘adi: xotiraning eng yuqori sarfi kamroq, ammo sekinroq. `1` Turbopackni yoqadi.     |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`          | Ishga tushirilgan `next build` uchun V8 uyum chegarasi (`--max-old-space-size`).                          |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`             | `CIRCLE_NODE_TOTAL`ga uzatiladi; Next sahifa ma’lumotlarini yig‘ish uchun `workers = N - 1`ni hisoblaydi. |
 
-`OMNIROUTE_BUILD_WORKERS` — katta quvvatli qurish muhitida oshirish kerak bo‘lgan va resurslari cheklangan qurish jarayoni `✓ Compiled successfully`dan **keyin** to‘xtab qolsa, shubha qilish kerak bo‘lgan sozlamadir. Har bir sahifa ma’lumotlari workeri alohida jarayon bo‘lib, asosiy `next build`ning o‘zi ham alohida jarayondir;
-jonli VPSdagi takroriy tajriba (issue #7518) har bir jarayonning eng yuqori RSS ko‘rsatkichini `NODE_OPTIONS` uyum bayrog‘idan qat’i nazar ~4.5 GB deb o‘lchadi (Turbopack V8 uyumidan tashqaridagi mahalliy/Rust xotirasida kompilyatsiya qiladi). Standart `2` qiymati (→ 1 worker, jami 2
-ta jarayon) nashr qilish konveyeri foydalanadigan 16 GB / 4 vCPU GitHub-hosted runnerlar uchun mo‘ljallangan. `8` qiymatida (→ 7 ta worker) ushbu runnerning xotirasi tugadi va buildkit bosqichni `ResourceExhausted: ... cannot allocate memory` xatosi bilan yakunlay olmadi;
-har bir jarayonning RSS ko‘rsatkichi taxmin qilish o‘rniga bevosita o‘lchanganda, `3` (→ 2 ta worker) ham sig‘madi. `tests/unit/docker-build-memory-budget.test.ts`
-o‘lchangan ko‘rsatkich asosida hisob-kitob qiladi va sozlamalardan biri runner imkoniyatidan oshib ketsa, test muvaffaqiyatsiz tugaydi.
+`OMNIROUTE_BUILD_WORKERS` — katta yig‘ish tizimida oshirilishi kerak bo‘lgan va resurslari cheklangan yig‘ish **`✓ Compiled successfully`dan keyin** to‘xtab qolsa, birinchi navbatda tekshirilishi kerak bo‘lgan parametrdir. Har bir sahifa ma’lumotlari workeri alohida jarayon bo‘lib, asosiy `next build` jarayoni ham alohida ishlaydi; amaldagi VPSda takrorlangan tajribada (issue #7518) har bir jarayonning eng yuqori RSS qiymati `NODE_OPTIONS` uyum bayrog‘idan qat’i nazar ~4.5 GB ekani o‘lchandi (Turbopack V8 uyumidan tashqaridagi mahalliy/Rust xotirasida kompilyatsiya qiladi). Standart `2` qiymati (→ 1 ta worker, jami 2 ta jarayon) nashr qilish konveyeri foydalanadigan 16 GB / 4 vCPU GitHub-hosted runnerlar uchun moslangan. `8` qiymatida (→ 7 ta worker) bu runnerning xotirasi tugadi va buildkit bosqichni `ResourceExhausted: ... cannot allocate memory` xatosi bilan yakunlay olmadi; har bir jarayonning RSS qiymati taxmin qilish o‘rniga to‘g‘ridan-to‘g‘ri o‘lchangach, `3` qiymati ham (→ 2 ta worker) sig‘madi. `tests/unit/docker-build-memory-budget.test.ts` o‘lchangan qiymat asosida hisob-kitob qiladi va parametrlardan biri runner imkoniyatidan oshib ketsa, muvaffaqiyatsiz yakunlanadi.
 
-Turbopack V8 uyumidan **tashqarida** joylashgan mahalliy Rust xotirasida kompilyatsiya qiladi, shu sababli
-`OMNIROUTE_BUILD_MEMORY_MB` uni cheklamaydi. Xotira chegarasi mavjud hostda qurish jarayoni hech qanday xato matnisiz OOM killer tomonidan SIGKILL qilinadi — u shunchaki
-`Creating an optimized production build` jarayonining o‘rtasida to‘xtab qoladi va bu xotira yetishmasligidan ko‘ra jarayon osilib qolgandek ko‘rinadi. Agar qurish hostining resurslari cheklangan bo‘lsa, bundlerni almashtiring:
+Turbopack V8 uyumidan **tashqarida** joylashgan mahalliy Rust xotirasida kompilyatsiya qiladi, shuning uchun `OMNIROUTE_BUILD_MEMORY_MB` uni cheklamaydi. Xotira chegarasiga ega hostda yig‘ish OOM killer tomonidan hech qanday xato matnisiz SIGKILL qilinadi — u shunchaki `Creating an optimized production build` jarayonining o‘rtasida to‘xtaydi, bu esa xotira yetishmasligidan ko‘ra jarayon osilib qolgandek ko‘rinadi. Shu sababli `Dockerfile`, Turbopack kod bo‘yicha standart hisoblangan `npm run dev` / `npm run build`dan farqli ravishda, standart bo‘yicha webpackdan (`OMNIROUTE_USE_TURBOPACK=0`) foydalanadi: hech qanday yig‘ish argumentlarisiz oddiy `docker build .` buyrug‘i (Railway va boshqa bir bosish orqali ishga tushiriladigan hostlar bajaradigan buyruq) xotirasi cheklangan yig‘ish tizimida indamay to‘xtab qolmasligi kerak. Nashr qilingan tasvirlar `docker-publish.yml`da allaqachon `OMNIROUTE_USE_TURBOPACK=0`ni aniq uzatadi. Yetarli RAMga ega yig‘ish tizimida tezroq yig‘ish uchun Turbopackni yoqing:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` yoqilgan, shuning uchun `next build` asosiy **va** worker jarayonini ishga tushiradi hamda har biri `OMNIROUTE_BUILD_MEMORY_MB`ga alohida rioya qiladi. Konteyner chegarasini bu qiymatdan bir marta emas, taxminan ikki marta yuqori qilib belgilang.
+`webpackBuildWorker` yoqilgan, shuning uchun `next build` asosiy **va** worker jarayonini ishga tushiradi hamda har biri `OMNIROUTE_BUILD_MEMORY_MB`ga alohida amal qiladi. Konteyner chegarasini bu qiymatdan taxminan ikki baravar yuqori qilib belgilang, bir baravar emas.
 
-Ushbu daraxtda o‘lchangan (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Ushbu daraxtda o‘lchangan natijalar (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Konteyner chegarasi | Natija                                                      |
-| --------- | ------------------- | ----------------------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB      | har ikkala holatda ham OOM sababli bildirishsiz to‘xtatildi |
-| webpack   | 8 GiB               | qurish workeri SIGKILL qilindi                              |
-| webpack   | 12 GiB              | muvaffaqiyatli, eng yuqori sarf 11.1 GiB bo‘ldi             |
+| Yig‘uvchi | Konteyner chegarasi | Natija                                     |
+| --------- | ------------------- | ------------------------------------------ |
+| Turbopack | 8 GiB / 16 GiB      | har ikkala holatda ham OOM-killed, indamay |
+| webpack   | 8 GiB               | build worker SIGKILL qilindi               |
+| webpack   | 12 GiB              | muvaffaqiyatli, eng yuqori sarf 11.1 GiB   |
 
 ### Bajarilish vaqtidagi standart qiymatlar
 
@@ -300,25 +294,25 @@ Ushbu daraxtda o‘lchangan (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=
 
 Docker ichidagi xotira xatti-harakati:
 
-- Tasvir `OMNIROUTE_MEMORY_MB=1024` ni o‘rnatadi va undan `NODE_OPTIONS=--max-old-space-size=1024` ni hosil qiladi.
-- Haqiqiy server jarayoni `OMNIROUTE_MEMORY_MB` ni o‘qib, `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` ni qo‘shadigan mustaqil ishga tushirgich orqali ishga tushiriladi.
-- Node takrorlangan `--max-old-space-size` qiymatlaridan oxirgisini ishlatadi, shuning uchun `OMNIROUTE_MEMORY_MB` ni o‘rnatish Docker heap xotirasining amaldagi cheklovini boshqaradi.
-- Tasvir uni doimo o‘rnatgani sababli, ishga tushirgichning operativ xotira hajmiga moslangan zaxira qiymati Docker ostida hech qachon qo‘llanmaydi. Ish yuklamasi uchun uni aniq oshiring (quyidagi jadval). Kod yozish agentining `/v1/responses` so‘rovlari uchun `2048` hamon juda kam.
+- Tasvir `OMNIROUTE_MEMORY_MB=1024` qiymatini o‘rnatadi va undan `NODE_OPTIONS=--max-old-space-size=1024` qiymatini hosil qiladi.
+- Haqiqiy server jarayoni mustaqil ishga tushirgich tomonidan ishga tushiriladi; u `OMNIROUTE_MEMORY_MB` qiymatini o‘qiydi va `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` parametrini qo‘shadi.
+- Node takrorlangan `--max-old-space-size` parametrining oxirgi qiymatidan foydalanadi, shuning uchun `OMNIROUTE_MEMORY_MB` qiymatini belgilash Docker uchun amaldagi heap cheklovini boshqaradi.
+- Tasvir bu qiymatni doimo belgilagani sababli, ishga tushirgichning RAM asosida hisoblanadigan zaxira qiymati Docker muhitida hech qachon qo‘llanmaydi. Uni ish yukiga mos ravishda aniq oshiring (quyidagi jadval). Kod yozuvchi agentlarning `/v1/responses` so‘rovlari uchun `2048` hamon juda kichik.
 
-### Kod yozish agentlari uchun ish vaqtidagi operativ xotira
+### Kod yozuvchi agentlar uchun ish vaqtidagi RAM
 
-Docker uchun standart 1 GiB qiymat ishlab chiqarish muhiti uchun emas, balki boshqaruv paneli/yengil chat uchun minimal darajadir. Uzun `POST /v1/responses` tanalari (yuzlab xabarlar, o‘nlab vositalar) siqish jarayonida xotirada bir nechta grafikni saqlab turadi. Bir-biriga ustma-ust kelgan, har biri taxminan 3 MiB / 750 ming tokenli ikkita so‘rov **12 GiB** old-space xotirasida V8 ishini to‘xtatgan (`FATAL ERROR: Reached heap limit`) va 16 GiB cgroup OOM holatiga ham olib kelgan. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) ga qarang.
+Docker uchun standart 1 GiB qiymat ishlab chiqarish muhiti hajmi emas, balki boshqaruv paneli/yengil chat uchun minimal chegaradir. Uzun `POST /v1/responses` so‘rov tanalari (yuzlab xabarlar, o‘nlab vositalar) siqish vaqtida xotirada bir nechta grafikni saqlab turadi. Bir-biriga ustma-ust tushgan, har biri taxminan ~3 MiB / ~750k tokenli ikkita so‘rov **12 GiB** old-space hajmida V8 ishini to‘xtatgan (`FATAL ERROR: Reached heap limit`) va 16 GiB cgroup OOM holatiga ham olib kelgan. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) ga qarang.
 
-**cgroup `--memory` hajmini heap hajmidan kattaroq belgilang** — mahalliy buferlar, SQLite va siqishning oraliq ma’lumotlari V8 dan tashqarida joylashadi.
+**cgroup `--memory` hajmini heap hajmidan kattaroq qilib belgilang** — mahalliy buferlar, SQLite va siqishdagi oraliq ma’lumotlar V8 xotirasidan tashqarida joylashadi.
 
-| Ish yuklamasi                                    | `OMNIROUTE_MEMORY_MB`      | Konteyner / cgroup                           | Izohlar                                                                                                                                           |
-| ------------------------------------------------ | -------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Boshqaruv paneli, bitta yengil chat              | `1024` (tasvir standarti)  | ≥2 GiB                                       |                                                                                                                                                   |
-| Bitta kod yozish agenti (Claude/Codex/Grok)      | `8192`                     | ≥10 GiB                                      | Odatdagi bitta seansli `/v1/responses`                                                                                                            |
-| Bir vaqtdagi ikkita uzun `/v1/responses`         | `10240`–`12288`            | ≥12–16 GiB                                   | Taxminan 12 GiB heap xotirasida V8 to‘xtashi kuzatilgan                                                                                           |
-| Bir vaqtdagi uchta yoki undan ko‘p uzun kontekst | bitta jarayonda ishlatmang | ketma-ket bajaring / ko‘proq operativ xotira | Standart og‘ir yuklamani qabul qilish chegarasi — bajarilayotgan 1 ta so‘rov; yetarli operativ xotirasiz uni oshirish yana to‘xtashga olib keladi |
+| Ish yuki                                       | `OMNIROUTE_MEMORY_MB`      | Konteyner / cgroup               | Izohlar                                                                                                                                            |
+| ---------------------------------------------- | -------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Boshqaruv paneli, bitta yengil chat            | `1024` (tasvir standarti)  | ≥2 GiB                           |                                                                                                                                                    |
+| Bitta kod yozuvchi agent (Claude/Codex/Grok)   | `8192`                     | ≥10 GiB                          | Odatdagi bitta seansli `/v1/responses`                                                                                                             |
+| Bir vaqtda ikkita uzun `/v1/responses`         | `10240`–`12288`            | ≥12–16 GiB                       | Taxminan 12 GiB heap hajmida V8 to‘xtashi kuzatilgan                                                                                               |
+| Bir vaqtda uchta yoki undan ko‘p uzun kontekst | bitta jarayonda ishlatmang | ketma-ket bajaring / ko‘proq RAM | Standart og‘ir ish yukini qabul qilish chegarasi bir vaqtda 1 ta so‘rovdir; RAMni oshirmasdan bu chegarani ko‘tarish xatoni qayta yuzaga keltiradi |
 
-`OMNIROUTE_MEMORY_MB` **o‘rnatilmagan** bo‘lsa, bevosita tizimda ishlaydigan `omniroute serve` operativ xotiraning taxminan 35% ini (`[512, 4096]` oralig‘ida cheklangan) moslaydi. Docker har doim `1024` ni o‘rnatadi, shuning uchun rasmiy tasvirda bu moslash hech qachon bajarilmaydi.
+Oddiy tizimda `omniroute serve`, agar `OMNIROUTE_MEMORY_MB` **belgilanmagan** bo‘lsa, RAMning taxminan 35% ini hisoblaydi (`[512, 4096]` oralig‘i bilan cheklangan). Docker har doim `1024` qiymatini o‘rnatadi, shuning uchun rasmiy tasvirda bu hisoblash hech qachon bajarilmaydi.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

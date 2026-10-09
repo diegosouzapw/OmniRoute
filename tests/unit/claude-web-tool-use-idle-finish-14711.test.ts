@@ -23,6 +23,8 @@ function frame(event: Record<string, unknown>): Uint8Array {
 type Chunk = {
   finishReason: unknown;
   hasToolCall: boolean;
+  toolCallIds: string[];
+  toolCallArguments: string[];
   eventType: unknown;
   done: boolean;
 };
@@ -35,15 +37,34 @@ function parseChunk(bytes: Uint8Array): Chunk {
     .slice(5)
     .trimStart();
   if (dataLine === "[DONE]") {
-    return { finishReason: null, hasToolCall: false, eventType: undefined, done: true };
+    return {
+      finishReason: null,
+      hasToolCall: false,
+      toolCallIds: [],
+      toolCallArguments: [],
+      eventType: undefined,
+      done: true,
+    };
   }
   const json = JSON.parse(dataLine) as {
-    choices: Array<{ finish_reason: unknown; delta?: { tool_calls?: unknown } }>;
+    choices: Array<{
+      finish_reason: unknown;
+      delta?: {
+        tool_calls?: Array<{ id?: unknown; function?: { arguments?: unknown } }>;
+      };
+    }>;
     claude_web?: { event?: { type?: unknown } };
   };
+  const toolCalls = json.choices[0]?.delta?.tool_calls ?? [];
   return {
     finishReason: json.choices[0]?.finish_reason ?? null,
-    hasToolCall: Boolean(json.choices[0]?.delta?.tool_calls),
+    hasToolCall: toolCalls.length > 0,
+    toolCallIds: toolCalls.flatMap((toolCall) =>
+      typeof toolCall.id === "string" ? [toolCall.id] : []
+    ),
+    toolCallArguments: toolCalls.flatMap((toolCall) =>
+      typeof toolCall.function?.arguments === "string" ? [toolCall.function.arguments] : []
+    ),
     eventType: json.claude_web?.event?.type,
     done: false,
   };
@@ -190,6 +211,101 @@ describe("Claude Web stream — tool_use held open by upstream (#14711)", () => 
     );
 
     controller?.close();
+    await reader.cancel().catch(() => {});
+  });
+
+  it("preserves a delayed sibling tool_use that starts before the idle window expires", async () => {
+    const siblingIdleFinishMs = 80;
+    let controller: ReadableStreamDefaultController<Uint8Array> | undefined;
+    let upstreamCancelled = false;
+    const source = new ReadableStream<Uint8Array>({
+      start(value) {
+        controller = value;
+        value.enqueue(frame({ type: "message_start", message: { model: "claude-sonnet-5" } }));
+        value.enqueue(
+          frame({
+            type: "content_block_start",
+            index: 0,
+            content_block: {
+              type: "tool_use",
+              id: "toolu_first",
+              name: "read_file",
+              input: { path: "README.md" },
+            },
+          })
+        );
+        value.enqueue(frame({ type: "content_block_stop", index: 0 }));
+      },
+      cancel() {
+        upstreamCancelled = true;
+      },
+    });
+
+    const completions: Array<{ assistantText: string; stopReason: string }> = [];
+    let failures = 0;
+    const response = await createClaudeWebResponse(source, {
+      model: "claude-sonnet-5",
+      stream: true,
+      responseMetadata: {},
+      onComplete: (result) => completions.push(result),
+      onFailure: () => {
+        failures += 1;
+      },
+      toolUseIdleFinishMs: siblingIdleFinishMs,
+    });
+
+    const reader = response.body!.getReader();
+    const firstToolCall = await readWithTimeout(reader, 2000);
+    assert.notEqual(firstToolCall, "__TIMED_OUT__");
+    assert.deepEqual((firstToolCall as Chunk).toolCallIds, ["toolu_first"]);
+
+    controller!.enqueue(
+      frame({
+        type: "content_block_start",
+        index: 1,
+        content_block: {
+          type: "tool_use",
+          id: "toolu_sibling",
+          name: "search_code",
+          input: {},
+        },
+      })
+    );
+
+    // The sibling arrives before the idle deadline, but completes after it. Its start must
+    // disarm the pending finish so the stream remains open long enough to receive its input.
+    await new Promise((resolve) => setTimeout(resolve, siblingIdleFinishMs * 2));
+    assert.equal(
+      upstreamCancelled,
+      false,
+      "must not finish while a sibling tool_use block is still open"
+    );
+
+    controller!.enqueue(
+      frame({
+        type: "content_block_delta",
+        index: 1,
+        delta: { type: "input_json_delta", partial_json: '{"query":"stream"}' },
+      })
+    );
+    controller!.enqueue(frame({ type: "content_block_stop", index: 1 }));
+
+    const siblingToolCall = await readWithTimeout(reader, 2000);
+    assert.notEqual(siblingToolCall, "__TIMED_OUT__");
+    assert.deepEqual((siblingToolCall as Chunk).toolCallIds, ["toolu_sibling"]);
+    assert.deepEqual((siblingToolCall as Chunk).toolCallArguments, ['{"query":"stream"}']);
+
+    const finishChunk = await readWithTimeout(reader, 2000);
+    assert.notEqual(finishChunk, "__TIMED_OUT__");
+    assert.equal((finishChunk as Chunk).finishReason, "tool_calls");
+
+    const doneChunk = await readWithTimeout(reader, 2000);
+    assert.notEqual(doneChunk, "__TIMED_OUT__");
+    assert.equal((doneChunk as Chunk).done, true);
+    assert.equal(upstreamCancelled, true);
+    assert.deepEqual(completions, [{ assistantText: "", stopReason: "tool_use" }]);
+    assert.equal(failures, 0);
+
     await reader.cancel().catch(() => {});
   });
 });

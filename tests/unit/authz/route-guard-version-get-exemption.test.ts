@@ -125,12 +125,16 @@ describe("isLocalOnlyPath - GET exemption for /api/system/version (#5083)", () =
   //   /api/mcp/audit         - GET is a read-only mcp_tool_audit query behind
   //   /api/mcp/audit/stats     requireManagementAuth (no spawn); the rest of
   //                              /api/mcp/* (sse/stream) stays local-only (#13941)
+  //   /api/version-manager/status, /check-update - GET only reports the CLIProxyAPI
+  //                              install state; install/start/restart/stop stay local-only
   test("LOCAL_ONLY_API_GET_EXEMPTIONS holds exactly the reviewed paths", () => {
     assert.deepEqual([...LOCAL_ONLY_API_GET_EXEMPTIONS].sort(), [
       "/api/mcp/audit",
       "/api/mcp/audit/stats",
       "/api/system/version",
       "/api/tunnels/cloudflared",
+      "/api/version-manager/check-update",
+      "/api/version-manager/status",
     ]);
   });
 });

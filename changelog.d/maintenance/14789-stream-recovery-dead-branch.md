@@ -1,1 +1,0 @@
-- **refactor(stream-recovery):** drop unreachable empty-continuation branch in `tryContinue` ([#14789](https://github.com/diegosouzapw/OmniRoute/pull/14789)) — thanks @maxmad64bis

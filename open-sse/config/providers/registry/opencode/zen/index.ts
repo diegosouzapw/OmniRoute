@@ -36,9 +36,30 @@ export const opencode_zenProvider: RegistryEntry = {
     // opencode.ai/zen/v1 with the same key on both endpoints). #12196 made the
     // same declaration for gpt-5.6-luna on opencode-go; the zen entries here
     // never got it.
-    { id: "gpt-5.6-sol", name: "GPT 5.6 Sol", targetFormat: "openai-responses" },
-    { id: "gpt-5.6-terra", name: "GPT 5.6 Terra", targetFormat: "openai-responses" },
-    { id: "gpt-5.6-luna", name: "GPT 5.6 Luna", targetFormat: "openai-responses" },
+    {
+      id: "gpt-5.6-sol",
+      name: "GPT 5.6 Sol",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-terra",
+      name: "GPT 5.6 Terra",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-luna",
+      name: "GPT 5.6 Luna",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
     { id: "gpt-5.4", name: "GPT 5.4" },
     { id: "gpt-5.4-mini", name: "GPT 5.4 Mini" },
     { id: "gpt-5.4-nano", name: "GPT 5.4 Nano" },

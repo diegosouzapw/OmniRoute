@@ -81,7 +81,7 @@ function safeUrl(rawUrl: string | undefined, hostHeader: string | undefined): UR
   return null;
 }
 
-async function readBody(req: http.IncomingMessage): Promise<Buffer> {
+async function readBody(req: http.IncomingMessage): Promise<Buffer<ArrayBuffer>> {
   const chunks: Buffer[] = [];
   for await (const chunk of req) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -168,11 +168,7 @@ function handleHttp(req: http.IncomingMessage, res: http.ServerResponse): void {
   })();
 }
 
-function handleConnect(
-  req: http.IncomingMessage,
-  clientSocket: net.Socket,
-  head: Buffer
-): void {
+function handleConnect(req: http.IncomingMessage, clientSocket: net.Socket, head: Buffer): void {
   const target = req.url ?? "";
   const [host, rawPort] = target.split(":");
   const port = Number(rawPort) || 443;

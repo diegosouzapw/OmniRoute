@@ -61,6 +61,7 @@ export const LOCAL_ONLY_API_PREFIXES: ReadonlyArray<string> = [
   "/api/cli-tools/smelt-settings", // spawns via getCliRuntimeStatus() to detect the `smelt` CLI install (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "/api/cli-tools/status", // GET calls getCliRuntimeStatus() per CLI_TOOL_IDS entry (Hard Rules #15 + #17, GHSA-35fw-cv32-2373)
   "/api/services/", // T-10: embedded service lifecycle (spawn child processes)
+  "/api/version-manager/", // downloads, unpacks and runs the CLIProxyAPI binary, the same work as /api/services/cliproxy/ (Hard Rules #15 + #17); read-only GETs exempted below
   "/api/tunnels/cloudflared", // POST installs/starts/stops cloudflared; safe methods are exempted below
   "/api/tunnels/tailscale/disable", // stops Funnel and may stop tailscaled/Tailscale service
   "/api/tunnels/tailscale/enable", // starts tailscaled/login/funnel subprocesses
@@ -128,6 +129,21 @@ export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/volcengine-plan\/connect(\/.*)?$/, // manual headful flow + session-based phone/SMS auto-login (both spawn Playwright)
   /^\/api\/providers\/[^/]+\/refresh-cursor\/?$/,
   /^\/api\/providers\/[^/]+\/chatgpt-web-codex-doctor\/?$/,
+  // S-01 (#15159): spawn(bin, ["acp", "--agent-type", "summarizer"], …) in
+  // src/lib/providers/validation/webProvidersB.ts:535 — fixed binary list + fixed argv (not
+  // caller-controlled RCE) but Hard Rules #15 + #17 still require loopback enforcement before
+  // any auth check. Exact paths only: the rest of /api/providers/ CRUD must stay
+  // remote-reachable. NOTE: keep this justification on its OWN line — a trailing `//` comment
+  // makes the pattern invisible to check-openapi-security-tiers.mjs, whose `//.*$` strip cannot
+  // match past a CRLF line ending.
+  /^\/api\/providers\/(validate|import|bulk)\/?$/,
+  // S-01 (#15159) second hop is deliberately NOT a path pattern: /api/providers/{id}/models
+  // resolves `{id}` to an arbitrary CONNECTION id, and the spawn
+  // (src/lib/providerModels/cursorAgent.ts:17, via fetchCursorAgentModels) only runs on the
+  // `provider === "cursor"` branch of that route. A `[^/]+/models` pattern would lock remote
+  // model discovery for EVERY provider — the over-broadening the /login precedent above
+  // exists to avoid. Instead the route gates the spawn on the trusted peer-locality header,
+  // mirroring cursorAgentImage.ts (see the guard in src/app/api/providers/[id]/models/route.ts).
 ];
 
 // `SPAWN_CAPABLE_PREFIXES` / `SPAWN_CAPABLE_PATTERNS` (the spawn-capable
@@ -294,6 +310,10 @@ export function isPrivateLanHost(hostHeader: string | null): boolean {
  */
 export const LOCAL_ONLY_API_GET_EXEMPTIONS: ReadonlySet<string> = new Set([
   "/api/system/version",
+  // The two read-only version-manager routes only report state; every other route under
+  // /api/version-manager/ installs or spawns the CLIProxyAPI binary.
+  "/api/version-manager/status",
+  "/api/version-manager/check-update",
   "/api/tunnels/cloudflared",
   // GET /api/mcp/audit and /stats are read-only SQLite queries behind
   // requireManagementAuth. The rest of /api/mcp/* stays local-only because

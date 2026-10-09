@@ -18,7 +18,13 @@
 /** Id stamped on requests authenticated by the deployment-time env key. */
 export const SYNTHETIC_ENV_API_KEY_ID = "env-key";
 
-const SYNTHETIC_API_KEY_IDS: readonly string[] = Object.freeze([SYNTHETIC_ENV_API_KEY_ID]);
+/** Id stamped on the router's own self-loop calls (vision/audio bridges). */
+export const SYNTHETIC_SELF_LOOP_API_KEY_ID = "self-loop";
+
+const SYNTHETIC_API_KEY_IDS: readonly string[] = Object.freeze([
+  SYNTHETIC_ENV_API_KEY_ID,
+  SYNTHETIC_SELF_LOOP_API_KEY_ID,
+]);
 
 const SYNTHETIC_API_KEY_ID_SET: ReadonlySet<string> = new Set(SYNTHETIC_API_KEY_IDS);
 

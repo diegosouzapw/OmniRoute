@@ -189,18 +189,18 @@ proxy kimlik doğrulaması dâhil olmak üzere paylaşılan atlama-atlama/çerç
 
 `/dashboard/tools/agent-bridge` adresindeki AgentBridge Sunucu Kartını kullanın:
 
-| Eylem                       | Açıklama                                                                              |
-| --------------------------- | ------------------------------------------------------------------------------------- |
-| Sunucuyu Başlat             | 443 numaralı bağlantı noktasında `src/mitm/server.cjs` işlemini başlatır              |
-| Sunucuyu Durdur             | Alt işlemi düzgün bir şekilde sonlandırır                                             |
-| Sunucuyu Yeniden Başlat     | Durdurur + başlatır (hedef değişikliklerini uygular)                                  |
-| Sertifikaya Güven           | `DATA_DIR/mitm/ca.crt` dosyasını işletim sisteminin güven deposuna yükler             |
-| Sertifikayı İndir           | Elle yüklemek üzere `ca.crt` dosyasını indirir                                        |
-| Sertifikayı Yeniden Oluştur | Yeni bir CA anahtar çifti oluşturur (mevcut tüm aracı sertifikaları geçersiz kılınır) |
+| Eylem                       | Açıklama                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| Sunucuyu Başlat             | `src/mitm/server.cjs` dosyasını 443 numaralı bağlantı noktasında başlatır            |
+| Sunucuyu Durdur             | Alt süreci düzgün bir şekilde kapatır                                                |
+| Sunucuyu Yeniden Başlat     | Durdurur + başlatır (hedef değişikliklerini uygular)                                 |
+| Sertifikaya Güven           | `DATA_DIR/mitm/ca.crt` dosyasını işletim sisteminin güven deposuna yükler            |
+| Sertifikayı İndir           | Elle yükleme için `ca.crt` dosyasını indirir                                         |
+| Sertifikayı Yeniden Oluştur | Yeni bir CA anahtar çifti oluşturur (mevcut tüm ajan sertifikaları geçersiz kılınır) |
 
 ### 3.2 Sertifikaya güvenme
 
-IDE'lerin MITM bağlantısını kabul edebilmesi için işletim sisteminin AgentBridge CA sertifikasına güvenmesi gerekir.
+IDE'lerin MITM bağlantısını kabul etmesi için işletim sisteminin AgentBridge CA sertifikasına güvenmesi gerekir.
 
 **Linux (NSS — Chrome/Firefox):**
 
@@ -221,36 +221,23 @@ sudo security add-trusted-cert -d -r trustRoot \
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-Alternatif olarak panodaki "Sertifikaya Güven" düğmesini kullanın (işletim sisteminize uygun komutu çalıştırır ve gerekirse sudo istemini gösterir).
+Alternatif olarak panodaki "Sertifikaya Güven" düğmesini kullanın (işletim sisteminiz için uygun komutu çalıştırır ve gerekirse sudo istemini gösterir).
 
 #### Electron tabanlı IDE'ler işletim sisteminin güven deposunu yok sayar (`NODE_EXTRA_CA_CERTS`)
 
-Bazı IDE'ler — özellikle **Antigravity IDE** ve diğer Electron / VS Code türevi uygulamalar —
-giden `fetch`/HTTPS istekleri için **işletim sisteminin güven deposuna başvurmayan** kendi
-Node.js çalışma zamanlarını paketler. CA'ya işletim sistemi/NSS düzeyinde güvenmek, IDE'nin yerel
-**arka ucu** (ör. işletim sistemi CA paketini kullanan bir Go dil sunucusu) için yeterlidir; ancak
-**Electron ön ucu** yine de TLS hatası verir — MITM günlüğü arka ucun başlangıç çağrılarının `200`
-döndürdüğünü gösterse bile bu durum uygulamada _oturum kapatılmış_ olarak veya bir _"bağlantı hatası"_
-şeklinde görünür. İki adım gereklidir ve ikisi de önemlidir:
+Bazı IDE'ler — özellikle **Antigravity IDE** ve diğer Electron / VS Code türevi uygulamalar — giden `fetch`/HTTPS bağlantıları için **işletim sisteminin güven deposuna başvurmayan** kendi Node.js çalışma zamanlarını paketlerinde bulundurur. CA'ya işletim sistemi/NSS düzeyinde güvenmek, IDE'nin yerel **arka ucu** (ör. işletim sisteminin CA paketini kullanan bir Go dil sunucusu) için yeterlidir; ancak **Electron ön ucu** yine de TLS hatası verir — MITM günlüğü arka ucun önyükleme çağrılarının `200` döndürdüğünü gösterse bile bu durum, uygulamada _oturumun kapatılmış_ olması veya _"bağlantı hatası"_ görüntülenmesi şeklinde ortaya çıkar. İki adım gereklidir ve ikisi de önemlidir:
 
 1. Çalışma zamanını açıkça CA'ya yönlendirin:
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **IDE'yi bu kabuktan başlatın.** Masaüstü simgesinden / Dock'tan / Başlat menüsünden
-   başlatıldığında kabuk dışa aktarımları **devralınmaz** ve `~/.config/environment.d/*.conf`
-   yalnızca yeni bir grafiksel oturum açıldıktan sonra uygulanır. Önce IDE'den tamamen çıkın —
-   Electron'ın tekil örnek kilidi nedeniyle ikinci bir başlatma yalnızca mevcut işleme odaklanır
-   ve yeni ortam yok sayılır.
+2. **IDE'yi bu kabuktan başlatın.** Masaüstü simgesinden / Dock'tan / Başlat menüsünden başlatıldığında kabuk dışa aktarımları **devralınmaz** ve `~/.config/environment.d/*.conf` yalnızca yeni bir grafiksel oturum açıldıktan sonra geçerli olur. Önce IDE'den tamamen çıkın — Electron'ın tek örnek kilidi nedeniyle ikinci bir başlatma yalnızca mevcut sürece odaklanır ve yeni ortam yok sayılır.
 
-Yukarıdaki işletim sistemi güveni + NSS adımı yine de gereklidir (bazı kimlik doğrulama
-akışlarının kullandığı Chromium ağ yığını, kullanıcıya özel NSS deposunu okur ve
-`*.googleapis.com` için yerel olarak güvenilen bir CA'nın geçersiz kıldığı kendi statik
-sabitlemelerine sahiptir). `NODE_EXTRA_CA_CERTS`, buna ek olarak Node `fetch` yolunu kapsar.
+Yukarıdaki işletim sistemi güveni + NSS adımı yine de gereklidir (bazı kimlik doğrulama akışlarının kullandığı Chromium ağ yığını, kullanıcıya özgü NSS deposunu okur ve `*.googleapis.com` için yerel olarak güvenilen bir CA'nın geçersiz kıldığı kendi statik sabitlemelerine sahiptir). `NODE_EXTRA_CA_CERTS`, buna ek olarak Node `fetch` yolunu kapsar.
 
 ### 3.3 DNS yönlendirmesi
 
-Müdahale etmek istediğiniz her aracı için API ana bilgisayarlarının `127.0.0.1` adresine çözümlenmesi gerekir. AgentBridge, Kurulum Sihirbazı'nda bir aracı için DNS'yi etkinleştirdiğinizde `/etc/hosts` girdilerini otomatik olarak yönetir.
+Araya girmek istediğiniz her ajan için API ana bilgisayarının/ana bilgisayarlarının `127.0.0.1` adresine çözümlenmesi gerekir. Kurulum Sihirbazı'nda bir ajanın DNS ayarını açıp kapattığınızda AgentBridge, `/etc/hosts` girdilerini otomatik olarak yönetir.
 
 GitHub Copilot için örnek `/etc/hosts` girdileri:
 
@@ -259,69 +246,71 @@ GitHub Copilot için örnek `/etc/hosts` girdileri:
 127.0.0.1 copilot-proxy.githubusercontent.com
 ```
 
-### 3.4 Model eşlemesi
+### 3.4 Model eşleme
 
-Kaynak → hedef eşlemelerini tanımlamak için her aracı kartındaki Model Eşleme Tablosunu kullanın:
+Kaynak → hedef eşlemelerini tanımlamak için her ajan kartındaki Model Eşleme Tablosunu kullanın:
 
-| Kaynak model (aracının yerel modeli) | Hedef model (OmniRoute) |
-| ------------------------------------ | ----------------------- |
-| `gpt-4o`                             | `claude-sonnet-4.7`     |
-| `*` (joker karakter)                 | `claude-haiku-4.7`      |
+| Kaynak model (ajanın yerel modeli) | Hedef model (OmniRoute) |
+| ---------------------------------- | ----------------------- |
+| `gpt-4o`                           | `claude-sonnet-4.7`     |
+| `*` (joker karakter)               | `claude-haiku-4.7`      |
 
-`*` joker karakteri, tanınmayan herhangi bir modeli belirtilen hedefle eşler. `agent_bridge_mappings` tablosunda kalıcı olarak saklanır.
+`*` joker karakteri, tanınmayan tüm modelleri belirtilen hedefle eşler. `agent_bridge_mappings` tablosunda kalıcı olarak saklanır.
 
-> **İpucu — aracının gerçek model kimliklerini keşfedin.** Bir IDE, kullanıcı arayüzündeki
-> etiketlerden farklı olan ve ana sürümler arasında değişen model adları gönderebilir. Örneğin
-> **Antigravity 2**, ağ üzerinden eski belgelerde gösterilen `gemini-2.5-pro` yerine
-> `gemini-3.1-pro-low`, `gemini-pro-agent` ve `gemini-3.1-flash-lite` gönderir. Eşleşen bir
-> eşleme olmadan tek bir sohbet gönderin: MITM, gelen tam `model:` değerini günlüğe kaydeder ve
-> isteği doğrudan geçirir. Bu değişmez değeri eşleyin; ardından sonraki istek yakalanarak
-> hedefinize yönlendirilir.
+> **İpucu — ajanın gerçek model kimliklerini keşfedin.** Bir IDE, kullanıcı arayüzündeki etiketlerden farklı olan ve ana sürümler arasında değişen model adları gönderebilir. Örneğin **Antigravity 2**, ağ üzerinden eski belgelerde gösterilen `gemini-2.5-pro` yerine `gemini-3.1-pro-low`, `gemini-pro-agent` ve `gemini-3.1-flash-lite` gönderir. Eşleşen bir eşleme olmadan bir sohbet gönderin: MITM, gelen tam `model:` değerini günlüğe kaydeder ve isteği olduğu gibi iletir. Bu değeri olduğu gibi eşleyin; sonraki istek yakalanarak hedefinize yönlendirilir.
 
 ### 3.5 Risk bildirimi
 
-AgentBridge, IDE'nin yukarı akış sağlayıcılarıyla kimlik doğrulamak için kullandığı kimlik bilgilerine (OAuth belirteçleri, API anahtarları) müdahale eder. Bunlar **günlüğe kaydedilmeden önce maskelenir** (bkz. §2.7), ancak OmniRoute'un MITM katmanı tarafından görülebilir. Her aracının ilk kez etkinleştirilmesi sırasında kapatılabilir bir risk bildirimi penceresi gösterilir.
+AgentBridge, IDE'nin yukarı akış sağlayıcılarında kimlik doğrulaması yapmak için kullandığı kimlik bilgilerini (OAuth belirteçleri, API anahtarları) yakalar. Bunlar **günlüğe kaydedilmeden önce maskelenir** (bkz. §2.7), ancak OmniRoute'un MITM katmanı tarafından görülebilir. Her ajanın ilk etkinleştirilmesinde kapatılabilir bir risk bildirimi iletişim kutusu gösterilir.
 
 ### 3.6 Bakım ve Tanılama
 
-Pano, daha önce kullanıcı arayüzü bulunmayan operasyonel MITM rotalarını gösteren bir **Bakım ve Tanılama** kartı (`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/` içinde) sunar. Alt başlığı: _"Yakalama işlem hattını kendi kendine test edin, kalan sistem durumunu geri alın ve kurulumunuzu makineler arasında taşıyın."_ Kartın istemci yardımcıları `src/lib/inspector/agentBridgeMaintenanceApi.ts` içinde bulunur.
+Pano, daha önce kullanıcı arayüzü bulunmayan operasyonel MITM rotalarını gösteren bir **Bakım ve Tanılama** kartı (`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/` içinde) sunar. Alt başlığı: _"Yakalama ardışık düzenini kendi kendine test edin, geride kalan sistem durumunu geri alın ve kurulumunuzu makineler arasında taşıyın."_ Kartın istemci yardımcıları `src/lib/inspector/agentBridgeMaintenanceApi.ts` içinde bulunur.
 
-| Düğme                         | Rota                                   | İşlevi                                                                                                                                                                                                                   |
-| ----------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Tanıla**                    | `GET /api/tools/agent-bridge/diagnose` | Yakalama işlem hattının öz sınamasını çalıştırır ve her denetim için bir rapor gösterir (✓/✗ + düzeltme ipucu).                                                                                                          |
-| **Onar**                      | `POST /api/tools/agent-bridge/repair`  | Bir çökme veya SIGKILL sonrasında geride kalan sahipsiz MITM sistem durumunu (DNS yanıltma girdileri, kök CA, sistem proxy'si) geri alır. İdempotenttir — durum temiz olduğunda "Onarılacak bir şey yok" bildirir.       |
-| **CA'yı kaldır**              | `DELETE /api/tools/agent-bridge/cert`  | MITM kök CA'sına duyulan güveni kaldırır ve CA'yı işletim sisteminin güven deposundan siler (açık, idempotent). Yalnızca CA hâlihazırda güvenilir olduğunda gösterilir; satır içi "CA kaldırılsın mı?" onayı gerektirir. |
-| **Yapılandırmayı dışa aktar** | `GET /api/tools/agent-bridge/config`   | Taşınabilir yapılandırma JSON'unu indirir (bkz. §3.7).                                                                                                                                                                   |
-| **Yapılandırmayı içe aktar**  | `POST /api/tools/agent-bridge/config`  | Daha önce dışa aktarılmış bir yapılandırma JSON'u yükler (bkz. §3.7).                                                                                                                                                    |
+| Düğme                         | Rota                                   | İşlevi                                                                                                                                                                                                                      |
+| ----------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tanıla**                    | `GET /api/tools/agent-bridge/diagnose` | Yakalama işlem hattının kendi kendine testini çalıştırır ve her denetim için bir rapor gösterir (✓/✗ + düzeltme ipucu).                                                                                                     |
+| **Onar**                      | `POST /api/tools/agent-bridge/repair`  | Bir çökme veya SIGKILL sonrasında kalan sahipsiz MITM sistem durumunu (DNS yanıltma girdileri, kök CA, sistem proxy'si) geri alır. İdempotenttir — durum temiz olduğunda "Onarılacak bir şey yok" bildirir.                 |
+| **CA'yı kaldır**              | `DELETE /api/tools/agent-bridge/cert`  | MITM kök CA'sına duyulan güveni kaldırır ve CA'yı işletim sisteminin güven deposundan siler (açık, idempotent işlem). Yalnızca CA'ya hâlihazırda güveniliyorsa gösterilir; satır içi "CA kaldırılsın mı?" onayı gerektirir. |
+| **Yapılandırmayı dışa aktar** | `GET /api/tools/agent-bridge/config`   | Taşınabilir yapılandırma JSON dosyasını indirir (bkz. §3.7).                                                                                                                                                                |
+| **Yapılandırmayı içe aktar**  | `POST /api/tools/agent-bridge/config`  | Önceden dışa aktarılmış bir yapılandırma JSON dosyasını yükler (bkz. §3.7).                                                                                                                                                 |
 
-**Tanılama denetimleri** (`src/mitm/inspector/diagnostics.ts` içindeki `summarizeDiagnostics()`). Rota, her biri için yan etkili yoklamayı çalıştırır ve boole değerlerini saf özetleyiciye iletir; tek bir `healthy` kararıyla birlikte her hata için bir ipucu döndürülür:
+Her aracı kartının ayrıca kendi **Varsayılanı geri yükle** düğmesi (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) vardır — yalnızca söz konusu
+aracının ana makinelerine yönelik yanıltmayı kaldıran, kayıtlı model eşlemelerini temizleyen ve `dns_enabled`/`setup_completed`
+durumunu sıfırlayan, araç başına tek tıklamalı bir geri alma işlemidir; böylece IDE tamamen yeniden başlatıldığında yeniden gerçek üst sunucuyla iletişim kurar. Bu işlem, paylaşılan
+MITM sunucusuna veya kök CA'ya **dokunmaz** (diğer araçlar hâlâ bunlara bağlı olabilir) — bunlara Sunucu Kartı ve yukarıdaki **CA'yı kaldır** eylemi
+üzerinden erişilebilir. Windows'ta ayrıca mümkün olduğunca `ipconfig /flushdns`
+komutunu çalıştırır; çünkü Windows DNS İstemcisi, hosts dosyası girdilerini önbelleğe alır ve yeni kaldırılmış bir
+yanıltma girdisini aksi hâlde temizlemez.
 
-| Denetim adı        | Doğruladığı şey                                                           | Hata durumundaki ipucu                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | MITM sunucu işleminin etkin olması                                        | "MITM sunucusu çalışmıyor. AgentBridge sekmesinden başlatın."                                                                                                       |
-| `server-reachable` | MITM sunucusunun kendi portunda bağlantıları kabul etmesi (TCP yoklaması) | "MITM sunucusu kendi portunda bağlantıları kabul etmiyor. Portun boş olduğunu ve bu porta bağlanmak için gerekli ayrıcalıklara sahip olduğunuzu kontrol edin."      |
-| `cert-exists`      | MITM sertifikasının diskte oluşturulmuş olması                            | "Henüz bir MITM sertifikası oluşturulmadı. AgentBridge sekmesinden bir tane oluşturun."                                                                             |
-| `cert-trusted`     | MITM kök CA'sının işletim sistemi güven deposunda bulunması               | "MITM kök CA'sına işletim sistemi deposu tarafından güvenilmiyor; bu nedenle TLS yakalama işlemi başarısız olacaktır. Sertifikaya AgentBridge sekmesinden güvenin." |
-| `dns-configured`   | Hedef ana makine adlarının `/etc/hosts` içinde yanıltılması               | "Hedef ana makine adları /etc/hosts içinde yanıltılmadığından trafik proxy'ye hiçbir zaman ulaşmıyor. Yakalamak istediğiniz aracılar için DNS'yi etkinleştirin."    |
+**Tanılama denetimleri** (`src/mitm/inspector/diagnostics.ts` içindeki `summarizeDiagnostics()`). Rota, her biri için yan etkili yoklamayı çalıştırır ve boole değerlerini saf özetleyiciye aktarır; tek bir `healthy` kararıyla birlikte her hata için bir ipucu döndürülür:
 
-**Sahipsiz durum başlığı:** sayfa, bir çökme sonrasında geride kalan durumu (DNS yanıltma / CA / sistem proxy'si) algıladığında kartta kehribar renkli bir başlık gösterilir — _"Önceki bir oturum geride sistem durumu bıraktı (DNS yanıltma, CA veya sistem proxy'si). Temizlemek için Onar'ı çalıştırın."_ — ve **Onar** düğmesi vurgulanır. `Repair`, ProxyBridge'in `--cleanup` bayrağının uygulama katmanındaki karşılığıdır (`src/mitm/manager.ts` içindeki `repairMitm()` işlevine devreder).
+| Denetim adı        | Doğruladığı şey                                                           | Hata durumundaki ipucu                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | MITM sunucu işleminin etkin olması                                        | "MITM sunucusu çalışmıyor. AgentBridge sekmesinden başlatın."                                                                                                  |
+| `server-reachable` | MITM sunucusunun kendi portunda bağlantıları kabul etmesi (TCP yoklaması) | "MITM sunucusu kendi portunda bağlantıları kabul etmiyor. Portun boş olduğunu ve bu porta bağlanmak için gerekli yetkilere sahip olduğunuzu kontrol edin."     |
+| `cert-exists`      | MITM sertifikasının diskte oluşturulmuş olması                            | "Henüz bir MITM sertifikası oluşturulmamış. AgentBridge sekmesinden bir tane oluşturun."                                                                       |
+| `cert-trusted`     | MITM kök CA'sının işletim sisteminin güven deposunda bulunması            | "MITM kök CA'sına işletim sistemi deposu tarafından güvenilmiyor, bu nedenle TLS müdahalesi başarısız olacaktır. AgentBridge sekmesinden sertifikaya güvenin." |
+| `dns-configured`   | Hedef ana makine adlarının `/etc/hosts` içinde yanıltılmış olması         | "Hedef ana makine adları /etc/hosts içinde yanıltılmamış, dolayısıyla trafik proxy'ye hiç ulaşmıyor. Yakalamak istediğiniz araçlar için DNS'yi etkinleştirin." |
 
-> MITM kök CA'sı, tekrarlanan sudo istemlerini önlemek için durdurma/başlatma
-> işlemleri boyunca yüklü tutulur (mitmproxy/Charles ile aynı davranış); dolayısıyla kaldırılması,
-> durdurma sırasında otomatik olarak gerçekleşen bir işlem değil, açık bir
-> **CA'yı kaldır** eylemidir.
+**Sahipsiz durum banner'ı:** sayfa bir çökme sonrasında geride kalan bir durum (DNS yanıltma / CA / sistem proxy'si) algıladığında, kartta sarı bir banner gösterilir — _"Önceki bir oturum geride sistem durumu bıraktı (DNS yanıltma, CA veya sistem proxy'si). Temizlemek için Onar'ı çalıştırın."_ — ve **Onar** düğmesi vurgulanır. `Repair`, ProxyBridge'in `--cleanup` bayrağının uygulama katmanındaki karşılığıdır (`src/mitm/manager.ts` içindeki `repairMitm()` işlevine devreder).
+
+> Tekrarlanan sudo istemlerini önlemek için MITM kök CA'sı durdurma/başlatma işlemleri boyunca yüklü tutulur
+> (mitmproxy/Charles ile aynı davranış); bu nedenle CA'yı kaldırmak, durdurma sırasında otomatik olarak gerçekleşen
+> bir işlem değil, açık bir **CA'yı kaldır** eylemidir.
 
 ### 3.7 Taşınabilir yapılandırmayı içe/dışa aktarma
 
-AgentBridge, bir kurulumun makineler arasında çoğaltılabilmesi için **operatör tarafından ayarlanabilen** durumu sürümlü bir JSON blobu hâlinde serileştirebilir. Serileştirici `src/lib/inspector/configPortability.ts` dosyasıdır (`exportConfig()` / `importConfig()`) ve `AgentBridgeConfigSchema` tarafından doğrulanır.
+AgentBridge, bir kurulumun makineler arasında çoğaltılabilmesi için **operatör tarafından ayarlanabilen** durumu sürümlendirilmiş bir JSON blobu hâlinde seri hâle getirebilir. Serileştirici `src/lib/inspector/configPortability.ts` dosyasıdır (`exportConfig()` / `importConfig()`) ve `AgentBridgeConfigSchema` tarafından doğrulanır.
 
 Dışa aktarma tam olarak üç parça içerir (yerleşik varsayılanlar kasıtlı olarak dışa **AKTARILMAZ**; böylece içe aktarma işlemi bunları hiçbir zaman çoğaltmaz veya bunlarla çakışmaz):
 
-| Alan             | Kaynak                                                           | Notlar                                                                  |
-| ---------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `bypassPatterns` | kullanıcı tanımlı atlama desenleri (`agent_bridge_bypass`)       | varsayılan banka/devlet/okta desenleri hariç tutulur                    |
-| `customHosts`    | Traffic Inspector özel ana makineleri (`inspector_custom_hosts`) | her biri: `{ host, kind: "llm"\|"app"\|"custom", label? }`              |
-| `agentMappings`  | aracı başına model eşlemeleri (`agent_bridge_mappings`)          | eşlemeleri bulunan her aracı için `{ [agentId]: [{ source, target }] }` |
+| Alan             | Kaynak                                                           | Notlar                                                               |
+| ---------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `bypassPatterns` | kullanıcı tanımlı atlama desenleri (`agent_bridge_bypass`)       | varsayılan banka/devlet/okta desenleri dahil edilmez                 |
+| `customHosts`    | Traffic Inspector özel ana makineleri (`inspector_custom_hosts`) | her biri: `{ host, kind: "llm"\|"app"\|"custom", label? }`           |
+| `agentMappings`  | aracı başına model eşlemeleri (`agent_bridge_mappings`)          | eşlemeleri olan her aracı için `{ [agentId]: [{ source, target }] }` |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -335,13 +324,13 @@ Dışa aktarma tam olarak üç parça içerir (yerleşik varsayılanlar kasıtl�
 }
 ```
 
-**İçe aktarma davranışı** (`POST /api/tools/agent-bridge/config`): atlama desenleri ve aracı başına eşlemeler **toptan değiştirilir**; özel ana makineler **idempotent olarak** eklenir (`INSERT OR IGNORE`). Yanıt, her birinden kaç tanesinin uygulandığını bildirir:
+**İçe aktarma davranışı** (`POST /api/tools/agent-bridge/config`): atlama desenleri ve aracı başına eşlemeler **tümüyle değiştirilir**; özel ana makineler **idempotent olarak** eklenir (`INSERT OR IGNORE`). Yanıt, her birinden kaç tanesinin uygulandığını bildirir:
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-Yapılandırmaya **DAHİL OLMAYANLAR**: sunucunun çalışma durumu, sertifika yolları, aracı bazında DNS durumu, üst CA yolu ve TPROXY ayarları — bunlar taşınabilir tercihler değil, ana makine/çalışma zamanı durumudur.
+Yapılandırmaya **DAHİL OLMAYANLAR**: sunucunun çalışma durumu, sertifika yolları, aracı başına DNS durumu, yukarı akış CA yolu ve TPROXY ayarları — bunlar taşınabilir tercihler değil, ana makine/çalışma zamanı durumudur.
 
 ---
 
@@ -501,39 +490,40 @@ AgentBridge istekleri yakalıyor ancak tüm istekler başarısız oluyorsa:
 
 ## §7 API referansı
 
-Tüm rotalar `LOCAL_ONLY` (yalnızca geri döngü; kimlik doğrulamadan önce zorunlu tutulur) ve `SPAWN_CAPABLE` özelliğindedir. Bkz. `src/server/authz/routeGuard.ts`.
+Tüm rotalar `LOCAL_ONLY` (yalnızca loopback; kimlik doğrulamadan önce uygulanır) ve `SPAWN_CAPABLE` özelliğine sahiptir. Bkz. `src/server/authz/routeGuard.ts`.
 
 Temel yol: `/api/tools/agent-bridge/`
 
-| Yöntem              | Yol                                            | Açıklama                                                                                                               |
-| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | Genel sunucu durumu + aracı bazında algılama/durum                                                                     |
-| GET                 | `/api/tools/agent-bridge/agents`               | Kayıtlı aracıları listele (id, ad, ana makineler, kullanılabilirlik, durum)                                            |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Bir aracının durumu (hedef yapılandırması + algılama + saklanan durum)                                                 |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Aracı için `setup_completed` değerini güncelle                                                                         |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Aracı için algılama yoklamasını çalıştır (`installed`, `version?`, `path?`)                                            |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Aracı için DNS'yi etkinleştir/devre dışı bırak (`{enabled: boolean}`)                                                  |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Aracı için model eşlemeleri                                                                                            |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model eşlemelerini değiştir                                                                                            |
-| POST                | `/api/tools/agent-bridge/server`               | Sunucuyu başlat/durdur/yeniden başlat (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)          |
-| GET                 | `/api/tools/agent-bridge/cert`                 | Sertifika durumu (`exists`, `trusted`, `path`)                                                                         |
-| POST                | `/api/tools/agent-bridge/cert`                 | MITM kök CA'sına güven (yükle)                                                                                         |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM kök CA'sına güvenmeyi bırak (kaldır) — idempotenttir (bkz. §3.6)                                                  |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Kendinden imzalı MITM sertifikasını yeniden oluştur                                                                    |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | İndirme için PEM sertifikasını akışla aktar                                                                            |
-| GET                 | `/api/tools/agent-bridge/bypass`               | Atlama kalıplarını listele (`default` + `user`)                                                                        |
-| POST                | `/api/tools/agent-bridge/bypass`               | Kullanıcı tanımlı atlama kalıplarını topluca değiştir                                                                  |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Tek bir kullanıcı tanımlı atlama kalıbını kaldır                                                                       |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | Yakalama işlem hattı öz sınaması (bkz. §3.6)                                                                           |
-| POST                | `/api/tools/agent-bridge/repair`               | Sahipsiz kalmış MITM sistem durumunu geri al (bkz. §3.6)                                                               |
-| GET                 | `/api/tools/agent-bridge/config`               | Taşınabilir yapılandırma JSON'unu dışa aktar (bkz. §3.7)                                                               |
-| POST                | `/api/tools/agent-bridge/config`               | Taşınabilir yapılandırma JSON'unu içe aktar (bkz. §3.7)                                                                |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Yapılandırılmış üst akış CA yolunu al                                                                                  |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | Üst akış CA yolunu doğrula + kalıcı olarak kaydet                                                                      |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Bir üst akış CA yolunu yalnızca doğrula (deneme çalıştırması) — kalıcı olarak kaydetmez                                |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY şeffaf şifre çözmeli yakalama modu — bkz. `docs/security/MITM-TPROXY-DECRYPT.md` (git; `/docs` içine derlenmez) |
+| Yöntem              | Yol                                            | Açıklama                                                                                                                      |
+| ------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | Genel sunucu durumu + aracı bazında algılama/durum                                                                            |
+| GET                 | `/api/tools/agent-bridge/agents`               | Kayıtlı aracıları listele (kimlik, ad, ana makineler, kullanılabilirlik, durum)                                               |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | Tek bir aracının durumu (hedef yapılandırması + algılama + depolanan durum)                                                   |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | Aracı için `setup_completed` değerini güncelle                                                                                |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | Aracı için algılama yoklamasını çalıştır (`installed`, `version?`, `path?`)                                                   |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | Aracı için DNS'yi etkinleştir/devre dışı bırak (`{enabled: boolean}`)                                                         |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Aracı için model eşlemeleri                                                                                                   |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | Model eşlemelerini değiştir                                                                                                   |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | Varsayılanı geri yükle: bu aracının DNS sahtelemesini geri al, eşlemelerini temizle ve durumunu sıfırla (bkz. §3.6)           |
+| POST                | `/api/tools/agent-bridge/server`               | Sunucuyu başlat/durdur/yeniden başlat (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                 |
+| GET                 | `/api/tools/agent-bridge/cert`                 | Sertifika durumu (`exists`, `trusted`, `path`)                                                                                |
+| POST                | `/api/tools/agent-bridge/cert`                 | MITM kök CA'sına güven (yükle)                                                                                                |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM kök CA'sına güvenmeyi bırak (kaldır) — idempotenttir (bkz. §3.6)                                                         |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | Kendinden imzalı MITM sertifikasını yeniden oluştur                                                                           |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | İndirme için PEM sertifikasını akışla                                                                                         |
+| GET                 | `/api/tools/agent-bridge/bypass`               | Baypas kalıplarını listele (`default` + `user`)                                                                               |
+| POST                | `/api/tools/agent-bridge/bypass`               | Kullanıcı tanımlı baypas kalıplarının tamamını değiştir                                                                       |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | Tek bir kullanıcı tanımlı baypas kalıbını kaldır                                                                              |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | Yakalama işlem hattı öz testi (bkz. §3.6)                                                                                     |
+| POST                | `/api/tools/agent-bridge/repair`               | Sahipsiz kalmış MITM sistem durumunu geri al (bkz. §3.6)                                                                      |
+| GET                 | `/api/tools/agent-bridge/config`               | Taşınabilir yapılandırma JSON'unu dışa aktar (bkz. §3.7)                                                                      |
+| POST                | `/api/tools/agent-bridge/config`               | Taşınabilir yapılandırma JSON'unu içe aktar (bkz. §3.7)                                                                       |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | Yapılandırılmış üst akış CA yolunu al                                                                                         |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | Üst akış CA yolunu doğrula + kalıcı olarak kaydet                                                                             |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | Bir üst akış CA yolunu yalnızca doğrula (deneme çalıştırması) — kalıcı olarak kaydetmez                                       |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY şeffaf şifre çözmeli yakalama modu — bkz. `docs/security/MITM-TPROXY-DECRYPT.md` (git içinde; `/docs` içine derlenmez) |
 
-Tam OpenAPI şemaları: `docs/openapi.yaml` → `AgentBridge` etiketi.
+OpenAPI şemalarının tamamı: `docs/openapi.yaml` → `AgentBridge` etiketi.
 
 ---
 

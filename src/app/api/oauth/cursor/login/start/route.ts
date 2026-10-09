@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAuthRequired, isAuthenticated } from "@/shared/utils/apiAuth";
+import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import {
   createCursorLoginSession,
   generateCursorAuthParams,
@@ -7,9 +7,7 @@ import {
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 async function requireOAuthAuth(request: Request) {
-  if (!(await isAuthRequired(request))) return null;
-  if (await isAuthenticated(request)) return null;
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return requireManagementAuth(request, { invalidApiKeyStatus: 401 });
 }
 
 /**

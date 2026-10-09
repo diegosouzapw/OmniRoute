@@ -25,10 +25,7 @@ import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/cr
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { markAntigravityModelQuotaExhausted } from "../services/antigravityFamilyCooldown.ts";
 import { getMitmAlias } from "@/lib/db/models";
-import {
-  MAX_ANTIGRAVITY_OUTPUT_TOKENS,
-  resolveAntigravityOutputCap,
-} from "./antigravityOutputCap.ts";
+import { resolveAntigravityOutputCap } from "./antigravityOutputCap.ts";
 export { MAX_ANTIGRAVITY_OUTPUT_TOKENS } from "./antigravityOutputCap.ts";
 import {
   ensureAntigravityProjectAssigned,
@@ -267,7 +264,11 @@ export function markConnectionQuotaExhausted(
  * specific upstream id, pass it here. It is an ALREADY-RESOLVED upstream id, so it bypasses
  * the MITM/static alias resolution and is used verbatim (after prefix stripping).
  */
-async function cleanModelName(model: string, modelIdOverride?: string): Promise<string> {
+export async function cleanModelName(
+  model: string,
+  modelIdOverride?: string,
+  provider = "antigravity"
+): Promise<string> {
   if (modelIdOverride) {
     return modelIdOverride.includes("/") ? modelIdOverride.split("/").pop()! : modelIdOverride;
   }
@@ -279,16 +280,16 @@ async function cleanModelName(model: string, modelIdOverride?: string): Promise<
   //    Built during model sync — contains ONLY currently-available models.
   //    Obsolete/removed models are automatically excluded.
   try {
-    const mitmAliases = await getMitmAlias("antigravity");
+    const mitmAliases = await getMitmAlias(provider);
     if (mitmAliases && typeof mitmAliases === "object") {
       const aliases = mitmAliases as Record<string, unknown>;
       const raw = aliases[stripped];
       // Only honor string aliases; corrupted/non-string DB values fall through
       // to the static alias resolution below (never return undefined here).
       if (typeof raw === "string" && raw) {
-        // Strip the "antigravity/" prefix if present; use the raw model ID otherwise.
-        const PREFIX = "antigravity/";
-        clean = raw.startsWith(PREFIX) ? raw.slice(PREFIX.length) : raw;
+        // Strip the provider prefix if present; use the raw model ID otherwise.
+        const prefix = `${provider}/`;
+        clean = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
       }
     }
   } catch {
@@ -834,6 +835,7 @@ export class AntigravityExecutor extends BaseExecutor {
       enable_thinking: _enableThinking,
       thinking_budget: _thinkingBudget,
       enabledCreditTypes: _enabledCreditTypes,
+      stream: _streamField,
       ...passthroughFields
     } = normalizedBody;
 
@@ -1339,11 +1341,24 @@ export class AntigravityExecutor extends BaseExecutor {
           throw signal?.reason ?? error;
         }
         lastError = error;
-        l.error(
+        // A fetch failure on a URL that still has a fallback is a retry, not a
+        // failed request: the loop continues and the client gets the next
+        // URL's answer. Logging it at error floods the error stream with
+        // requests that succeeded. Only the last URL, which is rethrown below,
+        // is a real failure. Node hides the socket reason (ECONNRESET and
+        // friends) on error.cause, so surface that code instead of the bare
+        // "fetch failed".
+        const cause =
+          error instanceof Error && error.cause instanceof Error
+            ? (error.cause as NodeJS.ErrnoException).code || error.cause.message
+            : "";
+        const detail = `${error instanceof Error ? error.message : String(error)}${cause ? ` (cause: ${cause})` : ""}`;
+        const hasFallback = urlIndex + 1 < this.getFallbackCount();
+        l[hasFallback ? "warn" : "error"](
           "TELEMETRY",
-          `[Antigravity] Network/Fetch Error - URL: ${url}, Model: ${model}, Error: ${error instanceof Error ? error.message : String(error)}`
+          `[Antigravity] Network/Fetch Error - URL: ${url}, Model: ${model}, Error: ${detail}`
         );
-        if (urlIndex + 1 < fallbackCount) {
+        if (hasFallback) {
           l.debug("RETRY", `Error on ${url}, trying fallback ${urlIndex + 1}`);
           continue;
         }
@@ -1376,7 +1391,6 @@ export class AntigravityExecutor extends BaseExecutor {
       accountId,
       urlIndex,
       retryAttemptsByUrl,
-      fallbackCount,
       physicalSendCounter,
       correlationId,
     } = ctx;

@@ -100,11 +100,15 @@ export default function DashboardLayout({ children }) {
         />
       </div>
 
-      {/* Sidebar - Mobile: full viewport height with proper scroll containment */}
+      {/* Sidebar - Mobile: RTL-safe slide (anchored to right in RTL, left in LTR). */}
       <div
-        className={`fixed inset-y-0 start-0 z-50 transform lg:hidden transition-transform duration-300 ease-in-out h-dvh overflow-y-auto ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`dashboard-sidebar-mobile fixed inset-y-0 start-0 z-50 transform lg:hidden transition-transform duration-300 ease-in-out h-dvh overflow-y-auto ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         }`}
+        style={{
+          top: "var(--ios-safe-top, 0px)",
+          bottom: "var(--ios-safe-bottom, 0px)",
+        }}
       >
         <Sidebar onClose={() => setSidebarOpen(false)} isMacElectron={isMacElectron} />
       </div>

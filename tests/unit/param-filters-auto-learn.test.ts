@@ -66,3 +66,29 @@ test("detectUnsupportedParam returns null for null/undefined", () => {
   assert.equal(detectUnsupportedParam(null as unknown as string), null);
   assert.equal(detectUnsupportedParam(undefined as unknown as string), null);
 });
+
+test("detectUnsupportedParam extracts param from Anthropic 'is deprecated for this model'", () => {
+  assert.equal(
+    detectUnsupportedParam(
+      '{"type":"error","error":{"type":"invalid_request_error","message":"`temperature` is deprecated for this model."}}'
+    ),
+    "temperature"
+  );
+  assert.equal(
+    detectUnsupportedParam(
+      "The model returned the following errors: `temperature` is deprecated for this model."
+    ),
+    "temperature"
+  );
+});
+
+test("detectUnsupportedParam ignores unquoted 'is deprecated' prose", () => {
+  assert.equal(detectUnsupportedParam("This endpoint is deprecated"), null);
+  assert.equal(detectUnsupportedParam("This model is deprecated for new users"), null);
+});
+
+test("detectUnsupportedParam never returns structural request keys", () => {
+  assert.equal(detectUnsupportedParam("`model` is deprecated for this model."), null);
+  assert.equal(detectUnsupportedParam("`messages` is deprecated"), null);
+  assert.equal(detectUnsupportedParam("Unsupported parameter: model"), null);
+});

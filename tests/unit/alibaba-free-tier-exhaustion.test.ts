@@ -74,7 +74,7 @@ test("alibaba free-quota 403 does not exhaust the whole connection in combo rout
     connectionId: "conn-1",
   } as Parameters<typeof applyComboTargetExhaustion>[0];
 
-  const exhausted = applyComboTargetExhaustion(target, {
+  const { providerExhausted: exhausted } = applyComboTargetExhaustion(target, {
     result: { status: 403 },
     fallbackResult: {},
     errorText: ALIBABA_FREE_QUOTA_ERROR,

@@ -33,37 +33,37 @@ Problemas comuns e soluções para o OmniRoute.
 
 ---
 
-## Resolução de problemas detalhada
+## Resolução de Problemas Detalhada
 
 ---
 
-### Limitação de pedidos em fornecedores gratuitos (429 / 400 / 401)
+### Limitação da Taxa em Fornecedores Gratuitos (429 / 400 / 401)
 
-**Sintoma**: Ao utilizar `model: "auto"` com fornecedores gratuitos/sem autenticação (opencode, auggie, etc.), recebe ocasionalmente `HTTP 429`, `400` ou `401` em vez de respostas. Os pedidos são bem-sucedidos quando volta a tentar o mesmo pedido momentos depois, mas a automatização (tarefas cron, agentes, scripts) falha logo no primeiro erro.
+**Sintoma**: Ao utilizar `model: "auto"` com fornecedores gratuitos/sem autenticação (opencode, auggie, etc.), recebe intermitentemente `HTTP 429`, `400` ou `401` em vez de respostas. Os pedidos são bem-sucedidos ao repetir a mesma instrução momentos depois, mas a automatização (tarefas cron, agentes, scripts) falha logo no primeiro erro.
 
 **Causa principal**: Três modos de falha independentes acumulam-se:
 
-1. **Limite de pedidos do fornecedor (`429`)**: Os níveis gratuitos podem impor uma quota por intervalo. Uma sequência de chamadas paralelas esgota-a, pelo que o pedido seguinte é recusado até o intervalo ser reposto.
-2. **Modelo avariado no passthrough (`400`/`401`)**: Os grupos `auto/*` podem incluir modelos passthrough do `opencode` que estão registados no catálogo, mas não têm credenciais ativas (por exemplo, `oc/north-mini-code-free` → `401`). O encaminhador automático tenta um, falha e o erro é propagado antes de a alternativa ser acionada.
-3. **Amplificação da simultaneidade (`429` sob carga)**: Quando várias sessões de agente/cron acedem a `auto` ao mesmo tempo, a taxa agregada de pedidos excede o que os fornecedores gratuitos toleram, pelo que chamadas legítimas são assinaladas como abusivas.
+1. **Limite de taxa do fornecedor (`429`)**: Os planos gratuitos podem impor uma quota por intervalo. Uma rajada de chamadas paralelas esgota-a, pelo que o pedido seguinte é recusado até que o intervalo seja reposto.
+2. **Modelo com problemas no passthrough (`400`/`401`)**: Os conjuntos `auto/*` podem incluir modelos passthrough do `opencode` que estão registados no catálogo, mas não têm credenciais ativas (por exemplo, `oc/north-mini-code-free` → `401`). O encaminhador automático tenta um deles, falha e o erro propaga-se antes de o mecanismo de fallback entrar em ação.
+3. **Amplificação da concorrência (`429` sob carga)**: Quando várias sessões de agentes/cron acedem a `auto` em simultâneo, a taxa agregada de pedidos excede o que os fornecedores gratuitos toleram, pelo que chamadas legítimas são assinaladas como abusivas.
 
-**Correção verificada (comunicada pela comunidade, 2026-08-10)**: ajuste três variáveis de ambiente para que a rotação, a simultaneidade e as alternativas absorvam a instabilidade do nível gratuito, em vez de falharem devido a ela:
+**Correção verificada (comunicada pela comunidade, 2026-08-10)**: ajuste três variáveis de ambiente para que a rotação, a concorrência e o fallback absorvam a instabilidade do plano gratuito, em vez de falharem devido a ela:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # muda para outro modelo/fornecedor após 400/401 (ignora modelos passthrough avariados)
+export OMNIROUTE_ROTATE_ON_400=true           # muda para outro modelo/fornecedor em caso de 400/401 (ignora modelos passthrough com problemas)
 export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # limite explícito de admissão de pedidos pesados (por predefinição, não definido: sem limite de contagem de pedidos; consulte a nota abaixo)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # espera limitada mais longa por capacidade para pedidos pesados, em vez de um 503 imediato que permite nova tentativa
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # aumenta a espera limitada para além do valor predefinido de RATE_LIMIT_MAX_WAIT_MS para serviços upstream lentos
 ```
 
-Defina estas variáveis no ambiente do processo do OmniRoute (o daemon, por exemplo, através do plist do LaunchAgent ou de `systemctl edit`) e, em seguida, reinicie o OmniRoute. A opção de rotação é, por si só, a medida com maior impacto: converte uma falha definitiva numa nova tentativa transparente através de um fornecedor operacional do grupo.
+Defina estas variáveis no ambiente do processo do OmniRoute (o daemon, por exemplo, através do ficheiro plist do LaunchAgent ou de `systemctl edit`) e, em seguida, reinicie o OmniRoute. O sinalizador de rotação é, por si só, o mecanismo com maior impacto: transforma uma falha definitiva numa nova tentativa transparente através de um fornecedor operacional do conjunto.
 
-**Nota**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` limita o número de pedidos pesados — de contexto longo — executados em simultâneo; o limite é uma barreira de admissão, não um limitador de pedidos do fornecedor. **Atualização sobre a propagação de erros 503:** esta variável já não é definida por predefinição (agora só é aplicada quando configurada explicitamente, como acima) — em vez disso, a admissão de pedidos pesados é controlada por um orçamento de bytes calculado automaticamente (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), que se ajusta com base no limite real de memória do anfitrião. Assim, uma implementação nova deverá ter muito menos rejeições `503 chat_admission_busy` sem que seja necessário definir esta variável; defini-la explicitamente aqui continua a funcionar exatamente como documentado. As substituições explícitas do orçamento de bytes são limitadas ao intervalo entre 8 MiB e 2 GiB. Um erro `413 body_exceeds_budget` não é transitório: aumente esse orçamento de bytes, reduza `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ou aumente o limite de memória do processo. Uma rejeição `inflight_bytes_budget` resulta de contenção temporária e permite uma nova tentativa. A limitação de pedidos por fornecedor (`open-sse/services/rateLimitManager.ts`) é gerida separadamente por `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` e `RATE_LIMIT_AUTO_ENABLE` — consulte `.env.example`.
+**Nota**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` limita quantos pedidos pesados — de contexto longo — são executados em simultâneo; o limite é uma porta de admissão, não um limitador de taxa do fornecedor. **Atualização de #503-fanout:** esta variável já não é definida por predefinição (agora só impõe um limite quando configurada explicitamente, como acima) — em vez disso, a admissão de pedidos pesados é controlada por um orçamento de bytes derivado automaticamente (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), que se ajusta com base no limite real de memória do anfitrião. Assim, uma nova implementação deverá registar muito menos rejeições `503 chat_admission_busy` sem que seja necessário definir esta variável; defini-la explicitamente aqui continua a funcionar exatamente como documentado. As substituições explícitas do orçamento de bytes ficam limitadas ao intervalo de 8 MiB–2 GiB. Um erro `413 body_exceeds_budget` não é temporário: aumente esse orçamento de bytes, reduza `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` ou aumente o limite de memória do processo. Uma rejeição `inflight_bytes_budget` representa contenção temporária e continua a permitir uma nova tentativa. A limitação da taxa por fornecedor (`open-sse/services/rateLimitManager.ts`) é gerida separadamente por `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` e `RATE_LIMIT_AUTO_ENABLE` — consulte `.env.example`.
 
-**Como verificar se funcionou**: execute o seu agente/cron duas vezes em rápida sucessão e confirme que ambas as execuções são bem-sucedidas. Antes da correção, a segunda execução normalmente devolve `429`/`401`. Após a correção, as falhas (caso existam) são repetidas de forma transparente e a chamada é concluída. Também pode executar `curl /monitoring/health` e observar o campo `rateLimitedUntil` nas ligações aos fornecedores e o campo `circuitBreakers.providerBreakers[].state` dos fornecedores afetados — o estado é um de `CLOSED`, `DEGRADED`, `OPEN` ou `HALF_OPEN` (consulte `src/shared/utils/circuitBreaker.ts`), e um fornecedor que continue a falhar passará por `CLOSED → DEGRADED → OPEN` antes de a janela de reposição permitir uma tentativa de diagnóstico (`HALF_OPEN`).
+**Como verificar se funcionou**: execute o seu agente/cron duas vezes em rápida sucessão e confirme que ambas as execuções são bem-sucedidas. Antes da correção, a segunda execução normalmente devolve `429`/`401`. Após a correção, as falhas (caso existam) são repetidas de forma transparente e a chamada é concluída. Também pode executar `curl /monitoring/health` e observar o campo `rateLimitedUntil` nas ligações dos fornecedores e `circuitBreakers.providerBreakers[].state` nos fornecedores afetados — o estado é um de `CLOSED`, `DEGRADED`, `OPEN` ou `HALF_OPEN` (consulte `src/shared/utils/circuitBreaker.ts`), e um fornecedor que continue a falhar transitará de `CLOSED → DEGRADED → OPEN` antes de a janela de reposição permitir a passagem de uma sonda (`HALF_OPEN`).
 
-**Se continuar a ver 429**: a conta ativa desse fornecedor esgotou efetivamente a sua _quota_ (não apenas o limite de pedidos). Adicione uma segunda conta para o mesmo fornecedor no painel do OmniRoute → Fornecedores → Contas, ou combine-a com outro fornecedor gratuito (por exemplo, `routeway`, `auggie`). A rotação só ajuda com erros transitórios de limite de pedidos/400/401; o esgotamento total da quota requer uma segunda credencial ou um fornecedor diferente.
+**Se continuar a ver 429**: a conta ativa desse fornecedor esgotou efetivamente a respetiva _quota_ (não apenas o limite de taxa). Adicione uma segunda conta para o mesmo fornecedor no painel do OmniRoute → Providers → Accounts, ou combine-o com outro fornecedor gratuito (por exemplo, `routeway`, `auggie`). A rotação apenas ajuda com limitações de taxa transitórias e erros 400/401; o esgotamento definitivo da quota exige uma segunda credencial ou um fornecedor diferente.
 
-**Se vir 403 em modelos de visão (`auto/vision`, `bazaarlink/*`)**: a conta associada não tem um plano pago que inclua visão ou a chave de API não possui permissões suficientes. Verifique no painel do fornecedor se o âmbito da chave inclui visão/multimodal ou associe uma conta de um nível pago e mantenha-a como destino para visão.
+**Se vir 403 em modelos de visão (`auto/vision`, `bazaarlink/*`)**: a conta associada não tem um plano pago que inclua visão, ou a chave de API tem permissões insuficientes. Confirme no painel do fornecedor que o âmbito da chave inclui visão/multimodal ou associe uma conta de um plano pago e mantenha-a como destino para visão.
 
 ---
 
@@ -543,39 +543,40 @@ Utilize **Painel → Tradutor** para depurar problemas de tradução de formatos
 
 ---
 
-## Definições de resiliência
+## Definições de Resiliência
 
-### A limitação automática de taxa não é acionada
+### A limitação automática da taxa não é acionada
 
-- A limitação automática de taxa aplica-se apenas a fornecedores com chave de API (não a OAuth/subscrição)
-- Verifique se a limitação automática de taxa está ativada em **Definições → Resiliência → Perfis de fornecedores**
+- A limitação automática da taxa aplica-se apenas a fornecedores com chave de API (não a OAuth/subscrições)
+- Verifique se **Definições → Resiliência → Perfis de Fornecedor** tem a limitação automática da taxa ativada
 - Verifique se o fornecedor devolve códigos de estado `429` ou cabeçalhos `Retry-After`
 
 ### Ajustar o recuo exponencial
 
-Os perfis de fornecedores suportam estas definições:
+Os perfis de fornecedor suportam estas definições:
 
 - **Atraso base** — Tempo de espera inicial após a primeira falha (predefinição: 1s)
 - **Atraso máximo** — Limite máximo do tempo de espera (predefinição: 30s)
 - **Multiplicador** — Quanto aumentar o atraso por cada falha consecutiva (predefinição: 2x)
 
-### Prevenção do efeito de manada
+### Prevenção de efeito manada
 
-Quando muitos pedidos simultâneos atingem um fornecedor com limitação de taxa, o OmniRoute utiliza mutex + limitação automática de taxa para serializar os pedidos e evitar falhas em cascata. Isto é automático para fornecedores com chave de API.
+Quando muitos pedidos simultâneos atingem um fornecedor com limitação de taxa, o OmniRoute utiliza mutex + limitação automática da taxa para serializar os pedidos e evitar falhas em cascata. Isto é automático para fornecedores com chave de API.
 
 ### Os pedidos de chat falham com 503 / chat_admission_busy
 
 **Sintomas:**
 
-- O endpoint de conclusões de chat devolve uma resposta `503` repetível, cujo código de erro é
+- O endpoint de conclusões de chat devolve uma resposta `503` que pode ser repetida, cujo código de erro é
   `chat_admission_busy`.
-- A resposta inclui `Retry-After`. Desde a #12135, o valor deriva da ocupação observada — o maior valor entre a janela `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` durante a qual o pedido já
-  esperou e o tempo durante o qual as concessões pesadas atuais estiveram retidas — arredondado para cima para
-  segundos inteiros e limitado a 60. Num mecanismo de admissão inativo, mantém os limites mínimos históricos: 2 segundos no
-  caminho baseado em bytes e 1 segundo no caminho baseado na estrutura (que também inclui
-  `reason: "structure_limit"`).
-- Isto pode acontecer enquanto outro chat pesado ou uma resposta de transmissão de longa duração ainda está
-  em curso.
+- A resposta inclui `Retry-After`. Desde a #12135, o valor deriva da ocupação observada
+  — o maior valor entre a janela `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` durante a qual o pedido já
+  esperou e o tempo durante o qual as atuais concessões pesadas estiveram retidas — arredondado
+  por excesso para segundos inteiros e limitado a 60. Numa porta inativa, mantém os mínimos
+  históricos: 2 segundos no percurso baseado em bytes, 1 segundo no percurso baseado em estrutura
+  (que também inclui `reason: "structure_limit"`).
+- Isto pode acontecer enquanto outro chat pesado ou outra resposta de streaming de longa duração
+  ainda está em curso.
 
 O corpo da resposta baseada em bytes é:
 
@@ -589,50 +590,51 @@ O corpo da resposta baseada em bytes é:
 }
 ```
 
-A resposta baseada na estrutura utiliza o mesmo tipo e código, com a mensagem
+A resposta baseada em estrutura utiliza o mesmo tipo e código, com a mensagem
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 e `reason: "structure_limit"`.
 Com os limiares predefinidos, um pedido é estruturalmente pesado quando tem pelo menos `200` mensagens,
-pelo menos `64` ferramentas ou pelo menos `32,000` tokens estimados, ou quando a estimativa estrutural limitada
-esgota os respetivos limites de `10,000` nós visitados ou de profundidade `12`.
+pelo menos `64` ferramentas ou pelo menos `32,000` tokens estimados, ou quando a estimativa estrutural
+limitada esgota os seus limites de `10,000` nós visitados ou profundidade `12`.
 
-**Causa:** Esta é uma rejeição deliberada de carga dentro do OmniRoute, não uma falha de um fornecedor a montante.
+**Causa:** Esta é uma redução deliberada de carga no OmniRoute, não uma falha do fornecedor a montante.
 Cada processo utiliza uma proteção local ao processo para reservar capacidade pesada limitada antes de reter
-e analisar o corpo de um pedido grande. Uma concessão pesada permanece retida durante todo o ciclo de vida de uma resposta
-SSE.
+e analisar o corpo de um pedido grande. Uma concessão pesada permanece retida durante todo o tempo de vida de uma
+resposta SSE.
 
-**Propagação de #503:** antes desta correção, a proteção limitava a simultaneidade a uma CONTAGEM fixa de pedidos
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, predefinição `1`), independentemente da memória do anfitrião, pelo que a
-distribuição em leque dos agentes de programação (vários subagentes/CLIs, corpos habitualmente > 256 KB) reduzia a simultaneidade
-efetiva para ~1 e devolvia erros 503 sob uma carga perfeitamente normal. Agora, a proteção ajusta-se automaticamente: é controlada
-por um orçamento de BYTES de ingestão derivado automaticamente (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), dimensionado a partir do
-limite real de memória do processo, e também consulta um sinal de pressão sobre os recursos em tempo real — pelo que
-apenas rejeita carga quando o anfitrião está realmente sob pressão de memória, e não simplesmente porque chegou mais do que um
-pedido pesado em simultâneo. O antigo limite de contagem (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) continua
-a ser respeitado, mas apenas se o definir explicitamente.
+**#503-fanout:** antes desta correção, a proteção limitava a simultaneidade a uma CONTAGEM fixa de pedidos
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, predefinição `1`), independentemente da memória do anfitrião, pelo que
+o fan-out de agentes de programação (vários subagentes/CLIs, corpos habitualmente > 256 KB) se reduzia a uma
+simultaneidade efetiva de ~1 e devolvia erros 503 sob uma carga perfeitamente normal. A proteção é agora
+autoajustável: é controlada por um orçamento de BYTES de entrada derivado automaticamente
+(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), dimensionado a partir do limite de memória real do processo, e também
+consulta um sinal dinâmico de pressão sobre os recursos — pelo que só reduz a carga quando o anfitrião está
+realmente sob pressão de memória, e não apenas porque chegou mais do que um pedido pesado em simultâneo.
+O antigo limite de contagem (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) continua a ser respeitado, mas apenas se o
+definir explicitamente.
 
-Quando a capacidade está ocupada, um pedido pesado aguarda primeiro até
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (predefinição `2000`; `0` desativa a espera) pela libertação de uma vaga
-antes de responder com o erro `503` repetível. A espera limitada existe para que os clientes orientados para agentes
-(OpenCode, Claude Code, Cursor) que distribuem subpedidos pesados em simultâneo serializem a rajada,
-em vez de consumirem todo o orçamento de novas tentativas em rejeições imediatas e falharem a meio da tarefa.
+Quando a capacidade está ocupada, um pedido pesado começa por esperar até
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (a predefinição é `RATE_LIMIT_MAX_WAIT_MS`; `0` desativa a espera) pela libertação de uma vaga
+antes de responder com o `503` que pode ser repetido. A espera limitada existe para que os clientes do tipo agente
+(OpenCode, Claude Code, Cursor) que distribuem simultaneamente subpedidos pesados serializem o pico
+em vez de esgotarem todo o respetivo orçamento de novas tentativas em rejeições imediatas e falharem a meio da tarefa.
 A ocupação atual das concessões pesadas, o orçamento de bytes determinado e a gravidade da pressão em tempo real são
 apresentados em `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — verifique-os antes de alterar qualquer variável de ambiente.
-Definições → Resiliência → Fila de pedidos → Pedidos simultâneos não controla isto; essa definição
-controla um mecanismo separado de fila de pedidos do fornecedor.
+Definições → Resiliência → Fila de Pedidos → Pedidos Simultâneos não controla isto; essa definição
+rege um mecanismo distinto de fila de pedidos do fornecedor.
 
 **Correção:**
 
-1. Tente novamente primeiro. Os clientes devem respeitar `Retry-After` e utilizar recuo, em vez de repetirem
+1. Tente novamente primeiro. Os clientes devem respeitar `Retry-After` e utilizar recuo, em vez de repetir
    imediatamente o pedido.
 2. Verifique `/api/monitoring/health` → `chatAdmission` antes de ajustar qualquer definição. `countCapEnabled:
 false` e um `maxInflightBytes` generoso significam que o orçamento derivado automaticamente já está a cumprir a sua
    função; uma `pressureSeverity` de `high`/`critical` significa que o anfitrião tem realmente pouca memória —
    isso não pode ser corrigido por uma variável de ambiente de admissão; requer mais RAM ou uma carga de trabalho menor.
 3. Apenas se `/api/monitoring/health` mostrar que o orçamento derivado automaticamente é realmente demasiado pequeno para
-   o seu anfitrião (raro — já é dimensionado desde contentores até sistemas bare-metal), substitua-o diretamente através de
-   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, em vez de recorrer ao antigo limite de contagem de pedidos.
+   o seu anfitrião (raro — já se ajusta desde contentores até servidores físicos), substitua-o diretamente com
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, em vez de recorrer ao limite legado de contagem de pedidos.
 
 Consulte a [referência de variáveis de ambiente](../reference/ENVIRONMENT.md#4-security--authentication)
 para conhecer as definições de admissão oficiais.

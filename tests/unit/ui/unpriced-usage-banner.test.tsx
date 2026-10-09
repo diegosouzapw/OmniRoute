@@ -67,6 +67,27 @@ describe("UnpricedUsageBanner", () => {
     expect(container.textContent).not.toContain("unpricedUsageCountAsZero");
   });
 
+  it("keeps the upstream-compatible count-as-zero policy informational", async () => {
+    await showReport(1, "count_as_zero");
+    expect(container.querySelector('[role="status"]')).not.toBeNull();
+    expect(container.querySelector('[role="alert"]')).toBeNull();
+    expect(container.textContent).toContain("unpricedUsageCountAsZero");
+    expect(container.textContent).not.toContain("unpricedUsageFailClosed");
+    expect(container.querySelector('a[href="/dashboard/costs/pricing"]')).not.toBeNull();
+    expect(fetch).toHaveBeenCalledWith("/api/pricing/unpriced-usage", {
+      credentials: "same-origin",
+    });
+  });
+
+  it("dismisses the notice without changing policy or making a write request", async () => {
+    await showReport(1);
+    const button = container.querySelector<HTMLButtonElement>("button");
+    expect(button).not.toBeNull();
+    await act(async () => button!.click());
+    expect(container.textContent).toBe("");
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it("alerts only when a fail-closed limited key is actually affected", async () => {
     await showReport(1);
     expect(container.querySelector('[role="alert"]')).not.toBeNull();

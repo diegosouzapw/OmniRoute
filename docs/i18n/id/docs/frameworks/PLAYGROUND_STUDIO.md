@@ -190,14 +190,14 @@ Autentikasi: opsional (`REQUIRE_API_KEY`). Error melalui `buildErrorBody()` (Atu
 
 ## Pemecahan Masalah
 
-| Gejala                                        | Penyebab                              | Solusi                                                                                         |
-| --------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Editor Monaco tidak ditampilkan di tab API    | SSR memuat Monaco                     | Pastikan `ApiTab` menggunakan `dynamic(..., { ssr: false })`                                   |
-| Stream perbandingan berjalan secara berurutan | Penggunaan `Promise.all` yang salah   | Semua stream harus mulai dijalankan dalam satu pemanggilan `Promise.all`                       |
-| Metrik menampilkan TTFT `null`                | Handler chunk pertama tidak terhubung | Pastikan `useStreamMetrics.onFirstChunk()` dipanggil dalam loop pembaca SSE                    |
-| Preset tidak tersimpan                        | Migrasi DB belum dijalankan           | Jalankan `npm run db:migrate` atau mulai ulang server (migrasi otomatis berjalan saat startup) |
-| Peningkatan prompt menghasilkan 502           | Model belum diatur di Config          | Pengguna harus memasukkan nama model di panel Config sebelum melakukan peningkatan             |
-| Kode ekspor menampilkan `MISSING_API_KEY`     | Placeholder tidak disisipkan          | `codeExport.ts` selalu menggunakan `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                |
+| Gejala                                        | Penyebab                                 | Solusi                                                                             |
+| --------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------------------- |
+| Editor Monaco tidak dirender di tab API       | SSR memuat Monaco                        | Pastikan `ApiTab` menggunakan `dynamic(..., { ssr: false })`                       |
+| Stream perbandingan berjalan secara berurutan | Penggunaan `Promise.all` yang salah      | Semua stream harus mulai dijalankan dalam satu panggilan `Promise.all`             |
+| Metrik menampilkan TTFT `null`                | Handler potongan pertama tidak terhubung | Periksa apakah `useStreamMetrics.onFirstChunk()` dipanggil dalam loop pembaca SSE  |
+| Preset tidak tersimpan secara persisten       | Migrasi DB belum dijalankan              | Mulai ulang server: migrasi berjalan secara otomatis saat startup                  |
+| Fitur peningkatan prompt menghasilkan 502     | Model belum diatur di Config             | Pengguna harus memasukkan nama model di panel Config sebelum melakukan peningkatan |
+| Kode ekspor menampilkan `MISSING_API_KEY`     | Placeholder tidak disisipkan             | `codeExport.ts` selalu menggunakan `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`    |
 
 ---
 

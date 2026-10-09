@@ -1202,16 +1202,16 @@ test("chat pipeline converts Claude SSE streams into OpenAI SSE output", async (
   assert.match(raw, /\[DONE\]/);
 });
 
-test("chat pipeline rejects invalid API keys and malformed JSON bodies", async () => {
+test("chat pipeline surfaces upstream invalid-key errors and rejects malformed JSON", async () => {
   await seedConnection("openai", { apiKey: "sk-openai-invalid-key-path" });
 
+  const invalidKeyMessage = "Incorrect API key provided";
+  const invalidKeyResponseInit = { status: 401, statusText: invalidKeyMessage };
+  globalThis.fetch = async () =>
+    Response.json({ error: { message: invalidKeyMessage } }, invalidKeyResponseInit);
   const invalidKeyResponse = await handleChat(
     buildRequest({
-      authKey: "does-not-exist",
-      body: {
-        model: "openai/gpt-4o-mini",
-        messages: [{ role: "user", content: "Hello" }],
-      },
+      body: { model: "openai/gpt-4o-mini", messages: [{ role: "user", content: "Hello" }] },
     })
   );
   const invalidKeyJson = (await invalidKeyResponse.json()) as any;

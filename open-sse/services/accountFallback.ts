@@ -22,11 +22,8 @@ import {
   honorsRuleLockScope,
 } from "../config/providerErrorRules.ts";
 import * as rot from "./rotationConfig.ts";
-import {
-  getPassthroughProviders,
-  getProviderCategory,
-  isLocalProvider,
-} from "../config/providerRegistry.ts";
+import { isRegistryPassthroughProvider } from "./passthroughRegistry.ts";
+import { getProviderCategory, isLocalProvider } from "../config/providerRegistry.ts";
 import {
   DEFAULT_RESILIENCE_SETTINGS,
   resolveResilienceSettings,
@@ -48,7 +45,6 @@ import {
 } from "../../src/shared/utils/classify429";
 import { recordProviderSuccess as resetCooldownFailureCount } from "./providerCooldownTracker.ts";
 import {
-  getProviderById,
   resolveProviderId,
   isLocalProvider as isLocalProviderId,
   isSelfHostedChatProvider,
@@ -166,14 +162,6 @@ function toJsonRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
 
-// Provider-level failure tracking for circuit breaker behavior
-// Error codes that count toward provider-level failure threshold.
-// 429 is included: per-error-type cooldowns (rate_limit: 60s, quota_exhausted: 1h)
-// prevent cascading provider trips at scale (Issue #1846 concern addressed),
-// while still allowing the circuit breaker to open on sustained 429s and
-// prevent infinite combo retries (Issue #3200).
-const PROVIDER_FAILURE_ERROR_CODES = new Set([408, 429, 500, 502, 503, 504]);
-
 // Per-connection failure deduplication: prevents rapid-fire failures from the
 // same connection from counting multiple times toward the provider breaker.
 const CONNECTION_FAILURE_DEDUP_MS = 5000;
@@ -216,8 +204,8 @@ export const ACCOUNT_DEACTIVATED_SIGNALS = [
   "account has been disabled",
   "your account has been suspended",
   "this account is deactivated",
-  // AG (Antigravity/Google Cloud Code) permanent ban signals
-  "verify your account to continue",
+  // AG (Antigravity/Google Cloud Code) permanent ban signals. "verify your account to continue" is NOT
+  // a ban (operator-actionable) — see ACCOUNT_VERIFICATION_REQUIRED_SIGNALS in errorClassifier.ts.
   "this service has been disabled in this account for violation",
   "this service has been disabled in this account",
 ];
@@ -939,6 +927,11 @@ export function clearModelLock(
   );
 }
 
+function isPassthroughCreditScope(provider: string | null | undefined): boolean {
+  const canonicalId = resolveProviderId(provider ?? "");
+  return isCompatibleProvider(canonicalId) || isRegistryPassthroughProvider(canonicalId);
+}
+
 /**
  * Whether a provider should use per-model lockouts instead of connection-wide cooldowns.
  * Compatible and passthrough providers multiplex multiple upstream models behind one
@@ -965,13 +958,12 @@ export function hasPerModelQuota(
   if (getCanonicalLockProvider(canonicalId) === "codex") return true;
   if (canonicalId === "gemini" || canonicalId === "github") return true;
   if (canonicalId === "antigravity" || canonicalId === "agy") return true;
-  if (getPassthroughProviders().has(canonicalId)) return true;
   // #11071: getPassthroughProviders() reads the open-sse REGISTRY. A provider can declare
   // passthroughModels:true in the SHARED registry (src/shared/constants/providers/) and be
   // absent from that set — 40 of them are, and they are neither local nor self-hosted, so the
   // branch below never reaches them either. Without this lookup a missing-model 404 on one of
   // those cools the whole connection instead of locking out the single model.
-  if (getProviderById(canonicalId)?.passthroughModels === true) return true;
+  if (isRegistryPassthroughProvider(canonicalId)) return true;
   if (isCompatibleProvider(canonicalId)) return true;
   if (isLocalProviderId(canonicalId) || isSelfHostedChatProvider(canonicalId)) return true;
   return false;
@@ -1139,7 +1131,7 @@ type ProviderBreakerProfile = {
 };
 
 function getProviderBreaker(provider: string | null | undefined) {
-  return provider ? getCircuitBreaker(provider) : null;
+  return provider ? getCircuitBreaker(resolveProviderId(provider)) : null;
 }
 
 function configureProviderBreaker(
@@ -1155,7 +1147,7 @@ function configureProviderBreaker(
   // Stored value type is `boolean | undefined` — never `null` after PATCH.
   const userValue = resolvedProfile.useUpstream429BreakerHints;
   const useHints = resolveUseUpstream429BreakerHints(provider, userValue);
-  return getCircuitBreaker(breakerName || provider, {
+  return getCircuitBreaker(breakerName || resolveProviderId(provider), {
     failureThreshold: resolvedProfile.failureThreshold ?? resolvedProfile.circuitBreakerThreshold,
     resetTimeout: resolvedProfile.resetTimeoutMs ?? resolvedProfile.circuitBreakerReset,
     ...(useHints
@@ -1207,19 +1199,20 @@ export function getProviderBreakerState(provider: string | null | undefined) {
  * Delegates to the existing CircuitBreaker utility which handles
  * failure counting, threshold detection, and state transitions.
  *
- * IMPORTANT: If the breaker is already OPEN (in cooldown), we skip
- * recording the failure to prevent resetting the cooldown timer.
- * This matches the original behavior where failures during cooldown
- * were ignored to avoid indefinite lockout.
+ * Provider OPEN cooldown and unleased HALF_OPEN attempts are not counted;
+ * only an acquired execute() probe may settle the provider's HALF_OPEN state.
+ * Connection breakers retain their own failure accounting and scope.
  */
 export function recordProviderFailure(
   provider: string | null | undefined,
   log?: { warn?: (...args: unknown[]) => void },
   connectionId?: string | null,
   profile?: ProviderBreakerProfile | null,
-  opts?: { isQueueTimeout?: boolean; isNetworkError?: boolean }
+  opts?: { isQueueTimeout?: boolean; isNetworkError?: boolean; providerProbeSettled?: boolean }
 ): void {
   if (!provider) return;
+  provider = resolveProviderId(provider);
+  if (opts?.providerProbeSettled && !connectionId) return;
   // OmniRoute's own rate-limit queue timeout is backpressure we applied, not a
   // provider failure — the provider never saw the request, so it must not count
   // toward the provider breaker.
@@ -1260,7 +1253,7 @@ export function recordProviderFailure(
     failureCircuitBreakerName(provider, connectionId, opts?.isNetworkError)
   );
   if (!breaker) return;
-
+  if (breaker.name === provider && breaker.getStatus().state === "HALF_OPEN") return;
   if (!breaker.canExecute()) return;
 
   breaker._onFailure();
@@ -1271,45 +1264,41 @@ export function recordProviderFailure(
 }
 
 /**
- * Record a successful request for a provider.
- * Symmetric counterpart of recordProviderFailure:
- * - Resets cooldown failureCount (exponential backoff) for all non-OPEN states.
- * - HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
- *
- * When the breaker is OPEN (provider is failing), this is a no-op -- the
- * cooldown stays intact and the breaker keeps its cooldown period.
- *
- * Matches execute()'s behavior: _onSuccess() is called for all non-OPEN states.
+ * Reset a healthy connection's cooldown and decay CLOSED/DEGRADED breaker counts.
+ * An acquired execute() probe alone may close provider HALF_OPEN; OPEN stays intact.
  */
 export function recordProviderSuccess(
   provider: string | null | undefined,
-  connectionId?: string | null
+  connectionId?: string | null,
+  opts?: { providerProbeSettled?: boolean }
 ): void {
   if (!provider || provider === "unknown") return;
-
+  provider = resolveProviderId(provider);
   const breaker = connectionId
     ? getCircuitBreaker(connectionCircuitBreakerName(provider, connectionId))
     : getProviderBreaker(provider);
   if (!breaker) return;
   const breakerState = breaker.getStatus().state;
 
-  // When breaker is OPEN, the provider is failing -- do not reset cooldown
-  // even if one request slipped through (dispatched before the open).
-  // The cooldown resets when the breaker reaches HALF_OPEN and the probe
-  // succeeds below.
-  if (breakerState === "OPEN") return;
+  // A success from an older dispatch must not bypass the OPEN cooldown.
+  if (breakerState === "OPEN" || (!connectionId && breakerState === "HALF_OPEN")) return;
 
-  // Reset cooldown failureCount (exponential backoff) -- symmetric with
-  // recordProviderCooldown which increments it on each failure.
+  // Reset the connection's exponential cooldown after a real success.
   resetCooldownFailureCount(provider, connectionId ?? undefined);
+  if (opts?.providerProbeSettled && !connectionId) return;
 
-  // Clear failure-dedup window so the next genuine failure is not suppressed.
   if (connectionId) {
     lastConnectionFailure.delete(`${provider}:${connectionId}`);
+    const providerBreaker = getProviderBreaker(provider);
+    if (
+      !opts?.providerProbeSettled &&
+      providerBreaker &&
+      providerBreaker !== breaker &&
+      ["CLOSED", "DEGRADED"].includes(providerBreaker.getStatus().state)
+    ) {
+      providerBreaker._onSuccess();
+    }
   }
-
-  // Transition breaker on success, matching execute()'s behavior:
-  // HALF_OPEN -> CLOSED (probe success), CLOSED/DEGRADED -> decay failureCount.
   breaker._onSuccess();
 }
 
@@ -1341,13 +1330,6 @@ export function getProvidersInCooldown(): Array<{
       cooldownRemainingMs: status.retryAfterMs || null,
       lastFailureAt: status.lastFailureTime,
     }));
-}
-
-/**
- * Check if a status code should be counted toward provider failure threshold
- */
-export function isProviderFailureCode(status: number): boolean {
-  return PROVIDER_FAILURE_ERROR_CODES.has(status);
 }
 
 /**
@@ -1976,18 +1958,18 @@ export function checkFallbackError(
       }
     }
 
-    // T10 (sub2api #1169) + #8247: credits/quota exhausted; *-compatible-* nicknames stay model-scoped
+    // T10 (sub2api #1169) + #8247: credits/quota exhausted; per-model-quota providers stay model-scoped
     // unless the body is an account-level Open Platform empty wallet.
-    if (
-      shouldUseQuotaSignal &&
-      isCreditsExhausted(errorStr) &&
-      (!isCompatibleProvider(provider) || isMoonshotAccountBalanceExhausted(errorStr))
-    ) {
+    if (shouldUseQuotaSignal && isCreditsExhausted(errorStr)) {
       return {
         shouldFallback: true,
         cooldownMs: COOLDOWN_MS.paymentRequired ?? 3600 * 1000, // 1h cooldown
         reason: RateLimitReason.QUOTA_EXHAUSTED,
-        creditsExhausted: true,
+        // Only passthrough/aggregator + *-compatible-* keys stay model-scoped; per-model-lock
+        // providers (codex, gemini, github, antigravity) keep account-level credits_exhausted.
+        ...(!isPassthroughCreditScope(provider) || isMoonshotAccountBalanceExhausted(errorStr)
+          ? { creditsExhausted: true }
+          : {}),
       };
     }
 
@@ -2108,6 +2090,11 @@ export function checkFallbackError(
         resolveRuleMatchBody(provider, structuredError ?? null, errorStr)
       );
       if (forbiddenMatch) return ruleScopedResult(forbiddenMatch);
+    }
+    // 429 reading "endpoint is unavailable" fails over to the rule-owned model cooldown.
+    if (status === HTTP_STATUS.RATE_LIMITED && provider) {
+      const unavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
+      if (unavailable) return ruleScopedResult(unavailable);
     }
 
     if (
@@ -2238,8 +2225,8 @@ export function checkFallbackError(
     };
   }
 
-  // 400 — context overflow / malformed request / model access denied
-  if (status === HTTP_STATUS.BAD_REQUEST) {
+  // 400/422 — context overflow / malformed or rejected request shape / model access denied
+  if (status === HTTP_STATUS.BAD_REQUEST || status === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
     const modelUnavailable = getOpencodeModelUnavailableMatch(provider, status, headers, errorStr);
     if (modelUnavailable) return ruleScopedResult(modelUnavailable);
     // Check structured error codes first (more reliable, no false positives)

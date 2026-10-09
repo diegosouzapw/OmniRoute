@@ -4,11 +4,11 @@ import type { EngineConfigField } from "@omniroute/open-sse/services/compression
 export interface EngineConfigFormProps {
   schema: EngineConfigField[];
   value: Record<string, unknown>;
-  onChange: (next: Record<string, unknown>) => void;
+  // Called with one field at a time, so the caller can apply it to its latest state.
+  onChange: (key: string, value: unknown) => void;
 }
 
-export function EngineConfigForm({ schema, value, onChange }: EngineConfigFormProps) {
-  const set = (k: string, v: unknown) => onChange({ ...value, [k]: v });
+export function EngineConfigForm({ schema, value, onChange: set }: EngineConfigFormProps) {
   return (
     <div className="flex flex-col gap-3">
       {schema.map((f) => {
@@ -23,22 +23,22 @@ export function EngineConfigForm({ schema, value, onChange }: EngineConfigFormPr
             {f.type === "number" && (
               <input
                 type="number"
-                value={
-                  f.key === "maxToolLength" &&
-                  !(typeof v === "number" && Number.isFinite(v))
-                    ? ""
-                    : (v as number)
-                }
+                // NaN (an emptied field, "not set") renders as an empty input, never as 0;
+                // overflow (Infinity) also renders empty and surfaces through the save error.
+                value={typeof v === "number" && Number.isFinite(v) ? v : ""}
+                placeholder={f.defaultValue != null ? String(f.defaultValue) : ""}
                 min={f.min}
                 max={f.max}
-                onChange={(e) =>
-                  set(
-                    f.key,
-                    f.key === "maxToolLength" && e.target.value === ""
-                      ? Number.NaN
-                      : Number(e.target.value)
-                  )
-                }
+                // Fractional settings (e.g. CCR retrievalRampFactor 1.5) must not fail
+                // the browser's step validation, whose default step is 1.
+                step="any"
+                onChange={(e) => {
+                  // A browser reports badInput with an empty value for unparseable entries
+                  // ("1e", "1,5" in a comma-decimal locale): keep the last valid value rather
+                  // than mapping the entry to the unset sentinel.
+                  if (e.target.value === "" && e.target.validity.badInput) return;
+                  set(f.key, e.target.value === "" ? Number.NaN : Number(e.target.value));
+                }}
                 className="border border-border rounded px-2 py-1"
               />
             )}

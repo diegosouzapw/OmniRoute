@@ -67,25 +67,20 @@ export function stripCodexChildCooldownsFromConnection(
   if (typeof id !== "string" || id.length === 0) return;
   const db = getDbInstance() as unknown as DbLike;
   const alsoClearTopLevel = options?.alsoClearTopLevel === true;
-  const candidate = db
-    .prepare("SELECT provider FROM provider_connections WHERE id = ?")
-    .get(id);
+  const candidate = db.prepare("SELECT provider FROM provider_connections WHERE id = ?").get(id);
   const isCodex = toRecord(candidate).provider === "codex";
   if (!alsoClearTopLevel && !isCodex) return;
 
   backupDbFile("pre-write");
   const wrote = db.transaction(() => {
     const existing = db
-      .prepare(
-        "SELECT provider, provider_specific_data FROM provider_connections WHERE id = ?"
-      )
+      .prepare("SELECT provider, provider_specific_data FROM provider_connections WHERE id = ?")
       .get(id);
     if (!existing) return false;
     const existingRecord = toRecord(rowToCamel(existing));
     const providerSpecificData = toRecord(existingRecord.providerSpecificData);
     const stripNested =
-      existingRecord.provider === "codex" &&
-      connectionHasCodexChildCooldown(providerSpecificData);
+      existingRecord.provider === "codex" && connectionHasCodexChildCooldown(providerSpecificData);
     if (!alsoClearTopLevel && !stripNested) return false;
 
     const now = new Date().toISOString();
@@ -114,7 +109,9 @@ export function stripCodexChildCooldownsFromConnection(
     ).run(JSON.stringify(stripCodexChildCooldownFields(providerSpecificData)), now, id);
     return true;
   })();
-  if (wrote) invalidateDbCache("connections");
+  // Touches only rate_limited_until and codex-scope cooldown keys inside
+  // provider_specific_data — none are read by the /v1/models catalog builder.
+  if (wrote) invalidateDbCache("connections", id, { skipModelCatalog: true });
 }
 
 /**
@@ -204,7 +201,9 @@ export async function updateCodexScopedQuotaState(
     return nextProviderSpecificData;
   })();
 
-  if (persisted) invalidateDbCache("connections");
+  // Codex-scope quota/cooldown keys only (codexQuotaState*, codexExhaustedWindow*,
+  // codexScopeRateLimit*) — routing metadata the /v1/models builder never reads.
+  if (persisted) invalidateDbCache("connections", id, { skipModelCatalog: true });
   return persisted;
 }
 
@@ -231,10 +230,7 @@ export function hasCodexScopeCooldown(id: string, scope: "codex" | "spark"): boo
  * Cooldowns sourced from upstream 429 quota_reset retain their authority
  * until their reset timestamp has elapsed.
  */
-export function liftCodexScopeCooldownOnHeadroom(
-  id: string,
-  scope: "codex" | "spark"
-): boolean {
+export function liftCodexScopeCooldownOnHeadroom(id: string, scope: "codex" | "spark"): boolean {
   if (typeof id !== "string" || id.length === 0) return false;
   const db = getDbInstance() as unknown as DbLike;
 
@@ -245,9 +241,7 @@ export function liftCodexScopeCooldownOnHeadroom(
   backupDbFile("pre-write");
   const wrote = db.transaction(() => {
     const existing = db
-      .prepare(
-        "SELECT provider, provider_specific_data FROM provider_connections WHERE id = ?"
-      )
+      .prepare("SELECT provider, provider_specific_data FROM provider_connections WHERE id = ?")
       .get(id);
     if (!existing) return false;
     const existingRecord = toRecord(rowToCamel(existing));
@@ -305,7 +299,9 @@ export function liftCodexScopeCooldownOnHeadroom(
     return true;
   })();
 
-  if (wrote) invalidateDbCache("connections");
+  // Codex-scope cooldown/exhaustion keys only — routing metadata the
+  // /v1/models builder never reads.
+  if (wrote) invalidateDbCache("connections", id, { skipModelCatalog: true });
   return wrote;
 }
 

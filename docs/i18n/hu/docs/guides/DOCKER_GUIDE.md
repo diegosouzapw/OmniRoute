@@ -238,14 +238,14 @@ Az éles környezet a fejlesztői compose-zal párhuzamosan fut (eltérő konté
 
 ## Dockerfile-szakaszok
 
-A tároló egy többlépcsős Dockerfile-t (`Dockerfile`) tartalmaz. Négy szakasz érhető el; válaszd a felhasználási esetednek megfelelő `target` értéket.
+A tároló egy többlépcsős Dockerfile-t (`Dockerfile`) tartalmaz. Négy szakasz érhető el; válassza ki a felhasználási esetének megfelelő `target` értéket.
 
-| Szakasz       | Alaplemezkép          | Cél                                                                                                                                                                                                                                                                                                                                            |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Telepíti a függőségeket (`npm ci --legacy-peer-deps`), majd futtatja az `npm run build` parancsot (alapértelmezés szerint Turbopack — lásd alább a Fordítási erőforrások részt)                                                                                                                                                                |
-| `runner-base` | `node:26-trixie-slim` | Éles futtatókörnyezet a Next.js önálló kimenetével. **Nem tartalmaz szolgáltatói CLI-ket.**                                                                                                                                                                                                                                                    |
-| `runner-cli`  | `runner-base`         | Hozzáadja a `git`, `docker.io`, `docker-compose` eszközöket és a globális CLI-ket: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Ezt válaszd az ügynökalapú munkafolyamatokhoz.**                                                                                                                                       |
-| `runner-web`  | `runner-base`         | Hozzáadja a Playwrightot és egy Chromium böngészőt (`--with-deps`) a webes munkameneteket használó szolgáltatókhoz: `gemini-web`, `claude-web`, `claude-turnstile`. **Ezt válaszd, ha ezeket a szolgáltatókat használod** — enélkül az alap lemezkép a kérés feldolgozásakor hibát jelez (lásd a Kiadási csatornák alatti `-web` megjegyzést). |
+| Szakasz       | Alapkép               | Rendeltetés                                                                                                                                                                                                                                                                                                                                  |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Telepíti a függőségeket (`npm ci --legacy-peer-deps`), és futtatja az `npm run build` parancsot (alapértelmezés szerint Turbopackkel — lásd alább a fordításkori erőforrásokat)                                                                                                                                                              |
+| `runner-base` | `node:26-trixie-slim` | Éles futtatókörnyezet a Next.js önálló kimenetével. **Nem tartalmaz szolgáltatói parancssori eszközöket.**                                                                                                                                                                                                                                   |
+| `runner-cli`  | `runner-base`         | Hozzáadja a `git`, `docker.io`, `docker-compose` csomagokat és a globális parancssori eszközöket: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Ezt válassza az ágensalapú munkafolyamatokhoz.**                                                                                                                      |
+| `runner-web`  | `runner-base`         | Hozzáadja a Playwrightot és egy Chromium böngészőt (`--with-deps`) a webes munkamenetet használó szolgáltatókhoz: `gemini-web`, `claude-web`, `claude-turnstile`. **Ezt válassza, ha ezeket a szolgáltatókat használja** — az egyszerű lemezkép nélkülük a kérések futtatásakor hibát ad (lásd a `-web` megjegyzést a kiadási csatornáknál). |
 
 Egy adott cél manuális összeállítása:
 
@@ -255,54 +255,60 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Fordítási erőforrások
+### Fordításkori erőforrások
 
-Három fordítási argumentum szabályozza a `builder` szakasz erőforrásigényét. Ezek csak a fordítás idején érvényesek —
-az `OMNIROUTE_MEMORY_MB` (lásd alább) különálló, futásidejű beállítás.
+Három összeállítási argumentum szabályozza a `builder` szakasz erőforrásigényét. Ezek kizárólag a fordítás során érvényesek —
+az `OMNIROUTE_MEMORY_MB` (lásd alább) ettől független, futásidejű beállítás.
 
-| Fordítási argumentum        | Alapértelmezés | Hatás                                                                                                                              |
-| --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`            | `0` esetén helyette webpackkel fordít. Alacsonyabb memória-csúcsérték, de lassabb.                                                 |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`         | A létrehozott `next build` V8 heapkorlátja (`--max-old-space-size`).                                                               |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`            | Beállítja a `CIRCLE_NODE_TOTAL` értékét; a Next ebből számítja ki a lapadatok összegyűjtéséhez használt `workers = N - 1` értéket. |
+| Összeállítási argumentum    | Alapérték | Hatás                                                                                                                          |
+| --------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`       | A `0` webpackkel fordít: kisebb memória-csúcsérték, lassabb működés. Az `1` engedélyezi a Turbopacket.                         |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`    | A létrehozott `next build` folyamat V8-halmának felső korlátja (`--max-old-space-size`).                                       |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`       | Beállítja a `CIRCLE_NODE_TOTAL` értékét; a Next ebből számítja ki a `workers = N - 1` értéket az oldaladatok összegyűjtéséhez. |
 
-Az `OMNIROUTE_BUILD_WORKERS` értékét érdemes növelni egy nagy teljesítményű fordítási környezetben, és ezt
-kell először gyanúba venni, ha egy korlátozott erőforrású fordítás **a** `✓ Compiled successfully` **üzenet után** leáll. Minden
-lapadat-feldolgozó külön folyamat, ahogyan maga a szülő `next build` is;
-egy VPS-en végzett reprodukció (#7518 probléma) minden folyamat RSS-csúcsértékét
-~4,5 GB-ra mérte, a `NODE_OPTIONS` heapjelző értékétől függetlenül (a Turbopack a
-V8 heapen kívüli natív/Rust memóriában fordít). Az alapértelmezett `2` (→ 1 feldolgozó, összesen 2
-folyamat) a közzétételi folyamat által használt, GitHub által üzemeltetett 16 GB-os / 4 vCPU-s
-futtatókhoz van méretezve. `8` esetén (→ 7 feldolgozó) ez a futtató kifogyott a memóriából, és
+Az `OMNIROUTE_BUILD_WORKERS` értékét érdemes növelni nagy teljesítményű összeállítási környezetben, és erre kell
+gyanakodni, ha egy korlátozott erőforrású összeállítás a `✓ Compiled successfully` üzenet **után** áll le. Minden
+oldaladatokat feldolgozó munkafolyamat külön folyamat, ahogyan maga a szülő `next build` is;
+egy éles VPS-en végzett reprodukció (7518. számú probléma) az egyes folyamatok RSS-csúcsértékét
+~4,5 GB-nak mérte, a `NODE_OPTIONS` halombeállítástól függetlenül (a Turbopack a
+V8-halmon kívüli natív/Rust memóriában fordít). Az alapértelmezett `2` érték (→ 1 munkafolyamat, összesen 2
+folyamat) a közzétételi folyamat által használt, GitHub által üzemeltetett 16 GB-os / 4 vCPU-s futtatókhoz
+van méretezve. `8` esetén (→ 7 munkafolyamat) a futtató memóriája elfogyott, és
 a buildkit a `ResourceExhausted: ... cannot allocate memory` hibával leállította a lépést;
-a `3` (→ 2 feldolgozó) sem fért el, miután a folyamatonkénti RSS-t
-közvetlenül megmérték ahelyett, hogy következtettek volna rá. A `tests/unit/docker-build-memory-budget.test.ts`
-a mért érték alapján végzi el a számításokat, és hibát jelez, ha bármelyik beállítás
+a `3` (→ 2 munkafolyamat) még akkor sem fért el, amikor a folyamatonkénti RSS-t
+közvetlenül mérték a következtetés helyett. A `tests/unit/docker-build-memory-budget.test.ts`
+elvégzi a számítást a mért érték alapján, és hibát jelez, ha bármelyik beállítás
 meghaladja a futtató kapacitását.
 
-A Turbopack a V8 heapen **kívül** található natív Rust memóriában fordít, ezért
-az `OMNIROUTE_BUILD_MEMORY_MB` nem korlátozza ezt. Memóriakorláttal rendelkező gazdagépen
-az OOM-megszakító ilyenkor SIGKILL jelzéssel, hibaüzenet nélkül állítja le a fordítást — az egyszerűen
-félbeszakad a `Creating an optimized production build` folyamat közben, ami memóriahiány helyett
-inkább lefagyásnak tűnik. Ha a fordítási gazdagép erőforrásai korlátozottak, válts csomagolót:
+A Turbopack a V8-halmon **kívül** elhelyezkedő natív Rust memóriában fordít, ezért az
+`OMNIROUTE_BUILD_MEMORY_MB` nem szab rá korlátot. Memóriakorláttal rendelkező gazdagépen az
+OOM-megszakító ilyenkor mindenféle hibaüzenet nélkül SIGKILL jelzéssel leállítja az összeállítást — az egyszerűen
+félbeszakad a `Creating an optimized production build` közben, ami inkább tűnik lefagyásnak,
+mint memóriahiánynak. Ezért használ a `Dockerfile` alapértelmezés szerint webpacket
+(`OMNIROUTE_USE_TURBOPACK=0`), ellentétben az `npm run dev` / `npm run build` parancsokkal, amelyeknél
+a kód alapértelmezése a Turbopack: egy összeállítási argumentumok nélküli egyszerű `docker build .` parancs (amelyet
+a Railway és más egykattintásos szolgáltatók futtatnak) nem állhat le észrevétlenül egy memóriakorlátos
+összeállítási környezetben. A közzétett lemezképek már kifejezetten átadják az `OMNIROUTE_USE_TURBOPACK=0`
+értéket a `docker-publish.yml` fájlban. Bőséges RAM-mal rendelkező összeállítási környezetben a gyorsabb
+fordításhoz engedélyezze a Turbopacket:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-A `webpackBuildWorker` engedélyezve van, így a `next build` egy szülő- **és** egy feldolgozó
-folyamatot futtat, és mindkettő külön-külön veszi figyelembe az `OMNIROUTE_BUILD_MEMORY_MB` értékét. A konténer
-korlátját ezért ennek az értéknek nagyjából a kétszerese fölé méretezd, ne csupán egyszeresére.
+A `webpackBuildWorker` engedélyezve van, ezért a `next build` egy szülő- **és** egy munkafolyamatot
+futtat, és mindkettő külön-külön figyelembe veszi az `OMNIROUTE_BUILD_MEMORY_MB` értékét. A konténer
+korlátját nagyjából ennek az értéknek a kétszerese fölé méretezze, ne csak egyszeresére.
 
 Ezen a forrásfán mérve (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Csomagoló | Konténerkorlát | Eredmény                                      |
-| --------- | -------------- | --------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | Mindkettőnél OOM miatt, csendben leállt       |
-| webpack   | 8 GiB          | A fordítási feldolgozó SIGKILL jelzést kapott |
-| webpack   | 12 GiB         | Sikeres, 11,1 GiB-os csúcsértékkel            |
+| Csomagoló | Konténerkorlát | Eredmény                                                          |
+| --------- | -------------- | ----------------------------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB | Mindkét esetben az OOM-megszakító állította le, hibaüzenet nélkül |
+| webpack   | 8 GiB          | A munkafolyamatot SIGKILL jelzéssel leállították                  |
+| webpack   | 12 GiB         | Sikeres; a csúcsérték 11,1 GiB volt                               |
 
 ### Futásidejű alapértékek
 
@@ -310,25 +316,25 @@ A `runner-base` által exportált alapértékek: `PORT=20128`, `HOSTNAME=0.0.0.0
 
 Memóriakezelés Dockerben:
 
-- A rendszerkép beállítja az `OMNIROUTE_MEMORY_MB=1024` értéket, és ebből származtatja a `NODE_OPTIONS=--max-old-space-size=1024` értéket.
+- A lemezkép beállítja az `OMNIROUTE_MEMORY_MB=1024` értéket, és ebből származtatja a `NODE_OPTIONS=--max-old-space-size=1024` beállítást.
 - A tényleges kiszolgálófolyamatot az önálló indító indítja el, amely beolvassa az `OMNIROUTE_MEMORY_MB` értékét, és hozzáfűzi a `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` kapcsolót.
-- A Node az utolsóként megadott `--max-old-space-size` értéket használja, így az `OMNIROUTE_MEMORY_MB` beállítása szabályozza a Docker tényleges heapkorlátját.
-- Mivel a rendszerkép mindig beállítja, az indító saját, rendelkezésre álló RAM alapján kalibrált tartalékbeállítása Docker alatt soha nem lép érvénybe. A munkaterheléshez kifejezetten növelje meg az értéket (lásd az alábbi táblázatot). A `2048` még mindig túl kevés a kódoló ügynökök `/v1/responses` kéréseihez.
+- A Node az utolsóként megadott `--max-old-space-size` értéket használja, így az `OMNIROUTE_MEMORY_MB` beállítása szabályozza a Dockerben érvényes halommemória-korlátot.
+- Mivel a lemezkép ezt mindig beállítja, az indító saját, RAM alapján kalibrált tartalékbeállítása Docker alatt soha nem lép érvénybe. A terhelésnek megfelelően explicit módon növelje az értéket (lásd az alábbi táblázatot). A `2048` továbbra is túl kevés a kódolóügynökök `/v1/responses` kéréseihez.
 
-### Futásidejű RAM kódoló ügynökökhöz
+### Futásidejű RAM kódolóügynökökhöz
 
-Az 1 GiB-os Docker-alapérték egy vezérlőpulthoz vagy könnyű csevegéshez elegendő minimum, nem éles üzemi méret. A hosszú `POST /v1/responses` törzsek (több száz üzenet, több tucat eszköz) a tömörítés során több memóriabeli gráfot is megtartanak. Két, egymással átfedésben futó, egyenként ~3 MiB-os / ~750k tokenes kérés **12 GiB** old-space mellett leállította a V8-at (`FATAL ERROR: Reached heap limit`), és egy 16 GiB-os cgroup OOM-korlátját is elérte. Lásd: [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Az alapértelmezett 1 GiB-os Docker-beállítás az irányítópult és a könnyű csevegések minimális igényeit fedezi, nem éles környezetre méretezett érték. A hosszú `POST /v1/responses` törzsek (több száz üzenet, több tucat eszköz) a tömörítés során több memóriabeli gráfot is megtartanak. Két egymást átfedő, egyenként ~3 MiB-os / ~750k tokenes kérés **12 GiB** méretű old-space mellett is megszakította a V8 működését (`FATAL ERROR: Reached heap limit`), és egy 16 GiB-os cgroup esetén is OOM-hibát okozott. Lásd: [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-A **cgroup `--memory` méretét a heap méreténél nagyobbra állítsa** — a natív pufferek, az SQLite és a tömörítés köztes adatai a V8-on kívül helyezkednek el.
+A **cgroup `--memory` értékét a halommemória fölé méretezze** — a natív pufferek, az SQLite és a tömörítés köztes adatai a V8-on kívül helyezkednek el.
 
-| Munkaterhelés                             | `OMNIROUTE_MEMORY_MB`           | Konténer / cgroup    | Megjegyzések                                                                                                                                 |
-| ----------------------------------------- | ------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vezérlőpult, egy könnyű csevegés          | `1024` (rendszerkép alapértéke) | ≥2 GiB               |                                                                                                                                              |
-| Egy kódoló ügynök (Claude/Codex/Grok)     | `8192`                          | ≥10 GiB              | Tipikus egyetlen munkamenetes `/v1/responses`                                                                                                |
-| Két egyidejű hosszú `/v1/responses`       | `10240`–`12288`                 | ≥12–16 GiB           | Mért V8-leállás ~12 GiB heap mellett                                                                                                         |
-| Három vagy több egyidejű hosszú kontextus | ne futtassa egy folyamatban     | sorosítsa / több RAM | A nehézsúlyú kérések alapértelmezett engedélyezési korlátja 1 folyamatban lévő kérés; RAM-bővítés nélküli növelése ismét előidézi a leállást |
+| Terhelés                                  | `OMNIROUTE_MEMORY_MB`               | Konténer / cgroup    | Megjegyzések                                                                                                                                   |
+| ----------------------------------------- | ----------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Irányítópult, egy könnyű csevegés         | `1024` (a lemezkép alapértelmezése) | ≥2 GiB               |                                                                                                                                                |
+| Egy kódolóügynök (Claude/Codex/Grok)      | `8192`                              | ≥10 GiB              | Tipikus, egyetlen munkamenetes `/v1/responses`                                                                                                 |
+| Két egyidejű hosszú `/v1/responses`       | `10240`–`12288`                     | ≥12–16 GiB           | Mérések szerint a V8 ~12 GiB-os halommemóriánál megszakadt                                                                                     |
+| Három vagy több egyidejű hosszú kontextus | ne egyetlen folyamatban             | sorosítsa / több RAM | Alapértelmezés szerint egyszerre 1 nagy erőforrás-igényű kérés engedélyezett; ennek RAM-bővítés nélküli növelése ismét előidézi a megszakadást |
 
-Az `omniroute serve` fizikai gépen a RAM ~35%-ára kalibrál (a `[512, 4096]` tartományra korlátozva), ha az `OMNIROUTE_MEMORY_MB` **nincs beállítva**. A Docker mindig `1024` értékre állítja, ezért ez a kalibrálás a hivatalos rendszerképben soha nem fut le.
+Az `omniroute serve` csupasz hardveren a RAM ~35%-ára kalibrál (a `[512, 4096]` tartományra korlátozva), amikor az `OMNIROUTE_MEMORY_MB` **nincs beállítva**. A Docker mindig `1024` értékre állítja, ezért ez a kalibrálás a hivatalos lemezképben soha nem fut le.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

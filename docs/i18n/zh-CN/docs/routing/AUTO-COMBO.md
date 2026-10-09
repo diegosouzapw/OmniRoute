@@ -10,84 +10,84 @@
 
 ## 零配置自动路由（`auto/` 前缀）
 
-> **新增：**无需创建组合。可直接在任何客户端中使用 `auto/` 前缀。
+> **新增：** 无需创建组合。可直接在任何客户端中使用 `auto/` 前缀。
 
 ### 快速示例
 
 | 模型 ID        | 变体    | 行为                                               |
 | -------------- | ------- | -------------------------------------------------- |
 | `auto`         | default | 所有已连接的提供者、LKGP 策略、均衡权重            |
-| `auto/coding`  | coding  | 质量优先的权重，适合代码生成                       |
+| `auto/coding`  | coding  | 质量优先权重，适合代码生成                         |
 | `auto/fast`    | fast    | 低延迟加权选择                                     |
-| `auto/cheap`   | cheap   | 成本优化路由（优先选择成本最低者）                 |
-| `auto/offline` | offline | 倾向于选择配额可用性最高的提供者                   |
-| `auto/smart`   | smart   | 质量优先 + 更高的探索率（10%），以便更好地发现模型 |
-| `auto/lkgp`    | lkgp    | 显式 LKGP（与默认的 `auto` 相同）                  |
-| `auto/chaos`   | chaos   | 用于韧性测试（混沌工程）的故障注入权重             |
+| `auto/cheap`   | cheap   | 成本优化路由（最低成本优先）                       |
+| `auto/offline` | offline | 优先选择配额可用性最高的提供者                     |
+| `auto/smart`   | smart   | 质量优先 + 更高的探索率（10%），以便发现更好的模型 |
+| `auto/lkgp`    | lkgp    | 显式使用 LKGP（与默认的 `auto` 相同）              |
+| `auto/chaos`   | chaos   | 并行扇出，每个提供者选择一个模型（并非故障注入）   |
 
 ### 类别 × 层级组合（`auto/<category>:<tier>`）
 
-OpenRouter 风格的后缀将**路由类型**（类别）与**优化方式**（层级）分离，因此你可以自由组合它们（#4235 Phase B，`open-sse/services/autoCombo/suffixComposition.ts`）：
+OpenRouter 风格的后缀将**使用哪类路由**（类别）与**如何优化路由**（层级）分开，因此你可以自由组合它们（#4235 Phase B，`open-sse/services/autoCombo/suffixComposition.ts`）：
 
-- **类别**（按能力筛选候选池）：`coding` · `reasoning` · `vision` · `chat` · `multimodal`。`vision`/`multimodal` 保留支持视觉能力的模型；`reasoning` 保留推理/思考模型。
-- **层级**（选择评分权重/候选池过滤器）：`fast`（快速交付）· `cheap`（别名 `floor`，节省成本）· `reliable`（熔断器健康状况 + 延迟稳定性）· `free` / `pro`（通过 `classifyTier` 按模型层级筛选候选池——免费层级与高级层级）。
+- **类别**（按能力筛选候选池）：`coding` · `reasoning` · `vision` · `chat` · `multimodal`。`vision`/`multimodal` 保留支持视觉的模型；`reasoning` 保留推理/思考模型。
+- **层级**（选择评分权重/候选池过滤器）：`fast`（快速交付）· `cheap`（别名 `floor`，节省成本）· `reliable`（断路器健康状态 + 延迟稳定性）· `free` / `pro`（通过 `classifyTier` 按模型层级筛选候选池——免费层级与高级层级）。
 
 | 示例                   | 解析结果                                         |
 | ---------------------- | ------------------------------------------------ |
 | `auto/coding:fast`     | 编码候选池，低延迟权重                           |
 | `auto/coding:cheap`    | 编码候选池，成本优化（别名 `auto/coding:floor`） |
 | `auto/reasoning:pro`   | 仅限推理/思考模型，高级层级                      |
-| `auto/vision`          | 支持视觉能力的模型（无层级 → 均衡权重）          |
-| `auto/multimodal:free` | 支持多模态能力的模型，仅限免费层级               |
+| `auto/vision`          | 支持视觉的模型（无层级 → 均衡权重）              |
+| `auto/multimodal:free` | 支持多模态的模型，仅限免费层级                   |
 
-任何有效的 `auto/<category>[:<tier>]` 都会按需解析；其中精选的子集会发布到 `/v1/models` 和仪表板中（`open-sse/services/autoCombo/builtinCatalog.ts` 中的 `AUTO_SUFFIX_VARIANTS`）。筛选采用**故障开放**策略——如果某个约束未匹配任何已连接的模型，则会使用完整候选池，确保路由永不中断。核心评分器（`combo.ts`）保持不变；类别/层级过滤器在 `buildAutoCandidates` 中应用。
+任何有效的 `auto/<category>[:<tier>]` 都会按需解析；其中精心挑选的子集会在 `/v1/models` 和仪表板中公布（`open-sse/services/autoCombo/builtinCatalog.ts` 中的 `AUTO_SUFFIX_VARIANTS`）。筛选采用**失败时开放**策略——如果某项约束无法匹配任何已连接模型，则会使用完整候选池，确保路由不会中断。核心评分器（`combo.ts`）保持不变；类别/层级过滤器在 `buildAutoCandidates` 中应用。
 
-> **实时模型智能：**启用 `ARENA_ELO_SYNC_ENABLED` 标志后，自动路由的适配度会参考实时 **Arena ELO** 排名和 **models.dev** 层级数据（否则回退到静态适配度映射）。
+> **实时模型智能：** 启用 `ARENA_ELO_SYNC_ENABLED` 标志后，自动路由适配度将参考实时 **Arena ELO** 排名和 **models.dev** 层级数据（否则回退到静态适配度映射）。
 
-**使用方式：**
+**使用方法：**
 
 ```bash
 # 任何支持 OpenAI 格式的 IDE 或 CLI 工具
-基础 URL：http://localhost:20128/v1
-API 密钥：<your-endpoint-key>
+基础 URL: http://localhost:20128/v1
+API 密钥:  <your-endpoint-key>
 
 # 在代码/配置中，将模型设置为：
-model: "auto"                 # 均衡的默认设置
+model: "auto"                 # 均衡默认值
 model: "auto/coding"          # 最适合编码任务
 model: "auto/fast"            # 可用选项中速度最快
-model: "auto/cheap"           # 每个 token 成本最低
+model: "auto/cheap"           # 每个 token 的成本最低
 ```
 
-**运行机制：**
+**运行过程：**
 
 1. OmniRoute 在 `src/sse/handlers/chat.ts` 中检测 `auto/` 前缀
 2. 从数据库查询所有**活跃的提供者连接**
 3. 筛选出具有有效凭据（API 密钥或 OAuth 令牌）的连接
 4. 确定每个连接使用的模型（`connection.defaultModel` 或提供者的第一个模型）
-5. 在内存中构建一个**虚拟组合**（不存储到数据库）
-6. 使用所选变体的权重配置和 LKGP 策略进行路由
+5. 在内存中构建**虚拟组合**（不存储在数据库中）
+6. 使用所选变体的权重配置文件 + LKGP 策略进行路由
 
 **关键特性：**
 
-- ✅ **始终开启：**无需开关、无需创建组合、无需任何配置
-- ✅ **动态：**自动反映当前已连接的提供者
-- ✅ **会话粘性：**LKGP 确保优先选择上次成功的提供者
-- ✅ **支持多账户：**每个提供者连接都会成为单独的候选项
-- ✅ **不写入数据库：**虚拟组合仅在请求期间存在，持久化开销为零
+- ✅ **始终启用：** 无需开关、无需创建组合、无需配置
+- ✅ **动态：** 自动反映当前已连接的提供者
+- ✅ **会话粘性：** LKGP 确保优先使用上一次成功的提供者
+- ✅ **支持多账户：** 每个提供者连接都会成为独立候选项
+- ✅ **不写入数据库：** 虚拟组合仅在请求期间存在，持久化开销为零
 
 ### 按密钥控制候选项（#7819，Level 1+2）
 
-`GET /v1/auto-combo/{channel}/candidates`（`{channel}` = `auto/` 后面的后缀，基础通道则使用字面值 `auto`）是一个**只读**端点，用于列出 `auto/*` 通道当前的候选池，并附带实时可达性信息。它复用现有的韧性状态读取机制（绝不直接读取熔断器的 `state`）：
+`GET /v1/auto-combo/{channel}/candidates`（`{channel}` = `auto/` 后的后缀，基础通道则使用字面值 `auto`）是一个**只读**端点，用于列出 `auto/*` 通道当前的候选池，并附带实时可达性信息；它会复用现有的弹性机制读取结果（绝不直接读取断路器的 `state`）：
 
-- 提供者熔断器——`getCircuitBreaker(provider).getStatus()` / `.canExecute()`
-- 连接冷却——已解析的 `provider_connections` 行上的 `rateLimitedUntil` / `testStatus`
+- 提供者断路器——`getCircuitBreaker(provider).getStatus()` / `.canExecute()`
+- 连接冷却——已解析的 `provider_connections` 行中的 `rateLimitedUntil` / `testStatus`
 - 模型锁定——`isModelLocked(provider, connectionId, model)`
 
-每个候选项还包含此 API 密钥对应的 `excluded` 标志。排除设置按 API 密钥存储（`auto_candidate_overrides` 表，迁移 `128`）——OmniRoute 是单租户系统且没有 `users` 表，因此 `apiKeyId` 是最接近真实按调用方划分的身份标识——并在 `open-sse/services/autoCombo/virtualFactory.ts` 的候选池关键入口处，通过纯函数且经过单元测试的 `filterExcludedCandidates()`（`open-sse/services/autoCombo/candidateOverrides.ts`）强制执行。该过滤器采用**故障开放**策略：未设置 apiKeyId/channel 或数据库查询失败时，都会保留未过滤的候选池，因此未配置任何覆盖设置的运维人员所看到的路由行为与此功能推出前逐字节完全相同。
+每个候选项还会包含此 API 密钥对应的 `excluded` 标志。排除项按 API 密钥存储（`auto_candidate_overrides` 表，迁移 `128`）——OmniRoute 是单租户系统，没有 `users` 表，因此 `apiKeyId` 是最接近真实调用方身份的标识——并通过纯函数且经过单元测试的 `filterExcludedCandidates()`（`open-sse/services/autoCombo/candidateOverrides.ts`），在 `open-sse/services/autoCombo/virtualFactory.ts` 的候选池汇聚点强制执行。该过滤器采用**失败时开放**策略：未设置 apiKeyId/channel 或数据库查询失败时，都会保留未过滤的候选池，因此未配置任何覆盖项的运维人员所看到的路由行为与引入此功能之前逐字节完全一致。
 
-**推迟到后续 issue：**每个候选项的权重 + 显式排序（Level 3
-——接入现有的加权/优先级策略路径），以及为每个 `auto/*` channel 固定特定的
-`combo.ts` 策略（Level 4）。关于鉴于单租户模型，覆盖配置应继续按 API key 隔离还是改为全局配置这一开放问题，请参阅 #7819 计划。
+**推迟到后续 issue：** 每个候选项的权重 + 显式排序（Level 3
+— 接入现有的加权/优先级策略路径），以及为每个 `auto/*` 通道固定特定的
+`combo.ts` 策略（Level 4）。关于在单租户模型下，覆盖配置应继续按 API key 维护还是改为全局配置这一待定问题，请参阅 #7819 计划。
 
 **幕后流程：**
 
@@ -98,9 +98,9 @@ src/sse/handlers/chat.ts 检测前缀
    ↓
 createVirtualAutoCombo('coding') → 从活动连接生成 candidatePool
    ↓
-handleComboChat（与持久化 combo 使用相同的引擎）
+handleComboChat（与持久化组合使用相同的引擎）
    ↓
-自动评分为每个请求选择最佳提供者/模型
+自动评分机制为每个请求选择最佳提供者/模型
 ```
 
 **实现文件：**
@@ -184,7 +184,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## 模式包
 
-`open-sse/services/autoCombo/modePacks.ts` 中预定义了 6 个权重配置。每个配置都会完全替换默认权重，使选择偏向某一目标。每个配置的权重总和已经是 `1.0`（保留四位小数显示时为 `0.9999`），因此当模式包处于激活状态时，`normalizeScoringWeights()` 实际上没有需要修正的内容——考虑到舍入误差，以下数值就是评分器实际应用的数值。
+`open-sse/services/autoCombo/modePacks.ts` 中预定义了 6 个权重配置。每个模式包都会完全替换默认权重，使选择偏向某一目标。每个模式包的权重总和都已达到 `1.0`（保留四位小数时显示为 `0.9999`），因此当模式包处于活动状态时，`normalizeScoringWeights()` 没有任何实质性内容需要校正——在舍入误差范围内，以下值就是评分器实际应用的值。
 
 | 因素                  | ship-fast  | cost-saver | quality-first | offline-friendly | reliability-first | chaos-mode |
 | :-------------------- | :--------- | :--------- | :------------ | :--------------- | :---------------- | :--------- |
@@ -204,31 +204,31 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 | `quality`             | 0.02       | 0.02       | **0.03**      | 0.02             | 0.02              | 0.02       |
 | `reliability`         | 0.03       | 0.03       | 0.03          | 0.03             | **0.04**          | 0.03       |
 
-注意：
+说明：
 
-- **模式包包含 `quality` 和 `reliability`**（`quality 0.02`，`quality-first 0.03`；`reliability 0.03`，`reliability-first 0.04`），并会整体替换权重映射（`weights = pack`，而非合并）。`DEFAULT_WEIGHTS` 包含 `quality 0.03 / reliability 0`；选择 `balanced`/`default` 时会保留这些默认值，选择模式包时则使用上表中的模式包值。对于冷池（尚无观测数据，因此 `quality 0.5`、`reliability 1`），在通用模式包下，这两个因素会增加 `+0.04`（`0.03 + 0.01`）；在 `quality-first` 下增加 `+0.045`；在 `reliability-first` 下增加 `+0.05`。
-- 每个模式包中的 `tierAffinity`、`specificityMatch` 和 `resetWindowAffinity` 都明确设为 `0`。
-- 各模式包的侧重点概览：
+- **模式包包含 `quality` 和 `reliability`**（`quality 0.02`，`quality-first 0.03`；`reliability 0.03`，`reliability-first 0.04`），并会整体替换权重映射（`weights = pack`，而不是合并）。`DEFAULT_WEIGHTS` 包含 `quality 0.03 / reliability 0`；选择 `balanced`/`default` 会保留这些默认值，而选择模式包则会使用上方列出的模式包值。对于冷池（尚无观测数据，因此 `quality 0.5` 且 `reliability 1`），这两个因素在通用模式包下会增加 `+0.04`（`0.03 + 0.01`），在 `quality-first` 下会增加 `+0.045`，在 `reliability-first` 下会增加 `+0.05`。
+- 在每个模式包中，`tierAffinity`、`specificityMatch` 和 `resetWindowAffinity` 都被显式设置为 `0`。
+- 各模式包的侧重点一览：
   - **ship-fast** → latencyInv 0.3048 + health 0.2667（低延迟、健康的连接）
-  - **cost-saver** → costInv 0.3324（最便宜的 token 胜出）
-  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03，为所有模式包中最高（选择最适合任务且表现稳定的模型）
-  - **offline-friendly** → quota 0.3324 + health 0.2667（无论速度或成本如何，都最大化余量）
-  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04，为所有模式包中最高（意外情况最少）
-  - **chaos-mode** → health 0.4000 + taskFit 0.1905（故障注入配置）
+  - **cost-saver** → costInv 0.3324（成本最低的 token 胜出）
+  - **quality-first** → taskFit 0.3524 + stability 0.1429 + quality 0.03，为所有模式包中的最高值（最适合任务且表现稳定的模型）
+  - **offline-friendly** → quota 0.3324 + health 0.2667（不考虑速度/成本，最大化余量）
+  - **reliability-first** → health 0.3524 + stability 0.1905 + reliability 0.04，为所有模式包中的最高值（最大限度减少意外情况）
+  - **chaos-mode** → health 0.4000 + taskFit 0.1905（权重包 `auto/chaos` 为其面板成员分配的权重；并行扇出不会读取这些权重，而且这不是故障注入配置，参见 [CHAOS-MODE.md](../guides/CHAOS-MODE.md#autochaos-parallel-fan-out)）
 
-### 每请求控制（标头）— #6023 / #6024 / #6025 / #3470
+### 每请求控制（请求头）— #6023 / #6024 / #6025 / #3470
 
-可以通过三个标头**按请求**控制 `auto` 组合，而无需修改该组合存储的配置。这些标头仅适用于 `auto` 策略，且仅对携带它们的请求生效；未提供标头时，将使用组合中保存的 `modePack`/`budgetCap`/`budgetFallback`。
+可以通过三个请求头**按请求**控制 `auto` 组合，而无需修改该组合已存储的配置。这些请求头仅适用于 `auto` 策略，并且只对携带它们的请求生效；如果请求头不存在，则使用组合已保存的 `modePack`/`budgetCap`/`budgetFallback`。
 
-| 请求头                        | 接受的值                                                                                                                                                                     | 效果                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `X-OmniRoute-Mode`            | 预设别名（`fast`、`balanced`、`quality`、`cheap`、`reliable`、`offline`）或原始包名称（`ship-fast`、`cost-saver`、`quality-first`、`offline-friendly`、`reliability-first`） | 覆盖此请求的评分权重。`balanced`/`default` 强制使用默认权重（不使用包）。未知值将被忽略（保留配置）。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `X-OmniRoute-Budget`          | 正数（每个请求的最大美元金额）                                                                                                                                               | 硬性成本上限：在选择之前，会过滤掉预计成本超过该上限的候选项。当**所有**候选项都超过该上限时的处理方式由下方的 `X-OmniRoute-Budget-Fallback` 控制。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `X-OmniRoute-Budget-Fallback` | `cheapest`（默认值，别名：`cheapest-viable`、`soft`）或 `strict`（别名：`block`、`hard`）                                                                                    | `cheapest`：回退到全局成本最低的候选项，即使其仍超过上限（旧版行为）。`strict`：拒绝选择——请求会立即失败并返回 `HTTP 402`，而不是静默超支。未知值将被忽略。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `X-OmniRoute-Effort`          | `auto`（其他值保留）                                                                                                                                                         | 自适应思考预算：当请求中**没有**任何形式的推理字段（`reasoning_effort`、`reasoning`、`thinking`）时，网关会根据确定性的请求结构信号（最后一条用户消息的长度、截至最后一条用户消息的上下文大小、先前的工具结果、工具循环深度）将 `auto` 解析为 `low`/`medium`/`high`。信号范围仅限当前轮次——最后一条用户消息之后的所有内容都会被忽略——因此，工具循环中的每个请求都会解析为相同级别（每轮无状态固定，无会话状态，也不会在循环中途升级，以免破坏上游提示词缓存前缀）。客户端显式提供的推理字段始终优先。仅适用于上游分派解析为 OpenAI Chat Completions 格式的请求（`targetFormat === FORMATS.OPENAI`）——`reasoning_effort` 是 OpenAI 格式的字段，因此该请求头对以 Claude 或 Gemini 为目标的请求不起作用（请参阅 `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`）。 |
+| 请求头                        | 接受的值                                                                                                                                                                     | 作用                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `X-OmniRoute-Mode`            | 预设别名（`fast`、`balanced`、`quality`、`cheap`、`reliable`、`offline`）或原始包名称（`ship-fast`、`cost-saver`、`quality-first`、`offline-friendly`、`reliability-first`） | 覆盖此请求的评分权重。`balanced`/`default` 强制使用默认权重（不使用包）。未知值将被忽略（保留配置）。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `X-OmniRoute-Budget`          | 正数（每个请求的最高美元金额）                                                                                                                                               | 硬性成本上限：在选择之前，将过滤掉估算成本超过该上限的候选项。当**所有**候选项都超过上限时，具体行为由下方的 `X-OmniRoute-Budget-Fallback` 控制。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `X-OmniRoute-Budget-Fallback` | `cheapest`（默认，别名：`cheapest-viable`、`soft`）或 `strict`（别名：`block`、`hard`）                                                                                      | `cheapest`：回退到全局成本最低的候选项，即使其成本仍然超过上限（旧版行为）。`strict`：拒绝选择——请求会立即失败并返回 `HTTP 402`，而不是在未提示的情况下超支。未知值将被忽略。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `X-OmniRoute-Effort`          | `auto`（其他值保留）                                                                                                                                                         | 自适应思考预算：当请求不包含任何形式的推理字段（`reasoning_effort`、`reasoning`、`thinking`）时，网关会根据确定性的请求形态信号（最后一条用户消息的长度、截至最后一条用户消息的上下文大小、先前的工具结果、工具循环深度）将 `auto` 解析为 `low`/`medium`/`high`。这些信号仅限于当前轮次——最后一条用户消息之后的所有内容都会被忽略——因此，工具循环中的每个请求都会解析为相同级别（每轮无状态固定，不保留会话状态，也不会在循环中途升级，以免破坏上游提示词缓存前缀）。客户端显式指定的推理字段始终优先。仅适用于上游分派解析为 OpenAI Chat Completions 形态（`targetFormat === FORMATS.OPENAI`）的请求——`reasoning_effort` 是 OpenAI 形态的字段，因此对于面向 Claude 或 Gemini 的请求，此请求头不会产生任何作用（参见 `open-sse/handlers/chatCore/adaptiveEffortWiring.ts`）。 |
 
 ```bash
-# 强制使用最快的配置，将此请求的费用上限设为 $0.05，并在超出预算时直接阻止，而不是继续消费
+# 强制使用最快配置，将此请求的费用上限设为 $0.05，并在超支时直接阻止，而不是继续超支
 curl -sS http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "X-OmniRoute-Mode: fast" \
@@ -239,47 +239,73 @@ curl -sS http://localhost:20128/v1/chat/completions \
 
 解析过程是一个纯函数（`open-sse/services/autoCombo/requestControls.ts`）；解析后的值会传入引擎现有的 `config.modePack` / `config.budgetCap` /
 `config.budgetFallback` 输入。组合中存储的 `config.budgetFallback`（"strict" |
-"cheapest"）用于设置持久策略；请求头可针对单个请求覆盖该策略。
+"cheapest"）用于设置持久策略；请求头则会针对单个请求覆盖该策略。
 
 ## 所有路由策略
 
-OmniRoute 的组合引擎支持 **19 种路由策略**（声明于 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`）。Auto Combo 引擎本身通过 `auto` 策略提供；其他策略可用于持久化组合。
+OmniRoute 的组合引擎支持 **19 种路由策略**（在 `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES` 中声明）。Auto Combo 引擎本身通过 `auto` 策略提供；其他策略可用于持久化组合。
 
-| 策略                | 描述                                                                                                                              |
-| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | 具有明确优先级、按顺序选择首个目标的列表                                                                                          |
-| `weighted`          | 根据每个目标的权重进行加权随机选择                                                                                                |
-| `round-robin`       | 按顺序循环遍历目标                                                                                                                |
-| `context-relay`     | 在不同目标之间传递上下文（用于长对话）                                                                                            |
-| `fill-first`        | 先用满每个目标的配额，再转到下一个目标                                                                                            |
-| `p2c`               | 二选一随机负载均衡                                                                                                                |
-| `random`            | 均匀随机选择                                                                                                                      |
-| `least-used`        | 选择当前负载最低的目标                                                                                                            |
-| `cost-optimized`    | 根据目录定价将每次请求的成本降至最低                                                                                              |
-| `reset-aware` ⭐    | 按配额重置时间确定优先级——重置窗口较短的目标排名更高                                                                              |
-| `reset-window`      | 优先选择配额窗口最早重置的目标                                                                                                    |
-| `headroom`          | 选择剩余配额余量最大的目标                                                                                                        |
-| `strict-random`     | 随机选择，不对重复项去重                                                                                                          |
-| `auto`              | 使用 Auto Combo 评分（16 项因素）——**推荐**                                                                                       |
-| `lkgp`              | 最近已知良好路径（固定使用上一个成功的提供者，然后回退到规则）                                                                    |
-| `context-optimized` | 选择最适合当前上下文大小的目标                                                                                                    |
-| `cache-optimized`   | 按提示词缓存亲和性重新排列目标——优先尝试最有可能已缓存此请求前缀的连接（`open-sse/services/combo/promptCacheAffinity.ts`，#8008） |
-| `fusion` 🧬         | 并行分发给一组模型，然后通过评判模型将结果综合为一个答案（见下文）                                                                |
-| `pipeline`          | 依次运行目标，将每一步的输出传入下一步作为输入；仅返回最终答案（#6396）                                                           |
+| 策略                | 描述                                                                                                                            |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------ |
+| `priority`          | 按明确优先级排列的首选目标有序列表                                                                                              |
+| `weighted`          | 根据各目标权重进行加权随机选择                                                                                                  |
+| `round-robin`       | 按顺序循环使用目标（分批进行；见下文）                                                                                          |
+| `context-relay`     | 在目标之间传递上下文（适用于长对话）                                                                                            |
+| `fill-first`        | 先用满每个目标的配额，再转到下一个目标                                                                                          |
+| `p2c`               | 二选一随机负载均衡                                                                                                              |
+| `random`            | 均匀随机选择                                                                                                                    |
+| `least-used`        | 选择当前负载最低的目标                                                                                                          |
+| `cost-optimized`    | 根据目录定价，最大限度降低每次请求的费用                                                                                        |
+| `reset-aware` ⭐    | 按配额重置时间确定优先级——重置窗口较短的目标排名更高                                                                            |
+| `reset-window`      | 优先选择配额窗口最早重置的目标                                                                                                  |
+| `headroom`          | 选择剩余配额余量最多的目标                                                                                                      |
+| `strict-random`     | 随机选择，不对重复项去重                                                                                                        |
+| `auto`              | 使用 Auto Combo 评分（16 项因素）——**推荐**                                                                                     |
+| `lkgp`              | 最近已知可用路径（固定使用最近成功的提供者，然后按规则回退）                                                                    |
+| `context-optimized` | 选择最适合当前上下文大小的目标                                                                                                  |
+| `cache-optimized`   | 按提示缓存亲和性重新排列目标——最可能已缓存此请求前缀的连接会最先尝试（`open-sse/services/combo/promptCacheAffinity.ts`，#8008） |
+| `fusion` 🧬         | 并行分发给一组模型，然后由评判模型综合生成一个答案（见下文）                                                                    |
+| `pipeline`          | 依次运行各目标，将每一步的输出传入下一步作为输入；仅返回最终答案（#6396）                                                       |
 
-⭐ = v3.8.0 中新增 · 🧬 = v3.8.36 中新增
+⭐ = v3.8.0 新增 · 🧬 = v3.8.36 新增
 
 ### `weighted` 语义
 
 `weighted` 是**按请求进行的比例随机抽取**
-（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），而不是均衡器：
+（`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`），并非均衡器：
 
-- 每个请求以 `weight / totalWeight` 的概率抽取**一个**步骤；其余步骤按权重降序排列，作为该请求的回退链。
-- 当任何其他步骤的权重 > 0 时，权重为 `0`（或未设置权重）的步骤**永远不会被抽中**——它只能在抽中的步骤失败后作为回退。仅当**所有**权重均为 0 时，才会采用均匀选择。
-- 如果某步骤的所有目标均不可用——提供者断路器为 `OPEN`、连接处于冷却期、模型被锁定——则会在抽取发生前将其移除（`open-sse/services/combo/targetResolution.ts`），因此当只有一个步骤处于健康状态时，它可能会暂时赢得每个请求。
-- `stickyWeightedLimit`（组合配置，默认值为 `1`，即关闭）会将抽中的步骤固定使用指定次数的连续成功请求，然后再重新抽取。
+- 每个请求按照 `weight / totalWeight` 的概率抽取**一个**步骤；其余步骤按权重降序排列，作为该请求的回退链。
+- 当任何其他步骤的权重 > 0 时，权重为 `0`（或未设置）的步骤**永远不会被抽中**——它只能在被抽中的步骤失败后作为回退。只有当**所有**权重均为 0 时，选择才会变为均匀随机。
+- 目标全部不可用的步骤——提供者断路器为 `OPEN`、连接处于冷却状态、模型被锁定——会在抽取前被移除（`open-sse/services/combo/targetResolution.ts`），因此单个健康步骤可能暂时赢得每个请求。
+- `stickyWeightedLimit`（组合配置，默认值为 `1`，表示关闭）会将抽中的步骤固定用于指定次数的连续成功请求，然后重新抽取。
 
-如需严格轮换，请使用 `round-robin`；在 `weighted` 中设置相同权重只能实现统计意义上的均衡，而非严格均衡。
+如需严格轮换，请使用 `round-robin`；在 `weighted` 中使用相同权重只能实现统计意义上的均衡，而非严格均衡。
+
+### 智能体式流水线模式
+
+两步式 `pipeline` 组合可以通过 `config.agenticOrchestration.enabled` 启用规划器/执行器路由。第一个目标负责规划和最终回答；第二个目标发出客户端原生工具调用。OmniRoute 会从请求协议中检测工具结果续接，询问规划器是否需要再进行一轮工具调用，并动态选择执行器或规划器作为面向客户端的最终步骤。
+
+```json
+{
+  "strategy": "pipeline",
+  "models": [{ "model": "provider/planner" }, { "model": "provider/executor" }],
+  "config": {
+    "agenticOrchestration": { "enabled": true, "maxToolRounds": 8 }
+  }
+}
+```
+
+执行器可以在一次响应中发出多个相互独立的调用。依赖调用会在客户端后续的工具结果轮次中处理，并由规划器审核每个结果。`maxToolRounds` 默认为 `8`，接受 `1`–`32`；达到上限后，规划器必须生成当前可得的最佳最终回答。内部规划器决策会被缓冲，而所选的面向客户端响应会保留原始流式传输偏好。
+
+### `round-robin` 粘性批处理与账户扩展
+
+轮询采用批处理方式，而不是每个步骤处理一个请求：
+
+- `stickyRoundRobinLimit`（依次取组合配置、`comboStickyRoundRobinLimit`、`settings.stickyRoundRobinLimit`，默认值为 **3**）会让同一目标连续成功指定次数后再轮换。将组合覆盖值设置为 `1` 可实现每个请求轮换一次。组合编辑器会显示生效值及其来源层级。
+- `connectionAwareExpansion`（依次取组合配置、设置，默认值为 **false**）会在轮换前将每个提供者级步骤扩展为按账户划分的目标。在启用此选项之前，B 组策略（priority、weighted、round-robin、random、p2c、least-used、cost-optimized、lkgp、fill-first、strict-random、context-optimized、cache-optimized、context-relay、fusion、pipeline）会保持提供者级视图。组合编辑器提供继承 / 开启 / 关闭选项；继承使用全局默认值（关闭）。
+- 提示词缓存亲和性路由（`promptCacheAffinityEnabled`，默认值为 **true**）会对固定连接重新排序，使匹配缓存键的请求留在同一账户上。对于固定到具体账户的步骤，它的优先级高于轮询和加权轮换。如果需要严格轮换，请在 Settings → Combo defaults 下将其关闭。此选项不支持按组合覆盖。
+
+若要在一个模型的多个账户间进行轮换，建议使用**一个动态账户步骤**（`connectionId` 为空，使用整个账户池）并将粘性限制设为 `1`，而不要使用三个固定的 `connectionId`。即使 RR 计数器持续递增，固定步骤加上亲和性机制仍会集中到同一个账户上。
 
 ## 融合策略
 
@@ -662,17 +688,13 @@ SLA 感知字段：
 
 （`AutoVariant` 本身枚举了 6 个值；第 7 个选项是“不使用变体”——即不带后缀的 `auto`——由 `parseAutoPrefix()` 处理为 `variant: undefined`。）
 
-## 层级如何融入 Auto-Combo
+## 层级如何适配 Auto-Combo
 
-16 因子评分函数（`open-sse/services/autoCombo/scoring.ts`）将层级归属视为两个信号：`tierPriority`（0.0476）和 `tierAffinity`（0.0476）。有关完整的
-`DEFAULT_WEIGHTS` 集合，请参阅上方的规范[评分因子表](#how-it-works-persisted-auto-combos)——各方案的覆盖配置（ship-fast/cost-saver/quality-first/
-offline-friendly）列在“每种方案的权重配置”表中。
+16 因子评分函数（`open-sse/services/autoCombo/scoring.ts`）将层级归属视为两个信号：`tierPriority`（0.0476）和 `tierAffinity`（0.0476）。有关完整的 `DEFAULT_WEIGHTS` 集合，请参阅上方的规范[评分因子表](#how-it-works-persisted-auto-combos)——每个配置包的覆盖值（ship-fast/cost-saver/quality-first/offline-friendly）列在“每个配置包的权重配置”表中。
 
-仅凭层级**不会**强制优先选择 Tier 1——如果 Tier 1 的延迟较高，或
-成本与质量的权衡不理想，则 Tier 2 会胜出。若要强制按层级排序，请使用组合
-策略 `priority`，并按层级排列提供者。
+仅凭层级**不会**强制优先选择 Tier 1——如果 Tier 1 的延迟表现不佳，或成本与质量的权衡不是最优，则 Tier 2 会胜出。若要强制按层级排序，请使用组合策略 `priority`，并按层级排列提供者。
 
-若要显著偏向 Tier 1（订阅），请提高 `tierPriority` 权重：
+若要强烈偏向 Tier 1（订阅），请增加 `tierPriority` 的权重：
 
 ```json
 {
@@ -681,7 +703,7 @@ offline-friendly）列在“每种方案的权重配置”表中。
 }
 ```
 
-有关层级定义和提供者分类，请参阅 `docs/marketing/TIERS.md`。
+有关层级定义和提供者分类，请参阅 [`docs/guides/TIERS.md`](../guides/TIERS.md)。
 
 ## 测试与覆盖范围
 

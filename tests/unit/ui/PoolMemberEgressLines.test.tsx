@@ -71,6 +71,38 @@ describe("PoolMemberEgressLines", () => {
     );
   });
 
+  it("shows the operator-provided line for operator observations, dated", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        windowHours: 24,
+        members: [
+          {
+            host: "10.9.1.3",
+            port: 21003,
+            egressIp: "203.0.113.3",
+            at: "2026-09-21T00:00:00Z",
+            source: "operator",
+          },
+        ],
+      })
+    );
+    const lines = element.querySelectorAll("p");
+    expect(lines.length).toBe(1);
+    expect(lines[0].textContent).toBe(
+      'poolMemberEgressOperator:{"host":"10.9.1.3","port":21003,"egressIp":"203.0.113.3","date":"2026-09-21T00:00:00Z"}'
+    );
+  });
+
+  it("still renders bodies without a source (forward compat)", async () => {
+    const { element } = await renderWith(() =>
+      jsonResponse({
+        windowHours: 24,
+        members: [{ host: "10.9.1.4", port: 21004, egressIp: "203.0.113.4", at: "x" }],
+      })
+    );
+    expect(element.querySelectorAll("p").length).toBe(1);
+  });
+
   it("renders nothing when the route answers null", async () => {
     const { element } = await renderWith(() => jsonResponse(null));
     expect(element.textContent).toBe("");
@@ -147,5 +179,65 @@ describe("PoolMemberEgressLines", () => {
     const text = element.textContent ?? "";
     expect(text).toContain('poolSetAsideReason:{"kind":"poolSetAsideKindProxyUnreachable"}');
     expect(text).not.toContain('"kind":"transport"');
+  });
+
+  it("labels a slow set-aside instead of printing the raw kind", async () => {
+    const { element } = await renderWith((url: unknown) =>
+      String(url).startsWith("/api/admin/proxy-pool-visibility")
+        ? jsonResponse({
+            rankedBy: "health",
+            members: [
+              {
+                id: "p1",
+                name: "pool-a",
+                display: "http://10.9.1.1:21001",
+                userMasked: null,
+                opaque: false,
+                rank: 1,
+                signal: "set-aside",
+                setAside: {
+                  kind: "slow",
+                  since: "2026-09-25T12:00:00.000Z",
+                  endsAt: "2026-09-25T12:34:00.000Z",
+                  streak: 1,
+                },
+              },
+            ],
+          })
+        : jsonResponse(null)
+    );
+    const text = element.textContent ?? "";
+    expect(text).toContain('poolSetAsideReason:{"kind":"poolSetAsideKindSlow"}');
+    expect(text).not.toContain('"kind":"slow"');
+  });
+
+  it("labels a region refusal instead of printing the raw kind", async () => {
+    const { element } = await renderWith((url: unknown) =>
+      String(url).startsWith("/api/admin/proxy-pool-visibility")
+        ? jsonResponse({
+            rankedBy: "health",
+            members: [
+              {
+                id: "p1",
+                name: "pool-a",
+                display: "http://10.9.1.1:21001",
+                userMasked: null,
+                opaque: false,
+                rank: 1,
+                signal: "set-aside",
+                setAside: {
+                  kind: "geo_blocked",
+                  since: "2026-09-25T12:00:00.000Z",
+                  endsAt: "2026-09-25T12:34:00.000Z",
+                  streak: 1,
+                },
+              },
+            ],
+          })
+        : jsonResponse(null)
+    );
+    const text = element.textContent ?? "";
+    expect(text).toContain('poolSetAsideReason:{"kind":"poolSetAsideKindGeoBlocked"}');
+    expect(text).not.toContain('"kind":"geo_blocked"');
   });
 });

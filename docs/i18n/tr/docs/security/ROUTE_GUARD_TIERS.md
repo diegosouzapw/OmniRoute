@@ -14,154 +14,132 @@ ve diğer tüm kimlik doğrulama dalları çalıştırılmadan önce değerlendi
 
 ### Katman 1 — LOCAL_ONLY
 
-**Uygulayan:** `isLocalOnlyPath(path)` → geri döngü ana makine denetimi  
-**Atlatma:** Varsayılan olarak yoktur. İstek, `manage` kapsamına sahip geçerli
-bir API anahtarı taşıdığında `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` içindeki
-yollar için dar kapsamlı bir istisna uygulanır (bkz. [Yönetim kapsamı istisnası](#manage-scope-carve-out)).
+**Uygulayan:** `isLocalOnlyPath(path)` → loopback ana makine kontrolü  
+**Atlatma:** Varsayılan olarak yoktur. İstek, `manage` kapsamına sahip geçerli bir API anahtarı taşıdığında `LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` içindeki yollar için dar kapsamlı bir istisna uygulanır (bkz. [Manage kapsamı istisnası](#manage-scope-carve-out)).
 
-Bu rotalar alt süreçler başlatır veya çalışma zamanı kodu yürütür. Bunların
-geri döngü dışı trafiğe açılması, geçerli bir JWT elde eden bir saldırganın
-(ör. bir Cloudflared/Ngrok tüneli üzerinden) süreç başlatmayı tetiklemesine olanak
-tanır; bu, bilinen bir CVE sınıfıdır
-([GHSA-fhh6-4qxv-rpqj](https://github.com/advisories/GHSA-fhh6-4qxv-rpqj)).
+Bu rotalar alt süreçler başlatır veya çalışma zamanı kodu yürütür. Bunları loopback dışı trafiğe açmak, geçerli bir JWT elde eden bir saldırganın (ör. bir Cloudflared/Ngrok tüneli üzerinden) süreç başlatmayı tetiklemesine olanak tanır; bu, bilinen bir CVE sınıfıdır ([GHSA-fhh6-4qxv-rpqj](https://github.com/advisories/GHSA-fhh6-4qxv-rpqj)).
 
-**GHSA-fhh6-4qxv-rpqj nedir (saldırı sınıfı):** Bir yönetim/aracı sunucusu,
-bir alt süreç (`npm install`, `node`, bir tarayıcı, bir proxy, `git`, `tar`, …)
-başlatan bir uç nokta sunar. Bu uç noktaya ana makine dışından erişilebiliyorsa
-— işletmeci OmniRoute'u bir nginx/Cloudflare/Tailscale tünelinin arkasına
-yerleştirdiği ve bir JWT sızdığı ya da kimlik doğrulama yanlış yapılandırıldığı
-için — saldırgan, "bir API çağırma" işlemini "ana makinede bir komut çalıştırma"
-işlemine (uzaktan kod yürütme) dönüştürür. OmniRoute, süreç başlatabilen her
-rotada **herhangi bir kimlik doğrulama denetiminden önce, koşulsuz olarak bir geri
-döngü ana makine denetimi** uygulayarak bunu engeller: Bir tünel üzerinden sızan
-belirteç bile süreç başlatma işlevine erişemez.
+**GHSA-fhh6-4qxv-rpqj nedir (saldırı sınıfı):** Bir yönetim/ajan sunucusu, bir alt süreç (`npm install`, `node`, bir tarayıcı, bir proxy, `git`, `tar`, …) başlatan bir uç nokta sunar. Bu uç noktaya ana makine dışından erişilebiliyorsa — operatör OmniRoute'u bir nginx/Cloudflare/Tailscale tünelinin arkasına yerleştirdiği ve bir JWT sızdığı ya da kimlik doğrulama yanlış yapılandırıldığı için — saldırgan, "bir API çağırma" işlemini "ana makinede bir komut çalıştırma" işlemine (uzaktan kod yürütme) dönüştürür. OmniRoute, süreç başlatabilen her rotada **herhangi bir kimlik doğrulama kontrolünden önce, koşulsuz olarak loopback ana makine kontrolü** uygulayarak bunu engeller: bir tünel üzerinden sızdırılmış bir belirteç bile süreç başlatma işlevine erişemez.
 
-**LOCAL_ONLY kümesinin tamamı.** Yetkili kaynak,
-`src/server/authz/routeGuard.ts` içindeki `LOCAL_ONLY_API_PREFIXES` /
-`LOCAL_ONLY_API_PATTERNS` değerleridir; aşağıdaki tablo mevcut durumu yansıtır.
-`check-route-guard-membership` geçidi, süreç başlatabilen öneklerin altındaki her
-`route.ts` dosyasını numaralandırır ve bunlardan herhangi biri yalnızca yerel
-olarak sınıflandırılmamışsa CI'ı başarısız kılar.
+**LOCAL_ONLY kümesinin tamamı.** Yetkili kaynak, `src/server/authz/routeGuard.ts` içindeki `LOCAL_ONLY_API_PREFIXES` / `LOCAL_ONLY_API_PATTERNS` değerleridir; aşağıdaki tablo mevcut durumu yansıtır. `check-route-guard-membership` geçidi, süreç başlatabilen öneklerin altındaki tüm `route.ts` dosyalarını listeler ve bunlardan herhangi biri yalnızca yerel olarak sınıflandırılmamışsa CI'ı başarısız kılar.
 
-| Önek / kalıp                                                                                             | Neden yalnızca yerel olduğu                                                                          |
-| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `/api/mcp/`                                                                                              | MCP sunucusu — stdio köprüleri + SSE işleyicileri başlatır                                           |
-| `/api/cli-tools/runtime/`                                                                                | CLI aracı çalışma zamanı — rastgele eklenti kodu yürütür                                             |
-| `/api/cli-tools/{omp,letta,grok-build,forge,jcode,qwen}-settings`                                        | Ana makinedeki araç ikili dosyalarına/yapılandırmasına erişebilen araç bazlı ayar yazıcıları         |
-| `/api/cli-tools/{claude,cline,codewhale,codex,crush,deepseek-tui,droid,kilo,openclaw,pi,smelt}-settings` | Yukarıdaki altı eşdeğerle aynı `getCliRuntimeStatus()` işlemini başlatır (GHSA-35fw-cv32-2373)       |
-| `/api/cli-tools/{all-statuses,status,detect}`                                                            | CLI envanter yoklamaları — araç başına `command -v` / `--version` başlatır (GHSA-35fw-cv32-2373)     |
-| `/api/cli-tools/antigravity-mitm`                                                                        | Antigravity MITM proxy denetimi (sistem proxy'sini başlatır/yönlendirir)                             |
-| `/api/modality-bridge/video/`                                                                            | Kesin güvenilir loopback Video Bridge çalışma zamanı yoklaması ve dahili ayıklama köprüsü            |
-| `/api/services/`                                                                                         | Gömülü hizmetler (9Router / CLIProxy / Bifrost / Mux / Dario) — `npm install` + başlatma             |
-| `/dashboard/providers/services/`                                                                         | Gömülü hizmet kullanıcı arayüzlerine ters proxy                                                      |
-| `/api/tunnels/cloudflared`                                                                               | cloudflared ikili dosyasını yükler/başlatır                                                          |
-| `/api/tunnels/tailscale/{install,enable,disable,login,start-daemon}`                                     | Ana makinede tailscaled'i yükler/denetler                                                            |
-| `/api/copilot/`                                                                                          | Kimlik doğrulamasız LLM sürücüsü — varsayılan olarak yalnızca CLI                                    |
-| `/api/tools/agent-bridge/`                                                                               | AgentBridge — MITM sunucusu başlatır + DNS düzenlemeleri yapar                                       |
-| `/api/tools/traffic-inspector/`                                                                          | Traffic Inspector — http-proxy dinleyicisi + sistem proxy'si                                         |
-| `/api/settings/mitm`                                                                                     | MITM müdahalesini etkinleştirir (sistem düzeyinde proxy durumu)                                      |
-| `/api/issue-agent/`                                                                                      | Sorun aracısı — depoya karşı yerel araçları başlatır                                                 |
-| `/api/plugins/`, `/api/plugins`                                                                          | Eklentiler — `worker_threads` + `child_process` aracılığıyla yükler/yürütür                          |
-| `/api/middleware/`                                                                                       | Kullanıcı ara yazılımı — operatör kodunu işlem içinde yükler/yürütür                                 |
-| `/api/system/version`                                                                                    | Otomatik güncelleme (yalnızca POST; GET/HEAD/OPTIONS muaf) — `git checkout` + `npm install` başlatır |
-| `/api/db-backups/exportAll`                                                                              | Dışa aktarma arşivi için `tar` başlatır                                                              |
-| `/api/local/`                                                                                            | Tek tıklamalı yerel başlatıcılar (şimdilik Redis) — podman/docker başlatır                           |
-| `/api/headroom/start`, `/api/headroom/stop`                                                              | Headroom proxy yaşam döngüsü — python CLI'yi başlatır / PID'e sinyal gönderir                        |
-| `/api/jobs`, `/api/jobs/`                                                                                | İş çalıştırıcısı denetimi — zamanlanmış ana makine tarafı işleri yürütür                             |
-| `/api/oauth/cursor/auto-import`                                                                          | Kimlik bilgilerini içe aktarmadan önce `execFile("which", ["cursor"])` çalıştırır                    |
-| `/api/oauth/kiro/auto-import`                                                                            | Ana makineden Kiro CLI kimlik bilgisi dosyalarını okur                                               |
-| `/api/skills/collect/`                                                                                   | Beceri toplama — yerel araçları algılar/yükler                                                       |
-| `/api/skills/install`, `/api/skills/executions`                                                          | Beceri işleyicisi kaydı + yürütme — korumalı alan konteynerinin başlatılmasına ulaşır (GHSA-jx89)    |
-| `/api/discovery/`                                                                                        | Yerel ağ/sağlayıcı keşif yoklamaları                                                                 |
-| `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                                                                  | Etkileşimli oturum açma işlemleri için görünür tarayıcı + VNC oturumu başlatır                       |
-| `/api/acp/agents`                                                                                        | ACP — yerel CLI aracı ikili dosyalarını keşfeder ve başlatır                                         |
-| `/api/resilience/connections`, `/dashboard/resilience/connections`                                       | Yerel CLI durumuna dokunabilen bağlantı bakım eylemleri                                              |
-| `/api/providers/cursor/agent-availability`                                                               | Dashboard kurulum hatırlatıcısı denetimi — `cursor-agent status --format json` komutunu başlatır     |
-| `/api/providers/{id}/login` (regex)                                                                      | Web çereziyle oturum açmak için görünür bir Playwright Chromium başlatır                             |
-| `/api/providers/volcengine-plan/connect` (regex)                                                         | Manuel görünür akış + oturum tabanlı telefon/SMS ile otomatik oturum açma (Playwright başlatır)      |
-| `/api/providers/{id}/refresh-cursor` (regex)                                                             | Manuel Cursor oturumu yenileme — `cursor-agent` aracını tetikler                                     |
-| `/api/providers/{id}/chatgpt-web-codex-doctor` (regex)                                                   | Yerel Codex CLI kurulumunu tanılar (ikili dosyayı başlatır)                                          |
+| Önek / kalıp                                                                                             | Neden yalnızca yerel olduğu                                                                                       |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `/api/mcp/`                                                                                              | MCP sunucusu — stdio köprüleri + SSE işleyicileri başlatır                                                        |
+| `/api/cli-tools/runtime/`                                                                                | CLI aracı çalışma zamanı — rastgele eklenti kodu çalıştırır                                                       |
+| `/api/cli-tools/{omp,letta,grok-build,forge,jcode,qwen}-settings`                                        | Ana makinedeki araç ikili dosyalarına/yapılandırmasına erişebilen araç başına ayar yazıcıları                     |
+| `/api/cli-tools/{claude,cline,codewhale,codex,crush,deepseek-tui,droid,kilo,openclaw,pi,smelt}-settings` | Yukarıdaki altı eş öğeyle aynı `getCliRuntimeStatus()` başlatma işlemi (GHSA-35fw-cv32-2373)                      |
+| `/api/cli-tools/{all-statuses,status,detect}`                                                            | CLI envanter yoklamaları — araç başına `command -v` / `--version` başlatır (GHSA-35fw-cv32-2373)                  |
+| `/api/cli-tools/antigravity-mitm`                                                                        | Antigravity MITM proxy denetimi (sistem proxy'sini başlatır/yönlendirir)                                          |
+| `/api/modality-bridge/video/`                                                                            | Yalnızca güvenilir loopback için katı Video Bridge çalışma zamanı yoklaması ve dahili çıkarma köprüsü             |
+| `/api/services/`                                                                                         | Gömülü hizmetler (9Router / CLIProxy / Bifrost / Mux / Dario) — `npm install` + başlatma                          |
+| `/dashboard/providers/services/`                                                                         | Gömülü hizmet kullanıcı arayüzlerine ters proxy                                                                   |
+| `/api/tunnels/cloudflared`                                                                               | cloudflared ikili dosyasını yükler/başlatır                                                                       |
+| `/api/tunnels/tailscale/{install,enable,disable,login,start-daemon}`                                     | Ana makinede tailscaled'i yükler/denetler                                                                         |
+| `/api/copilot/`                                                                                          | Kimliği doğrulanmamış LLM sürücüsü — varsayılan olarak yalnızca CLI                                               |
+| `/api/tools/agent-bridge/`                                                                               | AgentBridge — MITM sunucusu başlatır + DNS düzenlemeleri yapar                                                    |
+| `/api/tools/traffic-inspector/`                                                                          | Traffic Inspector — http-proxy dinleyicisi + sistem proxy'si                                                      |
+| `/api/settings/mitm`                                                                                     | MITM müdahalesini etkinleştirir (sistem düzeyinde proxy durumu)                                                   |
+| `/api/issue-agent/`                                                                                      | Sorun aracısı — depo üzerinde yerel araçları başlatır                                                             |
+| `/api/plugins/`, `/api/plugins`                                                                          | Eklentiler — `worker_threads` + `child_process` aracılığıyla yükler/çalıştırır                                    |
+| `/api/middleware/`                                                                                       | Kullanıcı ara yazılımı — operatör kodunu işlem içinde yükler/çalıştırır                                           |
+| `/api/system/version`                                                                                    | Otomatik güncelleme (yalnızca POST; GET/HEAD/OPTIONS muaf) — `git checkout` + `npm install` başlatır              |
+| `/api/db-backups/exportAll`                                                                              | Dışa aktarma arşivi için `tar` başlatır                                                                           |
+| `/api/local/`                                                                                            | Tek tıklamalı yerel başlatıcılar (şimdilik Redis) — podman/docker başlatır                                        |
+| `/api/headroom/start`, `/api/headroom/stop`                                                              | Headroom proxy yaşam döngüsü — python CLI başlatır / PID'ye sinyal gönderir                                       |
+| `/api/jobs`, `/api/jobs/`                                                                                | İş çalıştırıcısı denetimi — zamanlanmış ana makine tarafı işleri çalıştırır                                       |
+| `/api/oauth/cursor/auto-import`                                                                          | Kimlik bilgilerini içe aktarmadan önce `execFile("which", ["cursor"])` çalıştırır                                 |
+| `/api/oauth/kiro/auto-import`                                                                            | Ana makineden Kiro CLI kimlik bilgisi dosyalarını okur                                                            |
+| `/api/skills/collect/`                                                                                   | Beceri toplama — yerel araçları algılar/yükler                                                                    |
+| `/api/skills/install`, `/api/skills/executions`                                                          | Beceri işleyicisi kaydı + yürütme — korumalı alan konteynerini başlatmaya erişir (GHSA-jx89)                      |
+| `/api/discovery/`                                                                                        | Yerel ağ/sağlayıcı keşif yoklamaları                                                                              |
+| `/api/vnc-session` (`VNC_ROUTE_PREFIX`)                                                                  | Etkileşimli oturum açma işlemleri için arayüzlü bir tarayıcı + VNC oturumu başlatır                               |
+| `/api/acp/agents`                                                                                        | ACP — yerel CLI aracı ikili dosyalarını keşfeder ve başlatır                                                      |
+| `/api/resilience/connections`                                                                            | Hesap başına dayanıklılık JSON'u (bekleme süresi, devre kesici, kilitleme). Pano HTML'si yalnızca yerel değildir. |
+| `/api/providers/cursor/agent-availability`                                                               | Pano kurulum önerisi denetimi — `cursor-agent status --format json` komutunu çalıştırır                           |
+| `/api/providers/{id}/login` (regex)                                                                      | Web çereziyle oturum açmak için arayüzlü bir Playwright Chromium başlatır                                         |
+| `/api/providers/volcengine-plan/connect` (regex)                                                         | Manuel arayüzlü akış + oturum tabanlı telefon/SMS otomatik oturum açma (Playwright'ı başlatır)                    |
+| `/api/providers/{id}/refresh-cursor` (regex)                                                             | Manuel Cursor oturumu yenileme — `cursor-agent` aracını tetikler                                                  |
+| `/api/providers/{id}/chatgpt-web-codex-doctor` (regex)                                                   | Yerel Codex CLI kurulumunu tanılar (ikili dosyayı çalıştırır)                                                     |
 
 **İhlal durumundaki yanıt:** `403 LOCAL_ONLY`
 
 #### Yönetim kapsamı istisnası
 
-LOCAL_ONLY yollarının bir alt kümesine, yalnızca istek üst verileri `manage`
-kapsamını (veya `admin`) içeren bir `Authorization: Bearer <api-key>`
-taşıyorsa loopback dışından da erişilebilir. İstisna, yol başına açıkça
-`LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` aracılığıyla sınırlandırılır; böylece
-her yeni LOCAL_ONLY yolu için varsayılan davranış katı loopback olarak kalır.
-Kimliği doğrulanmamış istekler ve yönetim kapsamı olmayan anahtarlara sahip
-istekler yine `403 LOCAL_ONLY` ile reddedilir.
+LOCAL_ONLY yollarının bir alt kümesine, yalnızca istek meta verilerinde
+`manage` kapsamı (veya `admin`) bulunan bir `Authorization: Bearer <api-key>`
+taşıyorsa, loopback dışından da erişilebilir. İstisna, her yol için
+`LOCAL_ONLY_MANAGE_SCOPE_BYPASS_PREFIXES` aracılığıyla açıkça etkinleştirilir;
+böylece herhangi bir yeni LOCAL_ONLY yolu için varsayılan davranış katı loopback
+olarak kalır. Kimliği doğrulanmamış istekler ve yönetim kapsamına sahip olmayan
+anahtarlarla yapılan istekler yine `403 LOCAL_ONLY` ile reddedilir.
 
-Şu anda istisna uygulanabilen tek ön ek `/api/mcp/` şeklindedir.
-`/api/cli-tools/runtime/` ve `/api/services/`, rastgele alt süreçler
-(`npm install`, `node`) başlatabildikleri için özellikle hariç tutulmuştur;
-bu, LOCAL_ONLY katmanının önlemek üzere var olduğu CVE sınıfının ta kendisidir.
+Şu anda istisna uygulanabilen tek önek `/api/mcp/`'dir. `/api/cli-tools/runtime/`
+ve `/api/services/`, rastgele alt süreçler (`npm install`, `node`)
+başlatabildikleri için kasıtlı olarak hariç tutulmuştur; LOCAL_ONLY katmanının
+var olma nedeni tam olarak bu CVE sınıfını önlemektir.
 
 **#7895 — `mcp:connect` dar kapsamı:** `/api/mcp/` istisnası AYRICA dar
-`mcp:connect` kapsamına sahip bir Bearer anahtarını da kabul eder
-(`src/shared/constants/managementScopes.ts::MCP_CONNECT_SCOPE`); bu,
-`src/server/authz/policies/management.ts` içindeki
-`hasMcpConnectOrManageScope()` aracılığıyla denetlenir. Bu, YALNIZCA `/api/mcp/`
-ile sınırlıdır — `mcp:connect`, başka hiçbir yönetim rotasında (ileride
-eklenmesi durumunda diğer tüm LOCAL_ONLY istisna ön ekleri dâhil) herhangi bir
-yetki vermez ve kasıtlı olarak `MANAGEMENT_API_KEY_SCOPES` dışında tutulmuştur.
-`manage`/`admin` kapsamına sahip bir anahtar, istisnadan daha önce olduğu gibi
-geçmeye devam eder; `mcp:connect`, geniş yönetim erişimine ihtiyaç duymaması
-gereken yalnızca uzak MCP çağrıcıları için daha düşük ayrıcalıklı bir
-alternatiftir.
+`mcp:connect` kapsamını
+(`src/shared/constants/managementScopes.ts::MCP_CONNECT_SCOPE`) taşıyan bir
+Bearer anahtarını da kabul eder; bu, `src/server/authz/policies/management.ts`
+içindeki `hasMcpConnectOrManageScope()` aracılığıyla denetlenir.
+Bu, YALNIZCA `/api/mcp/` ile sınırlıdır — `mcp:connect`, başka herhangi bir
+yönetim rotasında (ileride eklenebilecek diğer tüm LOCAL_ONLY istisna önekleri
+dâhil) hiçbir yetki sağlamaz ve kasıtlı olarak
+`MANAGEMENT_API_KEY_SCOPES` dışında tutulmuştur. `manage`/`admin` taşıyan bir
+anahtar, istisnadan eskisi gibi yararlanmaya devam eder; `mcp:connect`, geniş
+yönetim erişimine ihtiyaç duymaması gereken yalnızca uzak MCP çağrıcıları için
+daha düşük ayrıcalıklı bir alternatiftir.
 
-| İstek                                                  | Yol                        | Sonuç                   |
-| ------------------------------------------------------ | -------------------------- | ----------------------- |
-| Loopback dışı, Bearer yok                              | `/api/mcp/*`               | 403 LOCAL_ONLY          |
-| Loopback dışı, `manage` kapsamlı Bearer                | `/api/mcp/*`               | İzin ver                |
-| Loopback dışı, `mcp:connect` kapsamlı Bearer           | `/api/mcp/*`               | İzin ver                |
-| Loopback dışı, `manage`/`mcp:connect` içermeyen Bearer | `/api/mcp/*`               | 403 LOCAL_ONLY          |
-| Loopback dışı, `mcp:connect` kapsamlı Bearer           | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY          |
-| Loopback dışı, `manage` kapsamlı Bearer                | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY          |
-| Loopback, Bearer olsun veya olmasın                    | herhangi bir LOCAL_ONLY    | İzin ver (kapı geçilir) |
+| İstek                                                        | Yol                        | Sonuç                    |
+| ------------------------------------------------------------ | -------------------------- | ------------------------ |
+| Loopback dışı, Bearer yok                                    | `/api/mcp/*`               | 403 LOCAL_ONLY           |
+| Loopback dışı, `manage` kapsamlı Bearer                      | `/api/mcp/*`               | İzin ver                 |
+| Loopback dışı, `mcp:connect` kapsamlı Bearer                 | `/api/mcp/*`               | İzin ver                 |
+| Loopback dışı, `manage`/`mcp:connect` kapsamı olmayan Bearer | `/api/mcp/*`               | 403 LOCAL_ONLY           |
+| Loopback dışı, `mcp:connect` kapsamlı Bearer                 | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY           |
+| Loopback dışı, `manage` kapsamlı Bearer                      | `/api/cli-tools/runtime/*` | 403 LOCAL_ONLY           |
+| Loopback, herhangi bir Bearer/Bearer yok                     | herhangi bir LOCAL_ONLY    | İzin ver (geçit geçilir) |
 
-#### Operatör kılavuzu ve denetim
+#### Operatör yönergeleri ve denetim
 
 OmniRoute'u bir ters proxy veya tünelin (nginx, Caddy, Cloudflare Tunnel,
 Tailscale, Ngrok) arkasında çalıştırıyorsanız loopback denetimi, yukarıdaki
 süreç başlatabilen rotaları korumaya devam eder — istemci adresi loopback
 olmayan bir istek, **kimlik doğrulama çalışmadan önce** `403 LOCAL_ONLY` ile
-reddedilir; dolayısıyla sızdırılmış bir JWT süreç başlatma işlemine ulaşamaz.
-Operatörlerin iki sorumluluğu devam etmektedir:
+reddedilir; dolayısıyla sızdırılmış bir JWT, süreç başlatma işlevine erişemez.
+Operatörlerin iki sorumluluğu devam eder:
 
 - **İstemci IP'sini loopback olarak taklit ederek 403 hatasını "düzeltmeyin".**
   `X-Forwarded-For: 127.0.0.1` ayarlamak veya kaynak adresini loopback olarak
-  yeniden yazan bir proxy kullanmak, bu katmanın kapattığı RCE sınıfını
-  doğrudan yeniden açar. Dashboard'u/API'yi proxy üzerinden kullanıma açın —
+  yeniden yazan bir proxy kullanmak, bu katmanın engellediği RCE sınıfını
+  yeniden mümkün hâle getirir. Pano/API'yi proxy üzerinden kullanıma açın —
   süreç başlatabilen rotaları asla açmayın.
 - **Yönetim kapsamı istisnasını asgari düzeyde tutun.** Yalnızca `/api/mcp/`
-  istisna kapsamına alınabilir ve bu yalnızca `manage` kapsamlı bir API
+  için istisna uygulanabilir ve bu da yalnızca `manage` kapsamlı bir API
   anahtarıyla mümkündür. `SPAWN_CAPABLE_PREFIXES` hiçbir zaman istisna listesine
   eklenemez — zod şeması bunları reddeder ve
-  `isLocalOnlyBypassableByManageScope` çalışma zamanında bunlara izin vermez
-  (derinlemesine savunma); dashboard'un "istisna kapsamına alınamaz" ifadesiyle
-  kastettiği budur. `/api/providers/` altındaki dinamik segmentli ve statik
-  yollu süreç başlatabilen rotalar (ör. `/login`, `/refresh-cursor`), düz
-  `SPAWN_CAPABLE_PREFIXES` dizisiyle değil,
+  `isLocalOnlyBypassableByManageScope`, çalışma zamanında bunlara izin vermez
+  (derinlemesine savunma); panodaki "istisna uygulanabilir hâle getirilemez"
+  ifadesinin anlamı budur. `/api/providers/` altındaki dinamik segmentli ve
+  statik yollu süreç başlatabilen rotalar (ör. `/login`, `/refresh-cursor`),
+  düz `SPAWN_CAPABLE_PREFIXES` dizisiyle değil,
   `src/shared/constants/spawnCapablePrefixes.ts` içindeki regex tabanlı
-  `SPAWN_CAPABLE_PATTERNS` / `SPAWN_CAPABLE_PATTERN_ANCESTORS` eşleniğiyle
-  kapsanır — düz dizinin bunları yakalayabilmesi için `/api/providers/`
-  ön ekinin tamamını kapsaması gerekir; bu da uzak dashboard'ların sağlayıcı
-  CRUD işlemleri için meşru biçimde kullandığı bir rota ağacını gereğinden
-  fazla geniş kapsamda kısıtlardı.
+  `SPAWN_CAPABLE_PATTERNS` / `SPAWN_CAPABLE_PATTERN_ANCESTORS` eşlikçisiyle
+  kapsanır — bunları yakalamak için düz dizinin tüm `/api/providers/` önekini
+  kapsaması gerekirdi; bu da uzak panoların sağlayıcı CRUD işlemleri için
+  meşru şekilde kullandığı rota ağacını gereğinden fazla genişletirdi.
 
-**Erişim denetimi** — ana makine dışından hiçbir şeyin bu rotalara ulaşmadığını doğrulamak için:
+**Erişim denetimi** — ana makine dışından hiçbir isteğin bu rotalara ulaşmadığını doğrulamak için:
 
-- `/dashboard/settings/security` adresindeki **Yetkilendirme Envanteri**'ni açın: burada
-  canlı LOCAL_ONLY ön ek listesi, hangi ön eklerin atlanabilir olduğu ve derleme zamanında
-  işlem başlatabilen ("atlanabilir hâle getirilemez") küme gösterilir.
-- Ters proxy / erişim günlüklerinizde, yukarıdaki ön eklerle birlikte geri döngü olmayan
-  bir istemci adresi bulunan kayıtları grep ile arayın. `403 LOCAL_ONLY` yerine `200`
-  döndüren herhangi bir istek, proxy'nin gerçek istemci IP'sini maskelediği anlamına gelir —
-  proxy'yi düzeltin.
-- Bu yollardan biri için OmniRoute günlüklerinde görülen `403 LOCAL_ONLY`, engelin
+- `/dashboard/settings/security` sayfasındaki **Yetkilendirme Envanteri**'ni açın: canlı
+  LOCAL_ONLY ön ek listesini, hangi ön eklerin atlanabilir olduğunu ve derleme zamanında
+  işlem başlatabilen ("atlanabilir hâle getirilemez") kümeyi gösterir.
+- Ters proxy / erişim günlüklerinizde yukarıdaki ön ekleri, geri döngü olmayan bir
+  istemci adresiyle eşleşecek şekilde grep ile arayın. `403 LOCAL_ONLY` yerine
+  `200` döndüren her eşleşme, proxy'nin gerçek istemci IP'sini maskelediği anlamına gelir — proxy'yi düzeltin.
+- Bu yollardan biri için OmniRoute günlüklerinde görülen `403 LOCAL_ONLY`, korumanın
   amaçlandığı gibi çalıştığını gösterir; bastırılması gereken bir hata değildir.
 
 ### Katman 2 — ALWAYS_PROTECTED
@@ -170,48 +148,46 @@ Operatörlerin iki sorumluluğu devam etmektedir:
 **Atlama:** `requireLogin=false` olduğunda yoktur; JWT her zaman gereklidir
 
 Bu rotalar yıkıcıdır veya geri alınamaz işlemler gerçekleştirir. Bunlara "parolasız"
-bir kurulumda izin vermek, aynı LAN üzerindeki herhangi birinin veritabanını silebilmesi
-veya sunucu işlemini sonlandırabilmesi anlamına gelir.
+bir kurulumda izin vermek, aynı LAN üzerindeki herhangi birinin veritabanını silebilmesi veya
+sunucu işlemini sonlandırabilmesi anlamına gelir.
 
 | Yol                                       | Gerekçe                                                                              |
 | ----------------------------------------- | ------------------------------------------------------------------------------------ |
 | `/api/shutdown`                           | Sunucu işlemini sonlandırır                                                          |
 | `/api/settings/database`                  | Veritabanını dışa aktarma, içe aktarma ve silme                                      |
 | `/api/db-backups`                         | Tam veritabanı yedek arşivine erişim                                                 |
-| `/api/settings/export-json`               | Tüm ayar verilerini dışa aktarır (gizli bilgiler dâhil)                              |
-| `/api/settings/import-json`               | Tüm ayar verilerini değiştirir                                                       |
+| `/api/settings/export-json`               | Ayarların tamamını dışa aktarır (gizli bilgiler dâhil)                               |
+| `/api/settings/import-json`               | Ayarların tamamını değiştirir                                                        |
 | `/api/providers/health-autopilot/actions` | Otomatik pilot düzeltme eylemlerini yürütür                                          |
 | `/api/settings/obsidian`                  | Herhangi bir kasa kökü için yeniden kullanılabilir WebDAV kimlik bilgileri oluşturur |
 
 **İhlal durumundaki yanıt:** `401 Authentication required`
 
-`/api/settings/obsidian`, kendi `/webdav` alt yolunu da kapsar: `POST`, Next.js'den önce
-özel Node katmanı tarafından ve bu işlem hattının dışında sunulan WebDAV dosya hizmetini,
-çağıranın seçtiği bir köke yönlendirir ve yeni oluşturulan Basic kimlik bilgilerini yanıtta
-döndürür; `DELETE` bunları yeniler ve üst `POST`, Obsidian REST API token'ını saklar.
-GHSA-62vw yalnızca `GET` parola ifşasını maskelemişti; kimlik bilgisi oluşturma işlemi hâlâ
-hata durumunda açık kalan katmandaydı (GHSA-7pq4-8pvv-rx7r). `enableObsidianVaultSync()`
-ayrıca veri dizininin kendisi olan, veri dizininin içinde bulunan veya veri dizinini içeren
-bir kasayı reddeder.
+`/api/settings/obsidian`, `/webdav` alt yolunu da kapsar: `POST`, Next.js'den önce özel Node
+katmanı tarafından bu işlem hattının dışında sunulan WebDAV dosya hizmetini çağıranın seçtiği bir köke
+yönlendirir ve yeni oluşturulan Basic kimlik bilgilerini yanıtta döndürür; `DELETE` bunları yeniler ve üst `POST`,
+Obsidian REST API belirtecini saklar. GHSA-62vw yalnızca `GET` parola ifşasını maskelemişti; kimlik bilgilerinin
+oluşturulması hâlâ hata durumunda erişime izin veren katmandaydı (GHSA-7pq4-8pvv-rx7r). `enableObsidianVaultSync()`
+ayrıca veri dizininin kendisi olan, veri dizininin içinde bulunan veya veri dizinini içeren bir kasayı
+reddeder.
 
-### Yeni kurulum önyüklemesi yalnızca geri döngüye açıktır — `Host`'a değil, gerçek eşe göre
+### Yeni kurulum önyüklemesi yalnızca geri döngüye açıktır — `Host`'a göre değil, gerçek eşe göre
 
 Yönetim parolası yapılandırılmadığında (ve `INITIAL_PASSWORD` olmadığında),
-`src/shared/utils/apiAuth.ts` içindeki `isAuthRequired()`, anonim önyüklemeyi **yalnızca geri
-döngü eşleri için** açık tutar. Geri döngü durumu, güvenilir eş sinyallerine göre şu sırayla
-belirlenir: token ile damgalanmış gerçek TCP eşi (`PEER_IP_HEADER` + `VIA_PROXY_HEADER`,
-politikanın gördüğü değer), işlem hattının kendi `AUTHZ_HEADER_PEER_LOCALITY` kararı
-(`OMNIROUTE_PEER_STAMP_TOKEN` yalnızca ayarlanmışken güvenilen ve rota işleyicilerinin gördüğü
-değer) veya doğrudan çağıranlar için gerçek bir soket eşi. `Host` / `nextUrl.hostname` hiçbir
-zaman dikkate alınmaz ve ilk parola yazma işlemi (`POST /api/settings/require-login`), tüm ağ
-eşlerine açık olmak yerine aynı kısıtlamaya tabidir (GHSA-7pq4-8pvv-rx7r).
-`managementPolicy`, kendi `peerContext` kararını açıkça alt katmana iletir; böylece ORIGINAL
-(ayıklama öncesi) isteğin üstbilgileri bu kararı hiçbir zaman belirlemez.
+`src/shared/utils/apiAuth.ts` içindeki `isAuthRequired()`, anonim önyüklemeyi **yalnızca geri döngü eşleri için**
+açık tutar. Geri döngü durumu, güvenilen eş sinyallerinden şu sırayla belirlenir: belirteçle damgalanmış gerçek TCP eşi
+(`PEER_IP_HEADER` + `VIA_PROXY_HEADER`, politikanın gördüğü), işlem hattının kendi
+`AUTHZ_HEADER_PEER_LOCALITY` kararı (rota işleyicilerinin gördüğü; yalnızca
+`OMNIROUTE_PEER_STAMP_TOKEN` ayarlıyken güvenilir) veya doğrudan çağıranlar için gerçek bir soket eşi. `Host` /
+`nextUrl.hostname` hiçbir zaman dikkate alınmaz ve ilk parola yazma işlemi
+(`POST /api/settings/require-login`), her ağ eşine açık olmak yerine aynı kısıtlamaya
+tabidir (GHSA-7pq4-8pvv-rx7r). `managementPolicy`, kendi `peerContext` kararını
+açıkça aşağıya iletir; böylece ORIGINAL (ayıklama öncesi) isteğin başlıkları bu kararı hiçbir zaman belirlemez.
 
 ### Katman 3 — MANAGEMENT (varsayılan)
 
 Diğer tüm yönetim rotaları. `requireLogin=false` yapılandırılmadığı sürece kimlik doğrulama
-gereklidir. CLI token'ları bu rotalarda kimlik doğrulaması yapabilir (geri döngü + geçerli HMAC).
+gereklidir. CLI belirteçleri bu rotalarda kimlik doğrulaması yapabilir (geri döngü + geçerli HMAC).
 
 ## Değerlendirme sırası
 

@@ -123,3 +123,22 @@ test("a safe-only active profile is shown unchanged", () => {
     stackedPipeline: combos.safe,
   });
 });
+
+test("legacy install (engines not panel-saved) => preview follows defaultMode like the runtime", () => {
+  // Without enginesExplicit the engines map is a DISPLAY-only backfill; the runtime
+  // (deriveDefaultPlanFromConfig) dispatches on the legacy defaultMode instead. The preview
+  // must use the same derivation, not deriveDefaultPlan(engines) (#14700).
+  const config: CompressionConfig = {
+    ...DEFAULT_COMPRESSION_CONFIG,
+    enabled: true,
+    enginesExplicit: false,
+    activeComboId: null,
+    defaultMode: "lite",
+    engines: { "session-dedup": { enabled: true } },
+  };
+  const preview = deriveEffectivePreviewPlan(config, namedCombos);
+  const runtime = runtimePlan(config);
+  assert.equal(runtime.mode, "lite");
+  assert.equal(preview.mode, runtime.mode);
+  assert.deepEqual(preview.stackedPipeline, runtime.stackedPipeline);
+});

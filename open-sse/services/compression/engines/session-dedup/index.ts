@@ -22,6 +22,8 @@
  *   - Never touch multipart content parts other than `type: "text"`.
  *   - Only dedup blocks ≥ minBlockChars (default 80 chars) AND ≥ MIN_BLOCK_LINES lines.
  *   - First occurrence is ALWAYS kept intact; only later identical occurrences are replaced.
+ *   - Never rewrite the current turn (messages after the last assistant message): the
+ *     model must see what it just read or was just sent. It is deduped on a later turn.
  *
  * Reconstruction:
  *   Replace every `[dedup:ref sha=XXXXXXXX]` marker with the original block text
@@ -31,6 +33,7 @@
 import crypto from "node:crypto";
 import { createCompressionStats } from "../../stats.ts";
 import { runFuzzyPass } from "./fuzzy.ts";
+import { callerSupportsCcrRetrieve } from "../ccr/protocolInstruction.ts";
 import type {
   CompressionEngine,
   CompressionEngineApplyOptions,
@@ -125,7 +128,11 @@ function countLiteralOccurrences(text: string, needle: string): number {
   }
 }
 
-function replaceLiteralOccurrencesAfterFirst(text: string, needle: string, replacement: string): string {
+function replaceLiteralOccurrencesAfterFirst(
+  text: string,
+  needle: string,
+  replacement: string
+): string {
   if (!needle) return text;
   const first = text.indexOf(needle);
   if (first === -1) return text;
@@ -191,8 +198,9 @@ function dedupeWithinMessage(
  * Returns the replaced texts for duplicate messages, a reverse map, and a count.
  */
 function dedupMessageTexts(
-  msgTexts: Array<{ msgIdx: number; text: string }>,
-  minBlockChars: number
+  msgTexts: Array<{ msgIdx: number; messageIndex: number; text: string }>,
+  minBlockChars: number,
+  currentTurnStart: number
 ): {
   deduped: Map<number, string>;
   dedupCount: number;
@@ -228,7 +236,10 @@ function dedupMessageTexts(
   }
 
   // Pass 2: for each message, find blocks that were FIRST seen in an earlier message.
-  for (const { msgIdx, text } of msgTexts) {
+  // The current turn is never rewritten: a re-read tool result replaced by a marker
+  // reads to the model as a lost read, and it reads the file again another way.
+  for (const { msgIdx, messageIndex, text } of msgTexts) {
+    if (messageIndex >= currentTurnStart) continue;
     const lines = text.split("\n");
     const blocks = findSuffixBlocks(lines, minBlockChars);
 
@@ -294,19 +305,23 @@ function processMessages(
 ): { messages: MessageLike[]; dedupCount: number } {
   // Collect (msgIdx, text) for non-system string-content messages.
   // For multipart, index each text part separately.
-  const msgTexts: Array<{ msgIdx: number; text: string }> = [];
+  const msgTexts: Array<{ msgIdx: number; messageIndex: number; text: string }> = [];
 
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     if (msg.role === "system") continue;
     if (typeof msg.content === "string") {
-      msgTexts.push({ msgIdx: i, text: msg.content });
+      msgTexts.push({ msgIdx: i, messageIndex: i, text: msg.content });
     } else if (Array.isArray(msg.content)) {
       for (let p = 0; p < msg.content.length; p++) {
         const part = msg.content[p];
         if (part["type"] === "text" && typeof part["text"] === "string") {
           // Composite key: i * 100000 + p + 1 (safe for reasonable message counts)
-          msgTexts.push({ msgIdx: i * 100000 + p + 1, text: part["text"] as string });
+          msgTexts.push({
+            msgIdx: i * 100000 + p + 1,
+            messageIndex: i,
+            text: part["text"] as string,
+          });
         }
       }
     }
@@ -316,7 +331,15 @@ function processMessages(
     return { messages, dedupCount: 0 };
   }
 
-  const { deduped, dedupCount } = dedupMessageTexts(msgTexts, minBlockChars);
+  // Messages after the last assistant message form the current turn.
+  let currentTurnStart = 0;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === "assistant") {
+      currentTurnStart = i + 1;
+      break;
+    }
+  }
+  const { deduped, dedupCount } = dedupMessageTexts(msgTexts, minBlockChars, currentTurnStart);
 
   if (dedupCount === 0) {
     return { messages, dedupCount: 0 };
@@ -394,7 +417,8 @@ function validateSessionDedupConfig(config: Record<string, unknown>): EngineVali
     const f = config["fuzzy"];
     if (typeof f === "object" && f !== null) {
       const fe = (f as Record<string, unknown>)["enabled"];
-      if (fe !== undefined && typeof fe !== "boolean") errors.push("fuzzy.enabled must be a boolean");
+      if (fe !== undefined && typeof fe !== "boolean")
+        errors.push("fuzzy.enabled must be a boolean");
     } else if (typeof f !== "boolean") {
       errors.push("fuzzy must be an object { enabled } or a boolean");
     }
@@ -454,7 +478,8 @@ export const sessionDedupEngine: CompressionEngine = {
       exactMessages,
       stepConfig,
       minBlockChars,
-      options?.principalId
+      options?.principalId,
+      callerSupportsCcrRetrieve(body)
     );
 
     if (dedupCount + fuzzyCount === 0) {

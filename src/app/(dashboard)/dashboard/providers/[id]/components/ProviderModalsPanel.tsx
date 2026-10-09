@@ -54,7 +54,7 @@ interface ProviderModalsPanelProps {
   isCommandCode: boolean;
   isUpstreamProxyProvider: boolean;
   subscriptionRisk: boolean;
-  existingConnectionCount?: number;
+  existingConnectionNames?: string[];
   // Risk notice
   showRiskNoticeModal: boolean;
   handleConfirmRiskNotice: () => void;
@@ -156,7 +156,7 @@ export default function ProviderModalsPanel({
   isCcCompatible,
   isUpstreamProxyProvider,
   subscriptionRisk,
-  existingConnectionCount,
+  existingConnectionNames,
   showRiskNoticeModal,
   handleConfirmRiskNotice,
   handleCancelRiskNotice,
@@ -311,7 +311,7 @@ export default function ProviderModalsPanel({
           providerName={providerInfo.name}
           providerWebsite={providerInfo.website}
           initialBaseUrl={siliconFlowInitialBaseUrl}
-          existingConnectionCount={existingConnectionCount}
+          existingConnectionNames={existingConnectionNames}
           isCompatible={isCompatible}
           isAnthropic={isAnthropicProtocolCompatible}
           isCcCompatible={isCcCompatible}
@@ -452,7 +452,11 @@ export default function ProviderModalsPanel({
         importProgress={importProgress}
         isOpen={showImportModal}
         onClose={() => {
-          if (importProgress.phase === "done" || importProgress.phase === "error") {
+          if (
+            importProgress.phase === "done" ||
+            importProgress.phase === "error" ||
+            importProgress.phase === "warning"
+          ) {
             setShowImportModal(false);
           }
         }}

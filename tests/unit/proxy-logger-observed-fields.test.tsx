@@ -20,6 +20,8 @@ const TRAFFIC = {
   latencyMs: 42,
   clientIp: "10.9.9.9",
   upstreamStatus: 200,
+  headersMs: 1234,
+  firstChunkMs: 5678,
   egressIp: "203.0.113.9",
   correlationId: "corr-abcdef-123456",
   account: "conn-traff",
@@ -32,6 +34,8 @@ const NULL_STATUS = {
   id: "log-null",
   targetUrl: "openai/gpt-5-null",
   upstreamStatus: null,
+  headersMs: null,
+  firstChunkMs: null,
   egressIp: null,
   correlationId: null,
   rotationAccount: null,
@@ -127,6 +131,27 @@ describe("ProxyLogger observed fields", () => {
     );
     expect(html).not.toContain("conn-traff");
     container.remove();
+  }, 15000);
+
+  it("shows when the headers and the first chunk arrived for the attempt", async () => {
+    const { default: ProxyLogDetail } = await import("@/shared/components/ProxyLogDetail");
+    const render = async (log: Record<string, unknown>) => {
+      const container = makeContainer();
+      const root = createRoot(container);
+      await act(async () => {
+        root.render(<ProxyLogDetail log={log} onClose={() => {}} />);
+      });
+      const text = container.textContent ?? "";
+      await act(async () => root.unmount());
+      container.remove();
+      return text;
+    };
+    const timed = await render(TRAFFIC);
+    expect(timed).toContain("headersAfter1.2s");
+    expect(timed).toContain("firstChunkAfter5.7s");
+    const unknown = await render(NULL_STATUS);
+    expect(unknown).toContain("headersAfter—");
+    expect(unknown).toContain("firstChunkAfter—");
   }, 15000);
 
   it("partitions connection tests by level or targetUrl suffix", async () => {

@@ -4,22 +4,45 @@
 
 ---
 
-> **Dashboard:** **Ọnọdụ Chaos** (ogwe akụkụ) → `/dashboard/chaos`  
+> **Dashboard:** **Chaos Mode** (ogwe akụkụ) → `/dashboard/chaos`  
 > **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (nnọkọ dashboard) · `POST /api/skills/collect/chaos` (igodo API)  
-> **Ebe koodu si:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
+> **Ebe mmalite:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Ọnọdụ Chaos na-eziga **otu ọrụ n'aka ọtụtụ ndị na-eweta ọrụ n'otu oge** — onye ọ bụla na-eweta ọrụ nke sonyere
-na-etinye otu ihe nlereanya, ma ị ga-enweta azịza niile n'akụkụ ibe ha (ma ọ bụ n'usoro njikọ). Ọ bụ
-ebe ọtụtụ ihe nlereanya na-arụ ọrụ, ọ bụghị atụmatụ ịhọrọ ụzọ: ọ dịghị mgbe ọ na-emetụta okporo ụzọ
-`/v1/chat/completions` gị nkịtị.
+Chaos Mode na-eziga **otu ọrụ nye ọtụtụ ndị na-enye ọrụ n'otu oge** — onye na-enye ọrụ ọ bụla sonyere
+na-eweta otu instance nke model, ị ga-enwetakwa azịza niile n'akụkụ ibe ha (ma ọ bụ jikọta ha n'usoro). Ọ bụ
+ebe a na-eme ihe site n'ọtụtụ model, ọ bụghị atụmatụ routing: ọ naghị emetụta traffic `/v1/chat/completions`
+gị nke nkịtị ma ọlị.
 
-**Nkọwa iji zere mgbagwoju anya — e nwere ihe atọ dị iche iche nwere "chaos" n'aha ha:**
+**Nkọwapụta ọdịiche — e nwere ihe atọ dị iche iche e wepụtara nwere "chaos" n'aha ha:**
 
-| Ihe                  | Ihe ọ bụ                                                                                                                      | Ebe e dere nkọwa ya                          |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Ọnọdụ Chaos**      | Ibe dashboard + API a kọwara ebe a: kesaa otu ọrụ nye ọtụtụ ndị na-eweta ọrụ (n'otu oge ma ọ bụ n'ịrụkọ ọrụ).                 | Ntuziaka a                                   |
-| `auto/chaos`         | NJ ihe nlereanya Auto-Combo nwere ibu akara ntinye-ndudue, maka ịnwale nkwụsi ike. Ọ dịghị ihe a ga-ahazi.                    | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Nhazi ngwakọta Chaos | Ngwakọta echekwara nke nwere `config.chaos.enabled` na-ekesa ọrụ nye otu panel nwere ihe nlereanya ọkaikpe nhọrọ (naanị API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Ihe               | Ihe ọ bụ                                                                                                                                                                         | Ebe e dere nkọwa ya                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**    | Ibe dashboard + API akọwara ebe a: gbasaa otu ọrụ gaa ọtụtụ ndị na-enye ọrụ (n'otu oge ma ọ bụ site na mmekorita).                                                               | Ntuziaka a                                   |
+| `auto/chaos`      | Id model Auto-Combo: mgbasa n'otu oge, otu model maka onye na-enye ọrụ ọ bụla, otu oku upstream maka nke ọ bụla. Ọ bụghị fault injection ([nkọwa](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Nhazi chaos combo | Combo echekwara nke nwere `config.chaos.enabled` na-agbasa n'otu ụzọ ahụ (naanị site na API); `judgeModel` na-ahọrọ naanị azịza ikpeazụ, enweghị oku synthesis.                  | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: mgbasa n'otu oge
+
+`auto/chaos` **abụghị** njikwa maka fault-injection ma ọ bụ nnwale resilience. Mgbe a rịọrọ
+`model: "auto/chaos"` na `/v1/chat/completions`:
+
+1. Ọ na-ewulite panel nke nwere **otu model maka onye na-enye ọrụ ọ bụla**: candidate mbụ nke
+   onye na-enye ọrụ ọ bụla ejikọrọ, dịka usoro candidate-pool si dị, ruo ndị otu 5
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, nke oke ya bụ 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Ngwugwu weight `chaos-mode`
+   na-edobe naanị `weight` nke onye otu ọ bụla; mgbasa ahụ anaghị agụ ya.
+2. Ọ na-eziga otu request ahụ nye onye otu panel ọ bụla **n'otu oge**, ya mere otu request
+   na-efu otu oku upstream maka onye otu panel ọ bụla
+   (`open-sse/services/autoCombo/chaosEngine.ts`, nke
+   `open-sse/services/combo.ts` na-ezipụ).
+3. Ọ na-stream otu ahịrị status maka onye otu panel ọ bụla ozugbo ọ bịarutere: comment SSE
+   (`: chaos <index> ok|fail <model>`) na ndabara, tinyere event `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) mgbe request ahụ debere
+   `stream_options.include_chaos_parts: true`. Ihe ndị a anaghị ebu ederede azịza.
+4. Ọ na-eziga **otu** azịza panel dịka chunk ikpeazụ n'ụdị OpenAI: nke onye otu panel
+   mbụ (`auto/chaos` na-edobe ya dịka `judgeModel`) mgbe ọ gara nke ọma, ma ọ bụghị ya,
+   nke onye otu ikpeazụ gara nke ọma. A naghị eweghachi azịza ndị ọzọ nke panel ahụ, ya mere
+   ị na-akwụ ụgwọ maka oku N ma nata otu completion.
 
 ## Ntọlite
 

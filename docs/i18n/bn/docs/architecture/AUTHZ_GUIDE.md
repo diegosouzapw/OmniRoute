@@ -13,60 +13,62 @@ OmniRoute-এ একটি রুট-সচেতন অথরাইজেশন
 
 > উৎস: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## দুটি Auth মোড
+## দুটি প্রমাণীকরণ মোড
 
 ### 1. API কী (Bearer)
 
-OpenAI/Anthropic/Gemini-সামঞ্জস্যপূর্ণ ক্লায়েন্ট API এবং কীটির `manage` স্কোপ থাকলে কয়েকটি ম্যানেজমেন্ট রুটের জন্য ব্যবহৃত হয়।
+OpenAI/Anthropic/Gemini-সামঞ্জস্যপূর্ণ ক্লায়েন্ট API এবং কীটির `manage` স্কোপ থাকলে কয়েকটি ব্যবস্থাপনা রুটের জন্য ব্যবহৃত হয়।
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-`src/sse/services/auth.ts`-এর `isValidApiKey()` / `extractApiKey()` দ্বারা যাচাই করা হয় এবং `src/shared/utils/apiAuth.ts`-এর মাধ্যমে পুনরায় এক্সপোর্ট করা হয়। যাচাইকারীটি `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` এনভায়রনমেন্ট ভ্যারিয়েবলকেও স্থায়ী পাসথ্রু কী হিসেবে গ্রহণ করে (ইস্যু #1350)।
+`src/sse/services/auth.ts`-এর `isValidApiKey()` / `extractApiKey()` দ্বারা যাচাই করা হয় এবং `src/shared/utils/apiAuth.ts`-এর মাধ্যমে পুনরায় এক্সপোর্ট করা হয়। যাচাইকারীটি স্থায়ী পাসথ্রু কী হিসেবে `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` এনভায়রনমেন্ট ভেরিয়েবলও গ্রহণ করে (ইস্যু #1350)।
 
 ### 2. ড্যাশবোর্ড সেশন (auth_token কুকি)
 
-ড্যাশবোর্ড পৃষ্ঠা এবং অ্যাডমিন অপারেশনের জন্য।
+ড্যাশবোর্ড পৃষ্ঠা এবং অ্যাডমিন কার্যক্রমের জন্য।
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-কোনো কুকি কেবল তখনই একটি সেশন, যখন JWT-টি যাচাইয়ে উত্তীর্ণ হয় **এবং** এতে `authenticated: true` থাকে
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। কুকিটির প্রতিটি
-ব্যবহারকারী (রুট গার্ড, authz পাইপলাইন রিফ্রেশ, WebSocket হ্যান্ডশেক, লাইভ
+একটি কুকিকে কেবল তখনই সেশন হিসেবে গণ্য করা হয়, যখন JWT যাচাইয়ে উত্তীর্ণ হয় **এবং** এতে `authenticated: true` থাকে
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)। কুকিটির প্রত্যেক
+ব্যবহারকারী (ড্যাশবোর্ড রুট গার্ড (`isDashboardSessionAuthenticated()`), authz পাইপলাইন রিফ্রেশ, WebSocket হ্যান্ডশেক, লাইভ
 সার্ভার, `/api/settings/require-login`, `/api/auth/status`) ওই হেল্পারের মধ্য দিয়ে যায়।
-`JWT_SECRET` দিয়ে সাইন করা অন্যান্য JWT-ও রয়েছে — Cursor CLI পাসথ্রু কীধারীদের জন্য
+`JWT_SECRET` দিয়ে স্বাক্ষরিত অন্যান্য JWT-ও রয়েছে — Cursor CLI পাসথ্রু কীধারীদের জন্য
 `iss "omniroute" / aud "cursor-cli"` টোকেন তৈরি করে — এবং সেগুলো কখনোই সেশন নয়
 (#13298)।
 
 `src/shared/utils/apiAuth.ts`-এর `isDashboardSessionAuthenticated()` দ্বারা যাচাই করা হয়। ৩০ দিনের মেয়াদের মধ্যে ৭ দিনের কম সময় অবশিষ্ট থাকলে পাইপলাইনটি স্বয়ংক্রিয়ভাবে JWT রিফ্রেশ করে।
 
-কিছু ম্যানেজমেন্ট রুট **যেকোনো একটি** মোড গ্রহণ করে: কুকি অথবা API কীটির `manage` (বা `admin`) স্কোপ থাকলে `Bearer <key>`। এটিই v3.8-এ যোগ করা "API কলের মাধ্যমে কনফিগারযোগ্য" কর্মপ্রবাহটিকে সম্ভব করে।
+একটি সেশন ৩০ দিন পূর্ণ হওয়ার আগেও শেষ হতে পারে, কারণ প্রতিটি টোকেন নির্মাতা `mintDashboardSessionToken`-এর মধ্য দিয়ে যায় (একটি ইস্যু সময় `iat` এবং একটি আইডি `jti`) এবং যাচাইকারী দুটি সেটিং পরীক্ষা করে: `sessionsValidAfter`, যা পাসওয়ার্ড পরিবর্তনের সময় সেট করা হয়, ফলে এর আগে ইস্যু করা প্রতিটি সেশন আর যাচাইয়ে উত্তীর্ণ হয় না (যে ব্রাউজার থেকে পাসওয়ার্ড পরিবর্তন করা হয়েছে সেটি একটি নতুন কুকি পায়), এবং `revokedDashboardSessions`, যেখানে `POST /api/auth/logout` সাইন-আউট করা সেশনের `jti` যোগ করে। পুরোনো কোনো রিলিজ দ্বারা তৈরি সেশনে এই দাবিগুলোর কোনোটিই থাকে না এবং প্রথম পাসওয়ার্ড পরিবর্তন পর্যন্ত সেগুলো বৈধ থাকে। সেটিংস পড়া না গেলে সেশনটিকে বিশ্বস্ত বলে গণ্য করা হয় না।
+
+কিছু ব্যবস্থাপনা রুট **যেকোনো একটি** মোড গ্রহণ করে: কুকি অথবা `Bearer <key>`, যখন API কীটিতে `manage` (বা `admin`) স্কোপ থাকে। এটিই v3.8-এ যোগ করা "API কলের মাধ্যমে কনফিগারযোগ্য" কর্মপ্রবাহকে সম্ভব করে।
 
 #### ঐচ্ছিক OIDC লগইন গেট (#6973)
 
-ড্যাশবোর্ড অ্যাডমিন লগইনটি ডিফল্ট পাসওয়ার্ড লগইনের পাশাপাশি একটি **opt-in** OIDC (OpenID Connect) প্রবাহও সমর্থন করে — পাসওয়ার্ড লগইন কখনোই সরানো হয় না, কেবল
-সম্পূরক করা হয়:
+ড্যাশবোর্ড অ্যাডমিন লগইনটি ডিফল্ট পাসওয়ার্ড লগইনের পাশাপাশি একটি **ঐচ্ছিকভাবে সক্রিয়যোগ্য** OIDC (OpenID Connect) প্রবাহও সমর্থন করে — পাসওয়ার্ড লগইন কখনো সরানো হয় না, কেবল
+এর সঙ্গে অতিরিক্ত বিকল্প যোগ করা হয়:
 
 - `settings.oidcEnabled === true` **এবং** `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret`—সবকটি কনফিগার করা না থাকলে এটি নিষ্ক্রিয় থাকে (Settings → Auth)।
+  `oidcClientId` / `oidcClientSecret`—সবগুলো কনফিগার করা না থাকলে এটি নিষ্ক্রিয় থাকে (Settings → Auth)।
   অন্যথায় `GET /api/auth/oidc/login` `400` ফেরত দেয়।
-- `GET /api/auth/oidc/login` ইস্যুয়ারের
-  `/.well-known/openid-configuration` থেকে `authorization_endpoint` আবিষ্কার করে (`<issuer>/authorize`-এ
-  ফলব্যাক করে), আগত অনুরোধ থেকে রিডাইরেক্ট URI তৈরি করে
-  (`x-forwarded-proto`-সচেতন), এবং একটি র্যান্ডম `state`-সহ IdP-তে রিডাইরেক্ট করে,
-  যা একটি `httpOnly` `oidc_state` কুকিতে সংরক্ষিত থাকে।
-- `GET /api/auth/oidc/callback` `state` যাচাই করে, অথরাইজেশন
-  কোড বিনিময় করে এবং ইস্যুয়ারের JWKS-এর মাধ্যমে ID টোকেনের স্বাক্ষর যাচাই করে
-  (`jose`-এর `createRemoteJWKSet`, প্রতি JWKS URI অনুযায়ী ক্যাশ করা) এবং `issuer`/`audience`
-  পরীক্ষা করে। একটি ঐচ্ছিক `oidcAllowedSubjects` অনুমোদিত-তালিকা টোকেনের
-  `sub` ক্লেইম বা এর `email` ক্লেইমের সঙ্গে মিলিয়ে দেখে — `email` ক্লেইমটি কেবল তখনই গ্রহণ করা হয় যখন
-  `email_verified === true`, ফলে IdP-তে থাকা কোনো অযাচাইকৃত ইমেইল কখনোই
+- `GET /api/auth/oidc/login` ইস্যুকারীর
+  `/.well-known/openid-configuration` থেকে `authorization_endpoint` আবিষ্কার করে (তা না পেলে
+  `<issuer>/authorize` ব্যবহার করে), আগত অনুরোধ থেকে রিডাইরেক্ট URI তৈরি করে
+  (`x-forwarded-proto`-সচেতন), এবং একটি `httpOnly` `oidc_state` কুকিতে সংরক্ষিত এলোমেলো `state`
+  সহ IdP-তে রিডাইরেক্ট করে।
+- `GET /api/auth/oidc/callback` `state` যাচাই করে, অনুমোদন
+  কোড বিনিময় করে এবং ইস্যুকারীর JWKS-এর মাধ্যমে ID টোকেনের স্বাক্ষর যাচাই করে
+  (`jose`-এর `createRemoteJWKSet`, প্রতি JWKS URI অনুযায়ী ক্যাশ করা) এবং সঙ্গে `issuer`/`audience`
+  পরীক্ষাও করে। একটি ঐচ্ছিক `oidcAllowedSubjects` অনুমোদন-তালিকা টোকেনের
+  `sub` দাবি অথবা এর `email` দাবির সঙ্গে মিলিয়ে দেখে — ইমেইল দাবিটি কেবল তখনই গ্রহণ করা হয়, যখন
+  `email_verified === true`; ফলে IdP-তে থাকা কোনো অযাচাইকৃত ইমেইল কখনোই
   গেট অতিক্রম করতে পারে না।
-- সফল হলে এটি পাসওয়ার্ড লগইনের জারি করা **হুবহু একই** ৩০ দিনের `auth_token` JWT
-  তৈরি করে (`src/app/api/auth/login/route.ts`), ফলে ড্যাশবোর্ড সেশন
+- সফল হলে এটি পাসওয়ার্ড লগইন দ্বারা ইস্যু করা **হুবহু একই** ৩০ দিনের `auth_token` JWT
+  তৈরি করে (`src/app/api/auth/login/route.ts`), তাই ড্যাশবোর্ড সেশন
   পাইপলাইনের বাকি অংশ (স্বয়ংক্রিয় রিফ্রেশ, কুকি ফ্ল্যাগ) অপরিবর্তিত থাকে —
   OIDC শুধু কুকিটি কীভাবে তৈরি হয় তা প্রতিস্থাপন করে, এটি কী অনুমতি দেয় তা নয়।
 

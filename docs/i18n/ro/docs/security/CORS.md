@@ -129,22 +129,26 @@ repornire.
 
 ## Exemplu: proxy invers în fața OmniRoute
 
-CORS este aplicat de OmniRoute însuși, astfel încât, în general, proxy-ul **nu** ar trebui să adauge sau
-să rescrie anteturile `Access-Control-*` (anteturile duplicate nu funcționează în browsere). Terminați TLS
-și redirecționați traficul — permiteți OmniRoute să răspundă la cererile preflight:
+CORS este aplicat chiar de OmniRoute, astfel încât, în general, proxy-ul **nu** ar trebui să adauge sau să
+rescrie antetele `Access-Control-*` (antetele duplicate afectează funcționarea browserelor). Terminați TLS
+și redirecționați traficul — lăsați OmniRoute să răspundă solicitărilor preflight:
 
 ```nginx
-# nginx — redirecționează către OmniRoute; NU injectați Access-Control-* aici
+# nginx — redirecționați traficul către OmniRoute; NU injectați Access-Control-* aici
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NU setați X-Forwarded-For la 127.0.0.1 — acest lucru anulează protecția rutelor loopback.
+    # Păstrați antetele de redirecționare: un proxy de pe aceeași gazdă se conectează din interfața loopback, iar acestea sunt
+    # cele care îi indică lui OmniRoute că apelantul nu este operatorul local. Un proxy care nu adaugă niciunul dintre ele
+    # face ca fiecare apelant de la distanță să pară local. De asemenea, nu setați niciodată X-Forwarded-For la 127.0.0.1.
 }
 ```
 
-Setați originile de browser permise în OmniRoute (`CORS_ALLOWED_ORIGINS` sau fila
-Securitate), nu în proxy.
+Setați originile permise pentru browsere în OmniRoute (`CORS_ALLOWED_ORIGINS` sau fila
+Security), nu în proxy.
 
 ## Fișiere sursă
 

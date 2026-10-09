@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { BaseExecutor } from "../../open-sse/executors/base.ts";
 import { GrokCliExecutor } from "../../open-sse/executors/grok-cli.ts";
+import { flattenGrokBuildNamespaceTools } from "../../open-sse/executors/grokCliNamespaceTools.ts";
 
 // Codex CLI declares MCP servers (and its own multi-agent tools) as Responses
 // `type:"namespace"` tool groups. Grok Build's Responses endpoint only accepts
@@ -239,7 +240,26 @@ test("grok-cli restores namespace on a leaf that already contains `__`", async (
   assert.equal(item.name, "a__b");
 });
 
-test("grok-cli drops non-function namespace children instead of faking them", async () => {
+test("the namespace step alone drops custom children instead of faking them", () => {
+  const { body } = flattenGrokBuildNamespaceTools({
+    tools: [
+      {
+        type: "namespace",
+        name: "mcp__edit",
+        tools: [
+          { type: "custom", name: "apply_patch", format: { type: "grammar" } },
+          { type: "function", name: "read", parameters: { type: "object" } },
+        ],
+      },
+    ],
+  });
+  const names = ((body as JsonRecord).tools as JsonRecord[]).map((tool) => tool.name);
+  assert.deepEqual(names, ["mcp__edit__read"]);
+});
+
+test("grok-cli answers a namespaced custom child with a custom_tool_call, never a JSON function call", async () => {
+  // Since the custom-tool conversion runs before flattening, a freeform child is exposed as
+  // an `{ input }` function and Grok's call comes back as the freeform input the client expects.
   const body = codexBody();
   (body.tools as JsonRecord[]).push({
     type: "namespace",
@@ -249,10 +269,26 @@ test("grok-cli drops non-function namespace children instead of faking them", as
       { type: "function", name: "read", parameters: { type: "object" } },
     ],
   });
-  const { capturedBodies } = await runExecute(body, () => sse([{ type: "response.completed" }]));
-  const names = (capturedBodies[0].tools as JsonRecord[]).map((tool) => tool.name);
-  assert.ok(names.includes("mcp__edit__read"));
-  assert.ok(!names.some((name) => String(name).includes("apply_patch")));
+  const call = {
+    type: "function_call",
+    call_id: "c",
+    name: "mcp__edit__apply_patch",
+    arguments: JSON.stringify({ input: "*** Begin Patch" }),
+  };
+  const { response, capturedBodies } = await runExecute(body, () =>
+    sse([{ type: "response.output_item.done", item: call }])
+  );
+  const sentTool = (capturedBodies[0].tools as JsonRecord[]).find(
+    (tool) => tool.name === "mcp__edit__apply_patch"
+  );
+  assert.deepEqual((sentTool?.parameters as JsonRecord)?.required, ["input"]);
+  const item = parseSse(await response.text())
+    .filter((event) => event.type === "response.output_item.done")
+    .map((event) => event.item as JsonRecord)[0];
+  assert.equal(item.type, "custom_tool_call");
+  assert.equal(item.namespace, "mcp__edit");
+  assert.equal(item.name, "apply_patch");
+  assert.equal(item.input, "*** Begin Patch");
 });
 
 test("grok-cli flattens namespaced history even when the turn declares no namespace tools", async () => {

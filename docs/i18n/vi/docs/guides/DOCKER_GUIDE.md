@@ -235,18 +235,18 @@ docker compose -f docker-compose.prod.yml down
 
 Stack production chạy song song với compose dev (sử dụng tên container, cổng và volume khác nhau), vì vậy bạn có thể tiếp tục phát triển cục bộ trong khi môi trường production vẫn hoạt động.
 
-## Các giai đoạn Dockerfile
+## Các giai đoạn của Dockerfile
 
-Kho lưu trữ cung cấp một Dockerfile đa giai đoạn (`Dockerfile`). Có bốn giai đoạn được cung cấp; hãy chọn `target` phù hợp với trường hợp sử dụng của bạn.
+Kho lưu trữ cung cấp một Dockerfile đa giai đoạn (`Dockerfile`). Có bốn giai đoạn được công khai; hãy chọn `target` phù hợp với trường hợp sử dụng của bạn.
 
-| Giai đoạn     | Image cơ sở           | Mục đích                                                                                                                                                                                                                                                                                                                                |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Cài đặt các phần phụ thuộc (`npm ci --legacy-peer-deps`) và chạy `npm run build` (mặc định dùng Turbopack — xem phần Tài nguyên khi build bên dưới)                                                                                                                                                                                     |
-| `runner-base` | `node:26-trixie-slim` | Môi trường chạy production với đầu ra standalone của Next.js. **Không tích hợp CLI của nhà cung cấp nào.**                                                                                                                                                                                                                              |
-| `runner-cli`  | `runner-base`         | Bổ sung `git`, `docker.io`, `docker-compose` và các CLI toàn cục: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Hãy chọn giai đoạn này cho các quy trình tác nhân.**                                                                                                                                             |
-| `runner-web`  | `runner-base`         | Bổ sung Playwright + trình duyệt Chromium (`--with-deps`) cho các nhà cung cấp phiên web: `gemini-web`, `claude-web`, `claude-turnstile`. **Hãy chọn giai đoạn này khi bạn sử dụng các nhà cung cấp đó** — image thông thường sẽ thất bại khi xử lý yêu cầu nếu không có thành phần này (xem ghi chú `-web` trong phần Kênh phát hành). |
+| Giai đoạn     | Image cơ sở           | Mục đích                                                                                                                                                                                                                                                                                                                               |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Cài đặt các dependency (`npm ci --legacy-peer-deps`) và chạy `npm run build` (mặc định dùng Turbopack — xem phần Tài nguyên tại thời điểm build bên dưới)                                                                                                                                                                              |
+| `runner-base` | `node:26-trixie-slim` | Môi trường runtime production với đầu ra standalone của Next.js. **Không đi kèm CLI của nhà cung cấp.**                                                                                                                                                                                                                                |
+| `runner-cli`  | `runner-base`         | Bổ sung `git`, `docker.io`, `docker-compose` và các CLI toàn cục: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Hãy chọn giai đoạn này cho các quy trình tác nhân.**                                                                                                                                            |
+| `runner-web`  | `runner-base`         | Bổ sung Playwright + trình duyệt Chromium (`--with-deps`) cho các nhà cung cấp phiên web: `gemini-web`, `claude-web`, `claude-turnstile`. **Hãy chọn giai đoạn này khi bạn sử dụng các nhà cung cấp đó** — image thông thường sẽ gặp lỗi khi xử lý yêu cầu nếu không có thành phần này (xem ghi chú `-web` trong phần Kênh phát hành). |
 
-Build một target cụ thể theo cách thủ công:
+Build thủ công một target cụ thể:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -254,80 +254,62 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Tài nguyên khi build
+### Tài nguyên tại thời điểm build
 
-Ba đối số build kiểm soát mức tài nguyên mà giai đoạn `builder` tiêu tốn. Chúng chỉ áp dụng tại thời điểm build —
-`OMNIROUTE_MEMORY_MB` (bên dưới) là một tham số runtime riêng biệt.
+Ba đối số build kiểm soát mức tài nguyên mà giai đoạn `builder` tiêu thụ. Chúng chỉ áp dụng tại thời điểm build —
+`OMNIROUTE_MEMORY_MB` (bên dưới) là một tùy chọn runtime riêng biệt.
 
-| Đối số build                | Mặc định | Tác dụng                                                                                      |
-| --------------------------- | -------- | --------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`      | `0` sẽ build bằng webpack. Bộ nhớ đỉnh thấp hơn nhưng chậm hơn.                               |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | Giới hạn heap V8 (`--max-old-space-size`) cho tiến trình `next build` được khởi tạo.          |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Cấp giá trị cho `CIRCLE_NODE_TOTAL`; Next suy ra `workers = N - 1` để thu thập dữ liệu trang. |
+| Đối số build                | Mặc định | Tác dụng                                                                                           |
+| --------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`      | `0` build bằng webpack: mức sử dụng bộ nhớ đỉnh thấp hơn nhưng chậm hơn. `1` bật Turbopack.        |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | Giới hạn heap V8 (`--max-old-space-size`) cho tiến trình `next build` được khởi chạy.              |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Cung cấp giá trị cho `CIRCLE_NODE_TOTAL`; Next suy ra `workers = N - 1` để thu thập dữ liệu trang. |
 
-`OMNIROUTE_BUILD_WORKERS` là tham số cần tăng trên máy build lớn và là tham số
-cần xem xét khi một quá trình build bị giới hạn tài nguyên dừng **sau khi** hiển thị `✓ Compiled successfully`. Mỗi
-worker xử lý dữ liệu trang là một tiến trình riêng, và bản thân tiến trình cha `next build` cũng vậy;
-một lần tái hiện trực tiếp trên VPS (issue #7518) đã đo RSS đỉnh của mỗi tiến trình ở mức
-~4.5 GB, không phụ thuộc vào cờ heap `NODE_OPTIONS` (Turbopack biên dịch trong
-bộ nhớ native/Rust nằm ngoài heap V8). Giá trị mặc định `2` (→ 1 worker, tổng cộng 2
-tiến trình) được thiết lập phù hợp với các runner do GitHub lưu trữ có 16 GB / 4 vCPU mà
-pipeline phát hành sử dụng. Với `8` (→ 7 worker), runner đó đã hết bộ nhớ và
-buildkit làm bước này thất bại với `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ 2 worker) vẫn không vừa sau khi RSS trên mỗi tiến trình được đo
-trực tiếp thay vì suy luận. `tests/unit/docker-build-memory-budget.test.ts`
-thực hiện phép tính dựa trên số liệu đã đo và sẽ thất bại nếu một trong hai tham số
-vượt quá khả năng của runner.
+`OMNIROUTE_BUILD_WORKERS` là tùy chọn cần tăng trên một máy build mạnh và là tùy chọn cần nghi ngờ khi một quá trình build bị giới hạn tài nguyên dừng **sau** `✓ Compiled successfully`. Mỗi worker xử lý dữ liệu trang là một tiến trình riêng, và bản thân tiến trình `next build` cha cũng vậy; một lần tái hiện trực tiếp trên VPS (issue #7518) đo được RSS đỉnh của mỗi tiến trình là khoảng ~4.5 GB, không phụ thuộc vào cờ heap `NODE_OPTIONS` (Turbopack biên dịch trong bộ nhớ native/Rust bên ngoài heap V8). Giá trị mặc định `2` (→ 1 worker, tổng cộng 2 tiến trình) được định cỡ cho các runner do GitHub lưu trữ có 16 GB / 4 vCPU mà pipeline phát hành sử dụng. Với giá trị `8` (→ 7 worker), runner đó đã hết bộ nhớ và buildkit làm bước này thất bại với `ResourceExhausted: ... cannot allocate memory`; giá trị `3` (→ 2 worker) vẫn không phù hợp sau khi RSS trên mỗi tiến trình được đo trực tiếp thay vì suy luận. `tests/unit/docker-build-memory-budget.test.ts` thực hiện phép tính dựa trên số liệu đo được và sẽ thất bại nếu một trong hai tùy chọn vượt quá khả năng của runner.
 
-Turbopack biên dịch trong bộ nhớ Rust native nằm **ngoài** heap V8, vì vậy
-`OMNIROUTE_BUILD_MEMORY_MB` không giới hạn được bộ nhớ này. Trên máy chủ có giới hạn bộ nhớ,
-quá trình build sau đó bị OOM killer kết thúc bằng SIGKILL mà hoàn toàn không có thông báo lỗi — nó chỉ
-dừng giữa chừng tại `Creating an optimized production build`, khiến hiện tượng này trông giống như bị treo thay
-vì hết bộ nhớ. Nếu máy chủ build bị giới hạn tài nguyên, hãy chuyển bundler:
+Turbopack biên dịch trong bộ nhớ Rust native nằm **bên ngoài** heap V8, vì vậy `OMNIROUTE_BUILD_MEMORY_MB` không giới hạn bộ nhớ đó. Trên máy chủ có giới hạn bộ nhớ, quá trình build sau đó bị OOM killer gửi SIGKILL mà không có bất kỳ nội dung lỗi nào — nó chỉ đơn giản dừng giữa chừng tại `Creating an optimized production build`, trông giống như bị treo thay vì hết bộ nhớ. Đó là lý do `Dockerfile` mặc định sử dụng webpack (`OMNIROUTE_USE_TURBOPACK=0`), không giống `npm run dev` / `npm run build`, nơi Turbopack là mặc định trong mã nguồn: một lệnh `docker build .` thuần túy không có đối số build (như cách Railway và các nền tảng triển khai một lần nhấp khác chạy) không được phép dừng âm thầm trên máy build bị giới hạn bộ nhớ. Các image đã phát hành vốn đã truyền `OMNIROUTE_USE_TURBOPACK=0` một cách tường minh trong `docker-publish.yml`. Trên máy build có nhiều RAM, hãy bật Turbopack để build nhanh hơn:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` được bật, vì vậy `next build` chạy một tiến trình cha **và** một tiến trình
-worker, và mỗi tiến trình tuân theo `OMNIROUTE_BUILD_MEMORY_MB` riêng biệt. Hãy đặt giới hạn
-bộ nhớ của container cao hơn khoảng hai lần giá trị đó, không phải một lần.
+`webpackBuildWorker` được bật, vì vậy `next build` chạy một tiến trình cha **và** một tiến trình worker, đồng thời mỗi tiến trình tuân theo `OMNIROUTE_BUILD_MEMORY_MB` một cách riêng biệt. Hãy đặt giới hạn bộ nhớ của container cao hơn khoảng gấp đôi giá trị đó, không phải chỉ bằng một lần.
 
 Số liệu đo trên cây mã nguồn này (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Giới hạn container | Kết quả                                      |
-| --------- | ------------------ | -------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB     | Bị OOM-kill ở cả hai mức, không có thông báo |
-| webpack   | 8 GiB              | Worker build bị SIGKILL                      |
-| webpack   | 12 GiB             | Thành công, đạt đỉnh ở 11.1 GiB              |
+| Trình đóng gói | Giới hạn container | Kết quả                                      |
+| -------------- | ------------------ | -------------------------------------------- |
+| Turbopack      | 8 GiB / 16 GiB     | Bị OOM kill ở cả hai mức, không có thông báo |
+| webpack        | 8 GiB              | Worker build bị SIGKILL                      |
+| webpack        | 12 GiB             | Thành công, đạt đỉnh ở 11.1 GiB              |
 
 ### Giá trị mặc định khi chạy
 
-Các giá trị mặc định do `runner-base` xuất ra: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Các giá trị mặc định được `runner-base` export: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Hành vi bộ nhớ trong Docker:
 
-- Image đặt `OMNIROUTE_MEMORY_MB=1024` và suy ra `NODE_OPTIONS=--max-old-space-size=1024` từ biến này.
-- Tiến trình máy chủ thực tế được khởi chạy bởi trình khởi chạy độc lập; trình này đọc `OMNIROUTE_MEMORY_MB` và thêm `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node sử dụng giá trị `--max-old-space-size` được lặp lại sau cùng, vì vậy việc đặt `OMNIROUTE_MEMORY_MB` sẽ kiểm soát giới hạn heap Docker thực tế.
-- Vì image luôn đặt biến này, cơ chế dự phòng tự hiệu chỉnh theo RAM của trình khởi chạy sẽ không bao giờ được áp dụng trong Docker. Hãy tăng biến này một cách rõ ràng cho khối lượng công việc (bảng bên dưới). `2048` vẫn quá nhỏ đối với `/v1/responses` của tác nhân lập trình.
+- Image thiết lập `OMNIROUTE_MEMORY_MB=1024` và suy ra `NODE_OPTIONS=--max-old-space-size=1024` từ biến này.
+- Tiến trình máy chủ thực tế được khởi chạy bởi trình khởi chạy độc lập; trình này đọc `OMNIROUTE_MEMORY_MB` và nối thêm `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node sử dụng giá trị `--max-old-space-size` được lặp lại sau cùng, vì vậy việc thiết lập `OMNIROUTE_MEMORY_MB` sẽ kiểm soát giới hạn heap Docker có hiệu lực.
+- Vì image luôn thiết lập biến này, cơ chế dự phòng tự hiệu chỉnh theo RAM của trình khởi chạy sẽ không bao giờ được áp dụng trong Docker. Hãy tăng giá trị này một cách rõ ràng theo khối lượng công việc (bảng bên dưới). `2048` vẫn quá nhỏ đối với `/v1/responses` của tác nhân lập trình.
 
 ### RAM thời gian chạy cho các tác nhân lập trình
 
-Mức mặc định 1 GiB của Docker là ngưỡng tối thiểu dành cho bảng điều khiển/trò chuyện nhẹ, không phải mức dành cho môi trường production. Các phần thân `POST /v1/responses` dài (hàng trăm tin nhắn, hàng chục công cụ) giữ lại nhiều đồ thị trong bộ nhớ trong quá trình nén. Hai yêu cầu chồng lấn có kích thước khoảng 3 MiB / khoảng 750k token đã khiến V8 dừng đột ngột với old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) và cũng gặp lỗi OOM của cgroup 16 GiB. Xem [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Mức mặc định 1 GiB của Docker là ngưỡng tối thiểu cho dashboard/trò chuyện nhẹ, không phải mức dành cho môi trường production. Các phần thân `POST /v1/responses` dài (hàng trăm tin nhắn, hàng chục công cụ) giữ lại nhiều đồ thị trong bộ nhớ trong quá trình nén. Hai yêu cầu chồng lấn có kích thước khoảng ~3 MiB / ~750k token đã khiến V8 dừng đột ngột ở old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) và cũng gặp lỗi OOM của cgroup 16 GiB. Xem [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Hãy đặt kích thước **cgroup `--memory` cao hơn heap** — các bộ đệm native, SQLite và dữ liệu trung gian trong quá trình nén nằm ngoài V8.
+Hãy đặt kích thước **`--memory` của cgroup cao hơn heap** — bộ đệm native, SQLite và dữ liệu trung gian khi nén nằm bên ngoài V8.
 
-| Khối lượng công việc                       | `OMNIROUTE_MEMORY_MB`          | Container / cgroup     | Ghi chú                                                                                                                                  |
-| ------------------------------------------ | ------------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Bảng điều khiển, một phiên trò chuyện nhẹ  | `1024` (mặc định của image)    | ≥2 GiB                 |                                                                                                                                          |
-| Một tác nhân lập trình (Claude/Codex/Grok) | `8192`                         | ≥10 GiB                | Một phiên `/v1/responses` điển hình                                                                                                      |
-| Hai `/v1/responses` dài đồng thời          | `10240`–`12288`                | ≥12–16 GiB             | Đã đo được việc V8 dừng đột ngột ở heap khoảng 12 GiB                                                                                    |
-| Ba ngữ cảnh dài đồng thời trở lên          | không chạy trên một tiến trình | tuần tự hóa / thêm RAM | Giới hạn tiếp nhận mặc định cho tác vụ nặng là 1 yêu cầu đang xử lý; tăng giới hạn mà không tăng RAM sẽ khiến lỗi dừng đột ngột tái diễn |
+| Khối lượng công việc                       | `OMNIROUTE_MEMORY_MB`          | Container / cgroup     | Ghi chú                                                                                                        |
+| ------------------------------------------ | ------------------------------ | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Dashboard, một cuộc trò chuyện nhẹ         | `1024` (mặc định image)        | ≥2 GiB                 |                                                                                                                |
+| Một tác nhân lập trình (Claude/Codex/Grok) | `8192`                         | ≥10 GiB                | Phiên `/v1/responses` đơn điển hình                                                                            |
+| Hai `/v1/responses` dài đồng thời          | `10240`–`12288`                | ≥12–16 GiB             | Đã ghi nhận V8 dừng đột ngột ở heap ~12 GiB                                                                    |
+| Ba ngữ cảnh dài trở lên đồng thời          | không chạy trên một tiến trình | tuần tự hóa / thêm RAM | Mặc định chỉ cho phép 1 tác vụ nặng đang xử lý; tăng giới hạn này mà không tăng RAM sẽ khiến lỗi dừng tái diễn |
 
-`omniroute serve` trên bare metal hiệu chỉnh ở mức khoảng 35% RAM (được giới hạn trong `[512, 4096]`) khi `OMNIROUTE_MEMORY_MB` **chưa được đặt**. Docker luôn đặt biến này thành `1024`, vì vậy quá trình hiệu chỉnh đó không bao giờ chạy trong image chính thức.
+`omniroute serve` trên bare metal hiệu chỉnh ở mức ~35% RAM (giới hạn trong khoảng `[512, 4096]`) khi `OMNIROUTE_MEMORY_MB` **chưa được thiết lập**. Docker luôn thiết lập giá trị `1024`, vì vậy cơ chế hiệu chỉnh đó không bao giờ chạy trong image chính thức.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

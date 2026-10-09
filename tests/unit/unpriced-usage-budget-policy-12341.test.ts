@@ -125,6 +125,63 @@ test("count_as_zero lets the key through while priced spend is under the limit",
   assert.equal(result.rejection, null, "unpriced usage counts as $0; $1 of $100 is not exceeded");
 });
 
+test("upstream unpriced opt-out also drives enforcement and the administrator report", async () => {
+  const created = await makeMeteredKeyWithUnpricedUsage();
+  featureFlagsDb.setFeatureFlagOverride("USAGE_LIMIT_IGNORE_UNPRICED", "true");
+
+  assert.equal(getUnpricedUsageBudgetPolicy(), "count_as_zero");
+  assert.equal((await getUnpricedUsageReport()).policy, "count_as_zero");
+  assert.equal(
+    (await enforceApiKeyPolicy(chatRequest(created.key), "openai/gpt-4o")).rejection,
+    null
+  );
+
+  await apiKeysDb.updateApiKeyPermissions(created.id, { weeklyUsageLimitUsd: 0.5 });
+  apiKeysDb.clearApiKeyCaches();
+  const overage = await enforceApiKeyPolicy(chatRequest(created.key), "openai/gpt-4o");
+  assert.equal(overage.rejection?.status, 429, "the compatibility flag cannot waive priced spend");
+});
+
+test("an explicit enum policy overrides the upstream boolean opt-out", async () => {
+  const created = await makeMeteredKeyWithUnpricedUsage();
+  featureFlagsDb.setFeatureFlagOverride("USAGE_LIMIT_IGNORE_UNPRICED", "true");
+  featureFlagsDb.setFeatureFlagOverride("UNPRICED_USAGE_BUDGET_POLICY", "fail_closed");
+
+  assert.equal(getUnpricedUsageBudgetPolicy(), "fail_closed");
+  const result = await enforceApiKeyPolicy(chatRequest(created.key), "openai/gpt-4o");
+  assert.equal(result.rejection?.status, 400);
+  assert.equal((await getUnpricedUsageReport()).policy, "fail_closed");
+});
+
+test("an invalid explicit enum cannot fall through to the upstream opt-out", () => {
+  featureFlagsDb.setFeatureFlagOverride("USAGE_LIMIT_IGNORE_UNPRICED", "true");
+  process.env.UNPRICED_USAGE_BUDGET_POLICY = "invalid-policy";
+  try {
+    assert.equal(getUnpricedUsageBudgetPolicy(), "fail_closed");
+    featureFlagsDb.setFeatureFlagOverride("UNPRICED_USAGE_BUDGET_POLICY", "count_as_zero");
+    assert.equal(
+      getUnpricedUsageBudgetPolicy(),
+      "count_as_zero",
+      "DB still overrides the enum env"
+    );
+  } finally {
+    delete process.env.UNPRICED_USAGE_BUDGET_POLICY;
+  }
+});
+
+test("the upstream opt-out fails closed when the flag store is unreadable", () => {
+  featureFlagsDb.setFeatureFlagOverride("USAGE_LIMIT_IGNORE_UNPRICED", "true");
+  const db = core.getDbInstance();
+  db.exec("ALTER TABLE key_value RENAME TO key_value_offline");
+  featureFlagsDb.clearFeatureFlagOverrideCache();
+  try {
+    assert.equal(getUnpricedUsageBudgetPolicy(), "fail_closed");
+  } finally {
+    db.exec("ALTER TABLE key_value_offline RENAME TO key_value");
+    featureFlagsDb.clearFeatureFlagOverrideCache();
+  }
+});
+
 test("count_as_zero still enforces the limit on priced spend", async () => {
   const created = await makeMeteredKeyWithUnpricedUsage();
   await apiKeysDb.updateApiKeyPermissions(created.id, { weeklyUsageLimitUsd: 0.5 });

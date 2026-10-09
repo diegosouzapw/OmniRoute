@@ -4,13 +4,13 @@
 
 ---
 
-> **Pirminis šaltinis:** `electron/` darbo sritis
+> **Pirminis tiesos šaltinis:** `electron/` darbo sritis
 > **Paskutinį kartą atnaujinta:** 2026-06-28 — v3.8.40
 
-„OmniRoute“ pateikiama su kelių platformų darbalaukio programa („Windows“ / „macOS“ / „Linux“), sukurta naudojant
-**Electron 41** ir **electron-builder 26.10**. Darbalaukio programa paleidžia atskirąjį „Next.js“
+OmniRoute pateikiama su kelių platformų darbalaukio programa (Windows / macOS / Linux), sukurta naudojant
+**Electron 41** ir **electron-builder 26.10**. Darbalaukio programa paleidžia autonominį Next.js
 serverį kaip antrinį procesą, nukreipia į jį `BrowserWindow` ir prideda
-sistemos dėklo funkcijas, automatinį naujinimą, IPC sąsają bei konfigūracijos nereikalaujantį pirminį paslapčių nustatymą.
+sistemos dėklą, automatinį naujinimą, IPC sąsają bei nulinės konfigūracijos paslapčių inicijavimą.
 
 ## Architektūra
 
@@ -18,13 +18,13 @@ sistemos dėklo funkcijas, automatinį naujinimą, IPC sąsają bei konfigūraci
 ┌──────────────────────────────────────────────┐
 │ Pagrindinis Electron procesas (electron/main.js) │
 │ ├─ Vieno egzemplioriaus užraktas             │
-│ ├─ Antrinis procesas: atskirasis Next.js serveris │
-│ │   (paleistas naudojant Electron Node aplinką) │
+│ ├─ Antrinis procesas: autonominis Next.js serveris │
+│ │   (paleistas naudojant Electron Node vykdymo aplinką) │
 │ ├─ BrowserWindow → http://localhost:PORT     │
-│ ├─ Sistemos dėklas ir kontekstinis meniu     │
+│ ├─ Sistemos dėklas + kontekstinis meniu      │
 │ ├─ Automatinis naujinimas per electron-updater │
-│ ├─ Turinio saugos politika (sesijos antraštės) │
-│ └─ Pirminis paslapčių nustatymas (JWT / API_KEY_SECRET) │
+│ ├─ Turinio saugumo politika (seanso antraštės) │
+│ └─ Paslapčių inicijavimas (JWT / API_KEY_SECRET) │
 └──────────────────────────────────────────────┘
             ↕ IPC sąsaja (electron/preload.js)
 ┌──────────────────────────────────────────────┐
@@ -37,31 +37,31 @@ sistemos dėklo funkcijas, automatinį naujinimą, IPC sąsają bei konfigūraci
 
 Patvirtinta pagal `electron/package.json`:
 
-| Paketas              | Versija                                                                                                                |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `electron`           | `^43.4.1`                                                                                                              |
-| `electron-builder`   | `^26.15.3`                                                                                                             |
-| `electron-updater`   | `^6.8.9`                                                                                                               |
-| `better-sqlite3`     | šakniniame projekte `^13.0.2` (iš anksto sukompiliuoti Node-API paketai — nereikia perkompiliuoti „Electron“ aplinkai) |
-| Programos versija    | `3.8.0`                                                                                                                |
-| Programos ID         | `online.omniroute.desktop`                                                                                             |
-| Produkto pavadinimas | `OmniRoute`                                                                                                            |
+| Paketas              | Versija                                                                                                              |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `electron`           | `^43.4.1`                                                                                                            |
+| `electron-builder`   | `^26.15.3`                                                                                                           |
+| `electron-updater`   | `^6.8.9`                                                                                                             |
+| `better-sqlite3`     | šakniniame projekte `^13.0.2` (Node-API iš anksto sukompiliuoti paketai — nereikia perkompiliuoti Electron aplinkai) |
+| Programos versija    | `3.8.0`                                                                                                              |
+| Programos ID         | `online.omniroute.desktop`                                                                                           |
+| Produkto pavadinimas | `OmniRoute`                                                                                                          |
 
 ## Scenarijai (šakninis `package.json`)
 
 | Scenarijus                        | Paskirtis                                                                                       |
 | --------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `npm run electron:dev`            | Paleidžia `npm run dev`, laukia `localhost:20128` ir paleidžia „Electron“                       |
-| `npm run electron:build`          | Sukompiliuoja „Next.js“, tada paleidžia `electron-builder` dabartinei OS                        |
-| `npm run electron:build:win`      | Sukuria „Windows“ NSIS diegimo programą ir nešiojamąją versiją (x64)                            |
-| `npm run electron:build:mac`      | Sukuria „macOS“ DMG („Intel“ ir „Apple Silicon“)                                                |
-| `npm run electron:build:linux`    | Sukuria „Linux“ AppImage ir DEB (x64 ir arm64)                                                  |
+| `npm run electron:dev`            | Paleidžia `npm run dev`, laukia `localhost:20128` ir paleidžia Electron                         |
+| `npm run electron:build`          | Sukompiliuoja Next.js, tada paleidžia `electron-builder` dabartinei OS                          |
+| `npm run electron:build:win`      | Sukuria Windows NSIS diegimo programą ir nešiojamąją versiją (x64)                              |
+| `npm run electron:build:mac`      | Sukuria macOS DMG (Intel + Apple Silicon)                                                       |
+| `npm run electron:build:linux`    | Sukuria Linux AppImage ir DEB (x64 + arm64)                                                     |
 | `npm run electron:smoke:packaged` | Paleidžia supakuotą dvejetainį failą, patikrina, ar `/login` grąžina HTTP 200, tada jį išjungia |
 
-`electron/` darbo srityje taip pat pateikiama:
+`electron/` darbo srityje taip pat pasiekiama:
 
 - `npm run prepare:bundle` — paleidžia `scripts/build/prepare-electron-standalone.mjs`
-- `npm run build:mac-x64` / `build:mac-arm64` — vienos architektūros „macOS“ komponavimo versijos
+- `npm run build:mac-x64` / `build:mac-arm64` — vienos architektūros macOS versijos
 - `npm run pack` — sukuria tik katalogą vietiniam testavimui (be diegimo programos)
 
 ## Katalogų struktūra
@@ -69,10 +69,10 @@ Patvirtinta pagal `electron/package.json`:
 ```
 electron/
 ├── package.json              # Electron priklausomybės + electron-builder konfigūracija
-├── main.js                   # Pagrindinis procesas (24 KB — žr. toliau pateiktas pastabas)
+├── main.js                   # Pagrindinis procesas (24 KB — žr. pastabas toliau)
 ├── preload.js                # contextBridge IPC tiltas
 ├── types.d.ts                # AppInfo / ServerStatus / ElectronAPI tipai
-├── README.md                 # Pastabos darbo srityje
+├── README.md                 # Pastabos darbo aplinkoje
 ├── assets/                   # icon.png, icon.ico, icon.icns, tray-icon.png
 └── dist-electron/            # electron-builder išvestis (git ignoruojama)
 
@@ -80,15 +80,15 @@ scripts/
 ├── build/
 │   └── prepare-electron-standalone.mjs   # Paruošia .next/electron-standalone paketą
 └── dev/
-    └── smoke-electron-packaged.mjs       # Dūminis testas po komponavimo
+    └── smoke-electron-packaged.mjs       # Po komponavimo vykdomas bazinis testas
 ```
 
-Tiek `main.js`, tiek `preload.js` yra **CommonJS `.js` failai**, o ne TypeScript. Atvaizdavimo
-pusės tipų aprašai yra faile `electron/types.d.ts`.
+Tiek `main.js`, tiek `preload.js` yra **CommonJS `.js` failai**, o ne TypeScript. Su
+atvaizdavimo procesu susiję tipų aprašai yra faile `electron/types.d.ts`.
 
 ## IPC tiltas (`preload.js`)
 
-Išankstinio įkėlimo scenarijus per `contextBridge` pateikia leidžiamų metodų sąrašu apribotą API
+Išankstinio įkėlimo scenarijus per `contextBridge` pateikia į baltąjį sąrašą įtrauktą API
 objekte `window.electronAPI`, naudojant `contextIsolation: true` ir `nodeIntegration: false`.
 
 ```javascript
@@ -110,25 +110,25 @@ const VALID_CHANNELS = {
 
 Pateikiami metodai:
 
-| Atvaizdavimo proceso iškvieta                                     | Tipas                               |
-| ----------------------------------------------------------------- | ----------------------------------- |
-| `getAppInfo()` → `{ name, version, platform, isDev, port }`       | invoke                              |
-| `openExternal(url)`                                               | invoke                              |
-| `getDataDir()`                                                    | invoke                              |
-| `restartServer()`                                                 | invoke                              |
-| `getAppVersion()`                                                 | invoke                              |
-| `checkForUpdates()` / `downloadUpdate()` / `installUpdate()`      | invoke                              |
-| `minimizeWindow()` / `maximizeWindow()` / `closeWindow()`         | send                                |
-| `onServerStatus(cb)` / `onPortChanged(cb)` / `onUpdateStatus(cb)` | receive (grąžina šalinimo funkciją) |
+| Atvaizdavimo proceso iškvieta                                     | Tipas                                |
+| ----------------------------------------------------------------- | ------------------------------------ |
+| `getAppInfo()` → `{ name, version, platform, isDev, port }`       | invoke                               |
+| `openExternal(url)`                                               | invoke                               |
+| `getDataDir()`                                                    | invoke                               |
+| `restartServer()`                                                 | invoke                               |
+| `getAppVersion()`                                                 | invoke                               |
+| `checkForUpdates()` / `downloadUpdate()` / `installUpdate()`      | invoke                               |
+| `minimizeWindow()` / `maximizeWindow()` / `closeWindow()`         | send                                 |
+| `onServerStatus(cb)` / `onPortChanged(cb)` / `onUpdateStatus(cb)` | receive (grąžina atjungimo funkciją) |
 
-Gavimo pagalbinės funkcijos grąžina **šalinimo funkciją**, užuot naudojusios
-`removeAllListeners` — taip išvengiama klausytojų kaupimosi, kai React komponentai
+`receive` pagalbinės funkcijos grąžina **atjungimo funkciją**, užuot naudojusios
+`removeAllListeners` — tai neleidžia klausytojams kauptis, kai React komponentai
 prijungiami iš naujo.
 
 ## Serverio gyvavimo ciklas
 
-`main.js` tiesiogiai paleidžia autonominį Next.js paketą naudodamas Electron Node
-vykdymo aplinką, kad būtų išvengta savųjų modulių ABI nesuderinamumo su sistemos Node:
+`main.js` paleidžia autonominį Next.js paketą tiesiogiai naudodamas Electron Node
+vykdymo aplinką, kad būtų išvengta savųjų modulių ABI nesuderinamumo su sisteminiu Node:
 
 ```js
 spawn(process.execPath, [serverScript], {
@@ -147,32 +147,56 @@ spawn(process.execPath, [serverScript], {
 Svarbiausi aspektai:
 
 - `waitForServer()` tikrina URL iki 30 s prieš parodydama langą (šaltojo paleidimo metu nerodomas tuščias ekranas).
-- `stdio: "pipe"` perima stdout/stderr; pasirengimą žyminčios frazės (`Ready` / `listening`) per IPC išsiunčia `server-status: running`.
-- `before-quit` iki 5 s laukia sklandaus SIGTERM užbaigimo (WAL kontrolinio taško), tada išsiunčia SIGKILL.
-- Prievado perjungiklis sistemos dėkle (`20128`, `3000`, `8080`) sustabdo ir iš naujo paleidžia serverį, tada iš naujo įkelia BrowserWindow.
+- `stdio: "pipe"` fiksuoja stdout/stderr; parengties frazės (`Ready` / `listening`) per IPC išsiunčia `server-status: running`.
+- `before-quit` iki 5 s laukia tvarkingo SIGTERM užbaigimo (WAL kontrolinio taško), tada siunčia SIGKILL.
+- Prievadų perjungiklis sistemos dėkle (`20128`, `3000`, `8080`) sustabdo ir iš naujo paleidžia serverį, tada iš naujo įkelia BrowserWindow.
 
-## Nulinės konfigūracijos paslapčių pradinis parengimas
+## Nulinės konfigūracijos paslapčių inicijavimas
 
 Pirmą kartą paleidus, pagrindinis procesas automatiškai sugeneruoja ir išsaugo trūkstamas paslaptis:
 
-| Paslaptis                | Šaltinis                                                                                         |
-| ------------------------ | ------------------------------------------------------------------------------------------------ |
-| `JWT_SECRET`             | `crypto.randomBytes(64).toString("hex")`                                                         |
-| `STORAGE_ENCRYPTION_KEY` | `crypto.randomBytes(32).toString("hex")` (atsisakoma, jei jau yra šifruotų prisijungimo duomenų) |
-| `API_KEY_SECRET`         | `crypto.randomBytes(32).toString("hex")`                                                         |
+| Paslaptis                | Šaltinis                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `JWT_SECRET`             | `crypto.randomBytes(64).toString("hex")`                                                                 |
+| `STORAGE_ENCRYPTION_KEY` | `crypto.randomBytes(32).toString("hex")` (atsisakoma tęsti, jei jau yra užšifruotų prisijungimo duomenų) |
+| `API_KEY_SECRET`         | `crypto.randomBytes(32).toString("hex")`                                                                 |
 
-Išsaugoma faile `<DATA_DIR>/server.env`. `DATA_DIR` nustatoma taip:
+Išsaugoma faile `<DATA_DIR>/server.env`. `DATA_DIR` nustatomas taip:
 
 - Windows: `%APPDATA%\omniroute`
 - Linux: `$XDG_CONFIG_HOME/omniroute` arba `~/.omniroute`
 - macOS: `~/.omniroute`
 
+## Aplinkos failo paieška
+
+Prieš paleisdamas serverio procesą, pagrindinis procesas (`getPreferredEnvFilePath()` faile
+`electron/main.js`) pasirenka **vieną** `.env` failą: pirmąjį iš toliau nurodytų, kuris egzistuoja.
+
+1. `$DATA_DIR/.env`, kai `DATA_DIR` nustatytas aplinkoje, iš kurios buvo paleista programa.
+2. `<resolved DATA_DIR>/.env`, naudojant tas pačias numatytąsias reikšmes kaip pirmiau: `%APPDATA%\omniroute\.env`
+   sistemoje Windows, `$XDG_CONFIG_HOME/omniroute/.env` arba `~/.omniroute/.env` sistemose Linux ir macOS.
+3. `.env` proceso darbiniame kataloge.
+
+Pagrindinis procesas nuskaito tik tą failą; vėlesni kandidatai nesujungiami. Tada serverio
+aplinka sudaroma pagal šią pirmumo tvarką (nuo aukščiausio prioriteto):
+
+1. Electron proceso aplinka (kintamieji, paveldėti iš programą paleidusio proceso).
+2. Pasirinktas `.env` failas.
+3. `<DATA_DIR>/server.env` (pirmiau nurodytos inicijavimo paslaptys).
+
+Proceso aplinka užfiksuojama paleidžiant programą, todėl sistemos ar naudotojo aplinkos
+kintamasis, nustatytas programai veikiant (įskaitant laiką, kai uždarius langą ji lieka sistemos
+dėkle), nepasiekia serverio, kol programa visiškai neuždaroma ir nepaleidžiama iš naujo. Vykdymo
+parametrams, pvz., `CONTEXT_LENGTH_<PROVIDER>` (žr.
+[Aplinkos kintamieji: kiekvieno teikėjo konteksto ilgis](../reference/ENVIRONMENT.md#per-provider-context-length-context_length_provider)),
+geriau naudoti `.env` failą, tada visiškai uždaryti programą (sistemos dėkle pasirinkti **Uždaryti**) ir paleisti iš naujo.
+
 ## Langas ir sistemos dėklas
 
-- `BrowserWindow`: 1400×900 (mažiausias dydis – 1024×700), `backgroundColor: "#0a0a0a"`.
-- macOS: `titleBarStyle: "hiddenInset"`, lango valdymo mygtukai ties `{ x: 16, y: 16 }`.
-- Windows/Linux: savoji sistemos antraštės juosta.
-- Uždarymo mygtukas sumažina programą į sistemos dėklą; dėklo meniu yra **Atidaryti „OmniRoute“**, **Atidaryti valdymo skydelį** (išorinėje naršyklėje), **Serverio prievadas** pomeniu, **Tikrinti, ar yra naujinių**, **Baigti darbą**.
+- `BrowserWindow`: 1400×900 (mažiausias dydis 1024×700), `backgroundColor: "#0a0a0a"`.
+- macOS: `titleBarStyle: "hiddenInset"`, lango valdikliai ties `{ x: 16, y: 16 }`.
+- Windows/Linux: įprasta sistemos antraštės juosta.
+- Uždarymo mygtukas sumažina programą į sistemos dėklą; dėklo meniu yra **Atverti OmniRoute**, **Atverti valdymo skydą** (išorinėje naršyklėje), pomeniu **Serverio prievadas**, **Ieškoti naujinimų**, **Uždaryti**.
 
 ## Turinio saugumo politika
 
@@ -187,15 +211,15 @@ Nustatoma per `session.defaultSession.webRequest.onHeadersReceived`. Svarbios di
 Naudojamas `electron-updater` su GitHub teikėju (`diegosouzapw/OmniRoute`).
 
 - `autoDownload = false`, `autoInstallOnAppQuit = true`
-- Įvykiai persiunčiami atvaizdavimo procesui per `update-status` IPC:
+- Įvykiai perduodami atvaizdavimo procesui per `update-status` IPC:
   `checking`, `available`, `not-available`, `downloading` (su `percent`), `downloaded`, `error`
-- `installUpdate()` sustabdo serverį, tada iškviečia `autoUpdater.quitAndInstall()`
+- `installUpdate()` nutraukia serverio procesą, tada iškviečia `autoUpdater.quitAndInstall()`
 - Kūrimo režimu praleidžiama (`!app.isPackaged`)
 
 ## Kompiliavimo procesas
 
-1. `npm run build` → autonominis Next.js paketas kataloge `.next/standalone`.
-2. `prepare-electron-standalone.mjs` → iš naujo parengia failus kataloge `.next/electron-standalone` ir perrašo absoliučiuosius kelius failuose `server.js` bei `required-server-files.json`, kad paketą būtų galima perkelti.
+1. `npm run build` → Next.js autonominis paketas aplanke `.next/standalone`.
+2. `prepare-electron-standalone.mjs` → iš naujo paruošia failus aplanke `.next/electron-standalone` ir perrašo absoliučiuosius kelius failuose `server.js` bei `required-server-files.json`, kad paketą būtų galima perkelti.
 3. `electron-builder` supakuoja `main.js`, `preload.js`, `node_modules` ir `extraResources: { ../.next/electron-standalone → app }`.
 
 ### Kompiliavimo tikslai
@@ -206,7 +230,7 @@ Naudojamas `electron-updater` su GitHub teikėju (`diegosouzapw/OmniRoute`).
 | macOS   | DMG (Intel + arm64, nuvelkama į „Applications“)   |
 | Linux   | AppImage + DEB (x64 + arm64)                      |
 
-NSIS nuostatos: `oneClick: false`, naudotojui leidžiama pasirinkti diegimo katalogą, sukuriamos darbalaukio ir meniu „Start“ nuorodos.
+NSIS nustatymai: `oneClick: false`, leidžia naudotojui pasirinkti diegimo katalogą, sukuria darbalaukio ir meniu „Start“ nuorodas.
 
 ## Supakuotos versijos bazinis testavimas
 
@@ -217,17 +241,17 @@ npm run electron:smoke:packaged
 `scripts/dev/smoke-electron-packaged.mjs`:
 
 - Automatiškai aptinka dabartinei platformai skirtą supakuotą vykdomąjį failą kataloge `electron/dist-electron/`.
-- Paleidžia su izoliuotais `HOME`/`APPDATA`/`XDG_*` katalogais, kad nebūtų keičiami kūrėjo duomenys.
-- Iki 45 s periodiškai tikrina, ar `http://127.0.0.1:20128/login` grąžina HTTP 200.
+- Paleidžia su izoliuotais `HOME`/`APPDATA`/`XDG_*` katalogais, kad nebūtų paveikti kūrėjo duomenys.
+- Iki 45 s periodiškai tikrina `http://127.0.0.1:20128/login`, laukdamas HTTP 200 atsako.
 - Stebi stderr/stdout ir ieško kritinių šablonų (`Cannot find module`, `MODULE_NOT_FOUND`, `ERR_DLOPEN_FAILED`, `Failed to start server` ir kt.).
-- Pasiekus parengties būseną, 2 s laukia stabilaus veikimo, tada siunčia SIGTERM ir laukia, kol prievadas atsilaisvins.
-- CI aplinkoje automatiškai perduoda `--no-sandbox --disable-gpu` (o Linux sistemoje – ir `--disable-dev-shm-usage`).
+- Kai sistema tampa paruošta, laukia 2 s stabilaus veikimo, tada siunčia SIGTERM ir laukia, kol prievadas bus atlaisvintas.
+- CI aplinkoje automatiškai perduoda `--no-sandbox --disable-gpu` (o Linux sistemoje ir `--disable-dev-shm-usage`).
 
 Aplinkos kintamųjų perrašymai: `ELECTRON_SMOKE_APP_EXECUTABLE`, `ELECTRON_SMOKE_URL`, `ELECTRON_SMOKE_TIMEOUT_MS`, `ELECTRON_SMOKE_SETTLE_MS`, `ELECTRON_SMOKE_DATA_DIR`, `ELECTRON_SMOKE_KEEP_DATA`, `ELECTRON_SMOKE_STREAM_LOGS`.
 
 ## Kodo pasirašymas
 
-`electron/package.json` **nenustato** pasirašymo kredencialų tiesiogiai. Perduokite juos `electron-builder` naudodami aplinkos kintamuosius:
+Faile `electron/package.json` pasirašymo prisijungimo duomenys **nėra** tiesiogiai sukonfigūruoti. Perduokite juos `electron-builder` naudodami aplinkos kintamuosius:
 
 ### macOS
 
@@ -250,7 +274,7 @@ npm run electron:build:win
 
 ### Linux
 
-AppImage pasirašymas nėra privalomas — jei norite pasirašyti, nustatykite `LINUX_GPG_KEY`.
+AppImage pasirašymas neprivalomas — norėdami pasirašyti, nustatykite `LINUX_GPG_KEY`.
 
 ## Platinimas
 
@@ -260,22 +284,22 @@ Artefaktai išsaugomi kataloge `electron/dist-electron/`:
 - `OmniRoute-X.Y.Z-mac.dmg`, `OmniRoute-X.Y.Z-arm64-mac.dmg` (macOS)
 - `OmniRoute-X.Y.Z.AppImage`, `omniroute-desktop_X.Y.Z_amd64.deb` (Linux)
 
-Leidimai skelbiami GitHub Releases (`diegosouzapw/OmniRoute`); ten pat `electron-updater` tikrina, ar yra naujų versijų.
+Leidos skelbiamos GitHub Releases (`diegosouzapw/OmniRoute`), kur `electron-updater` taip pat tikrina, ar yra naujų versijų.
 
-## Trikčių šalinimas
+## Trikčių diagnostika
 
-| Požymis                                                                            | Sprendimas                                                                                                                                                                                                                      |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Cannot find module 'better-sqlite3'` po pagrindinės Electron versijos atnaujinimo | better-sqlite3 v13 pateikia iš anksto sukompiliuotus Node-API modulius — dar kartą paleiskite `npm install` šakniniame kataloge ir `prepare:bundle` (jis patikrina dabartinei platformai skirtą iš anksto sukompiliuotą modulį) |
-| `ERR_DLOPEN_FAILED` vietiniam moduliui                                             | Dar kartą paleiskite `prepare:bundle` — jei nėra dabartinei platformai skirto iš anksto sukompiliuoto Node-API modulio, komanda iškart baigiama su klaida                                                                       |
-| Linux sistemoje rodomas tuščias langas                                             | Patikrinkite, ar Next.js serveris iš tiesų susietas su PORT (žr. `[Server]` žurnalus)                                                                                                                                           |
-| macOS notarinis patvirtinimas užstringa                                            | Įsitikinkite, kad `APPLE_*` kintamieji eksportuoti, o ne tik įrašyti faile `.env`                                                                                                                                               |
-| Windows SmartScreen įspėjimas                                                      | Pasirašykite EV sertifikatu arba naudotojai gali spustelėti dešiniuoju pelės mygtuku → „Run anyway“                                                                                                                             |
-| Dūmų testas nepavyksta, nes prievadas užimtas                                      | Prieš paleisdami `electron:smoke:packaged`, sustabdykite visus vietinius kūrimo serverius, naudojančius 20128 prievadą                                                                                                          |
+| Požymis                                                                      | Sprendimas                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Cannot find module 'better-sqlite3'` atnaujinus pagrindinę Electron versiją | better-sqlite3 v13 pateikia Node-API iš anksto sukompiliuotus failus — dar kartą paleiskite `npm install` šakniniame kataloge ir `prepare:bundle` (ji patikrina dabartinės platformos iš anksto sukompiliuotą failą) |
+| `ERR_DLOPEN_FAILED` savajam moduliui                                         | Dar kartą paleiskite `prepare:bundle` — ji iš karto nutraukia darbą, jei nėra dabartinei platformai skirto Node-API iš anksto sukompiliuoto failo                                                                    |
+| Linux sistemoje rodomas tuščias langas                                       | Patikrinkite, ar Next.js serveris iš tikrųjų prisijungė prie PORT (patikrinkite `[Server]` žurnalus)                                                                                                                 |
+| macOS notarizavimas užstringa                                                | Įsitikinkite, kad `APPLE_*` kintamieji eksportuoti, o ne tik nurodyti `.env`                                                                                                                                         |
+| Windows SmartScreen įspėjimas                                                | Pasirašykite naudodami EV sertifikatą arba naudotojai gali spustelėti dešiniuoju pelės mygtuku → „Run anyway“                                                                                                        |
+| Bazinis testas nepavyksta, nes prievadas naudojamas                          | Prieš paleisdami `electron:smoke:packaged`, sustabdykite bet kurį vietinį kūrimo serverį, naudojantį 20128                                                                                                           |
 
 ## Taip pat žr.
 
 - [SETUP_GUIDE.md](./SETUP_GUIDE.md)
 - [RELEASE_CHECKLIST.md](../ops/RELEASE_CHECKLIST.md)
 - Šaltinis: `electron/main.js`, `electron/preload.js`, `electron/package.json`
-- Pagalbiniai scenarijai: `scripts/build/prepare-electron-standalone.mjs`, `scripts/dev/smoke-electron-packaged.mjs`
+- Pagalbiniai failai: `scripts/build/prepare-electron-standalone.mjs`, `scripts/dev/smoke-electron-packaged.mjs`

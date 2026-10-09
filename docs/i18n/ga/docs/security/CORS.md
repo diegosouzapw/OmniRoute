@@ -129,22 +129,23 @@ atosú.
 
 ## Sampla: seachfhreastalaí droim ar ais os comhair OmniRoute
 
-Cuireann OmniRoute féin CORS i bhfeidhm, mar sin de ghnáth níor cheart don seachfhreastalaí ceanntásca
-`Access-Control-*` a chur leis ná a athscríobh (briseann ceanntásca dúbailte brabhsálaithe). Críochnaigh TLS
-agus cuir ar aghaidh — lig do OmniRoute réamheitilt a fhreagairt:
+Cuireann OmniRoute féin CORS i bhfeidhm, mar sin de ghnáth níor cheart don seachfhreastalaí ceanntásca `Access-Control-*` a chur leis ná a athscríobh (briseann ceanntásca dúbailte brabhsálaithe). Cuir deireadh le TLS agus cuir an trácht ar aghaidh — lig do OmniRoute an réamhiarratas a fhreagairt:
 
 ```nginx
-# nginx — cuir ar aghaidh chuig OmniRoute; NÁ hinsteall ceanntásca Access-Control-* anseo
+# nginx — cuir ar aghaidh chuig OmniRoute; NÁ hiontráil Access-Control-* anseo
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NÁ socraigh X-Forwarded-For mar 127.0.0.1 — sáraíonn sé garda na mbealaí aisfhillteacha.
+    # Coinnigh na ceanntásca curtha ar aghaidh: nascann seachfhreastalaí ar an óstríomhaire céanna ón gcomhéadan aisfhillte, agus is iadsan
+    # a insíonn do OmniRoute nach é an t-oibreoir áitiúil an glaoiteoir. Má chuireann seachfhreastalaí ceann ar bith díobh leis,
+    # beidh cuma glaoiteora áitiúil ar gach glaoiteoir cianda. Ná socraigh X-Forwarded-For go 127.0.0.1 ach oiread.
 }
 ```
 
-Socraigh na bunúis bhrabhsálaí cheadaithe in OmniRoute (`CORS_ALLOWED_ORIGINS` nó an
-chluaisín Slándála), ní sa seachfhreastalaí.
+Socraigh bunús ceadaithe na mbrabhsálaithe in OmniRoute (`CORS_ALLOWED_ORIGINS` nó an cluaisín Slándála), ní sa seachfhreastalaí.
 
 ## Comhaid fhoinseacha
 

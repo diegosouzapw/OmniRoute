@@ -28,6 +28,8 @@ import {
   formatCachePercentage,
 } from "@/shared/utils/formatting";
 import { getProviderDisplayLabel } from "@/shared/utils/providerDisplayLabel";
+import { mergeLogFilterOptions } from "@/shared/utils/logFilterOptions";
+import { buildLogTpsTitle, computeLogTps } from "@/shared/utils/logTps";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import {
   computeLogsSignature,
@@ -70,11 +72,9 @@ function getLogTotalTokens(log) {
   return (log?.tokens?.in || 0) + (log?.tokens?.out || 0);
 }
 
+// #13130: generation-time TPS (duration - TTFT, reasoning-aware); see logTps.ts.
 function getLogTps(log): number {
-  const tokensOut = log?.tokens?.out || 0;
-  const durationMs = log?.duration || 0;
-  if (tokensOut <= 0 || durationMs <= 0) return 0;
-  return tokensOut / (durationMs / 1000);
+  return computeLogTps(log?.tokens?.out, log?.tokens?.reasoning, log?.duration, log?.ttft);
 }
 
 function formatTps(tps: number): string {
@@ -138,6 +138,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
         { key: "combo", label: t("columns.combo") },
         { key: "tokens", label: t("columns.tokens") },
         { key: "tps", label: t("columns.tps") },
+        { key: "ttft", label: t("columns.ttft") },
         { key: "duration", label: t("columns.duration") },
         { key: "addedWait", label: t("columns.addedWait") },
         { key: "time", label: t("columns.time") },
@@ -197,6 +198,7 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
     const loadMoreSentinelRef = useRef(null);
     const hasScrolledRef = useRef(false);
     const [providerNodes, setProviderNodes] = useState([]);
+    const [serverFilterOptions, setServerFilterOptions] = useState(null);
     const visibleRef = useRef(true);
     // Set when handlePrev/handleNext hits the edge of the (possibly stale —
     // list polling pauses while a detail modal is open) in-memory list, so we
@@ -207,6 +209,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
 
     const [visibleColumns, setVisibleColumns] = useState(() => {
       const defaultVisible = Object.fromEntries(columns.map((c) => [c.key, true]));
+      // #13130: TTFT is only recorded for streaming calls written after the
+      // ttft_ms migration, so most rows show "—"; opt-in column, not default.
+      defaultVisible.ttft = false;
       if (globalThis.window === undefined) return defaultVisible;
       try {
         const saved = localStorage.getItem("loggerVisibleColumns");
@@ -308,6 +313,17 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
       fetch("/api/provider-nodes")
         .then((r) => (r.ok ? r.json() : { nodes: [] }))
         .then((d) => setProviderNodes(d.nodes || []))
+        .catch(() => {});
+    }, []);
+
+    // Dropdown options come from the whole call_logs table + configured API keys, not
+    // just the loaded page — otherwise a value with no row in view cannot be picked.
+    useEffect(() => {
+      fetch("/api/usage/call-logs/filters")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d) setServerFilterOptions(d);
+        })
         .catch(() => {});
     }, []);
 
@@ -845,38 +861,24 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
       }
     };
 
-    const sourceLogsForDropdowns = logs;
-
-    // Unique accounts and providers for dropdowns
-
-    const uniqueAccounts = useMemo(
-      () => [
-        ...new Set(sourceLogsForDropdowns.map((l) => l.account).filter((a) => a && a !== "-")),
-      ],
-      [sourceLogsForDropdowns]
+    const filterOptions = useMemo(
+      () => mergeLogFilterOptions(serverFilterOptions, serverFilterOptions?.configuredKeys, logs),
+      [serverFilterOptions, logs]
     );
-    const uniqueModels = useMemo(
-      () =>
-        [
-          ...new Set(
-            sourceLogsForDropdowns.flatMap((l) => [l.model, l.requestedModel]).filter(Boolean)
-          ),
-        ].sort(),
-      [sourceLogsForDropdowns]
+    const uniqueAccounts = filterOptions.accounts;
+    const uniqueModels = filterOptions.models;
+    const uniqueProviders = filterOptions.providers;
+    // Quick-filter chips stay on the loaded rows: one chip per provider ever logged
+    // (including deleted compatible nodes) would flood the toolbar.
+    const loadedProviders = useMemo(
+      () => mergeLogFilterOptions(null, null, logs).providers,
+      [logs]
     );
-    const uniqueProviders = useMemo(
-      () =>
-        [
-          ...new Set(sourceLogsForDropdowns.map((l) => l.provider).filter((p) => p && p !== "-")),
-        ].sort(),
-      [sourceLogsForDropdowns]
-    );
+    const apiKeyOptions = filterOptions.apiKeys;
+    // The "N keys" stat describes the loaded rows, not the dropdown.
     const uniqueApiKeys = useMemo(
-      () =>
-        [
-          ...new Set(sourceLogsForDropdowns.map((l) => l.apiKeyId || l.apiKeyName).filter(Boolean)),
-        ].sort(),
-      [sourceLogsForDropdowns]
+      () => [...new Set(logs.map((l) => l.apiKeyId || l.apiKeyName).filter(Boolean))],
+      [logs]
     );
 
     // Stats (memoized to avoid re-computation on every render)
@@ -1028,15 +1030,11 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
             className="px-3 py-2 rounded-lg bg-bg-subtle border border-border text-sm text-text-primary focus:outline-none focus:border-primary appearance-none cursor-pointer min-w-[160px]"
           >
             <option value="">{t("allApiKeys")}</option>
-            {uniqueApiKeys.map((value) => {
-              const matched = logs.find((l) => (l.apiKeyId || l.apiKeyName) === value);
-              const label = formatApiKeyLabel(matched?.apiKeyName, matched?.apiKeyId);
-              return (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              );
-            })}
+            {apiKeyOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {formatApiKeyLabel(option.name, option.id)}
+              </option>
+            ))}
           </select>
 
           {/* Stats */}
@@ -1157,10 +1155,10 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
           ))}
 
           {/* Divider */}
-          {uniqueProviders.length > 0 && <span className="w-px h-5 bg-border mx-1" />}
+          {loadedProviders.length > 0 && <span className="w-px h-5 bg-border mx-1" />}
 
           {/* Dynamic Provider Quick Filters (from data) */}
-          {uniqueProviders.map((p) => {
+          {loadedProviders.map((p) => {
             const compatLabel = getProviderDisplayLabel(p, providerNodes);
             const pc = PROVIDER_COLORS[p] || {
               bg: "#374151",
@@ -1280,6 +1278,9 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
                         {t("columns.tps")}
                         {getSortIndicator("tps")}
                       </th>
+                    )}
+                    {visibleColumns.ttft && (
+                      <th className={LOG_TABLE_HEADER_CELL_RIGHT_CLASS}>{t("columns.ttft")}</th>
                     )}
                     {visibleColumns.duration && (
                       <th
@@ -1648,12 +1649,20 @@ const RequestLoggerV2 = forwardRef<RequestLoggerV2Handle, RequestLoggerV2Initial
                                         ? "text-sky-600 dark:text-sky-400"
                                         : "text-amber-600 dark:text-amber-400";
                                 return (
-                                  <span className={color} title={`${tps.toFixed(2)} tokens/sec`}>
+                                  <span
+                                    className={color}
+                                    title={buildLogTpsTitle(log, tps, formatDuration)}
+                                  >
                                     {formatTps(tps)}
                                   </span>
                                 );
                               })()
                             )}
+                          </td>
+                        )}
+                        {visibleColumns.ttft && (
+                          <td className="px-3 py-2 text-right text-text-muted font-mono">
+                            {formatDuration(log.ttft > 0 ? log.ttft : null)}
                           </td>
                         )}
                         {visibleColumns.duration && (

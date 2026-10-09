@@ -176,11 +176,12 @@ test("shape: openai-responses-in-progress emits response.in_progress data event"
     await writer.close();
     await pump;
 
-    // #14330: the frame now carries a required `sequence_number` and `response`
-    // object so a strict Responses decoder does not abort on it.
+    // #14330 / #15202: the frame now carries a required `sequence_number`, a
+    // `response` object, and a STRING `response.id` so a strict Responses decoder
+    // does not abort on it.
     assert.equal(
       emitted[0],
-      'data: {"type":"response.in_progress","sequence_number":1,"response":{"id":null,"status":"in_progress"}}\n\n'
+      'data: {"type":"response.in_progress","sequence_number":1,"response":{"id":"resp_keepalive_omniroute","status":"in_progress"}}\n\n'
     );
   });
 });

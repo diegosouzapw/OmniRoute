@@ -4,22 +4,45 @@
 
 ---
 
-> **Panou de control:** **Chaos Mode** (bara laterală) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sesiunea panoului de control) · `POST /api/skills/collect/chaos` (cheie API)  
+> **Tablou de bord:** **Chaos Mode** (bara laterală) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (sesiune de tablou de bord) · `POST /api/skills/collect/chaos` (cheie API)  
 > **Sursă:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Chaos Mode trimite **o sarcină mai multor furnizori simultan** — fiecare furnizor participant
-contribuie cu o instanță de model, iar toate răspunsurile sunt afișate unul lângă altul (sau înlănțuite). Este o
-suprafață de execuție cu mai multe modele, nu o strategie de rutare: traficul obișnuit
-`/v1/chat/completions` nu este niciodată afectat de aceasta.
+Chaos Mode trimite **o sarcină către mai mulți furnizori simultan** — fiecare furnizor participant
+contribuie cu o instanță de model, iar toate răspunsurile sunt afișate alăturat (sau înlănțuite). Este o
+suprafață de execuție multimodel, nu o strategie de rutare: traficul dvs. obișnuit către `/v1/chat/completions`
+nu este afectat niciodată de aceasta.
 
-**Clarificare — sunt livrate trei lucruri diferite care conțin „chaos” în nume:**
+**Dezambiguizare — trei lucruri diferite sunt livrate cu „chaos” în nume:**
 
-| Element                     | Ce reprezintă                                                                                                                        | Unde este documentat                         |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| **Chaos Mode**              | Pagina panoului de control + API-ul descris aici: distribuie o sarcină către mai mulți furnizori (în paralel sau colaborativ).       | Acest ghid                                   |
-| `auto/chaos`                | Un ID de model Auto-Combo cu ponderi de evaluare pentru injectarea erorilor, destinat testării rezilienței. Nu necesită configurare. | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Configurație de combo Chaos | Un combo persistent cu `config.chaos.enabled` distribuie sarcina unui grup, cu un model evaluator opțional (doar prin API).          | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Element                     | Ce este                                                                                                                                                                                | Unde este documentat                         |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**              | Pagina tabloului de bord + API-ul descris aici: distribuie o sarcină către mai mulți furnizori (în paralel sau colaborativ).                                                           | Acest ghid                                   |
+| `auto/chaos`                | ID de model Auto-Combo: distribuire în paralel, un model per furnizor, câte un apel în amonte pentru fiecare. Nu este injecție de defecțiuni ([detalii](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Configurație de combo Chaos | Un combo persistent cu `config.chaos.enabled` distribuie solicitarea în același mod (doar prin API); `judgeModel` selectează doar răspunsul final, fără apel de sinteză.               | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: distribuire în paralel
+
+`auto/chaos` **nu** este un mecanism de injecție de defecțiuni sau de testare a rezilienței. Solicitarea
+`model: "auto/chaos"` pe `/v1/chat/completions`:
+
+1. Construiește un panou cu **un model per furnizor**: primul candidat al fiecărui
+   furnizor conectat, în ordinea grupului de candidați, cu până la 5 membri
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, limitat la 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Pachetul de ponderi `chaos-mode`
+   setează doar valoarea `weight` a fiecărui membru; distribuirea nu o citește.
+2. Trimite aceeași solicitare fiecărui membru al panoului **în paralel**, astfel încât o solicitare
+   implică un apel în amonte pentru fiecare membru al panoului
+   (`open-sse/services/autoCombo/chaosEngine.ts`, expediată din
+   `open-sse/services/combo.ts`).
+3. Transmite în flux câte o linie de stare pentru fiecare membru al panoului, pe măsură ce sosește: un comentariu SSE
+   (`: chaos <index> ok|fail <model>`) în mod implicit, plus un eveniment `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) atunci când solicitarea setează
+   `stream_options.include_chaos_parts: true`. Acestea nu conțin textul răspunsului.
+4. Trimite **un singur** răspuns al panoului drept fragment final în stil OpenAI: răspunsul primului membru
+   al panoului (`auto/chaos` îl setează ca `judgeModel`) atunci când acesta reușește, iar în caz contrar,
+   răspunsul ultimului membru care a reușit. Celelalte răspunsuri ale panoului nu sunt returnate, astfel încât
+   plătiți pentru N apeluri și primiți o singură completare.
 
 ## Configurare
 

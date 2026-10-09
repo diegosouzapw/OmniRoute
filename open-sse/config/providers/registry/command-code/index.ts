@@ -32,15 +32,22 @@ export const command_codeProvider: RegistryEntry = {
     {
       id: "claude-opus-4-7",
       name: "Claude Opus 4.7 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,
       contextLength: 200000,
       maxOutputTokens: 32000,
+    },
+    {
+      id: "claude-fable-5",
+      name: "Claude Fable 5 (CC)",
+      targetFormat: "claude",
     },
     {
       id: "claude-opus-4-6",
       name: "Claude Opus 4.6 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,
@@ -48,8 +55,14 @@ export const command_codeProvider: RegistryEntry = {
       maxOutputTokens: 32000,
     },
     {
+      id: "claude-sonnet-5-5",
+      name: "Claude Sonnet 5.5 (CC)",
+      targetFormat: "claude",
+    },
+    {
       id: "claude-sonnet-4-6",
       name: "Claude Sonnet 4.6 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,
@@ -59,6 +72,7 @@ export const command_codeProvider: RegistryEntry = {
     {
       id: "claude-haiku-4-5-20251001",
       name: "Claude Haiku 4.5 (CC)",
+      targetFormat: "claude",
       supportsReasoning: true,
       supportedThinkingEfforts: COMMAND_CODE_REASONING_EFFORTS,
       supportsVision: true,

@@ -305,24 +305,29 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks/<id> \
 onye na-eweta upstream — enweghị RPC nkwụsị na `CloudAgentBase`. Iji kwụsị ịkwụ ụgwọ
 upstream, kwụsị ọrụ ahụ na console nke onye na-eweta ahụ.
 
-## REST API — Nhazi Njikọ nke Ndị Na-enye Cloud
+## REST API — Njikọ Cloud Provider
 
-Ndị endpoint enyemaka ndị a dị n'okpuru `src/app/api/cloud/` ka ndị ahịa dịpụrụ adịpụ
-(CLI, ngwa Electron, ma ọ bụ ndị ọrụ mmekọrịta) ji agụ metadata njikọ nke onye na-enye ọrụ
-ma chọpụta alias nke model. A na-eji **API key nkịtị** eme nkwenye njirimara ha
-(site na `validateApiKey`), ọ bụghị nkwenye njirimara nchịkwa nke endpoint ọrụ na-eji.
+A na-eji endpoint enyemaka ndị a dị n'okpuru `src/app/api/cloud/` eme ihe site n'aka ndị ahịa dịpụrụ adịpụ
+(CLI, ngwa Electron, ma ọ bụ ndị ọrụ mmekọrịta) iji gụọ metadata njikọ provider
+ma dozie aha nnọchi model. A na-eji **API key** eme nkwenye njirimara ha
+(site na `validateApiKey`), ọ bụghị nkwenye njirimara njikwa nke endpoint ọrụ na-eji; ihe
+`/api/cloud/auth` na-eweghachi dabere na scope nke key ahụ (lee n'okpuru).
 
-| Usoro | Ụzọ                             | Ebumnuche                                                                          |
-| ----- | ------------------------------- | ---------------------------------------------------------------------------------- |
-| POST  | `/api/cloud/auth`               | Nyochaa API key, weghachite metadata njikọ ezoro akụkụ ya + alias model            |
-| PUT   | `/api/cloud/credentials/update` | Mee `accessToken` / `refreshToken` / `expiresAt` ka ha dị ọhụrụ                    |
-| POST  | `/api/cloud/model/resolve`      | Chọpụta alias model ka ọ bụrụ `{ provider, model }`                                |
-| GET   | `/api/cloud/models/alias`       | Depụta alias model niile                                                           |
-| PUT   | `/api/cloud/models/alias`       | Tọọ alias model (ma mekọrịta ya na Cloud na-akpaghị aka ma ọ bụrụ na agbanyere ya) |
+| Usoro | Ụzọ                             | Ebumnuche                                                                               |
+| ----- | ------------------------------- | --------------------------------------------------------------------------------------- |
+| POST  | `/api/cloud/auth`               | Nyochaa API key, weghachite metadata njikọ ezoro akụkụ ya + aha nnọchi model            |
+| PUT   | `/api/cloud/credentials/update` | Mee ka `accessToken` / `refreshToken` / `expiresAt` dị ọhụrụ                            |
+| POST  | `/api/cloud/model/resolve`      | Dozie aha nnọchi model ka ọ bụrụ `{ provider, model }`                                  |
+| GET   | `/api/cloud/models/alias`       | Depụta aha nnọchi model niile                                                           |
+| PUT   | `/api/cloud/models/alias`       | Tọọ aha nnọchi model (ma mekọrịta ya na Cloud na-akpaghị aka ma ọ bụrụ na agbanyere ya) |
 
-`/api/cloud/auth` anaghị eweghachite `apiKey` / `accessToken` / `refreshToken` ndị
-na-ezoghị ezo. Ọ na-eweghachite `hasApiKey`, `hasAccessToken`, `hasRefreshToken`, na nlele
-ezoro akụkụ ya (`maskedApiKey`: mkpụrụedemede 4 mbụ + `****` + mkpụrụedemede 4 ikpeazụ).
+`/api/cloud/auth` anaghị eweghachi `apiKey` / `accessToken` / `refreshToken` nke ezoghị ezo. Ọ
+na-eweghachi `hasApiKey`, `hasAccessToken`, `hasRefreshToken` maka njikọ ndị na-arụ ọrụ nke key ahụ
+nwere ike iji (key e ji `allowedConnections` machibido na-ahụ naanị njikọ ndị ahụ). Maka API key nwere
+scope `manage` ma ọ bụ `admin`, gụnyere key ntinye sitere na `OMNIROUTE_API_KEY`, ọ na-eweghachikwa
+nhụchalụ ezoro akụkụ ya (`maskedApiKey`: ruo mkpụrụedemede 4 n'akụkụ nke ọ bụla, ole na ole maka
+key dị mkpụmkpụ, ọ dịghị nke a ga-egosi maka mkpụrụedemede 8 ma ọ bụ ihe na-erughị ya) na `projectId`
+nke njikọ ahụ. A naghị etinye mpaghara abụọ ahụ na nzaghachi maka key ọ bụla ọzọ.
 
 ## Nchọpụta Credentials
 

@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   schemathesis:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute' }}
     name: Schemathesis — OpenAPI contract fuzz (advisory)
     # #11965: this job runs a backend-only `next build`; the hosted 7 GB runner cannot build
     # release/v3.8.51 (VM shutdown ~7 min in), so it targets the box's light pool (`omni-light`:

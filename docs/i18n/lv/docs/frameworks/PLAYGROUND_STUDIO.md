@@ -190,14 +190,14 @@ Autentifikācija: neobligāta (`REQUIRE_API_KEY`). Kļūdas tiek apstrādātas a
 
 ## Problēmu novēršana
 
-| Simptoms                                      | Cēlonis                                      | Risinājums                                                                                                      |
-| --------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Monaco redaktors netiek attēlots API cilnē    | SSR ielādēja Monaco                          | Pārbaudiet, vai `ApiTab` izmanto `dynamic(..., { ssr: false })`                                                 |
-| Salīdzināšanas straumes tiek palaistas secīgi | Nepareizs `Promise.all` lietojums            | Visas straumju palaišanas jāizsauc vienā `Promise.all` izsaukumā                                                |
-| Metrikās TTFT tiek rādīts kā `null`           | Nav piesaistīts pirmā fragmenta apstrādātājs | Pārbaudiet, vai SSE lasītāja ciklā tiek izsaukts `useStreamMetrics.onFirstChunk()`                              |
-| Priekšiestatījums netiek saglabāts            | Nav izpildīta DB migrācija                   | Palaidiet `npm run db:migrate` vai restartējiet serveri (migrācija tiek automātiski izpildīta palaišanas laikā) |
-| Uzvednes uzlabošana atgriež 502               | Konfigurācijā nav iestatīts modelis          | Pirms uzlabošanas lietotājam konfigurācijas rūtī jāievada modeļa nosaukums                                      |
-| Eksportētajā kodā redzams `MISSING_API_KEY`   | Nav ievietots vietturis                      | `codeExport.ts` vienmēr izmanto `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                                    |
+| Simptoms                                      | Cēlonis                                      | Risinājums                                                                         |
+| --------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Monaco redaktors netiek attēlots API cilnē    | SSR ielādēja Monaco                          | Pārbaudiet, vai `ApiTab` izmanto `dynamic(..., { ssr: false })`                    |
+| Salīdzināšanas straumes tiek palaistas secīgi | Nepareizs `Promise.all` lietojums            | Visu straumju palaišanas jāizsauc vienā `Promise.all` izsaukumā                    |
+| Metrikās TTFT tiek rādīts kā `null`           | Nav piesaistīts pirmā fragmenta apstrādātājs | Pārbaudiet, vai SSE lasītāja ciklā tiek izsaukts `useStreamMetrics.onFirstChunk()` |
+| Sākotnējais iestatījums netiek saglabāts      | Nav palaista DB migrācija                    | Restartējiet serveri: migrācijas tiek izpildītas automātiski palaišanas laikā      |
+| Uzvednes uzlabošana atgriež 502               | Sadaļā Config nav iestatīts modelis          | Pirms uzlabošanas lietotājam sadaļā Config jāievada modeļa nosaukums               |
+| Eksportētajā kodā redzams `MISSING_API_KEY`   | Nav ievietots vietturis                      | `codeExport.ts` vienmēr izmanto `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`       |
 
 ---
 

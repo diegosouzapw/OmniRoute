@@ -391,18 +391,18 @@ docs/                       # Documentation
 
 - [ ] Тестовете преминават успешно (`npm test`)
 - [ ] Проверката за стил преминава успешно (`npm run lint`)
-- [ ] Компилацията завършва успешно (`npm run build`)
+- [ ] Компилацията е успешна (`npm run build`)
 - [ ] Добавени са TypeScript типове за новите публични функции и интерфейси
 - [ ] Няма твърдо зададени тайни или резервни стойности
-- [ ] Публичните идентификационни данни за upstream са вградени чрез `resolvePublicCred()` (вижте [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), никога като литерални стойности
-- [ ] Отговорите при грешки преминават през `buildErrorBody()` / `sanitizeErrorMessage()` — без необработени stack trace-ове в телата на отговорите (вижте [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Shell командите (`exec` / `spawn`) подават стойности по време на изпълнение чрез `env`, а не чрез интерполация на низове
+- [ ] Публичните идентификационни данни от upstream са вградени чрез `resolvePublicCred()` (вижте [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), никога като литерали
+- [ ] Отговорите при грешки преминават през `buildErrorBody()` / `sanitizeErrorMessage()` — без необработени stack trace данни в телата на отговорите (вижте [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Shell командите (`exec` / `spawn`) предават стойностите по време на изпълнение чрез `env`, а не чрез интерполация на низове
 - [ ] Всички входни данни са валидирани със Zod схеми
-- [ ] Добавен е **фрагмент** за списъка с промени в `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` за промени, видими за потребителите (вижте [`changelog.d/README.md`](./changelog.d/README.md)) — **не** редактирайте директно `CHANGELOG.md`; фрагментите се обединяват при публикуване на версия и никога не предизвикват конфликти между Pull Request-и
+- [ ] Добавен е **фрагмент** към регистъра на промените в `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` за промени, видими за потребителите (вижте [`changelog.d/README.md`](./changelog.d/README.md)) — **не** редактирайте директно `CHANGELOG.md`; фрагментите се обединяват при издаване на версия и никога не създават конфликти между PR-и
 - [ ] Документацията е актуализирана (ако е приложимо)
-- [ ] Няма нови отворени предупреждения от CodeQL / Secret-Scanning или всяко от тях е отхвърлено с техническа обосновка, която препраща към съответния документ в `docs/security/`
+- [ ] Няма нови предупреждения от CodeQL / Secret-Scanning или всяко от тях е отхвърлено с техническа обосновка, която препраща към съответния документ в `docs/security/`
 - [ ] Маршрутите, които стартират дъщерни процеси (`/api/mcp/`, `/api/cli-tools/runtime/`), са класифицирани като `isLocalOnlyPath()` в `src/server/authz/routeGuard.ts` — вижте [Строго правило №15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Няма `Co-Authored-By` завършващи редове в съобщенията на commit-ите — commit-ите трябва да се показват единствено под Git самоличността на собственика на хранилището (Строго правило №16)
+- [ ] Няма AI/bot трейлъри `Co-authored-by` в съобщенията за commit-и (Строго правило №16) — човешките сътрудници, чиято работа е използвана повторно, се посочват със стандартни трейлъри `Co-authored-by: Name <email>`
 
 ---
 
@@ -417,6 +417,5 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 - **Архитектура**: Вижте [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Справочник за API**: Вижте [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Документация за сигурността**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
-- **Документация за експлоатация**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
+- **Документация за операциите**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Проблеми**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: Вижте `docs/adr/` за записи на архитектурни решения

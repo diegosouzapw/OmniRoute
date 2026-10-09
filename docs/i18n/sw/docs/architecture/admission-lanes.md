@@ -7,52 +7,52 @@
 OmniRoute ina mifumo **miwili** ya njia iliyo ya ndani ya mchakato yenye mawanda tofauti. Mifumo hii
 inakamilishana; waendeshaji wanapaswa kujua ni mfumo gani wanaoutazama.
 
-## 1. Udhibiti wa upokeaji wa kiwango cha baiti katika mchakato mzima (`chatBodyAdmission.ts`)
+## 1. Udhibiti wa uingizaji wa kiwango cha baiti katika mchakato mzima (`chatBodyAdmission.ts`)
 
-- **Upeo:** njia ya mwili uliohifadhiwa kwenye bafa/heap kwa `POST /v1/chat/completions`,
+- **Upeo:** njia ya mwili uliowekwa kwenye bafa/heap kwa `POST /v1/chat/completions`,
   `/v1/messages`, `/v1/responses`, na njia nyingine zenye muundo wa gumzo. Hulinda
-  dhidi ya ukuzaji wa matumizi ya heap unaosababishwa na miili mikubwa ya maombi ya mawakala wa uandishi wa msimbo (#4380).
-- **Kidhibiti kimoja cha kimataifa kwa mchakato, si njia tofauti kwa kila ufunguo (#10110).** Kila ufunguo wa API
-  (uliohashishwa) au kipindi cha `anonymous` hupokelewa kwa kutumia bajeti **ileile** ya pamoja —
-  kitambulisho cha kipindi kilichohashishwa hutumika TU kama ufunguo wa upangaji wa haki (usambazaji wa
-  round-robin kwa wanaosubiri), kamwe si kama mgawanyo wa uwezo. Toleo la awali la hati hii
-  lilieleza njia tofauti kwa kila ufunguo zenye uwezo unaojitegemea; muundo huo
+  dhidi ya ukuzaji wa matumizi ya heap unaosababishwa na miili mikubwa ya mawakala wa uandishi wa msimbo (#4380).
+- **Kidhibiti kimoja cha kimataifa kwa mchakato mzima, si njia tofauti kwa kila ufunguo (#10110).** Kila ufunguo wa API
+  (uliohifadhiwa kama hash) au kipindi cha `anonymous` huingiza dhidi ya bajeti **ileile** inayoshirikiwa —
+  kitambulisho cha kipindi kilichohifadhiwa kama hash kinatumika TU kama ufunguo wa upangaji wa haki (usambazaji wa
+  mzunguko kwa wanaosubiri), kamwe si kama sehemu tofauti ya uwezo. Toleo la awali la hati hii
+  lilielezea njia tofauti kwa kila ufunguo zenye uwezo unaojitegemea; muundo huo
   uliondolewa katika #10110 kwa sababu uliruhusu vitambulisho bandia visivyothibitishwa kuzidisha
   kikomo cha mchakato mzima.
-- **Lango (#503-fanout): bajeti ya BAITI za uingizaji inayokokotolewa kiotomatiki, si idadi isiyobadilika ya
-  maombi.** Kikomo cha zamani cha idadi ya maombi cha `CHAT_MAX_HEAVY_IN_FLIGHT` (chaguo-msingi `1`
-  kabla ya marekebisho haya) kilipunguza fan-out ya mawakala wa uandishi wa msimbo (mawakala wadogo/CLI nyingi,
-  huku miili ikiwa mara kwa mara > 256 KB) hadi kiwango halisi cha maombi sambamba cha takriban 1, jambo lililosababisha
-  majibu ya 503 chini ya mzigo wa kawaida kabisa. Sasa huweka kikomo tu wakati mwendeshaji anaweka waziwazi
-  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ikiachwa bila kuwekwa, upokeaji badala yake
-  hudhibitiwa na `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — bajeti inayokokotolewa kiotomatiki kutoka kwenye
+- **Kizuizi (#503-fanout): bajeti ya BAITI ya uingizaji inayotolewa kiotomatiki, si idadi isiyobadilika ya maombi.**
+  Kikomo cha zamani cha idadi ya maombi cha `CHAT_MAX_HEAVY_IN_FLIGHT` (chaguo-msingi `1`
+  kabla ya marekebisho haya) kilipunguza usambazaji sambamba wa mawakala wa uandishi wa msimbo (mawakala wadogo/CLI wengi,
+  miili yenye ukubwa wa kawaida > 256 KB) hadi usambamba halisi wa takribani 1, jambo lililosababisha
+  majibu ya 503 chini ya mzigo wa kawaida kabisa. Sasa hutumika tu wakati mwendeshaji anaweka waziwazi
+  `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Ikiwa haijawekwa, uingizaji badala yake
+  unadhibitiwa na `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — bajeti inayotolewa kiotomatiki kutoka kwenye
   kikomo halisi cha kumbukumbu cha mchakato (`src/shared/middleware/admissionBudget.ts`):
-  25% ya thamani ndogo kati ya kikomo cha heap ya V8 na kikomo chochote cha cgroup/kontena,
-  ikigawanywa kwa kigezo cha ukuzaji wa muda mfupi cha 8x, na kuwekwa ndani ya mipaka ya 8 MiB na
-  2 GiB. Ubatilishaji uliowekwa wazi hutumia mipaka hiyo hiyo. Hii hujirekebisha kutoka kwenye
-  kontena la 512 MB hadi kompyuta ya mezani ya 32 GB bila kurekebisha env. Mwili ambao hauwezi
-  kutoshea ndani ya bajeti inayotumika hushindwa mara moja kwa `413 body_exceeds_budget`;
-  ni ushindani pekee kati ya miili inayoweza kushughulikiwa mmoja mmoja unaoingia kwenye foleni yenye kikomo
-  na ya haki. Kifuatiliaji hai cha shinikizo la rasilimali kinachotumia ishara nyingi (uwiano wa heap ya V8,
+  25% ya kiwango kidogo zaidi kati ya kikomo cha heap cha V8 na kikomo chochote cha cgroup/container,
+  kilichogawanywa kwa kipengele cha ukuzaji wa muda cha 8x, na kuwekwa ndani ya mipaka ya 8 MiB hadi
+  2 GiB. Thamani zilizowekwa waziwazi hutumia mipaka hiyo hiyo. Hii hujirekebisha kutoka kwenye
+  container ya 512 MB hadi kompyuta ya mezani ya 32 GB bila kurekebisha env. Mwili usioweza
+  kutoshea ndani ya bajeti inayotumika hukataliwa mara moja kwa `413 body_exceeds_budget`;
+  ni ushindani pekee kati ya miili inayoweza kuhudumiwa moja moja unaoingia kwenye foleni yenye mipaka
+  na ya haki. Kifuatiliaji hai cha shinikizo la rasilimali chenye ishara nyingi (uwiano wa heap wa V8,
   cgroup, PSI, matukio ya OOM — `open-sse/utils/resourcePressurePolicy.ts`) hupunguza
-  muda wenye kikomo wa kusubiri chini ya shinikizo la `high` na hukataa mara moja kwa
-  `503 resource_pressure` chini ya shinikizo la `critical`, kabla hata ya baiti zozote
-  kuingizwa. PSI husomwa kutoka `memory.pressure` ya cgroup ya kitengo hiki inapopatikana
-  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` ni ya
-  mfumo mwenyeji mzima na hutumika tu kama chaguo la akiba kwenye bare metal / cgroup v1, ili mfumo
-  mwenyeji unaotumia swap usiweze kusababisha kontena lisilo na shughuli kutoa 503.
+  muda wa kusubiri wenye kikomo chini ya shinikizo la `high` na hukataa mzigo mara moja kwa
+  `503 resource_pressure` chini ya shinikizo la `critical`, kabla hata baiti zozote
+  hazijaingizwa. PSI husomwa kutoka kwenye `memory.pressure` ya cgroup ya kitengo hiki inapopatikana
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` inahusu
+  mfumo mzima wa mwenyeji na hutumika tu kama mbadala kwenye vifaa halisi / cgroup v1, ili mwenyeji
+  anayetumia swap asiweze kusababisha container isiyo na shughuli kutoa 503.
 - **Urekebishaji:**
-  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — ubatilishaji wa bajeti ya baiti inayokokotolewa kiotomatiki
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — kikomo cha zamani cha idadi ya maombi, huwashwa kwa hiari pekee
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — muda wa kusubiri kwenye foleni kabla ya 503 (chaguo-msingi 2000)
+  - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — ubatilishaji wa bajeti ya baiti inayotolewa kiotomatiki
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — kikomo cha zamani cha idadi ya maombi, hutumika kwa kuchaguliwa tu
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — muda wa kusubiri kwenye foleni kabla ya 503 (chaguo-msingi ni `RATE_LIMIT_MAX_WAIT_MS`)
   - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — vali ya heap ya baiti zilizo kwenye foleni (chaguo-msingi 4 MB)
-  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zimepitwa na wakati
-    na hazifanyi chochote tangu #10110 (zinakubaliwa kwa upatanifu wa usanidi, lakini hupuuzwa)
+  - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — zimepitwa na wakati na
+    hazifanyi chochote tangu #10110 (zinakubaliwa kwa uoanifu wa usanidi, lakini zinapuuzwa)
 - **Ripoti:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — ikijumuisha
   nyongeza za #503-fanout `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity`, na `countCapEnabled`
-  (false kwenye upelekaji wa chaguo-msingi — huthibitisha kuwa bajeti ya baiti, si kikomo cha zamani
-  cha idadi, ndicho kinachoweka kikomo kwa kweli).
+  (false katika usambazaji wa chaguo-msingi — inathibitisha kuwa bajeti ya baiti, si kikomo cha zamani
+  cha idadi, ndiyo inayoweka kikomo kwa hakika).
 
 ## 2. Njia pepe zinazobadilika wakati wa utekelezaji (`open-sse/services/admission`)
 
