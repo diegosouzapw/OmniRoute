@@ -14,6 +14,7 @@ import {
   videoBridgePromotionManifestSchema,
 } from "../../../src/lib/guardrails/videoBridgePromotionManifest.ts";
 import { buildVideoBridgePromotionReport } from "../../../scripts/perf/video-bridge-promotion-eval.ts";
+import { videoBridgePromotionRunFileSchema } from "../../../scripts/perf/video-bridge-promotion-eval.ts";
 
 function completeEvidence() {
   const manifest = videoBridgePromotionManifestSchema.parse({
@@ -82,6 +83,27 @@ function completeEvidence() {
   };
   return { manifest, runFile };
 }
+
+test("a live collector can persist digest-only observations without saving raw responses", () => {
+  const { manifest, runFile } = completeEvidence();
+  const digestOnly = {
+    ...runFile,
+    cases: runFile.cases.map((currentCase) => ({
+      ...currentCase,
+      runs: currentCase.runs.map(({ rawResponseText: _discarded, ...run }) => ({
+        ...run,
+        responseDigest: "f".repeat(64),
+      })),
+    })),
+  };
+  const parsed = videoBridgePromotionRunFileSchema.parse(digestOnly);
+  const report = buildVideoBridgePromotionReport(manifest, parsed);
+  assert.ok(report.records.every((record) => record.responseDigest === "f".repeat(64)));
+  assert.ok(!JSON.stringify(report).includes("rawResponseText"));
+  const ambiguous = structuredClone(digestOnly);
+  Object.assign(ambiguous.cases[0].runs[0], { rawResponseText: "sensitive text" });
+  assert.equal(videoBridgePromotionRunFileSchema.safeParse(ambiguous).success, false);
+});
 
 test("a randomized-order label does not prove observed A/B execution order", () => {
   const { manifest, runFile } = completeEvidence();

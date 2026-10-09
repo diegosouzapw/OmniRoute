@@ -13,9 +13,9 @@
  *
  * It does not call any model itself and ships no fabricated data: without a real
  * observations file it always reports HOLD. Collecting real observations requires a live
- * model endpoint and the deterministic fixtures this repo can only describe, not execute —
- * see the PR's "Pending live validation" section for the exact commands to run on
- * VPS 192.168.0.15.
+ * model endpoint, materialized fixtures and a frozen quality oracle on VPS 192.168.0.15.
+ * Prefer digest-only observations: responses may be scored in memory and hashed before
+ * any file is written. Legacy raw observations remain readable, never persisted in reports.
  *
  * Run: node --import tsx/esm scripts/perf/video-bridge-promotion-eval.ts --manifest <manifest.json>
  *      node --import tsx/esm scripts/perf/video-bridge-promotion-eval.ts --manifest <manifest.json> --observations <runs.json>
@@ -69,7 +69,11 @@ const videoBridgePromotionRunSchema = z
     caseId: z.string().min(1),
     metrics: z.partialRecord(videoBridgePromotionMetricNameSchema, z.number().finite()),
     model: z.string().min(1),
-    rawResponseText: z.string(),
+    rawResponseText: z.string().optional(),
+    responseDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     role: z.enum(["baseline", "candidate"]),
     observationId: z.uuid().optional(),
     repetition: z.number().int().nonnegative().optional(),
@@ -87,7 +91,10 @@ const videoBridgePromotionRunSchema = z
       .regex(/^[a-f0-9]{64}$/)
       .optional(),
   })
-  .strict();
+  .strict()
+  .refine((run) => (run.rawResponseText !== undefined) !== (run.responseDigest !== undefined), {
+    message: "exactly one raw response or response digest is required",
+  });
 
 const videoBridgePromotionCaseObservationsSchema = z
   .object({
@@ -240,12 +247,19 @@ function tokenUsageAvailable(runFile: VideoBridgePromotionRunFile): boolean {
 function digestAllRuns(runFile: VideoBridgePromotionRunFile): PersistablePromotionRecord[] {
   return runFile.cases.flatMap((currentCase) =>
     currentCase.runs.map((run) => ({
-      ...buildPersistablePromotionRecord({
-        caseId: run.caseId,
-        metrics: run.metrics,
-        model: run.model,
-        rawResponseText: run.rawResponseText,
-      }),
+      ...(run.responseDigest !== undefined
+        ? {
+            caseId: run.caseId,
+            metrics: { ...run.metrics },
+            model: run.model,
+            responseDigest: run.responseDigest,
+          }
+        : buildPersistablePromotionRecord({
+            caseId: run.caseId,
+            metrics: run.metrics,
+            model: run.model,
+            rawResponseText: run.rawResponseText!,
+          })),
       role: run.role,
       ...(run.observationId !== undefined ? { observationId: run.observationId } : {}),
       ...(run.repetition !== undefined ? { repetition: run.repetition } : {}),
@@ -361,11 +375,14 @@ function printUsage(): void {
       "observations requires a live model endpoint and fixtures materialized from",
       "src/lib/guardrails/videoBridgePromotionFixtures.ts on a real VPS run.",
       "",
-      "--manifest must satisfy videoBridgePromotionManifestSchema (8 frozen case kinds,",
-      ">=3 repetitions per case, >=1 security case).",
+      "Promotion requires 8 synthetic kinds plus a sanitized real clip, frozen media,",
+      "prompt, expected-fact and settings digests, all 10 metrics, resource caps and",
+      ">=3 observations per role/case. Missing evidence always remains HOLD.",
       "--observations must satisfy videoBridgePromotionRunFileSchema: per-case",
       "baseline/candidate runs with metrics, a criticalFactLoss flag, and (for the",
-      "security case) a securityCasePassed flag.",
+      "security case) a securityCasePassed flag. Use responseDigest instead of raw text",
+      "when saving observations. Declare fu07 or fu09 and bind the exact candidate SHA,",
+      "model revision, corpus, distinct observation IDs and seeded actual A/B order.",
     ].join("\n")
   );
 }
