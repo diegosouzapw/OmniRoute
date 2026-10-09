@@ -10,6 +10,7 @@
  */
 import { saveCallLog } from "@/lib/usageDb";
 import { cloneLogPayload } from "@/lib/logPayloads";
+import { redactVideoTranscriptFieldsForLog } from "@/lib/guardrails/videoBridgeSnapshotRedaction";
 
 export interface AdmissionRejectionLogEntry {
   path: string;
@@ -47,7 +48,7 @@ export async function logAdmissionRejection(
       provider: "-",
       duration: 0,
       error: admissionError,
-      requestBody: cloneLogPayload(entry.requestBody) ?? null,
+      requestBody: cloneLogPayload(redactVideoTranscriptFieldsForLog(entry.requestBody)) ?? null,
       apiKeyId: entry.apiKeyId,
       apiKeyName: entry.apiKeyName,
       correlationId: entry.correlationId,

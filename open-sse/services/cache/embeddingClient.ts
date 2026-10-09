@@ -7,6 +7,10 @@
  * @module services/cache/embeddingClient
  */
 
+import { safeOutboundFetch } from "../../../src/shared/network/safeOutboundFetch";
+import { sanitizeErrorMessage } from "../../utils/error";
+import { validateEmbeddingEndpoint, embeddingUrlGuard } from "./embeddingEndpoint";
+
 export interface EmbeddingResult {
   embedding: number[];
   inputTokens: number;
@@ -193,8 +197,13 @@ export function createDefaultEmbeddingGenerator(config: {
     }
 
     try {
-      const res = await fetch(targetUrl, {
+      const res = await safeOutboundFetch(validateEmbeddingEndpoint(targetUrl), {
         method: "POST",
+        guard: embeddingUrlGuard(),
+        pinDns: true,
+        allowRedirect: false,
+        retry: false,
+        timeoutMs: 3000,
         headers,
         body: JSON.stringify({
           model,
@@ -204,8 +213,8 @@ export function createDefaultEmbeddingGenerator(config: {
       });
 
       if (!res.ok) {
-        const errText = await res.text().catch(() => "");
-        console.warn(`[CACHE] Default embedding request failed HTTP ${res.status}: ${errText}`);
+        await res.body?.cancel().catch(() => {});
+        console.warn(`[CACHE] Default embedding request failed HTTP ${res.status}`);
         return null;
       }
 
@@ -224,7 +233,7 @@ export function createDefaultEmbeddingGenerator(config: {
       return null;
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
-        console.warn("[CACHE] Default embedding fetch error:", (err as Error).message);
+        console.warn("[CACHE] Default embedding fetch error:", sanitizeErrorMessage(err));
       }
       return null;
     }

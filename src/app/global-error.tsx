@@ -19,7 +19,8 @@ import { DEFAULT_LOCALE, LOCALES, LOCALE_COOKIE } from "@/i18n/config";
  * as `FALLBACK_EN_GLOBAL_ERROR` and are kept in sync with en.json by
  * `tests/unit/global-error-messages.test.ts`. Non-default locales load via
  * the dynamic import in the effect below (async chunk, fetched only when a
- * global error actually renders).
+ * global error actually renders). Those generated chunks contain only the
+ * error-boundary strings, so full catalogs stay outside the client graph.
  */
 
 const FALLBACK_EN_GLOBAL_ERROR = {
@@ -126,7 +127,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
       setLocale(nextLocale);
       if (nextLocale === DEFAULT_LOCALE) return;
       try {
-        const mod = await import(`../i18n/messages/${nextLocale}.json`);
+        const mod = await import(`../i18n/global-error-messages/${nextLocale}.json`);
         setMessages(buildGlobalErrorMessages(mod.default as Record<string, unknown>));
       } catch {
         setMessages(FALLBACK_EN_MESSAGES);

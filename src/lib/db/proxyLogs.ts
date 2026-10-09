@@ -62,6 +62,9 @@ const PAGE_SIZE = 500;
  * `run`/`get`/`all` — no `.iterate()` cursor — so LIMIT/OFFSET batching is
  * the cursor-equivalent available without widening that shared interface
  * across all 4 driver adapters.
+ * This is a live, best-effort export, not a transactionally consistent snapshot:
+ * concurrent inserts/deletes can shift OFFSET pages and repeat or omit rows.
+ * The preflight COUNT is an estimate; the route reports its emitted count last.
  */
 export function* iterateProxyLogsSince(
   since: string,

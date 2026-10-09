@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Standard (automatisch)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Max. Ausgabetoken",
+    "maxOutputTokenOverrideHint": "Geben Sie eine positive ganze Tokenzahl ein. Leer lassen, um den Standardwert zu verwenden.",
     "contextWindowOverrideLabel": "Kontextfenster-Überschreibung",
     "contextWindowOverridePlaceholder": "z. B. 131072",
     "contextWindowOverrideHint": "Legen Sie das tatsächliche Kontextfenster (Tokens) dieses Modells manuell fest, wenn der Anbieter es falsch meldet. Hat Vorrang vor automatisch erkannten/Katalog-Werten und verhindert, dass das Combo-Routing das Modell verwirft.",

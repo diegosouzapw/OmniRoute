@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 // ClinePass live catalog resolver. Cline publishes the authoritative picker
 // contents through the public recommended-models endpoint. OmniRoute exposes
 // the subscription bucket on ClinePass and keeps recommended/free entries on
@@ -98,6 +100,65 @@ export function parseClineModels(payload: unknown): ClinepassModel[] {
     const model = normalizeClinepassModel(entry);
     return model && !model.id.startsWith("cline-pass/") ? [model] : [];
   });
+}
+
+const discoveryModelSchema = z.object({ id: z.string().trim().min(1) }).passthrough();
+const discoveryModelsSchema = z.array(discoveryModelSchema);
+const fullCatalogSchema = z.union([
+  discoveryModelsSchema,
+  z.object({ data: discoveryModelsSchema }),
+  z.object({ models: discoveryModelsSchema }),
+]);
+const recommendedCatalogSchema = z.object({
+  free: discoveryModelsSchema,
+  recommended: discoveryModelsSchema,
+});
+
+/**
+ * Cline's full catalog omits the rotating cline-free/* picker ids. Resolve both
+ * public catalogs as one snapshot: a failed/malformed half must not replace the
+ * last complete cache with a paid-only list. Empty free buckets are valid.
+ * Catalog presence does not grant API-key access or guarantee account billing.
+ */
+export async function resolveClineModels(
+  fetchImpl: typeof fetch = fetch
+): Promise<ClinepassModel[] | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const responses = await Promise.all(
+      [CLINE_MODELS_ENDPOINT, CLINEPASS_MODELS_ENDPOINT].map((url) =>
+        fetchImpl(url, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+        })
+      )
+    );
+    if (responses.some((response) => !response.ok)) return null;
+    const [fullPayload, recommendedPayload] = await Promise.all(
+      responses.map((response) => response.json())
+    );
+    const full = fullCatalogSchema.safeParse(fullPayload);
+    const recommended = recommendedCatalogSchema.safeParse(recommendedPayload);
+    if (!full.success || !recommended.success) return null;
+
+    const models = new Map<string, ClinepassModel>();
+    for (const model of [
+      ...parseClineRecommendedModels({ free: recommended.data.free }),
+      ...parseClineRecommendedModels({ recommended: recommended.data.recommended }),
+      ...parseClineModels(full.data),
+    ]) {
+      if (model.id.startsWith("cline-pass/") || models.has(model.id)) continue;
+      models.set(model.id, model);
+    }
+    return [...models.values()];
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+    controller.abort();
+  }
 }
 
 /**

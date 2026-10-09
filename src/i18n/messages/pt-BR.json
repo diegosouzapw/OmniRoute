@@ -1130,12 +1130,12 @@
     "contextOmniglyph": "OmniGlyph",
     "contextSettings": "Configurações de compressão",
     "contextHeadroom": "Headroom",
-    "contextSessionDedup": "Session Dedup",
+    "contextSessionDedup": "Desduplicação de sessões",
     "contextCcr": "CCR",
     "contextLlmlingua": "LLMLingua",
     "combosLive": "Combo Studio",
     "combosLiveSubtitle": "Cascata de roteamento em tempo real",
-    "compressionStudio": "Compression Studio",
+    "compressionStudio": "Estúdio de compressão",
     "compressionExclusions": "Exclusões",
     "contextSettingsSubtitle": "Padrões globais",
     "contextHeadroomSubtitle": "Compactação tabular",
@@ -3113,11 +3113,11 @@
         "steps": {
           "1": {
             "title": "Abrir configurações de IA",
-            "desc": "Click the AI Settings icon in Windsurf or go to Settings"
+            "desc": "Clique no ícone de configurações de IA no Windsurf ou abra Settings"
           },
           "2": {
             "title": "Adicionar provedor personalizado",
-            "desc": "Select \"Add custom provider\" (OpenAI-compatible)"
+            "desc": "Selecione \"Add custom provider\" (compatível com OpenAI)"
           },
           "3": {
             "title": "URL base",
@@ -3125,7 +3125,7 @@
           },
           "4": {
             "title": "Chave da API",
-            "desc": "Select your OmniRoute API key"
+            "desc": "Selecione sua chave de API do OmniRoute"
           },
           "5": {
             "title": "Selecionar modelo",
@@ -3630,8 +3630,8 @@
       "targetTimeoutMs": "Tempo limite opcional por destino. Se ficar vazio, herda o tempo limite atual da solicitação; valores maiores são limitados a esse tempo.",
       "comboTimeoutMs": "Orçamento opcional de tempo total da combinação, medido pelo relógio, abrangendo todos os destinos de failover. Se ficar vazio, mantém a interrupção de segurança de 10 minutos; um valor positivo a substitui. Mantenha esse valor maior que o tempo limite do destino para que o failover ainda tenha tempo de ocorrer.",
       "disableSessionStickiness": "Alterna para uma conexão diferente a cada requisição, em vez de fixar toda a conversa em uma conexão pelo hash da primeira mensagem. Sobrescreve o padrão global. Deixe em Herdar para preservar acertos de cache de prompt em conversas com múltiplos turnos.",
-      "connectionAwareExpansion": "When on, this combo expands each provider-level step into per-account targets before rotating. Inherit uses the global default (off). Off keeps provider-level rotation.",
-      "stickyLimit": "Round-robin sticky batch size: consecutive successful requests sent to one target before rotating to the next. Empty inherits the global Sticky Limit setting; 1 disables batching (pure one-request rotation)."
+      "connectionAwareExpansion": "Quando ativado, este combo expande cada etapa no nível do provedor em destinos por conta antes de alternar. \"Herdar\" usa o padrão global (desativado). Desativado mantém a alternância no nível do provedor.",
+      "stickyLimit": "Tamanho do lote de persistência no round-robin: solicitações consecutivas bem-sucedidas enviadas a um destino antes de passar ao próximo. Vazio herda o Limite de persistência global; 1 desativa o lote (rotação pura de uma solicitação)."
     },
     "templatesTitle": "Templates rápidos",
     "templatesDescription": "Aplique um perfil inicial e depois ajuste modelos e configuração.",
@@ -3972,13 +3972,13 @@
     "sessionStickinessDisabled": "Fixação desativada",
     "stickyLimitEffective": "Effective {value} ({source})",
     "stickyLimitSourceCombo": "combo",
-    "stickyLimitSourceComboDefaults": "combo defaults",
-    "stickyLimitSourceGlobal": "global default",
-    "connectionAwareExpansion": "Connection-aware expansion",
+    "stickyLimitSourceComboDefaults": "padrões do combo",
+    "stickyLimitSourceGlobal": "padrão global",
+    "connectionAwareExpansion": "Expansão por conexão",
     "triStateInherit": "inherit",
     "connectionAwareExpansionOn": "On",
     "connectionAwareExpansionOff": "Off",
-    "promptCacheAffinityHint": "Prompt-cache locality routing takes precedence over round-robin/weighted rotation across pinned accounts. Turn it off under Settings, Combo defaults, if you need strict rotation.",
+    "promptCacheAffinityHint": "O roteamento por localidade do cache de prompts tem precedência sobre a rotação round-robin ou ponderada entre contas fixadas. Desative-o em Configurações, Padrões de combos, se precisar de rotação estrita.",
     "kimiPresetTitle": "Preset Kimi Coding",
     "kimiPresetDescription": "Kimi K3 como modelo primário (Moonshot API), com fallback automático para suas conexões Kimi Code (kimi-coding, kimi-web) quando configuradas.",
     "kimiPresetCta": "Adicionar preset",
@@ -4181,12 +4181,12 @@
     "cloudflaredNotInstalled": "Não instalado",
     "cloudflaredUnsupported": "Não compatível",
     "cloudflaredError": "Erro",
-    "cloudflaredStarted": "Cloudflare tunnel started",
-    "cloudflaredStopped": "Cloudflare tunnel stopped",
-    "cloudflaredRequestFailed": "Failed to update Cloudflare tunnel",
+    "cloudflaredStarted": "Túnel da Cloudflare iniciado",
+    "cloudflaredStopped": "Túnel da Cloudflare interrompido",
+    "cloudflaredRequestFailed": "Falha ao atualizar o túnel da Cloudflare",
     "cloudflaredTemporaryNote": "Quick Tunnel URLs are temporary and will change after restart.",
     "cloudflaredUnsupportedNote": "This platform is not supported for managed installation.",
-    "cloudflaredIdleNote": "Create a temporary Cloudflare Quick Tunnel for this endpoint.",
+    "cloudflaredIdleNote": "Crie um Cloudflare Quick Tunnel temporário para este endpoint.",
     "cloudflaredLastError": "Último erro: {error}",
     "providerModelsTitle": "{provider} — Modelos",
     "noModelsForProvider": "Nenhum modelo disponível para este provedor.",
@@ -5268,11 +5268,11 @@
     }
   },
   "providers": {
-    "codexReleaseCooldown": "Clear local cooldown",
-    "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
+    "codexReleaseCooldown": "Limpar cooldown local",
+    "codexReleaseCooldownHint": "Permite tentar esta conta do Codex novamente. Não resgata um crédito de redefinição nem altera os limites do provedor.",
     "codexReleasingCooldown": "Clearing…",
-    "codexCooldownReleased": "Local cooldown cleared.",
-    "codexCooldownReleaseFailed": "Could not clear cooldown. Please try again.",
+    "codexCooldownReleased": "Cooldown local limpo.",
+    "codexCooldownReleaseFailed": "Não foi possível limpar o cooldown. Tente novamente.",
     "title": "Provedores",
     "Account Deactivated": "Conta Desativada",
     "allProviders": "Todos os provedores",
@@ -5543,7 +5543,7 @@
     "modelsImported": "{count} modelos importados",
     "allModelsAlreadyImported": "Todos os modelos já foram importados",
     "noNewModelsToImport": "Nenhum modelo novo para importar — todos os modelos já estão no registro ou na lista de modelos personalizados",
-    "localCatalogFallbackStatus": "Couldn't reach the provider's model list — showing the built-in catalog",
+    "localCatalogFallbackStatus": "Não foi possível acessar a lista de modelos do provedor — exibindo o catálogo integrado",
     "skippingExistingModels": "Ignorando {count} modelos existentes",
     "autoSync": "Sincronização automática",
     "autoSyncShort": "Sincronizar",
@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Padrão (automático)",
     "targetFormatGemini": "Gêmeos",
     "targetFormatAntigravity": "Antigravidade",
+    "maxOutputTokenOverrideLabel": "Máximo de tokens de saída",
+    "maxOutputTokenOverrideHint": "Informe um número inteiro positivo de tokens. Deixe em branco para usar o valor padrão.",
     "contextWindowOverrideLabel": "Substituição de Janela de Contexto",
     "contextWindowOverridePlaceholder": "ex.: 131072",
     "contextWindowOverrideHint": "Define manualmente a janela de contexto real (tokens) deste modelo quando o provedor a reporta incorretamente. Tem prioridade sobre os valores detectados automaticamente/do catálogo e evita que o roteamento de combo descarte o modelo.",
@@ -6197,8 +6199,8 @@
     "validationModelIdHint": "Usado como fallback se a listagem de modelos não estiver disponível.",
     "validationModelIdLabel": "ID do Modelo (opcional)",
     "validationModelIdPlaceholder": "ex.: grok-3 ou meta-llama/Llama-3.1-8B-Instruct",
-    "vertexCredentialLabel": "API Key or Service Account JSON",
-    "vertexCredentialHint": "API keys use the curated project catalog. Service Account JSON enables live Model Garden discovery.",
+    "vertexCredentialLabel": "Chave de API ou JSON da conta de serviço",
+    "vertexCredentialHint": "Chaves de API usam o catálogo curado do projeto. O JSON da conta de serviço habilita a descoberta ao vivo no Model Garden.",
     "vertexServiceAccountPlaceholder": "Cole uma chave de API, o JSON da Service Account ('{\"type\":\"service_account\",\"project_id\":\"…\",\"client_email\":\"…\",\"private_key\":\"…\"}') ou um token de acesso OAuth",
     "webCookieProviders": "Provedores Web / Cookie",
     "weeklyShort": "Semanal",
@@ -6727,10 +6729,10 @@
     "searchByModelAria": "Pesquisar por modelo",
     "selectSupportedEndpoint": "Selecione pelo menos um endpoint suportado",
     "antigravityClientProfileHarness": "Harness / CLI",
-    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyLabel": "Limites de concorrência por modelo",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
-    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "rateLimitOverridesModelConcurrencyHint": "Opcional: um modelo=limite por linha, comparado com o ID exato do modelo no provedor. As solicitações excedentes ficam em fila localmente; em branco significa sem limite por modelo.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Entrada de concorrência por modelo inválida \"{entry}\" — use modelo=limite com um número inteiro de 1 a {max}.",
     "codexPaidCreditsShort": "Créditos extras",
     "codexPaidCreditsToggleTitle": "Permitir créditos pagos do Codex após o esgotamento da cota da assinatura (cobranças adicionais podem ser aplicadas)",
     "codexPaidCreditsEnabled": "Créditos pagos do Codex habilitados (cobranças adicionais podem ser aplicadas)",
@@ -7087,10 +7089,10 @@
         "NEEDS_CORE_NOT_CONFIGURED": "Esta assinatura tem nós que precisam de um core local (SS/VMess/Trojan/VLESS); eles não são roteados até você configurar o endpoint SOCKS5 do core local.",
         "NO_USABLE_NODES": "A assinatura não retornou nós utilizáveis (http/https/socks5 ou nós com endpoint de core local).",
         "SELECTOR_SWITCH_FAILED": "A chamada de controle do proxy-core falhou; a rota anterior continua ativa. Verifique a URL e o segredo de controle e atualize.",
-        "CORE_CONFIG_NOT_GENERATED": "The local-core config was not generated; the adopted file is unchanged. Check the path and refresh.",
+        "CORE_CONFIG_NOT_GENERATED": "A configuração do núcleo local não foi gerada; o arquivo adotado não mudou. Verifique o caminho e atualize.",
         "CORE_CONFIG_NOT_APPLIED": "A configuração central gerada não pôde substituir o arquivo adotado; a cópia ao lado foi mantida.",
-        "CORE_RELOAD_UNDECLARED": "No reload channel is declared for the replaced core config. Declare one: a control URL on a compatible core, the OMNIROUTE_PROXY_CORE_RELOAD_COMMAND variable as a JSON argument array, or the value external for an outside observer.",
-        "CORE_RELOAD_FAILED": "The proxy core reload failed; the new config file stays in place. Check the reload command, then refresh.",
+        "CORE_RELOAD_UNDECLARED": "Nenhum canal de recarga foi declarado para a configuração do núcleo substituída. Declare um: uma URL de controle em um núcleo compatível, a variável OMNIROUTE_PROXY_CORE_RELOAD_COMMAND como um array JSON de argumentos, ou o valor external para um observador externo.",
+        "CORE_RELOAD_FAILED": "Falha ao recarregar o núcleo do proxy; o novo arquivo de configuração permanece. Verifique o comando de recarga e atualize.",
         "CORE_CONFIG_ENTRIES_SKIPPED": "Algumas entradas foram ignoradas durante a geração. Consulte o log do servidor."
       },
       "description": "Cole o link de assinatura do seu proxy. Uma vez ativado, o tráfego é roteado através do pool de proxy no modo global ou de regra (Provedor especificado). Os nós de assinatura são sincronizados automaticamente no pool de proxy e reutilizam mecanismos existentes de pesquisa, verificação de integridade e antivazamento.",
@@ -7178,10 +7180,10 @@
       "lastSwitchMember": "Membro em atendimento",
       "nextSwitch": "Próxima troca possível",
       "nextSwitchNow": "Agora",
-      "coreConfigPath": "Core config file",
+      "coreConfigPath": "Arquivo de configuração do núcleo",
       "coreConfigPathPlaceholder": "/var/lib/omniroute/sing-box/config.json",
-      "coreConfigPathDesc": "Absolute .json path (lowercase extension). Empty = no generation. Each sync writes '<path>'.generated beside the adopted file, never into it.",
-      "lastSwitchKind": "Switch reason",
+      "coreConfigPathDesc": "Caminho absoluto de um .json (extensão em minúsculas). Vazio = sem geração. Cada sincronização grava '<caminho>'.generated ao lado do arquivo adotado, nunca dentro dele.",
+      "lastSwitchKind": "Motivo da troca",
       "switchKind": {
         "ip_quota_429": "quota",
         "proxy_unreachable": "unreachable",
@@ -10982,7 +10984,7 @@
     "behavior": "Comportamento do cache",
     "behaviorDeterministic": "Somente solicitações sem streaming com temperature=0 são armazenadas em cache.",
     "behaviorBypass": "Ignore o cache com o cabeçalho {header}.",
-    "behaviorTwoTier": "Two-tier storage: in-memory LRU (fast) + SQLite (persistent across restarts).",
+    "behaviorTwoTier": "Armazenamento em dois níveis: LRU em memória (rápido) + SQLite (persistente entre reinicializações).",
     "behaviorTtl": "TTL padrão: 30 minutos. Configure por meio de {envVar}.",
     "idempotency": "Camada de idempotência",
     "activeDedupKeys": "Chaves de desduplicação ativas",
@@ -13581,7 +13583,7 @@
         "description": "Ativa o acesso à rede no sandbox de skills."
       },
       "SERVER_OWNED_TOOL_LOOP_ENABLED": {
-        "label": "Server-Owned Tool Loop",
+        "label": "Loop de ferramentas controlado pelo servidor",
         "description": "Continue chamadas de ferramentas do servidor (server-owned) em não-streaming até que o modelo retorne uma resposta utilizável pelo cliente."
       },
       "RETRY_AFTER_PROVENANCE_ENABLED": {
