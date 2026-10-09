@@ -1014,7 +1014,7 @@ export function readStaleSwitchWarning(subscriptionId: string): string | null {
       .get(subscriptionId) as { selector_last_switch_result?: unknown } | undefined;
     const result =
       typeof row?.selector_last_switch_result === "string" ? row.selector_last_switch_result : null;
-    if (!result || result === "ok") return null;
+    if (!result || result === "ok" || result === "throttled") return null;
     return subscriptionErrorCode("SELECTOR_SWITCH_FAILED", result);
   } catch {
     return null;
@@ -1041,7 +1041,7 @@ export async function recordSelectorSwitchOutcome(args: {
               selector_last_switch_member = ?, selector_last_switch_kind = ?, updated_at = ?
         WHERE id = ?`
     ).run(now, args.result, args.member ?? null, args.kind ?? null, now, args.subscriptionId);
-    if (args.result !== "ok") {
+    if (args.result !== "ok" && args.result !== "throttled") {
       db.prepare(
         `UPDATE proxy_subscriptions SET error = ?, updated_at = ? WHERE id = ? AND status = 'ok'`
       ).run(subscriptionErrorCode("SELECTOR_SWITCH_FAILED", args.result), now, args.subscriptionId);
