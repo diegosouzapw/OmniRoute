@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Način storitve Codex za ta ključ API",
+    "description": "Velja za zahteve Codex, vključno z modeli Codex znotraj kombinacij. Vsiljeni načini preglasijo odjemalca, globalne nastavitve in privzete nastavitve povezave. Drugi ponudniki ostanejo nespremenjeni.",
+    "label": "Način storitve",
+    "inherit": "Podeduj obstoječe vedenje",
+    "default": "Vsili Standard (privzeto)",
+    "priority": "Vsili Fast / Priority",
+    "flex": "Vsili Flex",
+    "warning": "To ne omogoča dostopa do ponudnika. Razpoložljivost, stroški in poraba kvote so odvisni od vašega računa Codex in modela. Vsiljeni načini zahtevajo prenos prek HTTP ali Responses WebSocket; zahteve app-server so zavrnjene.",
+    "confirm": "Želite za ta ključ API uporabiti »{mode}«? Sprememba začne veljati za naslednje zahteve.",
+    "save": "Shrani način",
+    "retry": "Poskusi znova",
+    "loadError": "Shranjenega načina storitve ni bilo mogoče naložiti.",
+    "saveError": "Načina storitve ni bilo mogoče shraniti. Poskusite znova."
+  },
   "common": {
     "save": "Shrani",
     "cancel": "Prekliči",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Zahteve z izčrpanim proračunom usmeri k brezplačnemu ponudniku/modelu za zasilni preklop.",
   "featureFlagArenaEloSyncEnabledDescription": "Omogoči redno sinhronizacijo ocen ELO z lestvice Arena AI za razvrščanje inteligentnosti modelov.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Ustvari in vstavi povzetke pogovorov, ko kombinirano usmerjanje preklopi med modeli. Onemogoči, če želiš preklapljanje med modeli obravnavati neodvisno in preprečiti zahteve za predajo v ozadju za vse obstoječe in prihodnje kombinacije.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Objavi zrcalne ID-je claude/&lt;provider&gt;/&lt;model&gt; na /v1/models, da odkrivanje modelov prehoda Claude Code prikaže tudi modele, ki niso Claude. Opozorilo: če je možnost omogočena globalno, se število vnosov v katalogu podvoji za vse odjemalce.",
   "featureFlagNoThinkingAliasEnabledDescription": "Glavno stikalo za vzdevke prehoda no-think/&lt;provider&gt;/&lt;model&gt;. Vklopljeno (privzeto): /v1/models objavi različico brez razmišljanja za vsak primeren model Claude, ki podpira razmišljanje, ID no-think/, poslan v zahtevi, pa se razreši nazaj v pravi model z onemogočenim sklepanjem. Izklopljeno: različice niso objavljene, ID no-think/ pa se obravnava kot kateri koli drug neznan ID modela. Ko je ta možnost vklopljena, še vedno velja nastavitev ModelSpec.noThinkingAlias za vključitev ali izključitev posameznega modela.",
   "featureFlagChatVirtualLanesEnabledDescription": "Omogoči prilagodljive navidezne sprejemne pasove za posameznega najemnika pri posredovanju ponudniku (#9654): nenaden porast zahtev enega najemnika ne povzroča več napak 503 pri drugem. Spremenljivka okolja OMNIROUTE_CHAT_VIRTUAL_LANES ima prednost pred to nastavitvijo nadzorne plošče; spremembe začnejo veljati po ponovnem zagonu strežnika.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Pogled v živo na vse, kar se izvaja",
     "resilienceConnections": "Odpornost povezave",
     "resilienceConnectionsSubtitle": "Stanje obdobja mirovanja, odklopnika in zaklepa",
+    "resilienceCooldowns": "Upravitelj ohlajanja",
+    "resilienceCooldownsSubtitle": "Množično počisti ohlajanja",
     "settingsModalityBridge": "Most med modalnostmi",
     "settingsModalityBridgeSubtitle": "Slika/zvok → nadomestna pretvorba v besedilo za modele, ki podpirajo samo besedilo",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Analitika uporabe",
+    "tokenDisplayCompact": "Strnjeno",
+    "tokenDisplayExact": "Natančno",
+    "tokenDisplayMode": "Način prikaza žetonov",
     "diversityScoreTitle": "Raznolikost ponudnikov",
     "diversityScoreDesc": "Pregled koncentracije ponudnikov v nedavnem obdobju prometa.",
     "diversityShannonEntropy": "Shannonova entropija",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Vgrajene kombinacije auto/*, ki se dinamično razrešijo na podlagi povezanih ponudnikov. Katerega koli od teh ID-jev lahko uporabite kot polje modela — nastavitev ni potrebna.",
     "autoCatalogExpand": "Razširi katalog samodejnega usmerjanja",
     "autoCatalogCollapse": "Strni katalog samodejnega usmerjanja",
+    "autoCatalogComboCount": "{count} kombinacij",
+    "autoCatalogCandidates": "{count} kandidatov",
+    "autoCatalogNoCandidates": "Brez ujemajočih se ponudnikov",
+    "autoCatalogKindVariant": "različica",
+    "autoCatalogKindTemplate": "predloga",
+    "autoCatalogKindCategory": "kategorija",
+    "autoCatalogKindFamily": "družina",
+    "autoComboTestTruncated": "Preizkušeno {tested} od {total} aktivnih kandidatov (najvišje teže najprej).",
+    "controlCenter": "Nadzorni center",
     "createCombo": "Ustvari kombinacijo",
     "editCombo": "Uredi kombinacijo",
     "deleteCombo": "Izbriši kombinacijo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Aktiven",
     "showModel": "Prikaži model",
     "hideModel": "Skrij model",
+    "blacklistModel": "Blokiraj",
+    "blacklistModelTooltip": "Blokiraj ta model in ga skrij iz kataloga",
     "removeModel": "Odstrani model",
     "rateLimitProtected": "Zaščiten",
     "rateLimitUnprotected": "Nezaščiten",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Nastavitve končne točke modela so shranjene",
     "searchByModelAria": "Iskanje po modelu",
     "selectSupportedEndpoint": "Izberite vsaj eno podprto končno točko",
-    "antigravityClientProfileHarness": "Ogrodje / CLI"
+    "antigravityClientProfileHarness": "Ogrodje / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Nastavitve",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Posodobljeno",
     "lastRefreshed": "Nazadnje osveženo",
     "providerQuota": "Kvota ponudnika",
-    "providerQuotaHomeHint": "Stanje povezanih računov v živo"
+    "providerQuotaHomeHint": "Stanje povezanih računov v živo",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Čakanje na avtorizacijo",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Zaklepi modelov",
         "count": "Število povezav"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Upravitelj ohlajanja",
+    "description": "Oglejte si vse povezave, ki počivajo po napakah, množično odstranite ohlajanja in prilagodite njihovo trajanje.",
+    "loading": "Nalaganje ohlajanj …",
+    "loadFailed": "Ohlajanj ni bilo mogoče naložiti",
+    "loadFailedDetail": "Preverite povezavo in osvežite stran.",
+    "rules": {
+      "title": "Pravila ohlajanja",
+      "subtitle": "Uveljavi za vsako povezavo od njene naslednje napake naprej.",
+      "stallLabel": "Uveljavi ohlajanje računa ob zastoju pretakanja",
+      "stallDescription": "Privzeto izklopljeno: zastoj običajno pomeni le en dolg cikel razmišljanja in ne okvarjenega računa.",
+      "oauth": "Računi OAuth",
+      "apikey": "Ključi API",
+      "baseCooldown": "Osnovno ohlajanje (sekunde)",
+      "baseCooldownHint": "Prvo ohlajanje po napaki. Ponovljene napake ga podvojijo.",
+      "maxBackoffSteps": "Največje število korakov umika",
+      "maxBackoffStepsHint": "Kolikokrat se lahko čas ohlajanja podvoji.",
+      "save": "Shrani pravila",
+      "saved": "Pravila ohlajanja so shranjena",
+      "saveFailed": "Pravil ohlajanja ni bilo mogoče shraniti"
+    },
+    "list": {
+      "title": "Povezave izven usmerjanja",
+      "subtitle": "Ohlajanja in zapore modelov se zaključijo sami. Počistite jih, če želite povezavo takoj vrniti v usmerjanje.",
+      "provider": "Ponudnik",
+      "allProviders": "Vsi ponudniki",
+      "showHealthy": "Pokaži zdrave povezave",
+      "refresh": "Osveži",
+      "clearSelected": "Počisti izbrano ({count})",
+      "clearAll": "Počisti vse",
+      "clear": "Počisti",
+      "select": "Izberite povezavo",
+      "none": "Brez",
+      "empty": "Nobena povezava ni izven usmerjanja.",
+      "cleared": "Počiščenih {cleared} povezav in {lockouts} zapor modelov. Preskočenih {skipped} blokiranih ali poteklih.",
+      "clearFailed": "Ohlajanj ni bilo mogoče počistiti",
+      "columns": {
+        "connection": "Povezava",
+        "provider": "Ponudnik",
+        "status": "Stanje",
+        "remaining": "Preostali čas",
+        "lockouts": "Zapore modelov",
+        "lastError": "Zadnja napaka"
+      }
+    },
+    "status": {
+      "cooling_down": "Ohlajanje",
+      "model_locked": "Model zaklenjen",
+      "unavailable": "Ni na voljo",
+      "terminal": "Zahteva pozornost",
+      "healthy": "Brezhibno"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Zavrni zahteve pred posredovanjem, ko ciljni model nima zahtevanih zmogljivosti (slikovni vhod, orodja, strukturiran izhod, kontekstno okno). Ščiti neposredne zahteve za enega ponudnika, ki obidejo filter združljivosti kombinacijskega sloja.",

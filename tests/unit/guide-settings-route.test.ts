@@ -17,6 +17,7 @@ const HERMES_CONFIG_PATH = path.join(DUMMY_HOME, ".config", "hermes", "config.js
 const originalXDG = process.env.XDG_CONFIG_HOME;
 const originalAppData = process.env.APPDATA;
 const originalJwtSecret = process.env.JWT_SECRET;
+const originalAllowContainerWrite = process.env.OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE;
 
 async function createAuthCookie() {
   process.env.JWT_SECRET = "test-cli-tools-secret";
@@ -52,6 +53,10 @@ test.beforeEach(async () => {
   process.env.XDG_CONFIG_HOME = path.join(DUMMY_HOME, ".config");
   process.env.APPDATA = path.join(DUMMY_HOME, ".config");
   process.env.API_KEY_SECRET = "test-secret";
+  // This suite exercises the config write/merge path, not the container guard
+  // (#10057, covered by cli-container-write-guard tests) — keep it hermetic on
+  // container devboxes/CI runners where /.dockerenv makes the guard answer 422.
+  process.env.OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE = "1";
 });
 
 test.afterEach(async () => {
@@ -64,6 +69,9 @@ test.afterEach(async () => {
   else process.env.APPDATA = originalAppData;
   if (originalJwtSecret === undefined) delete process.env.JWT_SECRET;
   else process.env.JWT_SECRET = originalJwtSecret;
+  if (originalAllowContainerWrite === undefined)
+    delete process.env.OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE;
+  else process.env.OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE = originalAllowContainerWrite;
 });
 
 test("guide-settings POST creates new hermes config.yaml if it doesn't exist", async () => {

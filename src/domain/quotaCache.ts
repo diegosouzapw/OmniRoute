@@ -57,6 +57,7 @@ import {
   unmarkQuotaHealthy,
   isQuotaHealthy,
 } from "./quotaCacheState";
+import { isCodexPaidCreditsEnabled } from "@/lib/providers/codexPaidCredits";
 
 // Keep markQuotaHealthy's public import path; the remaining leaf state stays internal.
 export { markQuotaHealthy } from "./quotaCacheState";
@@ -663,6 +664,9 @@ export function isQuotaExhaustedForRequest(
   if (isQuotaHealthy(connectionId)) return false;
   if (isCodexQuotaFilteringDisabled(provider, providerSpecificData)) return false;
   if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
+  // Subscription snapshots cannot decide paid-credit eligibility. The mandatory
+  // Codex preflight checks the credit balance before dispatch; cooldowns remain separate.
+  if (isCodexPaidCreditsEnabled(provider, providerSpecificData, requestedModel)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
 

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-servicetilstand for denne API-nøgle",
+    "description": "Gælder for Codex-anmodninger, herunder Codex-modeller i kombinationer. Tvungne tilstande tilsidesætter klienten, globale indstillinger og forbindelsens standardindstillinger. Andre udbydere forbliver uændrede.",
+    "label": "Servicetilstand",
+    "inherit": "Arv eksisterende adfærd",
+    "default": "Gennemtving Standard (standard)",
+    "priority": "Gennemtving Fast / Priority",
+    "flex": "Gennemtving Flex",
+    "warning": "Dette giver ikke adgang hos udbyderen. Tilgængelighed, priser og kvoteforbrug afhænger af din Codex-konto og model. Tvungne tilstande kræver HTTP- eller Responses WebSocket-transport; app-server-anmodninger afvises.",
+    "confirm": "Anvend “{mode}” på denne API-nøgle? Dette træder i kraft for efterfølgende anmodninger.",
+    "save": "Gem tilstand",
+    "retry": "Prøv igen",
+    "loadError": "Den gemte servicetilstand kunne ikke indlæses.",
+    "saveError": "Servicetilstanden kunne ikke gemmes. Prøv igen."
+  },
   "common": {
     "save": "Gem",
     "cancel": "Annuller",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Diriger budgetudtømte anmodninger til den gratis nød-fallback-udbyder/-model.",
   "featureFlagArenaEloSyncEnabledDescription": "Aktivér periodisk ELO-synkronisering fra Arena AI-førertavlen til rangering af modelintelligens.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generér og indsæt samtaleresuméer, når combo-routing skifter model. Deaktiver dette for at behandle modelskift uafhængigt og forhindre baggrundsanmodninger om overdragelse for alle eksisterende og fremtidige comboer.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache og afspil modellens ræsonnement på tværs af samtaler med flere ture. Deaktiver for at stoppe lagring og genindsættelse af ræsonnement.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Reklamer claude/&lt;provider&gt;/&lt;model&gt; spejl-id'er på /v1/models, så Claude Code gateway modelopdagelse viser ikke-Claude modeller. Advarsel: fordobler katalogposter for alle klienter, når det er aktiveret globalt.",
   "featureFlagNoThinkingAliasEnabledDescription": "Hovedafbryder for gateway-aliaserne no-think/&lt;provider&gt;/&lt;model&gt;. Til (standard): /v1/models viser en variant uden ræsonnering for hver kvalificeret Claude-model med ræsonneringsfunktion, og et no-think/-id, der sendes i en anmodning, fortolkes som den rigtige model med ræsonnering deaktiveret. Fra: Der vises ingen varianter, og et no-think/-id behandles som ethvert andet ukendt model-id. Til- og fravalget ModelSpec.noThinkingAlias for hver model gælder fortsat, mens dette er slået til.",
   "featureFlagChatVirtualLanesEnabledDescription": "Aktivér adaptive virtuelle adgangsbaner pr. tenant til providerudlevering (#9654): en tenants burst giver ikke længere en anden 503. Miljøvariablen OMNIROUTE_CHAT_VIRTUAL_LANES har forrang over denne dashboard-indstilling; ændringer træder i kraft ved genstart af serveren.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Live-visning af alt, der kører",
     "resilienceConnections": "Forbindelsesresiliens",
     "resilienceConnectionsSubtitle": "Cooldown, afbryder, lockout-status",
+    "resilienceCooldowns": "Cooldown Manager",
+    "resilienceCooldownsSubtitle": "Ryd cooldowns samlet",
     "settingsModalityBridge": "Modality Bro",
     "settingsModalityBridgeSubtitle": "Billede/lyd → tekst fallback for tekst-only modeller",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analyse",
     "usageAnalyticsTitle": "Forbrugsanalyser",
+    "tokenDisplayCompact": "Kompakt",
+    "tokenDisplayExact": "Præcis",
+    "tokenDisplayMode": "Visningstilstand for tokens",
     "diversityScoreTitle": "Udbyder mangfoldighed",
     "diversityScoreDesc": "Øjebliksbillede af udbyderkoncentration for det seneste trafikvindue.",
     "diversityShannonEntropy": "Shannon-entropi",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Indbyggede auto/*-kombinationer løst dynamisk fra tilsluttede udbydere. Brug et af disse id'er som modelfelt - ingen opsætning nødvendig.",
     "autoCatalogExpand": "Udvid auto-routing-kataloget",
     "autoCatalogCollapse": "Skjul kataloget til automatisk routing",
+    "autoCatalogComboCount": "{count} combos",
+    "autoCatalogCandidates": "{count} kandidater",
+    "autoCatalogNoCandidates": "Ingen matchende udbydere",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "skabelon",
+    "autoCatalogKindCategory": "kategori",
+    "autoCatalogKindFamily": "familie",
+    "autoComboTestTruncated": "Testet {tested} af {total} aktive kandidater (højeste vægte først).",
+    "controlCenter": "Kontrolcenter",
     "createCombo": "Opret Combo",
     "editCombo": "Rediger kombination",
     "deleteCombo": "Slet Combo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktive",
     "showModel": "Vis model",
     "hideModel": "Skjul model",
+    "blacklistModel": "Bloker",
+    "blacklistModelTooltip": "Bloker denne model og skjul den fra kataloget",
     "removeModel": "Fjern modellen",
     "rateLimitProtected": "Beskyttet",
     "rateLimitUnprotected": "Ubeskyttet",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Indstillinger for gemt model endpoint",
     "searchByModelAria": "Søg efter model",
     "selectSupportedEndpoint": "Vælg mindst én understøttet endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Indstillinger",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Opdateret",
     "lastRefreshed": "Sidst opdateret",
     "providerQuota": "Udbyderkvote",
-    "providerQuotaHomeHint": "Livestatus på tværs af tilknyttede konti"
+    "providerQuotaHomeHint": "Livestatus på tværs af tilknyttede konti",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Venter på autorisation",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Modellåsninger",
         "count": "Antal Forbindelser"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown Manager",
+    "description": "Se alle forbindelser, der hviler efter fejl, fjern cooldowns samlet, og juster, hvor længe de varer.",
+    "loading": "Indlæser cooldowns…",
+    "loadFailed": "Kunne ikke indlæse cooldowns",
+    "loadFailedDetail": "Tjek din forbindelse, og genindlæs siden.",
+    "rules": {
+      "title": "Cooldown-regler",
+      "subtitle": "Gælder for alle forbindelser fra næste fejl.",
+      "stallLabel": "Sæt en konto på cooldown, når en stream går i stå",
+      "stallDescription": "Deaktiveret som standard: Et stop betyder normalt en lang ræsonneringsrunde, ikke en defekt konto.",
+      "oauth": "OAuth-konti",
+      "apikey": "API-nøgler",
+      "baseCooldown": "Basis-cooldown (sekunder)",
+      "baseCooldownHint": "Første cooldown efter en fejl. Gentagne fejl fordobler den.",
+      "maxBackoffSteps": "Maksimalt antal backoff-trin",
+      "maxBackoffStepsHint": "Hvor mange gange cooldownen kan fordobles.",
+      "save": "Gem regler",
+      "saved": "Cooldown-regler er gemt",
+      "saveFailed": "Kunne ikke gemme cooldown-reglerne"
+    },
+    "list": {
+      "title": "Forbindelser ude af routing",
+      "subtitle": "Cooldowns og modellåsninger udløber af sig selv. Ryd dem for at bringe en forbindelse tilbage i routing nu.",
+      "provider": "Udbyder",
+      "allProviders": "Alle udbydere",
+      "showHealthy": "Vis sunde forbindelser",
+      "refresh": "Opdater",
+      "clearSelected": "Ryd valgte ({count})",
+      "clearAll": "Ryd alle",
+      "clear": "Ryd",
+      "select": "Vælg forbindelse",
+      "none": "Ingen",
+      "empty": "Ingen forbindelser er ude af routing.",
+      "cleared": "Ryddede {cleared} forbindelser og {lockouts} modellåsninger. Sprang {skipped} blokerede eller udløbne over.",
+      "clearFailed": "Kunne ikke rydde cooldowns",
+      "columns": {
+        "connection": "Forbindelse",
+        "provider": "Udbyder",
+        "status": "Status",
+        "remaining": "Resterende tid",
+        "lockouts": "Modellåsninger",
+        "lastError": "Sidste fejl"
+      }
+    },
+    "status": {
+      "cooling_down": "Køler ned",
+      "model_locked": "Model låst",
+      "unavailable": "Utilgængelig",
+      "terminal": "Kræver opmærksomhed",
+      "healthy": "Sund"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Afvis anmodninger før afsendelse, når målmodellen mangler de nødvendige funktioner (vision, værktøjer, struktureret output, kontekstvindue). Beskytter direkte anmodninger fra en enkelt udbyder, der omgår kombinationslagets kompatibilitetsfilter.",

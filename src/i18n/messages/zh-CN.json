@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "此 API 密钥的 Codex 服务模式",
+    "description": "适用于 Codex 请求，包括组合中的 Codex 模型。强制模式会覆盖客户端、全局设置和连接默认值。其他提供商不受影响。",
+    "label": "服务模式",
+    "inherit": "继承现有行为",
+    "default": "强制使用标准模式（默认）",
+    "priority": "强制使用快速／优先模式",
+    "flex": "强制使用弹性模式",
+    "warning": "此设置不会授予提供商访问权限。可用性、费用和配额消耗取决于您的 Codex 账户和模型。强制模式要求使用 HTTP 或 Responses WebSocket 传输；app-server 请求将被拒绝。",
+    "confirm": "要将“{mode}”应用于此 API 密钥吗？此设置将对后续请求生效。",
+    "save": "保存模式",
+    "retry": "重试",
+    "loadError": "无法加载已保存的服务模式。",
+    "saveError": "无法保存服务模式。请重试。"
+  },
   "common": {
     "save": "保存",
     "cancel": "取消",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "将预算耗尽的请求路由到紧急免费备用提供者/模型。",
   "featureFlagArenaEloSyncEnabledDescription": "启用定期同步 Arena AI 排行榜 ELO，用于模型智能排名。",
   "featureFlagUniversalContextHandoffEnabledDescription": "在组合路由切换模型时生成并注入对话摘要。禁用后会独立处理模型切换，并阻止所有现有及未来组合的后台交接请求。",
+  "featureFlagReasoningReplayEnabledDescription": "在多轮对话中缓存并回放模型推理。禁用以停止存储和重新注入推理。",
   "featureFlagExposeCcDiscoveryAliasesDescription": "在 /v1/models 上发布 claude/&lt;provider&gt;/&lt;model&gt; 镜像 ID，让 Claude Code 网关模型发现能列出非 Claude 模型。警告：全局启用会使所有客户端的目录条目翻倍。",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 网关别名的总开关。开启（默认）：/v1/models 会为每个符合条件且支持思考的 Claude 模型公布一个无思考变体，请求中发送的 no-think/ ID 会解析回实际模型，并抑制推理。关闭：不会公布任何变体，no-think/ ID 会像其他未知模型 ID 一样处理。开启此开关时，每个模型的 ModelSpec.noThinkingAlias 选择启用/停用设置仍然适用。",
   "featureFlagChatVirtualLanesEnabledDescription": "为提供者调度启用按租户的自适应虚拟准入通道（#9654）：一个租户的突发流量不再导致另一个租户收到 503。OMNIROUTE_CHAT_VIRTUAL_LANES 环境变量优先于此仪表板设置；更改在服务器重启后生效。",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "实时查看所有正在运行的内容",
     "resilienceConnections": "连接韧性",
     "resilienceConnectionsSubtitle": "冷却、断路器、锁定状态",
+    "resilienceCooldowns": "冷却管理器",
+    "resilienceCooldownsSubtitle": "批量清除冷却",
     "settingsModalityBridge": "模态桥",
     "settingsModalityBridgeSubtitle": "图像/音频 → 仅限文本模型的文本回退",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "分析",
     "usageAnalyticsTitle": "用量分析",
+    "tokenDisplayCompact": "紧凑",
+    "tokenDisplayExact": "精确",
+    "tokenDisplayMode": "Token 显示模式",
     "diversityScoreTitle": "供应商多元化",
     "diversityScoreDesc": "近期流量窗口内提供者集中度的快照。",
     "diversityShannonEntropy": "香农熵",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "内置 auto/* 组合，从已连接的提供者动态解析。直接将这些 ID 作为 model 字段使用——无需设置。",
     "autoCatalogExpand": "展开自动路由目录",
     "autoCatalogCollapse": "收起自动路由目录",
+    "autoCatalogComboCount": "{count} 组合",
+    "autoCatalogCandidates": "{count} 候选人",
+    "autoCatalogNoCandidates": "没有匹配的提供者",
+    "autoCatalogKindVariant": "变体",
+    "autoCatalogKindTemplate": "模板",
+    "autoCatalogKindCategory": "类别",
+    "autoCatalogKindFamily": "家族",
+    "autoComboTestTruncated": "测试了 {tested} 个中的 {total} 个实时候选人（按最高权重优先）。",
+    "controlCenter": "控制中心",
     "createCombo": "创建组合",
     "editCombo": "编辑组合",
     "deleteCombo": "删除组合",
@@ -5560,6 +5590,8 @@
     "modelsActive": "已启用",
     "showModel": "显示模型",
     "hideModel": "隐藏模型",
+    "blacklistModel": "拉黑",
+    "blacklistModelTooltip": "将此模型拉黑并从目录中隐藏",
     "removeModel": "删除模型",
     "rateLimitProtected": "受保护",
     "rateLimitUnprotected": "无保护",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "已保存的模型端点设置",
     "searchByModelAria": "按型号搜索",
     "selectSupportedEndpoint": "请选择至少一个支持的端点",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "设置",
@@ -10077,7 +10120,11 @@
     "updatedShort": "更新于",
     "lastRefreshed": "上次刷新",
     "providerQuota": "提供者配额",
-    "providerQuotaHomeHint": "已连接账户的实时状态"
+    "providerQuotaHomeHint": "已连接账户的实时状态",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "等待授权",
@@ -14214,6 +14261,59 @@
       }
     }
   },
+  "resilienceCooldowns": {
+    "title": "冷却管理器",
+    "description": "查看因失败而处于休眠状态的所有连接，批量解除冷却，并调整冷却持续时间。",
+    "loading": "正在加载冷却状态…",
+    "loadFailed": "无法加载冷却状态",
+    "loadFailedDetail": "请检查网络连接并刷新页面。",
+    "rules": {
+      "title": "冷却规则",
+      "subtitle": "自下次失败起应用于每个连接。",
+      "stallLabel": "流传输卡顿时对账号进行冷却",
+      "stallDescription": "默认关闭：卡顿通常意味着单次推理耗时较长，而非账号失效。",
+      "oauth": "OAuth 账号",
+      "apikey": "API 密钥",
+      "baseCooldown": "基础冷却时间（秒）",
+      "baseCooldownHint": "失败后的首次冷却时间。多次连续失败将翻倍。",
+      "maxBackoffSteps": "最大退避次数",
+      "maxBackoffStepsHint": "冷却时间允许翻倍的最大次数。",
+      "save": "保存规则",
+      "saved": "冷却规则已保存",
+      "saveFailed": "无法保存冷却规则"
+    },
+    "list": {
+      "title": "脱离路由的连接",
+      "subtitle": "冷却和模型锁定会自动结束。清除它们可立即将连接重新加入路由调度。",
+      "provider": "提供者",
+      "allProviders": "所有提供者",
+      "showHealthy": "显示健康连接",
+      "refresh": "刷新",
+      "clearSelected": "清除所选 ({count})",
+      "clearAll": "清除全部",
+      "clear": "清除",
+      "select": "选择连接",
+      "none": "无",
+      "empty": "没有脱离路由的连接。",
+      "cleared": "已清除 {cleared} 个连接和 {lockouts} 个模型锁定。已跳过 {skipped} 个已封禁或已过期的项。",
+      "clearFailed": "无法清除冷却",
+      "columns": {
+        "connection": "连接",
+        "provider": "提供者",
+        "status": "状态",
+        "remaining": "剩余时间",
+        "lockouts": "模型锁定",
+        "lastError": "最近错误"
+      }
+    },
+    "status": {
+      "cooling_down": "冷却中",
+      "model_locked": "模型已锁定",
+      "unavailable": "不可用",
+      "terminal": "需要关注",
+      "healthy": "健康"
+    }
+  },
   "featureFlagCapabilityFilterEnabledDescription": "在目标模型缺少所需能力（视觉、工具、结构化输出、上下文窗口）时，拒绝调度前的请求。保护绕过组合层兼容性过滤器的直接单一提供者请求。",
   "featureFlagUsageLimitIgnoreUnpricedDescription": "在按密钥的 USD 使用配额中，将未定价模型的使用量计为 $0，而不是视为超出配额。默认关闭：未定价模型或路由别名可能会隐藏实际支出，因此配额采取故障闭合。",
   "featureFlagDisableContextWindowChecksDescription": "对于直接发送到单个模型的请求，跳过 OmniRoute 本地的上下文窗口和最大输入令牌检查。上游提供者仍会强制执行其实际限制。提示词压缩和输出令牌上限仍然有效。",
@@ -14743,7 +14843,7 @@
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "禁用在 /v1/models 目录中生成思考级别变体（例如 -low、-medium、-high）。",
   "connectionTest": {
     "title": "测试消息",
-    "description": "通过此账号发送一次真实请求。这会使用少量配额，并且可能会启动一个用量窗口，具体取决于提供商。",
+    "description": "通过此账号发送一次真实请求。这会使用少量配额，并且可能会启动一个用量窗口，具体取决于提供者。",
     "loading": "正在加载账号模型…",
     "model": "此账号的测试模型",
     "chooseModel": "选择模型",
@@ -14758,7 +14858,7 @@
     "answer": "模型响应",
     "failed": "请求失败。请重试。",
     "settingsTitle": "手动账号测试消息",
-    "settingsDescription": "此消息用于“连接”和“提供商配额”下的测试按钮。请为每个账号分别选择模型。保存不会发送消息或启用自动 Ping。",
+    "settingsDescription": "此消息用于“连接”和“提供者配额”下的测试按钮。请为每个账号分别选择模型。保存不会发送消息或启用自动 Ping。",
     "saveMessage": "保存消息",
     "defaultModel": "默认测试模型",
     "defaultModelHint": "此账号的“测试消息”按钮会自动使用该设置。该设置将随连接一起保存；不会发送任何消息。"

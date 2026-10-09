@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modul de serviciu Codex pentru această cheie API",
+    "description": "Se aplică solicitărilor Codex, inclusiv modelelor Codex din combinații. Modurile impuse suprascriu setările clientului, setările globale și valorile implicite ale conexiunii. Ceilalți furnizori rămân neschimbați.",
+    "label": "Mod de serviciu",
+    "inherit": "Moștenește comportamentul existent",
+    "default": "Impune Standard (implicit)",
+    "priority": "Impune Rapid / Prioritar",
+    "flex": "Impune Flex",
+    "warning": "Această opțiune nu acordă acces la furnizor. Disponibilitatea, costurile și consumul cotei depind de contul și modelul dvs. Codex. Modurile impuse necesită transport HTTP sau Responses WebSocket; solicitările app-server sunt respinse.",
+    "confirm": "Aplicați „{mode}” acestei chei API? Modificarea va intra în vigoare pentru solicitările ulterioare.",
+    "save": "Salvează modul",
+    "retry": "Reîncearcă",
+    "loadError": "Modul de serviciu salvat nu a putut fi încărcat.",
+    "saveError": "Modul de serviciu nu a putut fi salvat. Încercați din nou."
+  },
   "common": {
     "save": "Salvați",
     "cancel": "Anulează",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Redirecționează cererile cu buget epuizat către furnizorul/modelul de rezervă gratuit de urgență.",
   "featureFlagArenaEloSyncEnabledDescription": "Activează sincronizarea periodică ELO a clasamentului Arena AI pentru clasamentele de inteligență ale modelelor.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generați și inserați rezumate ale conversațiilor atunci când rutarea combinată schimbă modelele. Dezactivați opțiunea pentru a trata separat schimbările de model și pentru a împiedica solicitările de transfer în fundal pentru toate combinațiile existente și viitoare.",
+  "featureFlagReasoningReplayEnabledDescription": "Pune în cache și reia raționamentul modelului în conversațiile cu mai multe ture. Dezactivează pentru a opri stocarea și reintroducerea raționamentului.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Publica id-urile mirror claude/&lt;provider&gt;/&lt;model&gt; pe /v1/models astfel încât lista de descoperire a modelului Claude Code să includă modele non-Claude. Atenție: dublează intrările din catalog pentru toți clienții când este activat global.",
   "featureFlagNoThinkingAliasEnabledDescription": "Comutator principal pentru aliasurile gateway no-think/&lt;provider&gt;/&lt;model&gt;. Activat (implicit): /v1/models afișează o variantă fără raționament pentru fiecare model Claude eligibil care poate raționa, iar un id no-think/ trimis într-o solicitare este asociat din nou modelului real, cu raționamentul dezactivat. Dezactivat: nu este afișată nicio variantă, iar un id no-think/ este tratat ca orice alt id de model necunoscut. Opțiunea individuală de activare/dezactivare ModelSpec.noThinkingAlias pentru fiecare model se aplică în continuare cât timp această setare este activată.",
   "featureFlagChatVirtualLanesEnabledDescription": "Activați benzile de admitere virtuale adaptive per-tenant pentru expedierea către furnizori (#9654): un vârf de trafic al unui tenant nu mai returnează 503 altui tenant. Variabila de mediu OMNIROUTE_CHAT_VIRTUAL_LANES are prioritate față de această setare din panou; modificările intră în vigoare la repornirea serverului.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Vizualizare live a tot ce rulează",
     "resilienceConnections": "Reziliența Conexiunii",
     "resilienceConnectionsSubtitle": "Cooldown, întrerupător, stare de blocare",
+    "resilienceCooldowns": "Gestionar perioade de repaus",
+    "resilienceCooldownsSubtitle": "Elimină perioadele de repaus în masă",
     "settingsModalityBridge": "Podul de Modalitate",
     "settingsModalityBridgeSubtitle": "Fallback pentru text-only modele pentru imagine/audio → text",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analiză",
     "usageAnalyticsTitle": "Analiza utilizării",
+    "tokenDisplayCompact": "Compact",
+    "tokenDisplayExact": "Exact",
+    "tokenDisplayMode": "Mod de afișare a tokenilor",
     "diversityScoreTitle": "Diversitatea furnizorilor",
     "diversityScoreDesc": "Instantaneu al concentrării furnizorilor pentru fereastra recentă de trafic.",
     "diversityShannonEntropy": "Entropie Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Combo auto/* încorporate rezolvate dinamic de la furnizorii conectați. Utilizați oricare dintre aceste ID-uri ca câmp de model - nu este necesară configurarea.",
     "autoCatalogExpand": "Extindeți catalogul de rutare automată",
     "autoCatalogCollapse": "Restrânge catalogul de rutare automată",
+    "autoCatalogComboCount": "{count} combinații",
+    "autoCatalogCandidates": "{count} candidați",
+    "autoCatalogNoCandidates": "Niciun furnizor corespunzător",
+    "autoCatalogKindVariant": "variantă",
+    "autoCatalogKindTemplate": "șablon",
+    "autoCatalogKindCategory": "categorie",
+    "autoCatalogKindFamily": "familie",
+    "autoComboTestTruncated": "Testate {tested} din {total} candidați activi (cele mai mari greutăți mai întâi).",
+    "controlCenter": "Centrul de control",
     "createCombo": "Creați Combo",
     "editCombo": "Editează Combo",
     "deleteCombo": "Ștergeți Combo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "active",
     "showModel": "Afișează modelul",
     "hideModel": "Ascunde modelul",
+    "blacklistModel": "Blochează",
+    "blacklistModelTooltip": "Blochează acest model și ascunde-l din catalog",
     "removeModel": "Eliminați modelul",
     "rateLimitProtected": "Protejat",
     "rateLimitUnprotected": "Neprotejat",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Setările punctului final al modelului salvat",
     "searchByModelAria": "Caută după model",
     "selectSupportedEndpoint": "Selectați cel puțin un punct final acceptat",
-    "antigravityClientProfileHarness": "Cadru / CLI"
+    "antigravityClientProfileHarness": "Cadru / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Setări",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Actualizat",
     "lastRefreshed": "Ultima reîmprospătare",
     "providerQuota": "Cotă furnizor",
-    "providerQuotaHomeHint": "Stare în timp real pentru conturile conectate"
+    "providerQuotaHomeHint": "Stare în timp real pentru conturile conectate",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "În așteptarea autorizației",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Blocaje Model",
         "count": "Număr de Conexiuni"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Gestionar perioade de repaus",
+    "description": "Vezi fiecare conexiune aflată în repaus după eșecuri, elimină perioadele de repaus în masă și ajustează durata acestora.",
+    "loading": "Se încarcă perioadele de repaus…",
+    "loadFailed": "Nu s-au putut încărca perioadele de repaus",
+    "loadFailedDetail": "Verifică conexiunea și reîmprospătează pagina.",
+    "rules": {
+      "title": "Reguli pentru perioadele de repaus",
+      "subtitle": "Se aplică fiecărei conexiuni începând cu următorul său eșec.",
+      "stallLabel": "Trece un cont în repaus când un stream se blochează",
+      "stallDescription": "Dezactivat în mod prestabilit: o blocare indică de obicei o etapă lungă de raționament, nu un cont defect.",
+      "oauth": "Conturi OAuth",
+      "apikey": "Chei API",
+      "baseCooldown": "Perioadă de repaus de bază (secunde)",
+      "baseCooldownHint": "Prima perioadă de repaus după un eșec. Eșecurile repetate o dublează.",
+      "maxBackoffSteps": "Număr maxim de pași de backoff",
+      "maxBackoffStepsHint": "De câte ori se poate dubla perioada de repaus.",
+      "save": "Salvează regulile",
+      "saved": "Regulile pentru perioadele de repaus au fost salvate",
+      "saveFailed": "Nu s-au putut salva regulile pentru perioadele de repaus"
+    },
+    "list": {
+      "title": "Conexiuni scoase din rutare",
+      "subtitle": "Perioadele de repaus și blocările de model se încheie de la sine. Elimină-le pentru a reintroduce o conexiune în rutare acum.",
+      "provider": "Furnizor",
+      "allProviders": "Toți furnizorii",
+      "showHealthy": "Afișează conexiunile funcționale",
+      "refresh": "Reîmprospătează",
+      "clearSelected": "Elimină elementele selectate ({count})",
+      "clearAll": "Elimină tot",
+      "clear": "Elimină",
+      "select": "Selectează conexiunea",
+      "none": "Niciunul",
+      "empty": "Nicio conexiune nu este scoasă din rutare.",
+      "cleared": "S-au eliminat {cleared} conexiuni și {lockouts} blocări de model. S-au omis {skipped} interzise sau expirate.",
+      "clearFailed": "Nu s-au putut elimina perioadele de repaus",
+      "columns": {
+        "connection": "Conexiune",
+        "provider": "Furnizor",
+        "status": "Stare",
+        "remaining": "Timp rămas",
+        "lockouts": "Blocări de model",
+        "lastError": "Ultima eroare"
+      }
+    },
+    "status": {
+      "cooling_down": "În răcire",
+      "model_locked": "Model blocat",
+      "unavailable": "Indisponibil",
+      "terminal": "Necesită atenție",
+      "healthy": "Sănătos"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Respinge cererile înainte de expediere atunci când modelul țintă nu are capabilitățile necesare (viziune, instrumente, ieșire structurată, fereastră de context). Protejează cererile directe de un singur furnizor care ocolesc filtrul de compatibilitate al stratului combinat.",

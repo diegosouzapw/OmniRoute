@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "या API कीसाठी Codex सेवा मोड",
+    "description": "कॉम्बोमधील Codex मॉडेल्ससह सर्व Codex विनंत्यांना लागू होते. सक्तीचे मोड क्लायंट, जागतिक सेटिंग्ज आणि कनेक्शनची डीफॉल्ट सेटिंग्ज अधिलिखित करतात. इतर प्रदाते अपरिवर्तित राहतात.",
+    "label": "सेवा मोड",
+    "inherit": "विद्यमान वर्तन लागू ठेवा",
+    "default": "Standard सक्तीने लागू करा (डीफॉल्ट)",
+    "priority": "Fast / Priority सक्तीने लागू करा",
+    "flex": "Flex सक्तीने लागू करा",
+    "warning": "यामुळे प्रदात्याचा प्रवेश मिळत नाही. उपलब्धता, शुल्क आणि कोटा वापर तुमच्या Codex खात्यावर आणि मॉडेलवर अवलंबून असतात. सक्तीच्या मोडसाठी HTTP किंवा Responses WebSocket ट्रान्सपोर्ट आवश्यक आहे; app-server विनंत्या नाकारल्या जातात.",
+    "confirm": "या API कीवर “{mode}” लागू करायचा का? हा बदल पुढील विनंत्यांपासून लागू होईल.",
+    "save": "मोड जतन करा",
+    "retry": "पुन्हा प्रयत्न करा",
+    "loadError": "जतन केलेला सेवा मोड लोड करता आला नाही.",
+    "saveError": "सेवा मोड जतन करता आला नाही. कृपया पुन्हा प्रयत्न करा."
+  },
   "common": {
     "save": "जतन करा",
     "cancel": "रद्द करा",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "बजेट संपलेल्या विनंत्या आपत्कालीन मोफत फॉलबॅक प्रदाता/मॉडेलकडे रूट करा.",
   "featureFlagArenaEloSyncEnabledDescription": "मॉडेल इंटेलिजन्स क्रमवारीसाठी Arena AI लीडरबोर्डचे नियतकालिक ELO सिंक सक्षम करा.",
   "featureFlagUniversalContextHandoffEnabledDescription": "कॉम्बो रूटिंगमध्ये मॉडेल बदलल्यावर संभाषणाचे सारांश तयार करून अंतर्भूत करा. मॉडेल बदल स्वतंत्रपणे हाताळण्यासाठी आणि सर्व विद्यमान व भविष्यातील कॉम्बोंसाठी पार्श्वभूमीतील हँडऑफ विनंत्या रोखण्यासाठी हे अक्षम करा.",
+  "featureFlagReasoningReplayEnabledDescription": "अनेक फेऱ्यांच्या संभाषणांत मॉडेलचे तर्क कॅश करा आणि पुन्हा चालवा. तर्क साठवणे आणि पुन्हा टाकणे थांबवण्यासाठी अक्षम करा.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models वर claude/&lt;provider&gt;/&lt;model&gt; मिरर आयडीज जाहिरात करा जेणेकरून Claude Code गेटवे मॉडेल शोध सूचीमध्ये नॉन-Claude मॉडेल्स समाविष्ट होतील. चेतावणी: जागतिक स्तरावर सक्षम केल्यास सर्व क्लायंटसाठी कॅटलॉग नोंदी दुहेरी होतात.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; गेटवे उपनामांसाठी मुख्य स्विच. चालू (डीफॉल्ट): /v1/models प्रत्येक पात्र, विचार-क्षम Claude मॉडेलसाठी विचार न करणारा प्रकार दाखवते आणि विनंतीमध्ये पाठवलेला no-think/ आयडी तर्कप्रक्रिया दडपून पुन्हा वास्तविक मॉडेलकडे निर्देशित केला जातो. बंद: कोणतेही प्रकार दाखवले जात नाहीत आणि no-think/ आयडीला इतर कोणत्याही अज्ञात मॉडेल आयडीप्रमाणे हाताळले जाते. हे चालू असताना प्रत्येक मॉडेलसाठी ModelSpec.noThinkingAlias ची निवड/निवड रद्द करण्याची सेटिंग तरीही लागू होते.",
   "featureFlagChatVirtualLanesEnabledDescription": "प्रदाता डिस्पॅचसाठी प्रति-टेनंट अनुकूली व्हर्च्युअल अॅडमिशन लेन सक्षम करा (#9654): एका टेनंटचा बर्स्ट यापुढे दुसऱ्या टेनंटला 503 देत नाही. OMNIROUTE_CHAT_VIRTUAL_LANES पर्यावरण चल या डॅशबोर्ड सेटिंगपेक्षा वरचढ आहे; बदल सर्व्हर रीस्टार्ट केल्यावर प्रभावी होतात.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "चालू असलेल्या प्रत्येक गोष्टीचे थेट दृश्य",
     "resilienceConnections": "कनेक्शन लवचिकता",
     "resilienceConnectionsSubtitle": "कूलडाउन, ब्रेकर, लॉकआउट स्थिती",
+    "resilienceCooldowns": "कूलडाउन व्यवस्थापक",
+    "resilienceCooldownsSubtitle": "मोठ्या प्रमाणावर कूलडाउन साफ करा",
     "settingsModalityBridge": "मोडालिटी ब्रिज",
     "settingsModalityBridgeSubtitle": "प्रतिमा/ऑडिओ → मजकूर-फक्त मॉडेलसाठी मजकूर बॅकअप",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "विश्लेषण",
     "usageAnalyticsTitle": "वापर विश्लेषण",
+    "tokenDisplayCompact": "संक्षिप्त",
+    "tokenDisplayExact": "अचूक",
+    "tokenDisplayMode": "टोकन प्रदर्शन मोड",
     "diversityScoreTitle": "प्रदाता विविधता",
     "diversityScoreDesc": "अलीकडील ट्रॅफिक विंडोसाठी प्रदाता केंद्रीकरणाचा स्नॅपशॉट.",
     "diversityShannonEntropy": "शॅनन एन्ट्रॉपी",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "बिल्ट-इन ऑटो/* कॉम्बो कनेक्ट केलेल्या प्रदात्यांकडून डायनॅमिकपणे निराकरण केले. यापैकी कोणतेही आयडी मॉडेल फील्ड म्हणून वापरा — कोणत्याही सेटअपची आवश्यकता नाही.",
     "autoCatalogExpand": "स्वयं-राउटिंग कॅटलॉग विस्तृत करा",
     "autoCatalogCollapse": "ऑटो-राउटिंग कॅटलॉग संकुचित करा",
+    "autoCatalogComboCount": "{count} संयोजन",
+    "autoCatalogCandidates": "{count} उमेदवार",
+    "autoCatalogNoCandidates": "कोणतेही जुळणारे प्रदाते नाहीत",
+    "autoCatalogKindVariant": "पर्यायी",
+    "autoCatalogKindTemplate": "टेम्पलेट",
+    "autoCatalogKindCategory": "श्रेणी",
+    "autoCatalogKindFamily": "कुटुंब",
+    "autoComboTestTruncated": "{total} जिवंत उमेदवारांपैकी {tested} चाचणी घेतली (उच्चतम वजन प्रथम).",
+    "controlCenter": "नियंत्रण केंद्र",
     "createCombo": "कॉम्बो तयार करा",
     "editCombo": "कॉम्बो संपादित करा",
     "deleteCombo": "कॉम्बो हटवा",
@@ -5560,6 +5590,8 @@
     "modelsActive": "सक्रिय",
     "showModel": "मॉडेल दाखवा",
     "hideModel": "मॉडेल लपवा",
+    "blacklistModel": "ब्लॉक",
+    "blacklistModelTooltip": "हे मॉडेल ब्लॉक करून कॅटलॉगमधून लपवा",
     "removeModel": "मॉडेल काढा",
     "rateLimitProtected": "संरक्षित",
     "rateLimitUnprotected": "असंरक्षित",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "सुरक्षित केलेल्या मॉडेल एंडपॉइंट सेटिंग्ज",
     "searchByModelAria": "मॉडेलद्वारे शोधा",
     "selectSupportedEndpoint": "किमान एक समर्थित एंडपॉइंट निवडा",
-    "antigravityClientProfileHarness": "हार्नेस / CLI"
+    "antigravityClientProfileHarness": "हार्नेस / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "सेटिंग्ज",
@@ -10077,7 +10120,11 @@
     "updatedShort": "अपडेट केले",
     "lastRefreshed": "शेवटचे रिफ्रेश केलेले",
     "providerQuota": "प्रदाता कोटा",
-    "providerQuotaHomeHint": "कनेक्ट केलेल्या खात्यांमधील थेट स्थिती"
+    "providerQuotaHomeHint": "कनेक्ट केलेल्या खात्यांमधील थेट स्थिती",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "अधिकृततेची प्रतीक्षा करत आहे",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "मॉडेल लॉकआउट",
         "count": "कनेक्शन संख्या"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "कूलडाउन व्यवस्थापक",
+    "description": "त्रुटींनंतर विश्रांती घेत असलेले प्रत्येक कनेक्शन पहा, एकाच वेळी कूलडाउन काढा आणि ते किती वेळ टिकतात ते समायोजित करा.",
+    "loading": "कूलडाउन लोड होत आहेत…",
+    "loadFailed": "कूलडाउन लोड करता आले नाहीत",
+    "loadFailedDetail": "आपले कनेक्शन तपासा आणि पृष्ठ रिफ्रेश करा.",
+    "rules": {
+      "title": "कूलडाउन नियम",
+      "subtitle": "त्याच्या पुढील त्रुटीपासून प्रत्येक कनेक्शनला लागू करा.",
+      "stallLabel": "स्ट्रीम थांबल्यावर खाते कूलडाउन करा",
+      "stallDescription": "डीफॉल्टनुसार बंद: स्ट्रीम थांबणे म्हणजे सहसा एक लांब विचार प्रक्रिया असते, खराब खाते नाही.",
+      "oauth": "OAuth खाती",
+      "apikey": "API कीज",
+      "baseCooldown": "मूळ कूलडाउन (सेकंद)",
+      "baseCooldownHint": "त्रुटीनंतर पहिला कूलडाउन. वारंवार त्रुटी आल्यास ते दुप्पट होते.",
+      "maxBackoffSteps": "कमाल बॅकऑफ पायऱ्या",
+      "maxBackoffStepsHint": "कूलडाउन किती वेळा दुप्पट होऊ शकतो.",
+      "save": "नियम सेव्ह करा",
+      "saved": "कूलडाउन नियम सेव्ह केले",
+      "saveFailed": "कूलडाउन नियम सेव्ह करता आले नाहीत"
+    },
+    "list": {
+      "title": "राउटिंगमधून बाहेर असलेली कनेक्शन्स",
+      "subtitle": "कूलडाउन आणि मॉडेल लॉकआउट्स स्वतःहून संपतात. कनेक्शन त्वरित पुन्हा राउटिंगमध्ये आणण्यासाठी त्यांना साफ करा.",
+      "provider": "प्रदाता",
+      "allProviders": "सर्व प्रदाते",
+      "showHealthy": "सुरळीत कनेक्शन्स दाखवा",
+      "refresh": "रिफ्रेश करा",
+      "clearSelected": "निवडलेले साफ करा ({count})",
+      "clearAll": "सर्व साफ करा",
+      "clear": "साफ करा",
+      "select": "कनेक्शन निवडा",
+      "none": "काहीही नाही",
+      "empty": "कोणतेही कनेक्शन राउटिंगच्या बाहेर नाही.",
+      "cleared": "{cleared} कनेक्शन्स आणि {lockouts} मॉडेल लॉकआउट्स साफ केले. {skipped} प्रतिबंधित किंवा कालबाह्य वगळले.",
+      "clearFailed": "कूलडाउन साफ करता आले नाहीत",
+      "columns": {
+        "connection": "कनेक्शन",
+        "provider": "प्रदाता",
+        "status": "स्थिती",
+        "remaining": "उर्वरित वेळ",
+        "lockouts": "मॉडेल लॉकआउट्स",
+        "lastError": "शेवटची त्रुटी"
+      }
+    },
+    "status": {
+      "cooling_down": "थंड होत आहे",
+      "model_locked": "मॉडेल लॉक केले आहे",
+      "unavailable": "अनुपलब्ध",
+      "terminal": "लक्ष देणे आवश्यक आहे",
+      "healthy": "निरोगी"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "डिस्पॅच करण्यापूर्वी विनंत्या नाकारल्या जातात जेव्हा लक्ष्य मॉडेल आवश्यक क्षमतांचा अभाव असतो (दृष्टी, साधने, संरचित आउटपुट, संदर्भ विंडो). कॉम्बो-लेयर सुसंगतता फिल्टरला बायपास करणाऱ्या थेट एकल-प्रदात्याच्या विनंत्यांचे संरक्षण करते.",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "ਇਸ API ਕੁੰਜੀ ਲਈ Codex ਸੇਵਾ ਮੋਡ",
+    "description": "Codex ਬੇਨਤੀਆਂ 'ਤੇ ਲਾਗੂ ਹੁੰਦਾ ਹੈ, ਜਿਸ ਵਿੱਚ ਕੌਂਬੋਜ਼ ਦੇ ਅੰਦਰਲੇ Codex ਮਾਡਲ ਵੀ ਸ਼ਾਮਲ ਹਨ। ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕੀਤੇ ਮੋਡ ਕਲਾਇੰਟ, ਗਲੋਬਲ ਸੈਟਿੰਗਾਂ ਅਤੇ ਕਨੈਕਸ਼ਨ ਡਿਫੌਲਟਾਂ ਨੂੰ ਓਵਰਰਾਈਡ ਕਰਦੇ ਹਨ। ਹੋਰ ਪ੍ਰਦਾਤਾ ਅਣਬਦਲੇ ਰਹਿੰਦੇ ਹਨ।",
+    "label": "ਸੇਵਾ ਮੋਡ",
+    "inherit": "ਮੌਜੂਦਾ ਵਿਹਾਰ ਵਿਰਾਸਤ ਵਿੱਚ ਲਓ",
+    "default": "Standard ਨੂੰ ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕਰੋ (ਡਿਫੌਲਟ)",
+    "priority": "Fast / Priority ਨੂੰ ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕਰੋ",
+    "flex": "Flex ਨੂੰ ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕਰੋ",
+    "warning": "ਇਹ ਪ੍ਰਦਾਤਾ ਤੱਕ ਪਹੁੰਚ ਪ੍ਰਦਾਨ ਨਹੀਂ ਕਰਦਾ। ਉਪਲਬਧਤਾ, ਖਰਚੇ ਅਤੇ ਕੋਟੇ ਦੀ ਖਪਤ ਤੁਹਾਡੇ Codex ਖਾਤੇ ਅਤੇ ਮਾਡਲ 'ਤੇ ਨਿਰਭਰ ਕਰਦੇ ਹਨ। ਜ਼ਬਰਦਸਤੀ ਲਾਗੂ ਕੀਤੇ ਮੋਡਾਂ ਲਈ HTTP ਜਾਂ Responses WebSocket ਟ੍ਰਾਂਸਪੋਰਟ ਲੋੜੀਂਦਾ ਹੈ; app-server ਬੇਨਤੀਆਂ ਰੱਦ ਕਰ ਦਿੱਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ।",
+    "confirm": "ਇਸ API ਕੁੰਜੀ 'ਤੇ “{mode}” ਲਾਗੂ ਕਰਨਾ ਹੈ? ਇਹ ਅਗਲੀਆਂ ਬੇਨਤੀਆਂ ਲਈ ਪ੍ਰਭਾਵੀ ਹੋਵੇਗਾ।",
+    "save": "ਮੋਡ ਸੰਭਾਲੋ",
+    "retry": "ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+    "loadError": "ਸੰਭਾਲਿਆ ਹੋਇਆ ਸੇਵਾ ਮੋਡ ਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ।",
+    "saveError": "ਸੇਵਾ ਮੋਡ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਕਿਰਪਾ ਕਰਕੇ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+  },
   "common": {
     "save": "ਸੰਭਾਲੋ",
     "cancel": "ਰੱਦ ਕਰੋ",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "ਬਜਟ ਖ਼ਤਮ ਹੋ ਚੁੱਕੀਆਂ ਬੇਨਤੀਆਂ ਨੂੰ ਐਮਰਜੈਂਸੀ ਮੁਫ਼ਤ ਫਾਲਬੈਕ ਪ੍ਰਦਾਤਾ/ਮਾਡਲ ਵੱਲ ਭੇਜੋ।",
   "featureFlagArenaEloSyncEnabledDescription": "ਮਾਡਲ ਇੰਟੈਲੀਜੈਂਸ ਰੈਂਕਿੰਗਾਂ ਲਈ ਸਮੇਂ-ਸਮੇਂ 'ਤੇ Arena AI ਲੀਡਰਬੋਰਡ ELO ਸਿੰਕ ਸਮਰੱਥ ਕਰੋ।",
   "featureFlagUniversalContextHandoffEnabledDescription": "ਜਦੋਂ ਕੰਬੋ ਰਾਊਟਿੰਗ ਮਾਡਲ ਬਦਲਦੀ ਹੈ, ਤਾਂ ਗੱਲਬਾਤ ਦੇ ਸਾਰ ਤਿਆਰ ਕਰਕੇ ਸ਼ਾਮਲ ਕਰੋ। ਮਾਡਲ ਬਦਲਾਵਾਂ ਨੂੰ ਸੁਤੰਤਰ ਤੌਰ 'ਤੇ ਸੰਭਾਲਣ ਅਤੇ ਸਾਰੇ ਮੌਜੂਦਾ ਤੇ ਭਵਿੱਖੀ ਕੰਬੋਜ਼ ਲਈ ਬੈਕਗ੍ਰਾਊਂਡ ਹੈਂਡਆਫ਼ ਬੇਨਤੀਆਂ ਨੂੰ ਰੋਕਣ ਵਾਸਤੇ ਇਸਨੂੰ ਅਯੋਗ ਕਰੋ।",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models ਉੱਤੇ claude/&lt;provider&gt;/&lt;model&gt; ਮਿਰਰ IDs ਦਾ ਪ੍ਰਚਾਰ ਕਰੋ, ਤਾਂ ਜੋ Claude Code ਗੇਟਵੇ ਮਾਡਲ ਖੋਜ ਵਿੱਚ ਗੈਰ-Claude ਮਾਡਲ ਸੂਚੀਬੱਧ ਹੋਣ। ਚੇਤਾਵਨੀ: ਗਲੋਬਲ ਤੌਰ 'ਤੇ ਸਮਰੱਥ ਕਰਨ 'ਤੇ ਇਹ ਸਾਰੇ ਕਲਾਇੰਟਾਂ ਲਈ ਕੈਟਾਲਾਗ ਐਂਟਰੀਆਂ ਨੂੰ ਦੁੱਗਣਾ ਕਰ ਦਿੰਦਾ ਹੈ।",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; ਗੇਟਵੇ ਉਪਨਾਮਾਂ ਲਈ ਮੁੱਖ ਸਵਿੱਚ। ਚਾਲੂ (ਡਿਫਾਲਟ): /v1/models ਹਰ ਯੋਗ, ਸੋਚਣ-ਸਮਰੱਥ Claude ਮਾਡਲ ਲਈ ਇੱਕ ਬਿਨਾਂ-ਸੋਚ ਵਾਲਾ ਰੂਪ ਦਰਸਾਉਂਦਾ ਹੈ, ਅਤੇ ਬੇਨਤੀ ਵਿੱਚ ਭੇਜਿਆ ਗਿਆ no-think/ id ਤਰਕ ਨੂੰ ਦਬਾ ਕੇ ਮੁੜ ਅਸਲ ਮਾਡਲ ਨਾਲ ਰਿਜ਼ਾਲਵ ਹੁੰਦਾ ਹੈ। ਬੰਦ: ਕੋਈ ਰੂਪ ਦਰਸਾਏ ਨਹੀਂ ਜਾਂਦੇ ਅਤੇ no-think/ id ਨੂੰ ਕਿਸੇ ਹੋਰ ਅਣਜਾਣ ਮਾਡਲ id ਵਾਂਗ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ। ਜਦੋਂ ਇਹ ਚਾਲੂ ਹੋਵੇ, ਤਾਂ ਪ੍ਰਤੀ-ਮਾਡਲ ModelSpec.noThinkingAlias ਔਪਟ-ਇਨ/ਔਪਟ-ਆਉਟ ਫਿਰ ਵੀ ਲਾਗੂ ਹੁੰਦਾ ਹੈ।",
   "featureFlagChatVirtualLanesEnabledDescription": "ਪ੍ਰਦਾਤਾ ਡਿਸਪੈਚ (#9654) ਲਈ ਪ੍ਰਤੀ-ਟੈਨੈਂਟ ਅਨੁਕੂਲ ਵਰਚੁਅਲ ਐਡਮਿਸ਼ਨ ਲੇਨ ਸਮਰੱਥ ਕਰੋ: ਹੁਣ ਇੱਕ ਟੈਨੈਂਟ ਦਾ ਅਚਾਨਕ ਵਧਿਆ ਲੋਡ ਦੂਜੇ ਲਈ 503 ਪੈਦਾ ਨਹੀਂ ਕਰੇਗਾ। OMNIROUTE_CHAT_VIRTUAL_LANES env var ਨੂੰ ਇਸ ਡੈਸ਼ਬੋਰਡ ਓਵਰਰਾਈਡ ਉੱਤੇ ਤਰਜੀਹ ਮਿਲਦੀ ਹੈ; ਤਬਦੀਲੀਆਂ ਸਰਵਰ ਮੁੜ ਚਾਲੂ ਹੋਣ 'ਤੇ ਲਾਗੂ ਹੁੰਦੀਆਂ ਹਨ।",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "ਚੱਲ ਰਹੀ ਹਰ ਚੀਜ਼ ਦਾ ਲਾਈਵ ਦ੍ਰਿਸ਼",
     "resilienceConnections": "ਕਨੈਕਸ਼ਨ ਲਚਕੀਲਾਪਣ",
     "resilienceConnectionsSubtitle": "ਕੂਲਡਾਊਨ, ਬ੍ਰੇਕਰ, ਲਾਕਆਉਟ ਸਥਿਤੀ",
+    "resilienceCooldowns": "ਕੂਲਡਾਊਨ ਮੈਨੇਜਰ",
+    "resilienceCooldownsSubtitle": "ਇਕੱਠੇ ਕੂਲਡਾਊਨ ਹਟਾਓ",
     "settingsModalityBridge": "ਮੋਡੈਲਿਟੀ ਬ੍ਰਿਜ",
     "settingsModalityBridgeSubtitle": "ਸਿਰਫ਼-ਟੈਕਸਟ ਮਾਡਲਾਂ ਲਈ ਚਿੱਤਰ/ਆਡੀਓ → ਟੈਕਸਟ ਫਾਲਬੈਕ",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "ਵਿਸ਼ਲੇਸ਼ਣ",
     "usageAnalyticsTitle": "ਵਰਤੋਂ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ",
+    "tokenDisplayCompact": "ਸੰਖੇਪ",
+    "tokenDisplayExact": "ਸਹੀ",
+    "tokenDisplayMode": "ਟੋਕਨ ਡਿਸਪਲੇ ਮੋਡ",
     "diversityScoreTitle": "ਪ੍ਰਦਾਤਾ ਵਿਭਿੰਨਤਾ",
     "diversityScoreDesc": "ਹਾਲੀਆ ਟ੍ਰੈਫਿਕ ਅਵਧੀ ਲਈ ਪ੍ਰਦਾਤਾ ਕੇਂਦਰੀਕਰਨ ਦੀ ਝਲਕ।",
     "diversityShannonEntropy": "ਸ਼ੈਨਨ ਐਂਟਰੋਪੀ",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "ਬਿਲਟ-ਇਨ auto/* ਕੌਂਬੋ, ਜੋ ਕਨੈਕਟ ਕੀਤੇ ਪ੍ਰਦਾਤਾਵਾਂ ਤੋਂ ਗਤੀਸ਼ੀਲ ਢੰਗ ਨਾਲ ਹੱਲ ਕੀਤੇ ਜਾਂਦੇ ਹਨ। ਇਨ੍ਹਾਂ ਵਿੱਚੋਂ ਕਿਸੇ ਵੀ ID ਨੂੰ ਮਾਡਲ ਫੀਲਡ ਵਜੋਂ ਵਰਤੋ — ਕਿਸੇ ਸੈੱਟਅੱਪ ਦੀ ਲੋੜ ਨਹੀਂ।",
     "autoCatalogExpand": "ਆਟੋ-ਰਾਊਟਿੰਗ ਕੈਟਾਲਾਗ ਫੈਲਾਓ",
     "autoCatalogCollapse": "ਆਟੋ-ਰਾਊਟਿੰਗ ਕੈਟਾਲਾਗ ਸਮੇਟੋ",
+    "autoCatalogComboCount": "{count} ਕੰਬੋ",
+    "autoCatalogCandidates": "{count} ਉਮੀਦਵਾਰ",
+    "autoCatalogNoCandidates": "ਕੋਈ ਮੇਲ ਖਾਣ ਵਾਲੇ ਪ੍ਰਦਾਤਾ ਨਹੀਂ",
+    "autoCatalogKindVariant": "ਵੈਰੀਐਂਟ",
+    "autoCatalogKindTemplate": "ਟੈਮਪਲੇਟ",
+    "autoCatalogKindCategory": "ਸ਼੍ਰੇਣੀ",
+    "autoCatalogKindFamily": "ਪਰਿਵਾਰ",
+    "autoComboTestTruncated": "ਜੀਵੰਤ ਉਮੀਦਵਾਰਾਂ ਵਿੱਚੋਂ {tested} ਦਾ {total} ਦੀ ਜਾਂਚ ਕੀਤੀ (ਉੱਚੇ ਭਾਰ ਪਹਿਲਾਂ)।",
+    "controlCenter": "ਕੰਟਰੋਲ ਸੈਂਟਰ",
     "createCombo": "ਕੌਂਬੋ ਬਣਾਓ",
     "editCombo": "ਕੌਂਬੋ ਸੋਧੋ",
     "deleteCombo": "ਕੌਂਬੋ ਮਿਟਾਓ",
@@ -5560,6 +5590,8 @@
     "modelsActive": "ਸਰਗਰਮ",
     "showModel": "ਮਾਡਲ ਦਿਖਾਓ",
     "hideModel": "ਮਾਡਲ ਲੁਕਾਓ",
+    "blacklistModel": "ਬਲਾਕ",
+    "blacklistModelTooltip": "ਇਸ ਮਾਡਲ ਨੂੰ ਬਲਾਕ ਕਰਕੇ ਕੈਟਾਲਾਗ ਤੋਂ ਲੁਕਾਓ",
     "removeModel": "ਮਾਡਲ ਹਟਾਓ",
     "rateLimitProtected": "ਸੁਰੱਖਿਅਤ",
     "rateLimitUnprotected": "ਅਸੁਰੱਖਿਅਤ",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "ਜਦੋਂ ਇਹ ਖਾਤਾ ਆਪਣੀ 5-ਘੰਟਿਆਂ ਦੀ ਵਰਤੋਂ ਸੀਮਾ ਤੱਕ ਪਹੁੰਚ ਜਾਂਦਾ ਹੈ ਅਤੇ Anthropic ਘੱਟ-ਤਰਜੀਹ ਵਾਲੀ ਲੇਨ ਦੀ ਪੇਸ਼ਕਸ਼ ਕਰਦਾ ਹੈ, ਤਾਂ OmniRoute ਇਸਨੂੰ ਸਵੀਕਾਰ ਕਰਦਾ ਹੈ ਅਤੇ ਵਿੰਡੋ ਰੀਸੈੱਟ ਹੋਣ ਤੱਕ ਕਨੈਕਸ਼ਨ ਨੂੰ ਵਿਰਾਮ ਦੇਣ ਦੀ ਬਜਾਏ anthropic-usage-limit: slow ਨਾਲ ਬੇਨਤੀਆਂ ਭੇਜਦਾ ਰਹਿੰਦਾ ਹੈ। ਹਫ਼ਤਾਵਾਰੀ ਸੀਮਾ ਫਿਰ ਵੀ ਲਾਗੂ ਰਹਿੰਦੀ ਹੈ ਅਤੇ ਜਵਾਬਾਂ ਨੂੰ ਉਪਲਬਧ ਸਮਰੱਥਾ ਲਈ ਉਡੀਕ ਕਰਨੀ ਪੈ ਸਕਦੀ ਹੈ।",
     "claudeAutoLimitResetLabel": "ਸੈਸ਼ਨ ਸੀਮਾ ਨੂੰ ਆਪਣੇ-ਆਪ ਰੀਸੈੱਟ ਕਰੋ (ਹਫ਼ਤੇ ਵਿੱਚ ਇੱਕ ਵਾਰ)",
     "claudeAutoLimitResetDescription": "ਜਦੋਂ ਇਹ ਖਾਤਾ ਆਪਣੀ 5-ਘੰਟਿਆਂ ਦੀ ਵਰਤੋਂ ਸੀਮਾ ਤੱਕ ਪਹੁੰਚ ਜਾਂਦਾ ਹੈ ਅਤੇ ਸੈਸ਼ਨ-ਸੀਮਾ ਰੀਸੈੱਟ ਉਪਲਬਧ ਹੁੰਦਾ ਹੈ, ਤਾਂ OmniRoute ਆਪਣੇ-ਆਪ ਇਸਦਾ ਦਾਅਵਾ ਕਰਦਾ ਹੈ ਅਤੇ ਪੂਰੀ ਗਤੀ ਨਾਲ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰਦਾ ਹੈ। ਇਹ ਖਾਤੇ ਦੇ ਹਫ਼ਤੇ ਵਿੱਚ ਇੱਕ ਵਾਰ ਮਿਲਣ ਵਾਲੇ ਰੀਸੈੱਟ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ ਅਤੇ ਫਿਰ ਵੀ ਹਫ਼ਤਾਵਾਰੀ ਸੀਮਾ ਵਿੱਚ ਗਿਣਿਆ ਜਾਂਦਾ ਹੈ।",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "ਅਸਥਾਈ ਕੂਲਡਾਊਨ ਨੂੰ ਛੱਡੋ ਤਾਂ ਜੋ ਸੁਧਾਰੀ ਜਾ ਸਕਣ ਵਾਲੀਆਂ ਗਲਤੀਆਂ ਤੋਂ ਬਾਅਦ ਵੀ ਇਹ ਕਨੈਕਸ਼ਨ ਯੋਗ ਰਹੇ (ਪਾਬੰਦੀਸ਼ੁਦਾ/ਮਿਆਦ ਪੁੱਗਣ ਵਰਗੀਆਂ ਅੰਤਿਮ ਸਥਿਤੀਆਂ ਫਿਰ ਵੀ ਲਾਗੂ ਹੁੰਦੀਆਂ ਹਨ)।",
     "disableCoolingLabel": "ਇਸ ਕਨੈਕਸ਼ਨ ਲਈ ਕੂਲਡਾਊਨ ਅਯੋਗ ਕਰੋ",
     "bulkPasteAdded": "{count, plural, one {1 ਕੁੰਜੀ ਜੋੜੀ ਗਈ} other {# ਕੁੰਜੀਆਂ ਜੋੜੀਆਂ ਗਈਆਂ}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "ਮਾਡਲ ਐਂਡਪੌਇੰਟ ਸੈਟਿੰਗਾਂ ਸੰਭਾਲੀਆਂ ਗਈਆਂ",
     "searchByModelAria": "ਮਾਡਲ ਦੁਆਰਾ ਖੋਜੋ",
     "selectSupportedEndpoint": "ਘੱਟੋ-ਘੱਟ ਇੱਕ ਸਮਰਥਿਤ ਐਂਡਪੌਇੰਟ ਚੁਣੋ",
-    "antigravityClientProfileHarness": "ਹਾਰਨੈੱਸ / CLI"
+    "antigravityClientProfileHarness": "ਹਾਰਨੈੱਸ / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "ਸੈਟਿੰਗਾਂ",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "ਸਟ੍ਰੀਮ ਨੂੰ ਰੂਪਾਂਤਰਿਤ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "ਵਰਤੋਂ",
     "grokExtraUsageCredits": "ਵਾਧੂ ਵਰਤੋਂ ਕ੍ਰੈਡਿਟ",
     "grokAutoTopUp": "ਆਟੋ ਟਾਪ-ਅੱਪ",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "ਮਾਡਲ ਲੌਕਆਉਟ",
         "count": "ਕਨੈਕਸ਼ਨਾਂ ਦੀ ਗਿਣਤੀ"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "ਕੂਲਡਾਊਨ ਮੈਨੇਜਰ",
+    "description": "ਅਸਫਲਤਾਵਾਂ ਤੋਂ ਬਾਅਦ ਰੁਕੇ ਹੋਏ ਹਰੇਕ ਕਨੈਕਸ਼ਨ ਨੂੰ ਦੇਖੋ, ਇਕੱਠੇ ਕੂਲਡਾਊਨ ਹਟਾਓ, ਅਤੇ ਵਿਵਸਥਿਤ ਕਰੋ ਕਿ ਉਹ ਕਿੰਨਾ ਸਮਾਂ ਰਹਿਣਗੇ।",
+    "loading": "ਕੂਲਡਾਊਨ ਲੋਡ ਕੀਤੇ ਜਾ ਰਹੇ ਹਨ…",
+    "loadFailed": "ਕੂਲਡਾਊਨ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੇ",
+    "loadFailedDetail": "ਆਪਣਾ ਕਨੈਕਸ਼ਨ ਜਾਂਚੋ ਅਤੇ ਪੰਨੇ ਨੂੰ ਰਿਫ੍ਰੈਸ਼ ਕਰੋ।",
+    "rules": {
+      "title": "ਕੂਲਡਾਊਨ ਨਿਯਮ",
+      "subtitle": "ਇਸਦੀ ਅਗਲੀ ਅਸਫਲਤਾ ਤੋਂ ਹਰੇਕ ਕਨੈਕਸ਼ਨ 'ਤੇ ਲਾਗੂ ਕਰੋ।",
+      "stallLabel": "ਜਦੋਂ ਕੋਈ ਸਟ੍ਰੀਮ ਰੁਕ ਜਾਵੇ ਤਾਂ ਖਾਤੇ ਨੂੰ ਕੂਲ ਡਾਊਨ ਕਰੋ",
+      "stallDescription": "ਮੂਲ ਰੂਪ ਵਿੱਚ ਬੰਦ: ਇੱਕ ਸਟਾਲ ਦਾ ਆਮ ਤੌਰ 'ਤੇ ਮਤਲਬ ਇੱਕ ਲੰਬੀ ਤਰਕ ਪ੍ਰਕਿਰਿਆ ਹੁੰਦੀ ਹੈ, ਖਰਾਬ ਖਾਤਾ ਨਹੀਂ।",
+      "oauth": "OAuth ਖਾਤੇ",
+      "apikey": "API ਕੁੰਜੀਆਂ",
+      "baseCooldown": "ਮੁੱਢਲਾ ਕੂਲਡਾਊਨ (ਸਕਿੰਟ)",
+      "baseCooldownHint": "ਅਸਫਲਤਾ ਤੋਂ ਬਾਅਦ ਪਹਿਲਾ ਕੂਲਡਾਊਨ। ਵਾਰ-ਵਾਰ ਅਸਫਲਤਾਵਾਂ ਇਸਨੂੰ ਦੁੱਗਣਾ ਕਰ ਦਿੰਦੀਆਂ ਹਨ।",
+      "maxBackoffSteps": "ਵੱਧ ਤੋਂ ਵੱਧ ਬੈਕਆਫ ਕਦਮ",
+      "maxBackoffStepsHint": "ਕੂਲਡਾਊਨ ਕਿੰਨੀ ਵਾਰ ਦੁੱਗਣਾ ਹੋ ਸਕਦਾ ਹੈ।",
+      "save": "ਨਿਯਮ ਸੰਭਾਲੋ",
+      "saved": "ਕੂਲਡਾਊਨ ਨਿਯਮ ਸੰਭਾਲੇ ਗਏ",
+      "saveFailed": "ਕੂਲਡਾਊਨ ਨਿਯਮ ਸੰਭਾਲੇ ਨਹੀਂ ਜਾ ਸਕੇ"
+    },
+    "list": {
+      "title": "ਰਾਊਟਿੰਗ ਤੋਂ ਬਾਹਰ ਕਨੈਕਸ਼ਨ",
+      "subtitle": "ਕੂਲਡਾਊਨ ਅਤੇ ਮਾਡਲ ਲਾਕਆਊਟ ਆਪਣੇ ਆਪ ਖਤਮ ਹੋ ਜਾਂਦੇ ਹਨ। ਕਨੈਕਸ਼ਨ ਨੂੰ ਹੁਣੇ ਦੁਬਾਰਾ ਰਾਊਟਿੰਗ ਵਿੱਚ ਲਿਆਉਣ ਲਈ ਇਹਨਾਂ ਨੂੰ ਸਾਫ਼ ਕਰੋ।",
+      "provider": "ਪ੍ਰੋਵਾਈਡਰ",
+      "allProviders": "ਸਾਰੇ ਪ੍ਰੋਵਾਈਡਰ",
+      "showHealthy": "ਠੀਕ ਕਨੈਕਸ਼ਨ ਦਿਖਾਓ",
+      "refresh": "ਰਿਫ੍ਰੈਸ਼ ਕਰੋ",
+      "clearSelected": "ਚੁਣੇ ਹੋਏ ਸਾਫ਼ ਕਰੋ ({count})",
+      "clearAll": "ਸਾਰੇ ਸਾਫ਼ ਕਰੋ",
+      "clear": "ਸਾਫ਼ ਕਰੋ",
+      "select": "ਕਨੈਕਸ਼ਨ ਚੁਣੋ",
+      "none": "ਕੋਈ ਨਹੀਂ",
+      "empty": "ਕੋਈ ਵੀ ਕਨੈਕਸ਼ਨ ਰਾਊਟਿੰਗ ਤੋਂ ਬਾਹਰ ਨਹੀਂ ਹੈ।",
+      "cleared": "{cleared} ਕਨੈਕਸ਼ਨ ਅਤੇ {lockouts} ਮਾਡਲ ਲਾਕਆਊਟ ਸਾਫ਼ ਕੀਤੇ ਗਏ। {skipped} ਪਾਬੰਦੀਸ਼ੁਦਾ ਜਾਂ ਮਿਆਦ ਪੁੱਗੇ ਛੱਡ ਦਿੱਤੇ ਗਏ।",
+      "clearFailed": "ਕੂਲਡਾਊਨ ਸਾਫ਼ ਨਹੀਂ ਕੀਤੇ ਜਾ ਸਕੇ",
+      "columns": {
+        "connection": "ਕਨੈਕਸ਼ਨ",
+        "provider": "ਪ੍ਰੋਵਾਈਡਰ",
+        "status": "ਸਥਿਤੀ",
+        "remaining": "ਬਾਕੀ ਸਮਾਂ",
+        "lockouts": "ਮਾਡਲ ਲਾਕਆਊਟ",
+        "lastError": "ਆਖਰੀ ਗਲਤੀ"
+      }
+    },
+    "status": {
+      "cooling_down": "ਠੰਢਾ ਹੋ ਰਿਹਾ ਹੈ",
+      "model_locked": "ਮਾਡਲ ਲੌਕ ਹੈ",
+      "unavailable": "ਅਣਉਪਲਬਧ",
+      "terminal": "ਧਿਆਨ ਦੀ ਲੋੜ ਹੈ",
+      "healthy": "ਤੰਦਰੁਸਤ"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "ਜਦੋਂ ਟਾਰਗੇਟ ਮਾਡਲ ਵਿੱਚ ਲੋੜੀਂਦੀਆਂ ਸਮਰੱਥਾਵਾਂ (ਵਿਜ਼ਨ, ਟੂਲ, ਸਟ੍ਰਕਚਰਡ ਆਉਟਪੁੱਟ, ਕਾਂਟੈਕਸਟ ਵਿੰਡੋ) ਨਾ ਹੋਣ, ਤਾਂ ਡਿਸਪੈਚ ਤੋਂ ਪਹਿਲਾਂ ਬੇਨਤੀਆਂ ਅਸਵੀਕਾਰ ਕਰੋ। ਇਹ ਉਹਨਾਂ ਸਿੱਧੀਆਂ ਸਿੰਗਲ-ਪ੍ਰੋਵਾਈਡਰ ਬੇਨਤੀਆਂ ਦੀ ਸੁਰੱਖਿਆ ਕਰਦਾ ਹੈ ਜੋ ਕੌਂਬੋ-ਲੇਅਰ ਅਨੁਕੂਲਤਾ ਫਿਲਟਰ ਨੂੰ ਬਾਈਪਾਸ ਕਰਦੀਆਂ ਹਨ।",

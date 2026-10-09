@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "이 API 키의 Codex 서비스 모드",
+    "description": "콤보 내 Codex 모델을 포함한 Codex 요청에 적용됩니다. 강제 모드는 클라이언트, 전역 설정 및 연결 기본값보다 우선합니다. 다른 제공업체에는 영향을 주지 않습니다.",
+    "label": "서비스 모드",
+    "inherit": "기존 동작 상속",
+    "default": "Standard 강제 적용(기본값)",
+    "priority": "Fast / Priority 강제 적용",
+    "flex": "Flex 강제 적용",
+    "warning": "이 설정은 제공업체에 대한 액세스 권한을 부여하지 않습니다. 사용 가능 여부, 요금 및 할당량 소모는 사용자의 Codex 계정과 모델에 따라 달라집니다. 강제 모드에는 HTTP 또는 Responses WebSocket 전송이 필요하며, app-server 요청은 거부됩니다.",
+    "confirm": "이 API 키에 “{mode}” 모드를 적용하시겠습니까? 이후 요청부터 적용됩니다.",
+    "save": "모드 저장",
+    "retry": "다시 시도",
+    "loadError": "저장된 서비스 모드를 불러올 수 없습니다.",
+    "saveError": "서비스 모드를 저장할 수 없습니다. 다시 시도해 주세요."
+  },
   "common": {
     "save": "저장",
     "cancel": "취소",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "예산이 소진된 요청을 긴급 무료 폴백 제공자/모델로 라우팅합니다.",
   "featureFlagArenaEloSyncEnabledDescription": "모델 지능 순위를 위해 주기적인 Arena AI 리더보드 ELO 동기화를 활성화합니다.",
   "featureFlagUniversalContextHandoffEnabledDescription": "콤보 라우팅에서 모델을 전환할 때 대화 요약을 생성하여 삽입합니다. 모델 전환을 서로 독립적으로 처리하고 기존 및 향후 모든 콤보에 대한 백그라운드 핸드오프 요청을 방지하려면 비활성화하세요.",
+  "featureFlagReasoningReplayEnabledDescription": "여러 턴의 대화에서 모델의 추론을 캐시하고 재생합니다. 추론 저장 및 재주입을 중지하려면 비활성화하세요.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models에서 Claude Code 게이트웨이 모델 검색 목록에 비Claude 모델이 포함되도록 claude/&lt;provider&gt;/&lt;model&gt; 미러 ID를 광고합니다. 경고: 전역적으로 활성화하면 모든 클라이언트에 대해 카탈로그 항목이 두 배로 증가합니다.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 게이트웨이 별칭의 마스터 스위치입니다. 켜짐(기본값): /v1/models는 조건에 맞는 모든 사고 가능 Claude 모델에 대해 사고 비활성화 변형을 표시하며, 요청에 전송된 no-think/ id는 추론이 억제된 실제 모델로 해석됩니다. 꺼짐: 변형이 표시되지 않으며 no-think/ id는 다른 알 수 없는 모델 id와 동일하게 처리됩니다. 이 기능이 켜져 있는 동안에도 모델별 ModelSpec.noThinkingAlias 옵트인/옵트아웃이 적용됩니다.",
   "featureFlagChatVirtualLanesEnabledDescription": "공급자 디스패치를 위해 테넌트별 적응형 가상 승인 레인을 활성화합니다(#9654): 한 테넌트의 폭증이 더 이상 다른 테넌트에 503을 반환하지 않습니다. OMNIROUTE_CHAT_VIRTUAL_LANES 환경 변수가 이 대시보드 설정보다 우선하며, 변경 사항은 서버 재시작 시 적용됩니다.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "실행 중인 모든 항목의 실시간 보기",
     "resilienceConnections": "연결 복원력",
     "resilienceConnectionsSubtitle": "쿨다운, 차단기, 잠금 상태",
+    "resilienceCooldowns": "Cooldown Manager",
+    "resilienceCooldownsSubtitle": "쿨다운 일괄 해제",
     "settingsModalityBridge": "모달리티 브리지",
     "settingsModalityBridgeSubtitle": "텍스트 전용 모델을 위한 이미지/오디오 → 텍스트 대체",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "분석",
     "usageAnalyticsTitle": "사용량 분석",
+    "tokenDisplayCompact": "간략",
+    "tokenDisplayExact": "정확",
+    "tokenDisplayMode": "토큰 표시 모드",
     "diversityScoreTitle": "공급자 다양성",
     "diversityScoreDesc": "최근 트래픽 기간의 제공업체 집중도 스냅샷입니다.",
     "diversityShannonEntropy": "섀넌 엔트로피",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "내장된 auto/* 콤보는 연결된 공급자로부터 동적으로 확인됩니다. 이러한 ID 중 하나를 모델 필드로 사용하세요 — 설정이 필요하지 않습니다.",
     "autoCatalogExpand": "자동 라우팅 카탈로그 확장",
     "autoCatalogCollapse": "자동 라우팅 카탈로그 축소",
+    "autoCatalogComboCount": "{count} 콤보",
+    "autoCatalogCandidates": "{count} 후보",
+    "autoCatalogNoCandidates": "일치하는 공급자가 없습니다",
+    "autoCatalogKindVariant": "변형",
+    "autoCatalogKindTemplate": "템플릿",
+    "autoCatalogKindCategory": "카테고리",
+    "autoCatalogKindFamily": "가족",
+    "autoComboTestTruncated": "테스트된 {tested}개의 {total} 라이브 후보 (가장 높은 가중치 우선).",
+    "controlCenter": "제어 센터",
     "createCombo": "콤보 생성",
     "editCombo": "콤보 편집",
     "deleteCombo": "콤보 삭제",
@@ -5560,6 +5590,8 @@
     "modelsActive": "활성",
     "showModel": "모델 표시",
     "hideModel": "모델 숨기기",
+    "blacklistModel": "차단",
+    "blacklistModelTooltip": "이 모델을 차단하고 카탈로그에서 숨깁니다",
     "removeModel": "모델 삭제",
     "rateLimitProtected": "보호됨",
     "rateLimitUnprotected": "보호되지 않음",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "저장된 모델 엔드포인트 설정",
     "searchByModelAria": "모델로 검색",
     "selectSupportedEndpoint": "지원되는 엔드포인트를 최소한 하나 선택하세요.",
-    "antigravityClientProfileHarness": "하네스 / CLI"
+    "antigravityClientProfileHarness": "하네스 / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "설정",
@@ -10077,7 +10120,11 @@
     "updatedShort": "업데이트됨",
     "lastRefreshed": "마지막 새로고침",
     "providerQuota": "제공자 할당량",
-    "providerQuotaHomeHint": "연결된 계정의 실시간 상태"
+    "providerQuotaHomeHint": "연결된 계정의 실시간 상태",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "승인을 기다리는 중",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "모델 잠금",
         "count": "연결 수"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown Manager",
+    "description": "실패 후 대기 중인 모든 연결을 확인하고, 쿨다운을 일괄 해제하며, 지속 시간을 조정합니다.",
+    "loading": "쿨다운 불러오는 중…",
+    "loadFailed": "쿨다운을 불러올 수 없습니다",
+    "loadFailedDetail": "연결 상태를 확인하고 페이지를 새로고침하세요.",
+    "rules": {
+      "title": "쿨다운 규칙",
+      "subtitle": "다음 실패 시점부터 모든 연결에 적용됩니다.",
+      "stallLabel": "스트림이 지연될 때 계정에 쿨다운 적용",
+      "stallDescription": "기본값 꺼짐: 지연은 일반적으로 계정 오류가 아닌 긴 추론 턴을 의미합니다.",
+      "oauth": "OAuth 계정",
+      "apikey": "API 키",
+      "baseCooldown": "기본 쿨다운(초)",
+      "baseCooldownHint": "실패 후 첫 번째 쿨다운입니다. 반복 실패 시 2배로 증가합니다.",
+      "maxBackoffSteps": "최대 백오프 단계",
+      "maxBackoffStepsHint": "쿨다운이 2배로 증가할 수 있는 횟수입니다.",
+      "save": "규칙 저장",
+      "saved": "쿨다운 규칙이 저장되었습니다",
+      "saveFailed": "쿨다운 규칙을 저장할 수 없습니다"
+    },
+    "list": {
+      "title": "라우팅에서 제외된 연결",
+      "subtitle": "쿨다운 및 모델 잠금은 자동으로 종료됩니다. 지금 라우팅에 연결을 다시 포함하려면 해제하세요.",
+      "provider": "제공자",
+      "allProviders": "모든 제공자",
+      "showHealthy": "정상 연결 표시",
+      "refresh": "새로고침",
+      "clearSelected": "선택 항목 해제 ({count})",
+      "clearAll": "모두 해제",
+      "clear": "해제",
+      "select": "연결 선택",
+      "none": "없음",
+      "empty": "라우팅에서 제외된 연결이 없습니다.",
+      "cleared": "연결 {cleared}개 및 모델 잠금 {lockouts}개를 해제했습니다. 차단되었거나 만료된 {skipped}개는 건너뛰었습니다.",
+      "clearFailed": "쿨다운을 해제할 수 없습니다",
+      "columns": {
+        "connection": "연결",
+        "provider": "제공자",
+        "status": "상태",
+        "remaining": "남은 시간",
+        "lockouts": "모델 잠금",
+        "lastError": "최근 오류"
+      }
+    },
+    "status": {
+      "cooling_down": "쿨다운 중",
+      "model_locked": "모델 잠김",
+      "unavailable": "사용 불가",
+      "terminal": "확인 필요",
+      "healthy": "정상"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "대상 모델에 필수 기능(비전, 도구, 구조화된 출력, 컨텍스트 창)이 부족할 경우 요청을 발송 전에 거부합니다. 콤보 레이어 호환성 필터를 우회하는 직접 단일 공급자 요청을 보호합니다.",

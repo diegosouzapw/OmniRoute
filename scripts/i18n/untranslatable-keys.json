@@ -152,6 +152,7 @@
     "providers.proxy",
     "providers.proxyConfiguredBySource",
     "providers.quotaWindowSpark",
+    "providers.rateLimitOverridesModelConcurrencyPlaceholder",
     "providers.responses",
     "providers.responsesApi",
     "providers.responsesPath",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mode ng serbisyo ng Codex para sa API key na ito",
+    "description": "Nalalapat sa mga kahilingan sa Codex, kabilang ang mga modelo ng Codex sa loob ng mga combo. Ino-override ng mga sapilitang mode ang client, mga pandaigdigang setting, at mga default ng koneksyon. Hindi magbabago ang ibang provider.",
+    "label": "Mode ng serbisyo",
+    "inherit": "Manahin ang kasalukuyang gawi",
+    "default": "Pilitin ang Standard (default)",
+    "priority": "Pilitin ang Fast / Priority",
+    "flex": "Pilitin ang Flex",
+    "warning": "Hindi ito nagbibigay ng access sa provider. Ang availability, mga singil, at paggamit ng quota ay nakadepende sa iyong Codex account at modelo. Nangangailangan ang mga sapilitang mode ng HTTP o Responses WebSocket transport; tatanggihan ang mga kahilingan sa app-server.",
+    "confirm": "Ilapat ang “{mode}” sa API key na ito? Magkakabisa ito para sa mga susunod na kahilingan.",
+    "save": "I-save ang mode",
+    "retry": "Subukang muli",
+    "loadError": "Hindi ma-load ang naka-save na mode ng serbisyo.",
+    "saveError": "Hindi ma-save ang mode ng serbisyo. Pakisubukang muli."
+  },
   "common": {
     "save": "I-save",
     "cancel": "Kanselahin",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "I-route ang mga request na naubusan ng budget sa emergency free fallback provider/model.",
   "featureFlagArenaEloSyncEnabledDescription": "I-enable ang pana-panahong Arena AI leaderboard ELO sync para sa mga ranking ng intelligence ng modelo.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Bumuo at awtomatikong maglagay ng mga buod ng pag-uusap kapag nagpapalit ng mga modelo ang combo routing. I-disable upang ituring nang hiwalay ang mga pagpapalit ng modelo at pigilan ang mga kahilingan sa paglipat sa background para sa lahat ng kasalukuyan at hinaharap na combo.",
+  "featureFlagReasoningReplayEnabledDescription": "I-cache at i-replay ang reasoning ng modelo sa mga usapang maraming turn. I-disable para ihinto ang pag-store at muling pag-inject ng reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "I-anunsyo ang claude/&lt;provider&gt;/&lt;model&gt; mirror ids sa /v1/models upang ang Claude Code gateway model discovery ay maglista ng mga non-Claude models. Babala: nagdodoble ng catalog entries para sa lahat ng kliyente kapag pinagana nang globally.",
   "featureFlagNoThinkingAliasEnabledDescription": "Pangunahing switch para sa mga gateway alias na no-think/&lt;provider&gt;/&lt;model&gt;. Naka-on (default): nag-aanunsyo ang /v1/models ng variant na walang pag-iisip para sa bawat kwalipikadong Claude model na may kakayahang mag-isip, at ang no-think/ id na ipinadala sa isang kahilingan ay ibinabalik sa tunay na modelo nang naka-suppress ang reasoning. Naka-off: walang mga variant na inaanunsyo at ang no-think/ id ay itinuturing tulad ng anumang ibang hindi kilalang model id. Nalalapat pa rin ang opt-in/opt-out na ModelSpec.noThinkingAlias ng bawat modelo habang naka-on ito.",
   "featureFlagChatVirtualLanesEnabledDescription": "Paganahin ang adaptive virtual admission lanes para sa bawat tenant sa pagpapadala ng provider (#9654): ang pag-akyat ng trapiko ng isang tenant ay hindi na nagbibigay ng 503 sa iba. Ang environment variable na OMNIROUTE_CHAT_VIRTUAL_LANES ay mas nangingibabaw sa setting na ito sa dashboard; magkakabisa ang mga pagbabago sa pag-restart ng server.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Live na tanawin ng lahat ng tumatakbo",
     "resilienceConnections": "Katatagan ng Koneksyon",
     "resilienceConnectionsSubtitle": "Cooldown, breaker, katayuan ng lockout",
+    "resilienceCooldowns": "Tagapamahala ng Cooldown",
+    "resilienceCooldownsSubtitle": "I-clear ang mga cooldown nang maramihan",
     "settingsModalityBridge": "Tulay ng Modalidad",
     "settingsModalityBridgeSubtitle": "Fallback ng imahe/audio → teksto para sa mga modelong teksto lamang",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Analytics ng Paggamit",
+    "tokenDisplayCompact": "Siksik",
+    "tokenDisplayExact": "Eksakto",
+    "tokenDisplayMode": "Mode ng Pagpapakita ng Token",
     "diversityScoreTitle": "Pagkakaiba-iba ng Provider",
     "diversityScoreDesc": "Snapshot ng konsentrasyon ng provider para sa kamakailang window ng trapiko.",
     "diversityShannonEntropy": "Entropiyang Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Ang mga built-in na auto/* combo ay dynamic na naresolba mula sa mga konektadong provider. Gamitin ang alinman sa mga ID na ito bilang field ng modelo — hindi kailangan ng setup.",
     "autoCatalogExpand": "Palawakin ang auto-routing catalog",
     "autoCatalogCollapse": "I-collapse ang auto-routing catalog",
+    "autoCatalogComboCount": "{count} combos",
+    "autoCatalogCandidates": "{count} kandidato",
+    "autoCatalogNoCandidates": "Walang tumutugmang mga provider",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "template",
+    "autoCatalogKindCategory": "kategorya",
+    "autoCatalogKindFamily": "pamilya",
+    "autoComboTestTruncated": "Sinubukan ang {tested} sa {total} mga live na kandidato (pinakamataas na timbang muna).",
+    "controlCenter": "Control Center",
     "createCombo": "Lumikha ng Combo",
     "editCombo": "I-edit ang Combo",
     "deleteCombo": "Tanggalin ang Combo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktibo",
     "showModel": "Ipakita ang modelo",
     "hideModel": "Itago ang modelo",
+    "blacklistModel": "I-block",
+    "blacklistModelTooltip": "I-block ang model na ito at itago sa catalog",
     "removeModel": "Alisin ang modelo",
     "rateLimitProtected": "Pinoprotektahan",
     "rateLimitUnprotected": "Hindi protektado",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Naka-save na mga setting ng endpoint ng modelo",
     "searchByModelAria": "Maghanap ayon sa modelo",
     "selectSupportedEndpoint": "Pumili ng hindi bababa sa isang sinusuportahang endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Mga setting",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Na-update",
     "lastRefreshed": "Huling na-refresh",
     "providerQuota": "Quota ng Provider",
-    "providerQuotaHomeHint": "Live na status sa lahat ng nakakonektang account"
+    "providerQuotaHomeHint": "Live na status sa lahat ng nakakonektang account",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Naghihintay ng Awtorisasyon",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Mga Lockout ng Modelo",
         "count": "Bilang ng Koneksyon"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Tagapamahala ng Cooldown",
+    "description": "Tingnan ang bawat koneksyon na nagpapahinga pagkatapos ng mga pagkabigo, alisin ang mga cooldown nang maramihan, at i-adjust kung gaano katagal ang mga ito.",
+    "loading": "Ikinakarga ang mga cooldown…",
+    "loadFailed": "Hindi maikarga ang mga cooldown",
+    "loadFailedDetail": "Suriin ang iyong koneksyon at i-refresh ang page.",
+    "rules": {
+      "title": "Mga panuntunan sa cooldown",
+      "subtitle": "Ilapat sa bawat koneksyon simula sa susunod nitong pagkabigo.",
+      "stallLabel": "I-cool down ang isang account kapag nag-stall ang stream",
+      "stallDescription": "Naka-off bilang default: ang pag-stall ay karaniwang nangangahulugan ng isang mahabang reasoning turn, hindi ng isang sirang account.",
+      "oauth": "Mga OAuth account",
+      "apikey": "Mga API key",
+      "baseCooldown": "Base cooldown (segundo)",
+      "baseCooldownHint": "Unang cooldown pagkatapos ng pagkabigo. Dinodoble ito ng mga paulit-ulit na pagkabigo.",
+      "maxBackoffSteps": "Maximum na mga hakbang ng backoff",
+      "maxBackoffStepsHint": "Ilang beses maaaring dumoble ang cooldown.",
+      "save": "I-save ang mga panuntunan",
+      "saved": "Nai-save ang mga panuntunan sa cooldown",
+      "saveFailed": "Hindi mai-save ang mga panuntunan sa cooldown"
+    },
+    "list": {
+      "title": "Mga koneksyong labas sa routing",
+      "subtitle": "Kusa ring natatapos ang mga cooldown at lockout ng modelo. I-clear ang mga ito upang maibalik agad ang isang koneksyon sa routing.",
+      "provider": "Provider",
+      "allProviders": "Lahat ng provider",
+      "showHealthy": "Ipakita ang mga maayos na koneksyon",
+      "refresh": "I-refresh",
+      "clearSelected": "I-clear ang napili ({count})",
+      "clearAll": "I-clear lahat",
+      "clear": "I-clear",
+      "select": "Pumili ng koneksyon",
+      "none": "Wala",
+      "empty": "Walang koneksyon na labas sa routing.",
+      "cleared": "Na-clear ang {cleared} koneksyon at {lockouts} lockout ng modelo. Nilaktawan ang {skipped} na na-ban o nag-expire.",
+      "clearFailed": "Hindi ma-clear ang mga cooldown",
+      "columns": {
+        "connection": "Koneksyon",
+        "provider": "Provider",
+        "status": "Katayuan",
+        "remaining": "Natitirang oras",
+        "lockouts": "Mga lockout ng modelo",
+        "lastError": "Huling error"
+      }
+    },
+    "status": {
+      "cooling_down": "Nagpapalamig",
+      "model_locked": "Naka-lock ang modelo",
+      "unavailable": "Hindi magagamit",
+      "terminal": "Nangangailangan ng atensyon",
+      "healthy": "Maayos"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Tanggihan ang mga kahilingan bago ang pagpapadala kapag ang target na modelo ay kulang sa mga kinakailangang kakayahan (paningin, mga tool, nakabalangkas na output, bintana ng konteksto). Pinoprotektahan ang mga direktang kahilingan mula sa isang tagapagbigay na lumalampas sa filter ng pagiging tugma ng combo-layer.",

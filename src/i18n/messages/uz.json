@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Ushbu API kaliti uchun Codex xizmat rejimi",
+    "description": "Codex so‘rovlariga, jumladan kombinatsiyalar ichidagi Codex modellariga ham qo‘llanadi. Majburiy rejimlar mijoz, global sozlamalar va ulanishning standart sozlamalaridan ustun turadi. Boshqa provayderlar o‘zgarishsiz qoladi.",
+    "label": "Xizmat rejimi",
+    "inherit": "Mavjud xatti-harakatni meros qilib olish",
+    "default": "Standart rejimni majburan qo‘llash (sukut bo‘yicha)",
+    "priority": "Tezkor / Ustuvor rejimni majburan qo‘llash",
+    "flex": "Flex rejimini majburan qo‘llash",
+    "warning": "Bu provayderga kirish huquqini bermaydi. Mavjudlik, to‘lovlar va kvota sarfi Codex hisobingiz va modelingizga bog‘liq. Majburiy rejimlar HTTP yoki Responses WebSocket transportini talab qiladi; app-server so‘rovlari rad etiladi.",
+    "confirm": "Ushbu API kalitiga “{mode}” rejimi qo‘llansinmi? Bu keyingi so‘rovlardan boshlab kuchga kiradi.",
+    "save": "Rejimni saqlash",
+    "retry": "Qayta urinish",
+    "loadError": "Saqlangan xizmat rejimini yuklab bo‘lmadi.",
+    "saveError": "Xizmat rejimini saqlab bo‘lmadi. Iltimos, qayta urinib ko‘ring."
+  },
   "common": {
     "save": "Saqlash",
     "cancel": "Bekor qilish",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Byudjeti tugagan soʻrovlarni favqulodda bepul zaxira provayder/modelga yoʻnaltirish.",
   "featureFlagArenaEloSyncEnabledDescription": "Modellar intellekti reytinglari uchun Arena AI peshqadamlar jadvalidagi ELO maʼlumotlarini davriy sinxronlashni yoqish.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Kombinatsiyalangan marshrutlash modellarni almashtirganda suhbat xulosalarini yaratish va kiritish. Model almashtirishlarini bir-biridan mustaqil tarzda boshqarish hamda barcha mavjud va kelajakdagi kombinatsiyalar uchun fonda topshirish soʻrovlarini oldini olish uchun oʻchiring.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Claude Code shlyuzidagi modelni aniqlash funksiyasi Claude boʻlmagan modellarni roʻyxatga olishi uchun /v1/models manzilida claude/&lt;provider&gt;/&lt;model&gt; akslantirma identifikatorlarini eʼlon qilish. Ogohlantirish: global miqyosda yoqilganda barcha mijozlar uchun katalog yozuvlari sonini ikki baravar oshiradi.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; shlyuz taxalluslari uchun asosiy kalit. Yoqilgan (standart): /v1/models fikrlash imkoniyatiga ega har bir mos Claude modeli uchun fikrlamaydigan variantni eʼlon qiladi va soʻrovda yuborilgan no-think/ identifikatori mulohaza yuritish bostirilgan holda haqiqiy modelga qayta moslanadi. Oʻchirilgan: hech qanday variant eʼlon qilinmaydi va no-think/ identifikatori boshqa nomaʼlum model identifikatorlari kabi qabul qilinadi. Bu sozlama yoqilgan paytda har bir modelga xos ModelSpec.noThinkingAlias orqali yoqish/oʻchirish tanlovi hamon amal qiladi.",
   "featureFlagChatVirtualLanesEnabledDescription": "Provayderga joʻnatish uchun har bir ijarachiga moslashuvchan virtual qabul yoʻlaklarini yoqish (#9654): endi bir ijarachining keskin soʻrovlar oqimi boshqasida 503 xatosini keltirib chiqarmaydi. OMNIROUTE_CHAT_VIRTUAL_LANES muhit oʻzgaruvchisi boshqaruv panelidagi ushbu sozlamadan ustun turadi; oʻzgarishlar server qayta ishga tushirilganda kuchga kiradi.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Ishlayotgan barcha jarayonlarning jonli ko‘rinishi",
     "resilienceConnections": "Ulanish barqarorligi",
     "resilienceConnectionsSubtitle": "Kutish davri, uzgich va bloklash holati",
+    "resilienceCooldowns": "Kutish davri boshqaruvchisi",
+    "resilienceCooldownsSubtitle": "Kutish vaqtlarini ommaviy tozalash",
     "settingsModalityBridge": "Modalitet ko‘prigi",
     "settingsModalityBridgeSubtitle": "Faqat matnli modellar uchun rasm/audio → matn zaxira usuli",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Tahlil",
     "usageAnalyticsTitle": "Foydalanish tahlili",
+    "tokenDisplayCompact": "Ixcham",
+    "tokenDisplayExact": "Aniq",
+    "tokenDisplayMode": "Tokenlarni ko'rsatish rejimi",
     "diversityScoreTitle": "Provayderlar xilma-xilligi",
     "diversityScoreDesc": "Soʻnggi trafik davri uchun provayderlar konsentratsiyasi koʻrsatkichi.",
     "diversityShannonEntropy": "Shannon entropiyasi",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Ulangan provayderlar asosida dinamik ravishda aniqlanadigan ichki auto/* kombinatsiyalari. Ushbu IDlardan istalganini model maydoni sifatida ishlating — sozlash talab qilinmaydi.",
     "autoCatalogExpand": "Avtomatik yoʻnaltirish katalogini kengaytirish",
     "autoCatalogCollapse": "Avtomatik yoʻnaltirish katalogini yigʻish",
+    "autoCatalogComboCount": "{count} kombinatsiyalar",
+    "autoCatalogCandidates": "{count} nomzodlar",
+    "autoCatalogNoCandidates": "Mos keluvchi provayderlar yo'q",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "shablon",
+    "autoCatalogKindCategory": "kategoriya",
+    "autoCatalogKindFamily": "oilasi",
+    "autoComboTestTruncated": "{total} jonli nomzodlardan {tested} tasdiqlangan (eng yuqori vaznlar birinchi).",
+    "controlCenter": "Boshqaruv markazi",
     "createCombo": "Kombinatsiya yaratish",
     "editCombo": "Kombinatsiyani tahrirlash",
     "deleteCombo": "Kombinatsiyani oʻchirish",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Faol",
     "showModel": "Modelni ko‘rsatish",
     "hideModel": "Modelni yashirish",
+    "blacklistModel": "Bloklash",
+    "blacklistModelTooltip": "Bu modelni bloklab, katalogdan yashirish",
     "removeModel": "Modelni olib tashlash",
     "rateLimitProtected": "Himoyalangan",
     "rateLimitUnprotected": "Himoyalanmagan",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "Bu hisob 5 soatlik foydalanish limitiga yetganda va Anthropic pastroq ustuvorlikdagi navbatni taklif qilganda, OmniRoute uni qabul qiladi va ulanishni vaqtincha to‘xtatish o‘rniga, vaqt oralig‘i qayta tiklanguncha anthropic-usage-limit: slow bilan so‘rovlar yuborishda davom etadi. Haftalik limit hamon amal qiladi va javoblar bo‘sh quvvat paydo bo‘lishini kutishi mumkin.",
     "claudeAutoLimitResetLabel": "Seans limitini avtomatik qayta tiklash (haftasiga bir marta)",
     "claudeAutoLimitResetDescription": "Bu hisob 5 soatlik foydalanish limitiga yetganda va seans limitini qayta tiklash imkoniyati mavjud bo‘lsa, OmniRoute undan avtomatik foydalanadi va to‘liq tezlikda qayta urinadi. Hisobning haftasiga bir marta beriladigan qayta tiklash imkoniyatidan foydalanadi va foydalanish hajmi baribir haftalik limitga hisoblanadi.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "Vaqtinchalik kutish davrini chetlab o‘tadi, shunda ushbu ulanish tiklanadigan xatolardan keyin ham foydalanish uchun yaroqli bo‘lib qoladi (bloklangan yoki muddati tugagan kabi yakuniy holatlar baribir amal qiladi).",
     "disableCoolingLabel": "Ushbu ulanish uchun kutish davrini o‘chirish",
     "bulkPasteAdded": "{count, plural, one {1 ta kalit qo‘shildi} other {# ta kalit qo‘shildi}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "Model endpointi sozlamalari saqlandi",
     "searchByModelAria": "Model boʻyicha qidirish",
     "selectSupportedEndpoint": "Kamida bitta qoʻllab-quvvatlanadigan endpointni tanlang",
-    "antigravityClientProfileHarness": "Sinov vositasi / CLI"
+    "antigravityClientProfileHarness": "Sinov vositasi / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "Sozlamalar",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "Oqimni o‘zgartirib bo‘lmadi"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "Foydalanish",
     "grokExtraUsageCredits": "Qo‘shimcha foydalanish kreditlari",
     "grokAutoTopUp": "Avtomatik to‘ldirish",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Model blokirovkalari",
         "count": "Ulanishlar soni"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Kutish davri boshqaruvchisi",
+    "description": "Xatolardan soʻng dam olayotgan har bir ulanishni koʻring, kutish vaqtlarini ommaviy ravishda bekor qiling va ularning davomiyligini sozlang.",
+    "loading": "Kutish vaqtlari yuklanmoqda…",
+    "loadFailed": "Kutish vaqtlarini yuklab boʻlmadi",
+    "loadFailedDetail": "Ulanishingizni tekshiring va sahifani yangilang.",
+    "rules": {
+      "title": "Kutish vaqti qoidalari",
+      "subtitle": "Har bir ulanishga uning keyingi xatoligidan boshlab qoʻllansin.",
+      "stallLabel": "Oqim toʻxtab qolganda hisobni kutish holatiga oʻtkazish",
+      "stallDescription": "Odatiy holatda oʻchiq: toʻxtab qolish odatda nosoz hisobni emas, balki bitta uzoq fikrlash bosqichini anglatadi.",
+      "oauth": "OAuth hisoblari",
+      "apikey": "API kalitlari",
+      "baseCooldown": "Asosiy kutish vaqti (soniya)",
+      "baseCooldownHint": "Xatolikdan keyingi birinchi kutish vaqti. Takroriy xatolar uni ikki baravarga oshiradi.",
+      "maxBackoffSteps": "Maksimal kechikish bosqichlari",
+      "maxBackoffStepsHint": "Kutish vaqti necha marta ikki baravarga oshishi mumkinligi.",
+      "save": "Qoidalarni saqlash",
+      "saved": "Kutish vaqti qoidalari saqlandi",
+      "saveFailed": "Kutish vaqti qoidalarini saqlab boʻlmadi"
+    },
+    "list": {
+      "title": "Marshrutlashdan tashqaridagi ulanishlar",
+      "subtitle": "Kutish vaqtlari va model blokirovkalari oʻz-oʻzidan tugaydi. Ulanishni hoziroq marshrutlashga qaytarish uchun ularni tozalang.",
+      "provider": "Provayder",
+      "allProviders": "Barcha provayderlar",
+      "showHealthy": "Sogʻlom ulanishlarni koʻrsatish",
+      "refresh": "Yangilash",
+      "clearSelected": "Tanlanganlarni tozalash ({count})",
+      "clearAll": "Barchasini tozalash",
+      "clear": "Tozalash",
+      "select": "Ulanishni tanlang",
+      "none": "Hech biri",
+      "empty": "Hech qanday ulanish marshrutlashdan tashqarida emas.",
+      "cleared": "{cleared} ta ulanish va {lockouts} ta model blokirovkasi tozalandi. Taqiqlangan yoki muddati oʻtgan {skipped} tasi oʻtkazib yuborildi.",
+      "clearFailed": "Kutish vaqtlarini tozalab boʻlmadi",
+      "columns": {
+        "connection": "Ulanish",
+        "provider": "Provayder",
+        "status": "Holat",
+        "remaining": "Qolgan vaqt",
+        "lockouts": "Model blokirovkalari",
+        "lastError": "Oxirgi xatolik"
+      }
+    },
+    "status": {
+      "cooling_down": "Sovumoqda",
+      "model_locked": "Model qulflangan",
+      "unavailable": "Mavjud emas",
+      "terminal": "Eʼtibor talab qilinadi",
+      "healthy": "Sogʻlom"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Maqsadli modelda zarur imkoniyatlar (tasvirni koʻrish, vositalar, tuzilgan chiqish, kontekst oynasi) boʻlmasa, soʻrovlarni yuborishdan oldin rad eting. Bu kombinatsiya qatlamidagi moslik filtrini chetlab oʻtadigan yagona provayderga yoʻnaltirilgan bevosita soʻrovlarni himoya qiladi.",

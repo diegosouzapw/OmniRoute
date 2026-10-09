@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codexi teenuserežiim selle API-võtme jaoks",
+    "description": "Kehtib Codexi päringutele, sealhulgas kombinatsioonides sisalduvatele Codexi mudelitele. Sundrežiimid alistavad kliendi, globaalsed sätted ja ühenduse vaikeseaded. Teiste teenusepakkujate sätted ei muutu.",
+    "label": "Teenuserežiim",
+    "inherit": "Päri olemasolev käitumine",
+    "default": "Sunni Standard (vaikimisi)",
+    "priority": "Sunni Fast / Priority",
+    "flex": "Sunni Flex",
+    "warning": "See ei anna juurdepääsu teenusepakkujale. Saadavus, tasud ja kvoodikasutus sõltuvad teie Codexi kontost ja mudelist. Sundrežiimid nõuavad HTTP- või Responses WebSocketi transporti; app-serveri päringud lükatakse tagasi.",
+    "confirm": "Kas rakendada „{mode}” sellele API-võtmele? See jõustub järgnevate päringute puhul.",
+    "save": "Salvesta režiim",
+    "retry": "Proovi uuesti",
+    "loadError": "Salvestatud teenuserežiimi ei õnnestunud laadida.",
+    "saveError": "Teenuserežiimi ei õnnestunud salvestada. Proovige uuesti."
+  },
   "common": {
     "save": "Salvesta",
     "cancel": "Tühista",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Suunake ammendunud eelarvega päringud tasuta hädaolukorra varupakkuja/-mudeli juurde.",
   "featureFlagArenaEloSyncEnabledDescription": "Lubage mudelite intelligentsuse paremusjärjestuste jaoks Arena AI edetabeli ELO perioodiline sünkroonimine.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Looge ja sisestage vestluste kokkuvõtted, kui kombomarsruutimine vahetab mudelit. Keelake see, et käsitleda mudelivahetusi sõltumatult ja takistada taustal üleandmispäringuid kõigi olemasolevate ja tulevaste kombode puhul.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Avaldage claude/&lt;provider&gt;/&lt;model&gt; peegel-ID-d lõpp-punktis /v1/models, et Claude Code'i lüüsi mudeliotsing loetleks ka mitte-Claude'i mudelid. Hoiatus: globaalsel lubamisel kahekordistab see kõigi klientide kataloogikirjete arvu.",
   "featureFlagNoThinkingAliasEnabledDescription": "Lüüsi no-think/&lt;provider&gt;/&lt;model&gt; aliaste pealüliti. Sisse lülitatud (vaikimisi): /v1/models avaldab iga sobiliku mõtlemisvõimelise Claude'i mudeli jaoks mõtlemiseta variandi ning päringus saadetud no-think/ ID lahendatakse tagasi tegelikuks mudeliks, mille arutluskäik on maha surutud. Välja lülitatud: variante ei avaldata ja no-think/ ID-d käsitletakse nagu mis tahes muud tundmatut mudeli-ID-d. Kui see on sisse lülitatud, kehtib endiselt mudelipõhine ModelSpec.noThinkingAlias lubamis- või keelamisvalik.",
   "featureFlagChatVirtualLanesEnabledDescription": "Lubage pakkujale edastamiseks rentnikupõhised kohanduvad virtuaalsed vastuvõturajad (#9654): ühe rentniku koormushoog ei põhjusta enam teisele tõrget 503. Keskkonnamuutuja OMNIROUTE_CHAT_VIRTUAL_LANES alistab selle juhtpaneeli sätte; muudatused jõustuvad serveri taaskäivitamisel.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Reaalajavaade kõigest käimasolevast",
     "resilienceConnections": "Ühenduse tõrkekindlus",
     "resilienceConnectionsSubtitle": "Ooteaja, kaitselüliti ja lukustuse olek",
+    "resilienceCooldowns": "Jahtumisaja haldur",
+    "resilienceCooldownsSubtitle": "Tühjenda jahtumisajad hulgakaupa",
     "settingsModalityBridge": "Modaalsuste sild",
     "settingsModalityBridgeSubtitle": "Pildi/heli → teksti varulahendus ainult tekstipõhistele mudelitele",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analüütika",
     "usageAnalyticsTitle": "Kasutusanalüütika",
+    "tokenDisplayCompact": "Kompaktne",
+    "tokenDisplayExact": "Täpne",
+    "tokenDisplayMode": "Tokenite kuvarežiim",
     "diversityScoreTitle": "Teenusepakkujate mitmekesisus",
     "diversityScoreDesc": "Teenusepakkujate kontsentratsiooni ülevaade hiljutise liikluse põhjal.",
     "diversityShannonEntropy": "Shannoni entroopia",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Sisseehitatud auto/* kombinatsioonid, mis määratakse dünaamiliselt ühendatud teenusepakkujate põhjal. Kasuta mudeli väljal ükskõik millist neist ID-dest — seadistamine pole vajalik.",
     "autoCatalogExpand": "Laienda automaatse marsruutimise kataloogi",
     "autoCatalogCollapse": "Ahenda automaatse marsruutimise kataloog",
+    "autoCatalogComboCount": "{count} kombinatsioonid",
+    "autoCatalogCandidates": "{count} kandidaate",
+    "autoCatalogNoCandidates": "Ei sobivaid teenusepakkujaid",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "mall",
+    "autoCatalogKindCategory": "kategooria",
+    "autoCatalogKindFamily": "perekond",
+    "autoComboTestTruncated": "Testitud {tested} {total} elavat kandidaati (kõrgeimad kaalud esimesena).",
+    "controlCenter": "Kontrollikeskus",
     "createCombo": "Loo kombinatsioon",
     "editCombo": "Muuda kombinatsiooni",
     "deleteCombo": "Kustuta kombinatsioon",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Aktiivne",
     "showModel": "Kuva mudel",
     "hideModel": "Peida mudel",
+    "blacklistModel": "Blokeeri",
+    "blacklistModelTooltip": "Blokeeri see mudel ja peida see kataloogist",
     "removeModel": "Eemalda mudel",
     "rateLimitProtected": "Kaitstud",
     "rateLimitUnprotected": "Kaitsmata",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Mudeli lõpp-punkti seaded salvestatud",
     "searchByModelAria": "Otsi mudeli järgi",
     "selectSupportedEndpoint": "Valige vähemalt üks toetatud lõpp-punkt",
-    "antigravityClientProfileHarness": "Rakendusraamistik / CLI"
+    "antigravityClientProfileHarness": "Rakendusraamistik / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Seaded",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Uuendatud",
     "lastRefreshed": "Viimati värskendatud",
     "providerQuota": "Teenusepakkuja kvoot",
-    "providerQuotaHomeHint": "Ühendatud kontode reaalajas olek"
+    "providerQuotaHomeHint": "Ühendatud kontode reaalajas olek",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Autoriseerimise ootel",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Mudelite blokeeringud",
         "count": "Ühenduste arv"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Jahtumisaja haldur",
+    "description": "Vaata kõiki ühendusi, mis puhkavad pärast tõrkeid, eemalda jahtumisajad hulgakaupa ja kohanda nende kestust.",
+    "loading": "Jahtumisaegade laadimine…",
+    "loadFailed": "Jahtumisaegu ei õnnestunud laadida",
+    "loadFailedDetail": "Kontrolli ühendust ja värskenda lehte.",
+    "rules": {
+      "title": "Jahtumisreeglid",
+      "subtitle": "Rakendatakse igale ühendusele alates järgmisest tõrkest.",
+      "stallLabel": "Vii konto jahtuma, kui voog seiskub",
+      "stallDescription": "Vaikimisi väljas: seiskumine tähendab tavaliselt pikka arutluskäiku, mitte vigast kontot.",
+      "oauth": "OAuth-kontod",
+      "apikey": "API-võtmed",
+      "baseCooldown": "Baasjahtumisaeg (sekundit)",
+      "baseCooldownHint": "Esimene jahtumisaeg pärast tõrget. Korduvad tõrked kahekordistavad seda.",
+      "maxBackoffSteps": "Maksimaalsed tagasitõmbumise sammud",
+      "maxBackoffStepsHint": "Mitu korda saab jahtumisaeg kahekordistuda.",
+      "save": "Salvesta reeglid",
+      "saved": "Jahtumisreeglid salvestatud",
+      "saveFailed": "Jahtumisreegleid ei õnnestunud salvestada"
+    },
+    "list": {
+      "title": "Marsruutimisest väljas olevad ühendused",
+      "subtitle": "Jahtumisajad ja mudeliblokeeringud lõppevad iseenesest. Tühjenda need, et viia ühendus kohe tagasi marsruutimisse.",
+      "provider": "Pakkuja",
+      "allProviders": "Kõik pakkujad",
+      "showHealthy": "Kuva korras ühendused",
+      "refresh": "Värskenda",
+      "clearSelected": "Tühjenda valitud ({count})",
+      "clearAll": "Tühjenda kõik",
+      "clear": "Tühjenda",
+      "select": "Vali ühendus",
+      "none": "Puudub",
+      "empty": "Ükski ühendus pole marsruutimisest väljas.",
+      "cleared": "Tühjendati {cleared} ühendust ja {lockouts} mudeliblokeeringut. Vahele jäeti {skipped} blokeeritud või aegunud.",
+      "clearFailed": "Jahtumisaegu ei õnnestunud tühjendada",
+      "columns": {
+        "connection": "Ühendus",
+        "provider": "Pakkuja",
+        "status": "Olek",
+        "remaining": "Aega jäänud",
+        "lockouts": "Mudeliblokeeringud",
+        "lastError": "Viimane viga"
+      }
+    },
+    "status": {
+      "cooling_down": "Jahtumas",
+      "model_locked": "Mudel lukustatud",
+      "unavailable": "Pole saadaval",
+      "terminal": "Vajab tähelepanu",
+      "healthy": "Töökorras"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Lükka päringud enne edastamist tagasi, kui sihtmudelil puuduvad nõutavad võimalused (nägemine, tööriistad, struktureeritud väljund, kontekstiaken). See kaitseb ühe teenusepakkuja otsepäringuid, mis mööduvad kombokihi ühilduvusfiltrist.",

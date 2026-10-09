@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modo de servicio de Codex para esta clave de API",
+    "description": "Se aplica a las solicitudes de Codex, incluidos los modelos de Codex dentro de las combinaciones. Los modos forzados prevalecen sobre el cliente, la configuración global y los valores predeterminados de conexión. Los demás proveedores no se ven afectados.",
+    "label": "Modo de servicio",
+    "inherit": "Heredar el comportamiento existente",
+    "default": "Forzar Estándar (predeterminado)",
+    "priority": "Forzar Rápido / Prioridad",
+    "flex": "Forzar Flex",
+    "warning": "Esto no concede acceso al proveedor. La disponibilidad, los cargos y el consumo de cuota dependen de tu cuenta y modelo de Codex. Los modos forzados requieren el transporte HTTP o Responses WebSocket; las solicitudes de app-server se rechazan.",
+    "confirm": "¿Aplicar «{mode}» a esta clave de API? Esto se aplicará a las solicitudes posteriores.",
+    "save": "Guardar modo",
+    "retry": "Reintentar",
+    "loadError": "No se pudo cargar el modo de servicio guardado.",
+    "saveError": "No se pudo guardar el modo de servicio. Inténtalo de nuevo."
+  },
   "common": {
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Enrutar las solicitudes con el presupuesto agotado al proveedor/modelo alternativo gratuito de emergencia.",
   "featureFlagArenaEloSyncEnabledDescription": "Habilitar la sincronización periódica del ELO de la clasificación de Arena AI para los rankings de inteligencia de modelos.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generar e insertar resúmenes de conversaciones cuando el enrutamiento combinado cambie de modelo. Deshabilítalo para tratar los cambios de modelo de forma independiente y evitar solicitudes de transferencia en segundo plano para todas las combinaciones actuales y futuras.",
+  "featureFlagReasoningReplayEnabledDescription": "Almacena en caché y reproduce el razonamiento del modelo en conversaciones de varios turnos. Desactívalo para dejar de guardar y reinyectar el razonamiento.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Anunciar los ids de espejo claude/&lt;provider&gt;/&lt;model&gt; en /v1/models para que la lista de descubrimiento de modelos del gateway de Claude Code incluya modelos que no son de Claude. Advertencia: duplica las entradas del catálogo para todos los clientes cuando se habilita globalmente.",
   "featureFlagNoThinkingAliasEnabledDescription": "Interruptor principal para los alias de puerta de enlace no-think/&lt;provider&gt;/&lt;model&gt;. Activado (valor predeterminado): /v1/models anuncia una variante sin razonamiento para cada modelo Claude compatible con razonamiento que cumpla los requisitos, y un id no-think/ enviado en una solicitud se resuelve al modelo real con el razonamiento suprimido. Desactivado: no se anuncia ninguna variante y un id no-think/ se trata como cualquier otro id de modelo desconocido. La opción de inclusión/exclusión por modelo ModelSpec.noThinkingAlias sigue aplicándose mientras esté activado.",
   "featureFlagChatVirtualLanesEnabledDescription": "Activa carriles de admisión virtuales adaptativos por tenant para el envío de proveedores (#9654): el pico de un tenant ya no devuelve 503 a otro. La variable de entorno OMNIROUTE_CHAT_VIRTUAL_LANES tiene prioridad sobre esta opción del panel; los cambios surten efecto al reiniciar el servidor.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Vista en vivo de todo lo que se está ejecutando",
     "resilienceConnections": "Resiliencia de Conexión",
     "resilienceConnectionsSubtitle": "Cooldown, disyuntor, estado de bloqueo",
+    "resilienceCooldowns": "Gestor de enfriamiento",
+    "resilienceCooldownsSubtitle": "Restablecer enfriamientos en lote",
     "settingsModalityBridge": "Puente de Modalidad",
     "settingsModalityBridgeSubtitle": "Fallback de imagen/audio → texto para modelos solo de texto",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analítica",
     "usageAnalyticsTitle": "Análisis de uso",
+    "tokenDisplayCompact": "Compacto",
+    "tokenDisplayExact": "Exacto",
+    "tokenDisplayMode": "Modo de visualización de tokens",
     "diversityScoreTitle": "Diversidad de proveedores",
     "diversityScoreDesc": "Muestra la concentración de proveedores para la ventana de tráfico reciente.",
     "diversityShannonEntropy": "Entropía de Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Las combinaciones automáticas/* integradas se resuelven dinámicamente desde proveedores conectados. Utilice cualquiera de estos ID como campo modelo; no es necesaria ninguna configuración.",
     "autoCatalogExpand": "Ampliar el catálogo de enrutamiento automático",
     "autoCatalogCollapse": "Contraer catálogo de enrutamiento automático",
+    "autoCatalogComboCount": "{count} combinaciones",
+    "autoCatalogCandidates": "{count} candidatos",
+    "autoCatalogNoCandidates": "No hay proveedores coincidentes",
+    "autoCatalogKindVariant": "variante",
+    "autoCatalogKindTemplate": "plantilla",
+    "autoCatalogKindCategory": "categoría",
+    "autoCatalogKindFamily": "familia",
+    "autoComboTestTruncated": "Se probaron {tested} de {total} candidatos en vivo (pesos más altos primero).",
+    "controlCenter": "Centro de Control",
     "createCombo": "Crear combinación",
     "editCombo": "Editar combinación",
     "deleteCombo": "Eliminar combinación",
@@ -5560,6 +5590,8 @@
     "modelsActive": "activos",
     "showModel": "Mostrar modelo",
     "hideModel": "Ocultar modelo",
+    "blacklistModel": "Bloquear",
+    "blacklistModelTooltip": "Bloquear este modelo y ocultarlo del catálogo",
     "removeModel": "Quitar modelo",
     "rateLimitProtected": "Protegido",
     "rateLimitUnprotected": "Desprotegido",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Configuración del punto final del modelo guardado",
     "searchByModelAria": "Buscar por modelo",
     "selectSupportedEndpoint": "Seleccione al menos un endpoint compatible",
-    "antigravityClientProfileHarness": "Entorno / CLI"
+    "antigravityClientProfileHarness": "Entorno / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Configuración",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Actualizado",
     "lastRefreshed": "Última actualización",
     "providerQuota": "Cuota del proveedor",
-    "providerQuotaHomeHint": "Estado en tiempo real de las cuentas conectadas"
+    "providerQuotaHomeHint": "Estado en tiempo real de las cuentas conectadas",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Esperando autorización",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Bloqueos de Modelo",
         "count": "Cantidad de Conexiones"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Gestor de enfriamiento",
+    "description": "Consulta todas las conexiones en reposo tras fallos, restablece enfriamientos en lote y ajusta su duración.",
+    "loading": "Cargando enfriamientos…",
+    "loadFailed": "No se pudieron cargar los enfriamientos",
+    "loadFailedDetail": "Comprueba tu conexión y actualiza la página.",
+    "rules": {
+      "title": "Reglas de enfriamiento",
+      "subtitle": "Se aplican a cada conexión a partir de su próximo fallo.",
+      "stallLabel": "Poner en enfriamiento una cuenta cuando una transmisión se detenga",
+      "stallDescription": "Desactivado por defecto: una interrupción suele deberse a un turno de razonamiento largo, no a una cuenta dañada.",
+      "oauth": "Cuentas OAuth",
+      "apikey": "Claves de API",
+      "baseCooldown": "Enfriamiento base (segundos)",
+      "baseCooldownHint": "Primer enfriamiento tras un fallo. Los fallos reiterados lo duplican.",
+      "maxBackoffSteps": "Pasos máximos de backoff",
+      "maxBackoffStepsHint": "Cuántas veces puede duplicarse el enfriamiento.",
+      "save": "Guardar reglas",
+      "saved": "Reglas de enfriamiento guardadas",
+      "saveFailed": "No se pudieron guardar las reglas de enfriamiento"
+    },
+    "list": {
+      "title": "Conexiones fuera de enrutamiento",
+      "subtitle": "Los enfriamientos y bloqueos de modelos terminan por sí solos. Restablécelos para volver a incluir una conexión en el enrutamiento ahora.",
+      "provider": "Proveedor",
+      "allProviders": "Todos los proveedores",
+      "showHealthy": "Mostrar conexiones en buen estado",
+      "refresh": "Actualizar",
+      "clearSelected": "Restablecer seleccionados ({count})",
+      "clearAll": "Restablecer todo",
+      "clear": "Restablecer",
+      "select": "Seleccionar conexión",
+      "none": "Ninguno",
+      "empty": "Ninguna conexión está fuera de enrutamiento.",
+      "cleared": "Se restablecieron {cleared} conexiones y {lockouts} bloqueos de modelos. Se omitieron {skipped} suspendidas o caducadas.",
+      "clearFailed": "No se pudieron restablecer los enfriamientos",
+      "columns": {
+        "connection": "Conexión",
+        "provider": "Proveedor",
+        "status": "Estado",
+        "remaining": "Tiempo restante",
+        "lockouts": "Bloqueos de modelos",
+        "lastError": "Último error"
+      }
+    },
+    "status": {
+      "cooling_down": "En enfriamiento",
+      "model_locked": "Modelo bloqueado",
+      "unavailable": "No disponible",
+      "terminal": "Requiere atención",
+      "healthy": "Saludable"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Rechazar solicitudes antes del despacho cuando el modelo objetivo carece de capacidades requeridas (visión, herramientas, salida estructurada, ventana de contexto). Protege las solicitudes directas de un solo proveedor que eluden el filtro de compatibilidad de la capa combinada.",

@@ -902,9 +902,9 @@ async function buildUnifiedModelsResponseCore(
           await yieldCatalogBuildTurn();
         }
         const virtualCombo = await createBuiltinAutoCombo(autoId, suffix, preparedAutoInputs);
+        if (virtualCombo.models.length === 0) continue; // zero live candidates — can't dispatch
         const contextLength = virtualCombo.advertisedContextLength || 128000;
         const maxOutputTokens = virtualCombo.advertisedMaxOutputTokens || 8192;
-
         // #11947: derive modalities and vision from the effective target pool so
         // OpenAI-compatible clients can detect vision support for auto/* combos.
         const autoTargets: ComboCatalogTarget[] = virtualCombo.models.map((m) => ({

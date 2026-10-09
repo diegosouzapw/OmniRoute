@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-servicemodus voor deze API-sleutel",
+    "description": "Van toepassing op Codex-verzoeken, inclusief Codex-modellen in combinaties. Geforceerde modi overschrijven de client, algemene instellingen en standaardinstellingen voor verbindingen. Andere providers blijven ongewijzigd.",
+    "label": "Servicemodus",
+    "inherit": "Bestaand gedrag overnemen",
+    "default": "Standaard forceren (standaard)",
+    "priority": "Snel / Prioriteit forceren",
+    "flex": "Flex forceren",
+    "warning": "Dit verleent geen toegang tot de provider. Beschikbaarheid, kosten en quotaverbruik zijn afhankelijk van je Codex-account en model. Geforceerde modi vereisen HTTP- of Responses WebSocket-transport; app-server-verzoeken worden geweigerd.",
+    "confirm": "‘{mode}’ toepassen op deze API-sleutel? Dit wordt van kracht voor volgende verzoeken.",
+    "save": "Modus opslaan",
+    "retry": "Opnieuw proberen",
+    "loadError": "De opgeslagen servicemodus kon niet worden geladen.",
+    "saveError": "De servicemodus kon niet worden opgeslagen. Probeer het opnieuw."
+  },
   "common": {
     "save": "Opslaan",
     "cancel": "Annuleer",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Routeer verzoeken met uitgeput budget naar de gratis nood-fallbackprovider/-model.",
   "featureFlagArenaEloSyncEnabledDescription": "Schakel periodieke ELO-synchronisatie van het Arena AI-leaderboard in voor modelintelligentieranglijsten.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Genereer en voeg gesprekssamenvattingen toe wanneer bij combinatieroutering van model wordt gewisseld. Schakel dit uit om modelwisselingen onafhankelijk te behandelen en overdrachtsverzoeken op de achtergrond te voorkomen voor alle bestaande en toekomstige combinaties.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache en speel de redenering van het model opnieuw af in gesprekken met meerdere beurten. Schakel uit om het opslaan en opnieuw invoegen van redenering te stoppen.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Adverteer claude/&lt;provider&gt;/&lt;model&gt; spiegel-id's op /v1/models zodat Claude Code gateway modelontdekking niet-Claude modellen vermeldt. Waarschuwing: dubbele catalogusvermeldingen voor alle klanten wanneer wereldwijd ingeschakeld.",
   "featureFlagNoThinkingAliasEnabledDescription": "Hoofdschakelaar voor de no-think/&lt;provider&gt;/&lt;model&gt;-gatewayaliassen. Aan (standaard): /v1/models vermeldt een variant zonder denkproces voor elk geschikt Claude-model met denkfunctionaliteit, en een no-think/-id dat met een verzoek wordt meegestuurd, wordt omgezet naar het echte model waarbij redeneren wordt onderdrukt. Uit: er worden geen varianten vermeld en een no-think/-id wordt behandeld als elke andere onbekende model-id. De opt-in/opt-out per model via ModelSpec.noThinkingAlias blijft van toepassing zolang dit is ingeschakeld.",
   "featureFlagChatVirtualLanesEnabledDescription": "Schakel adaptieve virtuele toegangsbanen per tenant in voor provider-dispatch (#9654): een piek van de ene tenant geeft de andere niet langer een 503. De omgevingsvariabele OMNIROUTE_CHAT_VIRTUAL_LANES wint het van deze dashboard-instelling; wijzigingen gaan in bij een serverherstart.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Live overzicht van alles wat actief is",
     "resilienceConnections": "Verbindingsveerkracht",
     "resilienceConnectionsSubtitle": "Cooldown, breaker, lockout-status",
+    "resilienceCooldowns": "Cooldown Manager",
+    "resilienceCooldownsSubtitle": "Cooldowns in bulk wissen",
     "settingsModalityBridge": "Modality Brug",
     "settingsModalityBridgeSubtitle": "Afbeelding/audio → tekst fallback voor alleen-tekstmodellen",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analyses",
     "usageAnalyticsTitle": "Gebruiksanalyses",
+    "tokenDisplayCompact": "Compact",
+    "tokenDisplayExact": "Exact",
+    "tokenDisplayMode": "Weergavemodus voor tokens",
     "diversityScoreTitle": "Diversiteit van aanbieders",
     "diversityScoreDesc": "Momentopname van providerconcentratie voor het recente verkeersvenster.",
     "diversityShannonEntropy": "Shannon-entropie",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Ingebouwde auto/*-combinaties die dynamisch worden opgelost door aangesloten providers. Gebruik een van deze ID's als modelveld; er is geen configuratie nodig.",
     "autoCatalogExpand": "Vouw de autoroutingcatalogus uit",
     "autoCatalogCollapse": "Catalogus voor automatische routering samenvouwen",
+    "autoCatalogComboCount": "{count} combinaties",
+    "autoCatalogCandidates": "{count} kandidaten",
+    "autoCatalogNoCandidates": "Geen overeenkomende aanbieders",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "sjabloon",
+    "autoCatalogKindCategory": "categorie",
+    "autoCatalogKindFamily": "familie",
+    "autoComboTestTruncated": "Getest {tested} van {total} live kandidaten (hoogste gewichten eerst).",
+    "controlCenter": "Besturingscentrum",
     "createCombo": "Combinatie maken",
     "editCombo": "Combinatie bewerken",
     "deleteCombo": "Combinatie verwijderen",
@@ -5560,6 +5590,8 @@
     "modelsActive": "actief",
     "showModel": "Model tonen",
     "hideModel": "Model verbergen",
+    "blacklistModel": "Blokkeren",
+    "blacklistModelTooltip": "Blokkeer dit model en verberg het uit de catalogus",
     "removeModel": "Model verwijderen",
     "rateLimitProtected": "Beschermd",
     "rateLimitUnprotected": "Onbeschermd",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Instellingen voor opgeslagen model-eindpunt",
     "searchByModelAria": "Zoeken op model",
     "selectSupportedEndpoint": "Selecteer ten minste één ondersteunde eindpunt",
-    "antigravityClientProfileHarness": "Testomgeving / CLI"
+    "antigravityClientProfileHarness": "Testomgeving / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Instellingen",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Bijgewerkt",
     "lastRefreshed": "Laatst vernieuwd",
     "providerQuota": "Providerquota",
-    "providerQuotaHomeHint": "Live status over verbonden accounts"
+    "providerQuotaHomeHint": "Live status over verbonden accounts",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Wachten op toestemming",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Modelvergrendelingen",
         "count": "Aantal Verbindingen"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown Manager",
+    "description": "Bekijk elke verbinding die rust na fouten, hef cooldowns in bulk op en stel in hoelang ze duren.",
+    "loading": "Cooldowns laden…",
+    "loadFailed": "Kon cooldowns niet laden",
+    "loadFailedDetail": "Controleer je verbinding en vernieuw de pagina.",
+    "rules": {
+      "title": "Cooldown-regels",
+      "subtitle": "Toepassen op elke verbinding vanaf de volgende fout.",
+      "stallLabel": "Account in cooldown plaatsen wanneer een stream vastloopt",
+      "stallDescription": "Standaard uitgeschakeld: een hapering duidt meestal op één lange redeneerbeurt, niet op een defect account.",
+      "oauth": "OAuth-accounts",
+      "apikey": "API-sleutels",
+      "baseCooldown": "Basis-cooldown (seconden)",
+      "baseCooldownHint": "Eerste cooldown na een fout. Herhaalde fouten verdubbelen dit.",
+      "maxBackoffSteps": "Maximaal aantal backoff-stappen",
+      "maxBackoffStepsHint": "Hoe vaak de cooldown kan verdubbelen.",
+      "save": "Regels opslaan",
+      "saved": "Cooldown-regels opgeslagen",
+      "saveFailed": "Kon de cooldown-regels niet opslaan"
+    },
+    "list": {
+      "title": "Verbindingen buiten routering",
+      "subtitle": "Cooldowns en modelblokkades verlopen vanzelf. Wis ze om een verbinding direct weer in de routering op te nemen.",
+      "provider": "Provider",
+      "allProviders": "Alle providers",
+      "showHealthy": "Gezonde verbindingen tonen",
+      "refresh": "Vernieuwen",
+      "clearSelected": "Geselecteerde wissen ({count})",
+      "clearAll": "Alles wissen",
+      "clear": "Wissen",
+      "select": "Verbinding selecteren",
+      "none": "Geen",
+      "empty": "Er bevindt zich geen verbinding buiten de routering.",
+      "cleared": "{cleared} verbindingen en {lockouts} modelblokkades gewist. {skipped} verbannen of verlopen overgeslagen.",
+      "clearFailed": "Kon de cooldowns niet wissen",
+      "columns": {
+        "connection": "Verbinding",
+        "provider": "Provider",
+        "status": "Status",
+        "remaining": "Resterende tijd",
+        "lockouts": "Modelblokkades",
+        "lastError": "Laatste fout"
+      }
+    },
+    "status": {
+      "cooling_down": "Koelt af",
+      "model_locked": "Model vergrendeld",
+      "unavailable": "Niet beschikbaar",
+      "terminal": "Aandacht vereist",
+      "healthy": "Gezond"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Weiger verzoeken vóór verzending wanneer het doellmodel ontbrekende vereiste mogelijkheden heeft (zicht, tools, gestructureerde output, contextvenster). Beschermt directe verzoeken van een enkele aanbieder die de compatibiliteitsfilter van de comb-laag omzeilen.",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "اس API کلید کے لیے Codex سروس موڈ",
+    "description": "یہ Codex کی درخواستوں پر لاگو ہوتا ہے، بشمول کومبوز کے اندر موجود Codex ماڈلز۔ جبری موڈز کلائنٹ، عالمی ترتیبات اور کنکشن کے ڈیفالٹس کو اوور رائیڈ کرتے ہیں۔ دیگر فراہم کنندگان میں کوئی تبدیلی نہیں ہوتی۔",
+    "label": "سروس موڈ",
+    "inherit": "موجودہ طرزِ عمل اپنائیں",
+    "default": "Standard لازمی کریں (ڈیفالٹ)",
+    "priority": "Fast / Priority لازمی کریں",
+    "flex": "Flex لازمی کریں",
+    "warning": "اس سے فراہم کنندہ تک رسائی حاصل نہیں ہوتی۔ دستیابی، چارجز اور کوٹے کا استعمال آپ کے Codex اکاؤنٹ اور ماڈل پر منحصر ہیں۔ جبری موڈز کے لیے HTTP یا Responses WebSocket ٹرانسپورٹ درکار ہے؛ app-server کی درخواستیں مسترد کر دی جاتی ہیں۔",
+    "confirm": "اس API کلید پر “{mode}” لاگو کریں؟ یہ آئندہ درخواستوں کے لیے مؤثر ہوگا۔",
+    "save": "موڈ محفوظ کریں",
+    "retry": "دوبارہ کوشش کریں",
+    "loadError": "محفوظ کردہ سروس موڈ لوڈ نہیں کیا جا سکا۔",
+    "saveError": "سروس موڈ محفوظ نہیں کیا جا سکا۔ براہِ کرم دوبارہ کوشش کریں۔"
+  },
   "common": {
     "save": "محفوظ کریں",
     "cancel": "منسوخ کریں",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "بجٹ ختم ہونے والی درخواستوں کو ہنگامی مفت متبادل provider/model کی طرف بھیجیں۔",
   "featureFlagArenaEloSyncEnabledDescription": "ماڈل انٹیلی جنس درجہ بندی کے لیے Arena AI لیڈربورڈ ELO کی وقتاً فوقتاً ہم وقت سازی فعال کریں۔",
   "featureFlagUniversalContextHandoffEnabledDescription": "جب کومبو روٹنگ ماڈلز تبدیل کرے تو گفتگو کے خلاصے بنائیں اور شامل کریں۔ ماڈل کی تبدیلیوں کو الگ الگ سمجھنے اور تمام موجودہ و آئندہ کومبوز کے لیے پس منظر کی حوالگی کی درخواستوں کو روکنے کے لیے اسے غیر فعال کریں۔",
+  "featureFlagReasoningReplayEnabledDescription": "کثیر باری گفتگوؤں میں ماڈل کی استدلال کو کیش کریں اور دوبارہ چلائیں۔ استدلال محفوظ کرنے اور دوبارہ داخل کرنے سے روکنے کے لیے غیر فعال کریں۔",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models پر claude/&lt;provider&gt;/&lt;model&gt; آئینہ شناختوں کا اشتہار دیں تاکہ Claude Code گیٹ وے ماڈل کی دریافت غیر-Claude ماڈلز کی فہرست بنائے۔ انتباہ: جب عالمی طور پر فعال ہو تو تمام کلائنٹس کے لیے کیٹلاگ کی اندراجات دوگنا کرتا ہے۔",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; گیٹ وے عرفیات کے لیے مرکزی سوئچ۔ فعال (ڈیفالٹ): /v1/models ہر اہل، سوچنے کی صلاحیت رکھنے والے Claude ماڈل کے لیے بغیر سوچ والا متبادل ظاہر کرتا ہے، اور درخواست میں بھیجی گئی no-think/ id کو استدلال دبانے کے ساتھ حقیقی ماڈل میں واپس حل کیا جاتا ہے۔ غیر فعال: کوئی متبادل ظاہر نہیں کیا جاتا اور no-think/ id کو کسی بھی دوسری نامعلوم ماڈل id کی طرح سمجھا جاتا ہے۔ اس کے فعال ہونے کے دوران فی ماڈل ModelSpec.noThinkingAlias کی شمولیت/عدم شمولیت پھر بھی لاگو رہتی ہے۔",
   "featureFlagChatVirtualLanesEnabledDescription": "پرووائیڈر بھیجنے کے لیے فی ٹیننٹ انکولی ورچوئل ایڈمیشن لین فعال کریں (#9654): ایک ٹیننٹ کا اچانک بوجھ اب دوسرے ٹیننٹ کو 503 نہیں دیتا۔ OMNIROUTE_CHAT_VIRTUAL_LANES ماحولیاتی متغیر اس ڈیش بورڈ سیٹنگ پر فوقیت رکھتا ہے؛ تبدیلیاں سرور دوبارہ شروع ہونے پر اثر انداز ہوتی ہیں۔",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "چل رہی ہر چیز کا لائیو منظر",
     "resilienceConnections": "کنکشن مضبوطی",
     "resilienceConnectionsSubtitle": "کولڈاؤن، بریکر، لاک آؤٹ حالت",
+    "resilienceCooldowns": "کول ڈاؤن مینیجر",
+    "resilienceCooldownsSubtitle": "بیک وقت تمام کول ڈاؤنز صاف کریں",
     "settingsModalityBridge": "موڈالیٹی پل",
     "settingsModalityBridgeSubtitle": "تصویر/آڈیو → ٹیکسٹ کے لیے ٹیکسٹ صرف ماڈلز کے لیے متبادل",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "تجزیات",
     "usageAnalyticsTitle": "استعمال کے تجزیات",
+    "tokenDisplayCompact": "مختصر",
+    "tokenDisplayExact": "درست",
+    "tokenDisplayMode": "ٹوکن ڈسپلے موڈ",
     "diversityScoreTitle": "فراہم کنندہ تنوع",
     "diversityScoreDesc": "حالیہ ٹریفک ونڈو کے لیے فراہم کنندہ کے ارتکاز کا اسنیپ شاٹ۔",
     "diversityShannonEntropy": "شینن اینٹروپی",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "بلٹ ان آٹو/* کومبوز مربوط فراہم کنندگان سے متحرک طور پر حل ہوئے۔ ان میں سے کسی بھی ID کو بطور ماڈل فیلڈ استعمال کریں — کسی سیٹ اپ کی ضرورت نہیں۔",
     "autoCatalogExpand": "آٹو روٹنگ کیٹلاگ کو پھیلائیں۔",
     "autoCatalogCollapse": "آٹو روٹنگ کیٹلاگ کو سکیڑیں۔",
+    "autoCatalogComboCount": "{count} کمبینیشن",
+    "autoCatalogCandidates": "{count} امیدوار",
+    "autoCatalogNoCandidates": "کوئی میچنگ فراہم کنندہ نہیں",
+    "autoCatalogKindVariant": "متغیر",
+    "autoCatalogKindTemplate": "سانچہ",
+    "autoCatalogKindCategory": "زمرہ",
+    "autoCatalogKindFamily": "خاندان",
+    "autoComboTestTruncated": "{total} زندہ امیدواروں میں سے {tested} کی جانچ کی گئی (سب سے زیادہ وزن پہلے)۔",
+    "controlCenter": "کنٹرول سینٹر",
     "createCombo": "کمبو بنائیں",
     "editCombo": "کمبو میں ترمیم کریں",
     "deleteCombo": "کمبو حذف کریں",
@@ -5560,6 +5590,8 @@
     "modelsActive": "فعال",
     "showModel": "ماڈل دکھائیں",
     "hideModel": "ماڈل چھپائیں",
+    "blacklistModel": "بلاک کریں",
+    "blacklistModelTooltip": "اس ماڈل کو بلاک کر کے کیٹلاگ سے چھپائیں",
     "removeModel": "ماڈل ہٹائیں",
     "rateLimitProtected": "محفوظ",
     "rateLimitUnprotected": "غیر محفوظ",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "محفوظ شدہ ماڈل اینڈپوائنٹ کی ترتیبات",
     "searchByModelAria": "ماڈل کے ذریعے تلاش کریں",
     "selectSupportedEndpoint": "کم از کم ایک سپورٹ کردہ اینڈپوائنٹ منتخب کریں",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "ترتیبات",
@@ -10077,7 +10120,11 @@
     "updatedShort": "اپ ڈیٹ شدہ",
     "lastRefreshed": "آخری بار ریفریش کیا گیا",
     "providerQuota": "فراہم کنندہ کا کوٹہ",
-    "providerQuotaHomeHint": "منسلک اکاؤنٹس میں لائیو اسٹیٹس"
+    "providerQuotaHomeHint": "منسلک اکاؤنٹس میں لائیو اسٹیٹس",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "اجازت کا انتظار ہے",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "ماڈل لاک آؤٹس",
         "count": "کنکشنز کی تعداد"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "کول ڈاؤن مینیجر",
+    "description": "ناکامیوں کے بعد تعطل کا شکار ہر کنکشن دیکھیں، بیک وقت کول ڈاؤنز ختم کریں، اور ان کے دورانیے کو منظم کریں۔",
+    "loading": "کول ڈاؤنز لوڈ ہو رہے ہیں…",
+    "loadFailed": "کول ڈاؤنز لوڈ نہیں ہو سکے",
+    "loadFailedDetail": "اپنا کنکشن چیک کریں اور صفحہ ریفریش کریں۔",
+    "rules": {
+      "title": "کول ڈاؤن کے قواعد",
+      "subtitle": "اگلی ناکامی سے ہر کنکشن پر لاگو کریں۔",
+      "stallLabel": "سٹریم رک جانے پر اکاؤنٹ کو کول ڈاؤن میں ڈالیں",
+      "stallDescription": "ڈیفالٹ کے طور پر بند: سٹریم رکنے کا مطلب عموماً ایک طویل ریزننگ باری ہوتی ہے، خراب اکاؤنٹ نہیں۔",
+      "oauth": "OAuth اکاؤنٹس",
+      "apikey": "API کیز",
+      "baseCooldown": "بنیادی کول ڈاؤن (سیکنڈز)",
+      "baseCooldownHint": "ناکامی کے بعد پہلا کول ڈاؤن۔ مسلسل ناکامیاں اسے دوگنا کر دیتی ہیں۔",
+      "maxBackoffSteps": "زیادہ سے زیادہ بیک آف مراحل",
+      "maxBackoffStepsHint": "کول ڈاؤن کتنی بار دوگنا ہو سکتا ہے۔",
+      "save": "قواعد محفوظ کریں",
+      "saved": "کول ڈاؤن کے قواعد محفوظ ہو گئے",
+      "saveFailed": "کول ڈاؤن کے قواعد محفوظ نہیں کیے جا سکے"
+    },
+    "list": {
+      "title": "روٹنگ سے باہر کنکشنز",
+      "subtitle": "کول ڈاؤنز اور ماڈل لاک آؤٹس خود بخود ختم ہو جاتے ہیں۔ کسی کنکشن کو فوراً دوبارہ روٹنگ میں لانے کے لیے انہیں صاف کریں۔",
+      "provider": "پرووائیڈر",
+      "allProviders": "تمام پرووائیڈرز",
+      "showHealthy": "صحت مند کنکشنز دکھائیں",
+      "refresh": "ریفریش کریں",
+      "clearSelected": "منتخب کردہ صاف کریں ({count})",
+      "clearAll": "سب صاف کریں",
+      "clear": "صاف کریں",
+      "select": "کنکشن منتخب کریں",
+      "none": "کوئی نہیں",
+      "empty": "کوئی کنکشن روٹنگ سے باہر نہیں ہے۔",
+      "cleared": "{cleared} کنکشنز اور {lockouts} ماڈل لاک آؤٹس صاف کر دیے گئے۔ {skipped} معطل یا زائد المیعاد نظرانداز کر دیے گئے۔",
+      "clearFailed": "کول ڈاؤنز صاف نہیں کیے جا سکے",
+      "columns": {
+        "connection": "کنکشن",
+        "provider": "پرووائیڈر",
+        "status": "اسٹیٹس",
+        "remaining": "باقی وقت",
+        "lockouts": "ماڈل لاک آؤٹس",
+        "lastError": "آخری خرابی"
+      }
+    },
+    "status": {
+      "cooling_down": "ٹھنڈا ہو رہا ہے",
+      "model_locked": "ماڈل مقفل ہے",
+      "unavailable": "دستیاب نہیں",
+      "terminal": "توجہ درکار ہے",
+      "healthy": "صحت مند"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "جب ہدف ماڈل میں ضروری صلاحیتیں (نظریات، ٹولز، منظم آؤٹ پٹ، سیاق و سباق کی کھڑکی) نہیں ہوتیں تو بھیجنے سے پہلے درخواستوں کو مسترد کریں۔ یہ براہ راست واحد فراہم کنندہ کی درخواستوں کی حفاظت کرتا ہے جو کمبو-لیئر کی ہم آہنگی کے فلٹر کو نظر انداز کرتی ہیں۔",

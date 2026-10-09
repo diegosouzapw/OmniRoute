@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "ഈ API കീയ്ക്കുള്ള Codex സേവന മോഡ്",
+    "description": "കോംബോകളിലുള്ള Codex മോഡലുകൾ ഉൾപ്പെടെയുള്ള Codex അഭ്യർത്ഥനകൾക്ക് ബാധകമാണ്. നിർബന്ധിത മോഡുകൾ ക്ലയന്റ്, ആഗോള ക്രമീകരണങ്ങൾ, കണക്ഷൻ ഡിഫോൾട്ടുകൾ എന്നിവയെ മറികടക്കും. മറ്റ് പ്രൊവൈഡറുകൾക്ക് മാറ്റമുണ്ടാകില്ല.",
+    "label": "സേവന മോഡ്",
+    "inherit": "നിലവിലുള്ള പ്രവർത്തനരീതി പിന്തുടരുക",
+    "default": "Standard നിർബന്ധമാക്കുക (ഡിഫോൾട്ട്)",
+    "priority": "Fast / Priority നിർബന്ധമാക്കുക",
+    "flex": "Flex നിർബന്ധമാക്കുക",
+    "warning": "ഇത് പ്രൊവൈഡർ ആക്സസ് നൽകുന്നില്ല. ലഭ്യത, നിരക്കുകൾ, ക്വോട്ട ഉപയോഗം എന്നിവ നിങ്ങളുടെ Codex അക്കൗണ്ടിനെയും മോഡലിനെയും ആശ്രയിച്ചിരിക്കും. നിർബന്ധിത മോഡുകൾക്ക് HTTP അല്ലെങ്കിൽ Responses WebSocket ട്രാൻസ്പോർട്ട് ആവശ്യമാണ്; app-server അഭ്യർത്ഥനകൾ നിരസിക്കപ്പെടും.",
+    "confirm": "ഈ API കീയ്ക്ക് “{mode}” പ്രയോഗിക്കണോ? തുടർന്നുള്ള അഭ്യർത്ഥനകൾക്ക് ഇത് പ്രാബല്യത്തിൽ വരും.",
+    "save": "മോഡ് സംരക്ഷിക്കുക",
+    "retry": "വീണ്ടും ശ്രമിക്കുക",
+    "loadError": "സംരക്ഷിച്ച സേവന മോഡ് ലോഡ് ചെയ്യാനായില്ല.",
+    "saveError": "സേവന മോഡ് സംരക്ഷിക്കാനായില്ല. ദയവായി വീണ്ടും ശ്രമിക്കുക."
+  },
   "common": {
     "save": "സംരക്ഷിക്കുക",
     "cancel": "റദ്ദാക്കുക",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "ബജറ്റ് തീർന്ന അഭ്യർത്ഥനകൾ അടിയന്തര സൗജന്യ ഫാൾബാക്ക് പ്രൊവൈഡർ/മോഡലിലേക്ക് റൂട്ട് ചെയ്യുക.",
   "featureFlagArenaEloSyncEnabledDescription": "മോഡൽ ഇന്റലിജൻസ് റാങ്കിങ്ങുകൾക്കായി Arena AI ലീഡർബോർഡ് ELO ആനുകാലികമായി സമന്വയിപ്പിക്കുന്നത് പ്രവർത്തനക്ഷമമാക്കുക.",
   "featureFlagUniversalContextHandoffEnabledDescription": "കോംബോ റൂട്ടിങ് മോഡലുകൾ മാറുമ്പോൾ സംഭാഷണ സംഗ്രഹങ്ങൾ സൃഷ്ടിച്ച് ഉൾപ്പെടുത്തുക. മോഡൽ മാറ്റങ്ങളെ സ്വതന്ത്രമായി പരിഗണിക്കാനും നിലവിലുള്ളതും ഭാവിയിലുള്ളതുമായ എല്ലാ കോംബോകൾക്കുമുള്ള പശ്ചാത്തല കൈമാറ്റ അഭ്യർത്ഥനകൾ തടയാനും ഇത് പ്രവർത്തനരഹിതമാക്കുക.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Claude Code ഗേറ്റ്വേ മോഡൽ കണ്ടെത്തലിൽ Claude ഇതര മോഡലുകൾ പട്ടികപ്പെടുത്തുന്നതിനായി /v1/models-ൽ claude/&lt;provider&gt;/&lt;model&gt; മിറർ ഐഡികൾ പ്രസിദ്ധപ്പെടുത്തുക. മുന്നറിയിപ്പ്: ആഗോളതലത്തിൽ പ്രവർത്തനക്ഷമമാക്കുമ്പോൾ എല്ലാ ക്ലയന്റുകൾക്കുമുള്ള കാറ്റലോഗ് എൻട്രികളുടെ എണ്ണം ഇരട്ടിയാകും.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; ഗേറ്റ്വേ അപരനാമങ്ങൾക്കുള്ള മാസ്റ്റർ സ്വിച്ച്. ഓൺ (ഡിഫോൾട്ട്): യോഗ്യതയുള്ള, ചിന്താശേഷിയുള്ള ഓരോ Claude മോഡലിനും ചിന്തിക്കാത്ത ഒരു വകഭേദം /v1/models പ്രസിദ്ധപ്പെടുത്തും; കൂടാതെ അഭ്യർത്ഥനയിൽ അയയ്ക്കുന്ന no-think/ ഐഡി, റീസണിങ് അടിച്ചമർത്തിക്കൊണ്ട് യഥാർഥ മോഡലിലേക്ക് തിരികെ പരിഹരിക്കപ്പെടും. ഓഫ്: വകഭേദങ്ങളൊന്നും പ്രസിദ്ധപ്പെടുത്തില്ല; no-think/ ഐഡി മറ്റേതൊരു അജ്ഞാത മോഡൽ ഐഡിയെയും പോലെ പരിഗണിക്കും. ഇത് ഓണായിരിക്കുമ്പോഴും ഓരോ മോഡലിനുമുള്ള ModelSpec.noThinkingAlias ഓപ്റ്റ്-ഇൻ/ഓപ്റ്റ്-ഔട്ട് ബാധകമാണ്.",
   "featureFlagChatVirtualLanesEnabledDescription": "പ്രൊവൈഡർ ഡിസ്പാച്ചിനായി ഓരോ ടെനന്റിനും അനുയോജ്യമായി മാറുന്ന വെർച്വൽ അഡ്മിഷൻ ലെയിനുകൾ പ്രവർത്തനക്ഷമമാക്കുക (#9654): ഇനി ഒരു ടെനന്റിന്റെ പെട്ടെന്നുള്ള അഭ്യർത്ഥന വർധന മറ്റൊരാൾക്ക് 503 പിശക് സൃഷ്ടിക്കില്ല. ഈ ഡാഷ്ബോർഡ് ഓവർറൈഡിനേക്കാൾ OMNIROUTE_CHAT_VIRTUAL_LANES env var-ന് മുൻഗണനയുണ്ട്; സെർവർ പുനരാരംഭിക്കുമ്പോൾ മാറ്റങ്ങൾ പ്രാബല്യത്തിൽ വരും.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "പ്രവർത്തിക്കുന്ന എല്ലാറ്റിന്റെയും തത്സമയ കാഴ്ച",
     "resilienceConnections": "കണക്ഷൻ പ്രതിരോധശേഷി",
     "resilienceConnectionsSubtitle": "കൂൾഡൗൺ, ബ്രേക്കർ, ലോക്കൗട്ട് നില",
+    "resilienceCooldowns": "കൂൾഡൗൺ മാനേജർ",
+    "resilienceCooldownsSubtitle": "കൂൾഡൗണുകൾ ഒന്നായി ക്ലിയർ ചെയ്യുക",
     "settingsModalityBridge": "മോഡാലിറ്റി ബ്രിഡ്ജ്",
     "settingsModalityBridgeSubtitle": "ടെക്സ്റ്റ്-മാത്രം മോഡലുകൾക്കായി ചിത്രം/ഓഡിയോ → ടെക്സ്റ്റ് ഫാൾബാക്ക്",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "വിശകലനം",
     "usageAnalyticsTitle": "ഉപയോഗ വിശകലനം",
+    "tokenDisplayCompact": "സംക്ഷിപ്തം",
+    "tokenDisplayExact": "കൃത്യം",
+    "tokenDisplayMode": "ടോക്കൺ പ്രദർശന മോഡ്",
     "diversityScoreTitle": "പ്രൊവൈഡർ വൈവിധ്യം",
     "diversityScoreDesc": "സമീപകാല ട്രാഫിക് കാലയളവിലെ പ്രൊവൈഡർ കേന്ദ്രീകരണത്തിന്റെ സംക്ഷിപ്ത ചിത്രം.",
     "diversityShannonEntropy": "ഷാനൺ എൻട്രോപ്പി",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "കണക്റ്റ് ചെയ്ത പ്രൊവൈഡർമാരിൽ നിന്ന് ഡൈനാമിക്കായി നിർണ്ണയിക്കപ്പെടുന്ന ബിൽറ്റ്-ഇൻ auto/* കോംബോകൾ. ഈ ID-കളിൽ ഏതും മോഡൽ ഫീൽഡായി ഉപയോഗിക്കാം — സജ്ജീകരണം ആവശ്യമില്ല.",
     "autoCatalogExpand": "ഓട്ടോ-റൂട്ടിംഗ് കാറ്റലോഗ് വിടർത്തുക",
     "autoCatalogCollapse": "ഓട്ടോ-റൂട്ടിംഗ് കാറ്റലോഗ് ചുരുക്കുക",
+    "autoCatalogComboCount": "{count} കോമ്പോസ്",
+    "autoCatalogCandidates": "{count} സ്ഥാനാർത്ഥികൾ",
+    "autoCatalogNoCandidates": "മത്സ്യബന്ധനങ്ങൾ ഇല്ല",
+    "autoCatalogKindVariant": "വ്യത്യാസം",
+    "autoCatalogKindTemplate": "ടെംപ്ലേറ്റ്",
+    "autoCatalogKindCategory": "വിഭാഗം",
+    "autoCatalogKindFamily": "കുടുംബം",
+    "autoComboTestTruncated": "പരിശോധിച്ച {tested} {total} ജീവൻ സ്ഥാനാർത്ഥികൾ (ഉയർന്ന ഭാരം ആദ്യം).",
+    "controlCenter": "കൺട്രോൾ സെന്റർ",
     "createCombo": "കോംബോ സൃഷ്ടിക്കുക",
     "editCombo": "കോംബോ എഡിറ്റ് ചെയ്യുക",
     "deleteCombo": "കോംബോ ഇല്ലാതാക്കുക",
@@ -5560,6 +5590,8 @@
     "modelsActive": "സജീവം",
     "showModel": "മോഡൽ കാണിക്കുക",
     "hideModel": "മോഡൽ മറയ്ക്കുക",
+    "blacklistModel": "തടയുക",
+    "blacklistModelTooltip": "ഈ മോഡൽ തടഞ്ഞ് കാറ്റലോഗിൽ നിന്ന് മറയ്ക്കുക",
     "removeModel": "മോഡൽ നീക്കം ചെയ്യുക",
     "rateLimitProtected": "പരിരക്ഷിതം",
     "rateLimitUnprotected": "പരിരക്ഷിക്കാത്തത്",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "ഈ അക്കൗണ്ട് അതിന്റെ 5 മണിക്കൂർ ഉപയോഗപരിധിയിലെത്തുകയും Anthropic കുറഞ്ഞ മുൻഗണനയുള്ള പാത ലഭ്യമാക്കുകയും ചെയ്യുമ്പോൾ, OmniRoute അത് സ്വീകരിച്ച് വിൻഡോ പുനഃസജ്ജമാകുന്നതുവരെ anthropic-usage-limit: slow ഉപയോഗിച്ച് അഭ്യർത്ഥനകൾ അയയ്ക്കുന്നത് തുടരുന്നു; കണക്ഷൻ കൂൾ ഡൗൺ ചെയ്യുകയില്ല. പ്രതിവാര പരിധി അപ്പോഴും ബാധകമാണ്, കൂടാതെ ശേഷി ലഭ്യമാകുന്നതുവരെ പ്രതികരണങ്ങൾ കാത്തിരിക്കേണ്ടി വന്നേക്കാം.",
     "claudeAutoLimitResetLabel": "സെഷൻ പരിധി സ്വയമേവ പുനഃസജ്ജമാക്കുക (ആഴ്ചയിൽ ഒരിക്കൽ)",
     "claudeAutoLimitResetDescription": "ഈ അക്കൗണ്ട് അതിന്റെ 5 മണിക്കൂർ ഉപയോഗപരിധിയിലെത്തുകയും സെഷൻ പരിധി പുനഃസജ്ജമാക്കാനുള്ള അവസരം ലഭ്യമാകുകയും ചെയ്യുമ്പോൾ, OmniRoute അത് സ്വയമേവ പ്രയോജനപ്പെടുത്തി പൂർണ്ണ വേഗത്തിൽ വീണ്ടും ശ്രമിക്കുന്നു. അക്കൗണ്ടിന് ആഴ്ചയിൽ ഒരിക്കൽ ലഭിക്കുന്ന പുനഃസജ്ജീകരണം ഉപയോഗിക്കുന്നു; ഇത് അപ്പോഴും പ്രതിവാര പരിധിയിൽ കണക്കാക്കപ്പെടും.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "താൽക്കാലിക കൂൾഡൗൺ ഒഴിവാക്കുക, അതുവഴി വീണ്ടെടുക്കാവുന്ന പിശകുകൾക്ക് ശേഷവും ഈ കണക്ഷൻ യോഗ്യമായി തുടരും (നിരോധിച്ചത്/കാലഹരണപ്പെട്ടത് പോലുള്ള അന്തിമ നിലകൾ തുടർന്നും ബാധകമാണ്).",
     "disableCoolingLabel": "ഈ കണക്ഷന്റെ കൂൾഡൗൺ പ്രവർത്തനരഹിതമാക്കുക",
     "bulkPasteAdded": "{count, plural, one {1 കീ ചേർത്തു} other {# കീകൾ ചേർത്തു}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "സംരക്ഷിച്ച മോഡൽ എൻഡ്പോയിന്റ് ക്രമീകരണങ്ങൾ",
     "searchByModelAria": "മോഡൽ അനുസരിച്ച് തിരയുക",
     "selectSupportedEndpoint": "പിന്തുണയ്ക്കുന്ന ഒരു എൻഡ്പോയിന്റെങ്കിലും തിരഞ്ഞെടുക്കുക",
-    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI"
+    "antigravityClientProfileHarness": "ഹാർനെസ് / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "ക്രമീകരണങ്ങൾ",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "സ്ട്രീം പരിവർത്തനം ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "ഉപയോഗം",
     "grokExtraUsageCredits": "അധിക ഉപയോഗ ക്രെഡിറ്റുകൾ",
     "grokAutoTopUp": "സ്വയമേവ ടോപ്പ്-അപ്പ്",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "മോഡൽ ലോക്കൗട്ടുകൾ",
         "count": "കണക്ഷനുകളുടെ എണ്ണം"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "കൂൾഡൗൺ മാനേജർ",
+    "description": "പരാജയങ്ങളെത്തുടർന്ന് വിശ്രമിക്കുന്ന എല്ലാ കണക്ഷനുകളും കാണുക, കൂൾഡൗണുകൾ ഒന്നായി ഒഴിവാക്കുക, അവ എത്ര സമയം നീണ്ടുനിൽക്കണമെന്ന് ക്രമീകരിക്കുക.",
+    "loading": "കൂൾഡൗണുകൾ ലോഡ് ചെയ്യുന്നു…",
+    "loadFailed": "കൂൾഡൗണുകൾ ലോഡ് ചെയ്യാൻ കഴിഞ്ഞില്ല",
+    "loadFailedDetail": "നിങ്ങളുടെ കണക്ഷൻ പരിശോധിച്ച് പേജ് റീഫ്രഷ് ചെയ്യുക.",
+    "rules": {
+      "title": "കൂൾഡൗൺ നിയമങ്ങൾ",
+      "subtitle": "അടുത്ത പരാജയം മുതൽ ഓരോ കണക്ഷനും ബാധകമാക്കുക.",
+      "stallLabel": "സ്ട്രീം തടസ്സപ്പെടുമ്പോൾ അക്കൗണ്ട് കൂൾ ഡൗൺ ചെയ്യുക",
+      "stallDescription": "ഡിഫോൾട്ടായി ഓഫാണ്: തടസ്സം സാധാരണയായി ഒരു നീണ്ട റീസണിംഗ് ഘട്ടത്തെയാണ് സൂചിപ്പിക്കുന്നത്, തകരാറിലായ അക്കൗണ്ടിനെയല്ല.",
+      "oauth": "OAuth അക്കൗണ്ടുകൾ",
+      "apikey": "API കീകൾ",
+      "baseCooldown": "അടിസ്ഥാന കൂൾഡൗൺ (സെക്കൻഡുകൾ)",
+      "baseCooldownHint": "പരാജയത്തിന് ശേഷമുള്ള ആദ്യ കൂൾഡൗൺ. തുടർച്ചയായ പരാജയങ്ങൾ ഇത് ഇരട്ടിയാക്കുന്നു.",
+      "maxBackoffSteps": "പരമാവധി ബാക്ക്ഓഫ് ഘട്ടങ്ങൾ",
+      "maxBackoffStepsHint": "കൂൾഡൗൺ എത്ര തവണ ഇരട്ടിയാക്കാം എന്നത്.",
+      "save": "നിയമങ്ങൾ സേവ് ചെയ്യുക",
+      "saved": "കൂൾഡൗൺ നിയമങ്ങൾ സേവ് ചെയ്തു",
+      "saveFailed": "കൂൾഡൗൺ നിയമങ്ങൾ സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല"
+    },
+    "list": {
+      "title": "റൂട്ടിംഗിൽ നിന്നൊഴിവായ കണക്ഷനുകൾ",
+      "subtitle": "കൂൾഡൗണുകളും മോഡൽ ലോക്കൗട്ടുകളും തനിയെ അവസാനിക്കും. ഒരു കണക്ഷൻ ഇപ്പോൾ തന്നെ റൂട്ടിംഗിലേക്ക് തിരികെ കൊണ്ടുവരാൻ അവ ക്ലിയർ ചെയ്യുക.",
+      "provider": "പ്രൊവൈഡർ",
+      "allProviders": "എല്ലാ പ്രൊവൈഡർമാരും",
+      "showHealthy": "തകരാറില്ലാത്ത കണക്ഷനുകൾ കാണിക്കുക",
+      "refresh": "റീഫ്രഷ് ചെയ്യുക",
+      "clearSelected": "തിരഞ്ഞെടുത്തവ ക്ലിയർ ചെയ്യുക ({count})",
+      "clearAll": "എല്ലാം ക്ലിയർ ചെയ്യുക",
+      "clear": "ക്ലിയർ ചെയ്യുക",
+      "select": "കണക്ഷൻ തിരഞ്ഞെടുക്കുക",
+      "none": "ഒന്നുമില്ല",
+      "empty": "റൂട്ടിംഗിൽ നിന്നൊഴിവായ കണക്ഷനുകളൊന്നുമില്ല.",
+      "cleared": "{cleared} കണക്ഷനുകളും {lockouts} മോഡൽ ലോക്കൗട്ടുകളും ക്ലിയർ ചെയ്തു. നിരോധിച്ചതോ കാലാവധി കഴിഞ്ഞതോ ആയ {skipped} എണ്ണം ഒഴിവാക്കി.",
+      "clearFailed": "കൂൾഡൗണുകൾ ക്ലിയർ ചെയ്യാൻ കഴിഞ്ഞില്ല",
+      "columns": {
+        "connection": "കണക്ഷൻ",
+        "provider": "പ്രൊവൈഡർ",
+        "status": "സ്റ്റാറ്റസ്",
+        "remaining": "ശേഷിക്കുന്ന സമയം",
+        "lockouts": "മോഡൽ ലോക്കൗട്ടുകൾ",
+        "lastError": "അവസാന പിശക്"
+      }
+    },
+    "status": {
+      "cooling_down": "കൂൾ ഡൗൺ ആകുന്നു",
+      "model_locked": "മോഡൽ ലോക്ക് ചെയ്‌തിരിക്കുന്നു",
+      "unavailable": "ലഭ്യമല്ല",
+      "terminal": "ശ്രദ്ധ ആവശ്യമാണ്",
+      "healthy": "നല്ല നിലയിൽ"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "ലക്ഷ്യമാക്കിയ മോഡലിന് ആവശ്യമായ ശേഷികൾ (വിഷൻ, ടൂളുകൾ, ഘടനാബദ്ധമായ ഔട്ട്പുട്ട്, കോൺടെക്സ്റ്റ് വിൻഡോ) ഇല്ലെങ്കിൽ അഭ്യർത്ഥനകൾ അയയ്ക്കുന്നതിന് മുമ്പ് നിരസിക്കുക. കോംബോ-ലെയർ അനുയോജ്യതാ ഫിൽട്ടർ മറികടക്കുന്ന നേരിട്ടുള്ള ഒറ്റ-പ്രൊവൈഡർ അഭ്യർത്ഥനകളെ ഇത് പരിരക്ഷിക്കുന്നു.",

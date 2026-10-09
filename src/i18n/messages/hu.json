@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex szolgáltatási mód ehhez az API-kulcshoz",
+    "description": "A Codex-kérésekre vonatkozik, beleértve a kombinációkon belüli Codex-modelleket is. A kényszerített módok felülbírálják a kliens, a globális beállítások és a kapcsolat alapértelmezéseit. Más szolgáltatók változatlanok maradnak.",
+    "label": "Szolgáltatási mód",
+    "inherit": "Meglévő viselkedés öröklése",
+    "default": "Standard kényszerítése (alapértelmezett)",
+    "priority": "Fast / Priority kényszerítése",
+    "flex": "Flex kényszerítése",
+    "warning": "Ez nem biztosít hozzáférést a szolgáltatóhoz. Az elérhetőség, a díjak és a kvótafelhasználás a Codex-fiókjától és a modelltől függ. A kényszerített módokhoz HTTP- vagy Responses WebSocket-átvitel szükséges; az app-server kérései elutasításra kerülnek.",
+    "confirm": "Alkalmazza a(z) „{mode}” módot erre az API-kulcsra? Ez a későbbi kérésekre lép érvénybe.",
+    "save": "Mód mentése",
+    "retry": "Újrapróbálkozás",
+    "loadError": "Nem sikerült betölteni a mentett szolgáltatási módot.",
+    "saveError": "Nem sikerült menteni a szolgáltatási módot. Kérjük, próbálja újra."
+  },
   "common": {
     "save": "Mentés",
     "cancel": "Mégsem",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "A keretet kimerítő kérések átirányítása a vészhelyzeti ingyenes tartalék szolgáltatóhoz/modellhez.",
   "featureFlagArenaEloSyncEnabledDescription": "Rendszeres Arena AI ranglista ELO szinkronizáció engedélyezése a modellintelligencia rangsorokhoz.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Beszélgetés-összefoglalók létrehozása és beillesztése, amikor a kombinált útválasztás modellt vált. Tiltsa le, ha a modellváltásokat egymástól függetlenül szeretné kezelni, és meg szeretné akadályozni a háttérben futó átadási kéréseket minden meglévő és jövőbeli kombinációnál.",
+  "featureFlagReasoningReplayEnabledDescription": "Gyorsítótárazza és játssza le a modell indoklását a többfordulós beszélgetésekben. Tiltsa le a tárolás és az indoklás újbóli beillesztésének leállításához.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Hirdesse a claude/&lt;provider&gt;/&lt;model&gt; tükör azonosítókat a /v1/models-on, hogy a Claude Code átjáró modell felfedezése nem Claude modelleket is listázzon. Figyelmeztetés: globális engedélyezés esetén megduplázza a katalógus bejegyzéseket minden kliens számára.",
   "featureFlagNoThinkingAliasEnabledDescription": "A no-think/&lt;provider&gt;/&lt;model&gt; átjáróaliasok főkapcsolója. Bekapcsolva (alapértelmezett): a /v1/models minden jogosult, gondolkodásra képes Claude modellhez meghirdet egy gondolkodás nélküli változatot, és a kérésben küldött no-think/ azonosítót feloldja a valódi modellre, az érvelés letiltásával. Kikapcsolva: nem hirdet meg változatokat, és a no-think/ azonosítót ugyanúgy kezeli, mint bármely más ismeretlen modellazonosítót. Modellenként a ModelSpec.noThinkingAlias engedélyezési/letiltási beállítása bekapcsolt állapotban is érvényes.",
   "featureFlagChatVirtualLanesEnabledDescription": "Tegye lehetővé a bérlőnkénti adaptív virtuális beléptetősávokat a szolgáltatók felé történő továbbításhoz (#9654): az egyik bérlő kiugró terhelése már nem okoz 503-as hibát egy másiknál. Az OMNIROUTE_CHAT_VIRTUAL_LANES környezeti változó felülírja ezt a vezérlőpult-beállítást; a változtatások a szerver újraindításakor lépnek életbe.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Élő nézet mindenről, ami fut",
     "resilienceConnections": "Kapcsolat Ellenálló Képesség",
     "resilienceConnectionsSubtitle": "Cooldown, megszakító, zárolási állapot",
+    "resilienceCooldowns": "Cooldown-kezelő",
+    "resilienceCooldownsSubtitle": "Cooldownok tömeges törlése",
     "settingsModalityBridge": "Modalitás Híd",
     "settingsModalityBridgeSubtitle": "Kép/hang → szöveg visszaesés csak szöveges modellekhez",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Használati elemzések",
+    "tokenDisplayCompact": "Tömör",
+    "tokenDisplayExact": "Pontos",
+    "tokenDisplayMode": "Tokenmegjelenítési mód",
     "diversityScoreTitle": "Szolgáltatói sokszínűség",
     "diversityScoreDesc": "Szolgáltató-koncentrációs pillanatkép a legutóbbi forgalmi ablakról.",
     "diversityShannonEntropy": "Shannon-entrópia",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "A csatlakoztatott szolgáltatóktól dinamikusan megoldott beépített auto/* kombók. Használja ezen azonosítók bármelyikét modellmezőként – nincs szükség beállításra.",
     "autoCatalogExpand": "Az automatikus útválasztási katalógus kibontása",
     "autoCatalogCollapse": "Az automatikus útválasztási katalógus összecsukása",
+    "autoCatalogComboCount": "{count} kombináció",
+    "autoCatalogCandidates": "{count} jelölt",
+    "autoCatalogNoCandidates": "Nincsenek megfelelő szolgáltatók",
+    "autoCatalogKindVariant": "változat",
+    "autoCatalogKindTemplate": "sablon",
+    "autoCatalogKindCategory": "kategória",
+    "autoCatalogKindFamily": "család",
+    "autoComboTestTruncated": "Tesztelt {tested} a {total} élő jelöltből (legmagasabb súlyok először).",
+    "controlCenter": "Irányítóközpont",
     "createCombo": "Combo létrehozása",
     "editCombo": "Combo szerkesztése",
     "deleteCombo": "Combo törlése",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktív",
     "showModel": "Modell megjelenítése",
     "hideModel": "Modell elrejtése",
+    "blacklistModel": "Tiltás",
+    "blacklistModelTooltip": "Tiltsd ezt a modellt, és rejtsd el a katalógusból",
     "removeModel": "Modell eltávolítása",
     "rateLimitProtected": "Védett",
     "rateLimitUnprotected": "Nem védett",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Mentett modell végpont beállításai",
     "searchByModelAria": "Keresés modell szerint",
     "selectSupportedEndpoint": "Válasszon ki legalább egy támogatott végpontot",
-    "antigravityClientProfileHarness": "Tesztkeretrendszer / CLI"
+    "antigravityClientProfileHarness": "Tesztkeretrendszer / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Beállítások elemre",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Frissítve",
     "lastRefreshed": "Legutóbb frissítve",
     "providerQuota": "Szolgáltatói kvóta",
-    "providerQuotaHomeHint": "Élő állapot a csatlakoztatott fiókokban"
+    "providerQuotaHomeHint": "Élő állapot a csatlakoztatott fiókokban",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Várakozás az engedélyezésre",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Modell Zárolások",
         "count": "Kapcsolatok Száma"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown-kezelő",
+    "description": "Tekintse meg a hibák után pihenő kapcsolatokat, oldja fel a cooldownokat tömegesen, és módosítsa azok időtartamát.",
+    "loading": "Cooldownok betöltése…",
+    "loadFailed": "Nem sikerült betölteni a cooldownokat",
+    "loadFailedDetail": "Ellenőrizze a kapcsolatot, és frissítse az oldalt.",
+    "rules": {
+      "title": "Cooldown-szabályok",
+      "subtitle": "Minden kapcsolatra érvényes a következő hibától kezdve.",
+      "stallLabel": "Fiók cooldownra állítása, ha egy stream elakad",
+      "stallDescription": "Alapértelmezés szerint kikapcsolva: az elakadás általában egy hosszú gondolkodási kört jelent, nem hibás fiókot.",
+      "oauth": "OAuth-fiókok",
+      "apikey": "API-kulcsok",
+      "baseCooldown": "Alap cooldown (másodperc)",
+      "baseCooldownHint": "Az első cooldown hiba után. Ismételt hibák esetén megduplázódik.",
+      "maxBackoffSteps": "Maximális backoff-lépések",
+      "maxBackoffStepsHint": "Hányszor duplázódhat meg a cooldown.",
+      "save": "Szabályok mentése",
+      "saved": "Cooldown-szabályok mentve",
+      "saveFailed": "Nem sikerült menteni a cooldown-szabályokat"
+    },
+    "list": {
+      "title": "Útválasztásból kiesett kapcsolatok",
+      "subtitle": "A cooldownok és modellzárolások maguktól lejárnak. Törölje őket, ha azonnal vissza szeretné állítani a kapcsolatot az útválasztásba.",
+      "provider": "Szolgáltató",
+      "allProviders": "Minden szolgáltató",
+      "showHealthy": "Működő kapcsolatok megjelenítése",
+      "refresh": "Frissítés",
+      "clearSelected": "Kijelöltek törlése ({count})",
+      "clearAll": "Összes törlése",
+      "clear": "Törlés",
+      "select": "Kapcsolat kiválasztása",
+      "none": "Nincs",
+      "empty": "Egyetlen kapcsolat sem esett ki az útválasztásból.",
+      "cleared": "{cleared} kapcsolat és {lockouts} modellzárolás törölve. {skipped} letiltott vagy lejárt kihagyva.",
+      "clearFailed": "Nem sikerült törölni a cooldownokat",
+      "columns": {
+        "connection": "Kapcsolat",
+        "provider": "Szolgáltató",
+        "status": "Állapot",
+        "remaining": "Hátralévő idő",
+        "lockouts": "Modellzárolások",
+        "lastError": "Utolsó hiba"
+      }
+    },
+    "status": {
+      "cooling_down": "Lehűlés alatt",
+      "model_locked": "Modell zárolva",
+      "unavailable": "Nem érhető el",
+      "terminal": "Figyelmet igényel",
+      "healthy": "Egészséges"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Elutasítja a kéréseket a kiszállítás előtt, amikor a célmodell hiányzik a szükséges képességekből (látás, eszközök, strukturált kimenet, kontextusablak). Védi a közvetlen, egy szolgáltatótól érkező kéréseket, amelyek megkerülik a kombinált réteg kompatibilitási szűrőt.",

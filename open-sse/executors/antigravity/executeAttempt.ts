@@ -7,7 +7,10 @@
 // antigravity/sseCollect.ts submodule pattern.
 import { mergeAbortSignals, type ExecutorLog } from "../base.ts";
 import { applyFingerprint, isCliCompatEnabled } from "../../config/cliFingerprints.ts";
-import { buildAntigravityUpstreamError } from "../antigravityUpstreamError.ts";
+import {
+  buildAntigravityUpstreamError,
+  projectAntigravityValidationDiagnostic,
+} from "../antigravityUpstreamError.ts";
 import { awaitReactiveModelSync } from "@/lib/providerModels/reactiveModelSync.ts";
 import {
   HTTP_STATUS,
@@ -28,7 +31,7 @@ import {
   bindAbortLifecycle,
   type SsePassthroughResult,
 } from "./streamingPassthrough.ts";
-import { cleanModelName, type AntigravityCredentials } from "../antigravity.ts";
+import type { AntigravityCredentials } from "../antigravity.ts";
 
 const LONG_RETRY_THRESHOLD_MS = 60_000;
 const CREDITS_EXHAUSTED_TTL_MS = 5 * 60 * 60 * 1000; // 5 hours
@@ -394,6 +397,10 @@ export async function sendAntigravityRequest(
       if (credentials.connectionId) {
         const synced = await awaitReactiveModelSync(provider, credentials.connectionId);
         if (synced) {
+          // Lazy import: a static value import of ../antigravity.ts (which imports this
+          // module) forms an async ESM init cycle that deadlocks the bundled MCP server
+          // on startup (tests/unit/build/mcp-bundle-startup.test.ts).
+          const { cleanModelName } = await import("../antigravity.ts");
           const reResolvedModel = await cleanModelName(model, undefined, provider);
           const retryBody: Record<string, unknown> = {
             ...transformedBody,
@@ -577,6 +584,7 @@ async function buildUpstreamErrorResult(
     .text()
     .catch(() => "");
   const errorBody = buildAntigravityUpstreamError(response.status, response.statusText, rawBody);
+  const upstreamDiagnostic = projectAntigravityValidationDiagnostic(response.status, rawBody);
   return {
     response: new Response(JSON.stringify(errorBody), {
       status: response.status,
@@ -585,6 +593,7 @@ async function buildUpstreamErrorResult(
     url,
     headers: finalHeaders,
     transformedBody,
+    upstreamDiagnostic,
   };
 }
 

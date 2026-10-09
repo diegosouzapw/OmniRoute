@@ -1,3 +1,4 @@
+import { API_KEY_CODEX_SERVICE_MODES } from "../../constants/codexServiceMode";
 import { z } from "zod";
 import {
   ACCOUNT_FALLBACK_STRATEGY_VALUES,
@@ -160,6 +161,7 @@ export const updateKeyPermissionsSchema = z
     allowedEndpoints: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
     streamDefaultMode: z.enum(["legacy", "json"]).optional(),
     compressionEnabled: z.boolean().optional(),
+    codexServiceMode: z.enum(API_KEY_CODEX_SERVICE_MODES).optional(),
     allowAutoCombos: z.boolean().optional(),
     catalogScope: z.enum(["all", "combos", "models"]).optional(),
     cacheDefaultMode: z.enum(["legacy", "bypass"]).optional(),
@@ -220,6 +222,7 @@ export const updateKeyPermissionsSchema = z
       value.allowedEndpoints === undefined &&
       value.streamDefaultMode === undefined &&
       value.compressionEnabled === undefined &&
+      value.codexServiceMode === undefined &&
       value.allowAutoCombos === undefined &&
       value.catalogScope === undefined &&
       value.cacheDefaultMode === undefined &&

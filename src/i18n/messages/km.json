@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "មុខងារសេវាកម្ម Codex សម្រាប់ API key នេះ",
+    "description": "អនុវត្តចំពោះសំណើ Codex រួមទាំងម៉ូដែល Codex នៅក្នុងកញ្ចប់រួម។ មុខងារដែលបានបង្ខំ នឹងជំនួសការកំណត់របស់កម្មវិធីអតិថិជន ការកំណត់សកល និងលំនាំដើមនៃការតភ្ជាប់។ អ្នកផ្តល់សេវាផ្សេងទៀតនៅតែមិនផ្លាស់ប្តូរ។",
+    "label": "មុខងារសេវាកម្ម",
+    "inherit": "ប្រើឥរិយាបថដែលមានស្រាប់",
+    "default": "បង្ខំឱ្យប្រើ Standard (លំនាំដើម)",
+    "priority": "បង្ខំឱ្យប្រើ Fast / Priority",
+    "flex": "បង្ខំឱ្យប្រើ Flex",
+    "warning": "វាមិនផ្តល់សិទ្ធិចូលប្រើពីអ្នកផ្តល់សេវាទេ។ ភាពអាចប្រើបាន ការគិតថ្លៃ និងការប្រើប្រាស់កូតា អាស្រ័យលើគណនី និងម៉ូដែល Codex របស់អ្នក។ មុខងារដែលបានបង្ខំ តម្រូវឱ្យប្រើការដឹកជញ្ជូន HTTP ឬ Responses WebSocket; សំណើ app-server នឹងត្រូវបានបដិសេធ។",
+    "confirm": "អនុវត្ត “{mode}” ទៅលើ API key នេះឬ? ការកំណត់នេះនឹងមានប្រសិទ្ធភាពសម្រាប់សំណើបន្ទាប់ៗ។",
+    "save": "រក្សាទុកមុខងារ",
+    "retry": "ព្យាយាមម្តងទៀត",
+    "loadError": "មិនអាចផ្ទុកមុខងារសេវាកម្មដែលបានរក្សាទុកទេ។",
+    "saveError": "មិនអាចរក្សាទុកមុខងារសេវាកម្មបានទេ។ សូមព្យាយាមម្តងទៀត។"
+  },
   "common": {
     "save": "រក្សាទុក",
     "cancel": "បោះបង់",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "បញ្ជូនសំណើដែលអស់ថវិកាទៅកាន់ provider/model ជំនួសឥតគិតថ្លៃសម្រាប់គ្រាអាសន្ន។",
   "featureFlagArenaEloSyncEnabledDescription": "បើកការធ្វើសមកាលកម្ម ELO តាមកាលកំណត់ពីតារាងចំណាត់ថ្នាក់ Arena AI សម្រាប់ចំណាត់ថ្នាក់ភាពវៃឆ្លាតរបស់ម៉ូដែល។",
   "featureFlagUniversalContextHandoffEnabledDescription": "បង្កើត និងបញ្ចូលសេចក្ដីសង្ខេបការសន្ទនា នៅពេល combo routing ប្ដូរម៉ូដែល។ បិទវា ដើម្បីចាត់ទុកការប្ដូរម៉ូដែលដាច់ដោយឡែកពីគ្នា និងទប់ស្កាត់សំណើប្រគល់បន្តនៅផ្ទៃខាងក្រោយសម្រាប់ combo ដែលមានស្រាប់ និងនាពេលអនាគតទាំងអស់។",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "ផ្សព្វផ្សាយ mirror ids របស់ claude/&lt;provider&gt;/&lt;model&gt; នៅលើ /v1/models ដើម្បីឱ្យការស្វែងរកម៉ូដែលតាម gateway របស់ Claude Code រាយបញ្ជីម៉ូដែលដែលមិនមែនជា Claude។ ការព្រមាន៖ វានឹងបង្កើនធាតុក្នុងកាតាឡុកទ្វេដងសម្រាប់ client ទាំងអស់ នៅពេលបើកជាសកល។",
   "featureFlagNoThinkingAliasEnabledDescription": "កុងតាក់មេសម្រាប់ gateway aliases របស់ no-think/&lt;provider&gt;/&lt;model&gt;។ បើក (លំនាំដើម)៖ /v1/models ផ្សព្វផ្សាយវ៉ារ្យ៉ង់មិនគិតសម្រាប់គ្រប់ម៉ូដែល Claude ដែលមានសមត្ថភាពគិត និងមានលក្ខណៈសម្បត្តិគ្រប់គ្រាន់ ហើយ no-think/ id ដែលបានផ្ញើក្នុងសំណើ នឹងត្រូវដោះស្រាយត្រឡប់ទៅម៉ូដែលពិត ដោយបិទការវែកញែក។ បិទ៖ គ្មានវ៉ារ្យ៉ង់ណាមួយត្រូវបានផ្សព្វផ្សាយទេ ហើយ no-think/ id ត្រូវបានចាត់ទុកដូចជា model id មិនស្គាល់ផ្សេងទៀត។ ការជ្រើសរើសបើក/បិទ ModelSpec.noThinkingAlias សម្រាប់ម៉ូដែលនីមួយៗ នៅតែអនុវត្ត ខណៈដែលវាត្រូវបានបើក។",
   "featureFlagChatVirtualLanesEnabledDescription": "បើកផ្លូវចូលនិម្មិតដែលសម្របខ្លួនតាម tenant នីមួយៗ សម្រាប់ការបញ្ជូនទៅ provider (#9654)៖ ការកើនឡើងខ្លាំងភ្លាមៗរបស់ tenant មួយ នឹងលែងបណ្ដាលឱ្យ tenant មួយទៀតទទួល 503។ env var OMNIROUTE_CHAT_VIRTUAL_LANES មានអាទិភាពលើការកំណត់ជំនួសពី dashboard នេះ ហើយការផ្លាស់ប្ដូរនឹងមានប្រសិទ្ធភាពនៅពេលចាប់ផ្ដើម server ឡើងវិញ។",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "ទិដ្ឋភាពផ្ទាល់នៃអ្វីៗទាំងអស់ដែលកំពុងដំណើរការ",
     "resilienceConnections": "ភាពធន់នៃការតភ្ជាប់",
     "resilienceConnectionsSubtitle": "ស្ថានភាពពេលរង់ចាំ ឧបករណ៍ផ្តាច់សៀគ្វី និងការចាក់សោ",
+    "resilienceCooldowns": "កម្មវិធីគ្រប់គ្រង Cooldown",
+    "resilienceCooldownsSubtitle": "សម្អាត cooldowns ច្រើនក្នុងពេលតែមួយ",
     "settingsModalityBridge": "ស្ពានទម្រង់ទិន្នន័យ",
     "settingsModalityBridgeSubtitle": "រូបភាព/សំឡេង → អត្ថបទជាជម្រើសបម្រុងសម្រាប់ម៉ូដែលដែលគាំទ្រតែអត្ថបទ",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "ការវិភាគ",
     "usageAnalyticsTitle": "ការវិភាគការប្រើប្រាស់",
+    "tokenDisplayCompact": "បង្រួម",
+    "tokenDisplayExact": "ពិតប្រាកដ",
+    "tokenDisplayMode": "របៀបបង្ហាញថូខឹន",
     "diversityScoreTitle": "ភាពចម្រុះនៃអ្នកផ្តល់សេវា",
     "diversityScoreDesc": "ទិដ្ឋភាពសង្ខេបនៃការប្រមូលផ្តុំលើអ្នកផ្តល់សេវា សម្រាប់ចន្លោះពេលចរាចរណ៍ថ្មីៗនេះ។",
     "diversityShannonEntropy": "អង់ត្រូពី Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "បន្សំ auto/* ដែលមានស្រាប់ ត្រូវបានកំណត់ជាថាមវន្តពីអ្នកផ្តល់សេវាដែលបានភ្ជាប់។ ប្រើ ID ណាមួយក្នុងចំណោមនេះជាវាលម៉ូដែល — មិនចាំបាច់កំណត់រចនាសម្ព័ន្ធទេ។",
     "autoCatalogExpand": "ពង្រីកកាតាឡុកបញ្ជូនដោយស្វ័យប្រវត្តិ",
     "autoCatalogCollapse": "បង្រួមកាតាឡុកបញ្ជូនដោយស្វ័យប្រវត្តិ",
+    "autoCatalogComboCount": "{count} កំបូប",
+    "autoCatalogCandidates": "{count} អ្នកដាក់ពាក្យ",
+    "autoCatalogNoCandidates": "គ្មានអ្នកផ្តល់សេវាដែលត្រូវគ្នា",
+    "autoCatalogKindVariant": "អ្វីដែលខុសគ្នា",
+    "autoCatalogKindTemplate": "គំរូ",
+    "autoCatalogKindCategory": "ប្រភេទ",
+    "autoCatalogKindFamily": "គ្រួសារ",
+    "autoComboTestTruncated": "បានសាកល្បង {tested} នៃ {total} អ្នកដាក់ពាក្យរស់ (ទំងន់ខ្ពស់បំផុតមុន)។",
+    "controlCenter": "មជ្ឈមណ្ឌលគ្រប់គ្រង",
     "createCombo": "បង្កើតបន្សំ",
     "editCombo": "កែសម្រួលបន្សំ",
     "deleteCombo": "លុបបន្សំ",
@@ -5560,6 +5590,8 @@
     "modelsActive": "សកម្ម",
     "showModel": "បង្ហាញម៉ូដែល",
     "hideModel": "លាក់ម៉ូដែល",
+    "blacklistModel": "ទប់ស្កាត់",
+    "blacklistModelTooltip": "ទប់ស្កាត់ម៉ូដែលនេះ ហើយលាក់វាពីកាតាឡុក",
     "removeModel": "លុបម៉ូដែលចេញ",
     "rateLimitProtected": "មានការការពារ",
     "rateLimitUnprotected": "គ្មានការការពារ",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "នៅពេលគណនីនេះដល់ដែនកំណត់ការប្រើប្រាស់ 5 ម៉ោង ហើយ Anthropic ផ្តល់ជម្រើសអាទិភាពទាបជាង OmniRoute នឹងទទួលយកជម្រើសនោះ ហើយបន្តផ្ញើសំណើជាមួយ anthropic-usage-limit: slow រហូតដល់រយៈពេលកំណត់ត្រូវបានកំណត់ឡើងវិញ ជំនួសឱ្យការផ្អាកការតភ្ជាប់។ ដែនកំណត់ប្រចាំសប្តាហ៍នៅតែអនុវត្ត ហើយការឆ្លើយតបអាចត្រូវរង់ចាំសមត្ថភាពដែលនៅសល់។",
     "claudeAutoLimitResetLabel": "កំណត់ដែនកំណត់សម័យឡើងវិញដោយស្វ័យប្រវត្តិ (ម្តងក្នុងមួយសប្តាហ៍)",
     "claudeAutoLimitResetDescription": "នៅពេលគណនីនេះដល់ដែនកំណត់ការប្រើប្រាស់ 5 ម៉ោង ហើយអាចកំណត់ដែនកំណត់សម័យឡើងវិញបាន OmniRoute នឹងប្រើសិទ្ធិកំណត់ឡើងវិញនោះដោយស្វ័យប្រវត្តិ ហើយព្យាយាមម្តងទៀតក្នុងល្បឿនពេញ។ វាប្រើសិទ្ធិកំណត់ឡើងវិញម្តងក្នុងមួយសប្តាហ៍របស់គណនី ហើយនៅតែរាប់បញ្ចូលក្នុងដែនកំណត់ប្រចាំសប្តាហ៍។",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "រំលងរយៈពេលរង់ចាំបណ្តោះអាសន្ន ដើម្បីឱ្យការតភ្ជាប់នេះនៅតែអាចប្រើបាន សូម្បីតែបន្ទាប់ពីមានកំហុសដែលអាចស្ដារឡើងវិញបានក៏ដោយ (ស្ថានភាពបញ្ចប់ដូចជា ត្រូវបានហាមឃាត់/ផុតកំណត់ នៅតែអនុវត្ត)។",
     "disableCoolingLabel": "បិទរយៈពេលរង់ចាំសម្រាប់ការតភ្ជាប់នេះ",
     "bulkPasteAdded": "{count, plural, one {បានបន្ថែមសោ 1} other {បានបន្ថែមសោ #}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "បានរក្សាទុកការកំណត់ចំណុចចុងរបស់ម៉ូដែល",
     "searchByModelAria": "ស្វែងរកតាមម៉ូដែល",
     "selectSupportedEndpoint": "ជ្រើសរើសចំណុចចុងដែលគាំទ្រយ៉ាងហោចណាស់មួយ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "ការកំណត់",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "មិនអាចបំប្លែងទិន្នន័យបន្តបន្ទាប់បានទេ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "ការប្រើប្រាស់",
     "grokExtraUsageCredits": "ក្រេឌីតប្រើប្រាស់បន្ថែម",
     "grokAutoTopUp": "បញ្ចូលទឹកប្រាក់ដោយស្វ័យប្រវត្តិ",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "ការចាក់សោម៉ូដែល",
         "count": "ចំនួនការតភ្ជាប់"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "កម្មវិធីគ្រប់គ្រង Cooldown",
+    "description": "មើលរាល់ការតភ្ជាប់ដែលកំពុងសម្រាកបន្ទាប់ពីបរាជ័យ ដក cooldowns ច្រើនក្នុងពេលតែមួយ និងកំណត់រយៈពេលដែលត្រូវរង់ចាំ។",
+    "loading": "កំពុងផ្ទុក cooldowns…",
+    "loadFailed": "មិនអាចផ្ទុក cooldowns បានទេ",
+    "loadFailedDetail": "សូមពិនិត្យមើលការតភ្ជាប់របស់អ្នក ហើយផ្ទុកទំព័រឡើងវិញ។",
+    "rules": {
+      "title": "វិធាន Cooldown",
+      "subtitle": "អនុវត្តចំពោះរាល់ការតភ្ជាប់ចាប់ពីការបរាជ័យបន្ទាប់របស់វា។",
+      "stallLabel": "ដាក់គណនីឱ្យ Cooldown នៅពេលស្ទ្រីមគាំង",
+      "stallDescription": "បិទតាមលំនាំដើម៖ ការគាំងជាទូទៅមានន័យថាជាវេននៃការគិតពិចារណាយូរ មិនមែនគណនីខូចនោះទេ។",
+      "oauth": "គណនី OAuth",
+      "apikey": "API keys",
+      "baseCooldown": "Cooldown មូលដ្ឋាន (វិនាទី)",
+      "baseCooldownHint": "Cooldown ដំបូងបន្ទាប់ពីការបរាជ័យ។ ការបរាជ័យផ្ទួនៗនឹងកើនឡើងទ្វេដង។",
+      "maxBackoffSteps": "ជំហាន backoff អតិបរមា",
+      "maxBackoffStepsHint": "ចំនួនដងដែល cooldown អាចកើនឡើងទ្វេដង។",
+      "save": "រក្សាទុកវិធាន",
+      "saved": "បានរក្សាទុកវិធាន cooldown",
+      "saveFailed": "មិនអាចរក្សាទុកវិធាន cooldown បានទេ"
+    },
+    "list": {
+      "title": "ការតភ្ជាប់នៅក្រៅ routing",
+      "subtitle": "Cooldowns និងការចាក់សោ model នឹងបញ្ចប់ដោយស្វ័យប្រវត្តិ។ សម្អាតពួកវាដើម្បីដាក់ការតភ្ជាប់ចូលទៅក្នុង routing វិញឥឡូវនេះ។",
+      "provider": "អ្នកផ្តល់សេវា",
+      "allProviders": "អ្នកផ្តល់សេវាទាំងអស់",
+      "showHealthy": "បង្ហាញការតភ្ជាប់ដែលមានសុខភាពល្អ",
+      "refresh": "ផ្ទុកឡើងវិញ",
+      "clearSelected": "សម្អាតអ្វីដែលបានជ្រើសរើស ({count})",
+      "clearAll": "សម្អាតទាំងអស់",
+      "clear": "សម្អាត",
+      "select": "ជ្រើសរើសការតភ្ជាប់",
+      "none": "គ្មាន",
+      "empty": "គ្មានការតភ្ជាប់ណាមួយនៅក្រៅ routing ទេ។",
+      "cleared": "បានសម្អាតការតភ្ជាប់ចំនួន {cleared} និងការចាក់សោ model ចំនួន {lockouts}។ បានរំលងចំនួន {skipped} ដែលត្រូវបានហាមឃាត់ ឬផុតកំណត់។",
+      "clearFailed": "មិនអាចសម្អាត cooldowns បានទេ",
+      "columns": {
+        "connection": "ការតភ្ជាប់",
+        "provider": "អ្នកផ្តល់សេវា",
+        "status": "ស្ថានភាព",
+        "remaining": "ពេលវេលានៅសល់",
+        "lockouts": "ការចាក់សោ Model",
+        "lastError": "កំហុសចុងក្រោយ"
+      }
+    },
+    "status": {
+      "cooling_down": "កំពុងចុះត្រជាក់",
+      "model_locked": "ម៉ូដែលត្រូវបានចាក់សោ",
+      "unavailable": "មិនអាចប្រើប្រាស់បាន",
+      "terminal": "ត្រូវការការយកចិត្តទុកដាក់",
+      "healthy": "មានសុខភាពល្អ"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "បដិសេធសំណើមុនពេលបញ្ជូន នៅពេលម៉ូដែលគោលដៅខ្វះសមត្ថភាពដែលត្រូវការ (ចក្ខុវិស័យ ឧបករណ៍ លទ្ធផលមានរចនាសម្ព័ន្ធ បង្អួចបរិបទ)។ វាការពារសំណើទៅកាន់អ្នកផ្តល់សេវាតែមួយដោយផ្ទាល់ ដែលរំលងតម្រងភាពត្រូវគ្នានៃស្រទាប់បន្សំ។",

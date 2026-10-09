@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-tjenestemodus for denne API-nøkkelen",
+    "description": "Gjelder Codex-forespørsler, inkludert Codex-modeller i kombinasjoner. Tvungne moduser overstyrer klienten, globale innstillinger og standardinnstillinger for tilkoblingen. Andre leverandører forblir uendret.",
+    "label": "Tjenestemodus",
+    "inherit": "Behold eksisterende virkemåte",
+    "default": "Tving Standard (standardinnstilling)",
+    "priority": "Tving Fast / Priority",
+    "flex": "Tving Flex",
+    "warning": "Dette gir ikke tilgang hos leverandøren. Tilgjengelighet, kostnader og kvotebruk avhenger av Codex-kontoen og modellen din. Tvungne moduser krever HTTP- eller Responses WebSocket-transport. Forespørsler via app-server avvises.",
+    "confirm": "Vil du bruke «{mode}» på denne API-nøkkelen? Dette trer i kraft for etterfølgende forespørsler.",
+    "save": "Lagre modus",
+    "retry": "Prøv på nytt",
+    "loadError": "Kunne ikke laste inn den lagrede tjenestemodusen.",
+    "saveError": "Kunne ikke lagre tjenestemodusen. Prøv på nytt."
+  },
   "common": {
     "save": "Lagre",
     "cancel": "Avbryt",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Rut forespørsler med oppbrukt budsjett til gratis reserveleverandør/-modell for nødstilfeller.",
   "featureFlagArenaEloSyncEnabledDescription": "Aktiver periodisk synkronisering av Arena AI-ledertavlens ELO for rangering av modellintelligens.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generer og legg inn samtalesammendrag når kombinasjonsruting bytter modell. Deaktiver dette for å behandle modellbytter uavhengig og forhindre overleveringsforespørsler i bakgrunnen for alle eksisterende og fremtidige kombinasjoner.",
+  "featureFlagReasoningReplayEnabledDescription": "Mellomlagre og spill av modellens resonnering på tvers av samtaler med flere turer. Deaktiver for å slutte å lagre og sette inn resonnering på nytt.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Reklamer claude/&lt;provider&gt;/&lt;model&gt; speil-id-er på /v1/models slik at Claude Code gateway-modelloppdagelse viser ikke-Claude-modeller. Advarsel: dobler katalogoppføringer for alle klienter når det er aktivert globalt.",
   "featureFlagNoThinkingAliasEnabledDescription": "Hovedbryter for gatewayaliasene no-think/&lt;provider&gt;/&lt;model&gt;. På (standard): /v1/models viser en variant uten tenking for alle kvalifiserte Claude-modeller som støtter tenking, og en no-think/-ID som sendes i en forespørsel, kobles til den faktiske modellen med resonnering deaktivert. Av: Ingen varianter vises, og en no-think/-ID behandles som enhver annen ukjent modell-ID. Valget om å aktivere eller deaktivere ModelSpec.noThinkingAlias per modell gjelder fortsatt mens dette er slått på.",
   "featureFlagChatVirtualLanesEnabledDescription": "Aktiver adaptive virtuelle tilgangsfelt per tenant for leverandørdistribusjon (#9654): et utbrudd fra én tenant gir ikke lenger en annen 503. Miljøvariabelen OMNIROUTE_CHAT_VIRTUAL_LANES overstyrer denne innstillingen i dashbordet; endringer trer i kraft ved omstart av serveren.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Direktevisning av alt som kjører",
     "resilienceConnections": "Tilkoblingsresiliens",
     "resilienceConnectionsSubtitle": "Cooldown, bryter, lockout-status",
+    "resilienceCooldowns": "Nedkjølingshåndtering",
+    "resilienceCooldownsSubtitle": "Fjern nedkjølinger i bulk",
     "settingsModalityBridge": "Modalitetsbro",
     "settingsModalityBridgeSubtitle": "Bilde/lyd → tekst fallback for tekstbare modeller",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analyse",
     "usageAnalyticsTitle": "Bruksanalyse",
+    "tokenDisplayCompact": "Kompakt",
+    "tokenDisplayExact": "Nøyaktig",
+    "tokenDisplayMode": "Visningsmodus for tokens",
     "diversityScoreTitle": "Leverandørmangfold",
     "diversityScoreDesc": "Øyeblikksbilde av leverandørkonsentrasjon for det nylige trafikkvinduet.",
     "diversityShannonEntropy": "Shannon-entropi",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Innebygde auto/*-kombinasjoner løst dynamisk fra tilkoblede leverandører. Bruk en av disse ID-ene som modellfelt – ingen oppsett er nødvendig.",
     "autoCatalogExpand": "Utvid katalogen for automatisk ruting",
     "autoCatalogCollapse": "Skjul katalogen for automatisk ruting",
+    "autoCatalogComboCount": "{count} kombinasjoner",
+    "autoCatalogCandidates": "{count} kandidater",
+    "autoCatalogNoCandidates": "Ingen matchende leverandører",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "mal",
+    "autoCatalogKindCategory": "kategori",
+    "autoCatalogKindFamily": "familie",
+    "autoComboTestTruncated": "Testet {tested} av {total} aktive kandidater (høyeste vekter først).",
+    "controlCenter": "Kontrollsenter",
     "createCombo": "Opprett kombinasjon",
     "editCombo": "Rediger kombinasjon",
     "deleteCombo": "Slett kombinasjon",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktive",
     "showModel": "Vis modell",
     "hideModel": "Skjul modell",
+    "blacklistModel": "Blokker",
+    "blacklistModelTooltip": "Blokker denne modellen og skjul den fra katalogen",
     "removeModel": "Fjern modellen",
     "rateLimitProtected": "Beskyttet",
     "rateLimitUnprotected": "Ubeskyttet",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Innstillinger for lagrede modellendepunkter",
     "searchByModelAria": "Søk etter modell",
     "selectSupportedEndpoint": "Velg minst ett støttet endepunkt",
-    "antigravityClientProfileHarness": "Rammeverk / CLI"
+    "antigravityClientProfileHarness": "Rammeverk / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Innstillinger",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Oppdatert",
     "lastRefreshed": "Sist oppdatert",
     "providerQuota": "Leverandørkvote",
-    "providerQuotaHomeHint": "Sanntidsstatus på tvers av tilkoblede kontoer"
+    "providerQuotaHomeHint": "Sanntidsstatus på tvers av tilkoblede kontoer",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Venter på autorisasjon",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Modelllåsinger",
         "count": "Antall Tilkoblinger"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Nedkjølingshåndtering",
+    "description": "Se alle tilkoblinger som hviler etter feil, opphev nedkjølinger i bulk, og juster hvor lenge de varer.",
+    "loading": "Laster nedkjølinger…",
+    "loadFailed": "Kunne ikke laste nedkjølinger",
+    "loadFailedDetail": "Sjekk tilkoblingen din og oppdater siden.",
+    "rules": {
+      "title": "Regler for nedkjøling",
+      "subtitle": "Gjelder for hver tilkobling fra neste feil.",
+      "stallLabel": "Kjøl ned en konto når en strøm stopper opp",
+      "stallDescription": "Av som standard: en stopp betyr vanligvis én lang resonneringsrunde, ikke en ødelagt konto.",
+      "oauth": "OAuth-kontoer",
+      "apikey": "API-nøkler",
+      "baseCooldown": "Grunnleggende nedkjøling (sekunder)",
+      "baseCooldownHint": "Første nedkjøling etter en feil. Gjentatte feil dobler den.",
+      "maxBackoffSteps": "Maksimalt antall backoff-trinn",
+      "maxBackoffStepsHint": "Hvor mange ganger nedkjølingen kan dobles.",
+      "save": "Lagre regler",
+      "saved": "Regler for nedkjøling lagret",
+      "saveFailed": "Kunne ikke lagre reglene for nedkjøling"
+    },
+    "list": {
+      "title": "Tilkoblinger ute av ruting",
+      "subtitle": "Nedkjølinger og modellutestengelser utløper av seg selv. Fjern dem for å sette en tilkobling tilbake i ruting nå.",
+      "provider": "Tilbyder",
+      "allProviders": "Alle tilbydere",
+      "showHealthy": "Vis friske tilkoblinger",
+      "refresh": "Oppdater",
+      "clearSelected": "Fjern valgte ({count})",
+      "clearAll": "Fjern alle",
+      "clear": "Fjern",
+      "select": "Velg tilkobling",
+      "none": "Ingen",
+      "empty": "Ingen tilkoblinger er ute av ruting.",
+      "cleared": "Fjernet {cleared} tilkoblinger og {lockouts} modellutestengelser. Hoppet over {skipped} utestengte eller utløpte.",
+      "clearFailed": "Kunne ikke fjerne nedkjølingene",
+      "columns": {
+        "connection": "Tilkobling",
+        "provider": "Tilbyder",
+        "status": "Status",
+        "remaining": "Tid igjen",
+        "lockouts": "Modellutestengelser",
+        "lastError": "Siste feil"
+      }
+    },
+    "status": {
+      "cooling_down": "Kjøler ned",
+      "model_locked": "Modell låst",
+      "unavailable": "Utilgjengelig",
+      "terminal": "Krever oppmerksomhet",
+      "healthy": "Frisk"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Avvis forespørselene før utsendelse når målmodellen mangler nødvendige funksjoner (visjon, verktøy, strukturert utdata, kontekstvindu). Beskytter direkte forespørseler fra enkeltleverandører som omgår kombinasjonslagets kompatibilitetsfilter.",

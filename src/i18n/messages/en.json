@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex service mode for this API key",
+    "description": "Applies to Codex requests, including Codex models inside combos. Forced modes override the client, global settings and connection defaults. Other providers remain unchanged.",
+    "label": "Service mode",
+    "inherit": "Inherit existing behavior",
+    "default": "Force Standard (default)",
+    "priority": "Force Fast / Priority",
+    "flex": "Force Flex",
+    "warning": "This does not grant provider access. Availability, charges and quota consumption depend on your Codex account and model. Forced modes require HTTP or Responses WebSocket transport; app-server requests are rejected.",
+    "confirm": "Apply “{mode}” to this API key? This takes effect for subsequent requests.",
+    "save": "Save mode",
+    "retry": "Retry",
+    "loadError": "Could not load the saved service mode.",
+    "saveError": "Could not save the service mode. Please try again."
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Route budget-exhausted requests to the emergency free fallback provider/model.",
   "featureFlagArenaEloSyncEnabledDescription": "Enable periodic Arena AI leaderboard ELO sync for model intelligence rankings.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generate and inject conversation summaries when combo routing switches models. Disable to treat model switches independently and prevent background handoff requests for all existing and future combos.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Advertise claude/&lt;provider&gt;/&lt;model&gt; mirror ids on /v1/models so Claude Code gateway model discovery lists non-Claude models. Warning: doubles catalog entries for all clients when enabled globally.",
   "featureFlagNoThinkingAliasEnabledDescription": "Master switch for the no-think/&lt;provider&gt;/&lt;model&gt; gateway aliases. On (default): /v1/models advertises a no-thinking variant for every eligible thinking-capable Claude model, and a no-think/ id sent on a request resolves back to the real model with reasoning suppressed. Off: no variants are advertised and a no-think/ id is treated like any other unknown model id. The per-model ModelSpec.noThinkingAlias opt-in/opt-out still applies while this is on.",
   "featureFlagChatVirtualLanesEnabledDescription": "Enable per-tenant adaptive virtual admission lanes for provider dispatch (#9654): one tenant's burst no longer 503s another. The OMNIROUTE_CHAT_VIRTUAL_LANES env var wins over this dashboard override; changes take effect at server restart.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Live view of everything running",
     "resilienceConnections": "Connection Resilience",
     "resilienceConnectionsSubtitle": "Cooldown, breaker, lockout state",
+    "resilienceCooldowns": "Cooldown Manager",
+    "resilienceCooldownsSubtitle": "Clear cooldowns in bulk",
     "settingsModalityBridge": "Modality Bridge",
     "settingsModalityBridgeSubtitle": "Image/audio → text fallback for text-only models",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analytics",
     "usageAnalyticsTitle": "Usage Analytics",
+    "tokenDisplayCompact": "Compact",
+    "tokenDisplayExact": "Exact",
+    "tokenDisplayMode": "Token Display Mode",
     "diversityScoreTitle": "Provider Diversity",
     "diversityScoreDesc": "Provider concentration snapshot for the recent traffic window.",
     "diversityShannonEntropy": "Shannon entropy",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Built-in auto/* combos resolved dynamically from connected providers. Use any of these IDs as the model field — no setup needed.",
     "autoCatalogExpand": "Expand auto-routing catalog",
     "autoCatalogCollapse": "Collapse auto-routing catalog",
+    "autoCatalogComboCount": "{count} combos",
+    "autoCatalogCandidates": "{count} candidates",
+    "autoCatalogNoCandidates": "No matching providers",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "template",
+    "autoCatalogKindCategory": "category",
+    "autoCatalogKindFamily": "family",
+    "autoComboTestTruncated": "Tested {tested} of {total} live candidates (highest weights first).",
+    "controlCenter": "Control Center",
     "createCombo": "Create Combo",
     "editCombo": "Edit Combo",
     "deleteCombo": "Delete Combo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Active",
     "showModel": "Show model",
     "hideModel": "Hide model",
+    "blacklistModel": "Blacklist",
+    "blacklistModelTooltip": "Blacklist this model — hide it from the catalog",
     "removeModel": "Remove model",
     "rateLimitProtected": "Protected",
     "rateLimitUnprotected": "Unprotected",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "When this account hits its 5-hour usage limit and Anthropic offers the lower-priority lane, OmniRoute accepts it and keeps sending requests with anthropic-usage-limit: slow until the window resets, instead of cooling the connection down. The weekly limit still applies and responses may wait for spare capacity.",
     "claudeAutoLimitResetLabel": "Auto-reset the session limit (once a week)",
     "claudeAutoLimitResetDescription": "When this account hits its 5-hour usage limit and a session-limit reset is available, OmniRoute claims it automatically and retries at full speed. Uses the account's once-a-week reset and still counts toward the weekly limit.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled, unless local quota filtering is fully turned off (quota preflight and limit policy both disabled).",
     "disableCoolingDescription": "Skip the transient cooldown so this connection stays eligible even after recoverable errors (terminal states like banned/expired still apply).",
     "disableCoolingLabel": "Disable cooldown for this connection",
     "bulkPasteAdded": "{count, plural, one {1 key added} other {# keys added}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "Saved model endpoint settings",
     "searchByModelAria": "Search by model",
     "selectSupportedEndpoint": "Select at least one supported endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "Settings",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "Failed to transform stream"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "Usage",
     "grokExtraUsageCredits": "Extra Usage Credits",
     "grokAutoTopUp": "Auto Top-Up",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Model Lockouts",
         "count": "Connection Count"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown Manager",
+    "description": "See every connection that is resting after failures, lift cooldowns in bulk, and tune how long they last.",
+    "loading": "Loading cooldowns…",
+    "loadFailed": "Couldn't load cooldowns",
+    "loadFailedDetail": "Check your connection and refresh the page.",
+    "rules": {
+      "title": "Cooldown rules",
+      "subtitle": "Apply to every connection from its next failure.",
+      "stallLabel": "Cool down an account when a stream stalls",
+      "stallDescription": "Off by default: a stall usually means one long reasoning turn, not a broken account.",
+      "oauth": "OAuth accounts",
+      "apikey": "API keys",
+      "baseCooldown": "Base cooldown (seconds)",
+      "baseCooldownHint": "First cooldown after a failure. Repeated failures double it.",
+      "maxBackoffSteps": "Maximum backoff steps",
+      "maxBackoffStepsHint": "How many times the cooldown can double.",
+      "save": "Save rules",
+      "saved": "Cooldown rules saved",
+      "saveFailed": "Couldn't save the cooldown rules"
+    },
+    "list": {
+      "title": "Connections out of routing",
+      "subtitle": "Cooldowns and model lockouts end on their own. Clear them to put a connection back into routing now.",
+      "provider": "Provider",
+      "allProviders": "All providers",
+      "showHealthy": "Show healthy connections",
+      "refresh": "Refresh",
+      "clearSelected": "Clear selected ({count})",
+      "clearAll": "Clear all",
+      "clear": "Clear",
+      "select": "Select connection",
+      "none": "None",
+      "empty": "No connection is out of routing.",
+      "cleared": "Cleared {cleared} connections and {lockouts} model lockouts. Skipped {skipped} banned or expired.",
+      "clearFailed": "Couldn't clear the cooldowns",
+      "columns": {
+        "connection": "Connection",
+        "provider": "Provider",
+        "status": "Status",
+        "remaining": "Time left",
+        "lockouts": "Model lockouts",
+        "lastError": "Last error"
+      }
+    },
+    "status": {
+      "cooling_down": "Cooling down",
+      "model_locked": "Model locked",
+      "unavailable": "Unavailable",
+      "terminal": "Needs attention",
+      "healthy": "Healthy"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Reject requests before dispatch when the target model lacks required capabilities (vision, tools, structured output, context window). Protects direct single-provider requests that bypass the combo-layer compatibility filter.",

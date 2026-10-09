@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-Service-Modus für diesen API-Key",
+    "description": "Gilt für Codex-Aufrufe, auch innerhalb von Combos. Erzwungene Modi überschreiben Client-, globale und Verbindungs-Vorgaben. Andere Provider bleiben unverändert.",
+    "label": "Service-Modus",
+    "inherit": "Bisheriges Verhalten übernehmen",
+    "default": "Standard erzwingen (default)",
+    "priority": "Fast / Priority erzwingen",
+    "flex": "Flex erzwingen",
+    "warning": "Dies gewährt keine zusätzlichen Provider-Berechtigungen. Verfügbarkeit, Kosten und Kontingentverbrauch hängen vom Codex-Konto und Modell ab. Erzwingen benötigt HTTP oder Responses-WebSocket; App-Server-Anfragen werden abgelehnt.",
+    "confirm": "„{mode}“ für diesen API-Key übernehmen? Die Einstellung gilt für nachfolgende Anfragen.",
+    "save": "Modus speichern",
+    "retry": "Erneut versuchen",
+    "loadError": "Der gespeicherte Service-Modus konnte nicht geladen werden.",
+    "saveError": "Der Service-Modus konnte nicht gespeichert werden. Bitte erneut versuchen."
+  },
   "common": {
     "save": "Speichern",
     "cancel": "Abbrechen",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Anfragen mit erschöpftem Budget an den kostenlosen Notfall-Fallback-Anbieter/das Notfall-Fallback-Modell weiterleiten.",
   "featureFlagArenaEloSyncEnabledDescription": "Periodischen ELO-Abgleich der Arena AI-Bestenliste für Modell-Intelligenz-Rankings aktivieren.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Konversationszusammenfassungen generieren und einfügen, wenn beim Combo-Routing das Modell gewechselt wird. Deaktivieren Sie diese Option, um Modellwechsel unabhängig voneinander zu behandeln und Hintergrundanfragen für die Übergabe bei allen bestehenden und zukünftigen Combos zu verhindern.",
+  "featureFlagReasoningReplayEnabledDescription": "Modellüberlegungen über mehrere Gesprächsrunden zwischenspeichern und wiedergeben. Deaktivieren, um das Speichern und erneute Einfügen von Überlegungen zu beenden.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Bewerben Sie claude/&lt;provider&gt;/&lt;model&gt; Spiegel-IDs auf /v1/models, damit die Claude Code-Gateway-Modellentdeckung Nicht-Claude-Modelle auflistet. Warnung: Verdoppelt Katalogeinträge für alle Clients, wenn global aktiviert.",
   "featureFlagNoThinkingAliasEnabledDescription": "Hauptschalter für die Gateway-Aliase no-think/&lt;provider&gt;/&lt;model&gt;. Ein (Standard): /v1/models listet für jedes geeignete denkfähige Claude-Modell eine Variante ohne Denkprozess auf, und eine mit einer Anfrage gesendete no-think/-ID wird wieder zum tatsächlichen Modell aufgelöst, wobei der Denkprozess unterdrückt wird. Aus: Es werden keine Varianten aufgeführt und eine no-think/-ID wird wie jede andere unbekannte Modell-ID behandelt. Die Aktivierung/Deaktivierung pro Modell über ModelSpec.noThinkingAlias gilt weiterhin, solange diese Option aktiviert ist.",
   "featureFlagChatVirtualLanesEnabledDescription": "Aktivieren Sie adaptive virtuelle Zulassungsspuren pro Tenant für die Provider-Zustellung (#9654): Ein Burst eines Tenants führt nicht mehr zu 503 bei einem anderen. Die Umgebungsvariable OMNIROUTE_CHAT_VIRTUAL_LANES hat Vorrang vor dieser Dashboard-Einstellung; Änderungen werden erst nach einem Serverneustart wirksam.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Live-Ansicht von allem, was gerade läuft",
     "resilienceConnections": "Verbindungsresilienz",
     "resilienceConnectionsSubtitle": "Cooldown, Schalter, Sperrstatus",
+    "resilienceCooldowns": "Cooldown-Manager",
+    "resilienceCooldownsSubtitle": "Cooldowns gesammelt aufheben",
     "settingsModalityBridge": "Modalitätsbrücke",
     "settingsModalityBridgeSubtitle": "Bild-/Audio-→Text-Fallback für textbasierte Modelle",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analytik",
     "usageAnalyticsTitle": "Nutzungsanalysen",
+    "tokenDisplayCompact": "Kompakt",
+    "tokenDisplayExact": "Exakt",
+    "tokenDisplayMode": "Token-Anzeigemodus",
     "diversityScoreTitle": "Anbietervielfalt",
     "diversityScoreDesc": "Momentaufnahme der Anbieterkonzentration für das letzte Traffic-Zeitfenster.",
     "diversityShannonEntropy": "Shannon-Entropie",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Integrierte Auto/*-Kombinationen werden dynamisch von verbundenen Anbietern aufgelöst. Verwenden Sie eine dieser IDs als Modellfeld – keine Einrichtung erforderlich.",
     "autoCatalogExpand": "Erweitern Sie den Katalog für automatisches Routing",
     "autoCatalogCollapse": "Auto-Routing-Katalog einklappen",
+    "autoCatalogComboCount": "{count} Kombinationen",
+    "autoCatalogCandidates": "{count} Kandidaten",
+    "autoCatalogNoCandidates": "Keine passenden Anbieter",
+    "autoCatalogKindVariant": "Variante",
+    "autoCatalogKindTemplate": "Vorlage",
+    "autoCatalogKindCategory": "Kategorie",
+    "autoCatalogKindFamily": "Familie",
+    "autoComboTestTruncated": "Getestet {tested} von {total} aktiven Kandidaten (höchste Gewichte zuerst).",
+    "controlCenter": "Steuerzentrale",
     "createCombo": "Combo erstellen",
     "editCombo": "Combo bearbeiten",
     "deleteCombo": "Combo löschen",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktiv",
     "showModel": "Modell anzeigen",
     "hideModel": "Modell ausblenden",
+    "blacklistModel": "Sperren",
+    "blacklistModelTooltip": "Dieses Modell sperren und aus dem Katalog ausblenden",
     "removeModel": "Modell entfernen",
     "rateLimitProtected": "Geschützt",
     "rateLimitUnprotected": "Ungeschützt",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Einstellungen für den gespeicherten Modell-Endpunkt",
     "searchByModelAria": "Nach Modell suchen",
     "selectSupportedEndpoint": "Wählen Sie mindestens einen unterstützten Endpunkt aus",
-    "antigravityClientProfileHarness": "Testsystem / CLI"
+    "antigravityClientProfileHarness": "Testsystem / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Einstellungen",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Aktualisiert",
     "lastRefreshed": "Zuletzt aktualisiert",
     "providerQuota": "Anbieter-Kontingent",
-    "providerQuotaHomeHint": "Live-Status über verbundene Konten hinweg"
+    "providerQuotaHomeHint": "Live-Status über verbundene Konten hinweg",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Warten auf Autorisierung",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Modellsperren",
         "count": "Verbindungsanzahl"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown-Manager",
+    "description": "Sehen Sie alle Verbindungen, die nach Fehlern pausieren, heben Sie Cooldowns gesammelt auf und passen Sie deren Dauer an.",
+    "loading": "Cooldowns werden geladen…",
+    "loadFailed": "Cooldowns konnten nicht geladen werden",
+    "loadFailedDetail": "Überprüfen Sie Ihre Verbindung und laden Sie die Seite neu.",
+    "rules": {
+      "title": "Cooldown-Regeln",
+      "subtitle": "Gilt für jede Verbindung ab dem nächsten Fehler.",
+      "stallLabel": "Account pausieren, wenn ein Stream stockt",
+      "stallDescription": "Standardmäßig deaktiviert: Ein Stocken bedeutet meist einen langen Reasoning-Schritt, keinen fehlerhaften Account.",
+      "oauth": "OAuth-Accounts",
+      "apikey": "API-Schlüssel",
+      "baseCooldown": "Basis-Cooldown (Sekunden)",
+      "baseCooldownHint": "Erster Cooldown nach einem Fehler. Wiederholte Fehler verdoppeln ihn.",
+      "maxBackoffSteps": "Maximale Backoff-Schritte",
+      "maxBackoffStepsHint": "Wie oft der Cooldown verdoppelt werden kann.",
+      "save": "Regeln speichern",
+      "saved": "Cooldown-Regeln gespeichert",
+      "saveFailed": "Cooldown-Regeln konnten nicht gespeichert werden"
+    },
+    "list": {
+      "title": "Verbindungen außerhalb des Routings",
+      "subtitle": "Cooldowns und Modellsperren enden automatisch. Heben Sie sie auf, um eine Verbindung sofort wieder ins Routing aufzunehmen.",
+      "provider": "Provider",
+      "allProviders": "Alle Provider",
+      "showHealthy": "Fehlerfreie Verbindungen anzeigen",
+      "refresh": "Aktualisieren",
+      "clearSelected": "Ausgewählte aufheben ({count})",
+      "clearAll": "Alle aufheben",
+      "clear": "Aufheben",
+      "select": "Verbindung auswählen",
+      "none": "Keine",
+      "empty": "Keine Verbindung befindet sich außerhalb des Routings.",
+      "cleared": "{cleared} Verbindungen und {lockouts} Modellsperren aufgehoben. {skipped} gesperrte oder abgelaufene übersprungen.",
+      "clearFailed": "Cooldowns konnten nicht aufgehoben werden",
+      "columns": {
+        "connection": "Verbindung",
+        "provider": "Provider",
+        "status": "Status",
+        "remaining": "Verbleibende Zeit",
+        "lockouts": "Modellsperren",
+        "lastError": "Letzter Fehler"
+      }
+    },
+    "status": {
+      "cooling_down": "Kühlt ab",
+      "model_locked": "Modell gesperrt",
+      "unavailable": "Nicht verfügbar",
+      "terminal": "Erfordert Aufmerksamkeit",
+      "healthy": "Fehlerfrei"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Lehnen Sie Anfragen ab, bevor sie versendet werden, wenn das Zielmodell über die erforderlichen Funktionen (Vision, Werkzeuge, strukturierte Ausgabe, Kontextfenster) nicht verfügt. Schützt direkte Einzelanbieteranfragen, die den Kombo-Schicht-Kompatibilitätsfilter umgehen.",

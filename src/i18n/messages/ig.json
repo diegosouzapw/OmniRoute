@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Ọnọdụ ọrụ Codex maka igodo API a",
+    "description": "Ọ metụtara arịrịọ Codex, gụnyere ụdị Codex dị n'ime ngwakọta. Ọnọdụ amanyere iwu na-akagbu ntọala nke klayenti, ntọala zuru ụwa ọnụ na ndabara njikọ. Ndị na-eweta ọrụ ndị ọzọ agaghị agbanwe.",
+    "label": "Ọnọdụ ọrụ",
+    "inherit": "Keta omume dị ugbu a",
+    "default": "Manye Ọkọlọtọ (ndabara)",
+    "priority": "Manye Ọsọ Ọsọ / Ihe Mbụ",
+    "flex": "Manye Flex",
+    "warning": "Nke a anaghị enye ohere ịnweta onye na-eweta ọrụ. Nnweta, ụgwọ na ojiji oke na-adabere na akaụntụ Codex na ụdị gị. Ọnọdụ amanyere iwu chọrọ mbufe HTTP ma ọ bụ Responses WebSocket; a na-ajụ arịrịọ app-server.",
+    "confirm": "Tinye “{mode}” n'ọrụ na igodo API a? Nke a ga-amalite ịrụ ọrụ maka arịrịọ ndị na-esote.",
+    "save": "Chekwaa ọnọdụ",
+    "retry": "Nwaa ọzọ",
+    "loadError": "Enweghị ike ibunye ọnọdụ ọrụ echekwara.",
+    "saveError": "Enweghị ike ichekwa ọnọdụ ọrụ ahụ. Biko nwaa ọzọ."
+  },
   "common": {
     "save": "Chekwa",
     "cancel": "Kagbuo",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Ziga arịrịọ ndị mmefu ego ha gwụrụ na provider/model ndabere efu maka ọnọdụ mberede.",
   "featureFlagArenaEloSyncEnabledDescription": "Gbanye mmekọrịta ELO nke leaderboard Arena AI kwa oge maka ogo ọgụgụ isi model.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Mepụta ma tinye nchịkọta mkparịta ụka mgbe combo routing gbanwere model. Gbanyụọ ya ka e were mgbanwe model ọ bụla dịka ihe nọọrọ onwe ya ma gbochie arịrịọ nnyefe na ndabere maka combo niile dị ugbu a na ndị ga-adị n'ọdịnihu.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Kpọsa id mirror claude/&lt;provider&gt;/&lt;model&gt; na /v1/models ka nchọpụta model nke gateway Claude Code depụta model ndị na-abụghị Claude. Ịdọ aka ná ntị: nke a na-eme ka ọnụ ọgụgụ ihe dị na katalọgụ bụrụ okpukpu abụọ maka client niile mgbe agbanyere ya n'ụwa niile.",
   "featureFlagNoThinkingAliasEnabledDescription": "Mgbanwe ukwu maka alias gateway no-think/&lt;provider&gt;/&lt;model&gt;. Agbanye (ndabara): /v1/models na-akpọsa ụdị na-adịghị eche echiche maka model Claude ọ bụla tozuru etozu nke nwere ike iche echiche, ma id no-think/ e zigara na arịrịọ ga-alaghachi na model n'ezie ebe a kwụsịrị reasoning. Agbanyụọ: a gaghị akpọsa ụdị ọ bụla, a ga-ewerekwa id no-think/ dịka id model ọ bụla ọzọ a na-amaghị. Nhọrọ ịbanye/ịpụ ModelSpec.noThinkingAlias nke model ọ bụla ka na-emetụta mgbe agbanyere nke a.",
   "featureFlagChatVirtualLanesEnabledDescription": "Gbanye lane nnabata virtual na-agbanwe onwe ya maka tenant ọ bụla maka iziga na provider (#9654): mgbawa arịrịọ nke otu tenant agaghịzi eme ka nke tenant ọzọ nweta 503. Env var OMNIROUTE_CHAT_VIRTUAL_LANES na-akarị mgbanwe dashboard a; mgbanwe ga-amalite ịrụ ọrụ mgbe e bidogharịrị server.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Nlele ozugbo nke ihe niile na-arụ ọrụ",
     "resilienceConnections": "Nkwụsi ike Njikọ",
     "resilienceConnectionsSubtitle": "Ọnọdụ oge nchere, ihe nkwụsị, na mkpọchi",
+    "resilienceCooldowns": "Njikwa Oge Izumike",
+    "resilienceCooldownsSubtitle": "Kpochapụ oge izumike n'ọtụtụ",
     "settingsModalityBridge": "Àkwà Ụdị Data",
     "settingsModalityBridgeSubtitle": "Foto/ọdịyo → ederede dịka nhọrọ ndabere maka ụdị na-anabata naanị ederede",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Nnyocha Data",
     "usageAnalyticsTitle": "Nnyocha Ojiji",
+    "tokenDisplayCompact": "Nkenke",
+    "tokenDisplayExact": "Kpọmkwem",
+    "tokenDisplayMode": "Ụdị ngosi Tọkịn",
     "diversityScoreTitle": "Ọdịiche Ndị Na-enye Ọrụ",
     "diversityScoreDesc": "Nchịkọta nkenke nke etu arịrịọ si gbakọba n’etiti ndị na-enye ọrụ n’oge na-adịbeghị anya.",
     "diversityShannonEntropy": "Entropi Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Ngwakọta auto/* arụnyere n'ime sistemụ, nke a na-ekpebi n'ụzọ na-agbanwe agbanwe site na provider ejikọrọ. Jiri ID ọ bụla n'ime ndị a dị ka mpaghara model — nhazi adịghị mkpa.",
     "autoCatalogExpand": "Gbasaa katalọgụ ntụgharị ụzọ akpaaka",
     "autoCatalogCollapse": "Kpokọta katalọgụ ntụgharị ụzọ akpaaka",
+    "autoCatalogComboCount": "{count} combos",
+    "autoCatalogCandidates": "{count} ndị na-eme nhọrọ",
+    "autoCatalogNoCandidates": "Enweghị ndị na-enye ọrụ kwekọrọ",
+    "autoCatalogKindVariant": "dị iche",
+    "autoCatalogKindTemplate": "usoro",
+    "autoCatalogKindCategory": "kategoria",
+    "autoCatalogKindFamily": "ezinụlọ",
+    "autoComboTestTruncated": "Nyochara {tested} nke {total} ndị na-eme nhọrọ ndụ (nke kachasị ibu mbụ).",
+    "controlCenter": "Ọrụ Nlekota",
     "createCombo": "Mepụta Ngwakọta",
     "editCombo": "Dezie Ngwakọta",
     "deleteCombo": "Hichapụ Ngwakọta",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Na-arụ ọrụ",
     "showModel": "Gosi ụdị",
     "hideModel": "Zoo ụdị",
+    "blacklistModel": "Gbochie",
+    "blacklistModelTooltip": "Gbochie ihe nlereanya a ma zoo ya na katalọgụ",
     "removeModel": "Wepụ ụdị",
     "rateLimitProtected": "Echekwara",
     "rateLimitUnprotected": "Echekwaghị",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "Mgbe akaụntụ a ruru oke ojiji ya nke awa 5 ma Anthropic nye ụzọ nwere mkpa dị ala, OmniRoute na-anabata ya ma na-aga n’ihu izipu arịrịọ na anthropic-usage-limit: slow ruo mgbe windo ahụ tọgharịrị, kama ime ka njikọ ahụ zuru ike. Oke izu ka na-emetụta ya, nzaghachi nwekwara ike ichere ruo mgbe ohere fọdụrụ dị.",
     "claudeAutoLimitResetLabel": "Tọgharịa oke nnọkọ na-akpaghị aka (otu ugboro n’izu)",
     "claudeAutoLimitResetDescription": "Mgbe akaụntụ a ruru oke ojiji ya nke awa 5 ma ntọgharị oke nnọkọ dị, OmniRoute na-eji ya na-akpaghị aka ma nwaa ọzọ n’ọsọ zuru oke. Ọ na-eji ntọgharị akaụntụ ahụ nke otu ugboro n’izu, ojiji ahụ ka na-agụkwa n’ime oke izu.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "Mafee oge nkwụsị nwa oge ka njikọ a nọgide bụrụ nke a pụrụ iji ọbụna mgbe njehie ndị a pụrụ idozi mere (ọnọdụ njedebe dịka amachibidoro/agwụla ka na-emetụta ya).",
     "disableCoolingLabel": "Gbanyụọ oge nkwụsị maka njikọ a",
     "bulkPasteAdded": "{count, plural, one {Agbakwunyere igodo 1} other {Agbakwunyere igodo #}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "Echekwara ntọala ebe njedebe model",
     "searchByModelAria": "Jiri model chọọ",
     "selectSupportedEndpoint": "Họrọ opekata mpe otu ebe njedebe akwadoro",
-    "antigravityClientProfileHarness": "Ngwa Nnwale / CLI"
+    "antigravityClientProfileHarness": "Ngwa Nnwale / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "Ntọala",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "Enweghị ike ịgbanwe iyi ahụ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "Ojiji",
     "grokExtraUsageCredits": "Kredit maka ojiji ọzọ",
     "grokAutoTopUp": "Ngbakwunye Akpaka",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Mgbochi Ụdị",
         "count": "Ọnụọgụ Njikọ"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Njikwa Oge Izumike",
+    "description": "Hụ njikọ ọ bụla na-ezu ike mgbe ọdịda gasịrị, wepụ oge izumike n'ọtụtụ, ma dozie ogologo oge ha na-adị.",
+    "loading": "Na-ebudata oge izumike…",
+    "loadFailed": "Enweghị ike ibudata oge izumike",
+    "loadFailedDetail": "Lelee njikọ gị ma mee ka ibe ahụ dị ọhụrụ.",
+    "rules": {
+      "title": "Iwu oge izumike",
+      "subtitle": "Tinye na njikọ ọ bụla site na ọdịda ya na-esonụ.",
+      "stallLabel": "Tinye akaụntụ n'oge izumike mgbe nnyefe kwụsịtụrụ",
+      "stallDescription": "Agbanwụrụ na ndabara: nkwụsị na-apụtakarị otu ntụgharị echiche dị ogologo, ọ bụghị akaụntụ mebiri emebi.",
+      "oauth": "Akaụntụ OAuth",
+      "apikey": "Igodo API",
+      "baseCooldown": "Oge izumike izizi (sekọnd)",
+      "baseCooldownHint": "Oge izumike mbụ mgbe ọdịda gasịrị. Ọdịda ugboro ugboro na-amụba ya okpukpu abụọ.",
+      "maxBackoffSteps": "Ọnụọgụ nzọụkwụ nkwụghachi kachasị",
+      "maxBackoffStepsHint": "Ugboro ole oge izumike nwere ike ịmụba okpukpu abụọ.",
+      "save": "Chekwaa iwu",
+      "saved": "Echekwala iwu oge izumike",
+      "saveFailed": "Enweghị ike ịchekwa iwu oge izumike"
+    },
+    "list": {
+      "title": "Njikọ ndị wepụtara na nzipu",
+      "subtitle": "Oge izumike na mkpọchi ụdị na-agwụ n'onwe ha. Kpochapụ ha iji weghachite njikọ na nzipu ugbu a.",
+      "provider": "Onye na-eweta",
+      "allProviders": "Ndị niile na-eweta",
+      "showHealthy": "Gosi njikọ ndị dị mma",
+      "refresh": "Mee ka ọ dị ọhụrụ",
+      "clearSelected": "Kpochapụ ndị ahọpụtara ({count})",
+      "clearAll": "Kpochapụ ha niile",
+      "clear": "Kpochapụ",
+      "select": "Họrọ njikọ",
+      "none": "Ọ dịghị",
+      "empty": "Ọ dịghị njikọ na-anọghị na nzipu.",
+      "cleared": "Kpochapụrụ njikọ {cleared} na mkpọchi ụdị {lockouts}. Mafere {skipped} nke amachibidoro ma ọ bụ kubiri.",
+      "clearFailed": "Enweghị ike ikpochapụ oge izumike",
+      "columns": {
+        "connection": "Njikọ",
+        "provider": "Onye na-eweta",
+        "status": "Ọnọdụ",
+        "remaining": "Oge fọdụrụ",
+        "lockouts": "Mkpọchi ụdị",
+        "lastError": "Mmehie ikpeazụ"
+      }
+    },
+    "status": {
+      "cooling_down": "Na-ajụ oyi",
+      "model_locked": "Model akpọchiri",
+      "unavailable": "Adịghị",
+      "terminal": "Chọrọ nlebara anya",
+      "healthy": "Dị mma"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Jụ arịrịọ tupu izipu ya mgbe ụdị e lekwasịrị anya enweghị ikike ndị achọrọ (ọhụụ, ngwaọrụ, nsonaazụ ahaziri, windo ọnọdụ). Nke a na-echebe arịrịọ kpọmkwem nke otu onye na-eweta ọrụ, nke na-agafeghị nzacha ndakọrịta nke combo-layer.",

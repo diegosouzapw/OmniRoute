@@ -27,6 +27,7 @@ import {
   sortQuotasByWindow,
 } from "../quotaParsing";
 import KiloPassMeter from "./KiloPassMeter";
+import { hasCodexPaidCredits, type CodexPaidCredits } from "@/lib/providers/codexPaidCredits";
 import AntigravityQuotaGroups, { resolveAntigravityQuotaGroups } from "../AntigravityQuotaGroups";
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -143,6 +144,7 @@ interface Props {
   error: string | null;
   message?: string | null;
   billing?: ProviderBillingStatus | null;
+  paidCredits?: CodexPaidCredits;
   refreshedAt?: string;
   hasStaleData: boolean;
   onRefresh: () => void;
@@ -329,6 +331,7 @@ export default function QuotaCardExpanded({
   error,
   message,
   billing,
+  paidCredits,
   refreshedAt,
   hasStaleData,
   onRefresh,
@@ -419,6 +422,20 @@ export default function QuotaCardExpanded({
 
       {isProviderBillingProvider(providerId) && billing && (
         <ProviderBillingDetails billing={billing} />
+      )}
+      {providerId === "codex" && paidCredits && (
+        <div className="flex justify-between gap-2 border-t border-border/40 pt-2 text-[11px] text-text-main">
+          <span>{t("codexPaidCreditsLabel")}</span>
+          <span className="font-semibold">
+            {paidCredits.overageLimitReached || !hasCodexPaidCredits(paidCredits)
+              ? t("codexPaidCreditsUnavailable")
+              : paidCredits.unlimited
+                ? t("codexPaidCreditsUnlimited")
+                : paidCredits.balance === null
+                  ? t("codexPaidCreditsAvailable")
+                  : paidCredits.balance.toLocaleString()}
+          </span>
+        </div>
       )}
 
       {hiddenQuotaRows.length > 0 && (
