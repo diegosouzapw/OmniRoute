@@ -32,6 +32,7 @@ import {
 import { isStripReasoningRequested } from "./headers.ts";
 import { applyClientUsageBuffer } from "./clientUsageBuffer.ts";
 import { resolveRequestToolIdentity } from "../../translator/response/openai-responses/requestToolIdentity.ts";
+import { matchesCustomToolDeclaration } from "../../utils/toolCallName.ts";
 import { plaintextCollaborationFields } from "../../translator/response/openai-responses/collaborationPlaintextMarker.ts";
 
 export type { NonStreamingClientTranslateInput, NonStreamingClientTranslateResult };
@@ -132,7 +133,20 @@ export function translateNonStreamingClientResponse(
     const sanitizedOutput = translatedResponse?.output;
     if (customToolNames && Array.isArray(sanitizedOutput)) {
       for (const item of sanitizedOutput) {
-        if (item?.type !== "function_call" || !customToolNames.has(item.name)) continue;
+        // Accept the qualified (`functions__exec`), dotted (`functions.exec`) and
+        // unique-bare (`exec`) spellings so a provider that dropped the namespace
+        // prefix still yields a custom_tool_call with raw input instead of a
+        // function_call with JSON arguments. A flat declaration of the same bare
+        // name keeps its own identity (responseToolSchemas guard).
+        if (
+          item?.type !== "function_call" ||
+          !matchesCustomToolDeclaration({
+            customToolNames,
+            declaredFunctionSchemas: responseToolSchemas,
+            toolName: item.name,
+          })
+        )
+          continue;
 
         let rawInput = item.arguments;
         if (typeof item.arguments === "string") {

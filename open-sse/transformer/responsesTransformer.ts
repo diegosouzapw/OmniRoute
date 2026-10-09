@@ -1,4 +1,8 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
+import {
+  appendToolCallNameDelta,
+  matchesCustomToolDeclaration,
+} from "../utils/toolCallName.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
 import { getReadableReasoningValue } from "../utils/reasoningFields.ts";
 import {
@@ -468,7 +472,15 @@ export function createResponsesApiTransformStream(
   const emitToolCallAdded = (controller, idx) => {
     if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return false;
 
-    const customTool = customToolNames.has(state.funcNames[idx] || "");
+    // Declared-name match accepts the qualified (`functions__exec`), dotted
+    // (`functions.exec`) and unique-bare (`exec`) spellings: providers that drop
+    // the namespace prefix must not turn a declared freeform tool into a plain
+    // function_call. No request-side schema map is threaded to this emitter, so
+    // the explicit-flat-declaration guard is the identity resolver's job here.
+    const customTool = matchesCustomToolDeclaration({
+      customToolNames,
+      toolName: state.funcNames[idx] || "",
+    });
     const itemType = customTool ? "custom_tool_call" : "function_call";
     state.funcItemTypes[idx] = itemType;
     state.funcItemAdded[idx] = true;
@@ -902,7 +914,13 @@ export function createResponsesApiTransformStream(
                 // msgItemAdded state shifted mid-turn).
               }
 
-              if (funcName) state.funcNames[tcIdx] = funcName;
+              // Accumulate name deltas (a split `functions__` + `exec` must not be
+              // truncated to its last fragment) — mirrors the translator path.
+              if (funcName)
+                state.funcNames[tcIdx] = appendToolCallNameDelta(
+                  state.funcNames[tcIdx],
+                  funcName
+                );
 
               if (!state.funcCallIds[tcIdx] && newCallId) {
                 state.funcCallIds[tcIdx] = newCallId;

@@ -5,6 +5,10 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
+import {
+  appendToolCallNameDelta,
+  matchesCustomToolDeclaration,
+} from "../../utils/toolCallName.ts";
 import { projectCompletedStreamError } from "../../utils/streamErrorFormat.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { finalizeResponsesTerminalStatus } from "../helpers/responsesTerminalStatus.ts";
@@ -618,7 +622,11 @@ function emitToolCall(state, emit, tc) {
     delete state.funcArgsEscapeState?.[tcIdx];
   }
 
-  if (funcName) state.funcNames[tcIdx] = funcName;
+  // Accumulate name deltas: a provider may split the declared wire name
+  // (`functions__` + `exec`) or re-send it. Keeping only one delta turned a
+  // namespaced custom tool into a bare fragment, which then missed both the
+  // custom/freeform classification and the {namespace, name} restore below.
+  if (funcName) state.funcNames[tcIdx] = appendToolCallNameDelta(state.funcNames[tcIdx], funcName);
 
   // Custom tools are surfaced as custom_tool_call items and stream raw input instead of the
   // function_call_arguments.* events used for regular function tools. (#1007)
@@ -638,7 +646,11 @@ function emitToolCall(state, emit, tc) {
   const isCustomTool =
     ((lowerName === "apply_patch" || lowerName === "applypatch") &&
       !state.toolSchemas?.has?.(toolName)) ||
-    state.customToolNames?.has?.(toolName) === true;
+    matchesCustomToolDeclaration({
+      customToolNames: state.customToolNames,
+      declaredFunctionSchemas: state.toolSchemas,
+      toolName,
+    });
 
   if (!state.funcCallIds[tcIdx] && newCallId) state.funcCallIds[tcIdx] = newCallId;
   const callId = state.funcCallIds[tcIdx];
@@ -647,7 +659,9 @@ function emitToolCall(state, emit, tc) {
     // #7936 — restore the codex-side `{namespace, name}` pair when the bare
     // leaf on the Chat wire was flattened from a Responses namespace sub-tool.
     // Codex dispatches from `namespace` independently of `name` (no `__` split).
-    const identity = resolveRequestToolIdentity(state.requestToolIdentityMap, toolName);
+    const identity = resolveRequestToolIdentity(state.requestToolIdentityMap, toolName, {
+      explicitNames: state.toolSchemas?.keys?.() ?? null,
+    });
     emit("response.output_item.added", {
       type: "response.output_item.added",
       output_index: outputIndex,
@@ -711,7 +725,11 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
     const isCustomTool =
       ((lowerName === "apply_patch" || lowerName === "applypatch") &&
         !state.toolSchemas?.has?.(toolName)) ||
-      state.customToolNames?.has?.(toolName) === true;
+      matchesCustomToolDeclaration({
+        customToolNames: state.customToolNames,
+        declaredFunctionSchemas: state.toolSchemas,
+        toolName,
+      });
 
     let funcItem;
     if (isCustomTool) {
@@ -752,7 +770,8 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
       // bare; namespace sub-tools get back their `namespace` + `name`).
       const customIdentity = resolveRequestToolIdentity(
         state.requestToolIdentityMap,
-        state.funcNames[idx] || ""
+        state.funcNames[idx] || "",
+        { explicitNames: state.toolSchemas?.keys?.() ?? null }
       );
       if (customIdentity) {
         funcItem.namespace = customIdentity.namespace;
@@ -782,7 +801,9 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
       };
 
       // #7936/#14154 identity closure + collaboration plaintext marker.
-      applyFunctionCallIdentity(funcItem, state.requestToolIdentityMap, state.funcNames[idx] || "");
+      applyFunctionCallIdentity(funcItem, state.requestToolIdentityMap, state.funcNames[idx] || "", {
+        explicitNames: state.toolSchemas?.keys?.() ?? null,
+      });
 
       emit("response.output_item.done", {
         type: "response.output_item.done",
