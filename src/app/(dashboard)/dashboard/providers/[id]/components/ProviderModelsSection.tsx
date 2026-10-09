@@ -23,6 +23,7 @@ import {
 import ModelRow, { ModelVisibilityToolbar } from "./ModelRow";
 import PassthroughModelsSection from "./PassthroughModelsSection";
 import CompatibleModelsSection from "./CompatibleModelsSection";
+import { useProviderContextOverrides } from "../hooks/useProviderContextOverrides";
 import type { ModelCompatSavePatch } from "../hooks/useModelVisibilityHandlers";
 
 export interface ProviderModelsSectionProps {
@@ -180,6 +181,13 @@ export default function ProviderModelsSection({
 }: ProviderModelsSectionProps) {
   const [freeFilter, setFreeFilter] = useState<"all" | "free" | "paid">("all");
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
+  // Catalog rows only: the compatible/passthrough branches mount their own copy of
+  // the hook, so skip the duplicate fetch here. The key is the CANONICAL provider
+  // id — the one the capability resolver reads model_context_overrides by and the
+  // PUT guard validates — not the storage alias.
+  const isCatalogBranch = !isManagedAvailableModelsProvider && !providerInfo?.passthroughModels;
+  const { contextOverrides, savingContextModelId, saveContextWindowOverride } =
+    useProviderContextOverrides(providerId, t, { enabled: isCatalogBranch });
   const canConfigureAutoFetchModels = connections.some(
     (connection) => connection.isActive !== false && typeof connection.id === "string"
   );
@@ -526,6 +534,9 @@ export default function ProviderModelsSection({
               onTestModel={onTestModel}
               testStatus={modelTestStatus[model.id] || null}
               testingModel={testingModelId === model.id}
+              contextWindowOverride={contextOverrides[model.id] ?? null}
+              onSaveContextWindowOverride={saveContextWindowOverride}
+              savingContextOverride={savingContextModelId === model.id}
             />
           );
         })}
