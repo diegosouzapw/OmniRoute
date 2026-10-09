@@ -257,6 +257,7 @@ export class VideoDrilldownLifecycle {
   private readonly maxHandlesPerPrincipal: number;
   private readonly now: () => number;
   private readonly ttlMs: number;
+  private expiryTimer?: ReturnType<typeof setTimeout>;
 
   constructor(options: VideoDrilldownLifecycleOptions) {
     this.cache = options.cache;
@@ -276,6 +277,21 @@ export class VideoDrilldownLifecycle {
       }
     }
     return removed;
+  }
+
+  private armExpiryTimer(): void {
+    if (this.expiryTimer) clearTimeout(this.expiryTimer);
+    this.expiryTimer = undefined;
+    const oldest = this.handles.values().next().value;
+    if (!oldest) return;
+    this.expiryTimer = setTimeout(
+      () => {
+        this.expiryTimer = undefined;
+        this.cleanup();
+      },
+      Math.max(1, Math.min(2_147_483_647, oldest.expiresAt - this.now()))
+    );
+    this.expiryTimer.unref?.();
   }
 
   private dropHandle(handle: string, entry: HandleEntry): void {
@@ -341,6 +357,7 @@ export class VideoDrilldownLifecycle {
       this.evictOldestHandleGlobally();
       if (this.handles.size === before) break;
     }
+    this.armExpiryTimer();
     return handle;
   }
 
@@ -425,12 +442,15 @@ export class VideoDrilldownLifecycle {
     if (!entry) return 0;
     const removed = this.cache.clearSession(principalId, entry.sessionId);
     this.dropHandle(handle, entry);
+    this.armExpiryTimer();
     return removed;
   }
 
   /** Explicit sweep for scheduled cleanup; returns the number of stale handles reclaimed. */
   cleanup(): number {
-    return this.sweepExpiredHandles();
+    const removed = this.sweepExpiredHandles();
+    this.armExpiryTimer();
+    return removed;
   }
 
   getUsage(principalId: string): VideoDrilldownUsage {
@@ -438,6 +458,8 @@ export class VideoDrilldownLifecycle {
   }
 
   clearAll(): void {
+    if (this.expiryTimer) clearTimeout(this.expiryTimer);
+    this.expiryTimer = undefined;
     this.cache.clearAll();
     this.handles.clear();
     this.handleCountByPrincipal.clear();

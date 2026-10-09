@@ -46,6 +46,19 @@ test("handle TTL sweep releases retained bytes even when cache TTL is longer", a
   assert.equal(lifecycle.getUsage("owner").totalBytes, 0);
 });
 
+test("idle handles release retained bytes at TTL without waiting for another request", async () => {
+  const cache = new VideoDrilldownCache({ maxEntries: 4, ttlMs: 60_000 });
+  const lifecycle = new VideoDrilldownLifecycle({ cache, ttlMs: 50 });
+  await lifecycle.produce("owner", await payload());
+  await new Promise((resolve) => setTimeout(resolve, 180));
+  assert.equal(
+    cache.getUsage("owner").totalBytes,
+    0,
+    "an idle process must not retain expired JPEGs"
+  );
+  lifecycle.clearAll();
+});
+
 test("remote configuration failures and cancellation are sanitized HTTP responses", async () => {
   const request = (signal?: AbortSignal) =>
     new Request(`http://omniroute.local/api/v1/video-bridge/drilldown?handle=${"a".repeat(64)}`, {
