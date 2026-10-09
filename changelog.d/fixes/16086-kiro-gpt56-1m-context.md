@@ -1,0 +1,1 @@
+- **fix(providers):** Kiro GPT-5.6 Sol/Terra/Luna use the 1M-token context window Kiro rolled out on 2026-09-14, so usage derived from `contextUsagePercentage` is no longer under-reported ~3.7x ([#16086](https://github.com/diegosouzapw/OmniRoute/pull/16086)) — thanks @thotypous

@@ -159,9 +159,10 @@ const KIRO_DEFAULT_MAX_INPUT_TOKENS = 200000;
  *
  * Kiro reports only a percentage, so the budget it is a percentage OF decides the
  * result. A fixed 200000 undercounts every model with a larger window by the
- * ratio of the two windows — claude-sonnet-5 (1M) by 5x, gpt-5.6-* (272k) by
- * ~26% — and those numbers land in usage_history and the API-key token-limit
- * counters.
+ * ratio of the two windows — claude-sonnet-5 and gpt-5.6-* (both 1M) by 5x —
+ * and those numbers land in usage_history and the API-key token-limit counters,
+ * and drive clients' compaction decisions. The registry `contextLength` must
+ * therefore track provider-side window changes.
  */
 function resolveKiroMaxInputTokens(model: string): number {
   const entry = getRegistryEntry("kiro");
