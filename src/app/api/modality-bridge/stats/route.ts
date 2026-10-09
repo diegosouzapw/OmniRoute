@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getBridgeStats } from "@/lib/guardrails/modalityBridge/bridgeStats";
+import { getCachedSettings } from "@/lib/db/readCache";
+import { getVideoDrilldownSnapshot } from "@/lib/guardrails/videoBridgeDrilldownStore";
 
 /**
  * GET /api/modality-bridge/stats — read-only, in-memory Modality Bridge
@@ -17,5 +19,10 @@ export async function GET(request: Request) {
   const authError = await requireManagementAuth(request);
   if (authError) return authError;
 
-  return NextResponse.json(getBridgeStats(), { headers: { "Cache-Control": "no-store" } });
+  const stats = getBridgeStats();
+  const drilldown = getVideoDrilldownSnapshot(await getCachedSettings());
+  return NextResponse.json(
+    { ...stats, video: { ...stats.video, drilldown } },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }

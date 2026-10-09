@@ -54,8 +54,9 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 }
 
-function fromApi(value: unknown): VideoState {
+function fromApi(value: unknown, stats?: unknown): VideoState {
   const record = asRecord(value);
+  const policy = asRecord(asRecord(asRecord(stats).video).drilldown);
   const runtime = resolveVideoBridgeRuntimeSettings(record);
   return {
     modalityBridgeVideoEnabled: runtime.enabled,
@@ -65,9 +66,14 @@ function fromApi(value: unknown): VideoState {
     modalityBridgeVideoSamplingPolicy: runtime.samplingPolicy,
     modalityBridgeVideoMaxVideos: runtime.maxVideos,
     modalityBridgeVideoTimeout: runtime.timeoutMs,
-    modalityBridgeVideoDrilldownEnabled: record.modalityBridgeVideoDrilldownEnabled === true,
+    modalityBridgeVideoDrilldownEnabled:
+      typeof record.modalityBridgeVideoDrilldownEnabled === "boolean"
+        ? record.modalityBridgeVideoDrilldownEnabled
+        : policy.enabled === true,
     modalityBridgeVideoDrilldownRemoteEnabled:
-      record.modalityBridgeVideoDrilldownRemoteEnabled === true,
+      typeof record.modalityBridgeVideoDrilldownRemoteEnabled === "boolean"
+        ? record.modalityBridgeVideoDrilldownRemoteEnabled
+        : policy.remoteEnabled === true,
   };
 }
 
@@ -131,10 +137,13 @@ export default function ModalityBridgeVideoTab({
         return response.json();
       }),
       runtimeStatusRequest,
+      fetch("/api/modality-bridge/stats")
+        .then((response) => (response.ok ? response.json() : null))
+        .catch(() => null),
     ])
-      .then(([settingsValue, runtimeValue]: [unknown, unknown]) => {
+      .then(([settingsValue, runtimeValue, statsValue]: [unknown, unknown, unknown]) => {
         if (cancelled) return;
-        const loadedSettings = fromApi(settingsValue);
+        const loadedSettings = fromApi(settingsValue, statsValue);
         persistedSettings.current = loadedSettings;
         setSettings(loadedSettings);
         setRuntime(parseRuntimeStatus(runtimeValue));

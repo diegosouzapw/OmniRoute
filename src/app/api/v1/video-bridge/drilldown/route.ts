@@ -8,12 +8,14 @@ import { getCachedSettings } from "@/lib/db/readCache";
 import { createLogger } from "@/shared/utils/logger";
 
 import {
-  isVideoBridgeDrilldownRemoteAccessEnabled,
   VIDEO_DRILLDOWN_VARIANTS,
   VideoDrilldownLifecycle,
   type VideoDrilldownVariant,
 } from "@/lib/guardrails/videoBridgeDrilldownLifecycle";
-import { getSharedVideoDrilldownLifecycle } from "@/lib/guardrails/videoBridgeDrilldownStore";
+import {
+  getSharedVideoDrilldownLifecycle,
+  isVideoDrilldownRemoteEnabled,
+} from "@/lib/guardrails/videoBridgeDrilldownStore";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -95,9 +97,7 @@ export const OPTIONS = async (): Promise<Response> => handleCorsOptions();
 
 async function isRemoteAccessEnabledFromSettings(): Promise<boolean> {
   const settings = await getCachedSettings();
-  return typeof settings.modalityBridgeVideoDrilldownRemoteEnabled === "boolean"
-    ? settings.modalityBridgeVideoDrilldownRemoteEnabled
-    : isVideoBridgeDrilldownRemoteAccessEnabled();
+  return isVideoDrilldownRemoteEnabled(settings);
 }
 
 export async function handleVideoBridgeDrilldownConsumerRequest(

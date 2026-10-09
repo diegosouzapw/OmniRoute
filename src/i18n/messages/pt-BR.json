@@ -8791,7 +8791,8 @@
     "modalityBridgeVideoDrilldownEnabled": "Reter frames derivados do vídeo",
     "modalityBridgeVideoDrilldownEnabledDesc": "Permitir retenção temporária de JPEGs somente quando a requisição autenticada também informar drilldown: true. O vídeo original nunca é retido.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Permitir consulta autenticada dos frames",
-    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Permitir que cada chave de API consulte e exclua apenas seus próprios handles opacos. Sem acesso anônimo ou entre chaves."
+    "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Permitir que cada chave de API consulte e exclua apenas seus próprios handles opacos. Sem acesso anônimo ou entre chaves.",
+    "modalityBridgeVideoDrilldownUsage": "JPEGs retidos / bytes"
   },
   "contextRtk": {
     "title": "Motor RTK",
