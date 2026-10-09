@@ -1,0 +1,1 @@
+- **fix(providers):** model discovery now sends the connection-level `customHeaders`, so a key that needs a header on every request (e.g. `anthropic-workspace-id` for an Anthropic key not scoped to a workspace) can import models, not only chat — thanks @shipsfromrio
