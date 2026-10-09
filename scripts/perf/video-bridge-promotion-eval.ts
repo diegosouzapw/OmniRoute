@@ -39,7 +39,12 @@ import {
   digestPromotionText,
   type PersistablePromotionRecord,
 } from "../../src/lib/guardrails/videoBridgePromotionDigest";
-import type { PromotionConfirmation } from "../../src/lib/guardrails/videoBridgePromotionConfirmation";
+import {
+  confirmVideoBridgePromotionRuns,
+  promotionRunReceiptSchema,
+  type PromotionConfirmation,
+  type PromotionRunReceipt,
+} from "../../src/lib/guardrails/videoBridgePromotionConfirmation";
 import {
   evaluateFu07Promotion,
   evaluateFu09Promotion,
@@ -252,7 +257,8 @@ function digestAllRuns(runFile: VideoBridgePromotionRunFile): PersistablePromoti
  */
 export function buildVideoBridgePromotionReport(
   manifest: VideoBridgePromotionManifest,
-  runFile: VideoBridgePromotionRunFile
+  runFile: VideoBridgePromotionRunFile,
+  previous?: PromotionRunReceipt
 ): VideoBridgePromotionReport {
   videoBridgePromotionManifestSchema.parse(manifest);
   videoBridgePromotionRunFileSchema.parse(runFile);
@@ -297,7 +303,7 @@ export function buildVideoBridgePromotionReport(
   }
 
   const records = digestAllRuns(runFile);
-  return {
+  const report: VideoBridgePromotionReport = {
     candidateModel: resolveModel(runFile, "candidate"),
     comparison: runFile.comparison ?? null,
     execution: { state: "executed", ...(runFile.execution ? { receipt: runFile.execution } : {}) },
@@ -315,6 +321,8 @@ export function buildVideoBridgePromotionReport(
     records,
     schemaVersion: 1,
   };
+  if (previous) report.promotion = confirmVideoBridgePromotionRuns([previous, report]);
+  return report;
 }
 
 function readArgument(name: string): string | undefined {
@@ -330,6 +338,7 @@ function printUsage(): void {
       "Usage:",
       "  node --import tsx/esm scripts/perf/video-bridge-promotion-eval.ts --manifest <manifest.json>",
       "  node --import tsx/esm scripts/perf/video-bridge-promotion-eval.ts --manifest <manifest.json> --observations <runs.json>",
+      "  Add --previous-report <report.json> to confirm two independent eligible runs.",
       "",
       "Without --observations this always prints a HOLD report: collecting real",
       "observations requires a live model endpoint and fixtures materialized from",
@@ -356,6 +365,7 @@ async function main(): Promise<void> {
   }
   const manifestPath = readArgument("manifest");
   const observationsPath = readArgument("observations");
+  const previousPath = readArgument("previous-report");
   const missingConfiguration: string[] = [];
   if (!manifestPath) missingConfiguration.push("--manifest");
   if (!observationsPath) missingConfiguration.push("--observations");
@@ -367,7 +377,12 @@ async function main(): Promise<void> {
   }
   const manifest = await loadJson(manifestPath!, videoBridgePromotionManifestSchema);
   const runFile = await loadJson(observationsPath!, videoBridgePromotionRunFileSchema);
-  console.log(JSON.stringify(buildVideoBridgePromotionReport(manifest, runFile), null, 2));
+  const previous = previousPath
+    ? await loadJson(previousPath, promotionRunReceiptSchema)
+    : undefined;
+  console.log(
+    JSON.stringify(buildVideoBridgePromotionReport(manifest, runFile, previous), null, 2)
+  );
 }
 
 const isMainModule =

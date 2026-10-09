@@ -147,4 +147,24 @@ test("complete unit evidence can qualify only the measured lane, never promote a
   assert.equal(report.promotion.fu07.status, "hold");
   assert.equal(report.promotion.fu09.status, "hold");
   assert.ok(!JSON.stringify(report).includes("private unit response"));
+  const nextRun = structuredClone(runFile);
+  nextRun.execution.runId = randomUUID();
+  nextRun.execution.orderSeed = "second-independent-unit-seed";
+  nextRun.execution.startedAt = "2026-10-09T11:00:01.000Z";
+  nextRun.execution.finishedAt = "2026-10-09T12:00:00.000Z";
+  for (const currentCase of nextRun.cases) {
+    for (const run of currentCase.runs) run.observationId = randomUUID();
+    currentCase.runs.sort((left, right) => {
+      if (left.repetition !== right.repetition) return left.repetition - right.repetition;
+      const roles = getPromotionPairRoles(
+        nextRun.execution.orderSeed,
+        currentCase.caseId,
+        left.repetition
+      );
+      return roles.indexOf(left.role) - roles.indexOf(right.role);
+    });
+  }
+  const confirmed = buildVideoBridgePromotionReport(manifest, nextRun, report);
+  assert.equal(confirmed.promotion.fu07.status, "eligible");
+  assert.equal(confirmed.promotion.fu09.status, "hold");
 });

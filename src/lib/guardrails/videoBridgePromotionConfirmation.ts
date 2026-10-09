@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   promotionExecutionSchema,
   type PromotionExecutionReceipt,
@@ -17,6 +19,31 @@ export interface PromotionConfirmation {
   fu07: PromotionVerdict;
   fu09: PromotionVerdict;
 }
+
+const verdictSchema = z
+  .object({
+    status: z.enum(["eligible", "experimental", "hold"]),
+    reasons: z.array(z.string()),
+  })
+  .strict();
+
+/** Project only the privacy-safe receipt fields from a previous report. */
+export const promotionRunReceiptSchema = z.object({
+  comparison: z.enum(["fu07", "fu09"]).nullable().optional(),
+  candidateModel: z.string().nullable(),
+  execution: z
+    .object({
+      state: z.enum(["executed", "not-configured"]),
+      receipt: promotionExecutionSchema.optional(),
+    })
+    .strict(),
+  observationsDigest: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .nullable(),
+  fu07: verdictSchema,
+  fu09: verdictSchema,
+});
 
 function hold(reason: string): PromotionConfirmation {
   return {
