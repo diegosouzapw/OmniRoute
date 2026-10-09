@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Mod perkhidmatan Codex untuk kunci API ini",
+    "description": "Terpakai pada permintaan Codex, termasuk model Codex dalam kombinasi. Mod paksa mengatasi tetapan klien, tetapan global dan lalai sambungan. Penyedia lain kekal tidak berubah.",
+    "label": "Mod perkhidmatan",
+    "inherit": "Warisi tingkah laku sedia ada",
+    "default": "Paksa Standard (lalai)",
+    "priority": "Paksa Fast / Priority",
+    "flex": "Paksa Flex",
+    "warning": "Ini tidak memberikan akses kepada penyedia. Ketersediaan, caj dan penggunaan kuota bergantung pada akaun dan model Codex anda. Mod paksa memerlukan pengangkutan HTTP atau Responses WebSocket; permintaan app-server akan ditolak.",
+    "confirm": "Gunakan “{mode}” pada kunci API ini? Perubahan ini berkuat kuasa untuk permintaan seterusnya.",
+    "save": "Simpan mod",
+    "retry": "Cuba lagi",
+    "loadError": "Tidak dapat memuatkan mod perkhidmatan yang disimpan.",
+    "saveError": "Tidak dapat menyimpan mod perkhidmatan. Sila cuba lagi."
+  },
   "common": {
     "save": "Jimat",
     "cancel": "Batal",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Halakan permintaan yang telah kehabisan belanjawan kepada penyedia/model sandaran percuma kecemasan.",
   "featureFlagArenaEloSyncEnabledDescription": "Dayakan penyegerakan ELO papan kedudukan Arena AI secara berkala untuk penarafan kecerdasan model.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Jana dan masukkan ringkasan perbualan apabila penghalaan kombo bertukar model. Lumpuhkan untuk mengendalikan pertukaran model secara berasingan dan menghalang permintaan penyerahan latar belakang bagi semua kombo sedia ada dan akan datang.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache dan main semula penaakulan model merentas perbualan berbilang pusingan. Nyahaktifkan untuk berhenti menyimpan dan menyuntik semula penaakulan.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Iklankan claude/&lt;provider&gt;/&lt;model&gt; mirror ids pada /v1/models supaya senarai penemuan model gerbang Claude Code termasuk model bukan Claude. Amaran: menggandakan entri katalog untuk semua klien apabila diaktifkan secara global.",
   "featureFlagNoThinkingAliasEnabledDescription": "Suis utama untuk alias gerbang no-think/&lt;provider&gt;/&lt;model&gt;. Hidup (lalai): /v1/models memaparkan varian tanpa penaakulan bagi setiap model Claude berkeupayaan menaakul yang layak, dan id no-think/ yang dihantar dalam permintaan akan dipadankan semula kepada model sebenar dengan penaakulan disekat. Mati: tiada varian dipaparkan dan id no-think/ dianggap seperti mana-mana id model tidak diketahui yang lain. Pilihan ikut serta/tarik diri ModelSpec.noThinkingAlias bagi setiap model masih terpakai semasa tetapan ini dihidupkan.",
   "featureFlagChatVirtualLanesEnabledDescription": "Aktifkan lorong kemasukan maya adaptif setiap-tenant untuk penghantaran pembekal (#9654): lonjakan satu tenant tidak lagi memberikan 503 kepada tenant lain. Pemboleh ubah persekitaran OMNIROUTE_CHAT_VIRTUAL_LANES mengatasi tetapan papan pemuka ini; perubahan berkuat kuasa apabila pelayan dimulakan semula.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Paparan langsung semua yang sedang berjalan",
     "resilienceConnections": "Daya Tahan Sambungan",
     "resilienceConnectionsSubtitle": "Cooldown, breaker, status penguncian",
+    "resilienceCooldowns": "Pengurus Tempoh Bertenang",
+    "resilienceCooldownsSubtitle": "Kosongkan tempoh bertenang secara pukal",
     "settingsModalityBridge": "Jambatan Modality",
     "settingsModalityBridgeSubtitle": "Fallback imej/audio → teks untuk model hanya teks",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analitis",
     "usageAnalyticsTitle": "Analitis Penggunaan",
+    "tokenDisplayCompact": "Ringkas",
+    "tokenDisplayExact": "Tepat",
+    "tokenDisplayMode": "Mod Paparan Token",
     "diversityScoreTitle": "Kepelbagaian Pembekal",
     "diversityScoreDesc": "Ringkasan penumpuan penyedia untuk tetingkap trafik baru-baru ini.",
     "diversityShannonEntropy": "Entropi Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Gabungan auto/* terbina dalam diselesaikan secara dinamik daripada pembekal yang disambungkan. Gunakan mana-mana ID ini sebagai medan model — tiada persediaan diperlukan.",
     "autoCatalogExpand": "Kembangkan katalog penghalaan automatik",
     "autoCatalogCollapse": "Runtuhkan katalog penghalaan automatik",
+    "autoCatalogComboCount": "{count} gabungan",
+    "autoCatalogCandidates": "{count} calon",
+    "autoCatalogNoCandidates": "Tiada penyedia yang sepadan",
+    "autoCatalogKindVariant": "varian",
+    "autoCatalogKindTemplate": "templat",
+    "autoCatalogKindCategory": "kategori",
+    "autoCatalogKindFamily": "keluarga",
+    "autoComboTestTruncated": "Uji {tested} daripada {total} calon langsung (berat tertinggi dahulu).",
+    "controlCenter": "Pusat Kawalan",
     "createCombo": "Buat Combo",
     "editCombo": "Edit Kombo",
     "deleteCombo": "Padamkan Kombo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktif",
     "showModel": "Tunjukkan model",
     "hideModel": "Sembunyikan model",
+    "blacklistModel": "Sekat",
+    "blacklistModelTooltip": "Sekat model ini dan sembunyikannya daripada katalog",
     "removeModel": "Alih keluar model",
     "rateLimitProtected": "Dilindungi",
     "rateLimitUnprotected": "Tidak dilindungi",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Tetapan titik akhir model yang disimpan",
     "searchByModelAria": "Cari mengikut model",
     "selectSupportedEndpoint": "Pilih sekurang-kurangnya satu titik akhir yang disokong",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "tetapan",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Dikemas kini",
     "lastRefreshed": "Terakhir disegarkan",
     "providerQuota": "Kuota Penyedia",
-    "providerQuotaHomeHint": "Status langsung merentas akaun yang disambungkan"
+    "providerQuotaHomeHint": "Status langsung merentas akaun yang disambungkan",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Menunggu Keizinan",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Penguncian Model",
         "count": "Bilangan Sambungan"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Pengurus Tempoh Bertenang",
+    "description": "Lihat setiap sambungan yang sedang berehat selepas kegagalan, batalkan tempoh bertenang secara pukal, dan laraskan tempoh ia berlangsung.",
+    "loading": "Memuatkan tempoh bertenang…",
+    "loadFailed": "Tidak dapat memuatkan tempoh bertenang",
+    "loadFailedDetail": "Semak sambungan anda dan muat semula halaman.",
+    "rules": {
+      "title": "Peraturan tempoh bertenang",
+      "subtitle": "Gunakan untuk setiap sambungan bermula daripada kegagalan seterusnya.",
+      "stallLabel": "Tetapkan tempoh bertenang pada akaun apabila penstriman terhenti",
+      "stallDescription": "Dimatikan secara lalai: terhenti biasanya bermakna satu giliran penaakulan yang panjang, bukan akaun yang rosak.",
+      "oauth": "Akaun OAuth",
+      "apikey": "Kunci API",
+      "baseCooldown": "Tempoh bertenang asas (saat)",
+      "baseCooldownHint": "Tempoh bertenang pertama selepas kegagalan. Kegagalan berulang akan menggandakannya.",
+      "maxBackoffSteps": "Langkah backoff maksimum",
+      "maxBackoffStepsHint": "Berapa kali tempoh bertenang boleh digandakan.",
+      "save": "Simpan peraturan",
+      "saved": "Peraturan tempoh bertenang disimpan",
+      "saveFailed": "Tidak dapat menyimpan peraturan tempoh bertenang"
+    },
+    "list": {
+      "title": "Sambungan di luar penghalaan",
+      "subtitle": "Tempoh bertenang dan sekatan model tamat dengan sendirinya. Kosongkannya untuk mengembalikan sambungan ke dalam penghalaan sekarang.",
+      "provider": "Penyedia",
+      "allProviders": "Semua penyedia",
+      "showHealthy": "Tunjukkan sambungan yang sihat",
+      "refresh": "Muat semula",
+      "clearSelected": "Kosongkan yang dipilih ({count})",
+      "clearAll": "Kosongkan semua",
+      "clear": "Kosongkan",
+      "select": "Pilih sambungan",
+      "none": "Tiada",
+      "empty": "Tiada sambungan yang berada di luar penghalaan.",
+      "cleared": "Mengosongkan {cleared} sambungan dan {lockouts} sekatan model. Melangkau {skipped} yang disekat atau tamat tempoh.",
+      "clearFailed": "Tidak dapat mengosongkan tempoh bertenang",
+      "columns": {
+        "connection": "Sambungan",
+        "provider": "Penyedia",
+        "status": "Status",
+        "remaining": "Masa berbaki",
+        "lockouts": "Sekatan model",
+        "lastError": "Ralat terakhir"
+      }
+    },
+    "status": {
+      "cooling_down": "Menyejuk",
+      "model_locked": "Model dikunci",
+      "unavailable": "Tidak tersedia",
+      "terminal": "Perlu perhatian",
+      "healthy": "Sihat"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Tolak permintaan sebelum penghantaran apabila model sasaran tidak mempunyai keupayaan yang diperlukan (penglihatan, alat, output terstruktur, tetingkap konteks). Melindungi permintaan penyedia tunggal secara langsung yang mengabaikan penapis keserasian lapisan gabungan.",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Režim usluge Codex za ovaj API ključ",
+    "description": "Primjenjuje se na Codex zahtjeve, uključujući Codex modele unutar kombinacija. Prisilni režimi nadjačavaju klijenta, globalne postavke i zadane postavke veze. Ostali pružaoci usluga ostaju nepromijenjeni.",
+    "label": "Režim usluge",
+    "inherit": "Naslijedi postojeće ponašanje",
+    "default": "Prisili Standardni (zadano)",
+    "priority": "Prisili Brzi / Prioritetni",
+    "flex": "Prisili Fleksibilni",
+    "warning": "Ovo ne omogućava pristup pružaocu usluge. Dostupnost, naknade i potrošnja kvote zavise od vašeg Codex računa i modela. Prisilni režimi zahtijevaju HTTP ili Responses WebSocket transport; app-server zahtjevi se odbijaju.",
+    "confirm": "Primijeniti „{mode}“ na ovaj API ključ? Ovo stupa na snagu za naredne zahtjeve.",
+    "save": "Sačuvaj režim",
+    "retry": "Pokušaj ponovo",
+    "loadError": "Nije moguće učitati sačuvani režim usluge.",
+    "saveError": "Nije moguće sačuvati režim usluge. Pokušajte ponovo."
+  },
   "common": {
     "save": "Sačuvaj",
     "cancel": "Otkaži",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Usmjeri zahtjeve s iscrpljenim budžetom rute na hitni besplatni fallback provajder/model.",
   "featureFlagArenaEloSyncEnabledDescription": "Omogući periodičnu Arena AI leaderboard ELO sinhronizaciju za rangiranje inteligencije modela.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generiši i ubaci sažetke razgovora kada combo rutiranje mijenja modele. Onemogući kako bi se promjene modela tretirale nezavisno i spriječili zahtjevi za predaju u pozadini za sve postojeće i buduće combo konfiguracije.",
+  "featureFlagReasoningReplayEnabledDescription": "Keširajte i reproducirajte rezonovanje modela kroz razgovore s više koraka. Onemogućite da biste prestali spremati i ponovo umetati rezonovanje.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Oglašavaj claude/&lt;provider&gt;/&lt;model&gt; mirror ID-ove na /v1/models kako bi Claude Code gateway discovery lista uključivala i ne-Claude modele. Upozorenje: udvostručuje unose u katalogu za sve klijente kada je omogućeno globalno.",
   "featureFlagNoThinkingAliasEnabledDescription": "Glavni prekidač za no-think/&lt;provider&gt;/&lt;model&gt; gateway aliase. Uključeno (podrazumijevano): /v1/models oglašava no-thinking varijantu za svaki kvalifikovani Claude model sa sposobnošću razmišljanja, a no-think/ ID poslan u zahtjevu se razrješava u stvarni model sa potisnutim razmišljanjem. Isključeno: varijante se ne oglašavaju, a no-think/ ID se tretira kao bilo koji drugi nepoznat ID modela. Opcija ModelSpec.noThinkingAlias po modelu i dalje vrijedi dok je ovo uključeno.",
   "featureFlagChatVirtualLanesEnabledDescription": "Omogući adaptivne virtualne trake prijema po tenantu za dispatch provajdera (#9654): burst jednog tenanta više ne uzrokuje 503 grešku drugom. Env varijabla OMNIROUTE_CHAT_VIRTUAL_LANES ima prednost nad ovim override-om na dashboardu; promjene stupaju na snagu nakon ponovnog pokretanja servera.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Pregled uživo svega što se izvršava",
     "resilienceConnections": "Otpornost veze",
     "resilienceConnectionsSubtitle": "Cooldown, breaker, lockout stanje",
+    "resilienceCooldowns": "Upravitelj perioda hlađenja",
+    "resilienceCooldownsSubtitle": "Grupno očisti periode hlađenja",
     "settingsModalityBridge": "Most modaliteta",
     "settingsModalityBridgeSubtitle": "Slika/audio → tekst fallback za modele koji podržavaju samo tekst",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Analitika korištenja",
+    "tokenDisplayCompact": "Sažeto",
+    "tokenDisplayExact": "Tačno",
+    "tokenDisplayMode": "Način prikaza tokena",
     "diversityScoreTitle": "Raznolikost provajdera",
     "diversityScoreDesc": "Pregled koncentracije provajdera za nedavni vremenski okvir saobraćaja.",
     "diversityShannonEntropy": "Shannonova entropija",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Ugrađene auto/* kombinacije se dinamički rješavaju iz povezanih provajdera. Koristite bilo koji od ovih ID-eva kao polje modela — nije potrebna konfiguracija.",
     "autoCatalogExpand": "Proširi katalog auto-rutiranja",
     "autoCatalogCollapse": "Skupljaj katalog auto-rutiranja",
+    "autoCatalogComboCount": "{count} kombinacija",
+    "autoCatalogCandidates": "{count} kandidata",
+    "autoCatalogNoCandidates": "Nema odgovarajućih provajdera",
+    "autoCatalogKindVariant": "varijanta",
+    "autoCatalogKindTemplate": "šablon",
+    "autoCatalogKindCategory": "kategorija",
+    "autoCatalogKindFamily": "porodica",
+    "autoComboTestTruncated": "Testirano {tested} od {total} aktivnih kandidata (najveće težine prvo).",
+    "controlCenter": "Kontrolni centar",
     "createCombo": "Kreiraj kombinaciju",
     "editCombo": "Uredi kombinaciju",
     "deleteCombo": "Obriši kombinaciju",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Aktivan",
     "showModel": "Prikaži model",
     "hideModel": "Sakrij model",
+    "blacklistModel": "Blokiraj",
+    "blacklistModelTooltip": "Blokiraj ovaj model i sakrij ga iz kataloga",
     "removeModel": "Ukloni model",
     "rateLimitProtected": "Zaštićeno",
     "rateLimitUnprotected": "Nezaštićeno",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "Kada ovaj račun dostigne ograničenje korištenja od 5 sati i Anthropic ponudi kanal nižeg prioriteta, OmniRoute ga prihvata i nastavlja slati zahtjeve s anthropic-usage-limit: slow dok se vremenski period ne poništi, umjesto da privremeno obustavi vezu. Sedmično ograničenje se i dalje primjenjuje, a odgovori mogu čekati na slobodan kapacitet.",
     "claudeAutoLimitResetLabel": "Automatski poništi ograničenje sesije (jednom sedmično)",
     "claudeAutoLimitResetDescription": "Kada ovaj račun dostigne ograničenje korištenja od 5 sati i dostupno je poništavanje ograničenja sesije, OmniRoute ga automatski aktivira i ponavlja pokušaj punom brzinom. Koristi poništavanje računa dostupno jednom sedmično i i dalje se uračunava u sedmično ograničenje.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "Preskoči privremeni cooldown kako bi ova veza ostala prihvatljiva čak i nakon oporavljivih grešaka (terminalni statusi poput zabrane/isteka i dalje vrijede).",
     "disableCoolingLabel": "Onemogući cooldown za ovu vezu",
     "bulkPasteAdded": "{count, plural, one {1 ključ dodan} other {# ključeva dodano}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "Spremljene postavke krajnje tačke modela",
     "searchByModelAria": "Pretraži po modelu",
     "selectSupportedEndpoint": "Odaberite barem jednu podržanu krajnju tačku",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "Postavke",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "Transformacija stream-a nije uspjela"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "Korištenje",
     "grokExtraUsageCredits": "Dodatni krediti za korištenje",
     "grokAutoTopUp": "Automatsko dopunjavanje",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Blokade modela",
         "count": "Broj konekcija"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Upravitelj perioda hlađenja",
+    "description": "Pregledajte svaku konekciju koja miruje nakon neuspjeha, grupno uklonite periode hlađenja i prilagodite njihovo trajanje.",
+    "loading": "Učitavanje perioda hlađenja…",
+    "loadFailed": "Učitavanje perioda hlađenja nije uspjelo",
+    "loadFailedDetail": "Provjerite vašu vezu i osvježite stranicu.",
+    "rules": {
+      "title": "Pravila perioda hlađenja",
+      "subtitle": "Primijeni na svaku konekciju od njenog sljedećeg neuspjeha.",
+      "stallLabel": "Aktiviraj period hlađenja računa kada stream zastane",
+      "stallDescription": "Podrazumijevano isključeno: zastoj obično znači dugi korak rezonovanja, a ne neispravan račun.",
+      "oauth": "OAuth računi",
+      "apikey": "API ključevi",
+      "baseCooldown": "Osnovni period hlađenja (sekunde)",
+      "baseCooldownHint": "Prvi period hlađenja nakon neuspjeha. Ponovljeni neuspjesi ga udvostručuju.",
+      "maxBackoffSteps": "Maksimalan broj koraka odgode",
+      "maxBackoffStepsHint": "Koliko puta se period hlađenja može udvostručiti.",
+      "save": "Sačuvaj pravila",
+      "saved": "Pravila perioda hlađenja su sačuvana",
+      "saveFailed": "Čuvanje pravila perioda hlađenja nije uspjelo"
+    },
+    "list": {
+      "title": "Konekcije van usmjeravanja",
+      "subtitle": "Periodi hlađenja i blokade modela završavaju sami. Očistite ih da odmah vratite konekciju u usmjeravanje.",
+      "provider": "Provajder",
+      "allProviders": "Svi provajderi",
+      "showHealthy": "Prikaži ispravne konekcije",
+      "refresh": "Osvježi",
+      "clearSelected": "Očisti odabrano ({count})",
+      "clearAll": "Očisti sve",
+      "clear": "Očisti",
+      "select": "Odaberite konekciju",
+      "none": "Nema",
+      "empty": "Nijedna konekcija nije van usmjeravanja.",
+      "cleared": "Očišćeno {cleared} konekcija i {lockouts} blokada modela. Preskočeno {skipped} zabranjenih ili isteklih.",
+      "clearFailed": "Čišćenje perioda hlađenja nije uspjelo",
+      "columns": {
+        "connection": "Konekcija",
+        "provider": "Provajder",
+        "status": "Status",
+        "remaining": "Preostalo vrijeme",
+        "lockouts": "Blokade modela",
+        "lastError": "Posljednja greška"
+      }
+    },
+    "status": {
+      "cooling_down": "Hlađenje",
+      "model_locked": "Model zaključan",
+      "unavailable": "Nedostupno",
+      "terminal": "Zahtijeva pažnju",
+      "healthy": "Ispravno"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Odbijte zahtjeve prije slanja kada ciljni model nema potrebne mogućnosti (vid, alati, strukturirani izlaz, kontekstni prozor). Štiti direktne zahtjeve jednog provajdera koji zaobilaze filter kompatibilnosti combo-sloja.",

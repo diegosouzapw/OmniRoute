@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Chế độ dịch vụ Codex cho khóa API này",
+    "description": "Áp dụng cho các yêu cầu Codex, bao gồm các mô hình Codex bên trong các tổ hợp. Chế độ bắt buộc sẽ ghi đè thiết lập của ứng dụng khách, thiết lập chung và thiết lập mặc định của kết nối. Các nhà cung cấp khác không bị ảnh hưởng.",
+    "label": "Chế độ dịch vụ",
+    "inherit": "Kế thừa hành vi hiện có",
+    "default": "Buộc dùng Standard (mặc định)",
+    "priority": "Buộc dùng Fast / Priority",
+    "flex": "Buộc dùng Flex",
+    "warning": "Thiết lập này không cấp quyền truy cập nhà cung cấp. Khả năng sử dụng, phí và mức tiêu thụ hạn ngạch phụ thuộc vào tài khoản Codex và mô hình của bạn. Các chế độ bắt buộc yêu cầu phương thức truyền tải HTTP hoặc Responses WebSocket; các yêu cầu app-server sẽ bị từ chối.",
+    "confirm": "Áp dụng “{mode}” cho khóa API này? Thay đổi này sẽ có hiệu lực với các yêu cầu tiếp theo.",
+    "save": "Lưu chế độ",
+    "retry": "Thử lại",
+    "loadError": "Không thể tải chế độ dịch vụ đã lưu.",
+    "saveError": "Không thể lưu chế độ dịch vụ. Vui lòng thử lại."
+  },
   "common": {
     "save": "Lưu",
     "cancel": "Hủy bỏ",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Định tuyến các yêu cầu đã hết ngân sách đến nhà cung cấp/mô hình dự phòng khẩn cấp miễn phí.",
   "featureFlagArenaEloSyncEnabledDescription": "Bật đồng bộ ELO định kỳ từ bảng xếp hạng Arena AI để xếp hạng năng lực của mô hình.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Tạo và chèn bản tóm tắt hội thoại khi định tuyến combo chuyển đổi mô hình. Tắt để xử lý các lần chuyển mô hình một cách độc lập và ngăn các yêu cầu bàn giao chạy nền cho mọi combo hiện có và trong tương lai.",
+  "featureFlagReasoningReplayEnabledDescription": "Lưu vào bộ nhớ đệm và phát lại phần suy luận của mô hình trong các cuộc hội thoại nhiều lượt. Tắt để ngừng lưu trữ và chèn lại phần suy luận.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Quảng bá các id phản chiếu claude/&lt;provider&gt;/&lt;model&gt; trên /v1/models để tính năng khám phá mô hình qua gateway của Claude Code liệt kê được các mô hình không phải Claude. Cảnh báo: khi bật ở phạm vi toàn cục, số mục trong danh mục tăng gấp đôi với mọi client.",
   "featureFlagNoThinkingAliasEnabledDescription": "Công tắc chính cho các bí danh gateway no-think/&lt;provider&gt;/&lt;model&gt;. Bật (mặc định): /v1/models quảng bá biến thể không suy nghĩ cho mọi mô hình Claude có khả năng suy nghĩ đủ điều kiện, và id no-think/ được gửi trên một yêu cầu sẽ giải quyết lại về mô hình thực với phần lý luận bị triệt tiêu. Tắt: không có biến thể nào được quảng bá và id no-think/ được xử lý như bất kỳ id mô hình không xác định nào khác. Tùy chọn tham gia/từ chối ModelSpec.noThinkingAlias theo từng mô hình vẫn áp dụng khi tính năng này bật.",
   "featureFlagChatVirtualLanesEnabledDescription": "Bật làn tiếp nhận ảo thích ứng cho từng đối tượng thuê (tenant) để phân phối nhà cung cấp (#9654): một đợt bùng phát của tenant này không còn trả 503 cho tenant khác. Biến môi trường OMNIROUTE_CHAT_VIRTUAL_LANES được ưu tiên hơn cài đặt bảng điều khiển này; các thay đổi có hiệu lực khi khởi động lại máy chủ.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Xem trực tiếp mọi thứ đang chạy",
     "resilienceConnections": "Khả Năng Phục Hồi Kết Nối",
     "resilienceConnectionsSubtitle": "Cooldown, cầu dao, trạng thái khóa",
+    "resilienceCooldowns": "Quản lý thời gian chờ",
+    "resilienceCooldownsSubtitle": "Xóa thời gian chờ hàng loạt",
     "settingsModalityBridge": "Cầu Kết Nối Modality",
     "settingsModalityBridgeSubtitle": "Chuyển đổi hình ảnh/âm thanh → văn bản cho các mô hình chỉ văn bản",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Phân tích",
     "usageAnalyticsTitle": "Phân tích mức sử dụng",
+    "tokenDisplayCompact": "Rút gọn",
+    "tokenDisplayExact": "Chính xác",
+    "tokenDisplayMode": "Chế độ hiển thị token",
     "diversityScoreTitle": "Đa dạng nhà cung cấp",
     "diversityScoreDesc": "Ảnh chụp nhanh sự tập trung của nhà cung cấp trong khung thời gian lưu lượng truy cập gần đây.",
     "diversityShannonEntropy": "Entropy Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Các combo auto/* tích hợp sẵn được phân giải động từ các nhà cung cấp đã kết nối. Sử dụng bất kỳ ID nào trong số này làm trường mô hình — không cần thiết lập.",
     "autoCatalogExpand": "Mở rộng danh mục định tuyến tự động",
     "autoCatalogCollapse": "Thu gọn danh mục định tuyến tự động",
+    "autoCatalogComboCount": "{count} combo",
+    "autoCatalogCandidates": "{count} ứng viên",
+    "autoCatalogNoCandidates": "Không có nhà cung cấp phù hợp",
+    "autoCatalogKindVariant": "biến thể",
+    "autoCatalogKindTemplate": "mẫu",
+    "autoCatalogKindCategory": "danh mục",
+    "autoCatalogKindFamily": "họ",
+    "autoComboTestTruncated": "Đã kiểm tra {tested} trên {total} ứng viên trực tiếp (trọng số cao nhất trước).",
+    "controlCenter": "Trung tâm điều khiển",
     "createCombo": "Tạo Combo",
     "editCombo": "Chỉnh sửa combo",
     "deleteCombo": "Xóa combo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Đang hoạt động",
     "showModel": "Hiển thị mô hình",
     "hideModel": "Ẩn mô hình",
+    "blacklistModel": "Chặn",
+    "blacklistModelTooltip": "Chặn mô hình này và ẩn nó khỏi danh mục",
     "removeModel": "Xóa mô hình",
     "rateLimitProtected": "Được bảo vệ",
     "rateLimitUnprotected": "Không được bảo vệ",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Đã lưu cài đặt endpoint mô hình",
     "searchByModelAria": "Tìm kiếm theo mô hình",
     "selectSupportedEndpoint": "Chọn ít nhất một endpoint được hỗ trợ",
-    "antigravityClientProfileHarness": "Bộ điều khiển / CLI"
+    "antigravityClientProfileHarness": "Bộ điều khiển / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Tín dụng bổ sung",
+    "codexPaidCreditsToggleTitle": "Cho phép sử dụng tín dụng trả phí của Codex sau khi hết hạn mức gói đăng ký (có thể phát sinh phí bổ sung)",
+    "codexPaidCreditsEnabled": "Đã bật tín dụng trả phí của Codex (có thể phát sinh phí bổ sung)",
+    "codexPaidCreditsDisabled": "Đã tắt tín dụng trả phí của Codex",
+    "failedUpdateCodexPaidCredits": "Không thể cập nhật chính sách tín dụng trả phí của Codex",
+    "allowCodexPaidCreditsLabel": "Cho phép tín dụng trả phí của Codex",
+    "allowCodexPaidCreditsDescription": "Cho phép tài khoản này sử dụng tín dụng trả phí sau khi hạn mức gói đăng ký đạt đến ngưỡng cắt. Yêu cầu có tín dụng khả dụng do OpenAI báo cáo; có thể phát sinh phí. Giới hạn Spark và thời gian chờ (cooldown) từ upstream vẫn được áp dụng. Tính khả dụng của tín dụng được kiểm tra ngay cả khi tính năng preflight hạn mức bị tắt."
   },
   "settings": {
     "title": "Cài đặt",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Đã cập nhật",
     "lastRefreshed": "Cập nhật lần cuối",
     "providerQuota": "Hạn ngạch nhà cung cấp",
-    "providerQuotaHomeHint": "Trạng thái theo thời gian thực của các tài khoản đã kết nối"
+    "providerQuotaHomeHint": "Trạng thái theo thời gian thực của các tài khoản đã kết nối",
+    "codexPaidCreditsLabel": "Tín dụng trả phí Codex",
+    "codexPaidCreditsAvailable": "Khả dụng (không báo cáo số dư)",
+    "codexPaidCreditsUnavailable": "Không khả dụng hoặc đã đạt giới hạn chi tiêu",
+    "codexPaidCreditsUnlimited": "Không giới hạn"
   },
   "modals": {
     "waitingAuth": "Đang chờ ủy quyền",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Khóa Mô Hình",
         "count": "Số Lượng Kết Nối"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Quản lý thời gian chờ",
+    "description": "Xem mọi kết nối đang tạm dừng sau lỗi, xóa thời gian chờ hàng loạt và tùy chỉnh thời lượng của chúng.",
+    "loading": "Đang tải thời gian chờ…",
+    "loadFailed": "Không thể tải thời gian chờ",
+    "loadFailedDetail": "Kiểm tra kết nối của bạn và làm mới trang.",
+    "rules": {
+      "title": "Quy tắc thời gian chờ",
+      "subtitle": "Áp dụng cho mọi kết nối kể từ lần lỗi tiếp theo.",
+      "stallLabel": "Đưa tài khoản vào thời gian chờ khi luồng stream bị đình trệ",
+      "stallDescription": "Mặc định tắt: việc đình trệ thường chỉ do một lượt suy luận kéo dài, không phải do tài khoản bị lỗi.",
+      "oauth": "Tài khoản OAuth",
+      "apikey": "Khóa API",
+      "baseCooldown": "Thời gian chờ cơ bản (giây)",
+      "baseCooldownHint": "Thời gian chờ đầu tiên sau một lỗi. Các lỗi lặp lại sẽ nhân đôi thời gian này.",
+      "maxBackoffSteps": "Số bước backoff tối đa",
+      "maxBackoffStepsHint": "Số lần thời gian chờ có thể nhân đôi.",
+      "save": "Lưu quy tắc",
+      "saved": "Đã lưu quy tắc thời gian chờ",
+      "saveFailed": "Không thể lưu quy tắc thời gian chờ"
+    },
+    "list": {
+      "title": "Kết nối nằm ngoài định tuyến",
+      "subtitle": "Thời gian chờ và khóa mô hình sẽ tự động kết thúc. Hãy xóa chúng để đưa kết nối trở lại định tuyến ngay bây giờ.",
+      "provider": "Nhà cung cấp",
+      "allProviders": "Tất cả nhà cung cấp",
+      "showHealthy": "Hiển thị kết nối hoạt động tốt",
+      "refresh": "Làm mới",
+      "clearSelected": "Xóa mục đã chọn ({count})",
+      "clearAll": "Xóa tất cả",
+      "clear": "Xóa",
+      "select": "Chọn kết nối",
+      "none": "Không có",
+      "empty": "Không có kết nối nào nằm ngoài định tuyến.",
+      "cleared": "Đã xóa {cleared} kết nối và {lockouts} khóa mô hình. Đã bỏ qua {skipped} kết nối bị cấm hoặc hết hạn.",
+      "clearFailed": "Không thể xóa thời gian chờ",
+      "columns": {
+        "connection": "Kết nối",
+        "provider": "Nhà cung cấp",
+        "status": "Trạng thái",
+        "remaining": "Thời gian còn lại",
+        "lockouts": "Khóa mô hình",
+        "lastError": "Lỗi gần nhất"
+      }
+    },
+    "status": {
+      "cooling_down": "Đang hạ nhiệt",
+      "model_locked": "Mô hình bị khóa",
+      "unavailable": "Không khả dụng",
+      "terminal": "Cần chú ý",
+      "healthy": "Hoạt động tốt"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Từ chối yêu cầu trước khi gửi đi khi mô hình đích thiếu các khả năng bắt buộc (thị giác, công cụ, đầu ra có cấu trúc, cửa sổ ngữ cảnh). Bảo vệ các yêu cầu trực tiếp đến một nhà cung cấp khi chúng bỏ qua bộ lọc tương thích của combo.",

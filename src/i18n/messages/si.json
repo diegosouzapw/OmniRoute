@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "මෙම API යතුර සඳහා Codex සේවා ප්රකාරය",
+    "description": "සංයෝජන තුළ ඇති Codex මාදිලි ඇතුළුව, Codex ඉල්ලීම් සඳහා අදාළ වේ. බලහත්කාරයෙන් යෙදූ ප්රකාර සේවාදායකයාගේ, ගෝලීය සැකසුම්වල සහ සම්බන්ධතා පෙරනිමිවල තේරීම් අභිබවා යයි. අනෙකුත් සැපයුම්කරුවන් නොවෙනස්ව පවතී.",
+    "label": "සේවා ප්රකාරය",
+    "inherit": "පවතින හැසිරීම උරුම කරගන්න",
+    "default": "Standard බලහත්කාරයෙන් යොදන්න (පෙරනිමි)",
+    "priority": "Fast / Priority බලහත්කාරයෙන් යොදන්න",
+    "flex": "Flex බලහත්කාරයෙන් යොදන්න",
+    "warning": "මෙය සැපයුම්කරු වෙත ප්රවේශය ලබා නොදේ. ලබාගත හැකි බව, ගාස්තු සහ කෝටා පරිභෝජනය ඔබගේ Codex ගිණුම සහ මාදිලිය මත රඳා පවතී. බලහත්කාරයෙන් යෙදූ ප්රකාර සඳහා HTTP හෝ Responses WebSocket ප්රවාහනය අවශ්ය වේ; app-server ඉල්ලීම් ප්රතික්ෂේප කෙරේ.",
+    "confirm": "මෙම API යතුරට “{mode}” යොදන්නද? මෙය පසුකාලීන ඉල්ලීම් සඳහා ක්රියාත්මක වේ.",
+    "save": "ප්රකාරය සුරකින්න",
+    "retry": "නැවත උත්සාහ කරන්න",
+    "loadError": "සුරැකි සේවා ප්රකාරය පූරණය කළ නොහැකි විය.",
+    "saveError": "සේවා ප්රකාරය සුරැකිය නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න."
+  },
   "common": {
     "save": "සුරකින්න",
     "cancel": "අවලංගු කරන්න",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "අයවැය අවසන් වූ ඉල්ලීම් හදිසි නොමිලේ විකල්ප සපයන්නා/මාදිලිය වෙත යොමු කරන්න.",
   "featureFlagArenaEloSyncEnabledDescription": "මාදිලි බුද්ධි ශ්රේණිගත කිරීම් සඳහා Arena AI ප්රමුඛතා පුවරුවේ ELO දත්ත කාලානුරූපව සමමුහුර්ත කිරීම සබල කරන්න.",
   "featureFlagUniversalContextHandoffEnabledDescription": "සංයෝජන මාර්ගගත කිරීමේදී මාදිලි මාරු වන විට සංවාද සාරාංශ ජනනය කර ඇතුළත් කරන්න. මාදිලි මාරු කිරීම් ස්වාධීනව සැලකීමට සහ පවතින හා අනාගත සියලු සංයෝජන සඳහා පසුබිම් භාරදීමේ ඉල්ලීම් වැළැක්වීමට මෙය අක්රිය කරන්න.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Claude Code ද්වාරයේ මාදිලි සොයාගැනීම් ලැයිස්තුවේ Claude නොවන මාදිලි පෙන්වීම සඳහා /v1/models හි claude/&lt;provider&gt;/&lt;model&gt; කැඩපත් හැඳුනුම් ප්රචාරය කරන්න. අවවාදයයි: ගෝලීයව සබල කළ විට සියලු සේවාලාභීන් සඳහා නාමාවලි ඇතුළත් කිරීම් දෙගුණ වේ.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; ද්වාර අන්වර්ථ සඳහා ප්රධාන ස්විචය. සක්රියයි (පෙරනිමිය): /v1/models මඟින් සුදුසුකම් ඇති, සිතා බැලීමේ හැකියාව සහිත සෑම Claude මාදිලියකටම සිතා බැලීමෙන් තොර ප්රභේදයක් ප්රචාරය කරන අතර, ඉල්ලීමක් සමඟ යවන no-think/ හැඳුනුමක් තර්කනය යටපත් කර සැබෑ මාදිලිය වෙත නැවත විසඳයි. අක්රියයි: කිසිදු ප්රභේදයක් ප්රචාරය නොකරන අතර no-think/ හැඳුනුමක් වෙනත් ඕනෑම නොදන්නා මාදිලි හැඳුනුමක් මෙන් සලකයි. මෙය සක්රියව තිබියදීත් එක් එක් මාදිලියට අදාළ ModelSpec.noThinkingAlias තෝරා සක්රිය කිරීම/අක්රිය කිරීම තවදුරටත් අදාළ වේ.",
   "featureFlagChatVirtualLanesEnabledDescription": "සපයන්නා වෙත යැවීම සඳහා එක් එක් ටෙනන්ට්ට අනුව අනුවර්තනය වන අතථ්ය ප්රවේශ මංතීරු සබල කරන්න (#9654): එක් ටෙනන්ට් කෙනෙකුගේ හදිසි ඉල්ලීම් වැඩිවීමක් තවදුරටත් වෙනත් අයෙකුට 503 දෝෂයක් ඇති නොකරයි. OMNIROUTE_CHAT_VIRTUAL_LANES පරිසර විචල්යය මෙම උපකරණ පුවරු අතික්රමණයට වඩා ප්රමුඛ වේ; වෙනස්කම් සේවාදායකය නැවත ආරම්භ කළ විට ක්රියාත්මක වේ.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "ක්රියාත්මක වන සියල්ලේ සජීවී දසුන",
     "resilienceConnections": "සම්බන්ධතා ප්රත්යස්ථතාව",
     "resilienceConnectionsSubtitle": "සිසිලන කාලය, පරිපථ බිඳිනය සහ අගුලු දැමීමේ තත්ත්වය",
+    "resilienceCooldowns": "Cooldown කළමනාකරු",
+    "resilienceCooldownsSubtitle": "Cooldown එකවර ඉවත් කරන්න",
     "settingsModalityBridge": "මාධ්ය ආකාර සම්බන්ධකය",
     "settingsModalityBridgeSubtitle": "පෙළ-පමණක් ආකෘති සඳහා රූප/ශ්රව්ය → පෙළ විකල්පය",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "විශ්ලේෂණ",
     "usageAnalyticsTitle": "භාවිත විශ්ලේෂණ",
+    "tokenDisplayCompact": "සංක්ෂිප්ත",
+    "tokenDisplayExact": "නිවැරදි",
+    "tokenDisplayMode": "ටෝකන ප්‍රදර්ශන ප්‍රකාරය",
     "diversityScoreTitle": "සපයන්නන්ගේ විවිධත්වය",
     "diversityScoreDesc": "මෑත ගමනාගමන කාල පරාසය සඳහා සපයන්නන්ගේ සංකේන්ද්රණය පිළිබඳ සාරාංශයක්.",
     "diversityShannonEntropy": "Shannon එන්ට්රොපිය",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "සම්බන්ධිත සැපයුම්කරුවන් මත පදනම්ව ගතිකව විසඳනු ලබන, පද්ධතිය තුළම අන්තර්ගත auto/* සංයෝජන. මෙම ඕනෑම ID එකක් model ක්ෂේත්රය ලෙස භාවිත කරන්න — සැකසීමක් අවශ්ය නොවේ.",
     "autoCatalogExpand": "ස්වයංක්රීය මාර්ගගත කිරීමේ නාමාවලිය දිගහරින්න",
     "autoCatalogCollapse": "ස්වයංක්රීය මාර්ගගත කිරීමේ නාමාවලිය හකුළන්න",
+    "autoCatalogComboCount": "{count} කොම්බෝ",
+    "autoCatalogCandidates": "{count} අපේක්ෂක",
+    "autoCatalogNoCandidates": "ගැලපෙන සැපයුම්කරුවන් නැත",
+    "autoCatalogKindVariant": "වර්ගය",
+    "autoCatalogKindTemplate": "ආකෘතිය",
+    "autoCatalogKindCategory": "ප්‍රවර්ගය",
+    "autoCatalogKindFamily": "කොටස",
+    "autoComboTestTruncated": "සජීවී අපේක්ෂක {total} හි {tested} පරීක්ෂා කර ඇත (ඉහළ බර පළමුව).",
+    "controlCenter": "පාලන මධ්‍යස්ථානය",
     "createCombo": "සංයෝජනයක් සාදන්න",
     "editCombo": "සංයෝජනය සංස්කරණය කරන්න",
     "deleteCombo": "සංයෝජනය මකන්න",
@@ -5560,6 +5590,8 @@
     "modelsActive": "සක්රිය",
     "showModel": "මාදිලිය පෙන්වන්න",
     "hideModel": "මාදිලිය සඟවන්න",
+    "blacklistModel": "අවහිර",
+    "blacklistModelTooltip": "මෙම ආකෘතිය අවහිර කර නාමාවලියෙන් සඟවන්න",
     "removeModel": "මාදිලිය ඉවත් කරන්න",
     "rateLimitProtected": "ආරක්ෂිත",
     "rateLimitUnprotected": "අනාරක්ෂිත",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "මෙම ගිණුම එහි පැය 5ක භාවිත සීමාවට ළඟා වූ විට සහ Anthropic අඩු ප්රමුඛතා මාර්ගය ලබා දෙන විට, OmniRoute එය පිළිගෙන කාල කවුළුව යළි සැකසෙන තෙක් සම්බන්ධතාව සිසිල් කිරීම වෙනුවට anthropic-usage-limit: slow සමඟ ඉල්ලීම් යවමින් සිටියි. සතිපතා සීමාව තවමත් අදාළ වන අතර, අමතර ධාරිතාව ලැබෙන තෙක් ප්රතිචාර ප්රමාද විය හැකිය.",
     "claudeAutoLimitResetLabel": "සැසි සීමාව ස්වයංක්රීයව යළි සකසන්න (සතියකට වරක්)",
     "claudeAutoLimitResetDescription": "මෙම ගිණුම එහි පැය 5ක භාවිත සීමාවට ළඟා වූ විට සහ සැසි සීමාව යළි සැකසීමක් ලබා ගත හැකි නම්, OmniRoute එය ස්වයංක්රීයව ලබාගෙන පූර්ණ වේගයෙන් නැවත උත්සාහ කරයි. මෙය ගිණුමේ සතියකට වරක් ලැබෙන යළි සැකසීම භාවිත කරන අතර, සතිපතා සීමාවටද තවමත් ගණනය වේ.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "තාවකාලික විරාම කාලය මඟ හරින්න, එවිට ප්රතිසාධනය කළ හැකි දෝෂවලින් පසුවත් මෙම සම්බන්ධතාව සුදුසු තත්ත්වයේ පවතී (තහනම් කළ/කල් ඉකුත් වූ වැනි අවසාන තත්ත්වයන් තවමත් අදාළ වේ).",
     "disableCoolingLabel": "මෙම සම්බන්ධතාව සඳහා විරාම කාලය අක්රිය කරන්න",
     "bulkPasteAdded": "{count, plural, one {යතුර 1ක් එක් කරන ලදී} other {යතුරු #ක් එක් කරන ලදී}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "සුරැකි ආකෘති අන්ත ලක්ෂ්ය සැකසුම්",
     "searchByModelAria": "ආකෘතිය අනුව සොයන්න",
     "selectSupportedEndpoint": "අවම වශයෙන් සහාය දක්වන එක් අන්ත ලක්ෂ්යයක්වත් තෝරන්න",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "සැකසුම්",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "ප්රවාහය පරිණාමනය කිරීමට අසමත් විය"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "භාවිතය",
     "grokExtraUsageCredits": "අමතර භාවිත බැර",
     "grokAutoTopUp": "ස්වයංක්රීය ශේෂ පිරවීම",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "මාදිලි අගුලු දැමීම්",
         "count": "සම්බන්ධතා ගණන"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown කළමනාකරු",
+    "description": "අසාර්ථක වීම් හේතුවෙන් විවේක ගන්වා ඇති සෑම සම්බන්ධතාවක්ම බලන්න, cooldown එකවර ඉවත් කරන්න, සහ ඒවා පවතින කාලය සකසන්න.",
+    "loading": "Cooldown පූරණය වෙමින් පවතී…",
+    "loadFailed": "Cooldown පූරණය කිරීමට නොහැකි විය",
+    "loadFailedDetail": "ඔබගේ සම්බන්ධතාව පරීක්ෂා කර පිටුව නැවුම් කරන්න.",
+    "rules": {
+      "title": "Cooldown නීති",
+      "subtitle": "එහි මීළඟ අසාර්ථක වීමේ සිට සෑම සම්බන්ධතාවකටම අදාළ වේ.",
+      "stallLabel": "ප්‍රවාහයක් ඇනහිටි විට ගිණුමකට cooldown යොදන්න",
+      "stallDescription": "පෙරනිමියෙන් අක්‍රියයි: ඇනහිටීමක් සාමාන්‍යයෙන් අදහස් කරන්නේ එක් දිගු reasoning වාරයක් මිස බිඳවැටුණු ගිණුමක් නොවේ.",
+      "oauth": "OAuth ගිණුම්",
+      "apikey": "API යතුරු",
+      "baseCooldown": "මූලික cooldown (තත්පර)",
+      "baseCooldownHint": "අසාර්ථක වීමකින් පසු පළමු cooldown. නැවත නැවත සිදුවන අසාර්ථක වීම් එය දෙගුණ කරයි.",
+      "maxBackoffSteps": "උපරිම backoff පියවර",
+      "maxBackoffStepsHint": "Cooldown දෙගුණ විය හැකි වාර ගණන.",
+      "save": "නීති සුරකින්න",
+      "saved": "Cooldown නීති සුරකින ලදි",
+      "saveFailed": "Cooldown නීති සුරැකීමට නොහැකි විය"
+    },
+    "list": {
+      "title": "Routing වෙතින් බැහැර වූ සම්බන්ධතා",
+      "subtitle": "Cooldown සහ model lockout ස්වයංක්‍රීයව අවසන් වේ. සම්බන්ධතාවක් නැවත දැන්ම routing වෙත යොමු කිරීමට ඒවා ඉවත් කරන්න.",
+      "provider": "සැපයුම්කරු",
+      "allProviders": "සියලුම සැපයුම්කරුවන්",
+      "showHealthy": "නිරෝගී සම්බන්ධතා පෙන්වන්න",
+      "refresh": "නැවුම් කරන්න",
+      "clearSelected": "තෝරාගත් ඒවා ඉවත් කරන්න ({count})",
+      "clearAll": "සියල්ල ඉවත් කරන්න",
+      "clear": "ඉවත් කරන්න",
+      "select": "සම්බන්ධතාව තෝරන්න",
+      "none": "කිසිවක් නැත",
+      "empty": "Routing වෙතින් බැහැර වූ කිසිදු සම්බන්ධතාවක් නොමැත.",
+      "cleared": "සම්බන්ධතා {cleared} ක් සහ model lockout {lockouts} ක් ඉවත් කරන ලදි. තහනම් කළ හෝ කල් ඉකුත් වූ {skipped} ක් මඟ හරින ලදි.",
+      "clearFailed": "Cooldown ඉවත් කිරීමට නොහැකි විය",
+      "columns": {
+        "connection": "සම්බන්ධතාව",
+        "provider": "සැපයුම්කරු",
+        "status": "තත්ත්වය",
+        "remaining": "ඉතිරි කාලය",
+        "lockouts": "Model lockout",
+        "lastError": "අවසන් දෝෂය"
+      }
+    },
+    "status": {
+      "cooling_down": "සිසිල් වෙමින් පවතී",
+      "model_locked": "මාදිලිය අගුලු දමා ඇත",
+      "unavailable": "ලබාගත නොහැක",
+      "terminal": "අවධානය අවශ්‍යයි",
+      "healthy": "යහපත් තත්ත්වයේ"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "ඉලක්ක මාදිලියට අවශ්ය හැකියාවන් (දෘශ්ය, මෙවලම්, ව්යුහගත ප්රතිදානය, සන්දර්භ කවුළුව) නොමැති විට යැවීමට පෙර ඉල්ලීම් ප්රතික්ෂේප කරන්න. මෙය සංයෝජන-ස්තර අනුකූලතා පෙරහන මඟහරින සෘජු තනි-සැපයුම්කරු ඉල්ලීම් ආරක්ෂා කරයි.",

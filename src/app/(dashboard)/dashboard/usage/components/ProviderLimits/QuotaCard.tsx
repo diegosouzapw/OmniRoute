@@ -21,6 +21,7 @@ import {
 import QuotaCardHeader from "./parts/QuotaCardHeader";
 import QuotaCardExpanded from "./parts/QuotaCardExpanded";
 import ProviderUsdCostModal from "./ProviderUsdCostModal";
+import type { CodexPaidCredits } from "@/lib/providers/codexPaidCredits";
 
 const STATUS_BORDER: Record<CardStatus, string> = {
   critical: "#ef4444",
@@ -42,6 +43,7 @@ interface QuotaCardProps {
         raw?: {
           billing?: ProviderBillingStatus | null;
           quotaGroups?: Array<Record<string, unknown>>;
+          paidCredits?: CodexPaidCredits;
         };
         stale?: { since?: string; reason?: string } | null;
       }
@@ -159,6 +161,7 @@ export default function QuotaCard({
         loading={loading}
         error={error}
         message={quota?.message ?? null}
+        paidCredits={connection.provider === "codex" ? quota?.raw?.paidCredits : undefined}
         billing={
           isProviderBillingProvider(connection.provider)
             ? (quota?.billing ?? quota?.raw?.billing)

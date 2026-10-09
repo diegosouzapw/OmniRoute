@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex pakalpojuma režīms šai API atslēgai",
+    "description": "Attiecas uz Codex pieprasījumiem, tostarp Codex modeļiem kombinācijās. Piespiedu režīmi ignorē klienta, globālos iestatījumus un savienojuma noklusējuma iestatījumus. Citi pakalpojumu sniedzēji netiek ietekmēti.",
+    "label": "Pakalpojuma režīms",
+    "inherit": "Mantot pašreizējo darbību",
+    "default": "Piespiedu standarta režīms (noklusējums)",
+    "priority": "Piespiedu ātrais/prioritārais režīms",
+    "flex": "Piespiedu elastīgais režīms",
+    "warning": "Tas nepiešķir piekļuvi pakalpojumu sniedzējam. Pieejamība, maksa un kvotas patēriņš ir atkarīgi no jūsu Codex konta un modeļa. Piespiedu režīmiem nepieciešams HTTP vai Responses WebSocket transports; app-server pieprasījumi tiek noraidīti.",
+    "confirm": "Vai lietot režīmu “{mode}” šai API atslēgai? Tas stāsies spēkā turpmākajiem pieprasījumiem.",
+    "save": "Saglabāt režīmu",
+    "retry": "Mēģināt vēlreiz",
+    "loadError": "Neizdevās ielādēt saglabāto pakalpojuma režīmu.",
+    "saveError": "Neizdevās saglabāt pakalpojuma režīmu. Lūdzu, mēģiniet vēlreiz."
+  },
   "common": {
     "save": "Saglabāt",
     "cancel": "Atcelt",
@@ -991,6 +1006,7 @@
   "featureFlagUniversalContextHandoffEnabledDescription": "Ģenerēt un ievietot sarunu kopsavilkumus, kad kombinētais maršrutēšanas process pārslēdz modeļus. Izslēdziet, lai modeļu pārslēgšanu apskatītu neatkarīgi un novērstu fona nodošanas pieprasījumus visiem esošajiem un turpmākajiem kombo iestatījumiem.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Izziņot claude/&lt;provider&gt;/&lt;model&gt; spoguļa ID vietnē /v1/models, lai Claude Code vārtejas modeļu atrašana uzrādītu modeļus, kas nav Claude modeļi. Brīdinājums: kad šī funkcija ir iespējota globāli, kataloga ierakstu skaits visiem klientiem dubultojas.",
   "featureFlagNoThinkingAliasEnabledDescription": "Galvenais slēdzis no-think/&lt;provider&gt;/&lt;model&gt; vārtejas aizstājvārdiem. Iesl. (pēc noklusējuma): /v1/models izziņo variantu bez domāšanas katram atbilstošajam Claude modelim ar domāšanas spēju, un pieprasījumā nosūtīts no-think/ id tiek atrisināts kā reālais modelis ar atspējotu argumentāciju. Izsl.: varianti netiek izziņoti, un no-think/ id tiek apstrādāts tāpat kā jebkurš cits nezināms modeļa id. Kamēr šī funkcija ir ieslēgta, joprojām ir spēkā katram modelim atsevišķi iestatāmā ModelSpec.noThinkingAlias iekļaušana vai izslēgšana.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagChatVirtualLanesEnabledDescription": "Iespējot katra nomnieka adaptīvas virtuālās uzņemšanas joslas nodrošinātāju izsūtīšanai (#9654): viena nomnieka slodzes lēciens vairs neizraisa 503 kļūdu citam. OMNIROUTE_CHAT_VIRTUAL_LANES vides mainīgais ir prioritārāks par šo paneļa iestatījumu; izmaiņas stājas spēkā pēc servera pārstartēšanas.",
   "featureFlagFreeBadgeRequiresProviderFreeTierDescription": "Pakalpojumu sniedzēju lapas informācijas panelī: rādīt emblēmu “Bezmaksas” tikai tad, ja to apliecina pakalpojumu sniedzēja atbalstītie signāli — netiek izmantota parādāmā nosaukuma heiristika, lauki par bezmaksas pieejamību, kuru vērtības nav Būla vērtības, un reģistrētu pakalpojumu sniedzēju sufiksi :free, ja tiem nav dokumentēta bezmaksas līmeņa. Izslēdzot šo opciju, tiek saglabāts iepriekšējais emblēmas rādīšanas noteikums.",
   "featureFlagProxySkipRecentlyFailedDescription": "Starpniekserveru pūli un opencode konta līmeņa rotācija uz katru procesu uz noteiktu laiku pārtrauc atkārtoti izmantot starpniekserveri, kas tikko cieta kļūmi (noraidīta TCP pārbaude vai caur to saņemts 429); šis laiks pēc katras atkārtotas kļūmes dubultojas līdz noteiktajam maksimumam. Starpniekservera statuss netiek ierakstīts; ja visi kandidāti ir atlikti malā, izvēle paliek nemainīga. Pēc noklusējuma ieslēgts; `false` atjauno parasto atlasi.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Reāllaika skats uz visu, kas darbojas",
     "resilienceConnections": "Savienojuma noturība",
     "resilienceConnectionsSubtitle": "Atdzišanas periods, ķēdes pārtraucējs un bloķēšanas stāvoklis",
+    "resilienceCooldowns": "Atdzišanas pārvaldnieks",
+    "resilienceCooldownsSubtitle": "Notīrīt atdzišanas periodus masveidā",
     "settingsModalityBridge": "Modalitātes tilts",
     "settingsModalityBridgeSubtitle": "Attēla/audio → teksta atkāpšanās režīms modeļiem, kas atbalsta tikai tekstu",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analītika",
     "usageAnalyticsTitle": "Lietojuma analītika",
+    "tokenDisplayCompact": "Kompakts",
+    "tokenDisplayExact": "Precīzs",
+    "tokenDisplayMode": "Tokenu attēlošanas režīms",
     "diversityScoreTitle": "Pakalpojumu sniedzēju daudzveidība",
     "diversityScoreDesc": "Pakalpojumu sniedzēju koncentrācijas momentuzņēmums par neseno datplūsmas periodu.",
     "diversityShannonEntropy": "Šenona entropija",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Iebūvētās auto/* kombinācijas tiek dinamiski noteiktas, pamatojoties uz pievienotajiem pakalpojumu sniedzējiem. Izmantojiet jebkuru no šiem ID kā modeļa lauka vērtību — iestatīšana nav nepieciešama.",
     "autoCatalogExpand": "Paplašināt automātiskās maršrutēšanas katalogu",
     "autoCatalogCollapse": "Sakļaut automātiskās maršrutēšanas katalogu",
+    "autoCatalogComboCount": "{count} kombinācijas",
+    "autoCatalogCandidates": "{count} kandidāti",
+    "autoCatalogNoCandidates": "Nav atbilstošu pakalpojumu sniedzēju",
+    "autoCatalogKindVariant": "varianta",
+    "autoCatalogKindTemplate": "veidne",
+    "autoCatalogKindCategory": "kategorija",
+    "autoCatalogKindFamily": "ģimene",
+    "autoComboTestTruncated": "Pārbaudīti {tested} no {total} dzīvajiem kandidātiem (visaugstākās svara pirmās).",
+    "controlCenter": "Kontroles centrs",
     "createCombo": "Izveidot kombināciju",
     "editCombo": "Rediģēt kombināciju",
     "deleteCombo": "Dzēst kombināciju",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Aktīvs",
     "showModel": "Rādīt modeli",
     "hideModel": "Slēpt modeli",
+    "blacklistModel": "Bloķēt",
+    "blacklistModelTooltip": "Bloķēt šo modeli un paslēpt to no kataloga",
     "removeModel": "Noņemt modeli",
     "rateLimitProtected": "Aizsargāts",
     "rateLimitUnprotected": "Neaizsargāts",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Modeļa galapunkta iestatījumi saglabāti",
     "searchByModelAria": "Meklēt pēc modeļa",
     "selectSupportedEndpoint": "Izvēlieties vismaz vienu atbalstītu galapunktu",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Iestatījumi",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Atjaunināts",
     "lastRefreshed": "Pēdējoreiz atsvaidzināts",
     "providerQuota": "Pakalpojuma sniedzēja kvota",
-    "providerQuotaHomeHint": "Pievienoto kontu statuss reāllaikā"
+    "providerQuotaHomeHint": "Pievienoto kontu statuss reāllaikā",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Tiek gaidīta autorizācija",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Modeļu bloķējumi",
         "count": "Savienojumu skaits"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Atdzišanas pārvaldnieks",
+    "description": "Skatiet visus savienojumus, kas atpūšas pēc kļūmēm, noņemiet atdzišanas periodus masveidā un pielāgojiet to ilgumu.",
+    "loading": "Ielādē atdzišanas periodus…",
+    "loadFailed": "Neizdevās ielādēt atdzišanas periodus",
+    "loadFailedDetail": "Pārbaudiet savienojumu un atsvaidziniet lapu.",
+    "rules": {
+      "title": "Atdzišanas kārtulas",
+      "subtitle": "Piemērot katram savienojumam no tā nākamās kļūmes.",
+      "stallLabel": "Iestatīt konta atdzišanu, kad straume iestrēgst",
+      "stallDescription": "Pēc noklusējuma izslēgts: iestrēgšana parasti nozīmē vienu garu spriešanas soli, nevis bojātu kontu.",
+      "oauth": "OAuth konti",
+      "apikey": "API atslēgas",
+      "baseCooldown": "Bāzes atdzišanas laiks (sekundēs)",
+      "baseCooldownHint": "Pirmais atdzišanas laiks pēc kļūmes. Atkārtotas kļūmes to dubulto.",
+      "maxBackoffSteps": "Maksimālais atkāpšanās soļu skaits",
+      "maxBackoffStepsHint": "Cik reizes atdzišanas laiks var dubultoties.",
+      "save": "Saglabāt kārtulas",
+      "saved": "Atdzišanas kārtulas saglabātas",
+      "saveFailed": "Neizdevās saglabāt atdzišanas kārtulas"
+    },
+    "list": {
+      "title": "Savienojumi ārpus maršrutēšanas",
+      "subtitle": "Atdzišanas periodi un modeļu bloķējumi beidzas paši. Notīriet tos, lai savienojumu atgrieztu maršrutēšanā tūlīt.",
+      "provider": "Pakalpojumu sniedzējs",
+      "allProviders": "Visi pakalpojumu sniedzēji",
+      "showHealthy": "Rādīt darbspējīgos savienojumus",
+      "refresh": "Atsvaidzināt",
+      "clearSelected": "Notīrīt atlasītos ({count})",
+      "clearAll": "Notīrīt visu",
+      "clear": "Notīrīt",
+      "select": "Atlasīt savienojumu",
+      "none": "Nav",
+      "empty": "Neviens savienojums nav ārpus maršrutēšanas.",
+      "cleared": "Notīrīti {cleared} savienojumi un {lockouts} modeļu bloķējumi. Izlaisti {skipped} bloķēti vai derīgumu zaudējuši.",
+      "clearFailed": "Neizdevās notīrīt atdzišanas periodus",
+      "columns": {
+        "connection": "Savienojums",
+        "provider": "Pakalpojumu sniedzējs",
+        "status": "Statuss",
+        "remaining": "Atlikušais laiks",
+        "lockouts": "Modeļu bloķējumi",
+        "lastError": "Pēdējā kļūda"
+      }
+    },
+    "status": {
+      "cooling_down": "Atdziest",
+      "model_locked": "Modelis bloķēts",
+      "unavailable": "Nav pieejams",
+      "terminal": "Nepieciešama uzmanība",
+      "healthy": "Veselīgs"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Noraidīt pieprasījumus pirms nosūtīšanas, ja mērķa modelim trūkst nepieciešamo iespēju (attēlu apstrāde, rīki, strukturēta izvade, konteksta logs). Aizsargā tiešus viena pakalpojumu sniedzēja pieprasījumus, kas apiet combo-layer saderības filtru.",

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Hali ya huduma ya Codex kwa ufunguo huu wa API",
+    "description": "Inatumika kwa maombi ya Codex, ikijumuisha miundo ya Codex iliyo ndani ya michanganyiko. Hali zilizolazimishwa hubatilisha mipangilio ya mteja, mipangilio ya jumla na chaguo-msingi za muunganisho. Watoa huduma wengine hawabadiliki.",
+    "label": "Hali ya huduma",
+    "inherit": "Tumia tabia iliyopo",
+    "default": "Lazimisha Standard (chaguo-msingi)",
+    "priority": "Lazimisha Fast / Priority",
+    "flex": "Lazimisha Flex",
+    "warning": "Hii haitoi idhini ya kufikia mtoa huduma. Upatikanaji, gharama na matumizi ya kiwango maalum hutegemea akaunti na muundo wako wa Codex. Hali zilizolazimishwa zinahitaji usafirishaji wa HTTP au Responses WebSocket; maombi ya app-server yanakataliwa.",
+    "confirm": "Ungependa kutumia “{mode}” kwa ufunguo huu wa API? Hii itaanza kutumika kwa maombi yanayofuata.",
+    "save": "Hifadhi hali",
+    "retry": "Jaribu tena",
+    "loadError": "Haikuwezekana kupakia hali ya huduma iliyohifadhiwa.",
+    "saveError": "Haikuwezekana kuhifadhi hali ya huduma. Tafadhali jaribu tena."
+  },
   "common": {
     "save": "Hifadhi",
     "cancel": "Ghairi",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Elekeza maombi yaliyomaliza bajeti kwenye mtoa huduma/muundo wa dharura wa akiba usiolipiwa.",
   "featureFlagArenaEloSyncEnabledDescription": "Washa usawazishaji wa mara kwa mara wa ELO wa ubao wa wanaoongoza wa Arena AI kwa viwango vya akili vya muundo.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Tengeneza na uingize muhtasari wa mazungumzo wakati uelekezaji wa michanganyiko unapobadilisha modeli. Zima ili kushughulikia mabadiliko ya modeli kwa kujitegemea na kuzuia maombi ya uhamishaji ya chinichini kwa michanganyiko yote iliyopo na ya baadaye.",
+  "featureFlagReasoningReplayEnabledDescription": "Hifadhi kwenye cache na ucheze tena hoja ya modeli katika mazungumzo ya zamu nyingi. Zima ili kuacha kuhifadhi na kuingiza tena hoja.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Tangaza claude/&lt;provider&gt;/&lt;model&gt; vitambulisho vya kioo kwenye /v1/models ili orodha ya kugundua modeli za Claude Code iwe na modeli zisizo za Claude. Onyo: inafanya kuingia mara mbili kwenye katalogi kwa wateja wote inapowekwa kuwa ya ulimwengu mzima.",
   "featureFlagNoThinkingAliasEnabledDescription": "Swichi kuu ya lakabu za lango la no-think/&lt;provider&gt;/&lt;model&gt;. Imewashwa (chaguo-msingi): /v1/models hutangaza kibadala kisichotumia uwezo wa kufikiri kwa kila modeli ya Claude yenye uwezo wa kufikiri na inayostahiki, na id ya no-think/ inayotumwa katika ombi huelekezwa kwenye modeli halisi huku mchakato wa kufikiri ukizuiwa. Imezimwa: hakuna vibadala vinavyotangazwa na id ya no-think/ hushughulikiwa kama id nyingine yoyote ya modeli isiyojulikana. Chaguo la kila modeli la kujiunga/kujiondoa la ModelSpec.noThinkingAlias bado hutumika wakati kipengele hiki kimewashwa.",
   "featureFlagChatVirtualLanesEnabledDescription": "Washa njia za uandikishaji pepe zinazobadilika kwa kila mpangaji (tenant) kwa utumaji wa watoa huduma (#9654): mlipuko wa mpangaji mmoja hautoi tena 503 kwa mwingine. Kigezo cha mazingira cha OMNIROUTE_CHAT_VIRTUAL_LANES kinashinda mpangilio huu wa dashibodi; mabadiliko yanatumika wakati seva inapoanzishwa upya.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Muonekano wa moja kwa moja wa kila kitu kinachoendesha",
     "resilienceConnections": "Uimara wa Muunganisho",
     "resilienceConnectionsSubtitle": "Kupoa, kivunja mzunguko, hali ya kufuli",
+    "resilienceCooldowns": "Kidhibiti cha Muda wa Kupumzika",
+    "resilienceCooldownsSubtitle": "Ondoa vipindi vya kupumzika kwa mkupuo",
     "settingsModalityBridge": "Daraja la Modality",
     "settingsModalityBridgeSubtitle": "Picha/sauti → maandiko ya akiba kwa mifano ya maandiko pekee",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Uchanganuzi",
     "usageAnalyticsTitle": "Uchambuzi wa Matumizi",
+    "tokenDisplayCompact": "Fupi",
+    "tokenDisplayExact": "Kamili",
+    "tokenDisplayMode": "Hali ya Kuonyesha Tokeni",
     "diversityScoreTitle": "Utofauti wa Watoa Huduma",
     "diversityScoreDesc": "Picha ya haraka ya mkusanyiko wa watoa huduma kwa dirisha la hivi karibuni la trafiki.",
     "diversityShannonEntropy": "Entropia ya Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Michanganyiko ya kiotomatiki/* iliyojengewa ndani imetatuliwa kutoka kwa watoa huduma waliounganishwa. Tumia kitambulisho chochote kati ya hivi kama sehemu ya kielelezo - hakuna usanidi unaohitajika.",
     "autoCatalogExpand": "Panua katalogi ya uelekezaji kiotomatiki",
     "autoCatalogCollapse": "Kunja katalogi ya uelekezaji kiotomatiki",
+    "autoCatalogComboCount": "{count} mchanganyiko",
+    "autoCatalogCandidates": "{count} wagombea",
+    "autoCatalogNoCandidates": "Hakuna watoa huduma wanaofanana",
+    "autoCatalogKindVariant": "toleo",
+    "autoCatalogKindTemplate": "kigezo",
+    "autoCatalogKindCategory": "jamii",
+    "autoCatalogKindFamily": "familia",
+    "autoComboTestTruncated": "Imepimwa {tested} kati ya {total} wagombea hai (uzito mkubwa kwanza).",
+    "controlCenter": "Kituo cha Udhibiti",
     "createCombo": "Unda Mkusanyiko",
     "editCombo": "Hariri Mkusanyiko",
     "deleteCombo": "Futa Mkusanyiko",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Inatumika",
     "showModel": "Onyesha modeli",
     "hideModel": "Ficha modeli",
+    "blacklistModel": "Zuia",
+    "blacklistModelTooltip": "Zuia modeli hii na uifiche kwenye orodha",
     "removeModel": "Ondoa modeli",
     "rateLimitProtected": "Imelindwa",
     "rateLimitUnprotected": "Haijalindwa",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Mipangilio ya mwisho wa mfano uliohifadhiwa",
     "searchByModelAria": "Tafuta kwa mfano",
     "selectSupportedEndpoint": "Chagua angalau kiunganishi kimoja kinachoungwa mkono",
-    "antigravityClientProfileHarness": "Kiunzi / CLI"
+    "antigravityClientProfileHarness": "Kiunzi / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Mipangilio",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Imesasishwa",
     "lastRefreshed": "Ilihuishwa mara ya mwisho",
     "providerQuota": "Kiwango cha Mtoa Huduma",
-    "providerQuotaHomeHint": "Hali ya moja kwa moja kwenye akaunti zilizounganishwa"
+    "providerQuotaHomeHint": "Hali ya moja kwa moja kwenye akaunti zilizounganishwa",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Inasubiri Uidhinishaji",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Kufuli za Mfano",
         "count": "Idadi ya Miunganisho"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Kidhibiti cha Muda wa Kupumzika",
+    "description": "Tazama kila muunganisho unaopumzika baada ya hitilafu, ondoa vipindi vya kupumzika kwa mkupuo, na urekebishe muda unaochukua.",
+    "loading": "Inapakia vipindi vya kupumzika…",
+    "loadFailed": "Haikuweza kupakia vipindi vya kupumzika",
+    "loadFailedDetail": "Angalia muunganisho wako kisha upakie upya ukurasa.",
+    "rules": {
+      "title": "Sheria za muda wa kupumzika",
+      "subtitle": "Tumia kwa kila muunganisho kuanzia hitilafu yake inayofuata.",
+      "stallLabel": "Pumzisha akaunti mtiririko unapokwama",
+      "stallDescription": "Imezimwa kwa chaguomsingi: kukwama kwa kawaida humaanisha zamu ndefu ya ufikiriaji, si akaunti iliyoharibika.",
+      "oauth": "Akaunti za OAuth",
+      "apikey": "Funguo za API",
+      "baseCooldown": "Muda wa msingi wa kupumzika (sekunde)",
+      "baseCooldownHint": "Kipindi cha kwanza cha kupumzika baada ya hitilafu. Hitilafu zinazorudiwa hukiongeza maradufu.",
+      "maxBackoffSteps": "Hatua za juu zaidi za kurudi nyuma",
+      "maxBackoffStepsHint": "Idadi ya mara ambazo muda wa kupumzika unaweza kuwa maradufu.",
+      "save": "Hifadhi sheria",
+      "saved": "Sheria za muda wa kupumzika zimehifadhiwa",
+      "saveFailed": "Haikuweza kuhifadhi sheria za muda wa kupumzika"
+    },
+    "list": {
+      "title": "Miunganisho iliyo nje ya uelekezaji",
+      "subtitle": "Vipindi vya kupumzika na uzuiaji wa modeli humalizika vyenyewe. Viondoe ili kurudisha muunganisho kwenye uelekezaji sasa.",
+      "provider": "Mtoa huduma",
+      "allProviders": "Watoa huduma wote",
+      "showHealthy": "Onyesha miunganisho yenye afya",
+      "refresh": "Onyesha upya",
+      "clearSelected": "Ondoa zilizochaguliwa ({count})",
+      "clearAll": "Ondoa zote",
+      "clear": "Ondoa",
+      "select": "Chagua muunganisho",
+      "none": "Hakuna",
+      "empty": "Hakuna muunganisho ulio nje ya uelekezaji.",
+      "cleared": "Imeondoa miunganisho {cleared} na uzuiaji wa modeli {lockouts}. Imeruka {skipped} zilizopigwa marufuku au zilizoisha muda wake.",
+      "clearFailed": "Haikuweza kuondoa vipindi vya kupumzika",
+      "columns": {
+        "connection": "Muunganisho",
+        "provider": "Mtoa huduma",
+        "status": "Hali",
+        "remaining": "Muda uliobaki",
+        "lockouts": "Uzuiaji wa modeli",
+        "lastError": "Hitilafu ya mwisho"
+      }
+    },
+    "status": {
+      "cooling_down": "Inapoa",
+      "model_locked": "Muundo umefungwa",
+      "unavailable": "Haipatikani",
+      "terminal": "Inahitaji uangalifu",
+      "healthy": "Hali nzuri"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "kataa maombi kabla ya kutuma wakati mfano wa lengo hauna uwezo unaohitajika (maono, zana, matokeo yaliyoandikwa, dirisha la muktadha). Inalinda maombi ya moja kwa moja kutoka kwa mtoa huduma mmoja ambayo yanapita chujio cha ulinganifu wa safu ya mchanganyiko.",

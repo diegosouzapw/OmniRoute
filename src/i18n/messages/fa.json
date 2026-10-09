@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "حالت سرویس Codex برای این کلید API",
+    "description": "برای درخواستهای Codex، از جمله مدلهای Codex در ترکیبها، اعمال میشود. حالتهای اجباری، تنظیمات کلاینت، تنظیمات عمومی و پیشفرضهای اتصال را نادیده میگیرند. سایر ارائهدهندگان بدون تغییر باقی میمانند.",
+    "label": "حالت سرویس",
+    "inherit": "استفاده از رفتار فعلی",
+    "default": "اجبار حالت استاندارد (پیشفرض)",
+    "priority": "اجبار حالت سریع / اولویتدار",
+    "flex": "اجبار حالت انعطافپذیر",
+    "warning": "این گزینه دسترسی به ارائهدهنده را اعطا نمیکند. دسترسپذیری، هزینهها و مصرف سهمیه به حساب و مدل Codex شما بستگی دارد. حالتهای اجباری به انتقال HTTP یا Responses WebSocket نیاز دارند؛ درخواستهای app-server رد میشوند.",
+    "confirm": "حالت «{mode}» برای این کلید API اعمال شود؟ این تغییر برای درخواستهای بعدی اعمال میشود.",
+    "save": "ذخیره حالت",
+    "retry": "تلاش مجدد",
+    "loadError": "حالت سرویس ذخیرهشده بارگیری نشد.",
+    "saveError": "حالت سرویس ذخیره نشد. لطفاً دوباره تلاش کنید."
+  },
   "common": {
     "save": "ذخیره",
     "cancel": "لغو",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "درخواستهایی را که بودجهشان تمام شده است به ارائهدهنده/مدل جایگزین رایگان اضطراری هدایت کنید.",
   "featureFlagArenaEloSyncEnabledDescription": "همگامسازی دورهای ELO جدول امتیازات Arena AI را برای رتبهبندی هوشمندی مدلها فعال کنید.",
   "featureFlagUniversalContextHandoffEnabledDescription": "هنگامی که مسیریابی ترکیبی مدلها را تغییر میدهد، خلاصههای مکالمه را ایجاد و تزریق کنید. برای مستقل در نظر گرفتن تغییر مدلها و جلوگیری از درخواستهای تحویل پسزمینه برای همه ترکیبهای فعلی و آینده، این گزینه را غیرفعال کنید.",
+  "featureFlagReasoningReplayEnabledDescription": "استدلال مدل را در گفتگوهای چندنوبتی ذخیره و بازپخش کنید. برای توقف ذخیره و تزریق مجدد استدلال، غیرفعال کنید.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "آگهی شناسه‌های آینه claude/&lt;provider&gt;/&lt;model&gt; را در /v1/models به‌گونه‌ای تنظیم کنید که لیست کشف مدل‌های دروازه کد Claude شامل مدل‌های غیر Claude باشد. هشدار: در صورت فعال‌سازی جهانی، ورودی‌های کاتالوگ را برای تمام مشتریان دو برابر می‌کند.",
   "featureFlagNoThinkingAliasEnabledDescription": "کلید اصلی برای نامهای مستعار درگاه no-think/&lt;provider&gt;/&lt;model&gt;. روشن (پیشفرض): /v1/models برای هر مدل واجد شرایط Claude که قابلیت تفکر دارد، یک گونه بدون تفکر معرفی میکند و شناسه no-think/ ارسالشده در یک درخواست، با غیرفعالسازی استدلال به مدل واقعی نگاشت میشود. خاموش: هیچ گونهای معرفی نمیشود و شناسه no-think/ مانند هر شناسه مدل ناشناخته دیگری در نظر گرفته میشود. تا زمانی که این گزینه روشن است، انتخاب فعالسازی/غیرفعالسازی مختص هر مدل در ModelSpec.noThinkingAlias همچنان اعمال میشود.",
   "featureFlagChatVirtualLanesEnabledDescription": "خط‌های پذیرش مجازی تطبیقی به‌ازای هر مستاجر (tenant) را برای ارسال به ارائه‌دهندگان فعال کنید (#9654): افزایش ناگهانی بار یک مستاجر دیگر خطای 503 را برای مستاجر دیگر ایجاد نمی‌کند. متغیر محیطی OMNIROUTE_CHAT_VIRTUAL_LANES بر این تنظیم داشبورد اولویت دارد؛ تغییرات پس از راه‌اندازی مجدد سرور اعمال می‌شوند.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "نمای زنده از هر چیزی که در حال اجراست",
     "resilienceConnections": "تاب‌آوری اتصال",
     "resilienceConnectionsSubtitle": "خنک‌سازی، قطع‌کننده، وضعیت قفل",
+    "resilienceCooldowns": "مدیریت زمان انتظار",
+    "resilienceCooldownsSubtitle": "پاک‌سازی دسته‌جمعی زمان‌های انتظار",
     "settingsModalityBridge": "پل مدالیته",
     "settingsModalityBridgeSubtitle": "تصویر/صوت → متن پشتیبان برای مدل‌های فقط متنی",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "تحلیلها",
     "usageAnalyticsTitle": "تحلیل مصرف",
+    "tokenDisplayCompact": "فشرده",
+    "tokenDisplayExact": "دقیق",
+    "tokenDisplayMode": "حالت نمایش توکن",
     "diversityScoreTitle": "تنوع ارائه دهنده",
     "diversityScoreDesc": "تصویر لحظه‌ای از تمرکز ارائه‌دهندگان برای بازه ترافیک اخیر.",
     "diversityShannonEntropy": "آنتروپی شانون",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "ترکیب های خودکار/* داخلی به صورت پویا از ارائه دهندگان متصل حل می شوند. از هر یک از این شناسه ها به عنوان فیلد مدل استفاده کنید — نیازی به تنظیم نیست.",
     "autoCatalogExpand": "کاتالوگ مسیریابی خودکار را گسترش دهید",
     "autoCatalogCollapse": "جمع کردن کاتالوگ مسیریابی خودکار",
+    "autoCatalogComboCount": "{count} ترکیب ها",
+    "autoCatalogCandidates": "{count} نامزدها",
+    "autoCatalogNoCandidates": "هیچ ارائه دهنده ای مطابقت ندارد",
+    "autoCatalogKindVariant": "نوع",
+    "autoCatalogKindTemplate": "الگو",
+    "autoCatalogKindCategory": "دسته",
+    "autoCatalogKindFamily": "خانواده",
+    "autoComboTestTruncated": "{tested} از {total} نامزد زنده آزمایش شده (با بالاترین وزن ها اول).",
+    "controlCenter": "مرکز کنترل",
     "createCombo": "ایجاد ترکیب",
     "editCombo": "ویرایش ترکیب",
     "deleteCombo": "حذف ترکیب",
@@ -5560,6 +5590,8 @@
     "modelsActive": "فعال",
     "showModel": "نمایش مدل",
     "hideModel": "پنهان کردن مدل",
+    "blacklistModel": "مسدود کردن",
+    "blacklistModelTooltip": "این مدل را مسدود و از کاتالوگ پنهان کنید",
     "removeModel": "حذف مدل",
     "rateLimitProtected": "محافظتشده",
     "rateLimitUnprotected": "بدون محافظت",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "تنظیمات نقطه پایانی مدل ذخیره شده",
     "searchByModelAria": "جستجو بر اساس مدل",
     "selectSupportedEndpoint": "حداقل یک نقطه پایانی پشتیبانی شده را انتخاب کنید",
-    "antigravityClientProfileHarness": "هارنس / CLI"
+    "antigravityClientProfileHarness": "هارنس / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "تنظیمات",
@@ -10077,7 +10120,11 @@
     "updatedShort": "به‌روزرسانی شد",
     "lastRefreshed": "آخرین به‌روزرسانی",
     "providerQuota": "سهمیه ارائه‌دهنده",
-    "providerQuotaHomeHint": "وضعیت لحظه‌ای در حساب‌های متصل"
+    "providerQuotaHomeHint": "وضعیت لحظه‌ای در حساب‌های متصل",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "در انتظار تأیید مجوز",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "قفل‌های مدل",
         "count": "تعداد اتصالات"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "مدیریت زمان انتظار",
+    "description": "مشاهده تمام اتصالاتی که پس از خطا در حالت استراحت هستند، رفع دسته‌جمعی زمان‌های انتظار و تنظیم مدت‌زمان آن‌ها.",
+    "loading": "در حال بارگذاری زمان‌های انتظار…",
+    "loadFailed": "بارگذاری زمان‌های انتظار ناموفق بود",
+    "loadFailedDetail": "اتصال خود را بررسی کرده و صفحه را بازخوانی کنید.",
+    "rules": {
+      "title": "قوانین زمان انتظار",
+      "subtitle": "از خطای بعدی بر روی تمام اتصالات اعمال شود.",
+      "stallLabel": "قرار دادن حساب در زمان انتظار هنگام متوقف شدن استریم",
+      "stallDescription": "به‌طور پیش‌فرض غیرفعال است: توقف معمولاً به معنای یک نوبت استدلال طولانی است، نه خرابی حساب.",
+      "oauth": "حساب‌های OAuth",
+      "apikey": "کلیدهای API",
+      "baseCooldown": "زمان انتظار پایه (ثانیه)",
+      "baseCooldownHint": "اولین زمان انتظار پس از خطا. خطاهای مکرر آن را دو برابر می‌کند.",
+      "maxBackoffSteps": "حداکثر گام‌های عقب‌نشینی",
+      "maxBackoffStepsHint": "تعداد دفعاتی که زمان انتظار می‌تواند دو برابر شود.",
+      "save": "ذخیره قوانین",
+      "saved": "قوانین زمان انتظار ذخیره شد",
+      "saveFailed": "ذخیره قوانین زمان انتظار ناموفق بود"
+    },
+    "list": {
+      "title": "اتصالات خارج از مسیریابی",
+      "subtitle": "زمان‌های انتظار و قفل‌های مدل به‌صورت خودکار به پایان می‌رسند. برای بازگرداندن فوری اتصال به چرخه مسیریابی، آن‌ها را پاک کنید.",
+      "provider": "ارائه‌دهنده",
+      "allProviders": "همه ارائه‌دهندگان",
+      "showHealthy": "نمایش اتصالات سالم",
+      "refresh": "بازخوانی",
+      "clearSelected": "پاک‌سازی انتخاب‌شده‌ها ({count})",
+      "clearAll": "پاک‌سازی همه",
+      "clear": "پاک‌سازی",
+      "select": "انتخاب اتصال",
+      "none": "هیچ‌کدام",
+      "empty": "هیچ اتصالی خارج از مسیریابی نیست.",
+      "cleared": "{cleared} اتصال و {lockouts} قفل مدل پاک شدند. {skipped} مورد مسدودشده یا منقضی‌شده نادیده گرفته شد.",
+      "clearFailed": "پاک‌سازی زمان‌های انتظار ناموفق بود",
+      "columns": {
+        "connection": "اتصال",
+        "provider": "ارائه‌دهنده",
+        "status": "وضعیت",
+        "remaining": "زمان باقی‌مانده",
+        "lockouts": "قفل‌های مدل",
+        "lastError": "آخرین خطا"
+      }
+    },
+    "status": {
+      "cooling_down": "در حال خنک‌سازی",
+      "model_locked": "مدل قفل‌شده",
+      "unavailable": "در دسترس نیست",
+      "terminal": "نیازمند بررسی",
+      "healthy": "سالم"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "درخواست‌ها را قبل از ارسال رد کنید زمانی که مدل هدف قابلیت‌های مورد نیاز (بینایی، ابزارها، خروجی ساختاریافته، پنجره زمینه) را ندارد. از درخواست‌های مستقیم تک‌تأمین‌کننده که فیلتر سازگاری لایه ترکیبی را دور می‌زنند، محافظت می‌کند.",

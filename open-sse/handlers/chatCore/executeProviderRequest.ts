@@ -11,6 +11,7 @@ import { getExecutionConnectionId } from "./executionCredentials.ts";
 import {
   resolveAccountSemaphoreKey,
   resolveAccountSemaphoreMaxConcurrency,
+  resolveModelSemaphore,
 } from "./executorHelpers.ts";
 import {
   materializeDeduplicatedExecutionResult,
@@ -255,6 +256,13 @@ export async function executeProviderRequest(
             connectionId: attemptConnectionId,
             credentials: execCreds,
           });
+          // Opt-in per-model ceiling; joins the composite gate below.
+          const modelGate = resolveModelSemaphore({
+            provider,
+            model: modelToCall,
+            connectionId: attemptConnectionId,
+            credentials: execCreds,
+          });
           const canonicalProviderKey = resolveProviderId(String(provider).trim().toLowerCase());
           const providerConcurrency =
             resilienceSettings.providerQuotaOverrides[canonicalProviderKey]?.providerConcurrency ??
@@ -263,6 +271,8 @@ export async function executeProviderRequest(
           trace("pre_semaphore", {
             semaphoreKey: accountSemaphoreKey,
             max: accountSemaphoreMaxConcurrency,
+            modelSemaphoreKey: modelGate.key,
+            modelMax: modelGate.maxConcurrency,
           });
           if (accountSemaphoreKey && accountSemaphoreMaxConcurrency != null) {
             updatePendingScope(pendingScope, {
@@ -288,6 +298,10 @@ export async function executeProviderRequest(
               {
                 key: accountSemaphoreKey || "",
                 maxConcurrency: accountSemaphoreKey ? accountSemaphoreMaxConcurrency : null,
+              },
+              {
+                key: modelGate.key || "",
+                maxConcurrency: modelGate.key ? modelGate.maxConcurrency : null,
               },
             ],
             {

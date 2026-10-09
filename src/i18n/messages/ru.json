@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Режим обслуживания Codex для этого API-ключа",
+    "description": "Применяется к запросам Codex, включая модели Codex в комбинациях. Принудительно заданные режимы переопределяют настройки клиента, глобальные настройки и настройки подключения по умолчанию. Настройки других провайдеров не изменяются.",
+    "label": "Режим обслуживания",
+    "inherit": "Наследовать текущее поведение",
+    "default": "Принудительно использовать Standard (по умолчанию)",
+    "priority": "Принудительно использовать Fast / Priority",
+    "flex": "Принудительно использовать Flex",
+    "warning": "Это не предоставляет доступ к провайдеру. Доступность, стоимость и расход квоты зависят от вашей учётной записи Codex и модели. Для принудительно заданных режимов требуется транспорт HTTP или Responses WebSocket; запросы app-server отклоняются.",
+    "confirm": "Применить режим «{mode}» к этому API-ключу? Изменение вступит в силу для последующих запросов.",
+    "save": "Сохранить режим",
+    "retry": "Повторить",
+    "loadError": "Не удалось загрузить сохранённый режим обслуживания.",
+    "saveError": "Не удалось сохранить режим обслуживания. Повторите попытку."
+  },
   "common": {
     "save": "Сохранить",
     "cancel": "Отмена",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Перенаправлять запросы при исчерпании бюджета на резервный бесплатный провайдер/модель.",
   "featureFlagArenaEloSyncEnabledDescription": "Включить периодическую синхронизацию ELO из таблицы лидеров Arena AI для рейтинга интеллектуальности моделей.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Создавайте и добавляйте сводки бесед, когда комбинированная маршрутизация переключает модели. Отключите эту функцию, чтобы обрабатывать переключения моделей независимо и запретить фоновые запросы передачи контекста для всех существующих и будущих комбинаций.",
+  "featureFlagReasoningReplayEnabledDescription": "Кэшируйте и воспроизводите рассуждения модели в многоходовых диалогах. Отключите, чтобы прекратить сохранение и повторную подстановку рассуждений.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Публиковать claude/&lt;провайдер&gt;/&lt;модель&gt; зеркальные ID на /v1/models, чтобы Claude Code мог видеть не-Claude модели. Внимание: удваивает записи каталога для всех клиентов при глобальном включении.",
   "featureFlagNoThinkingAliasEnabledDescription": "Главный переключатель псевдонимов шлюза no-think/&lt;provider&gt;/&lt;model&gt;. Включено (по умолчанию): /v1/models объявляет вариант без рассуждений для каждой подходящей модели Claude с поддержкой рассуждений, а идентификатор no-think/, переданный в запросе, преобразуется обратно в реальную модель с отключёнными рассуждениями. Выключено: варианты не объявляются, а идентификатор no-think/ обрабатывается как любой другой неизвестный идентификатор модели. Индивидуальная настройка ModelSpec.noThinkingAlias для каждой модели по-прежнему применяется, пока этот переключатель включён.",
   "featureFlagChatVirtualLanesEnabledDescription": "Включите адаптивные виртуальные полосы допуска для каждого тенанта при маршрутизации к провайдерам (#9654): всплеск нагрузки одного тенанта больше не вызывает 503 у другого. Переменная окружения OMNIROUTE_CHAT_VIRTUAL_LANES имеет приоритет над этой настройкой в панели; изменения вступают в силу после перезапуска сервера.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Живой обзор всего, что выполняется",
     "resilienceConnections": "Устойчивость Соединения",
     "resilienceConnectionsSubtitle": "Cooldown, автомат защиты, состояние блокировки",
+    "resilienceCooldowns": "Менеджер кулдаунов",
+    "resilienceCooldownsSubtitle": "Массовый сброс кулдаунов",
     "settingsModalityBridge": "Мост Модальности",
     "settingsModalityBridgeSubtitle": "Резервное копирование изображения/аудио в текст для моделей только с текстом",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Аналитика",
     "usageAnalyticsTitle": "Аналитика использования",
+    "tokenDisplayCompact": "Компактно",
+    "tokenDisplayExact": "Точно",
+    "tokenDisplayMode": "Режим отображения токенов",
     "diversityScoreTitle": "Разнообразие поставщиков",
     "diversityScoreDesc": "Снимок концентрации провайдеров за недавний временной интервал трафика.",
     "diversityShannonEntropy": "Энтропия Шеннона",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Встроенные комбинации auto/* разрешаются динамически от подключенных провайдеров. Используйте любой из этих идентификаторов в качестве поля модели — настройка не требуется.",
     "autoCatalogExpand": "Развернуть каталог автотрассировки",
     "autoCatalogCollapse": "Свернуть каталог автотрассировки",
+    "autoCatalogComboCount": "{count} комбинаций",
+    "autoCatalogCandidates": "{count} кандидатов",
+    "autoCatalogNoCandidates": "Нет подходящих провайдеров",
+    "autoCatalogKindVariant": "вариант",
+    "autoCatalogKindTemplate": "шаблон",
+    "autoCatalogKindCategory": "категория",
+    "autoCatalogKindFamily": "семья",
+    "autoComboTestTruncated": "Проверено {tested} из {total} живых кандидатов (сначала с наибольшими весами).",
+    "controlCenter": "Центр управления",
     "createCombo": "Создать комбо",
     "editCombo": "Редактировать комбо",
     "deleteCombo": "Удалить комбо",
@@ -5560,6 +5590,8 @@
     "modelsActive": "активные",
     "showModel": "Показать модель",
     "hideModel": "Скрыть модель",
+    "blacklistModel": "В чёрный список",
+    "blacklistModelTooltip": "Скрыть эту модель из каталога",
     "removeModel": "Удалить модель",
     "rateLimitProtected": "Защищено",
     "rateLimitUnprotected": "незащищенный",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Настройки конечной точки сохраненной модели",
     "searchByModelAria": "Поиск по модели",
     "selectSupportedEndpoint": "Выберите хотя бы одну поддерживаемую конечную точку",
-    "antigravityClientProfileHarness": "Среда / CLI"
+    "antigravityClientProfileHarness": "Среда / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Настройки",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Обновлено",
     "lastRefreshed": "Последнее обновление",
     "providerQuota": "Квота Провайдера",
-    "providerQuotaHomeHint": "Живой статус по подключенным аккаунтам"
+    "providerQuotaHomeHint": "Живой статус по подключенным аккаунтам",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Ожидание авторизации",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Блокировки Модели",
         "count": "Количество Соединений"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Менеджер кулдаунов",
+    "description": "Просматривайте подключения, временно отключенные после сбоев, массово сбрасывайте кулдауны и настраивайте их длительность.",
+    "loading": "Загрузка кулдаунов…",
+    "loadFailed": "Не удалось загрузить кулдауны",
+    "loadFailedDetail": "Проверьте подключение к сети и обновите страницу.",
+    "rules": {
+      "title": "Правила кулдаунов",
+      "subtitle": "Применяются к каждому подключению со следующего сбоя.",
+      "stallLabel": "Переводить аккаунт в кулдаун при зависании потока",
+      "stallDescription": "По умолчанию отключено: зависание обычно указывает на долгий шаг рассуждения, а не на неисправность аккаунта.",
+      "oauth": "Аккаунты OAuth",
+      "apikey": "Ключи API",
+      "baseCooldown": "Базовый кулдаун (в секундах)",
+      "baseCooldownHint": "Первый кулдаун после сбоя. При повторных сбоях время удваивается.",
+      "maxBackoffSteps": "Максимальное число шагов задержки",
+      "maxBackoffStepsHint": "Сколько раз может удваиваться кулдаун.",
+      "save": "Сохранить правила",
+      "saved": "Правила кулдаунов сохранены",
+      "saveFailed": "Не удалось сохранить правила кулдаунов"
+    },
+    "list": {
+      "title": "Подключения, исключенные из маршрутизации",
+      "subtitle": "Кулдауны и блокировки моделей снимаются автоматически. Сбросьте их, чтобы вернуть подключение в маршрутизацию прямо сейчас.",
+      "provider": "Провайдер",
+      "allProviders": "Все провайдеры",
+      "showHealthy": "Показывать исправные подключения",
+      "refresh": "Обновить",
+      "clearSelected": "Сбросить выбранные ({count})",
+      "clearAll": "Сбросить все",
+      "clear": "Сбросить",
+      "select": "Выбрать подключение",
+      "none": "Нет",
+      "empty": "Нет подключений, исключенных из маршрутизации.",
+      "cleared": "Сброшено подключений: {cleared}, блокировок моделей: {lockouts}. Пропущено заблокированных или истекших: {skipped}.",
+      "clearFailed": "Не удалось сбросить кулдауны",
+      "columns": {
+        "connection": "Подключение",
+        "provider": "Провайдер",
+        "status": "Статус",
+        "remaining": "Осталось времени",
+        "lockouts": "Блокировки моделей",
+        "lastError": "Последняя ошибка"
+      }
+    },
+    "status": {
+      "cooling_down": "Охлаждение",
+      "model_locked": "Модель заблокирована",
+      "unavailable": "Недоступно",
+      "terminal": "Требует внимания",
+      "healthy": "В норме"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Отклонять запросы перед отправкой, когда целевая модель не имеет необходимых возможностей (визуализация, инструменты, структурированный вывод, контекстное окно). Защищает прямые запросы от единственного поставщика, которые обходят фильтр совместимости комбинированного слоя.",

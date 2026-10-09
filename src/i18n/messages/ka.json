@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex სერვისის რეჟიმი ამ API გასაღებისთვის",
+    "description": "ვრცელდება Codex მოთხოვნებზე, მათ შორის კომბინაციებში შემავალ Codex მოდელებზე. იძულებით განსაზღვრული რეჟიმები უპირატესია კლიენტის, გლობალურ პარამეტრებსა და კავშირის ნაგულისხმევ პარამეტრებზე. სხვა პროვაიდერები უცვლელი რჩება.",
+    "label": "სერვისის რეჟიმი",
+    "inherit": "არსებული ქცევის მემკვიდრეობით მიღება",
+    "default": "Standard რეჟიმის იძულებით გამოყენება (ნაგულისხმევი)",
+    "priority": "Fast / Priority რეჟიმის იძულებით გამოყენება",
+    "flex": "Flex რეჟიმის იძულებით გამოყენება",
+    "warning": "ეს პროვაიდერთან წვდომას არ გაძლევთ. ხელმისაწვდომობა, საფასური და კვოტის მოხმარება დამოკიდებულია თქვენს Codex ანგარიშსა და მოდელზე. იძულებით განსაზღვრული რეჟიმებისთვის საჭიროა HTTP ან Responses WebSocket ტრანსპორტი; app-server მოთხოვნები უარყოფილია.",
+    "confirm": "გამოვიყენოთ „{mode}“ ამ API გასაღებისთვის? ცვლილება ძალაში შევა მომდევნო მოთხოვნებისთვის.",
+    "save": "რეჟიმის შენახვა",
+    "retry": "ხელახლა ცდა",
+    "loadError": "შენახული სერვისის რეჟიმის ჩატვირთვა ვერ მოხერხდა.",
+    "saveError": "სერვისის რეჟიმის შენახვა ვერ მოხერხდა. გთხოვთ, ხელახლა სცადოთ."
+  },
   "common": {
     "save": "შენახვა",
     "cancel": "გაუქმება",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "ბიუჯეტის ამოწურვის გამო დაუმუშავებელი მოთხოვნები გადაამისამართეთ საგანგებო უფასო სარეზერვო პროვაიდერთან/მოდელთან.",
   "featureFlagArenaEloSyncEnabledDescription": "ჩართეთ Arena AI-ის ლიდერბორდის ELO რეიტინგის პერიოდული სინქრონიზაცია მოდელების ინტელექტის რეიტინგებისთვის.",
   "featureFlagUniversalContextHandoffEnabledDescription": "კომბინირებული მარშრუტიზაციისას მოდელის გადართვის დროს შექმენით და ჩასვით საუბრის შეჯამებები. გამორთეთ, რათა მოდელების გადართვები ერთმანეთისგან დამოუკიდებლად დამუშავდეს და ყველა არსებული და მომავალი კომბინაციისთვის ფონური გადაცემის მოთხოვნები აიკრძალოს.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "გამოაქვეყნეთ claude/&lt;provider&gt;/&lt;model&gt; სარკისებური ID-ები /v1/models-ზე, რათა Claude Code-ის კარიბჭის მოდელების აღმოჩენის სიაში არა-Claude მოდელებიც გამოჩნდეს. გაფრთხილება: გლობალურად ჩართვის შემთხვევაში კატალოგის ჩანაწერების რაოდენობა ყველა კლიენტისთვის გაორმაგდება.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; კარიბჭის ფსევდონიმების მთავარი გადამრთველი. ჩართულია (ნაგულისხმევი): /v1/models აქვეყნებს აზროვნების გარეშე ვარიანტს ყველა შესაბამისი, აზროვნების უნარის მქონე Claude მოდელისთვის, ხოლო მოთხოვნაში გაგზავნილი no-think/ ID კვლავ რეალურ მოდელზე გადადის, მსჯელობის ჩახშობით. გამორთულია: ვარიანტები არ ქვეყნდება და no-think/ ID განიხილება, როგორც ნებისმიერი სხვა უცნობი მოდელის ID. სანამ ეს ჩართულია, თითოეული მოდელისთვის ModelSpec.noThinkingAlias-ის ჩართვის/გამორთვის პარამეტრი კვლავ მოქმედებს.",
   "featureFlagChatVirtualLanesEnabledDescription": "ჩართეთ თითოეული ტენანტისთვის ადაპტიური ვირტუალური დაშვების არხები პროვაიდერთან გადაგზავნისთვის (#9654): ერთი ტენანტის მოთხოვნების უეცარი მატება სხვას აღარ დაუბრუნებს 503 შეცდომას. OMNIROUTE_CHAT_VIRTUAL_LANES გარემოს ცვლადს უპირატესობა აქვს მართვის პანელის ამ პარამეტრთან შედარებით; ცვლილებები ძალაში შევა სერვერის გადატვირთვის შემდეგ.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "ყველა გაშვებული პროცესის პირდაპირი ხედი",
     "resilienceConnections": "კავშირის მდგრადობა",
     "resilienceConnectionsSubtitle": "გაგრილების პერიოდის, ამომრთველისა და დაბლოკვის მდგომარეობა",
+    "resilienceCooldowns": "Cooldown-ის მენეჯერი",
+    "resilienceCooldownsSubtitle": "Cooldown-ების მასობრივად გასუფთავება",
     "settingsModalityBridge": "მოდალობებს შორის ხიდი",
     "settingsModalityBridgeSubtitle": "გამოსახულების/აუდიოს → ტექსტზე გადაყვანა მხოლოდ ტექსტური მოდელებისთვის, როგორც სათადარიგო ვარიანტი",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "ანალიტიკა",
     "usageAnalyticsTitle": "გამოყენების ანალიტიკა",
+    "tokenDisplayCompact": "კომპაქტური",
+    "tokenDisplayExact": "ზუსტი",
+    "tokenDisplayMode": "ტოკენების ჩვენების რეჟიმი",
     "diversityScoreTitle": "პროვაიდერების მრავალფეროვნება",
     "diversityScoreDesc": "პროვაიდერების კონცენტრაციის სურათი ტრაფიკის ბოლო პერიოდისთვის.",
     "diversityShannonEntropy": "შენონის ენტროპია",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "ჩაშენებული auto/* კომბინაციები დინამიკურად განისაზღვრება დაკავშირებული პროვაიდერების მიხედვით. გამოიყენეთ ამ ID-თაგან ნებისმიერი მოდელის ველში — კონფიგურაცია საჭირო არ არის.",
     "autoCatalogExpand": "ავტომარშრუტიზაციის კატალოგის გაშლა",
     "autoCatalogCollapse": "ავტომარშრუტიზაციის კატალოგის ჩაკეცვა",
+    "autoCatalogComboCount": "{count} კომბინაციები",
+    "autoCatalogCandidates": "{count} კანდიდატები",
+    "autoCatalogNoCandidates": "შესაბამისი პროვაიდერები არ არის",
+    "autoCatalogKindVariant": "ვარიანტი",
+    "autoCatalogKindTemplate": "შაბлонი",
+    "autoCatalogKindCategory": "კატეგორია",
+    "autoCatalogKindFamily": "ოჯახი",
+    "autoComboTestTruncated": "გამოცდილი {tested} {total} ცოცხალი კანდიდატიდან (მაღალი წონების მიხედვით).",
+    "controlCenter": "კონტროლის ცენტრი",
     "createCombo": "კომბოს შექმნა",
     "editCombo": "კომბოს რედაქტირება",
     "deleteCombo": "კომბოს წაშლა",
@@ -5560,6 +5590,8 @@
     "modelsActive": "აქტიური",
     "showModel": "მოდელის ჩვენება",
     "hideModel": "მოდელის დამალვა",
+    "blacklistModel": "დაბლოკვა",
+    "blacklistModelTooltip": "დაბლოკე ეს მოდელი და დამალე კატალოგიდან",
     "removeModel": "მოდელის წაშლა",
     "rateLimitProtected": "დაცული",
     "rateLimitUnprotected": "დაუცველი",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "როდესაც ეს ანგარიში 5-საათიანი გამოყენების ლიმიტს მიაღწევს და Anthropic უფრო დაბალი პრიორიტეტის რეჟიმს შესთავაზებს, OmniRoute მას მიიღებს და ფანჯრის განახლებამდე მოთხოვნების გაგზავნას anthropic-usage-limit: slow პარამეტრით გააგრძელებს, ნაცვლად კავშირის დროებით შეჩერებისა. ყოველკვირეული ლიმიტი კვლავ მოქმედებს და პასუხებს შესაძლოა თავისუფალი სიმძლავრის გამოჩენამდე მოცდა დასჭირდეს.",
     "claudeAutoLimitResetLabel": "სესიის ლიმიტის ავტომატურად განულება (კვირაში ერთხელ)",
     "claudeAutoLimitResetDescription": "როდესაც ეს ანგარიში 5-საათიანი გამოყენების ლიმიტს მიაღწევს და სესიის ლიმიტის განულება ხელმისაწვდომი იქნება, OmniRoute მას ავტომატურად გამოიყენებს და მოთხოვნას სრული სიჩქარით ხელახლა გაგზავნის. ეს გამოიყენებს ანგარიშისთვის კვირაში ერთხელ ხელმისაწვდომ განულებას და გამოყენება კვლავ ჩაითვლება ყოველკვირეულ ლიმიტში.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "გამოტოვეთ დროებითი დაყოვნების პერიოდი, რათა ეს კავშირი აღდგენადი შეცდომების შემდეგაც ხელმისაწვდომი დარჩეს (ტერმინალური მდგომარეობები, როგორიცაა დაბლოკილი/ვადაგასული, კვლავ მოქმედებს).",
     "disableCoolingLabel": "ამ კავშირისთვის დაყოვნების პერიოდის გამორთვა",
     "bulkPasteAdded": "{count, plural, one {დამატებულია 1 გასაღები} other {დამატებულია # გასაღები}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "მოდელის საბოლოო წერტილის პარამეტრები შენახულია",
     "searchByModelAria": "მოდელის მიხედვით ძიება",
     "selectSupportedEndpoint": "აირჩიეთ სულ მცირე ერთი მხარდაჭერილი საბოლოო წერტილი",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "პარამეტრები",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "ნაკადის გარდაქმნა ვერ მოხერხდა"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "გამოყენება",
     "grokExtraUsageCredits": "დამატებითი გამოყენების კრედიტები",
     "grokAutoTopUp": "ავტომატური შევსება",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "მოდელების ბლოკირებები",
         "count": "კავშირების რაოდენობა"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown-ის მენეჯერი",
+    "description": "იხილეთ ყველა კავშირი, რომელიც შეცდომების შემდეგ ისვენებს, მასობრივად მოხსენით cooldown-ები და დააკონფიგურირეთ მათი ხანგრძლივობა.",
+    "loading": "Cooldown-ები იტვირთება…",
+    "loadFailed": "Cooldown-ების ჩატვირთვა ვერ მოხერხდა",
+    "loadFailedDetail": "შეამოწმეთ კავშირი და განაახლეთ გვერდი.",
+    "rules": {
+      "title": "Cooldown-ის წესები",
+      "subtitle": "გამოყენება თითოეული კავშირისთვის მისი შემდეგი შეცდომიდან.",
+      "stallLabel": "ანგარიშის cooldown-ში გადაყვანა ნაკადის გაჭედვისას",
+      "stallDescription": "ნაგულისხმევად გამორთულია: გაჭედვა ჩვეულებრივ ნიშნავს მსჯელობის ერთ ხანგრძლივ ეტაპს და არა დაზიანებულ ანგარიშს.",
+      "oauth": "OAuth ანგარიშები",
+      "apikey": "API გასაღებები",
+      "baseCooldown": "საბაზისო cooldown (წამი)",
+      "baseCooldownHint": "პირველი cooldown შეცდომის შემდეგ. განმეორებითი შეცდომები მას აორმაგებს.",
+      "maxBackoffSteps": "Backoff-ის მაქსიმალური ნაბიჯები",
+      "maxBackoffStepsHint": "რამდენჯერ შეიძლება გაორმაგდეს cooldown.",
+      "save": "წესების შენახვა",
+      "saved": "Cooldown-ის წესები შენახულია",
+      "saveFailed": "Cooldown-ის წესების შენახვა ვერ მოხერხდა"
+    },
+    "list": {
+      "title": "მარშრუტიზაციიდან გამოთიშული კავშირები",
+      "subtitle": "Cooldown-ები და მოდელების დაბლოკვები თავისით სრულდება. გაასუფთავეთ ისინი კავშირის მარშრუტიზაციაში ახლავე დასაბრუნებლად.",
+      "provider": "პროვაიდერი",
+      "allProviders": "ყველა პროვაიდერი",
+      "showHealthy": "ჯანსაღი კავშირების ჩვენება",
+      "refresh": "განახლება",
+      "clearSelected": "არჩეულების გასუფთავება ({count})",
+      "clearAll": "ყველას გასუფთავება",
+      "clear": "გასუფთავება",
+      "select": "კავშირის არჩევა",
+      "none": "არცერთი",
+      "empty": "არცერთი კავშირი არ არის მარშრუტიზაციიდან გამოთიშული.",
+      "cleared": "გასუფთავდა {cleared} კავშირი და {lockouts} მოდელის დაბლოკვა. გამოტოვებულია {skipped} დაბლოკილი ან ვადაგასული.",
+      "clearFailed": "Cooldown-ების გასუფთავება ვერ მოხერხდა",
+      "columns": {
+        "connection": "კავშირი",
+        "provider": "პროვაიდერი",
+        "status": "სტატუსი",
+        "remaining": "დარჩენილი დრო",
+        "lockouts": "მოდელების დაბლოკვები",
+        "lastError": "ბოლო შეცდომა"
+      }
+    },
+    "status": {
+      "cooling_down": "გაგრილების რეჟიმში",
+      "model_locked": "მოდელი ჩაკეტილია",
+      "unavailable": "მიუწვდომელია",
+      "terminal": "საჭიროებს ყურადღებას",
+      "healthy": "გამართულია"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "გაგზავნამდე უარყოფს მოთხოვნებს, როდესაც სამიზნე მოდელს საჭირო შესაძლებლობები (ხედვა, ხელსაწყოები, სტრუქტურირებული გამომავალი, კონტექსტის ფანჯარა) არ გააჩნია. იცავს უშუალოდ ერთი პროვაიდერისადმი გაგზავნილ მოთხოვნებს, რომლებიც კომბინირებული შრის თავსებადობის ფილტრს გვერდს უვლიან.",

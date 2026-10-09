@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "इस API कुंजी के लिए Codex सेवा मोड",
+    "description": "यह Codex अनुरोधों पर लागू होता है, जिसमें कॉम्बो के अंदर मौजूद Codex मॉडल भी शामिल हैं। बाध्य मोड क्लाइंट, वैश्विक सेटिंग्स और कनेक्शन डिफ़ॉल्ट को ओवरराइड करते हैं। अन्य प्रदाता अपरिवर्तित रहते हैं।",
+    "label": "सेवा मोड",
+    "inherit": "मौजूदा व्यवहार इनहेरिट करें",
+    "default": "Standard को बाध्य करें (डिफ़ॉल्ट)",
+    "priority": "Fast / Priority को बाध्य करें",
+    "flex": "Flex को बाध्य करें",
+    "warning": "यह प्रदाता एक्सेस प्रदान नहीं करता। उपलब्धता, शुल्क और कोटा खपत आपके Codex खाते और मॉडल पर निर्भर करती है। बाध्य मोड के लिए HTTP या Responses WebSocket ट्रांसपोर्ट आवश्यक है; app-server अनुरोध अस्वीकार कर दिए जाते हैं।",
+    "confirm": "इस API कुंजी पर “{mode}” लागू करें? यह बाद के अनुरोधों के लिए प्रभावी होगा।",
+    "save": "मोड सहेजें",
+    "retry": "पुनः प्रयास करें",
+    "loadError": "सहेजा गया सेवा मोड लोड नहीं किया जा सका।",
+    "saveError": "सेवा मोड सहेजा नहीं जा सका। कृपया पुनः प्रयास करें।"
+  },
   "common": {
     "save": "सहेजें",
     "cancel": "रद्द करें",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "बजट समाप्त हो चुके अनुरोधों को आपातकालीन निःशुल्क फ़ॉलबैक प्रदाता/मॉडल पर रूट करें।",
   "featureFlagArenaEloSyncEnabledDescription": "मॉडल इंटेलिजेंस रैंकिंग के लिए आवधिक Arena AI लीडरबोर्ड ELO सिंक सक्षम करें।",
   "featureFlagUniversalContextHandoffEnabledDescription": "जब कॉम्बो रूटिंग मॉडल बदलती है, तब वार्तालाप सारांश जनरेट करके शामिल करें। मॉडल स्विच को स्वतंत्र रूप से संभालने और सभी मौजूदा व भावी कॉम्बो के लिए बैकग्राउंड हैंडऑफ़ अनुरोध रोकने हेतु इसे अक्षम करें।",
+  "featureFlagReasoningReplayEnabledDescription": "बहु-पाली बातचीत में मॉडल के तर्क को कैश करें और फिर से चलाएँ। तर्क संग्रहीत करना और फिर से डालना रोकने के लिए अक्षम करें।",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models पर claude/&lt;provider&gt;/&lt;model&gt; मिरर आईडी का विज्ञापन करें ताकि Claude Code गेटवे मॉडल खोज सूची में गैर-Claude मॉडल शामिल हो सकें। चेतावनी: जब वैश्विक रूप से सक्षम किया जाता है तो सभी ग्राहकों के लिए कैटलॉग प्रविष्टियों को डबल करता है।",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; गेटवे उपनामों का मुख्य स्विच। चालू (डिफ़ॉल्ट): /v1/models प्रत्येक योग्य, सोचने में सक्षम Claude मॉडल के लिए बिना-सोच वाला वैरिएंट प्रदर्शित करता है, और किसी अनुरोध में भेजी गई no-think/ id वास्तविक मॉडल में वापस रिज़ॉल्व होती है, जिसमें रीजनिंग दबा दी जाती है। बंद: कोई वैरिएंट प्रदर्शित नहीं किया जाता और no-think/ id को किसी अन्य अज्ञात मॉडल id की तरह माना जाता है। इसके चालू रहने पर भी प्रति-मॉडल ModelSpec.noThinkingAlias ऑप्ट-इन/ऑप्ट-आउट लागू होता है।",
   "featureFlagChatVirtualLanesEnabledDescription": "प्रदाता डिस्पैच के लिए प्रति-टेनेंट अनुकूली वर्चुअल एडमिशन लेन सक्षम करें (#9654): एक टेनेंट का बर्स्ट अब दूसरे टेनेंट को 503 नहीं देता। OMNIROUTE_CHAT_VIRTUAL_LANES पर्यावरण चर इस डैशबोर्ड सेटिंग पर प्राथमिकता रखता है; परिवर्तन सर्वर पुनः आरंभ पर प्रभावी होते हैं।",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "जो कुछ भी चल रहा है उसका लाइव दृश्य",
     "resilienceConnections": "कनेक्शन रेज़िलिएंस",
     "resilienceConnectionsSubtitle": "कूलडाउन, ब्रेकर, लॉकआउट स्थिति",
+    "resilienceCooldowns": "कूलडाउन मैनेजर",
+    "resilienceCooldownsSubtitle": "एक साथ कूलडाउन हटाएं",
     "settingsModalityBridge": "मोडालिटी ब्रिज",
     "settingsModalityBridgeSubtitle": "छवि/ऑडियो → केवल पाठ मॉडल के लिए पाठ बैकअप",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "विश्लेषिकी",
     "usageAnalyticsTitle": "उपयोग विश्लेषण",
+    "tokenDisplayCompact": "संक्षिप्त",
+    "tokenDisplayExact": "सटीक",
+    "tokenDisplayMode": "टोकन प्रदर्शन मोड",
     "diversityScoreTitle": "प्रदाता विविधता",
     "diversityScoreDesc": "हाल के ट्रैफ़िक विंडो के लिए प्रदाता एकाग्रता का स्नैपशॉट।",
     "diversityShannonEntropy": "शैनन एंट्रॉपी",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "अंतर्निहित ऑटो/* कॉम्बो को कनेक्टेड प्रदाताओं से गतिशील रूप से हल किया गया। इनमें से किसी भी आईडी को मॉडल फ़ील्ड के रूप में उपयोग करें - किसी सेटअप की आवश्यकता नहीं है।",
     "autoCatalogExpand": "ऑटो-रूटिंग कैटलॉग का विस्तार करें",
     "autoCatalogCollapse": "ऑटो-रूटिंग कैटलॉग को संक्षिप्त करें",
+    "autoCatalogComboCount": "{count} कॉम्बो",
+    "autoCatalogCandidates": "{count} उम्मीदवार",
+    "autoCatalogNoCandidates": "कोई मेल खाने वाले प्रदाता नहीं",
+    "autoCatalogKindVariant": "वेरिएंट",
+    "autoCatalogKindTemplate": "टेम्पलेट",
+    "autoCatalogKindCategory": "श्रेणी",
+    "autoCatalogKindFamily": "परिवार",
+    "autoComboTestTruncated": "{total} लाइव उम्मीदवारों में से {tested} का परीक्षण किया गया (उच्चतम वजन पहले)।",
+    "controlCenter": "नियंत्रण केंद्र",
     "createCombo": "कॉम्बो बनाएं",
     "editCombo": "कॉम्बो संपादित करें",
     "deleteCombo": "कॉम्बो हटाएँ",
@@ -5560,6 +5590,8 @@
     "modelsActive": "सक्रिय",
     "showModel": "मॉडल दिखाएँ",
     "hideModel": "मॉडल छिपाएँ",
+    "blacklistModel": "ब्लॉक करें",
+    "blacklistModelTooltip": "इस मॉडल को ब्लॉक करके कैटलॉग से छिपाएँ",
     "removeModel": "मॉडल हटाएँ",
     "rateLimitProtected": "संरक्षित",
     "rateLimitUnprotected": "असुरक्षित",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "सहेजे गए मॉडल एंडपॉइंट सेटिंग्स",
     "searchByModelAria": "मॉडल द्वारा खोजें",
     "selectSupportedEndpoint": "कम से कम एक समर्थित एंडपॉइंट चुनें",
-    "antigravityClientProfileHarness": "हार्नेस / CLI"
+    "antigravityClientProfileHarness": "हार्नेस / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -10077,7 +10120,11 @@
     "updatedShort": "अपडेट किया गया",
     "lastRefreshed": "अंतिम बार रीफ़्रेश किया गया",
     "providerQuota": "प्रदाता कोटा",
-    "providerQuotaHomeHint": "कनेक्टेड खातों में लाइव स्थिति"
+    "providerQuotaHomeHint": "कनेक्टेड खातों में लाइव स्थिति",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "प्राधिकरण की प्रतीक्षा की जा रही है",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "मॉडल लॉकआउट",
         "count": "कनेक्शन गणना"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "कूलडाउन मैनेजर",
+    "description": "विफलताओं के बाद विराम ले रहे प्रत्येक कनेक्शन को देखें, एक साथ कूलडाउन हटाएं, और समायोजित करें कि वे कितने समय तक प्रभावी रहेंगे।",
+    "loading": "कूलडाउन लोड हो रहे हैं…",
+    "loadFailed": "कूलडाउन लोड नहीं किए जा सके",
+    "loadFailedDetail": "अपना कनेक्शन जांचें और पेज रीफ़्रेश करें।",
+    "rules": {
+      "title": "कूलडाउन नियम",
+      "subtitle": "इसकी अगली विफलता से प्रत्येक कनेक्शन पर लागू करें।",
+      "stallLabel": "स्ट्रीम रुकने पर खाते को कूलडाउन में डालें",
+      "stallDescription": "डिफ़ॉल्ट रूप से बंद: आमतौर पर रुकावट का मतलब एक लंबा रीज़निंग टर्न होता है, न कि कोई ख़राब खाता।",
+      "oauth": "OAuth खाते",
+      "apikey": "API कुंजियाँ",
+      "baseCooldown": "बेस कूलडाउन (सेकंड)",
+      "baseCooldownHint": "विफलता के बाद पहला कूलडाउन। बार-बार विफलता होने पर यह दोगुना हो जाता है।",
+      "maxBackoffSteps": "अधिकतम बैकऑफ़ चरण",
+      "maxBackoffStepsHint": "कूलडाउन कितनी बार दोगुना हो सकता है।",
+      "save": "नियम सहेजें",
+      "saved": "कूलडाउन नियम सहेजे गए",
+      "saveFailed": "कूलडाउन नियम सहेजे नहीं जा सके"
+    },
+    "list": {
+      "title": "राउटिंग से बाहर कनेक्शन",
+      "subtitle": "कूलडाउन और मॉडल लॉकआउट अपने आप समाप्त हो जाते हैं। किसी कनेक्शन को अभी वापस राउटिंग में शामिल करने के लिए उन्हें हटाएं।",
+      "provider": "प्रदाता",
+      "allProviders": "सभी प्रदाता",
+      "showHealthy": "स्वस्थ कनेक्शन दिखाएं",
+      "refresh": "रीफ़्रेश करें",
+      "clearSelected": "चयनित हटाएं ({count})",
+      "clearAll": "सभी हटाएं",
+      "clear": "हटाएं",
+      "select": "कनेक्शन चुनें",
+      "none": "कोई नहीं",
+      "empty": "कोई भी कनेक्शन राउटिंग से बाहर नहीं है।",
+      "cleared": "{cleared} कनेक्शन और {lockouts} मॉडल लॉकआउट हटाए गए। {skipped} प्रतिबंधित या समाप्त छोड़ दिए गए।",
+      "clearFailed": "कूलडाउन हटाए नहीं जा सके",
+      "columns": {
+        "connection": "कनेक्शन",
+        "provider": "प्रदाता",
+        "status": "स्थिति",
+        "remaining": "शेष समय",
+        "lockouts": "मॉडल लॉकआउट",
+        "lastError": "अंतिम त्रुटि"
+      }
+    },
+    "status": {
+      "cooling_down": "कूल डाउन हो रहा है",
+      "model_locked": "मॉडल लॉक है",
+      "unavailable": "अनुपलब्ध",
+      "terminal": "ध्यान देने की आवश्यकता है",
+      "healthy": "स्वस्थ"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "डिस्पैच से पहले अनुरोधों को अस्वीकार करें जब लक्षित मॉडल आवश्यक क्षमताओं (दृष्टि, उपकरण, संरचित आउटपुट, संदर्भ विंडो) से रहित हो। यह सीधे एकल-प्रदाता अनुरोधों की रक्षा करता है जो कॉम्बो-लेयर संगतता फ़िल्टर को बायपास करते हैं।",

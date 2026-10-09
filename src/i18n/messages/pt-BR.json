@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Modo de serviço do Codex para esta chave de API",
+    "description": "Aplica-se às solicitações do Codex, incluindo modelos Codex em combos. Os modos forçados substituem as configurações do cliente e globais, bem como os padrões da conexão. Os demais provedores permanecem inalterados.",
+    "label": "Modo de serviço",
+    "inherit": "Herdar o comportamento existente",
+    "default": "Forçar Standard (padrão)",
+    "priority": "Forçar Fast / Priority",
+    "flex": "Forçar Flex",
+    "warning": "Isso não concede acesso ao provedor. A disponibilidade, as cobranças e o consumo da cota dependem da sua conta e do modelo do Codex. Os modos forçados exigem o transporte HTTP ou Responses WebSocket; solicitações de app-server são rejeitadas.",
+    "confirm": "Aplicar “{mode}” a esta chave de API? Isso entrará em vigor nas solicitações subsequentes.",
+    "save": "Salvar modo",
+    "retry": "Tentar novamente",
+    "loadError": "Não foi possível carregar o modo de serviço salvo.",
+    "saveError": "Não foi possível salvar o modo de serviço. Tente novamente."
+  },
   "common": {
     "save": "Salvar",
     "cancel": "Cancelar",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Roteie solicitações com orçamento esgotado para o provedor/modelo de fallback gratuito de emergência.",
   "featureFlagArenaEloSyncEnabledDescription": "Ativar a sincronização periódica do ELO do leaderboard da Arena AI para classificações de inteligência do modelo.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Gera e injeta resumos da conversa quando o roteamento de combo troca de modelo. Desative para tratar trocas de modelo de forma independente e evitar requisições de handoff em segundo plano para todos os combos existentes e futuros.",
+  "featureFlagReasoningReplayEnabledDescription": "Armazena e reproduz o raciocínio do modelo em conversas de vários turnos. Desative para interromper o armazenamento e a reinjeção do raciocínio.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Divulgar ids espelho claude/&lt;provider&gt;/&lt;model&gt; em /v1/models para que a descoberta de modelos do gateway Claude Code liste modelos não-Claude. Atenção: duplica as entradas do catálogo para todos os clientes quando ativado globalmente.",
   "featureFlagNoThinkingAliasEnabledDescription": "Controle principal dos aliases de gateway no-think/&lt;provider&gt;/&lt;model&gt;. Ativado (padrão): /v1/models anuncia uma variante sem raciocínio para cada modelo Claude qualificado com capacidade de raciocínio, e um ID no-think/ enviado em uma solicitação é resolvido para o modelo real com o raciocínio suprimido. Desativado: nenhuma variante é anunciada, e um ID no-think/ é tratado como qualquer outro ID de modelo desconhecido. A configuração de ativação/desativação ModelSpec.noThinkingAlias por modelo continua válida enquanto esta opção estiver ativada.",
   "featureFlagChatVirtualLanesEnabledDescription": "Ative faixas de admissão virtuais adaptativas por tenant para o despacho de provedores (#9654): o pico de um tenant não gera mais 503 para outro. A variável de ambiente OMNIROUTE_CHAT_VIRTUAL_LANES tem precedência sobre esta configuração do painel; as alterações entram em vigor ao reiniciar o servidor.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Visão ao vivo de tudo em execução",
     "resilienceConnections": "Resiliência de Conexão",
     "resilienceConnectionsSubtitle": "Cooldown, disjuntor, estado de bloqueio",
+    "resilienceCooldowns": "Gerenciador de Cooldown",
+    "resilienceCooldownsSubtitle": "Limpar cooldowns em massa",
     "settingsModalityBridge": "Ponte de Modalidade",
     "settingsModalityBridgeSubtitle": "Fallback de imagem/áudio → texto para modelos apenas de texto",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Análises",
     "usageAnalyticsTitle": "Análise de Uso",
+    "tokenDisplayCompact": "Compacto",
+    "tokenDisplayExact": "Exato",
+    "tokenDisplayMode": "Modo de exibição de tokens",
     "diversityScoreTitle": "Diversidade de Provedores",
     "diversityScoreDesc": "Instantâneo da concentração de provedores para a janela de tráfego recente.",
     "diversityShannonEntropy": "Entropia de Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Combos automáticos/* integrados resolvidos dinamicamente a partir de provedores conectados. Use qualquer um desses IDs como campo de modelo — nenhuma configuração é necessária.",
     "autoCatalogExpand": "Expanda o catálogo de roteamento automático",
     "autoCatalogCollapse": "Recolher catálogo de roteamento automático",
+    "autoCatalogComboCount": "{count} combos",
+    "autoCatalogCandidates": "{count} candidatos",
+    "autoCatalogNoCandidates": "Nenhum provedor correspondente",
+    "autoCatalogKindVariant": "variante",
+    "autoCatalogKindTemplate": "modelo",
+    "autoCatalogKindCategory": "categoria",
+    "autoCatalogKindFamily": "família",
+    "autoComboTestTruncated": "{tested} de {total} candidatos ativos testados (maiores pesos primeiro).",
+    "controlCenter": "Centro de Controle",
     "createCombo": "Criar Combo",
     "editCombo": "Editar Combo",
     "deleteCombo": "Excluir Combo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "ativos",
     "showModel": "Mostrar modelo",
     "hideModel": "Ocultar modelo",
+    "blacklistModel": "Bloquear",
+    "blacklistModelTooltip": "Bloquear este modelo e ocultá-lo do catálogo",
     "removeModel": "Remover modelo",
     "rateLimitProtected": "Protegido",
     "rateLimitUnprotected": "Desprotegido",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Configurações do endpoint do modelo salvo",
     "searchByModelAria": "Pesquisar por modelo",
     "selectSupportedEndpoint": "Selecione pelo menos um endpoint suportado",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Créditos extras",
+    "codexPaidCreditsToggleTitle": "Permitir créditos pagos do Codex após o esgotamento da cota da assinatura (cobranças adicionais podem ser aplicadas)",
+    "codexPaidCreditsEnabled": "Créditos pagos do Codex habilitados (cobranças adicionais podem ser aplicadas)",
+    "codexPaidCreditsDisabled": "Créditos pagos do Codex desabilitados",
+    "failedUpdateCodexPaidCredits": "Falha ao atualizar a política de créditos pagos do Codex",
+    "allowCodexPaidCreditsLabel": "Permitir créditos pagos do Codex",
+    "allowCodexPaidCreditsDescription": "Permite que esta conta use créditos pagos depois que a cota da assinatura atingir o limite de corte. Requer créditos disponíveis informados pela OpenAI; pode gerar cobranças. Os limites do Spark e os cooldowns do upstream continuam se aplicando. A disponibilidade de créditos é verificada mesmo se o preflight de cota estiver desabilitado."
   },
   "settings": {
     "title": "Configurações",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Atualizado",
     "lastRefreshed": "Última atualização",
     "providerQuota": "Cota do Provedor",
-    "providerQuotaHomeHint": "Status em tempo real nas contas conectadas"
+    "providerQuotaHomeHint": "Status em tempo real nas contas conectadas",
+    "codexPaidCreditsLabel": "Créditos pagos do Codex",
+    "codexPaidCreditsAvailable": "Disponível (saldo não informado)",
+    "codexPaidCreditsUnavailable": "Indisponível ou limite de gastos atingido",
+    "codexPaidCreditsUnlimited": "Ilimitado"
   },
   "modals": {
     "waitingAuth": "Aguardando Autorização",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Bloqueios de Modelo",
         "count": "Contagem de Conexões"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Gerenciador de Cooldown",
+    "description": "Veja todas as conexões em repouso após falhas, remova cooldowns em massa e ajuste a duração deles.",
+    "loading": "Carregando cooldowns…",
+    "loadFailed": "Não foi possível carregar os cooldowns",
+    "loadFailedDetail": "Verifique sua conexão e atualize a página.",
+    "rules": {
+      "title": "Regras de cooldown",
+      "subtitle": "Aplicar a cada conexão a partir da sua próxima falha.",
+      "stallLabel": "Colocar uma conta em cooldown quando um stream travar",
+      "stallDescription": "Desativado por padrão: uma lentidão geralmente indica um turno de raciocínio longo, não uma conta com problemas.",
+      "oauth": "Contas OAuth",
+      "apikey": "Chaves de API",
+      "baseCooldown": "Cooldown base (segundos)",
+      "baseCooldownHint": "Primeiro cooldown após uma falha. Falhas repetidas dobram o tempo.",
+      "maxBackoffSteps": "Máximo de etapas de backoff",
+      "maxBackoffStepsHint": "Quantas vezes o cooldown pode dobrar.",
+      "save": "Salvar regras",
+      "saved": "Regras de cooldown salvas",
+      "saveFailed": "Não foi possível salvar as regras de cooldown"
+    },
+    "list": {
+      "title": "Conexões fora do roteamento",
+      "subtitle": "Cooldowns e bloqueios de modelo expiram sozinhos. Limpe-os para colocar uma conexão de volta no roteamento agora.",
+      "provider": "Provedor",
+      "allProviders": "Todos os provedores",
+      "showHealthy": "Mostrar conexões saudáveis",
+      "refresh": "Atualizar",
+      "clearSelected": "Limpar selecionadas ({count})",
+      "clearAll": "Limpar tudo",
+      "clear": "Limpar",
+      "select": "Selecionar conexão",
+      "none": "Nenhum",
+      "empty": "Nenhuma conexão está fora do roteamento.",
+      "cleared": "{cleared} conexões e {lockouts} bloqueios de modelo limpos. {skipped} banidos ou expirados foram ignorados.",
+      "clearFailed": "Não foi possível limpar os cooldowns",
+      "columns": {
+        "connection": "Conexão",
+        "provider": "Provedor",
+        "status": "Status",
+        "remaining": "Tempo restante",
+        "lockouts": "Bloqueios de modelo",
+        "lastError": "Último erro"
+      }
+    },
+    "status": {
+      "cooling_down": "Em resfriamento",
+      "model_locked": "Modelo bloqueado",
+      "unavailable": "Indisponível",
+      "terminal": "Requer atenção",
+      "healthy": "Saudável"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Rejeitar requisições antes do despacho quando o modelo alvo nao possui as capacidades necessarias (visao, ferramentas, saída estruturada, janela de contexto). Protege requisições diretas que ignoram o filtro de compatibilidade do combo.",

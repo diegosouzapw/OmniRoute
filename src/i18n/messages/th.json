@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "โหมดบริการ Codex สำหรับคีย์ API นี้",
+    "description": "มีผลกับคำขอ Codex รวมถึงโมเดล Codex ภายในคอมโบ โหมดที่บังคับใช้จะเขียนทับการตั้งค่าของไคลเอ็นต์ การตั้งค่าส่วนกลาง และค่าเริ่มต้นของการเชื่อมต่อ ส่วนผู้ให้บริการรายอื่นจะไม่มีการเปลี่ยนแปลง",
+    "label": "โหมดบริการ",
+    "inherit": "สืบทอดลักษณะการทำงานที่มีอยู่",
+    "default": "บังคับใช้แบบมาตรฐาน (ค่าเริ่มต้น)",
+    "priority": "บังคับใช้แบบเร็ว / ลำดับความสำคัญสูง",
+    "flex": "บังคับใช้แบบยืดหยุ่น",
+    "warning": "การตั้งค่านี้ไม่ได้ให้สิทธิ์เข้าถึงผู้ให้บริการ ความพร้อมใช้งาน ค่าบริการ และการใช้โควตาจะขึ้นอยู่กับบัญชี Codex และโมเดลของคุณ โหมดที่บังคับใช้จำเป็นต้องใช้การรับส่งข้อมูลผ่าน HTTP หรือ Responses WebSocket ส่วนคำขอ app-server จะถูกปฏิเสธ",
+    "confirm": "ใช้ “{mode}” กับคีย์ API นี้หรือไม่? การตั้งค่านี้จะมีผลกับคำขอถัดไป",
+    "save": "บันทึกโหมด",
+    "retry": "ลองอีกครั้ง",
+    "loadError": "ไม่สามารถโหลดโหมดบริการที่บันทึกไว้ได้",
+    "saveError": "ไม่สามารถบันทึกโหมดบริการได้ โปรดลองอีกครั้ง"
+  },
   "common": {
     "save": "บันทึก",
     "cancel": "ยกเลิก",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "กำหนดเส้นทางคำขอที่งบประมาณหมดไปยังผู้ให้บริการ/โมเดลสำรองฟรีในกรณีฉุกเฉิน",
   "featureFlagArenaEloSyncEnabledDescription": "เปิดใช้งานการซิงค์ ELO ของลีดเดอร์บอร์ด Arena AI เป็นระยะสำหรับการจัดอันดับความฉลาดของโมเดล",
   "featureFlagUniversalContextHandoffEnabledDescription": "สร้างและแทรกข้อมูลสรุปการสนทนาเมื่อการกำหนดเส้นทางแบบคอมโบสลับโมเดล ปิดใช้งานเพื่อให้การสลับโมเดลทำงานแยกจากกัน และป้องกันคำขอส่งต่องานเบื้องหลังสำหรับคอมโบทั้งหมดทั้งที่มีอยู่และที่จะสร้างในอนาคต",
+  "featureFlagReasoningReplayEnabledDescription": "แคชและเล่นซ้ำกระบวนการให้เหตุผลของโมเดลในการสนทนาหลายรอบ ปิดใช้งานเพื่อหยุดการจัดเก็บและการแทรกเหตุผลซ้ำ",
   "featureFlagExposeCcDiscoveryAliasesDescription": "โฆษณา claude/&lt;provider&gt;/&lt;model&gt; mirror ids บน /v1/models เพื่อให้รายการการค้นหาโมเดลของ Claude Code แสดงโมเดลที่ไม่ใช่ Claude เตือน: จะทำให้มีรายการในแคตตาล็อกซ้ำสำหรับลูกค้าทุกคนเมื่อเปิดใช้งานทั่วโลก.",
   "featureFlagNoThinkingAliasEnabledDescription": "สวิตช์หลักสำหรับนามแฝงเกตเวย์ no-think/&lt;provider&gt;/&lt;model&gt; เมื่อเปิด (ค่าเริ่มต้น): /v1/models จะแสดงรุ่นย่อยที่ไม่ใช้การคิดสำหรับโมเดล Claude ที่มีความสามารถในการคิดและเข้าเกณฑ์ทุกรุ่น และรหัส no-think/ ที่ส่งมากับคำขอจะถูกแปลงกลับเป็นโมเดลจริงโดยระงับการให้เหตุผล เมื่อปิด: จะไม่มีการแสดงรุ่นย่อยใด ๆ และรหัส no-think/ จะถูกปฏิบัติเช่นเดียวกับรหัสโมเดลอื่นที่ไม่รู้จัก ทั้งนี้ การเลือกเข้าร่วมหรือไม่เข้าร่วมด้วย ModelSpec.noThinkingAlias สำหรับแต่ละโมเดลยังคงมีผลขณะเปิดใช้งานตัวเลือกนี้",
   "featureFlagChatVirtualLanesEnabledDescription": "เปิดใช้เลนรับเข้าเสมือนแบบปรับตัวต่อเทนแนนต์สำหรับการส่งไปยังผู้ให้บริการ (#9654): การพุ่งสูงของเทนแนนต์หนึ่งจะไม่ทำให้อีกเทนแนนต์ได้รับ 503 อีกต่อไป ตัวแปรสภาพแวดล้อม OMNIROUTE_CHAT_VIRTUAL_LANES มีผลเหนือการตั้งค่าแดชบอร์ดนี้ การเปลี่ยนแปลงมีผลเมื่อรีสตาร์ทเซิร์ฟเวอร์",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "มุมมองสดของทุกสิ่งที่กำลังทำงาน",
     "resilienceConnections": "ความยืดหยุ่นของการเชื่อมต่อ",
     "resilienceConnectionsSubtitle": "คูลดาวน์ เบรกเกอร์ สถานะการล็อกเอาต์",
+    "resilienceCooldowns": "ตัวจัดการคูลดาวน์",
+    "resilienceCooldownsSubtitle": "ล้างคูลดาวน์เป็นกลุ่ม",
     "settingsModalityBridge": "สะพานโมดัลิตี้",
     "settingsModalityBridgeSubtitle": "การแปลงภาพ/เสียง → ข้อความสำหรับโมเดลที่มีเฉพาะข้อความ",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "การวิเคราะห์",
     "usageAnalyticsTitle": "การวิเคราะห์การใช้งาน",
+    "tokenDisplayCompact": "แบบย่อ",
+    "tokenDisplayExact": "แบบละเอียด",
+    "tokenDisplayMode": "โหมดแสดงโทเค็น",
     "diversityScoreTitle": "ความหลากหลายของผู้ให้บริการ",
     "diversityScoreDesc": "ภาพรวมความหนาแน่นของผู้ให้บริการสำหรับช่วงเวลาทราฟฟิกล่าสุด",
     "diversityShannonEntropy": "เอนโทรปีของแชนนอน",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "คอมโบอัตโนมัติ/* ในตัวได้รับการแก้ไขแบบไดนามิกจากผู้ให้บริการที่เชื่อมต่อ ใช้รหัสเหล่านี้เป็นช่องโมเดล โดยไม่จำเป็นต้องตั้งค่าใดๆ",
     "autoCatalogExpand": "ขยายแค็ตตาล็อกการกำหนดเส้นทางอัตโนมัติ",
     "autoCatalogCollapse": "ยุบแค็ตตาล็อกการกำหนดเส้นทางอัตโนมัติ",
+    "autoCatalogComboCount": "{count} คอมโบ",
+    "autoCatalogCandidates": "{count} ผู้สมัคร",
+    "autoCatalogNoCandidates": "ไม่มีผู้ให้บริการที่ตรงกัน",
+    "autoCatalogKindVariant": "ตัวแปร",
+    "autoCatalogKindTemplate": "แม่แบบ",
+    "autoCatalogKindCategory": "หมวดหมู่",
+    "autoCatalogKindFamily": "ครอบครัว",
+    "autoComboTestTruncated": "ทดสอบ {tested} จาก {total} ผู้สมัครที่ใช้งานอยู่ (น้ำหนักสูงสุดก่อน)",
+    "controlCenter": "ศูนย์ควบคุม",
     "createCombo": "สร้างคอมโบ",
     "editCombo": "แก้ไขคอมโบ",
     "deleteCombo": "ลบคอมโบ",
@@ -5560,6 +5590,8 @@
     "modelsActive": "ใช้งานอยู่",
     "showModel": "แสดงโมเดล",
     "hideModel": "ซ่อนโมเดล",
+    "blacklistModel": "บล็อก",
+    "blacklistModelTooltip": "บล็อกโมเดลนี้และซ่อนจากแคตตาล็อก",
     "removeModel": "ลบโมเดล",
     "rateLimitProtected": "ได้รับการคุ้มครอง",
     "rateLimitUnprotected": "ไม่มีการป้องกัน",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "การตั้งค่า endpoint ของโมเดลที่บันทึกไว้",
     "searchByModelAria": "ค้นหาตามรุ่น",
     "selectSupportedEndpoint": "เลือกจุดสิ้นสุดที่รองรับอย่างน้อยหนึ่งจุด",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "การตั้งค่า",
@@ -10077,7 +10120,11 @@
     "updatedShort": "อัปเดตแล้ว",
     "lastRefreshed": "รีเฟรชล่าสุดเมื่อ",
     "providerQuota": "โควตาผู้ให้บริการ",
-    "providerQuotaHomeHint": "สถานะแบบเรียลไทม์ของบัญชีที่เชื่อมต่อทั้งหมด"
+    "providerQuotaHomeHint": "สถานะแบบเรียลไทม์ของบัญชีที่เชื่อมต่อทั้งหมด",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "รอการอนุญาต",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "การล็อกเอาต์โมเดล",
         "count": "จำนวนการเชื่อมต่อ"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "ตัวจัดการคูลดาวน์",
+    "description": "ดูการเชื่อมต่อทั้งหมดที่กำลังพักหลังเกิดข้อผิดพลาด ปลดคูลดาวน์เป็นกลุ่ม และปรับแต่งระยะเวลาคูลดาวน์",
+    "loading": "กำลังโหลดคูลดาวน์…",
+    "loadFailed": "ไม่สามารถโหลดคูลดาวน์ได้",
+    "loadFailedDetail": "ตรวจสอบการเชื่อมต่อของคุณและรีเฟรชหน้าเว็บ",
+    "rules": {
+      "title": "กฎคูลดาวน์",
+      "subtitle": "มีผลกับการเชื่อมต่อทั้งหมดตั้งแต่ความล้มเหลวครั้งถัดไป",
+      "stallLabel": "คูลดาวน์บัญชีเมื่อการสตรีมหยุดชะงัก",
+      "stallDescription": "ปิดใช้งานตามค่าเริ่มต้น: การหยุดชะงักมักเกิดจากกระบวนการคิดที่ยาวนาน ไม่ใช่บัญชีมีปัญหา",
+      "oauth": "บัญชี OAuth",
+      "apikey": "คีย์ API",
+      "baseCooldown": "คูลดาวน์เริ่มต้น (วินาที)",
+      "baseCooldownHint": "คูลดาวน์ครั้งแรกหลังเกิดข้อผิดพลาด หากล้มเหลวซ้ำจะเพิ่มขึ้นเป็นสองเท่า",
+      "maxBackoffSteps": "จำนวนขั้นตอน Backoff สูงสุด",
+      "maxBackoffStepsHint": "จำนวนครั้งที่คูลดาวน์สามารถเพิ่มเป็นสองเท่าได้",
+      "save": "บันทึกกฎ",
+      "saved": "บันทึกกฎคูลดาวน์แล้ว",
+      "saveFailed": "ไม่สามารถบันทึกกฎคูลดาวน์ได้"
+    },
+    "list": {
+      "title": "การเชื่อมต่อที่อยู่นอกการกำหนดเส้นทาง",
+      "subtitle": "คูลดาวน์และการล็อกโมเดลจะสิ้นสุดลงเอง ล้างสถานะเพื่อนำการเชื่อมต่อกลับเข้าสู่การกำหนดเส้นทางทันที",
+      "provider": "ผู้ให้บริการ",
+      "allProviders": "ผู้ให้บริการทั้งหมด",
+      "showHealthy": "แสดงการเชื่อมต่อที่สมบูรณ์",
+      "refresh": "รีเฟรช",
+      "clearSelected": "ล้างรายการที่เลือก ({count})",
+      "clearAll": "ล้างทั้งหมด",
+      "clear": "ล้าง",
+      "select": "เลือกการเชื่อมต่อ",
+      "none": "ไม่มี",
+      "empty": "ไม่มีการเชื่อมต่อที่อยู่นอกการกำหนดเส้นทาง",
+      "cleared": "ล้างการเชื่อมต่อ {cleared} รายการและการล็อกโมเดล {lockouts} รายการแล้ว ข้าม {skipped} รายการที่ถูกระงับหรือหมดอายุ",
+      "clearFailed": "ไม่สามารถล้างคูลดาวน์ได้",
+      "columns": {
+        "connection": "การเชื่อมต่อ",
+        "provider": "ผู้ให้บริการ",
+        "status": "สถานะ",
+        "remaining": "เวลาที่เหลือ",
+        "lockouts": "การล็อกโมเดล",
+        "lastError": "ข้อผิดพลาดล่าสุด"
+      }
+    },
+    "status": {
+      "cooling_down": "กำลังคูลดาวน์",
+      "model_locked": "โมเดลถูกล็อก",
+      "unavailable": "ไม่พร้อมใช้งาน",
+      "terminal": "ต้องตรวจสอบ",
+      "healthy": "ปกติ"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "ปฏิเสธคำขอก่อนการส่งเมื่อโมเดลเป้าหมายขาดความสามารถที่จำเป็น (วิสัยทัศน์, เครื่องมือ, ผลลัพธ์ที่มีโครงสร้าง, หน้าต่างบริบท) ป้องกันคำขอจากผู้ให้บริการเดียวที่ข้ามตัวกรองความเข้ากันได้ของเลเยอร์รวม",

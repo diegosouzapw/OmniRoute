@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "ဤ API key အတွက် Codex ဝန်ဆောင်မှုမုဒ်",
+    "description": "ပေါင်းစပ်မော်ဒယ်များအတွင်းရှိ Codex မော်ဒယ်များအပါအဝင် Codex တောင်းဆိုမှုများနှင့် သက်ဆိုင်သည်။ အတင်းသတ်မှတ်ထားသော မုဒ်များသည် client၊ စနစ်တစ်ခုလုံးဆိုင်ရာ ဆက်တင်များနှင့် ချိတ်ဆက်မှု မူလသတ်မှတ်ချက်များကို လွှမ်းမိုးပယ်ဖျက်သည်။ အခြား provider များမှာ မပြောင်းလဲဘဲ ရှိနေမည်။",
+    "label": "ဝန်ဆောင်မှုမုဒ်",
+    "inherit": "လက်ရှိအပြုအမူကို ဆက်ခံရန်",
+    "default": "Standard ကို အတင်းသတ်မှတ်ရန် (မူလ)",
+    "priority": "Fast / Priority ကို အတင်းသတ်မှတ်ရန်",
+    "flex": "Flex ကို အတင်းသတ်မှတ်ရန်",
+    "warning": "ဤလုပ်ဆောင်ချက်သည် provider အသုံးပြုခွင့်ကို ပေးအပ်ခြင်းမဟုတ်ပါ။ ရရှိနိုင်မှု၊ ကုန်ကျစရိတ်များနှင့် quota သုံးစွဲမှုတို့သည် သင်၏ Codex အကောင့်နှင့် မော်ဒယ်ပေါ် မူတည်သည်။ အတင်းသတ်မှတ်ထားသော မုဒ်များအတွက် HTTP သို့မဟုတ် Responses WebSocket ပို့ဆောင်မှု လိုအပ်ပြီး app-server တောင်းဆိုမှုများကို ငြင်းပယ်မည်။",
+    "confirm": "ဤ API key တွင် “{mode}” ကို အသုံးပြုမည်လား။ နောက်ဆက်တွဲတောင်းဆိုမှုများမှစ၍ သက်ရောက်မည်။",
+    "save": "မုဒ်ကို သိမ်းဆည်းရန်",
+    "retry": "ပြန်လည်ကြိုးစားရန်",
+    "loadError": "သိမ်းဆည်းထားသော ဝန်ဆောင်မှုမုဒ်ကို ဖွင့်၍မရပါ။",
+    "saveError": "ဝန်ဆောင်မှုမုဒ်ကို သိမ်းဆည်း၍မရပါ။ ထပ်မံကြိုးစားပါ။"
+  },
   "common": {
     "save": "သိမ်းမည်",
     "cancel": "ပယ်ဖျက်မည်",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "ဘတ်ဂျက်ကုန်ဆုံးသွားသော တောင်းဆိုမှုများကို အရေးပေါ် အခမဲ့ အရန် provider/model သို့ လမ်းကြောင်းပြောင်းပါ။",
   "featureFlagArenaEloSyncEnabledDescription": "မော်ဒယ်ဉာဏ်ရည်ဆိုင်ရာ အဆင့်သတ်မှတ်ချက်များအတွက် Arena AI leaderboard ELO ကို အခါအားလျော်စွာ ထပ်တူပြုခြင်းအား ဖွင့်ပါ။",
   "featureFlagUniversalContextHandoffEnabledDescription": "combo လမ်းကြောင်းရွေးချယ်မှုက မော်ဒယ်များ ပြောင်းသည့်အခါ စကားဝိုင်းအနှစ်ချုပ်များကို ထုတ်လုပ်၍ ထည့်သွင်းပါ။ မော်ဒယ်ပြောင်းလဲမှုများကို သီးခြားစီ ကိုင်တွယ်ရန်နှင့် လက်ရှိနှင့် အနာဂတ် combo အားလုံးအတွက် နောက်ခံလွှဲပြောင်းတောင်းဆိုမှုများကို တားဆီးရန် ပိတ်ပါ။",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Claude Code gateway ၏ မော်ဒယ်ရှာဖွေမှုစာရင်းတွင် Claude မဟုတ်သော မော်ဒယ်များ ပါဝင်စေရန် /v1/models တွင် claude/&lt;provider&gt;/&lt;model&gt; mirror ids များကို ဖော်ပြပါ။ သတိပေးချက်- အားလုံးအတွက် ဖွင့်ထားပါက client အားလုံးတွင် catalog entry အရေအတွက် နှစ်ဆဖြစ်စေသည်။",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; gateway aliases များအတွက် အဓိကခလုတ်။ ဖွင့်ထားလျှင် (မူလသတ်မှတ်ချက်)- /v1/models သည် သတ်မှတ်ချက်ပြည့်မီသော စဉ်းစားဆင်ခြင်နိုင်သည့် Claude မော်ဒယ်တိုင်းအတွက် မစဉ်းစားသည့် မူကွဲတစ်ခုကို ဖော်ပြပြီး တောင်းဆိုမှုတစ်ခုတွင် ပေးပို့သော no-think/ id ကို reasoning ပိတ်ထားသည့် တကယ့်မော်ဒယ်သို့ ပြန်လည်ချိတ်ဆက်ပေးသည်။ ပိတ်ထားလျှင်- မည်သည့်မူကွဲကိုမျှ မဖော်ပြဘဲ no-think/ id ကို အခြားမသိသော model id များကဲ့သို့ သတ်မှတ်သည်။ ဤခလုတ်ဖွင့်ထားစဉ် မော်ဒယ်တစ်ခုချင်းစီ၏ ModelSpec.noThinkingAlias opt-in/opt-out သတ်မှတ်ချက်သည် ဆက်လက်သက်ရောက်သည်။",
   "featureFlagChatVirtualLanesEnabledDescription": "provider dispatch (#9654) အတွက် tenant တစ်ခုချင်းစီအလိုက် အလိုက်သင့်ပြောင်းလဲနိုင်သော virtual admission lanes များကို ဖွင့်ပါ။ tenant တစ်ခု၏ ရုတ်တရက်မြင့်တက်လာသော အသုံးပြုမှုကြောင့် အခြား tenant တွင် 503 ဖြစ်ပေါ်တော့မည်မဟုတ်ပါ။ OMNIROUTE_CHAT_VIRTUAL_LANES env var သည် ဤ dashboard override ထက် ဦးစားပေးသက်ရောက်ပြီး ပြောင်းလဲမှုများသည် server ပြန်လည်စတင်ချိန်တွင် အသက်ဝင်မည်ဖြစ်သည်။",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "လက်ရှိ လုပ်ဆောင်နေသမျှကို တိုက်ရိုက်ကြည့်ရှုခြင်း",
     "resilienceConnections": "ချိတ်ဆက်မှု ခံနိုင်ရည်",
     "resilienceConnectionsSubtitle": "Cooldown၊ breaker နှင့် lockout အခြေအနေ",
+    "resilienceCooldowns": "Cooldown မန်နေဂျာ",
+    "resilienceCooldownsSubtitle": "Cooldown များကို အများအပြား ရှင်းလင်းရန်",
     "settingsModalityBridge": "မီဒီယာပုံစံ ပေါင်းကူးစနစ်",
     "settingsModalityBridgeSubtitle": "စာသားသီးသန့် မော်ဒယ်များအတွက် ပုံ/အသံ → စာသား fallback",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "ခွဲခြမ်းစိတ်ဖြာချက်များ",
     "usageAnalyticsTitle": "အသုံးပြုမှု ခွဲခြမ်းစိတ်ဖြာချက်များ",
+    "tokenDisplayCompact": "ချုံ့",
+    "tokenDisplayExact": "အတိအကျ",
+    "tokenDisplayMode": "တိုကင် ပြသမှု မုဒ်",
     "diversityScoreTitle": "ဝန်ဆောင်မှုပေးသူ ကွဲပြားစုံလင်မှု",
     "diversityScoreDesc": "လတ်တလော traffic ကာလအတွင်း ဝန်ဆောင်မှုပေးသူများထံ traffic စုစည်းမှု၏ အခြေအနေအကျဉ်း။",
     "diversityShannonEntropy": "ရှန်နွန် အင်ထရိုပီ",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "ချိတ်ဆက်ထားသော ဝန်ဆောင်မှုပေးသူများမှ ပြောင်းလဲမှုနှင့်အညီ သတ်မှတ်ပေးသည့် အသင့်ပါ auto/* ပေါင်းစပ်မှုများ။ ဤ ID များထဲမှ မည်သည့်တစ်ခုကိုမဆို model အကွက်အဖြစ် အသုံးပြုနိုင်ပြီး စနစ်ထည့်သွင်းရန် မလိုပါ။",
     "autoCatalogExpand": "အလိုအလျောက် လမ်းကြောင်းခွဲခြင်း ကတ်တလောက်ကို ဖြန့်ကြည့်ရန်",
     "autoCatalogCollapse": "အလိုအလျောက် လမ်းကြောင်းခွဲခြင်း ကတ်တလောက်ကို ခေါက်သိမ်းရန်",
+    "autoCatalogComboCount": "{count} ကွန်ဘို",
+    "autoCatalogCandidates": "{count} လျှောက်လွှာများ",
+    "autoCatalogNoCandidates": "မကိုက်ညီသော ပေးသွင်းသူများ မရှိပါ",
+    "autoCatalogKindVariant": "မျိုးစုံ",
+    "autoCatalogKindTemplate": "နမူနာ",
+    "autoCatalogKindCategory": "အမျိုးအစား",
+    "autoCatalogKindFamily": "မိသားစု",
+    "autoComboTestTruncated": "အသက်ရှင်သော လျှောက်လွှာ {total} ခုထဲမှ {tested} ခုကို စမ်းသပ်ပြီး (အမြင့်ဆုံး အလေးချိန်များ ပထမ)။",
+    "controlCenter": "ထိန်းချုပ်မှု စင်တာ",
     "createCombo": "ပေါင်းစပ်မော်ဒယ် ဖန်တီးရန်",
     "editCombo": "ပေါင်းစပ်မော်ဒယ်ကို တည်းဖြတ်ရန်",
     "deleteCombo": "ပေါင်းစပ်မော်ဒယ်ကို ဖျက်ရန်",
@@ -5560,6 +5590,8 @@
     "modelsActive": "အသုံးပြုနေသည်",
     "showModel": "မော်ဒယ်ကို ပြရန်",
     "hideModel": "မော်ဒယ်ကို ဝှက်ရန်",
+    "blacklistModel": "ပိတ်",
+    "blacklistModelTooltip": "ဤမော်ဒယ်ကို ပိတ်ပြီး ကတ်တလောက်မှ ဖျောက်ပါ",
     "removeModel": "မော်ဒယ်ကို ဖယ်ရှားရန်",
     "rateLimitProtected": "ကာကွယ်ထားသည်",
     "rateLimitUnprotected": "ကာကွယ်မထားပါ",
@@ -5986,6 +6018,13 @@
     "claudeLowPriorityModeDescription": "ဤအကောင့်သည် ၅ နာရီ အသုံးပြုမှုကန့်သတ်ချက်သို့ ရောက်ရှိပြီး Anthropic က ဦးစားပေးအဆင့်နိမ့် လမ်းကြောင်းကို ပေးသည့်အခါ၊ OmniRoute သည် ၎င်းကို လက်ခံပြီး ချိတ်ဆက်မှုကို ခေတ္တနားစေမည့်အစား အချိန်ကာလ ပြန်လည်သတ်မှတ်သည်အထိ anthropic-usage-limit: slow ဖြင့် တောင်းဆိုမှုများကို ဆက်လက်ပေးပို့သည်။ အပတ်စဉ်ကန့်သတ်ချက်သည် ဆက်လက်သက်ရောက်နေပြီး တုံ့ပြန်မှုများသည် လွတ်နေသော စွမ်းဆောင်ရည်ရရှိသည်အထိ စောင့်ရနိုင်သည်။",
     "claudeAutoLimitResetLabel": "စက်ရှင်ကန့်သတ်ချက်ကို အလိုအလျောက် ပြန်လည်သတ်မှတ်ရန် (တစ်ပတ်လျှင် တစ်ကြိမ်)",
     "claudeAutoLimitResetDescription": "ဤအကောင့်သည် ၅ နာရီ အသုံးပြုမှုကန့်သတ်ချက်သို့ ရောက်ရှိပြီး စက်ရှင်ကန့်သတ်ချက် ပြန်လည်သတ်မှတ်မှု ရရှိနိုင်သည့်အခါ၊ OmniRoute သည် ၎င်းကို အလိုအလျောက် ရယူအသုံးပြုပြီး အမြန်နှုန်းအပြည့်ဖြင့် ပြန်လည်ကြိုးစားသည်။ အကောင့်၏ တစ်ပတ်လျှင်တစ်ကြိမ် ပြန်လည်သတ်မှတ်ခွင့်ကို အသုံးပြုပြီး အပတ်စဉ်ကန့်သတ်ချက်တွင်လည်း ဆက်လက်ထည့်သွင်းရေတွက်သည်။",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
     "disableCoolingDescription": "ယာယီ cooldown ကို ကျော်သွားစေပြီး ပြန်လည်ပြင်ဆင်နိုင်သော အမှားများ ဖြစ်ပွားပြီးနောက်တွင်ပင် ဤချိတ်ဆက်မှုကို ဆက်လက်အသုံးပြုနိုင်အောင် ထားပါ (ပိတ်ပင်ခံရခြင်း/သက်တမ်းကုန်ခြင်းကဲ့သို့သော terminal အခြေအနေများမှာ ဆက်လက်သက်ရောက်ပါသည်)။",
     "disableCoolingLabel": "ဤချိတ်ဆက်မှုအတွက် cooldown ကို ပိတ်ရန်",
     "bulkPasteAdded": "{count, plural, one {ကီး 1 ခု ထည့်ပြီး} other {ကီး # ခု ထည့်ပြီး}}",
@@ -6694,7 +6733,11 @@
     "savedModelEndpointSettings": "မော်ဒယ် endpoint ဆက်တင်များကို သိမ်းဆည်းပြီးပါပြီ",
     "searchByModelAria": "မော်ဒယ်ဖြင့် ရှာဖွေရန်",
     "selectSupportedEndpoint": "ပံ့ပိုးထားသော endpoint အနည်းဆုံးတစ်ခုကို ရွေးချယ်ပါ",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
   },
   "settings": {
     "title": "ဆက်တင်များ",
@@ -9628,6 +9671,10 @@
     "streamTransformFailed": "ဒေတာစီးကြောင်းကို ပြောင်းလဲ၍ မရပါ"
   },
   "usage": {
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited",
     "title": "အသုံးပြုမှု",
     "grokExtraUsageCredits": "အပိုအသုံးပြုမှု ခရက်ဒစ်များ",
     "grokAutoTopUp": "အလိုအလျောက် ငွေဖြည့်ခြင်း",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "မော်ဒယ် အသုံးပြုခွင့်ပိတ်ပင်မှုများ",
         "count": "ချိတ်ဆက်မှု အရေအတွက်"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Cooldown မန်နေဂျာ",
+    "description": "အမှားဖြစ်ပြီးနောက် ခေတ္တရပ်နားထားသော ချိတ်ဆက်မှုအားလုံးကို ကြည့်ရှုပါ၊ Cooldown များကို အများအပြား ပယ်ဖျက်ပါ၊ ၎င်းတို့ကြာချိန်ကို ချိန်ညှိပါ။",
+    "loading": "Cooldown များကို တင်နေသည်…",
+    "loadFailed": "Cooldown များကို မဖွင့်နိုင်ပါ",
+    "loadFailedDetail": "သင်၏ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး စာမျက်နှာကို ပြန်လည်စတင်ပါ။",
+    "rules": {
+      "title": "Cooldown စည်းမျဉ်းများ",
+      "subtitle": "နောက်တစ်ကြိမ် အမှားဖြစ်ပေါ်မှုမှစ၍ ချိတ်ဆက်မှုတိုင်းတွင် အသုံးပြုမည်။",
+      "stallLabel": "Stream ရပ်တန့်သွားပါက အကောင့်ကို Cooldown ပြုလုပ်ရန်",
+      "stallDescription": "ပုံမှန်အားဖြင့် ပိတ်ထားသည်- ရပ်တန့်ခြင်းသည် အကောင့်ပျက်စီးခြင်းမဟုတ်ဘဲ အချိန်ကြာမြင့်စွာ စဉ်းစားတွေးခေါ်နေခြင်းကို အများအားဖြင့် ဆိုလိုသည်။",
+      "oauth": "OAuth အကောင့်များ",
+      "apikey": "API ကီးများ",
+      "baseCooldown": "အခြေခံ Cooldown (စက္ကန့်)",
+      "baseCooldownHint": "အမှားဖြစ်ပြီးနောက် ပထမဆုံး Cooldown။ ထပ်ခါတလဲလဲ အမှားဖြစ်ပါက နှစ်ဆတိုးမည်။",
+      "maxBackoffSteps": "အများဆုံး Backoff အဆင့်များ",
+      "maxBackoffStepsHint": "Cooldown နှစ်ဆတိုးနိုင်သည့် အကြိမ်အရေအတွက်။",
+      "save": "စည်းမျဉ်းများကို သိမ်းဆည်းရန်",
+      "saved": "Cooldown စည်းမျဉ်းများကို သိမ်းဆည်းပြီးပါပြီ",
+      "saveFailed": "Cooldown စည်းမျဉ်းများကို သိမ်းဆည်း၍မရပါ"
+    },
+    "list": {
+      "title": "Routing မှ ဖယ်ထုတ်ထားသော ချိတ်ဆက်မှုများ",
+      "subtitle": "Cooldown များနှင့် မော်ဒယ်လော့ခ်ကျမှုများသည် အလိုအလျောက် ပြီးဆုံးမည်ဖြစ်သည်။ ချိတ်ဆက်မှုကို ယခုချက်ချင်း Routing ထဲသို့ ပြန်ထည့်ရန် ၎င်းတို့ကို ရှင်းလင်းပါ။",
+      "provider": "ဝန်ဆောင်မှုပေးသူ",
+      "allProviders": "ဝန်ဆောင်မှုပေးသူ အားလုံး",
+      "showHealthy": "ပုံမှန်အခြေအနေရှိသော ချိတ်ဆက်မှုများကို ပြပါ",
+      "refresh": "ပြန်လည်ဆန်းသစ်ရန်",
+      "clearSelected": "ရွေးချယ်ထားသည်များကို ရှင်းလင်းရန် ({count})",
+      "clearAll": "အားလုံး ရှင်းလင်းရန်",
+      "clear": "ရှင်းလင်းရန်",
+      "select": "ချိတ်ဆက်မှုကို ရွေးချယ်ပါ",
+      "none": "မရှိပါ",
+      "empty": "Routing မှ ဖယ်ထုတ်ထားသော ချိတ်ဆက်မှု မရှိပါ။",
+      "cleared": "ချိတ်ဆက်မှု {cleared} ခုနှင့် မော်ဒယ်လော့ခ်ကျမှု {lockouts} ခုကို ရှင်းလင်းပြီးပါပြီ။ ပိတ်ပင်ထားသော သို့မဟုတ် သက်တမ်းကုန်ဆုံးသွားသော {skipped} ခုကို ကျော်သွားခဲ့သည်။",
+      "clearFailed": "Cooldown များကို ရှင်းလင်း၍မရပါ",
+      "columns": {
+        "connection": "ချိတ်ဆက်မှု",
+        "provider": "ဝန်ဆောင်မှုပေးသူ",
+        "status": "အခြေအနေ",
+        "remaining": "ကျန်ရှိချိန်",
+        "lockouts": "မော်ဒယ်လော့ခ်ကျမှုများ",
+        "lastError": "နောက်ဆုံးအမှား"
+      }
+    },
+    "status": {
+      "cooling_down": "အအေးခံနေသည်",
+      "model_locked": "မော်ဒယ် လော့ခ်ချထားသည်",
+      "unavailable": "မရရှိနိုင်ပါ",
+      "terminal": "သတိပြုရန် လိုအပ်သည်",
+      "healthy": "ကောင်းမွန်သည်"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "ပစ်မှတ်မော်ဒယ်တွင် လိုအပ်သော စွမ်းဆောင်ရည်များ (အမြင်၊ ကိရိယာများ၊ ဖွဲ့စည်းပုံကျ အထွက်၊ ကွန်တက်စ်ဝင်းဒိုး) မရှိပါက ဖြန့်ပို့ခြင်းမပြုမီ တောင်းဆိုမှုများကို ပယ်ချပါ။ ၎င်းသည် combo-layer လိုက်ဖက်ညီမှု စစ်ထုတ်မှုကို ကျော်လွှားသော တစ်ခုတည်းသောပံ့ပိုးသူထံ တိုက်ရိုက်တောင်းဆိုမှုများကို ကာကွယ်ပေးသည်။",

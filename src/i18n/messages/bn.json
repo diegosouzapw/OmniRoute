@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "এই API কী-এর জন্য Codex সার্ভিস মোড",
+    "description": "কম্বোর ভেতরের Codex মডেলসহ Codex অনুরোধগুলোর ক্ষেত্রে প্রযোজ্য। বাধ্যতামূলক মোড ক্লায়েন্ট, গ্লোবাল সেটিংস এবং সংযোগের ডিফল্টকে অগ্রাহ্য করে। অন্যান্য প্রোভাইডার অপরিবর্তিত থাকে।",
+    "label": "সার্ভিস মোড",
+    "inherit": "বিদ্যমান আচরণ অনুসরণ করুন",
+    "default": "Standard বাধ্যতামূলক করুন (ডিফল্ট)",
+    "priority": "Fast / Priority বাধ্যতামূলক করুন",
+    "flex": "Flex বাধ্যতামূলক করুন",
+    "warning": "এটি প্রোভাইডার অ্যাক্সেস দেয় না। প্রাপ্যতা, চার্জ এবং কোটা ব্যবহার আপনার Codex অ্যাকাউন্ট ও মডেলের ওপর নির্ভর করে। বাধ্যতামূলক মোডের জন্য HTTP অথবা Responses WebSocket ট্রান্সপোর্ট প্রয়োজন; app-server অনুরোধ প্রত্যাখ্যান করা হয়।",
+    "confirm": "এই API কী-তে “{mode}” প্রয়োগ করবেন? এটি পরবর্তী অনুরোধগুলো থেকে কার্যকর হবে।",
+    "save": "মোড সংরক্ষণ করুন",
+    "retry": "আবার চেষ্টা করুন",
+    "loadError": "সংরক্ষিত সার্ভিস মোড লোড করা যায়নি।",
+    "saveError": "সার্ভিস মোড সংরক্ষণ করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+  },
   "common": {
     "save": "সংরক্ষণ করুন",
     "cancel": "বাতিল করুন",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "বাজেট শেষ হয়ে যাওয়া অনুরোধগুলো জরুরি ফ্রি ফলব্যাক প্রোভাইডার/মডেলে রুট করুন।",
   "featureFlagArenaEloSyncEnabledDescription": "মডেল ইন্টেলিজেন্স র‍্যাঙ্কিংয়ের জন্য পর্যায়ক্রমিক Arena AI লিডারবোর্ড ELO সিঙ্ক সক্ষম করুন।",
   "featureFlagUniversalContextHandoffEnabledDescription": "কম্বো রাউটিংয়ে মডেল পরিবর্তন হলে কথোপকথনের সারাংশ তৈরি করে যুক্ত করুন। মডেল পরিবর্তনগুলোকে স্বতন্ত্রভাবে বিবেচনা করতে এবং বিদ্যমান ও ভবিষ্যতের সব কম্বোর জন্য ব্যাকগ্রাউন্ড হ্যান্ডঅফ অনুরোধ প্রতিরোধ করতে এটি নিষ্ক্রিয় করুন।",
+  "featureFlagReasoningReplayEnabledDescription": "একাধিক পালাবিশিষ্ট কথোপকথনে মডেলের যুক্তি ক্যাশ করে পুনরায় চালান। যুক্তি সংরক্ষণ ও পুনরায় ঢোকানো বন্ধ করতে নিষ্ক্রিয় করুন।",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models এ claude/&lt;provider&gt;/&lt;model&gt; মিরর আইডি বিজ্ঞাপন দিন যাতে Claude Code গেটওয়ে মডেল আবিষ্কার non-Claude মডেল তালিকাভুক্ত করে। সতর্কতা: এটি গ্লোবালি সক্ষম হলে সমস্ত ক্লায়েন্টের জন্য ক্যাটালগ এন্ট্রি দ্বিগুণ করে।",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; গেটওয়ে অ্যালিয়াসগুলোর প্রধান সুইচ। চালু (ডিফল্ট): /v1/models প্রতিটি যোগ্য চিন্তন-সক্ষম Claude মডেলের জন্য একটি চিন্তনবিহীন ভ্যারিয়েন্ট প্রদর্শন করে এবং কোনো অনুরোধে পাঠানো no-think/ আইডি রিজনিং দমন করে প্রকৃত মডেলে রিজলভ হয়। বন্ধ: কোনো ভ্যারিয়েন্ট প্রদর্শিত হয় না এবং no-think/ আইডিকে অন্য যেকোনো অজানা মডেল আইডির মতো বিবেচনা করা হয়। এটি চালু থাকা অবস্থায়ও প্রতি-মডেলের ModelSpec.noThinkingAlias অপ্ট-ইন/অপ্ট-আউট প্রযোজ্য থাকে।",
   "featureFlagChatVirtualLanesEnabledDescription": "প্রোভাইডার ডিসপ্যাচের জন্য প্রতি-টেন্যান্ট অ্যাডাপ্টিভ ভার্চুয়াল অ্যাডমিশন লেন সক্ষম করুন (#9654): এক টেন্যান্টের বিস্ফোরণ আর অন্য টেন্যান্টে 503 ফেরায় না। OMNIROUTE_CHAT_VIRTUAL_LANES এনভায়রনমেন্ট ভেরিয়েবল এই ড্যাশবোর্ড সেটিংয়ের উপরে প্রাধান্য পায়; পরিবর্তনগুলি সার্ভার পুনরায় চালু হলে কার্যকর হয়।",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "চলমান সবকিছুর লাইভ ভিউ",
     "resilienceConnections": "সংযোগ স্থিতিস্থাপকতা",
     "resilienceConnectionsSubtitle": "কুলডাউন, ব্রেকার, লকআউট অবস্থা",
+    "resilienceCooldowns": "কুলডাউন ম্যানেজার",
+    "resilienceCooldownsSubtitle": "একসাথে একাধিক কুলডাউন সাফ করুন",
     "settingsModalityBridge": "মোডালিটি ব্রিজ",
     "settingsModalityBridgeSubtitle": "ছবি/অডিও → টেক্সট-শুধু মডেলের জন্য টেক্সট ফ্যালব্যাক",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "বিশ্লেষণ",
     "usageAnalyticsTitle": "ব্যবহারের বিশ্লেষণ",
+    "tokenDisplayCompact": "সংক্ষিপ্ত",
+    "tokenDisplayExact": "সঠিক",
+    "tokenDisplayMode": "টোকেন প্রদর্শন মোড",
     "diversityScoreTitle": "প্রদানকারী বৈচিত্র্য",
     "diversityScoreDesc": "সাম্প্রতিক ট্রাফিক উইন্ডোর জন্য প্রোভাইডার কনসেন্ট্রেশন স্ন্যাপশট।",
     "diversityShannonEntropy": "শ্যানন এনট্রপি",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "অন্তর্নির্মিত স্বয়ংক্রিয়/* কম্বোগুলি সংযুক্ত প্রদানকারীদের থেকে গতিশীলভাবে সমাধান করা হয়েছে। মডেল ক্ষেত্র হিসাবে এই আইডিগুলির যে কোনও একটি ব্যবহার করুন — কোনও সেটআপের প্রয়োজন নেই৷",
     "autoCatalogExpand": "স্বয়ংক্রিয়-রাউটিং ক্যাটালগ প্রসারিত করুন",
     "autoCatalogCollapse": "স্বয়ংক্রিয়-রাউটিং ক্যাটালগ সঙ্কুচিত করুন",
+    "autoCatalogComboCount": "{count} কম্বো",
+    "autoCatalogCandidates": "{count} প্রার্থী",
+    "autoCatalogNoCandidates": "মিলছে না এমন প্রদানকারী",
+    "autoCatalogKindVariant": "ভ্যারিয়েন্ট",
+    "autoCatalogKindTemplate": "টেমপ্লেট",
+    "autoCatalogKindCategory": "শ্রেণী",
+    "autoCatalogKindFamily": "পরিবার",
+    "autoComboTestTruncated": "পরীক্ষিত {tested} এর {total} জীবন্ত প্রার্থী (সর্বোচ্চ ওজন প্রথম)।",
+    "controlCenter": "নিয়ন্ত্রণ কেন্দ্র",
     "createCombo": "কম্বো তৈরি করুন",
     "editCombo": "কম্বো সম্পাদনা করুন",
     "deleteCombo": "কম্বো মুছুন",
@@ -5560,6 +5590,8 @@
     "modelsActive": "সক্রিয়",
     "showModel": "মডেল দেখান",
     "hideModel": "মডেল লুকান",
+    "blacklistModel": "ব্লক",
+    "blacklistModelTooltip": "এই মডেল ব্লক করে ক্যাটালগ থেকে লুকান",
     "removeModel": "মডেল সরান",
     "rateLimitProtected": "সুরক্ষিত",
     "rateLimitUnprotected": "অসুরক্ষিত",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "সংরক্ষিত মডেল এন্ডপয়েন্ট সেটিংস",
     "searchByModelAria": "মডেল দ্বারা অনুসন্ধান করুন",
     "selectSupportedEndpoint": "কমপক্ষে একটি সমর্থিত এন্ডপয়েন্ট নির্বাচন করুন",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "সেটিংস",
@@ -10077,7 +10120,11 @@
     "updatedShort": "আপডেট করা হয়েছে",
     "lastRefreshed": "সর্বশেষ রিফ্রেশ করা হয়েছে",
     "providerQuota": "প্রোভাইডার কোটা",
-    "providerQuotaHomeHint": "সংযুক্ত অ্যাকাউন্টগুলোর লাইভ স্ট্যাটাস"
+    "providerQuotaHomeHint": "সংযুক্ত অ্যাকাউন্টগুলোর লাইভ স্ট্যাটাস",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "অনুমোদনের জন্য অপেক্ষা করা হচ্ছে",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "মডেল লকআউট",
         "count": "সংযোগ সংখ্যা"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "কুলডাউন ম্যানেজার",
+    "description": "ব্যর্থতার পর বিরতিতে থাকা প্রতিটি সংযোগ দেখুন, একসাথে কুলডাউন তুলে নিন এবং সেগুলি কতক্ষণ স্থায়ী হবে তা সামঞ্জস্য করুন।",
+    "loading": "কুলডাউন লোড হচ্ছে…",
+    "loadFailed": "কুলডাউন লোড করা যায়নি",
+    "loadFailedDetail": "আপনার সংযোগ পরীক্ষা করুন এবং পৃষ্ঠাটি রিফ্রেশ করুন।",
+    "rules": {
+      "title": "কুলডাউন নিয়মাবলী",
+      "subtitle": "পরবর্তী ব্যর্থতা থেকে প্রতিটি সংযোগে প্রয়োগ করুন।",
+      "stallLabel": "স্ট্রিম আটকে গেলে অ্যাকাউন্ট কুলডাউন করুন",
+      "stallDescription": "ডিফল্টভাবে বন্ধ: আটকে যাওয়ার অর্থ সাধারণত একটি দীর্ঘ রিজনিং টার্ন, নষ্ট অ্যাকাউন্ট নয়।",
+      "oauth": "OAuth অ্যাকাউন্ট",
+      "apikey": "API কী",
+      "baseCooldown": "বেস কুলডাউন (সেকেন্ড)",
+      "baseCooldownHint": "ব্যর্থতার পর প্রথম কুলডাউন। বারবার ব্যর্থ হলে এটি দ্বিগুণ হয়।",
+      "maxBackoffSteps": "সর্বোচ্চ ব্যাকঅফ ধাপ",
+      "maxBackoffStepsHint": "কুলডাউন কতবার দ্বিগুণ হতে পারে।",
+      "save": "নিয়ম সংরক্ষণ করুন",
+      "saved": "কুলডাউন নিয়ম সংরক্ষিত হয়েছে",
+      "saveFailed": "কুলডাউন নিয়ম সংরক্ষণ করা যায়নি"
+    },
+    "list": {
+      "title": "রাউটিংয়ের বাইরে থাকা সংযোগসমূহ",
+      "subtitle": "কুলডাউন এবং মডেল লকআউট নিজে থেকেই শেষ হয়। এখনই কোনো সংযোগকে পুনরায় রাউটিংয়ে অন্তর্ভুক্ত করতে সেগুলি সাফ করুন।",
+      "provider": "প্রোভাইডার",
+      "allProviders": "সকল প্রোভাইডার",
+      "showHealthy": "সচল সংযোগগুলি দেখান",
+      "refresh": "রিফ্রেশ",
+      "clearSelected": "নির্বাচিতগুলি সাফ করুন ({count})",
+      "clearAll": "সব সাফ করুন",
+      "clear": "সাফ করুন",
+      "select": "সংযোগ নির্বাচন করুন",
+      "none": "কোনোটিই নয়",
+      "empty": "কোনো সংযোগ রাউটিংয়ের বাইরে নেই।",
+      "cleared": "{cleared}টি সংযোগ এবং {lockouts}টি মডেল লকআউট সাফ করা হয়েছে। {skipped}টি নিষিদ্ধ বা মেয়াদোত্তীর্ণ এড়িয়ে যাওয়া হয়েছে।",
+      "clearFailed": "কুলডাউন সাফ করা যায়নি",
+      "columns": {
+        "connection": "সংযোগ",
+        "provider": "প্রোভাইডার",
+        "status": "স্ট্যাটাস",
+        "remaining": "বাকি সময়",
+        "lockouts": "মডেল লকআউট",
+        "lastError": "সর্বশেষ ত্রুটি"
+      }
+    },
+    "status": {
+      "cooling_down": "ঠান্ডা হচ্ছে",
+      "model_locked": "মডেল লক করা",
+      "unavailable": "অনুপলব্ধ",
+      "terminal": "মনোযোগ প্রয়োজন",
+      "healthy": "স্বাভাবিক"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "লক্ষ্য মডেলের প্রয়োজনীয় সক্ষমতা (দৃষ্টি, সরঞ্জাম, কাঠামোবদ্ধ আউটপুট, প্রসঙ্গ উইন্ডো) অনুপস্থিত থাকলে প্রেরণের আগে অনুরোধগুলি প্রত্যাখ্যান করুন। এটি কম্বো-লেয়ার সামঞ্জস্য ফিল্টারকে বাইপাস করা সরাসরি একক-প্রদানকারী অনুরোধগুলি রক্ষা করে।",

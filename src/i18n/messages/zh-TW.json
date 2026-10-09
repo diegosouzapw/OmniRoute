@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "此 API 金鑰的 Codex 服務模式",
+    "description": "套用於 Codex 請求，包括組合中的 Codex 模型。強制模式會覆寫用戶端、全域設定和連線預設值。其他提供者不受影響。",
+    "label": "服務模式",
+    "inherit": "沿用現有行為",
+    "default": "強制使用標準模式（預設）",
+    "priority": "強制使用快速／優先模式",
+    "flex": "強制使用彈性模式",
+    "warning": "此設定不會授予提供者存取權限。可用性、費用和配額用量取決於您的 Codex 帳戶和模型。強制模式需要使用 HTTP 或 Responses WebSocket 傳輸；app-server 請求將遭拒絕。",
+    "confirm": "要將「{mode}」套用至此 API 金鑰嗎？此設定將於後續請求生效。",
+    "save": "儲存模式",
+    "retry": "重試",
+    "loadError": "無法載入已儲存的服務模式。",
+    "saveError": "無法儲存服務模式。請再試一次。"
+  },
   "common": {
     "save": "儲存",
     "cancel": "取消",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "將預算耗盡的請求路由到緊急免費備用提供者/模型。",
   "featureFlagArenaEloSyncEnabledDescription": "啟用定期 Arena AI 排行榜 ELO 同步，用於模型智慧排名。",
   "featureFlagUniversalContextHandoffEnabledDescription": "當組合路由切換模型時，產生並注入對話摘要。停用後，模型切換將各自獨立處理，並防止所有現有及未來的組合發出背景交接請求。",
+  "featureFlagReasoningReplayEnabledDescription": "在多輪對話中快取並重播模型推理。停用以停止儲存與重新注入推理。",
   "featureFlagExposeCcDiscoveryAliasesDescription": "在 /v1/models 上廣告 claude/&lt;provider&gt;/&lt;model&gt; 鏡像 ID，以便 Claude Code 閘道模型發現列出非 Claude 模型。警告：當全域啟用時，會為所有客戶端重複目錄條目。",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; 閘道別名的主開關。開啟（預設）：/v1/models 會為每個符合資格且支援思考的 Claude 模型提供不思考變體，而請求中傳送的 no-think/ ID 會解析回實際模型並抑制推理。關閉：不會提供任何變體，且 no-think/ ID 會像其他未知模型 ID 一樣處理。開啟此選項時，每個模型的 ModelSpec.noThinkingAlias 選擇加入／退出設定仍然適用。",
   "featureFlagChatVirtualLanesEnabledDescription": "為提供者調度啟用按租戶的自適應虛擬准入通道（#9654）：一個租戶的突發流量不再導致另一個租戶收到 503。OMNIROUTE_CHAT_VIRTUAL_LANES 環境變數優先於此儀表板設定；變更在伺服器重新啟動後生效。",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "即時檢視所有正在執行的內容",
     "resilienceConnections": "連線韌性",
     "resilienceConnectionsSubtitle": "冷卻、斷路器、鎖定狀態",
+    "resilienceCooldowns": "冷卻管理器",
+    "resilienceCooldownsSubtitle": "批次清除冷卻",
     "settingsModalityBridge": "模態橋接",
     "settingsModalityBridgeSubtitle": "圖像/音頻 → 僅限文本模型的文本回退",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "分析",
     "usageAnalyticsTitle": "用量分析",
+    "tokenDisplayCompact": "精簡",
+    "tokenDisplayExact": "精確",
+    "tokenDisplayMode": "Token 顯示模式",
     "diversityScoreTitle": "提供者多元化",
     "diversityScoreDesc": "近期流量視窗內提供者集中度的快照。",
     "diversityShannonEntropy": "夏農熵",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "內建 auto/* 組合，從已連線的提供者動態解析。直接將這些 ID 作為 model 欄位使用——無需設定。",
     "autoCatalogExpand": "展開自動路由目錄",
     "autoCatalogCollapse": "收起自動路由目錄",
+    "autoCatalogComboCount": "{count} 組合",
+    "autoCatalogCandidates": "{count} 候選人",
+    "autoCatalogNoCandidates": "沒有匹配的提供者",
+    "autoCatalogKindVariant": "變體",
+    "autoCatalogKindTemplate": "模板",
+    "autoCatalogKindCategory": "類別",
+    "autoCatalogKindFamily": "家族",
+    "autoComboTestTruncated": "測試了 {tested} 個中的 {total} 個現場候選人（按最高權重排序）。",
+    "controlCenter": "控制中心",
     "createCombo": "建立組合",
     "editCombo": "編輯組合",
     "deleteCombo": "刪除組合",
@@ -4824,7 +4854,7 @@
     "queuesTitle": "並行閘控",
     "queuesScope": "僅限目前程序。組合閘控僅涵蓋輪詢策略的目標，並非所有組合請求。各閘控計數有所重疊，請勿相加。",
     "queuesCombo": "組合目標閘控（輪詢）",
-    "queuesAdmission": "全域 / 供應商 / 帳號閘控",
+    "queuesAdmission": "全域 / 提供者 / 帳號閘控",
     "queuesEmpty": "此快照中沒有追蹤中的閘控。",
     "queuesStale": "快照已過時",
     "queuesError": "佇列快照無法取得，正在自動重試。",
@@ -5560,6 +5590,8 @@
     "modelsActive": "已啟用",
     "showModel": "顯示模型",
     "hideModel": "隱藏模型",
+    "blacklistModel": "封鎖",
+    "blacklistModelTooltip": "封鎖此模型並從目錄中隱藏",
     "removeModel": "刪除模型",
     "rateLimitProtected": "受保護",
     "rateLimitUnprotected": "無保護",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "已儲存的模型端點設定",
     "searchByModelAria": "按型號搜尋",
     "selectSupportedEndpoint": "請選擇至少一個受支持的端點",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "設定",
@@ -10077,7 +10120,11 @@
     "updatedShort": "更新於",
     "lastRefreshed": "上次重新整理",
     "providerQuota": "提供者配額",
-    "providerQuotaHomeHint": "已連線帳戶的即時狀態"
+    "providerQuotaHomeHint": "已連線帳戶的即時狀態",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "等待授權",
@@ -14214,6 +14261,59 @@
       }
     }
   },
+  "resilienceCooldowns": {
+    "title": "冷卻管理器",
+    "description": "檢視因失敗而處於休止狀態的所有連線、批次解除冷卻，並調整其持續時間。",
+    "loading": "正在載入冷卻狀態…",
+    "loadFailed": "無法載入冷卻狀態",
+    "loadFailedDetail": "請檢查您的網路連線並重新整理頁面。",
+    "rules": {
+      "title": "冷卻規則",
+      "subtitle": "自下次失敗起套用至每個連線。",
+      "stallLabel": "當串流停滯時冷卻帳號",
+      "stallDescription": "預設關閉：停滯通常代表單次耗時較長的推理輪次，而非帳號故障。",
+      "oauth": "OAuth 帳號",
+      "apikey": "API 金鑰",
+      "baseCooldown": "基礎冷卻時間 (秒)",
+      "baseCooldownHint": "失敗後的首次冷卻時間。重複失敗會使其加倍。",
+      "maxBackoffSteps": "最大退避次數",
+      "maxBackoffStepsHint": "冷卻時間可加倍的次數。",
+      "save": "儲存規則",
+      "saved": "已儲存冷卻規則",
+      "saveFailed": "無法儲存冷卻規則"
+    },
+    "list": {
+      "title": "退出路由的連線",
+      "subtitle": "冷卻與模型鎖定會自動結束。立即清除它們可讓連線重新加入路由。",
+      "provider": "提供者",
+      "allProviders": "所有提供者",
+      "showHealthy": "顯示狀況良好的連線",
+      "refresh": "重新整理",
+      "clearSelected": "清除所選 ({count})",
+      "clearAll": "全部清除",
+      "clear": "清除",
+      "select": "選取連線",
+      "none": "無",
+      "empty": "沒有退出路由的連線。",
+      "cleared": "已清除 {cleared} 個連線與 {lockouts} 個模型鎖定。已略過 {skipped} 個被封鎖或過期的項目。",
+      "clearFailed": "無法清除冷卻狀態",
+      "columns": {
+        "connection": "連線",
+        "provider": "提供者",
+        "status": "狀態",
+        "remaining": "剩餘時間",
+        "lockouts": "模型鎖定",
+        "lastError": "上次錯誤"
+      }
+    },
+    "status": {
+      "cooling_down": "冷卻中",
+      "model_locked": "模型已鎖定",
+      "unavailable": "無法使用",
+      "terminal": "需要注意",
+      "healthy": "良好"
+    }
+  },
   "featureFlagCapabilityFilterEnabledDescription": "在目標模型缺乏所需功能（視覺、工具、結構化輸出、上下文窗口）時，拒絕發送前的請求。保護繞過組合層兼容性過濾器的直接單一提供者請求。",
   "featureFlagUsageLimitIgnoreUnpricedDescription": "在每個金鑰的 USD 用量配額中，將未定價模型的使用量計為 $0，而非視為超出配額。預設關閉：未定價模型或路由別名可能會隱藏實際支出，因此配額採取封閉式失敗。",
   "featureFlagDisableContextWindowChecksDescription": "對直接的單一模型請求，略過 OmniRoute 的本機上下文視窗與輸入權杖上限檢查。上游提供者仍會強制執行其實際限制。提示詞壓縮與輸出權杖上限仍會生效。",
@@ -14743,7 +14843,7 @@
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "停用在 /v1/models 目錄中產生思考層級變體（例如 -low、-medium、-high）。",
   "connectionTest": {
     "title": "測試訊息",
-    "description": "透過此帳戶傳送一個實際請求。這會使用少量配額，且視供應商而定，可能會啟動用量週期。",
+    "description": "透過此帳戶傳送一個實際請求。這會使用少量配額，且視提供者而定，可能會啟動用量週期。",
     "loading": "正在載入帳戶模型…",
     "model": "此帳戶的測試模型",
     "chooseModel": "選擇模型",
@@ -14758,7 +14858,7 @@
     "answer": "模型回應",
     "failed": "請求失敗。請再試一次。",
     "settingsTitle": "手動帳戶測試訊息",
-    "settingsDescription": "此訊息供「連線」和「供應商配額」下方的測試按鈕使用。請為每個帳戶分別選擇模型。儲存不會傳送訊息，也不會啟用自動 Ping。",
+    "settingsDescription": "此訊息供「連線」和「提供者配額」下方的測試按鈕使用。請為每個帳戶分別選擇模型。儲存不會傳送訊息，也不會啟用自動 Ping。",
     "saveMessage": "儲存訊息",
     "defaultModel": "預設測試模型",
     "defaultModelHint": "此帳戶的「測試訊息」按鈕會自動使用此設定。設定會隨連線儲存；不會傳送任何訊息。"

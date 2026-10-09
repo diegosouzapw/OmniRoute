@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex paslaugos režimas šiam API raktui",
+    "description": "Taikoma Codex užklausoms, įskaitant Codex modelius deriniuose. Priverstiniai režimai turi pirmenybę prieš kliento ir visuotinius nustatymus bei ryšio numatytąsias reikšmes. Kiti teikėjai lieka nepakeisti.",
+    "label": "Paslaugos režimas",
+    "inherit": "Paveldėti esamą veikimą",
+    "default": "Priverstinai naudoti standartinį režimą (numatytasis)",
+    "priority": "Priverstinai naudoti greitąjį / prioritetinį režimą",
+    "flex": "Priverstinai naudoti lankstųjį režimą",
+    "warning": "Tai nesuteikia prieigos prie teikėjo. Prieinamumas, mokesčiai ir kvotos naudojimas priklauso nuo jūsų Codex paskyros ir modelio. Priverstiniams režimams reikalingas HTTP arba Responses WebSocket perdavimo būdas; app-server užklausos atmetamos.",
+    "confirm": "Taikyti „{mode}“ šiam API raktui? Pakeitimas įsigalios vėlesnėms užklausoms.",
+    "save": "Išsaugoti režimą",
+    "retry": "Bandyti dar kartą",
+    "loadError": "Nepavyko įkelti išsaugoto paslaugos režimo.",
+    "saveError": "Nepavyko išsaugoti paslaugos režimo. Bandykite dar kartą."
+  },
   "common": {
     "save": "Išsaugoti",
     "cancel": "Atšaukti",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Nukreipti užklausas, kurių biudžetas išnaudotas, į avarinį nemokamą atsarginį teikėją / modelį.",
   "featureFlagArenaEloSyncEnabledDescription": "Įjungti periodinę Arena AI lyderių lentelės ELO sinchronizaciją modelių intelekto reitingams.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generuoti ir įterpti pokalbio santraukas, kai kombinuoto maršruto parinkimas perjungia modelius. Išjunkite, kad modelių perjungimai būtų vertinami nepriklausomai ir būtų išvengta foninių perdavimo užklausų visoms esamoms ir būsimoms kombinacijoms.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Skelbti claude/&lt;provider&gt;/&lt;model&gt; dubliuojamuosius ID per /v1/models, kad Claude Code šliuzo modelių aptikimo funkcija rodytų ne Claude modelius. Įspėjimas: įjungus visuotinai, katalogo įrašų skaičius padvigubėja visiems klientams.",
   "featureFlagNoThinkingAliasEnabledDescription": "Pagrindinis no-think/&lt;provider&gt;/&lt;model&gt; šliuzo alternatyviųjų vardų jungiklis. Įjungta (numatyta): /v1/models skelbia „no-thinking“ variantą kiekvienam tinkamam mąstymo funkciją turinčiam Claude modeliui, o užklausoje pateiktas no-think/ ID susiejamas su tikruoju modeliu išjungus samprotavimą. Išjungta: variantai neskelbiami, o no-think/ ID laikomas tokiu pačiu nežinomu modelio ID kaip ir bet kuris kitas. Kol ši funkcija įjungta, vis tiek taikoma kiekvieno modelio ModelSpec.noThinkingAlias įjungimo arba išjungimo nuostata.",
   "featureFlagChatVirtualLanesEnabledDescription": "Įjungti kiekvienam nuomotojui pritaikomas adaptyvias virtualias priėmimo juostas teikėjų siuntimui (#9654): vieno nuomotojo srautas nebesukelia 503 klaidos kitam. Aplinkos kintamasis OMNIROUTE_CHAT_VIRTUAL_LANES turi pirmenybę prieš šį skydelio nustatymą; pakeitimai įsigalioja po serverio paleidimo iš naujo.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Tiesioginė visų vykdomų procesų apžvalga",
     "resilienceConnections": "Ryšio atsparumas",
     "resilienceConnectionsSubtitle": "Atvėsimo, grandinės pertraukiklio, užrakinimo būsena",
+    "resilienceCooldowns": "Atvėsimų tvarkyklė",
+    "resilienceCooldownsSubtitle": "Masiškai išvalyti atvėsimus",
     "settingsModalityBridge": "Modalumo tiltas",
     "settingsModalityBridgeSubtitle": "Vaizdo / garso → teksto atsarginis režimas modeliams, apdorojantiems tik tekstą",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "Naudojimo analitika",
+    "tokenDisplayCompact": "Glaustas",
+    "tokenDisplayExact": "Tikslus",
+    "tokenDisplayMode": "Žetonų rodymo režimas",
     "diversityScoreTitle": "Teikėjų įvairovė",
     "diversityScoreDesc": "Pastarojo srauto laikotarpio teikėjų koncentracijos apžvalga.",
     "diversityShannonEntropy": "Šenono entropija",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Integruotos auto/* kombinacijos, dinamiškai parenkamos iš prijungtų teikėjų. Naudokite bet kurį iš šių ID kaip modelio lauko reikšmę — konfigūruoti nereikia.",
     "autoCatalogExpand": "Išskleisti automatinio maršrutizavimo katalogą",
     "autoCatalogCollapse": "Sutraukti automatinio maršrutizavimo katalogą",
+    "autoCatalogComboCount": "{count} kombinacijų",
+    "autoCatalogCandidates": "{count} kandidatų",
+    "autoCatalogNoCandidates": "Nėra atitinkančių tiekėjų",
+    "autoCatalogKindVariant": "variantas",
+    "autoCatalogKindTemplate": "šablonas",
+    "autoCatalogKindCategory": "kategorija",
+    "autoCatalogKindFamily": "šeima",
+    "autoComboTestTruncated": "Išbandyta {tested} iš {total} gyvų kandidatų (aukščiausi svoriai pirmiausia).",
+    "controlCenter": "Valdymo centras",
     "createCombo": "Sukurti kombinaciją",
     "editCombo": "Redaguoti kombinaciją",
     "deleteCombo": "Ištrinti kombinaciją",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Aktyvus",
     "showModel": "Rodyti modelį",
     "hideModel": "Slėpti modelį",
+    "blacklistModel": "Blokuoti",
+    "blacklistModelTooltip": "Blokuoti šį modelį ir paslėpti jį iš katalogo",
     "removeModel": "Pašalinti modelį",
     "rateLimitProtected": "Apsaugotas",
     "rateLimitUnprotected": "Neapsaugotas",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Modelio galinio taško nustatymai išsaugoti",
     "searchByModelAria": "Ieškoti pagal modelį",
     "selectSupportedEndpoint": "Pasirinkite bent vieną palaikomą galinį tašką",
-    "antigravityClientProfileHarness": "Testavimo aplinka / CLI"
+    "antigravityClientProfileHarness": "Testavimo aplinka / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Nustatymai",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Atnaujinta",
     "lastRefreshed": "Paskutinį kartą atnaujinta",
     "providerQuota": "Teikėjo kvota",
-    "providerQuotaHomeHint": "Būsena realiuoju laiku visose prijungtose paskyrose"
+    "providerQuotaHomeHint": "Būsena realiuoju laiku visose prijungtose paskyrose",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Laukiama autorizacijos",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Modelių blokavimai",
         "count": "Jungčių skaičius"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Atvėsimų tvarkyklė",
+    "description": "Peržiūrėkite visus ryšius, pristabdytus po trikčių, masiškai atšaukite atvėsimus ir koreguokite jų trukmę.",
+    "loading": "Įkeliami atvėsimai…",
+    "loadFailed": "Nepavyko įkelti atvėsimų",
+    "loadFailedDetail": "Patikrinkite ryšį ir atnaujinkite puslapį.",
+    "rules": {
+      "title": "Atvėsimo taisyklės",
+      "subtitle": "Taikoma kiekvienam ryšiui nuo kitos jo trikties.",
+      "stallLabel": "Pristabdyti paskyrą, kai srautas užstringa",
+      "stallDescription": "Pagal numatytuosius nustatymus išjungta: užstrigimas dažniausiai reiškia vieną ilgą samprotavimo ciklą, o ne neveikiančią paskyrą.",
+      "oauth": "OAuth paskyros",
+      "apikey": "API raktai",
+      "baseCooldown": "Bazinis atvėsimas (sekundėmis)",
+      "baseCooldownHint": "Pirmasis atvėsimas po trikties. Pasikartojančios triktys jį padvigubina.",
+      "maxBackoffSteps": "Maksimalus atsitraukimo žingsnių skaičius",
+      "maxBackoffStepsHint": "Kiek kartų atvėsimas gali padvigubėti.",
+      "save": "Išsaugoti taisykles",
+      "saved": "Atvėsimo taisyklės išsaugotos",
+      "saveFailed": "Nepavyko išsaugoti atvėsimo taisyklių"
+    },
+    "list": {
+      "title": "Maršrutizavime nedalyvaujantys ryšiai",
+      "subtitle": "Atvėsimai ir modelių blokavimai baigiasi savaime. Išvalykite juos, kad ryšys vėl būtų įtrauktas į maršrutizavimą.",
+      "provider": "Teikėjas",
+      "allProviders": "Visi teikėjai",
+      "showHealthy": "Rodyti veikiančius ryšius",
+      "refresh": "Atnaujinti",
+      "clearSelected": "Išvalyti pasirinktus ({count})",
+      "clearAll": "Išvalyti visus",
+      "clear": "Išvalyti",
+      "select": "Pasirinkti ryšį",
+      "none": "Nėra",
+      "empty": "Nė vienas ryšys nėra pašalintas iš maršrutizavimo.",
+      "cleared": "Išvalyta {cleared} ryšių ir {lockouts} modelių blokavimų. Praleista {skipped} užblokuotų ar nebegaliojančių.",
+      "clearFailed": "Nepavyko išvalyti atvėsimų",
+      "columns": {
+        "connection": "Ryšys",
+        "provider": "Teikėjas",
+        "status": "Būsena",
+        "remaining": "Liko laiko",
+        "lockouts": "Modelių blokavimai",
+        "lastError": "Paskutinė klaida"
+      }
+    },
+    "status": {
+      "cooling_down": "Vėsta",
+      "model_locked": "Modelis užrakintas",
+      "unavailable": "Nepasiekiamas",
+      "terminal": "Reikia dėmesio",
+      "healthy": "Tvarkinga"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Atmesti užklausas prieš jas perduodant, kai tikslinis modelis neturi reikiamų galimybių (vaizdų apdorojimo, įrankių, struktūrizuotos išvesties, konteksto lango). Tai apsaugo tiesiogines vienam teikėjui skirtas užklausas, kurios apeina derinių lygmens suderinamumo filtrą.",

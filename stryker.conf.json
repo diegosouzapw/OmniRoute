@@ -59,7 +59,9 @@
       "tests/unit/stream-stall-no-account-cooldown.test.ts",
       "tests/unit/claude-passthrough-unsigned-thinking-12917.test.ts",
       "tests/unit/combo-error-code-terminal.test.ts",
+      "tests/unit/combo-protected-stop-diagnostics.test.ts",
       "tests/unit/model-validation-runner.test.ts",
+      "tests/unit/model-concurrency-gate.test.ts",
       "tests/unit/bare-403-neutral.test.ts",
       "tests/unit/codex-gpt61-sol.test.ts",
       "tests/unit/chat-noauth-model-cooldown.test.ts",
@@ -317,6 +319,7 @@
       "tests/unit/executor-contract-violation-terminal.test.ts",
       "tests/unit/executor-devin-cli-agentic-acp.test.ts",
       "tests/unit/executor-web-cookie-sweep.test.ts",
+      "tests/unit/executor-twinmind.test.ts",
       "tests/unit/expiry-first-account-rotation.test.ts",
       "tests/unit/explicit-inactive-probe-w2.test.ts",
       "tests/unit/false-terminal-401-quota.test.ts",
@@ -437,6 +440,7 @@
       "tests/unit/repro-glm-iso-reset-24h-cap.test.ts",
       "tests/unit/reset-aware-request-scope-12600.test.ts",
       "tests/unit/resilience-connections.test.ts",
+      "tests/unit/resilience-cooldown-manager.test.ts",
       "tests/unit/responses-handler.test.ts",
       "tests/unit/responses-passthrough-openai-compatible.test.ts",
       "tests/unit/retry-after-provenance.test.ts",
@@ -596,7 +600,9 @@
       "tests/unit/version-manager-local-only.test.ts",
       "tests/unit/stream-failure-after-output-no-model-lockout.test.ts",
       "tests/unit/db-proxies-ventilated.test.ts",
-      "tests/unit/github-copilot-model-not-supported-learning-15634.test.ts"
+      "tests/unit/github-copilot-model-not-supported-learning-15634.test.ts",
+      "tests/unit/alibaba-free-quota-drain-preserves-model-catalog-cache.test.ts",
+      "tests/unit/upstreamErrorEnvelope.test.ts"
     ],
     "nodeArgs": [
       "--import",

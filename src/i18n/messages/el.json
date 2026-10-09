@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Λειτουργία υπηρεσίας Codex για αυτό το κλειδί API",
+    "description": "Ισχύει για αιτήματα Codex, συμπεριλαμβανομένων των μοντέλων Codex μέσα σε συνδυασμούς. Οι εξαναγκασμένες λειτουργίες υπερισχύουν των ρυθμίσεων του προγράμματος-πελάτη, των καθολικών ρυθμίσεων και των προεπιλογών σύνδεσης. Οι άλλοι πάροχοι παραμένουν αμετάβλητοι.",
+    "label": "Λειτουργία υπηρεσίας",
+    "inherit": "Διατήρηση υπάρχουσας συμπεριφοράς",
+    "default": "Εξαναγκασμός Τυπικής λειτουργίας (προεπιλογή)",
+    "priority": "Εξαναγκασμός Γρήγορης λειτουργίας / Προτεραιότητας",
+    "flex": "Εξαναγκασμός Ευέλικτης λειτουργίας",
+    "warning": "Αυτό δεν παρέχει πρόσβαση στον πάροχο. Η διαθεσιμότητα, οι χρεώσεις και η κατανάλωση του ορίου χρήσης εξαρτώνται από τον λογαριασμό σας στο Codex και το μοντέλο. Οι εξαναγκασμένες λειτουργίες απαιτούν μεταφορά HTTP ή Responses WebSocket· τα αιτήματα app-server απορρίπτονται.",
+    "confirm": "Να εφαρμοστεί η λειτουργία «{mode}» σε αυτό το κλειδί API; Η αλλαγή θα ισχύσει για τα επόμενα αιτήματα.",
+    "save": "Αποθήκευση λειτουργίας",
+    "retry": "Επανάληψη",
+    "loadError": "Δεν ήταν δυνατή η φόρτωση της αποθηκευμένης λειτουργίας υπηρεσίας.",
+    "saveError": "Δεν ήταν δυνατή η αποθήκευση της λειτουργίας υπηρεσίας. Δοκιμάστε ξανά."
+  },
   "common": {
     "save": "Αποθήκευση",
     "cancel": "Ακύρωση",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Δρομολόγηση αιτημάτων των οποίων ο προϋπολογισμός έχει εξαντληθεί στον δωρεάν εφεδρικό πάροχο/μοντέλο έκτακτης ανάγκης.",
   "featureFlagArenaEloSyncEnabledDescription": "Ενεργοποίηση περιοδικού συγχρονισμού ELO του πίνακα κατάταξης Arena AI για βαθμολογίες ευφυΐας μοντέλων.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Δημιουργία και εισαγωγή περιλήψεων συνομιλιών όταν η δρομολόγηση combo αλλάζει μοντέλα. Απενεργοποιήστε για να αντιμετωπίζονται οι αλλαγές μοντέλων ανεξάρτητα και να αποτρέπονται αιτήματα παρασκηνίου handoff για όλα τα υπάρχοντα και μελλοντικά combo.",
+  "featureFlagReasoningReplayEnabledDescription": "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Διαφήμιση αναγνωριστικών καθρέφτη claude/&lt;provider&gt;/&lt;model&gt; στο /v1/models ώστε η ανακάλυψη μοντέλων πύλης Claude Code να εμφανίζει μη-Claude μοντέλα. Προειδοποίηση: διπλασιάζει τις εγγραφές καταλόγου για όλους τους πελάτες όταν ενεργοποιείται καθολικά.",
   "featureFlagNoThinkingAliasEnabledDescription": "Κύριος διακόπτης για τα ψευδώνυμα πύλης no-think/&lt;provider&gt;/&lt;model&gt;. Ενεργό (προεπιλογή): το /v1/models διαφημίζει μια παραλλαγή χωρίς σκέψη για κάθε κατάλληλο Claude μοντέλο ικανό για σκέψη, και ένα αναγνωριστικό no-think/ που αποστέλλεται σε αίτημα επιλύεται στο πραγματικό μοντέλο με καταστολή του συλλογισμού. Ανενεργό: δεν διαφημίζονται παραλλαγές και ένα αναγνωριστικό no-think/ αντιμετωπίζεται όπως οποιοδήποτε άλλο άγνωστο αναγνωριστικό μοντέλου. Η επιλογή ενεργοποίησης/απενεργοποίησης ανά μοντέλο ModelSpec.noThinkingAlias εξακολουθεί να ισχύει ενώ αυτό είναι ενεργό.",
   "featureFlagChatVirtualLanesEnabledDescription": "Ενεργοποίηση προσαρμοστικών εικονικών λωρίδων αποδοχής ανά μισθωτή για αποστολή παρόχου (#9654): η αιχμή κίνησης ενός μισθωτή δεν προκαλεί πλέον σφάλματα 503 σε άλλον. Η μεταβλητή περιβάλλοντος OMNIROUTE_CHAT_VIRTUAL_LANES υπερισχύει αυτής της παράκαμψης του πίνακα ελέγχου· οι αλλαγές τίθενται σε ισχύ κατά την επανεκκίνηση του διακομιστή.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Ζωντανή προβολή όλων όσων εκτελούνται",
     "resilienceConnections": "Ανθεκτικότητα σύνδεσης",
     "resilienceConnectionsSubtitle": "Κατάσταση περιόδου αναμονής, διακόπτη κυκλώματος και κλειδώματος",
+    "resilienceCooldowns": "Διαχειριστής περιόδων αναμονής",
+    "resilienceCooldownsSubtitle": "Μαζική εκκαθάριση περιόδων αναμονής",
     "settingsModalityBridge": "Γέφυρα τροπικοτήτων",
     "settingsModalityBridgeSubtitle": "Εναλλακτική μετατροπή εικόνας/ήχου → κειμένου για μοντέλα αποκλειστικά κειμένου",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Αναλυτικά στοιχεία",
     "usageAnalyticsTitle": "Αναλυτικά στοιχεία χρήσης",
+    "tokenDisplayCompact": "Συμπαγής",
+    "tokenDisplayExact": "Ακριβής",
+    "tokenDisplayMode": "Λειτουργία εμφάνισης tokens",
     "diversityScoreTitle": "Ποικιλία παρόχων",
     "diversityScoreDesc": "Στιγμιότυπο συγκέντρωσης παρόχων για το πρόσφατο παράθυρο κίνησης.",
     "diversityShannonEntropy": "Εντροπία Shannon",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Ενσωματωμένοι συνδυασμοί auto/* που επιλύονται δυναμικά από συνδεδεμένους παρόχους. Χρησιμοποιήστε οποιοδήποτε από αυτά τα αναγνωριστικά ως τιμή του πεδίου μοντέλου — δεν απαιτείται ρύθμιση.",
     "autoCatalogExpand": "Ανάπτυξη καταλόγου αυτόματης δρομολόγησης",
     "autoCatalogCollapse": "Σύμπτυξη καταλόγου αυτόματης δρομολόγησης",
+    "autoCatalogComboCount": "{count} συνδυασμοί",
+    "autoCatalogCandidates": "{count} υποψήφιοι",
+    "autoCatalogNoCandidates": "Δεν υπάρχουν αντίστοιχοι πάροχοι",
+    "autoCatalogKindVariant": "παραλλαγή",
+    "autoCatalogKindTemplate": "πρότυπο",
+    "autoCatalogKindCategory": "κατηγορία",
+    "autoCatalogKindFamily": "οικογένεια",
+    "autoComboTestTruncated": "Δοκιμάστηκαν {tested} από {total} ζωντανούς υποψηφίους (με τις υψηλότερες βαρύτητες πρώτα).",
+    "controlCenter": "Κέντρο Ελέγχου",
     "createCombo": "Δημιουργία Συνδυασμού",
     "editCombo": "Επεξεργασία Συνδυασμού",
     "deleteCombo": "Διαγραφή Συνδυασμού",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Ενεργό",
     "showModel": "Εμφάνιση μοντέλου",
     "hideModel": "Απόκρυψη μοντέλου",
+    "blacklistModel": "Αποκλεισμός",
+    "blacklistModelTooltip": "Απόκλεισε αυτό το μοντέλο και απόκρυψέ το από τον κατάλογο",
     "removeModel": "Αφαίρεση μοντέλου",
     "rateLimitProtected": "Προστατευμένο",
     "rateLimitUnprotected": "Μη προστατευμένο",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Οι ρυθμίσεις τελικού σημείου μοντέλου αποθηκεύτηκαν",
     "searchByModelAria": "Αναζήτηση με βάση το μοντέλο",
     "selectSupportedEndpoint": "Επιλέξτε τουλάχιστον ένα υποστηριζόμενο endpoint",
-    "antigravityClientProfileHarness": "Harness / CLI"
+    "antigravityClientProfileHarness": "Harness / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Ρυθμίσεις",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Ενημερώθηκε",
     "lastRefreshed": "Τελευταία ανανέωση",
     "providerQuota": "Όριο παρόχου",
-    "providerQuotaHomeHint": "Ζωντανή κατάσταση σε όλους τους συνδεδεμένους λογαριασμούς"
+    "providerQuotaHomeHint": "Ζωντανή κατάσταση σε όλους τους συνδεδεμένους λογαριασμούς",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Αναμονή εξουσιοδότησης",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Κλειδώματα μοντέλων",
         "count": "Αριθμός συνδέσεων"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Διαχειριστής περιόδων αναμονής",
+    "description": "Δείτε κάθε σύνδεση που βρίσκεται σε παύση μετά από αποτυχίες, άρετε τις περιόδους αναμονής μαζικά και ρυθμίστε τη διάρκειά τους.",
+    "loading": "Φόρτωση περιόδων αναμονής…",
+    "loadFailed": "Δεν ήταν δυνατή η φόρτωση των περιόδων αναμονής",
+    "loadFailedDetail": "Ελέγξτε τη σύνδεσή σας και ανανεώστε τη σελίδα.",
+    "rules": {
+      "title": "Κανόνες περιόδου αναμονής",
+      "subtitle": "Εφαρμογή σε κάθε σύνδεση από την επόμενη αποτυχία της.",
+      "stallLabel": "Θέση λογαριασμού σε περίοδο αναμονής όταν μια ροή διακόπτεται",
+      "stallDescription": "Απενεργοποιημένο από προεπιλογή: μια καθυστέρηση συνήθως υποδηλώνει έναν μεγάλο γύρο συλλογισμού, όχι μη λειτουργικό λογαριασμό.",
+      "oauth": "Λογαριασμοί OAuth",
+      "apikey": "Κλειδιά API",
+      "baseCooldown": "Βασική περίοδος αναμονής (δευτερόλεπτα)",
+      "baseCooldownHint": "Πρώτη περίοδος αναμονής μετά από αποτυχία. Οι επαναλαμβανόμενες αποτυχίες τη διπλασιάζουν.",
+      "maxBackoffSteps": "Μέγιστα βήματα backoff",
+      "maxBackoffStepsHint": "Πόσες φορές μπορεί να διπλασιαστεί η περίοδος αναμονής.",
+      "save": "Αποθήκευση κανόνων",
+      "saved": "Οι κανόνες περιόδου αναμονής αποθηκεύτηκαν",
+      "saveFailed": "Δεν ήταν δυνατή η αποθήκευση των κανόνων περιόδου αναμονής"
+    },
+    "list": {
+      "title": "Συνδέσεις εκτός δρομολόγησης",
+      "subtitle": "Οι περίοδοι αναμονής και τα κλειδώματα μοντέλων λήγουν αυτόματα. Εκκαθαρίστε τα για να επαναφέρετε μια σύνδεση στη δρομολόγηση τώρα.",
+      "provider": "Πάροχος",
+      "allProviders": "Όλοι οι πάροχοι",
+      "showHealthy": "Εμφάνιση υγιών συνδέσεων",
+      "refresh": "Ανανέωση",
+      "clearSelected": "Εκκαθάριση επιλεγμένων ({count})",
+      "clearAll": "Εκκαθάριση όλων",
+      "clear": "Εκκαθάριση",
+      "select": "Επιλογή σύνδεσης",
+      "none": "Καμία",
+      "empty": "Καμία σύνδεση δεν είναι εκτός δρομολόγησης.",
+      "cleared": "Εκκαθαρίστηκαν {cleared} συνδέσεις και {lockouts} κλειδώματα μοντέλων. Παραλείφθηκαν {skipped} αποκλεισμένες ή ληγμένες.",
+      "clearFailed": "Δεν ήταν δυνατή η εκκαθάριση των περιόδων αναμονής",
+      "columns": {
+        "connection": "Σύνδεση",
+        "provider": "Πάροχος",
+        "status": "Κατάσταση",
+        "remaining": "Χρόνος που απομένει",
+        "lockouts": "Κλειδώματα μοντέλων",
+        "lastError": "Τελευταίο σφάλμα"
+      }
+    },
+    "status": {
+      "cooling_down": "Σε αποσυμφόρηση",
+      "model_locked": "Κλειδωμένο μοντέλο",
+      "unavailable": "Μη διαθέσιμο",
+      "terminal": "Απαιτείται προσοχή",
+      "healthy": "Υγιές"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Απόρριψη αιτημάτων πριν από την αποστολή, όταν το μοντέλο προορισμού δεν διαθέτει τις απαιτούμενες δυνατότητες (όραση, εργαλεία, δομημένη έξοδος, παράθυρο περιβάλλοντος). Προστατεύει τα απευθείας αιτήματα προς έναν μεμονωμένο πάροχο που παρακάμπτουν το φίλτρο συμβατότητας του επιπέδου combo.",

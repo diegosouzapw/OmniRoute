@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Režim služby Codex pre tento kľúč API",
+    "description": "Vzťahuje sa na požiadavky Codex vrátane modelov Codex v kombináciách. Vynútené režimy majú prednosť pred klientom, globálnymi nastaveniami a predvolenými nastaveniami pripojenia. Ostatní poskytovatelia zostávajú nezmenení.",
+    "label": "Režim služby",
+    "inherit": "Zdediť existujúce správanie",
+    "default": "Vynútiť Standard (predvolené)",
+    "priority": "Vynútiť Fast / Priority",
+    "flex": "Vynútiť Flex",
+    "warning": "Týmto sa neudeľuje prístup k poskytovateľovi. Dostupnosť, poplatky a čerpanie kvóty závisia od vášho účtu Codex a modelu. Vynútené režimy vyžadujú prenos cez HTTP alebo Responses WebSocket; požiadavky app-server sú odmietnuté.",
+    "confirm": "Použiť režim „{mode}“ pre tento kľúč API? Zmena sa prejaví pri nasledujúcich požiadavkách.",
+    "save": "Uložiť režim",
+    "retry": "Skúsiť znova",
+    "loadError": "Uložený režim služby sa nepodarilo načítať.",
+    "saveError": "Režim služby sa nepodarilo uložiť. Skúste to znova."
+  },
   "common": {
     "save": "Uložiť",
     "cancel": "Zrušiť",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Smerovať požiadavky s vyčerpaným rozpočtom na núdzového bezplatného záložného poskytovateľa/model.",
   "featureFlagArenaEloSyncEnabledDescription": "Povoliť pravidelnú synchronizáciu ELO z rebríčka Arena AI pre hodnotenie inteligencie modelov.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Generovať a vkladať súhrny konverzácií, keď kombinované smerovanie prepína modely. Vypnutím sa prepnutia modelov budú spracúvať nezávisle a zabránite požiadavkám na odovzdanie na pozadí pre všetky existujúce aj budúce kombinácie.",
+  "featureFlagReasoningReplayEnabledDescription": "Ukladajte do vyrovnávacej pamäte a prehrávajte uvažovanie modelu v konverzáciách s viacerými ťahmi. Vypnutím zastavíte ukladanie a opätovné vkladanie uvažovania.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Inzerujte claude/&lt;provider&gt;/&lt;model&gt; zrkadlové ID na /v1/models, aby zoznam objavovania modelov Claude Code obsahoval aj modely, ktoré nie sú Claude. Upozornenie: pri globálnom povolení zdvojuje záznamy v katalógu pre všetkých klientov.",
   "featureFlagNoThinkingAliasEnabledDescription": "Hlavný prepínač aliasov brány no-think/&lt;provider&gt;/&lt;model&gt;. Zapnuté (predvolené): /v1/models uvádza variant bez uvažovania pre každý vyhovujúci model Claude schopný uvažovania a identifikátor no-think/ odoslaný v požiadavke sa preloží späť na skutočný model s potlačeným uvažovaním. Vypnuté: neuvádzajú sa žiadne varianty a s identifikátorom no-think/ sa zaobchádza ako s akýmkoľvek iným neznámym identifikátorom modelu. Povolenie alebo zakázanie pre jednotlivé modely pomocou ModelSpec.noThinkingAlias sa naďalej uplatňuje, keď je táto možnosť zapnutá.",
   "featureFlagChatVirtualLanesEnabledDescription": "Povoľte adaptívne virtuálne vstupné pruhy pre každého nájomcu (tenant) pri odosielaní poskytovateľom (#9654): špička jedného nájomcu už nespôsobí 503 u iného. Premenná prostredia OMNIROUTE_CHAT_VIRTUAL_LANES má prednosť pred týmto nastavením v riadiacom paneli; zmeny sa prejavia po reštarte servera.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Živý prehľad všetkého, čo beží",
     "resilienceConnections": "Odolnosť Pripojenia",
     "resilienceConnectionsSubtitle": "Cooldown, istič, stav uzamknutia",
+    "resilienceCooldowns": "Správca cooldownov",
+    "resilienceCooldownsSubtitle": "Hromadne vymazať cooldowny",
     "settingsModalityBridge": "Modálny Most",
     "settingsModalityBridgeSubtitle": "Obrázok/audio → textová náhrada pre modely iba s textom",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analytika",
     "usageAnalyticsTitle": "Analytika využitia",
+    "tokenDisplayCompact": "Kompaktné",
+    "tokenDisplayExact": "Presné",
+    "tokenDisplayMode": "Režim zobrazenia tokenov",
     "diversityScoreTitle": "Diverzita poskytovateľov",
     "diversityScoreDesc": "Snímka koncentrácie poskytovateľov pre nedávne okno prevádzky.",
     "diversityShannonEntropy": "Shannonova entropia",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Vstavané automatické/* kombá rozlíšené dynamicky od pripojených poskytovateľov. Ako pole modelu použite ktorýkoľvek z týchto identifikátorov – nie je potrebné žiadne nastavenie.",
     "autoCatalogExpand": "Rozbaľte katalóg automatického smerovania",
     "autoCatalogCollapse": "Zbaliť katalóg automatického smerovania",
+    "autoCatalogComboCount": "{count} kombinácií",
+    "autoCatalogCandidates": "{count} kandidátov",
+    "autoCatalogNoCandidates": "Žiadni zhodujúci sa poskytovatelia",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "šablóna",
+    "autoCatalogKindCategory": "kategória",
+    "autoCatalogKindFamily": "rodina",
+    "autoComboTestTruncated": "Testovaných {tested} z {total} živých kandidátov (najvyššie váhy najprv).",
+    "controlCenter": "Ovládacie centrum",
     "createCombo": "Vytvorte kombináciu",
     "editCombo": "Upraviť Combo",
     "deleteCombo": "Odstrániť Combo",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktívne",
     "showModel": "Zobraziť model",
     "hideModel": "Skryť model",
+    "blacklistModel": "Blokovať",
+    "blacklistModelTooltip": "Blokovať tento model a skryť ho z katalógu",
     "removeModel": "Odstráňte model",
     "rateLimitProtected": "Chránené",
     "rateLimitUnprotected": "Nechránené",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Nastavenia koncového bodu uloženého modelu",
     "searchByModelAria": "Hľadať podľa modelu",
     "selectSupportedEndpoint": "Vyberte aspoň jeden podporovaný koncový bod",
-    "antigravityClientProfileHarness": "Testovacie prostredie / CLI"
+    "antigravityClientProfileHarness": "Testovacie prostredie / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Nastavenia",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Aktualizované",
     "lastRefreshed": "Naposledy obnovené",
     "providerQuota": "Kvóta poskytovateľa",
-    "providerQuotaHomeHint": "Aktuálny stav naprieč pripojenými účtami"
+    "providerQuotaHomeHint": "Aktuálny stav naprieč pripojenými účtami",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Čaká sa na autorizáciu",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Uzamknutia Modelu",
         "count": "Počet Pripojení"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Správca cooldownov",
+    "description": "Zobrazte každé pripojenie, ktoré po zlyhaniach odpočíva, zrušte cooldowny hromadne a upravte, ako dlho trvajú.",
+    "loading": "Načítavajú sa cooldowny…",
+    "loadFailed": "Nepodarilo sa načítať cooldowny",
+    "loadFailedDetail": "Skontrolujte svoje pripojenie a obnovte stránku.",
+    "rules": {
+      "title": "Pravidlá cooldownu",
+      "subtitle": "Použiť na každé pripojenie od jeho ďalšieho zlyhania.",
+      "stallLabel": "Uviesť účet do cooldownu pri zaseknutí streamu",
+      "stallDescription": "V predvolenom nastavení vypnuté: zaseknutie zvyčajne znamená jeden dlhý krok uvažovania, nie nefunkčný účet.",
+      "oauth": "Účty OAuth",
+      "apikey": "API kľúče",
+      "baseCooldown": "Základný cooldown (sekundy)",
+      "baseCooldownHint": "Prvý cooldown po zlyhaní. Opakované zlyhania ho zdvojnásobia.",
+      "maxBackoffSteps": "Maximálny počet krokov backoffu",
+      "maxBackoffStepsHint": "Koľkokrát sa môže cooldown zdvojnásobiť.",
+      "save": "Uložiť pravidlá",
+      "saved": "Pravidlá cooldownu boli uložené",
+      "saveFailed": "Nepodarilo sa uložiť pravidlá cooldownu"
+    },
+    "list": {
+      "title": "Pripojenia mimo smerovania",
+      "subtitle": "Cooldowny a uzamknutia modelov vypršia samy. Vymažte ich, ak chcete vrátiť pripojenie späť do smerovania hneď.",
+      "provider": "Poskytovateľ",
+      "allProviders": "Všetci poskytovatelia",
+      "showHealthy": "Zobraziť funkčné pripojenia",
+      "refresh": "Obnoviť",
+      "clearSelected": "Vymazať vybrané ({count})",
+      "clearAll": "Vymazať všetko",
+      "clear": "Vymazať",
+      "select": "Vybrať pripojenie",
+      "none": "Žiadne",
+      "empty": "Žiadne pripojenie nie je mimo smerovania.",
+      "cleared": "Vymazaných {cleared} pripojení a {lockouts} uzamknutí modelov. Preskočených {skipped} zablokovaných alebo expirovaných.",
+      "clearFailed": "Nepodarilo sa vymazať cooldowny",
+      "columns": {
+        "connection": "Pripojenie",
+        "provider": "Poskytovateľ",
+        "status": "Stav",
+        "remaining": "Zostávajúci čas",
+        "lockouts": "Uzamknutia modelov",
+        "lastError": "Posledná chyba"
+      }
+    },
+    "status": {
+      "cooling_down": "Ochladzovanie",
+      "model_locked": "Model uzamknutý",
+      "unavailable": "Nedostupné",
+      "terminal": "Vyžaduje pozornosť",
+      "healthy": "V poriadku"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Zamietnuť požiadavky pred odoslaním, keď cieľový model postráda požadované schopnosti (vízia, nástroje, štruktúrovaný výstup, kontextové okno). Chráni priamu požiadavku od jedného poskytovateľa, ktorá obchádza filter kompatibility kombinovanej vrstvy.",

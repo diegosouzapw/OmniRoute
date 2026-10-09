@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-palvelutila tälle API-avaimelle",
+    "description": "Koskee Codex-pyyntöjä, mukaan lukien yhdistelmissä olevat Codex-mallit. Pakotetut tilat ohittavat asiakasohjelman, yleiset asetukset ja yhteyden oletusasetukset. Muut palveluntarjoajat säilyvät ennallaan.",
+    "label": "Palvelutila",
+    "inherit": "Peri nykyinen toiminta",
+    "default": "Pakota Standard (oletus)",
+    "priority": "Pakota Fast / Priority",
+    "flex": "Pakota Flex",
+    "warning": "Tämä ei anna käyttöoikeutta palveluntarjoajaan. Saatavuus, veloitukset ja kiintiön kulutus riippuvat Codex-tilistäsi ja mallista. Pakotetut tilat edellyttävät HTTP- tai Responses WebSocket -siirtotapaa; app-server-pyynnöt hylätään.",
+    "confirm": "Otetaanko ”{mode}” käyttöön tälle API-avaimelle? Muutos tulee voimaan seuraavissa pyynnöissä.",
+    "save": "Tallenna tila",
+    "retry": "Yritä uudelleen",
+    "loadError": "Tallennettua palvelutilaa ei voitu ladata.",
+    "saveError": "Palvelutilaa ei voitu tallentaa. Yritä uudelleen."
+  },
   "common": {
     "save": "Tallenna",
     "cancel": "Peruuta",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Reititä budjettinsa ylittäneet pyynnöt varalla olevalle ilmaiselle varatarjoajalle/-mallille.",
   "featureFlagArenaEloSyncEnabledDescription": "Ota käyttöön jaksottainen Arena AI -tulostaulukon ELO-synkronointi mallien älykkyysluokituksia varten.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Luo ja lisää keskusteluyhteenvedot, kun yhdistelmäreititys vaihtaa mallia. Poista käytöstä, jos haluat käsitellä mallinvaihdot toisistaan riippumatta ja estää taustalla tehtävät siirtopyynnöt kaikissa nykyisissä ja tulevissa yhdistelmissä.",
+  "featureFlagReasoningReplayEnabledDescription": "Välimuistita ja toista mallin päättely usean vuoron keskusteluissa. Poista käytöstä, jos et halua tallentaa äläkä syöttää päättelyä uudelleen.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "Mainosta claude/&lt;provider&gt;/&lt;model&gt; peilid tunnuksia /v1/models, jotta Claude Code -portin mallin löytölistalla näkyvät ei-Claude-mallit. Varoitus: kaksinkertaistaa luettelo-merkinnät kaikille asiakkaille, kun se on otettu käyttöön globaalisti.",
   "featureFlagNoThinkingAliasEnabledDescription": "Pääkytkin no-think/&lt;provider&gt;/&lt;model&gt;-yhdyskäytäväaliaksille. Käytössä (oletus): /v1/models ilmoittaa päättelyttömän muunnelman jokaisesta ehdot täyttävästä päättelykykyisestä Claude-mallista, ja pyynnössä lähetetty no-think/-tunnus ohjautuu takaisin todelliseen malliin siten, että päättely on estetty. Ei käytössä: muunnelmia ei ilmoiteta, ja no-think/-tunnusta käsitellään kuten mitä tahansa muuta tuntematonta mallitunnusta. Mallikohtainen ModelSpec.noThinkingAlias-käyttöönotto tai -käytöstäpoisto on edelleen voimassa, kun tämä asetus on käytössä.",
   "featureFlagChatVirtualLanesEnabledDescription": "Ota käyttöön mukautuvat virtuaaliset sisäänottokaistat vuokraajaa (tenant) kohti palveluntarjoajien välitystä varten (#9654): yhden vuokraajan kuormapiikki ei enää aiheuta 503-virhettä toiselle. Ympäristömuuttuja OMNIROUTE_CHAT_VIRTUAL_LANES ohittaa tämän hallintapaneelin asetuksen; muutokset tulevat voimaan palvelimen uudelleenkäynnistyksessä.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "Reaaliaikainen näkymä kaikkeen käynnissä olevaan",
     "resilienceConnections": "Yhteyden Kestävyys",
     "resilienceConnectionsSubtitle": "Jäähdytys, katkaisija, lukitustila",
+    "resilienceCooldowns": "Jäähyjen hallinta",
+    "resilienceCooldownsSubtitle": "Poista jäähyt massana",
     "settingsModalityBridge": "Modaalisilta",
     "settingsModalityBridgeSubtitle": "Kuva/ääni → tekstivaraus vain tekstimalleille",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analytiikka",
     "usageAnalyticsTitle": "Käyttöanalytiikka",
+    "tokenDisplayCompact": "Tiivis",
+    "tokenDisplayExact": "Tarkka",
+    "tokenDisplayMode": "Tokenien näyttötila",
     "diversityScoreTitle": "Tarjoajan monimuotoisuus",
     "diversityScoreDesc": "Tilannekuva tarjoajien keskittymisestä viimeaikaisen liikenteen ajalta.",
     "diversityShannonEntropy": "Shannon-entropia",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Sisäänrakennetut auto/*-yhdistelmät, jotka on ratkaistu dynaamisesti yhdistettyjen palveluntarjoajien kautta. Käytä mitä tahansa näistä tunnuksista mallikenttänä – asetusta ei tarvita.",
     "autoCatalogExpand": "Laajenna automaattisen reitityksen luettelo",
     "autoCatalogCollapse": "Kutista automaattisen reitityksen luettelo",
+    "autoCatalogComboCount": "{count} yhdistelmää",
+    "autoCatalogCandidates": "{count} ehdokasta",
+    "autoCatalogNoCandidates": "Ei vastaavia palveluntarjoajia",
+    "autoCatalogKindVariant": "variantti",
+    "autoCatalogKindTemplate": "malli",
+    "autoCatalogKindCategory": "kategoria",
+    "autoCatalogKindFamily": "perhe",
+    "autoComboTestTruncated": "Testattu {tested} {total} elävää ehdokasta (korkeimmat painot ensin).",
+    "controlCenter": "Ohjauskeskus",
     "createCombo": "Luo yhdistelmä",
     "editCombo": "Muokkaa yhdistelmää",
     "deleteCombo": "Poista yhdistelmä",
@@ -5560,6 +5590,8 @@
     "modelsActive": "aktiivista",
     "showModel": "Näytä malli",
     "hideModel": "Piilota malli",
+    "blacklistModel": "Estä",
+    "blacklistModelTooltip": "Estä tämä malli ja piilota se luettelosta",
     "removeModel": "Poista malli",
     "rateLimitProtected": "Suojattu",
     "rateLimitUnprotected": "Suojaamaton",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Tallennetun mallin päätepisteen asetukset",
     "searchByModelAria": "Hae mallin mukaan",
     "selectSupportedEndpoint": "Valitse vähintään yksi tuettu päätepiste",
-    "antigravityClientProfileHarness": "Testauskehys / CLI"
+    "antigravityClientProfileHarness": "Testauskehys / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Asetukset",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Päivitetty",
     "lastRefreshed": "Viimeksi päivitetty",
     "providerQuota": "Tarjoajan kiintiö",
-    "providerQuotaHomeHint": "Reaaliaikainen tila yhdistetyissä tileissä"
+    "providerQuotaHomeHint": "Reaaliaikainen tila yhdistetyissä tileissä",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Odotetaan valtuutusta",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Mallilukitukset",
         "count": "Yhteyksien Määrä"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Jäähyjen hallinta",
+    "description": "Näe kaikki virheiden vuoksi tauolla olevat yhteydet, poista jäähyt massana ja säädä niiden kestoa.",
+    "loading": "Ladataan jäähyjä…",
+    "loadFailed": "Jäähyjen lataaminen epäonnistui",
+    "loadFailedDetail": "Tarkista internetyhteytesi ja päivitä sivu.",
+    "rules": {
+      "title": "Jäähysäännöt",
+      "subtitle": "Koskee jokaista yhteyttä sen seuraavasta virheestä alkaen.",
+      "stallLabel": "Aseta tili jäähylle striimin jumiutuessa",
+      "stallDescription": "Oletuksena pois päältä: jumiutuminen tarkoittaa yleensä yhtä pitkää päättelyvuoroa, ei rikkinäistä tiliä.",
+      "oauth": "OAuth-tilit",
+      "apikey": "API-avaimet",
+      "baseCooldown": "Perusjäähy (sekuntia)",
+      "baseCooldownHint": "Ensimmäinen jäähy virheen jälkeen. Toistuvat virheet kaksinkertaistavat sen.",
+      "maxBackoffSteps": "Backoff-vaiheiden enimmäismäärä",
+      "maxBackoffStepsHint": "Kuinka monta kertaa jäähy voi kaksinkertaistua.",
+      "save": "Tallenna säännöt",
+      "saved": "Jäähysäännöt tallennettu",
+      "saveFailed": "Jäähysääntöjen tallentaminen epäonnistui"
+    },
+    "list": {
+      "title": "Reitityksen ulkopuolella olevat yhteydet",
+      "subtitle": "Jäähyt ja mallilukitukset päättyvät itsestään. Tyhjennä ne palauttaaksesi yhteyden heti reititykseen.",
+      "provider": "Palveluntarjoaja",
+      "allProviders": "Kaikki palveluntarjoajat",
+      "showHealthy": "Näytä toimivat yhteydet",
+      "refresh": "Päivitä",
+      "clearSelected": "Tyhjennä valitut ({count})",
+      "clearAll": "Tyhjennä kaikki",
+      "clear": "Tyhjennä",
+      "select": "Valitse yhteys",
+      "none": "Ei mitään",
+      "empty": "Yksikään yhteys ei ole reitityksen ulkopuolella.",
+      "cleared": "Tyhjennettiin {cleared} yhteyttä ja {lockouts} mallilukitusta. Ohitettiin {skipped} estettyä tai vanhentunutta.",
+      "clearFailed": "Jäähyjen tyhjentäminen epäonnistui",
+      "columns": {
+        "connection": "Yhteys",
+        "provider": "Palveluntarjoaja",
+        "status": "Tila",
+        "remaining": "Aikaa jäljellä",
+        "lockouts": "Mallilukitukset",
+        "lastError": "Viimeisin virhe"
+      }
+    },
+    "status": {
+      "cooling_down": "Jäähtymässä",
+      "model_locked": "Malli lukittu",
+      "unavailable": "Ei saatavilla",
+      "terminal": "Vaatii huomiota",
+      "healthy": "Kunnossa"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Hylkää pyynnöt ennen lähettämistä, kun kohdemallilta puuttuu vaadittuja ominaisuuksia (näkö, työkalut, jäsennelty ulostulo, kontekstikkelu). Suojaa suorat yhden tarjoajan pyynnöt, jotka ohittavat yhdistelmäkerroksen yhteensopivuussuodattimen.",

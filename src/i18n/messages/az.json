@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Bu API açarı üçün Codex xidmət rejimi",
+    "description": "Kombinasiyalardakı Codex modelləri də daxil olmaqla, Codex sorğularına tətbiq olunur. Məcburi rejimlər müştəri, qlobal parametrlər və bağlantının standart parametrlərini üstələyir. Digər provayderlər dəyişməz qalır.",
+    "label": "Xidmət rejimi",
+    "inherit": "Mövcud davranışı miras al",
+    "default": "Standard rejimini məcburi et (standart)",
+    "priority": "Fast / Priority rejimini məcburi et",
+    "flex": "Flex rejimini məcburi et",
+    "warning": "Bu, provayderə giriş icazəsi vermir. Əlçatanlıq, ödənişlər və kvota istifadəsi Codex hesabınızdan və modeldən asılıdır. Məcburi rejimlər HTTP və ya Responses WebSocket nəqli tələb edir; app-server sorğuları rədd edilir.",
+    "confirm": "“{mode}” rejimi bu API açarına tətbiq edilsin? Bu dəyişiklik sonrakı sorğular üçün qüvvəyə minəcək.",
+    "save": "Rejimi yadda saxla",
+    "retry": "Yenidən cəhd et",
+    "loadError": "Yadda saxlanmış xidmət rejimini yükləmək mümkün olmadı.",
+    "saveError": "Xidmət rejimini yadda saxlamaq mümkün olmadı. Lütfən, yenidən cəhd edin."
+  },
   "common": {
     "save": "Yadda saxla",
     "cancel": "Ləğv et",
@@ -989,6 +1004,7 @@
   "featureFlagOmnirouteEmergencyFallbackDescription": "Büdcəsi tükənmiş sorğuları təcili pulsuz ehtiyat təminatçıya/modelə yönləndirin.",
   "featureFlagArenaEloSyncEnabledDescription": "Model intellekti reytinqləri üçün dövri Arena AI liderlər cədvəli ELO sinxronizasiyasını aktivləşdirin.",
   "featureFlagUniversalContextHandoffEnabledDescription": "Kombinə edilmiş marşrutlaşdırma model dəyişdirdikdə söhbət xülasələrini yaradın və əlavə edin. Model dəyişikliklərini müstəqil şəkildə idarə etmək və bütün mövcud və gələcək kombinasiyalar üçün fonda ötürmə sorğularının qarşısını almaq üçün bunu deaktiv edin.",
+  "featureFlagReasoningReplayEnabledDescription": "Çoxnövbəli söhbətlərdə model mühakiməsini keşləyin və təkrar oxudun. Saxlamağı və yenidən daxil etməyi dayandırmaq üçün deaktiv edin.",
   "featureFlagExposeCcDiscoveryAliasesDescription": "/v1/models üzərində claude/&lt;provider&gt;/&lt;model&gt; güzgü id-lərini reklam edin ki, Claude Code keçid modeli kəşfiyyatında qeyri-Claude modelləri siyahıya alsın. Diqqət: qlobal olaraq aktivləşdirildikdə bütün müştərilər üçün kataloq girişlərini ikiqat artırır.",
   "featureFlagNoThinkingAliasEnabledDescription": "no-think/&lt;provider&gt;/&lt;model&gt; şlüz ləqəbləri üçün əsas keçid. Aktiv (standart): /v1/models düşünmə qabiliyyətinə malik hər uyğun Claude modeli üçün düşünməsiz variantı göstərir və sorğuda göndərilən no-think/ identifikatoru əsaslandırma söndürülməklə yenidən real modelə uyğunlaşdırılır. Deaktiv: heç bir variant göstərilmir və no-think/ identifikatoru hər hansı digər naməlum model identifikatoru kimi qəbul edilir. Bu aktiv olduqda hər model üzrə ModelSpec.noThinkingAlias seçim imkanı yenə də qüvvədə qalır.",
   "featureFlagChatVirtualLanesEnabledDescription": "Təchizatçı göndərişi üçün hər bir icarəçi (tenant) üzrə adaptiv virtual qəbul zolaqlarını aktivləşdirin (#9654): bir icarəçinin ani yükü artıq digərinə 503 qaytarmır. OMNIROUTE_CHAT_VIRTUAL_LANES mühit dəyişəni bu idarəetmə paneli ayarından üstündür; dəyişikliklər server yenidən işə salındıqda qüvvəyə minir.",
@@ -1314,6 +1330,8 @@
     "orchestrationSubtitle": "İşləyən hər şeyin canlı görünüşü",
     "resilienceConnections": "Bağlantı Davamlılığı",
     "resilienceConnectionsSubtitle": "Soyuma, açar, blok vəziyyəti",
+    "resilienceCooldowns": "Gözləmə Müddəti Meneceri",
+    "resilienceCooldownsSubtitle": "Gözləmə müddətlərini toplu şəkildə təmizləyin",
     "settingsModalityBridge": "Modallıq Körpüsü",
     "settingsModalityBridgeSubtitle": "Şəkil/səs → mətn yalnız model üçün mətnə keçid",
     "commandPalette": {
@@ -1911,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "İstifadə analitikası",
+    "tokenDisplayCompact": "Yığcam",
+    "tokenDisplayExact": "Dəqiq",
+    "tokenDisplayMode": "Token göstərmə rejimi",
     "diversityScoreTitle": "Provayder Müxtəlifliyi",
     "diversityScoreDesc": "Son trafik pəncərəsi üçün provayder konsentrasiyasının anlıq görüntüsü.",
     "diversityShannonEntropy": "Şennon entropiyası",
@@ -3370,6 +3391,15 @@
     "autoCatalogDescription": "Daxili avtomatik/* kombinasiyaları əlaqəli provayderlərdən dinamik şəkildə həll edilir. Model sahəsi kimi bu identifikatorlardan hər hansı birini istifadə edin – quraşdırmaya ehtiyac yoxdur.",
     "autoCatalogExpand": "Avtomatik marşrutlaşdırma kataloqunu genişləndirin",
     "autoCatalogCollapse": "Avtomatik marşrutlaşdırma kataloqunu yığcamlaşdırın",
+    "autoCatalogComboCount": "{count} kombinasiyalar",
+    "autoCatalogCandidates": "{count} namizədlər",
+    "autoCatalogNoCandidates": "Uyğun təminatçılar yoxdur",
+    "autoCatalogKindVariant": "variant",
+    "autoCatalogKindTemplate": "şablon",
+    "autoCatalogKindCategory": "kateqoriya",
+    "autoCatalogKindFamily": "ailə",
+    "autoComboTestTruncated": "{total} canlı namizədin {tested} -ni test etdik (ən yüksək çəkilər əvvəl).",
+    "controlCenter": "İdarəetmə Mərkəzi",
     "createCombo": "Kombinasiya yaradın",
     "editCombo": "Kombinasiyanı redaktə edin",
     "deleteCombo": "Kombinasiyanı silin",
@@ -5560,6 +5590,8 @@
     "modelsActive": "Aktiv",
     "showModel": "Modeli göstər",
     "hideModel": "Modeli gizlət",
+    "blacklistModel": "Blokla",
+    "blacklistModelTooltip": "Bu modeli blokla və kataloqdan gizlət",
     "removeModel": "Modeli sil",
     "rateLimitProtected": "Qorunur",
     "rateLimitUnprotected": "Qorunmur",
@@ -6694,7 +6726,18 @@
     "savedModelEndpointSettings": "Saxlanmış model son nöqtəsi parametrləri",
     "searchByModelAria": "Model üzrə axtarış edin",
     "selectSupportedEndpoint": "Ən azı bir dəstəklənən son nöqtəni seçin",
-    "antigravityClientProfileHarness": "Test sistemi / CLI"
+    "antigravityClientProfileHarness": "Test sistemi / CLI",
+    "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
+    "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
+    "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Parametrlər",
@@ -10077,7 +10120,11 @@
     "updatedShort": "Yeniləndi",
     "lastRefreshed": "Sonuncu dəfə yenilənib",
     "providerQuota": "Provayder kvotası",
-    "providerQuotaHomeHint": "Qoşulmuş hesablar üzrə canlı status"
+    "providerQuotaHomeHint": "Qoşulmuş hesablar üzrə canlı status",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Avtorizasiya gözlənilir",
@@ -14212,6 +14259,59 @@
         "modelLockouts": "Model Blokları",
         "count": "Bağlantı Sayı"
       }
+    }
+  },
+  "resilienceCooldowns": {
+    "title": "Gözləmə Müddəti Meneceri",
+    "description": "Xətalardan sonra istirahət edən hər bir bağlantını görün, gözləmə müddətlərini toplu şəkildə aradan qaldırın və onların nə qədər çəkəcəyini tənzimləyin.",
+    "loading": "Gözləmə müddətləri yüklənir…",
+    "loadFailed": "Gözləmə müddətləri yüklənmədi",
+    "loadFailedDetail": "Bağlantınızı yoxlayın və səhifəni yeniləyin.",
+    "rules": {
+      "title": "Gözləmə müddəti qaydaları",
+      "subtitle": "Növbəti xətasından etibarən hər bir bağlantıya tətbiq edilsin.",
+      "stallLabel": "Axın dayandıqda hesabı gözləmə rejiminə keçirin",
+      "stallDescription": "Defolt olaraq qeyri-aktivdir: dayanma adətən hesabın xətalı olmasını deyil, sadəcə bir uzun mühakimə mərhələsini bildirir.",
+      "oauth": "OAuth hesabları",
+      "apikey": "API açarları",
+      "baseCooldown": "Baza gözləmə müddəti (saniyə)",
+      "baseCooldownHint": "Xətadan sonrakı ilk gözləmə müddəti. Təkrarlanan xətalar bunu ikiqat artırır.",
+      "maxBackoffSteps": "Maksimum geri çəkilmə addımları",
+      "maxBackoffStepsHint": "Gözləmə müddətinin neçə dəfə ikiqat arta biləcəyi.",
+      "save": "Qaydaları yadda saxla",
+      "saved": "Gözləmə müddəti qaydaları saxlanıldı",
+      "saveFailed": "Gözləmə müddəti qaydalarını saxlamaq mümkün olmadı"
+    },
+    "list": {
+      "title": "Marşrutlaşdırmadan kənarlaşdırılmış bağlantılar",
+      "subtitle": "Gözləmə müddətləri və model kilidlənmələri öz-özünə başa çatır. Bağlantını dərhal yenidən marşrutlaşdırmaya daxil etmək üçün onları təmizləyin.",
+      "provider": "Provayder",
+      "allProviders": "Bütün provayderlər",
+      "showHealthy": "Sağlam bağlantıları göstər",
+      "refresh": "Yenilə",
+      "clearSelected": "Seçilmişləri təmizlə ({count})",
+      "clearAll": "Hamısını təmizlə",
+      "clear": "Təmizlə",
+      "select": "Bağlantı seçin",
+      "none": "Heç biri",
+      "empty": "Marşrutlaşdırmadan kənarlaşdırılmış heç bir bağlantı yoxdur.",
+      "cleared": "{cleared} bağlantı və {lockouts} model kilidlənməsi təmizləndi. Qadağan edilmiş və ya vaxtı bitmiş {skipped} element buraxıldı.",
+      "clearFailed": "Gözləmə müddətlərini təmizləmək mümkün olmadı",
+      "columns": {
+        "connection": "Bağlantı",
+        "provider": "Provayder",
+        "status": "Status",
+        "remaining": "Qalan vaxt",
+        "lockouts": "Model kilidlənmələri",
+        "lastError": "Son xəta"
+      }
+    },
+    "status": {
+      "cooling_down": "Soyudulur",
+      "model_locked": "Model kilidlənib",
+      "unavailable": "Əlçatmaz",
+      "terminal": "Diqqət tələb edir",
+      "healthy": "Sağlam"
     }
   },
   "featureFlagCapabilityFilterEnabledDescription": "Tələb olunan imkanlar (görmə, alətlər, strukturlaşdırılmış çıxış, kontekst pəncərəsi) olmayan hədəf modelində göndərilmədən əvvəl tələbləri rədd edin. Kombinasiya qatının uyğunluq filtrini keçən birbaşa tək təminatçı tələblərini qoruyur.",
