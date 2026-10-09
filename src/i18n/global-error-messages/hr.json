@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Nešto je pošlo po krivu",
+      "description": "Došlo je do neočekivane pogreške. Pogreška je zabilježena i naš će je tim istražiti.",
+      "detailsAriaLabel": "Pojedinosti o pogrešci",
+      "retryAriaLabel": "Pokušaj ponovno učitati stranicu",
+      "tryAgain": "Pokušaj ponovno",
+      "statusAriaLabel": "Otvori status sustava",
+      "systemStatus": "Status sustava"
+    }
+  }
+}

@@ -179,6 +179,36 @@ export function findSpawnCapableRoutes(repoRoot: string): string[] {
  * Adding an entry here requires a justification + follow-up issue.
  */
 export const KNOWN_UNCLASSIFIED_SOURCE_SPAWN: Record<string, string> = {
+  // S-01 (audit #15159, 2026-09-30): NOT unclassified security debt — the spawn IS
+  // classified, just not at the path level, so this freeze records a deliberate
+  // design decision rather than an open gap.
+  //
+  // `src/app/api/providers/[id]/models/route.ts` transitively spawns via
+  // fetchCursorAgentModels() -> runCursorAgent() -> spawn() at
+  // src/lib/providerModels/cursorAgent.ts:17, but ONLY on the `provider === "cursor"`
+  // branch. `{id}` is a CONNECTION id, never a provider name, so NO path pattern can
+  // separate the Cursor spawn from the ~50 other providers' pure-HTTP discovery in
+  // this same route. Gating `/api/providers/[^/]+/models` as a LOCAL_ONLY pattern
+  // would lock remote model discovery for every non-Cursor provider — precisely the
+  // over-broadening the `/api/providers/[^/]+/login` precedent exists to avoid.
+  //
+  // Enforced instead at the spawn call site: the route requires
+  // `x-omniroute-peer-locality === "loopback"` (stamped by the authz pipeline from the
+  // real TCP peer, never the spoofable Host header) before calling
+  // fetchCursorAgentModels(), and fails closed to the cached/local catalog otherwise —
+  // the same pattern as handleCursorAgentImageGeneration in
+  // open-sse/handlers/imageGeneration/providers/cursorAgentImage.ts.
+  // Regression guard: tests/unit/authz/route-guard-providers-spawn-local-only.test.ts
+  // (asserts the guard exists, precedes the spawn, and fails closed).
+  //
+  // Follow-up: G-09 (same audit) — the gate matches `spawn(`/`exec(` only INSIDE
+  // route.ts, so it cannot follow this transitive/conditional chain. Fixing G-09
+  // (import-graph walk) would let this entry be removed.
+  "src/app/api/providers/[id]/models/route.ts":
+    'S-01 #15159: cursor-agent spawn is provider-conditional (provider === "cursor") and `{id}` is a connection id, ' +
+    "so it cannot be path-classified without locking every other provider's remote model discovery. " +
+    "Gated at the call site on the trusted x-omniroute-peer-locality loopback stamp instead (fail-closed). " +
+    "Tracked by G-09 (gate cannot follow transitive spawns).",
   // RESOLVED (6A.8 P1, 2026-06-13): /api/system/version and /api/db-backups/exportAll
   // are now classified in LOCAL_ONLY_API_PREFIXES (loopback-enforced before auth).
   // The stale-enforcement guard requires this set to stay empty until a NEW

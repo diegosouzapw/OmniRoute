@@ -138,13 +138,47 @@ membina mesej yang mendedahkan topologi sejak awal lagi.
 
 `tests/unit/error-message-sanitization.test.ts` menguatkuasakan:
 
-- Setiap laluan di bawah `/api/model-combo-mappings/*` mengembalikan kandungan yang disanitasi bagi 4xx/5xx.
-- `sanitizeErrorMessage` menyingkirkan surihan tindanan berbilang baris.
+- Setiap laluan di bawah `/api/model-combo-mappings/*` mengembalikan badan yang disanitasi untuk 4xx/5xx.
+- `sanitizeErrorMessage` membuang surihan tindanan berbilang baris.
 - `sanitizeErrorMessage` menggantikan laluan mutlak POSIX dan Windows dengan `<path>`.
 - `sanitizeErrorMessage` mengendalikan input tika `null`/`undefined`/`Error` dengan selamat.
-- `buildErrorBody` tidak pernah mendedahkan surihan tindanan dalam medan `message` miliknya.
+- `buildErrorBody` tidak sekali-kali mendedahkan surihan tindanan dalam medan `message`-nya.
 
-Apabila menambah laluan atau pelaksana baharu, salin corak penegasan daripada fail ini. Ambang liputan (`npm run test:coverage`) menguatkuasakan ≥60% pernyataan/baris/fungsi/cabang — laluan ralat mesti diliputi.
+Apabila menambahkan laluan atau pelaksana baharu, salin corak penegasan daripada fail ini. Gerbang liputan (`npm run test:coverage`) menguatkuasakan ≥60% pernyataan/baris/fungsi/cabang — laluan ralat mesti diliputi.
+
+### Gerbang statik: `npm run check:error-helper`
+
+`scripts/check/check-error-helper.mjs` mengimbas `open-sse/executors/`, `open-sse/handlers/`, `open-sse/mcp-server/` dan setiap `src/app/api/**/route.ts` untuk mencari ralat mentah yang ditangkap (`err.message` / `err.stack`) atau `body.error.message` huluan mentah yang sampai ke badan yang dihadapkan kepada klien.
+
+**Kepercayaan berskop panggilan, bukan berskop fail** (G-03, #15159). Dahulu, gerbang ini melangkau keseluruhan fail sebaik sahaja ia melihat sebarang import daripada laluan `utils/error` — pengecualian berskop fail yang digunakan pada bahaya berskop panggilan. Satu `import { sanitizeErrorMessage }` yang betul mengecualikan setiap sink lain dalam fail itu secara kekal, dan itulah caranya kebocoran langsung dilepaskan walaupun semakan lulus. Kini, sesuatu baris hanya dipercayai apabila ia benar-benar melalui pembina atau pensanitasi yang diluluskan:
+
+| Bentuk baris                                                                                                               | Dipercayai?             |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| memanggil `sanitizeErrorMessage` / `buildErrorBody` / `createErrorResult` / `toSafeMcpErrorMessage` / …                    | ya                      |
+| memanggil pembina kanonik **yang diimport oleh fail ini** daripada `open-sse/utils/error` atau `src/lib/api/errorResponse` | ya                      |
+| pembina yang diluluskan dipanggil secara **berbilang baris**, maka medan `message:` berada pada baris berikutnya           | ya                      |
+| memanggil `function errorResponse(...)` setempat dalam fail yang badannya sendiri melakukan sanitasi                       | ya                      |
+| memajukan `err.message` / `err.stack` di mana-mana tempat lain                                                             | **tidak — pelanggaran** |
+
+Dua implikasi yang perlu diketahui:
+
+- Mengimport `errorResponse` _bukan_ bermaksud kepercayaan menyeluruh. Fail yang mentakrifkan `errorResponse` sendiri masih akan ditandai pada tapak panggilan kerana gerbang menyelesaikan kepercayaan mengikut simbol, bukan mengikut fail. Perkara yang sama terpakai pada `createErrorResponse`.
+- `const body = buildErrorBody(status, sanitizeErrorMessage(msg))` yang diikuti oleh `error: body.error.message` ialah idiom **yang telah disanitasi** dan digunakan merentas pelaksana `*-fetch.ts`, serta tidak ditandai.
+
+Kedua-dua modul pembina yang diluluskan diambil kira: `open-sse/utils/error.ts` dan `src/lib/api/errorResponse.ts`. Modul kedua digunakan oleh kira-kira 54 pengendali laluan di luar `open-sse`, dan ia mensanitasi kedua-dua eksportnya.
+
+Dua bentuk yang **bukan** pelanggaran, walaupun kedua-duanya pernah dilaporkan oleh gerbang sebagai kebocoran:
+
+- ralat mentah dalam **baris audit** — `saveCallLog({ error: err.message })`, `logToolCall(...)`, atau pencatat yang menerima mesej terlebih dahulu (`log.error("BATCHES", "sweep failed", { error: err.message })`). Respons yang dihadapkan kepada klien pada baris berikutnya mungkin sahaja merupakan `buildErrorBody` statik.
+- panggilan pembina yang diluluskan secara **berbilang baris**, dengan medan `message:` tidak menyebut sebarang pembina langsung:
+  ```ts
+  return createErrorResponse({
+    status: 400,
+    message: error.message,
+  });
+  ```
+
+`KNOWN_MISSING_ERROR_HELPER` membekukan pelanggaran sedia ada supaya gerbang hanya menyekat pelanggaran _baharu_. `assertNoStale` menggugurkan entri secara automatik sebaik sahaja pelanggarannya dibetulkan, supaya pembekuan tersebut tidak menjadi lapuk secara kekal. Pelindung regresi: `tests/unit/check-error-helper.test.ts` dan `tests/unit/check-error-helper-call-scope.test.ts`.
 
 ## Kawalan berkaitan
 

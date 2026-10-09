@@ -29,6 +29,12 @@ const TARGET_HOSTS = new Set([
 const TARGET_HOST_AGENT = new Map();
 for (const h of TARGET_HOSTS) TARGET_HOST_AGENT.set(h, "antigravity");
 
+// The MITM only intercepts this host's own traffic (/etc/hosts points the target
+// domains at 127.0.0.1), so it must never listen on other interfaces: a LAN peer
+// could otherwise drive intercept() with the operator's ROUTER_API_KEY or use
+// passthrough() as an open TLS relay (GHSA-qxg2-rm3h-4cxp).
+const MITM_LISTEN_HOST = "127.0.0.1";
+
 const parsedLocalPort = Number.parseInt(process.env.MITM_LOCAL_PORT || "443", 10);
 const LOCAL_PORT =
   Number.isInteger(parsedLocalPort) && parsedLocalPort > 0 && parsedLocalPort <= 65535
@@ -898,10 +904,10 @@ async function startMitmServer() {
   server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
   server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
 
-  server.listen(LOCAL_PORT, () => {
+  server.listen(LOCAL_PORT, MITM_LISTEN_HOST, () => {
     stats.startedAt = new Date().toISOString();
     writeStats();
-    console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
+    console.log(`🚀 MITM ready on ${MITM_LISTEN_HOST}:${LOCAL_PORT} → ${ROUTER_URL}`);
   });
 
   server.on("connection", (socket) => {

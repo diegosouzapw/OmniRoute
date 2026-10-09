@@ -1,0 +1,1 @@
+- fix(poixe): allow billing aliases such as `qwen3-32b:free` after syncing a catalog that lists only bare model IDs (#12765).

@@ -1,6 +1,4 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import { extractApiKey, isValidApiKey } from "../../src/sse/services/auth.ts";
-import { getApiKeyMetadata } from "../../src/lib/db/apiKeys.ts";
 
 type McpHttpAuthContext = {
   authorization?: string;
@@ -42,6 +40,19 @@ export function getMcpHttpAuthHeadersForInternalFetch(): Record<string, string> 
 }
 
 /**
+ * Whether the current async scope is an HTTP/SSE MCP request.
+ *
+ * S-03 (#15159): `getMcpHttpAuthHeadersForInternalFetch()` returns `{}` both when
+ * there is no HTTP caller (stdio) and when an HTTP caller forwarded nothing. The
+ * hop cannot tell those apart by looking at the headers alone, so it has to ask
+ * which scope it is in — that is the only way to make the env key a *stdio-only*
+ * fallback instead of a silent substitute for a missing HTTP caller identity.
+ */
+export function hasMcpHttpAuthContext(): boolean {
+  return mcpHttpAuthContext.getStore() !== undefined;
+}
+
+/**
  * Resolve the caller's real per-key `api_keys.scopes` for one HTTP/SSE MCP
  * request, for #7895's per-key scope binding. Returns `undefined` when the
  * request carries no resolvable API key (no header, invalid key, or the
@@ -54,6 +65,19 @@ export function getMcpHttpAuthHeadersForInternalFetch(): Record<string, string> 
 export async function resolveMcpCallerAuthInfo(
   request: Request
 ): Promise<McpCallerAuthInfo | undefined> {
+  // Avoid importing the full auth/database stack for requests that carry no
+  // explicit API-key header. This function is called on every HTTP transport
+  // request, while only authenticated requests need the expensive lookup.
+  const hasExplicitKeyHeader =
+    request.headers.has("authorization") ||
+    request.headers.has("x-api-key") ||
+    request.headers.has("x-goog-api-key");
+  if (!hasExplicitKeyHeader) return undefined;
+
+  const [{ extractApiKey, isValidApiKey }, { getApiKeyMetadata }] = await Promise.all([
+    import("../../src/sse/services/auth.ts"),
+    import("../../src/lib/db/apiKeys.ts"),
+  ]);
   const rawKey = extractApiKey(request, { allowUrl: false });
   if (!rawKey) return undefined;
 

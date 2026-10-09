@@ -47,6 +47,41 @@ describe("DashboardLayout — mobile sidebar drawer uses logical classes", () =>
     // Just confirm start-0 is present (already asserted above).
     expect(code).toContain("start-0");
   });
+
+  it('carries the dashboard-sidebar-mobile hook class for explicit RTL anchoring', () => {
+    // .dashboard-sidebar-mobile gets explicit right:0/translateX(100%) rules
+    // under dir=rtl in globals.css, so the drawer cannot end up parked on the
+    // left edge when closed (physical -translate-x-full alone would do that).
+    expect(code).toContain("dashboard-sidebar-mobile");
+  });
+});
+
+// ─── globals.css ────────────────────────────────────────────────────────────
+
+describe("globals.css — mobile sidebar has explicit RTL anchoring rules", () => {
+  const css = src("src/app/globals.css");
+
+  it('pins .dashboard-sidebar-mobile to the right edge under dir=rtl', () => {
+    expect(css).toContain(".dashboard-sidebar-mobile");
+    expect(css).toContain("right: 0");
+  });
+
+  it('slides the closed drawer off the right edge under dir=rtl', () => {
+    expect(css).toContain("translateX(100%)");
+  });
+});
+
+// ─── persistLocale.ts ───────────────────────────────────────────────────────
+
+describe("persistLocale — flips <html> direction immediately on switch", () => {
+  const code = src("src/shared/lib/persistLocale.ts");
+
+  it('sets document.documentElement.dir from the RTL locale list', () => {
+    // router.refresh() never re-renders <html dir>, so the writer itself must
+    // flip direction or Arabic text renders inside a stale dir="ltr" tree.
+    expect(code).toContain("document.documentElement.dir");
+    expect(code).toContain("RTL_LOCALES");
+  });
 });
 
 // ─── Sidebar.tsx ─────────────────────────────────────────────────────────────

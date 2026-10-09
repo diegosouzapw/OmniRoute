@@ -18,6 +18,7 @@
 import zlib from "node:zlib";
 import crypto from "node:crypto";
 import { decodeNativeTodoWriteCompletion } from "./cursorAgentProtobuf/nativeTodoWrite.ts";
+import { pushTtftBreakdown, safely, type TtftBreakdownDelta } from "./cursorAgentProtobuf/ttft.ts";
 import {
   EXTRA_EXEC_SERVER_FIELDS,
   decodeExtraExecEvent,
@@ -36,7 +37,7 @@ import {
 import {
   CURSOR_EFFORT_SUFFIXES,
   applyCursorReasoningEffort,
-  resolveOneMillionContextModel,
+  resolveCursorContextModel,
 } from "./cursorAgentProtobuf/requestedModelParameters.ts";
 import {
   WT_VARINT,
@@ -451,7 +452,7 @@ export function resolveRequestedModel(
       };
     }
   }
-  const oneMillionContext = resolveOneMillionContextModel(normalized);
+  const oneMillionContext = resolveCursorContextModel(normalized);
   if (oneMillionContext) return oneMillionContext;
   // Live catalog is authoritative for exact ids (flattened effort variants).
   if (opts?.liveCatalogIds?.has(normalized)) {
@@ -675,6 +676,7 @@ export type DecodedDelta =
   | { kind: "thinking_complete" }
   | { kind: "token_delta"; tokens: number }
   | { kind: "turn_ended"; usage?: CursorTurnUsage }
+  | TtftBreakdownDelta
   | { kind: "heartbeat" }
   | { kind: "tool_call_started" }
   | { kind: "tool_call_completed" }
@@ -743,12 +745,12 @@ const INTERACTION_UPDATE_DECODERS: Partial<Record<number, InteractionUpdateDecod
       ? [{ kind: "token_delta", tokens: decodeVarintField(field.bytes, 1) }]
       : [],
   [IU_HEARTBEAT]: () => [{ kind: "heartbeat" }],
-  [IU_TURN_ENDED]: (field) => [
-    {
-      kind: "turn_ended",
-      usage: field.wireType === WT_LEN ? decodeTurnUsage(field.bytes) : undefined,
-    },
-  ],
+  [IU_TURN_ENDED]: (field) => {
+    // Usage is telemetry: a malformed body must not drop the turn_ended end signal.
+    const usage =
+      field.wireType === WT_LEN ? safely(() => decodeTurnUsage(field.bytes)) : undefined;
+    return [usage ? { kind: "turn_ended", usage } : { kind: "turn_ended" }];
+  },
 };
 
 function decodeInteractionUpdate(field: Field): DecodedDelta[] {
@@ -763,6 +765,7 @@ export function decodeAgentServerMessage(payload: Buffer): DecodedDelta[] {
       out.push({ kind: "kv_server_message" });
       continue;
     }
+    if (pushTtftBreakdown(top, out)) continue;
     if (top.fieldNumber !== ASM_INTERACTION_UPDATE || top.wireType !== 2) continue;
     for (const update of decodeFields(top.bytes)) {
       out.push(...decodeInteractionUpdate(update));

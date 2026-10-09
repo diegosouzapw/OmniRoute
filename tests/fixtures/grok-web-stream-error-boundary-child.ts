@@ -453,6 +453,7 @@ test("chatCore converts a Grok post-content failure into terminal wire error and
     message: "Grok upstream stream failed",
     code: "stream_pipeline_error",
     type: "stream_error",
+    outputEmitted: true,
   });
 
   assert.equal(await callLogs.waitForCallLogSaves(3_000), true);

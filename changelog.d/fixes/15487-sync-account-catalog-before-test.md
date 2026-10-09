@@ -1,0 +1,1 @@
+- **fix(providers):** sync missing account catalogs before model tests ([#15487](https://github.com/diegosouzapw/OmniRoute/pull/15487)) — thanks @JxnLexn

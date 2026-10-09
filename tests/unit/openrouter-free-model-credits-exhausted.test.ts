@@ -1,18 +1,15 @@
 /**
  * A 402 from a PAID OpenRouter model locks the whole connection as
- * "credits_exhausted" (openrouter-quota-6842.test.ts confirms this is
- * intentional connection-scoped behavior for OpenRouter's shared account
- * balance). But OpenRouter's `:free` models are not gated by that same
- * balance, so once one paid-model call trips the lock, every `:free` model
- * combo target on that same connection is also skipped for the full 1h
- * cooldown — even though the free models never touched the exhausted
- * credits. This defeats combo failover to free models, which is the whole
- * point of configuring them.
+ * "credits_exhausted" (intentional connection-scoped behavior for
+ * OpenRouter's shared account balance). Only the free models the shipped
+ * catalog documents as free-access keep being served from such a
+ * connection, so combo failover to free models keeps working while any
+ * other `:free`-suffixed id stays excluded on the exhausted balance.
  *
- * getProviderCredentials must keep serving `:free` model requests from a
- * connection whose ONLY problem is credits_exhausted, while still refusing
- * paid-model requests (and still refusing free-model requests on a
- * connection that's terminal for another reason, e.g. banned).
+ * getProviderCredentials serves only catalogued free-access model requests
+ * from a connection whose ONLY problem is credits_exhausted, while still
+ * refusing paid-model requests, uncatalogued `:free` ids, and free-model
+ * requests on a connection that's terminal for another reason, e.g. banned.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -38,10 +35,10 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-test("getProviderCredentials still serves a :free OpenRouter model after the connection is credits_exhausted", async () => {
+test("getProviderCredentials stops serving an uncatalogued :free OpenRouter model after the connection is credits_exhausted", async () => {
   await resetStorage();
 
-  const conn = await providersDb.createProviderConnection({
+  await providersDb.createProviderConnection({
     provider: "openrouter",
     authType: "apikey",
     apiKey: "sk-or-exhausted",
@@ -56,8 +53,11 @@ test("getProviderCredentials still serves a :free OpenRouter model after the con
     "meta-llama/llama-3.1-8b-instruct:free"
   );
 
-  assert.ok(selected, "a credits_exhausted OpenRouter connection must still serve :free models");
-  assert.equal(selected.connectionId, conn.id);
+  assert.deepEqual(
+    selected,
+    { allExpired: true, expiredCount: 1, expiredStatus: "credits_exhausted" },
+    "a :free model without catalogued free access must be excluded on the exhausted connection"
+  );
 });
 
 test("getProviderCredentials still refuses a PAID OpenRouter model on a credits_exhausted connection", async () => {

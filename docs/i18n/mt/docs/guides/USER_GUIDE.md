@@ -118,36 +118,39 @@ Aċċess permezz ta': WhatsApp, Telegram, Slack, Discord, iMessage, Signal...
 
 ---
 
-## 📖 Tħejjija tal-Fornitur
+## 📖 Konfigurazzjoni tal-Providers
 
-### 🔐 Fornituri ta' Abbonament
+Biex iżżid għadd kbir ta’ konnessjonijiet b’ċavetta API minn fajl CSV jew JSON, uża **Dashboard → Providers → Import from file**. Il-kolonni huma pożizzjonali (`provider,name,apiKey,baseUrl,priority`); `provider` irid ikun diġà jeżisti bħala provider immaniġġjat jew node kompatibbli. Ara [Importazzjoni ta’ providers minn fajl CSV jew JSON](../providers/CSV-IMPORT.md).
+
+### 🔐 Providers b’Abbonament
 
 #### Claude Code (Pro/Max)
 
 ```bash
-Dashboard → Providers → Connect Claude Code
-→ OAuth login → Auto token refresh
-→ 5-hour + weekly quota tracking
+Dashboard → Providers → Qabbad Claude Code
+→ Login OAuth → Aġġornament awtomatiku tat-token
+→ Monitoraġġ tal-kwota ta’ 5 sigħat + ta’ kull ġimgħa
 
-Models:
+Mudelli:
   cc/claude-opus-4-7
   cc/claude-sonnet-4-6
   cc/claude-haiku-4-5-20251001
 ```
 
-**Pro Tip:** Uża l-Opus għal komplessi, Sonnet għas-sekondarja. OmniRoute jissorvelja l-kwota għal kull mudell!
+**Parir Professjonali:** Uża Opus għal kompiti kumplessi u Sonnet għall-veloċità. OmniRoute jimmonitorja l-kwota għal kull mudell!
 
-It-toroq li huma kompatibbli ma' Claude u Claude Code iżommu l-isforz ta' ħsieb "max" għall-mudelli Opus u Sonnet.
-Il-mudelli Haiku ma jirċevux il-livell "max" ta' sforz, għalhekk OmniRoute jagħmel downgrade ta' dik it-talba għal baġit ta' ħsieb qawwi qabel ma jibagħthha 'il quddiem.
+M’hemmx browser fuq il-host ta’ OmniRoute? Ħaddem `claude setup-token` kull fejn tkun illoggjat fi Claude Code u waħħal it-token ta’ sena fit-tab **Setup Token**. Ara [Claude Code b’token ta’ konfigurazzjoni](../providers/CLAUDE_CODE_SETUP_TOKEN.md).
+
+Ir-rotot kompatibbli ma’ Claude u Claude Code jippreservaw il-livell ta’ sforz ta’ ħsieb `max` għall-mudelli Opus u Sonnet. Il-mudelli Haiku ma jaċċettawx il-livell ta’ sforz `max`, għalhekk OmniRoute jbaxxi dik it-talba għal baġit għoli ta’ ħsieb qabel jibgħatha lis-servizz upstream.
 
 #### OpenAI Codex (Plus/Pro)
 
 ```bash
-Dashboard → Providers → Connect Codex
-→ OAuth login (port 1455)
-→ 5-hour + weekly reset
+Dashboard → Providers → Qabbad Codex
+→ Login OAuth (port 1455)
+→ Irrisettjar kull 5 sigħat + kull ġimgħa
 
-Models:
+Mudelli:
   cx/gpt-5.5
   cx/gpt-5.4
   cx/gpt-5.3-codex
@@ -157,11 +160,11 @@ Models:
 #### GitHub Copilot
 
 ```bash
-Dashboard → Providers → Connect GitHub
-→ OAuth via GitHub
-→ Monthly reset (1st of month)
+Dashboard → Providers → Qabbad GitHub
+→ OAuth permezz ta’ GitHub
+→ Irrisettjar kull xahar (fl-1 tax-xahar)
 
-Models:
+Mudelli:
   gh/gpt-5.5
   gh/gpt-5.4
   gh/claude-sonnet-4.6
@@ -169,57 +172,56 @@ Models:
   gh/gemini-3.1-pro-preview
 ```
 
-### 💰 Fornituri irħas
+### 💰 Providers Irħas
 
-#### GLM-4.7 (Reset ta' kuljum, $0.6/1M)
+#### GLM-4.7 (Irrisettjar kuljum, $0.6/1M)
 
 1. Irreġistra: [Zhipu AI](https://open.bigmodel.cn)
-2. Ikseb API key minn Coding Plan
-3. Dashboard → Add API Key: Provider: `glm`, API Key: `your-key`
+2. Ikseb ċavetta API minn Coding Plan
+3. Dashboard → Żid Ċavetta API: Provider: `glm`, Ċavetta API: `your-key`
 
-**Uża:** `glm/glm-4.7` — **Pro Tip:** Coding Plan joffri 3× kwota b'1/7 l-ispiża! Reset kuljum fil-10:00 AM.
+**Uża:** `glm/glm-4.7` — **Parir Professjonali:** Coding Plan joffri kwota 3× akbar bi 1/7 tal-ispiża! Jirrisettja kuljum fl-10:00 AM.
 
-#### MiniMax M2.1 (Reset ta' 5h, $0.20/1M)
+#### MiniMax M2.1 (Irrisettjar kull 5 sigħat, $0.20/1M)
 
 1. Irreġistra: [MiniMax](https://www.minimax.io)
-2. Ikseb API key → Dashboard → Add API Key
+2. Ikseb ċavetta API → Dashboard → Żid Ċavetta API
 
-**Uża:** `minimax/MiniMax-M2.1` — **Pro Tip:** L-iktar għażla irħisa għal kuntest twil (1M tokens)!
+**Uża:** `minimax/MiniMax-M2.1` — **Parir Professjonali:** L-orħos għażla għal kuntest twil (1M tokens)!
 
-#### Kimi K2 ($9/xahar flat)
+#### Kimi K2 ($9/xahar b’rata fissa)
 
 1. Abbona: [Moonshot AI](https://platform.kimi.ai?aff=omniroute)
-2. Ikseb API key → Dashboard → Add API Key
+2. Ikseb ċavetta API → Dashboard → Żid Ċavetta API
 
-**Uża:** `kimi/kimi-k2.5` — **Pro Tip:** $9 fissi fix-xahar għal 10M tokens = spża effettiva ta' $0.90/1M!
+**Uża:** `kimi/kimi-k2.5` — **Parir Professjonali:** Prezz fiss ta’ $9/xahar għal 10M tokens = spiża effettiva ta’ $0.90/1M!
 
 #### Baidu Qianfan / ERNIE
 
 1. Irreġistra: [Baidu AI Cloud Qianfan](https://cloud.baidu.com/product/wenxinworkshop)
-2. Oħloq API key ta' Qianfan → Dashboard → Add API Key: Provider: `qianfan`
+2. Oħloq ċavetta API ta’ Qianfan → Dashboard → Żid Ċavetta API: Provider: `qianfan`
 
-**Uża:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, jew mudell ieħor kompatibbli ma' OpenAI ta' Qianfan.
+**Uża:** `qianfan/ernie-5.1`, `qianfan/ernie-x1.1`, jew ID ieħor ta’ mudell Qianfan kompatibbli ma’ OpenAI.
 
-### 🆓 Fornituri B'XEJN
+### 🆓 Providers B’XEJN
 
-Il-fornituri b'xejn mingħajr awtentikazzjoni għandhom switch ħdejn **No authentication required** fil-paġna tal-fornitur tagħhom.
-Meta tneħħih, tkun qed tiddiżattiva dak il-fornitur, tneħħih mill-views ta' Providers configured/compact, u
-tneħħi l-mudelli tiegħu minn `/v1/models`.
+Il-providers b’xejn li ma jeħtiġux awtentikazzjoni għandhom swiċċ ħdejn **Ma hija meħtieġa l-ebda awtentikazzjoni** fil-paġna tal-provider tagħhom.
+Meta titfih, dak il-provider jiġi diżattivat, jitneħħa mill-veduti konfigurati/kompatti ta’ Providers, u l-mudelli tiegħu jitneħħew minn `/v1/models`.
 
-#### Qoder (9 Mudelli B'XEJN)
+#### Qoder (9 mudelli B’XEJN)
 
 ```bash
-Dashboard → Connect Qoder → OAuth login → Access is subject to current provider limits
+Dashboard → Qabbad Qoder → Login OAuth → L-aċċess huwa soġġett għal-limiti attwali tal-provider
 
-Models: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
+Mudelli: if/qwen3.8-max-preview, if/qwen3.7-max, if/qwen3.7-plus, if/kimi-k3, if/kimi-k2.7-code, if/glm-5.2, if/deepseek-v4-pro, if/deepseek-v4-flash, if/minimax-m3
 ```
 
-#### Kiro (Claude B'XEJN)
+#### Kiro (Claude B’XEJN)
 
 ```bash
-Dashboard → Connect Kiro → AWS Builder ID or Google/GitHub → ~50 credits/month
+Dashboard → Qabbad Kiro → AWS Builder ID jew Google/GitHub → ~50 kreditu/xahar
 
-Models: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
+Mudelli: kr/claude-sonnet-4.5, kr/claude-haiku-4.5
 ```
 
 ---

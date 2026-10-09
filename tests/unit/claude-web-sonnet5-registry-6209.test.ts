@@ -18,6 +18,8 @@ test("claude-web registry matches the current selectable model set", () => {
       "claude-opus-4-6",
       "claude-sonnet-4-6",
       "claude-sonnet-5",
+      // contract changed by #15035: Claude Sonnet 5.5 was added to the claude-web registry.
+      "claude-sonnet-5-5",
     ].sort()
   );
 });

@@ -1,10 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  getComboModelProvider,
-  getComboModelString,
-  getComboStepTarget,
-} from "../../src/lib/combos/steps.ts";
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 import { registerToolSearchTool } from "./toolSearch/register.ts";
 import {
   MCP_TOOLS,
@@ -17,7 +13,6 @@ import {
   routeRequestInput,
   costReportInput,
   listModelsCatalogInput,
-  webSearchInput,
   buildWebSearchInputSchema,
   xSearchInput,
   webFetchInput,
@@ -44,12 +39,12 @@ import { countUniqueMcpTools } from "./toolCount.ts";
 import { z } from "zod";
 import { closeAuditDb, logToolCall } from "./audit.ts";
 import {
+  buildScopeDenialMessage,
   evaluateToolScopes,
   resolveCallerScopeContext,
+  shouldForceScopeEnforcement,
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
-import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
-import { getInternalServiceAuthHeaders } from "../../src/lib/api/internalServiceAuth.ts";
 import {
   handleSimulateRoute,
   handleSetBudgetGuard,
@@ -69,6 +64,27 @@ import {
   handleOneproxyStats,
 } from "./tools/advancedTools.ts";
 import { handlePickFastestModel } from "./tools/pickFastestModel.ts";
+// #15159 M-01 — "file = register + wrap. handle* -> tools/canonical/*.ts".
+// These twelve handlers used to be defined inline below `withScopeEnforcement`,
+// which made this file a 784-line registration-and-implementation mix. They are
+// unchanged in behaviour; they just live where the other thirteen tool modules
+// already live. `coercions.ts` holds the helpers both sides need, so neither
+// direction imports the other and graph cycles 193/194 stay closed (M-06).
+import {
+  handleCheckQuota,
+  handleCreateCombo,
+  handleGetComboMetrics,
+  handleGetHealth,
+  handleListCombos,
+  handleSwitchCombo,
+} from "./tools/opsTools.ts";
+import {
+  handleCostReport,
+  handleListModelsCatalog,
+  handleRouteRequest,
+} from "./tools/inferenceTools.ts";
+import { handleWebFetch, handleWebSearch, handleXSearch } from "./tools/webTools.ts";
+import { toRecord } from "./coercions.ts";
 import { memoryTools } from "./tools/memoryTools.ts";
 import { skillTools } from "./tools/skillTools.ts";
 import { agentSkillTools } from "./tools/agentSkillTools.ts";
@@ -91,17 +107,12 @@ import {
   type McpAccessibilityConfig,
 } from "../services/compression/engines/mcpAccessibility/constants.ts";
 import { getDbInstance, ensureDbInitialized } from "../../src/lib/db/core.ts";
-import { normalizeQuotaResponse } from "../../src/shared/contracts/quota.ts";
-import { resolveOmniRouteBaseUrl } from "../../src/shared/utils/resolveOmniRouteBaseUrl.ts";
 import { isMcpScopeEnforcementEnabled } from "../../src/shared/utils/featureFlags.ts";
 import { toSafeMcpErrorMessage } from "./errorMessage.ts";
-import { mcpFetchTimeoutSignal } from "./fetchTimeout.ts";
-import { getMcpModelsCatalog } from "./catalog.ts";
 import { registerRadarCatalogTool } from "./radarCatalog.ts";
 import type { TextToolResult } from "./toolResult.ts";
 export { getMcpModelsCatalog } from "./catalog.ts";
 
-const OMNIROUTE_BASE_URL = resolveOmniRouteBaseUrl();
 const MCP_ALLOWED_SCOPES = new Set(
   (process.env.OMNIROUTE_MCP_SCOPES || "")
     .split(",")
@@ -122,8 +133,6 @@ const TOTAL_MCP_TOOL_COUNT = countUniqueMcpTools({
   localCorpusTools,
   compressionTools,
 });
-
-type JsonRecord = Record<string, unknown>;
 
 function readMcpDescriptionCompressionEnabled(): boolean {
   try {
@@ -151,76 +160,23 @@ function readMcpAccessibilityConfig(): McpAccessibilityConfig {
   }
 }
 
-function toRecord(value: unknown): JsonRecord {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
-}
+// #15159 M-01: toRecord / toArray / toString / toFiniteNumber / isLaneFlagOn /
+// toUptimeString / normalizeComboModels moved to `./coercions.ts`. They are pure
+// and import nothing, so both this file and the extracted `tools/*` modules can
+// depend on them without either depending on the other — which is what keeps
+// the `server.ts -> tools/*` edge one-directional. `toRecord` is still used here,
+// by `withScopeEnforcement` below; the rest are imported only by the handlers.
+/**
+ * Re-exported rather than defined here, and imported (not just re-exported) because the
+ * tool handlers below call it by name — a bare `export … from` creates no local binding.
+ *
+ * #15159 M-06: the hop moved to its own leaf module so that `catalog.ts` and
+ * `radarCatalog.ts` can import it directly instead of reaching back into this file
+ * through `import("./server.ts")`, which closed two cycles in the dependency graph.
+ */
+import { omniRouteFetch } from "./internalFetch.ts";
 
-function toArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : [];
-}
-
-function toString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : fallback;
-}
-
-function toNumber(value: unknown, fallback = 0): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-// Mirrors the runtime's env convention for lane flags ("1" | "true" are on) so a
-// future string serialization can never silently invert a boolean lane report.
-function isLaneFlagOn(value: unknown): boolean {
-  return value === true || value === "1" || value === "true";
-}
-
-function normalizeComboModels(
-  rawModels: unknown
-): Array<{ provider: string; model: string; priority: number }> {
-  return toArray(rawModels).map((rawModel, index) => {
-    const modelRecord = toRecord(rawModel);
-    const modelString = getComboModelString(rawModel);
-    const target = getComboStepTarget(rawModel);
-    const provider =
-      getComboModelProvider(rawModel) ||
-      (modelString ? "unknown" : target ? "combo" : toString(modelRecord.provider, "unknown"));
-
-    return {
-      provider,
-      model: modelString || target || toString(modelRecord.model, "unknown"),
-      priority: toNumber(modelRecord.priority, index + 1),
-    };
-  });
-}
-
-function getOmniRouteApiKey(): string {
-  return process.env.OMNIROUTE_API_KEY || "";
-}
-
-export async function omniRouteFetch(path: string, options: RequestInit = {}): Promise<unknown> {
-  const url = `${OMNIROUTE_BASE_URL}${path}`;
-  const apiKey = getOmniRouteApiKey();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    // Static env key is only a fallback; the per-caller MCP identity forwarded via
-    // withMcpHttpAuthContext must win over it (#5819).
-    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-    ...getMcpHttpAuthHeadersForInternalFetch(),
-    ...((options.headers as Record<string, string>) || {}),
-    // Authenticate only the server-to-server hop. This does not replace or
-    // weaken the caller identity forwarded above.
-    ...getInternalServiceAuthHeaders(),
-  };
-
-  const signal = options.signal || mcpFetchTimeoutSignal("management");
-  const response = await fetch(url, { ...options, headers, signal });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error");
-    throw new Error(`OmniRoute API error [${response.status}]: ${errorText}`);
-  }
-
-  return response.json();
-}
+export { omniRouteFetch };
 
 function withScopeEnforcement(
   toolName: string,
@@ -232,17 +188,15 @@ function withScopeEnforcement(
     const scopeCheck = evaluateToolScopes(
       toolName,
       scopeContext.scopes,
-      isMcpScopeEnforcementEnabled(),
+      isMcpScopeEnforcementEnabled() || shouldForceScopeEnforcement(scopeContext),
       toolScopes
     );
     if (!scopeCheck.allowed) {
-      const missingScopes =
-        scopeCheck.missing.length > 0 ? scopeCheck.missing.join(", ") : "unavailable";
       const reason = scopeCheck.reason || "scope_check_failed";
-      const msg =
-        `Insufficient MCP scopes for ${toolName}. ` +
-        `Missing: ${missingScopes}. ` +
-        `Caller=${scopeContext.callerId}, source=${scopeContext.source}.`;
+      // S-04 (#15159): no Caller=/source= here — see buildScopeDenialMessage. The
+      // identity is still recorded in the _scopeCheck audit payload below, which is
+      // where an operator needs it.
+      const msg = buildScopeDenialMessage(toolName, scopeCheck.missing);
       const safeArgs = args && typeof args === "object" ? toRecord(args) : { rawArgs: args };
       await logToolCall(
         toolName,
@@ -271,460 +225,6 @@ function withScopeEnforcement(
   };
 }
 
-// process.uptime() (the source of health.uptime) returns a number, not a string;
-// the shared toString() helper only passes through actual strings, so a naive
-// toString(health.uptime, "unknown") silently discarded every real uptime value.
-function toUptimeString(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" && Number.isFinite(value)) return String(value);
-  return "unknown";
-}
-
-async function handleGetHealth() {
-  const start = Date.now();
-  try {
-    const [healthRaw, resilienceRaw, rateLimitsRaw] = await Promise.allSettled([
-      omniRouteFetch("/api/monitoring/health"),
-      omniRouteFetch("/api/resilience"),
-      omniRouteFetch("/api/rate-limits"),
-    ]);
-
-    const health = healthRaw.status === "fulfilled" ? toRecord(healthRaw.value) : {};
-    const resilience = resilienceRaw.status === "fulfilled" ? toRecord(resilienceRaw.value) : {};
-    const rateLimits = rateLimitsRaw.status === "fulfilled" ? toRecord(rateLimitsRaw.value) : {};
-    const memoryUsageRaw = toRecord(health.memoryUsage);
-    const cacheStatsRaw = toRecord(health.cacheStats);
-    const resilienceCircuitBreakers = toArray(resilience.circuitBreakers);
-    const rateLimitEntries = toArray(rateLimits.limits);
-    const adaptiveAdmissionRaw = toRecord(health.adaptiveAdmission);
-    // Curated lane subset: top lanes by queued cost so a congested tenant is
-    // visible first without shipping the whole admission snapshot to agents.
-    const laneTenants = toArray(adaptiveAdmissionRaw.laneTenants)
-      .map((tenant) => {
-        const record = toRecord(tenant);
-        return {
-          tenantKey: toString(record.tenantKey),
-          queuedCount: toNumber(record.queuedCount, 0),
-          queuedCost: toNumber(record.queuedCost, 0),
-        };
-      })
-      .sort((a, b) => b.queuedCost - a.queuedCost)
-      .slice(0, 10);
-
-    // Surface fetch failures instead of letting Promise.allSettled's {} fallback
-    // masquerade as genuine zero/empty data (indistinguishable "no data" vs.
-    // "couldn't reach the source" was the actual root confusion this fixes).
-    const degradedSources: Array<{ source: string; settled: PromiseSettledResult<unknown> }> = [
-      { source: "health", settled: healthRaw },
-      { source: "resilience", settled: resilienceRaw },
-      { source: "rateLimits", settled: rateLimitsRaw },
-    ];
-    const degraded = degradedSources
-      .filter(({ settled }) => settled.status === "rejected")
-      .map(({ source, settled }) => ({
-        source,
-        error: toSafeMcpErrorMessage((settled as PromiseRejectedResult).reason, ""),
-      }));
-
-    const result = {
-      uptime: toUptimeString(health.uptime),
-      version: toString(health.version, "unknown"),
-      memoryUsage: {
-        heapUsed: toNumber(memoryUsageRaw.heapUsed, 0),
-        heapTotal: toNumber(memoryUsageRaw.heapTotal, 0),
-      },
-      circuitBreakers: resilienceCircuitBreakers,
-      rateLimits: rateLimitEntries,
-      cacheStats:
-        Object.keys(cacheStatsRaw).length > 0
-          ? {
-              hits: toNumber(cacheStatsRaw.hits, 0),
-              misses: toNumber(cacheStatsRaw.misses, 0),
-              hitRate: toNumber(cacheStatsRaw.hitRate, 0),
-            }
-          : undefined,
-      cryptography: health.cryptography
-        ? {
-            status: toString(toRecord(health.cryptography).status, "missing_or_invalid"),
-            provider: toString(toRecord(health.cryptography).provider, "unknown"),
-          }
-        : undefined,
-      adaptiveAdmission:
-        Object.keys(adaptiveAdmissionRaw).length > 0
-          ? {
-              virtualLanes: isLaneFlagOn(adaptiveAdmissionRaw.virtualLanes),
-              pressure: toString(adaptiveAdmissionRaw.pressure),
-              utilization: toNumber(adaptiveAdmissionRaw.utilization, 0),
-              laneCount: toNumber(adaptiveAdmissionRaw.laneCount, 0),
-              laneQueuedCount: toNumber(adaptiveAdmissionRaw.laneQueuedCount, 0),
-              laneQueuedCost: toNumber(adaptiveAdmissionRaw.laneQueuedCost, 0),
-              laneTenants,
-              admittedCount: toNumber(adaptiveAdmissionRaw.admittedCount, 0),
-              rejectedCount: toNumber(adaptiveAdmissionRaw.rejectedCount, 0),
-              wouldRejectCount: toNumber(adaptiveAdmissionRaw.wouldRejectCount, 0),
-              shutdown: isLaneFlagOn(adaptiveAdmissionRaw.shutdown),
-            }
-          : undefined,
-      degraded: degraded.length > 0 ? degraded : undefined,
-    };
-
-    await logToolCall("omniroute_get_health", {}, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_get_health", {}, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleListCombos(args: { includeMetrics?: boolean }) {
-  const start = Date.now();
-  try {
-    const combosRaw = await omniRouteFetch("/api/combos");
-    const combosRecord = toRecord(combosRaw);
-    const combos = Array.isArray(combosRecord.combos)
-      ? combosRecord.combos
-      : Array.isArray(combosRaw)
-        ? combosRaw
-        : [];
-    let metrics: JsonRecord = {};
-    if (args.includeMetrics) {
-      metrics = toRecord(await omniRouteFetch("/api/combos/metrics").catch(() => ({})));
-    }
-
-    const result = {
-      combos: toArray(combos).map((rawCombo) => {
-        const combo = toRecord(rawCombo);
-        const comboData = toRecord(combo.data);
-        const comboId = toString(combo.id, "");
-        const modelsSource =
-          Array.isArray(combo.models) && combo.models.length > 0 ? combo.models : comboData.models;
-        return {
-          id: comboId,
-          name: toString(combo.name, comboId || "unnamed"),
-          models: normalizeComboModels(modelsSource),
-          strategy: toString(combo.strategy, toString(comboData.strategy, "priority")),
-          enabled: combo.enabled !== false,
-          ...(args.includeMetrics ? { metrics: metrics[comboId] ?? null } : {}),
-        };
-      }),
-    };
-
-    await logToolCall("omniroute_list_combos", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_list_combos", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleGetComboMetrics(args: { comboId: string }) {
-  const start = Date.now();
-  try {
-    const result = await omniRouteFetch(
-      `/api/combos/metrics?comboId=${encodeURIComponent(args.comboId)}`
-    );
-    await logToolCall("omniroute_get_combo_metrics", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_get_combo_metrics", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleSwitchCombo(args: { comboId: string; active: boolean }) {
-  const start = Date.now();
-  try {
-    const result = await omniRouteFetch(`/api/combos/${encodeURIComponent(args.comboId)}`, {
-      method: "PUT",
-      body: JSON.stringify({ isActive: args.active }),
-    });
-    await logToolCall("omniroute_switch_combo", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_switch_combo", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleCreateCombo(args: {
-  name: string;
-  description?: string;
-  strategy?: string;
-  models: { provider: string; model: string }[];
-}) {
-  const start = Date.now();
-  try {
-    const result = await omniRouteFetch("/api/combos", {
-      method: "POST",
-      body: JSON.stringify(args),
-    });
-    await logToolCall("omniroute_create_combo", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_create_combo", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleCheckQuota(args: { provider?: string; connectionId?: string }) {
-  const start = Date.now();
-  try {
-    let path = "/api/usage/quota";
-    if (args.connectionId) path += `?connectionId=${encodeURIComponent(args.connectionId)}`;
-    else if (args.provider) path += `?provider=${encodeURIComponent(args.provider)}`;
-
-    const result = normalizeQuotaResponse(await omniRouteFetch(path), {
-      provider: args.provider || null,
-      connectionId: args.connectionId || null,
-    });
-
-    await logToolCall("omniroute_check_quota", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_check_quota", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleRouteRequest(args: {
-  model: string;
-  messages: Array<{ role: string; content: string }>;
-  combo?: string;
-  budget?: number;
-  role?: string;
-  stream?: boolean;
-}) {
-  const start = Date.now();
-  try {
-    const body: Record<string, unknown> = {
-      model: args.model,
-      messages: args.messages,
-      stream: false, // MCP tool always returns non-streaming
-    };
-    if (args.combo) {
-      body["x-combo"] = args.combo;
-    }
-
-    const raw = (await omniRouteFetch("/v1/chat/completions", {
-      method: "POST",
-      body: JSON.stringify(body),
-      // #9717: this hop waits on an upstream provider (and on auto-combo
-      // candidate probing before one is even chosen), so it must not inherit
-      // the management-read budget.
-      signal: mcpFetchTimeoutSignal("upstream"),
-    })) as JsonRecord;
-    const choices = toArray(raw.choices);
-    const firstChoice = toRecord(choices[0]);
-    const firstMessage = toRecord(firstChoice.message);
-    const usage = toRecord(raw.usage);
-
-    const result = {
-      response: {
-        content: toString(firstMessage.content, ""),
-        model: toString(raw.model, args.model),
-        tokens: {
-          prompt: toNumber(usage.prompt_tokens, 0),
-          completion: toNumber(usage.completion_tokens, 0),
-        },
-      },
-      routing: {
-        provider: toString(raw.provider, "unknown"),
-        combo: raw.combo ?? null,
-        fallbacksTriggered: toNumber(raw.fallbacksTriggered, 0),
-        cost: toNumber(raw.cost, 0),
-        latencyMs: Date.now() - start,
-        routingExplanation: toString(
-          raw.routingExplanation,
-          "Request routed through primary provider"
-        ),
-      },
-    };
-
-    await logToolCall(
-      "omniroute_route_request",
-      { model: args.model, messageCount: args.messages.length },
-      result.routing,
-      Date.now() - start,
-      true
-    );
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall(
-      "omniroute_route_request",
-      { model: args.model },
-      null,
-      Date.now() - start,
-      false,
-      msg
-    );
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleCostReport(args: { period?: string }) {
-  const start = Date.now();
-  try {
-    const period = args.period || "session";
-    const rangeMap: Record<string, string> = {
-      session: "1d",
-      day: "1d",
-      week: "7d",
-      month: "30d",
-    };
-    const range = rangeMap[period] || "30d";
-    const raw = toRecord(
-      await omniRouteFetch(`/api/usage/analytics?range=${encodeURIComponent(range)}`)
-    );
-    const tokenCount = toRecord(raw.tokenCount);
-    const budget = toRecord(raw.budget);
-
-    const result = {
-      period,
-      totalCost: toNumber(raw.totalCost, 0),
-      requestCount: toNumber(raw.requestCount, 0),
-      tokenCount: {
-        prompt: toNumber(tokenCount.prompt, 0),
-        completion: toNumber(tokenCount.completion, 0),
-      },
-      byProvider: toArray(raw.byProvider),
-      byModel: toArray(raw.byModel),
-      budget: {
-        limit: budget.limit ?? null,
-        remaining: budget.remaining ?? null,
-      },
-    };
-
-    await logToolCall("omniroute_cost_report", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_cost_report", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleListModelsCatalog(args: { provider?: string; capability?: string }) {
-  const start = Date.now();
-  try {
-    const result = await getMcpModelsCatalog(args);
-
-    await logToolCall(
-      "omniroute_list_models_catalog",
-      args,
-      { modelCount: result.models.length },
-      Date.now() - start,
-      true
-    );
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_list_models_catalog", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleWebSearch(args: {
-  query: string;
-  max_results?: number;
-  search_type?: "web" | "news";
-  provider?: string;
-}) {
-  const start = Date.now();
-  try {
-    const body: Record<string, unknown> = {
-      query: args.query,
-      max_results: args.max_results ?? 5,
-      search_type: args.search_type ?? "web",
-    };
-    if (args.provider) body.provider = args.provider;
-
-    const result = await omniRouteFetch("/v1/search", {
-      method: "POST",
-      body: JSON.stringify(body),
-      signal: mcpFetchTimeoutSignal("upstream"),
-    });
-    await logToolCall("omniroute_web_search", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_web_search", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleXSearch(args: {
-  query: string;
-  max_results?: number;
-  provider?: "x-search" | "xquik-search";
-}) {
-  const start = Date.now();
-  try {
-    const result = await omniRouteFetch("/v1/search", {
-      method: "POST",
-      body: JSON.stringify({
-        query: args.query,
-        max_results: args.max_results ?? 5,
-        search_type: "x",
-        provider: args.provider ?? "x-search",
-      }),
-      signal: AbortSignal.timeout(120000),
-    });
-    await logToolCall("omniroute_x_search", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_x_search", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
-async function handleWebFetch(args: {
-  url: string;
-  provider?:
-    | "firecrawl"
-    | "jina-reader"
-    | "tavily-search"
-    | "tinyfish"
-    | "context7"
-    | "nimble-search"
-    | "anysearch-search";
-  format?: "markdown" | "html" | "links" | "screenshot";
-  include_metadata?: boolean;
-  depth?: number;
-  wait_for_selector?: string;
-}) {
-  const start = Date.now();
-  try {
-    const body: Record<string, unknown> = {
-      url: args.url,
-      format: args.format ?? "markdown",
-      include_metadata: args.include_metadata ?? false,
-    };
-    if (args.provider) body.provider = args.provider;
-    if (args.depth !== undefined) body.depth = args.depth;
-    if (args.wait_for_selector) body.wait_for_selector = args.wait_for_selector;
-
-    const result = await omniRouteFetch("/v1/web/fetch", {
-      method: "POST",
-      body: JSON.stringify(body),
-      signal: mcpFetchTimeoutSignal("upstream"),
-    });
-    await logToolCall("omniroute_web_fetch", args, result, Date.now() - start, true);
-    return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-  } catch (err) {
-    const msg = toSafeMcpErrorMessage(err);
-    await logToolCall("omniroute_web_fetch", args, null, Date.now() - start, false, msg);
-    return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-  }
-}
-
 export interface CreateMcpServerOptions {
   blockedProviders?: string[] | (() => string[]);
 }
@@ -745,7 +245,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
 
   const server = new McpServer({
     name: "omniroute",
-    version: process.env.npm_package_version || "1.8.1",
+    version: APP_CONFIG.version,
   });
   const mcpDescriptionCompressionEnabled = readMcpDescriptionCompressionEnabled();
   const mcpAccessibilityConfig = readMcpAccessibilityConfig();
@@ -1220,17 +720,21 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(toolDef.name, async (args, extra) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-expect-error - handler type lost through dynamic Object.values() access
-          const result = await toolDef.handler(parsedArgs, extra);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
+      withScopeEnforcement(
+        toolDef.name,
+        async (args, extra) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-expect-error - handler type lost through dynamic Object.values() access
+            const result = await toolDef.handler(parsedArgs, extra);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
     );
   });
 
@@ -1527,7 +1031,7 @@ export async function startMcpStdio(): Promise<void> {
   // stderr before this module's own imports evaluate.
   const server = createMcpServer();
   const transport = new StdioServerTransport();
-  const version = process.env.npm_package_version || "1.8.1";
+  const version = APP_CONFIG.version;
   const stopHeartbeat = startMcpHeartbeat({
     version,
     scopesEnforced: isMcpScopeEnforcementEnabled,

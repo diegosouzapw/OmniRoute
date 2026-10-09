@@ -79,6 +79,11 @@ function getActiveSalt() {
 
   const dataDir = resolveDataDir();
   const persisted = establishPersistedSalt(dataDir);
+  if (!persisted) {
+    console.warn(
+      "[CLI_TOKEN] Could not persist a private CLI salt in DATA_DIR; using the compatibility fallback. Fix DATA_DIR permissions or set OMNIROUTE_CLI_SALT."
+    );
+  }
   _cachedActiveSalt = persisted || BUILTIN_DEFAULT_SALT;
   return _cachedActiveSalt;
 }

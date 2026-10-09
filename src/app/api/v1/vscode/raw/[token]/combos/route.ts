@@ -6,7 +6,7 @@
  * so we re-export /api/version, /api/tags, etc. from the [token] parent route.
  */
 import { getCombos } from "@/lib/db/combos";
-import { projectCombo, type PublicCombo } from "@/app/api/v1/combos/projectCombo";
+import { projectComboCollectionWithCapabilities } from "@/app/api/v1/combos/projectCombo";
 
 // Re-export Ollama-compatible endpoints from the parent [token] route
 // so VS Code can validate the server version and list models normally
@@ -23,17 +23,7 @@ export async function GET(request: Request) {
   try {
     const combos = await getCombos();
     const allCombos = Array.isArray(combos) ? combos : [];
-    const data = allCombos
-      // #3979: advertise resolved capabilities so importing clients enable them
-      // #14232: pass the collection so combo-ref steps expand the same way the
-      // routing runtime resolves them.
-      .map((combo) =>
-        projectCombo(combo as Record<string, unknown>, {
-          includeCapabilities: true,
-          allCombos,
-        })
-      )
-      .filter((combo): combo is PublicCombo => combo !== null);
+    const data = projectComboCollectionWithCapabilities(allCombos);
 
     return new Response(JSON.stringify({ object: "list", data, combos: data }), {
       headers: {

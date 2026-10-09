@@ -1,0 +1,1 @@
+- **feat(proxies):** accept operator-provided dated egress observations for pool members — an authenticated push route stores dated observed addresses per member behind a new opt-in flag, merged with the journal read for display and pool order with the freshest observation winning ([#15314](https://github.com/diegosouzapw/OmniRoute/pull/15314)) — thanks @maxmad64bis

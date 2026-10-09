@@ -28,6 +28,68 @@ export function hasColumn(db: SqliteAdapter, tableName: string, columnName: stri
   return columns.some((column) => column.name === columnName);
 }
 
+// One `ALTER TABLE <t> ADD COLUMN <c> ...;` statement, anchored at the start of a line so
+// commented-out statements (`-- ALTER ...`) never match.
+const ADD_COLUMN_STATEMENT =
+  /^[ \t]*ALTER[ \t]+TABLE[ \t]+["`]?(\w+)["`]?[ \t]+ADD[ \t]+COLUMN[ \t]+["`]?(\w+)["`]?[^;]*;[^\S\n]*\n?/gim;
+
+/** Removes the `ADD COLUMN` statements whose column already exists; returns the rest of the file. */
+export function stripExistingAddColumns(
+  sql: string,
+  columnExists: (table: string, column: string) => boolean
+): { sql: string; skipped: string[] } {
+  const skipped: string[] = [];
+  const stripped = sql.replace(ADD_COLUMN_STATEMENT, (statement, table: string, column: string) => {
+    if (!columnExists(table, column)) return statement;
+    skipped.push(`${table}.${column}`);
+    return "";
+  });
+  return { sql: stripped, skipped };
+}
+
+/**
+ * Follow-up for a migration file that failed with "duplicate column name": runs the file again
+ * without the `ADD COLUMN` statements that already landed, then records the ledger row.
+ * Returns the skipped `table.column` names. When nothing can be skipped (or the file isn't
+ * plain SQL), or the replay fails for any reason, only the ledger row is written.
+ */
+export function applyMigrationSkippingExistingColumns(
+  db: SqliteAdapter,
+  migration: { version: string; name: string },
+  sql: string | null
+): string[] {
+  const record = () =>
+    db
+      .prepare("INSERT OR IGNORE INTO _omniroute_migrations (version, name) VALUES (?, ?)")
+      .run(migration.version, migration.name);
+  const { sql: rest, skipped } =
+    sql === null
+      ? { sql: "", skipped: [] as string[] }
+      : stripExistingAddColumns(sql, (table, column) => hasColumn(db, table, column));
+  if (skipped.length === 0) {
+    db.transaction(record)();
+    return skipped;
+  }
+  try {
+    db.transaction(() => {
+      if (rest.trim()) db.exec(rest);
+      record();
+    })();
+  } catch (err: unknown) {
+    // The replay runs in one transaction, so a failure leaves nothing half-applied. Any failure
+    // (another duplicate column, a CREATE TABLE/INDEX that already exists, ...) means the schema
+    // is ahead of the ledger: fall back to the marker-only behaviour the runner always had, so
+    // an idempotent leftover never aborts boot. If even the ledger write fails, that throws.
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(
+      `[Migration] ${migration.version}_${migration.name}: replay without the existing columns ` +
+        `failed (${message}); recording the migration without replaying it.`
+    );
+    db.transaction(record)();
+  }
+  return skipped;
+}
+
 export function inferPhysicalSchemaBaseline(db: SqliteAdapter): {
   version: string;
   description: string;

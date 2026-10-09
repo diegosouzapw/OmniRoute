@@ -119,6 +119,10 @@ export const CODEBUDDY_CN_CONFIG = {
   pollInterval: 5000,
 };
 
+// WorkBuddy config lives with its device-flow module so this god-file only
+// re-exports. Do not alias CODEBUDDY_CN_CONFIG — different host and account.
+export { WORKBUDDY_CONFIG } from "../providers/workbuddy";
+
 // Grok Build (xAI) OAuth Configuration (Device Code + import-token fallback)
 // Public client_id resolved through resolvePublicCred so it is never a literal.
 export const GROK_CLI_CONFIG = {
@@ -520,6 +524,7 @@ export const PROVIDERS = {
   DEVIN_CLI: "devin-cli",
   TRAE: "trae",
   CODEBUDDY_CN: "codebuddy-cn",
+  WORKBUDDY: "workbuddy",
   GROK_CLI: "grok-cli",
   XAI_OAUTH: "xai-oauth",
   OPENFERENCE: "openference",

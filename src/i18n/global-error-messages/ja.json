@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "何かがうまくいきませんでした",
+      "description": "予期しないエラーが発生しました。これがログに記録されており、私たちのチームが調査します。",
+      "detailsAriaLabel": "エラーの詳細",
+      "retryAriaLabel": "ページの再読み込みを試みる",
+      "tryAgain": "もう一度試してください",
+      "statusAriaLabel": "システムステータスを開く",
+      "systemStatus": "システムステータス"
+    }
+  }
+}

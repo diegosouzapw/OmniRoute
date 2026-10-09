@@ -41,13 +41,20 @@
 // Muse Code device OAuth dual-auth moves `muse-code` from frontier-labs into
 // OAUTH_PROVIDERS (same pattern as clinepass/codebuddy-cn) — 242.
 // Retiring suno (#14224, 4af4937e) removes one specialty-media apikey entry — 241.
-// TypeSafe System One (#15278, non-chat `typesafe` credential provider) adds one specialty-media entry — 242.
+// origin/release/v3.8.52 already measures 242 live APIKEY entries (test still 241, inherited).
+// onomeo (gateways) adds one apikey entry — 243.
+// Unifically (gateways, #14182) adds one apikey entry — 244.
+// BeatAPI (#14875) extracts one aggregator gateway into apikey/beatapi.ts and spreads it
+// from the barrel — 245.
+// TypeSafe System One (#15278, non-chat `typesafe` credential provider) adds one specialty-media entry — 249.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const P = await import("../../src/shared/constants/providers.ts");
 
-const APIKEY_PROVIDER_COUNT = 242;
+// Apmix (#14821) adds one apikey/regional entry — 246.
+// Token Market (#13191) adds one apikey/gateways entry — measured 248 on the #13191 branch.
+const APIKEY_PROVIDER_COUNT = 249;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
@@ -72,14 +79,16 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test(`APIKEY_PROVIDERS merges the 6 family files into ${APIKEY_PROVIDER_COUNT} entries (no loss / no dup)`, async () => {
+test(`APIKEY_PROVIDERS merges the 6 family files plus the beatapi extract into ${APIKEY_PROVIDER_COUNT} entries (no loss / no dup)`, async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
   assert.equal(keys.length, APIKEY_PROVIDER_COUNT);
   assert.equal(new Set(keys).size, APIKEY_PROVIDER_COUNT, "duplicate keys after spread-merge");
-  // the merged object's entry-count equals the sum of the 6 semantic family files; families are a
-  // strict partition (every provider in exactly one), so the sum must be exactly APIKEY_PROVIDER_COUNT.
+  // the merged object's entry-count equals the sum of the 6 semantic family files plus the
+  // beatapi overflow extract; they are a strict partition (every provider in exactly one),
+  // so the sum must be exactly APIKEY_PROVIDER_COUNT.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
+    ["beatapi", "APIKEY_PROVIDERS_BEATAPI"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
     ["inference-hosts", "APIKEY_PROVIDERS_INFERENCE"],
     ["enterprise-cloud", "APIKEY_PROVIDERS_ENTERPRISE"],

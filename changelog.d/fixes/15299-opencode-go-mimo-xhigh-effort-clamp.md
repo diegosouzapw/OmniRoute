@@ -1,0 +1,1 @@
+- **fix(sse):** clamp Xiaomi MiMo V2.5/V2.6 `reasoning_effort` on OpenCode gateways so `xhigh`/`max`/`ultra` become `high` and `minimal` becomes `low`, instead of `opencode-go/mimo-v2.6-pro` and `mimo-v2.6-flash` answering HTTP 400 "Invalid request parameters"

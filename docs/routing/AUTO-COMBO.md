@@ -209,6 +209,17 @@ The Auto-Combo Engine dynamically selects the best provider/model for each reque
 | `quality`             | 0.03           | Feedback-driven output-quality signal from the routing-event quality tracker; candidates without observations receive a neutral 0.5                                                            |
 | `reliability`         | 0.00           | Observed success share, `1 - failureRate`, from 24h of usage history behind a ten-sample floor (real-time metrics otherwise); candidates with no observations read as 1.0. Disabled by default |
 
+> **Unreadable quota (#15347).** When a provider has a quota fetcher but it returns nothing
+> readable (failed fetch, missing credentials, message-only usage, or a malformed snapshot with no
+> parseable `windows` and no finite `percentUsed`, including `percentUsed: null`), the candidate
+> scores `0` on the `quota` axis and its final score is multiplied by
+> `UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR` (0.5, `autoStrategy.ts`), the same soft-penalty
+> pattern as the connection-status penalty. A failed usage read is evidence about the telemetry,
+> not the provider, so it ranks strictly below any real reading, including a confirmed 100%-used
+> one, but is never hard-blocked or evicted. A provider with no cap reports `unlimited: true` and
+> scores as full quota; a provider with no registered quota fetcher has no telemetry source at all
+> and keeps the default of `100`.
+
 **Sum:** `0.1429 + 0.1605 + 0.1429 + 0.1143 + 0.0762 + (7 × 0.0476) + 0.00 + 0.00 + 0.03 + 0.00 = 1.0` as declared in `DEFAULT_WEIGHTS`; user-configured weights are renormalized into a distribution by `normalizeScoringWeights()` before scoring.
 
 ## Mode Packs
@@ -276,7 +287,7 @@ resolved values feed the engine's existing `config.modePack` / `config.budgetCap
 
 ## All Routing Strategies
 
-OmniRoute's combo engine supports **19 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
+OmniRoute's combo engine supports **20 routing strategies** (declared in `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). The Auto Combo engine itself is exposed under the `auto` strategy; the others are available for persisted combos.
 
 | Strategy            | Description                                                                                                                                                                               |
 | :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -292,6 +303,7 @@ OmniRoute's combo engine supports **19 routing strategies** (declared in `src/sh
 | `reset-aware` ⭐    | Prioritize by quota reset time — short reset windows ranked higher                                                                                                                        |
 | `reset-window`      | Prefer targets whose quota window resets soonest                                                                                                                                          |
 | `headroom`          | Pick the target with the most remaining quota headroom                                                                                                                                    |
+| `quota-weighted`    | Skip exhausted accounts, then pick among the rest in proportion to leftover quota divided by in-flight load; existing conversations stay pinned                                           |
 | `strict-random`     | Random without deduplication of repeats                                                                                                                                                   |
 | `auto`              | Use Auto Combo scoring (16-factor) — **recommended**                                                                                                                                      |
 | `lkgp`              | Last-Known-Good Path (pins to the last successful provider, then falls back to rules)                                                                                                     |
@@ -324,12 +336,19 @@ strict — balance.
 
 ### Agentic pipeline mode
 
-A two-step `pipeline` combo can opt into planner/executor routing with
+A `pipeline` combo with at least two models can opt into planner/executor routing with
 `config.agenticOrchestration.enabled`. The first target owns planning and final answers;
 the second target emits client-native tool calls. OmniRoute detects tool-result
 continuations from the request protocol, asks the planner whether another tool round is
 needed, and dynamically makes either the executor or planner the client-facing final
 step.
+
+Additional models after the second target are ordered executor backups. A failed
+HTTP response or transport exception advances to the next executor, carrying the
+same planner decision and native tools but that executor's own step prompt and
+resolved connection. The first successful response is returned unchanged, including
+SSE streaming; failures after a successful stream starts cannot be retried here.
+If all executors fail, the last failure is returned. Client aborts stop dispatch.
 
 ```json
 {
@@ -825,5 +844,5 @@ intentionally excluded from CI because they require live credentials and VPS acc
 | `open-sse/services/autoCombo/autoPrefix.ts`               | `auto/` prefix parser + 6 variants                                                                        |
 | `open-sse/services/autoCombo/virtualFactory.ts`           | Builds in-memory `AutoComboConfig` from live connections                                                  |
 | `open-sse/services/autoCombo/providerRegistryAccessor.ts` | Test hook for mocking provider registry                                                                   |
-| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (19 strategies)                                                                 |
+| `src/shared/constants/routingStrategies.ts`               | `ROUTING_STRATEGY_VALUES` (20 strategies)                                                                 |
 | `src/sse/handlers/chat.ts`                                | Integration: auto-prefix short-circuit                                                                    |

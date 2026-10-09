@@ -6,7 +6,10 @@ export default defineConfig({
     environment: "node",
     globals: true,
     pool: "threads",
-    maxWorkers: 20,
+    // MCP suites initialize isolated SQLite databases; Vitest 5 at 20 workers
+    // makes native migration/close operations contend and flakes audit tests.
+    // Keep all files/tests enabled while bounding the worker fan-out.
+    maxWorkers: 4,
     fileParallelism: true,
     maxConcurrency: 20,
     include: [

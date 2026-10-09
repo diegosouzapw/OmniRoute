@@ -43,7 +43,7 @@ import {
   type ScoringWeights,
 } from "../autoCombo/scoring.ts";
 import type { RoutingHint } from "../manifestAdapter";
-import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
+import { getCachedProviderPoolConnections } from "../providerConnectionPool.ts";
 import {
   getSyncedAvailableModels,
   getCustomModels,
@@ -75,6 +75,13 @@ export const QUOTA_SOFT_DEPRIORITIZE_FACTOR = Number(
 export const STATUS_SOFT_DEPRIORITIZE_FACTOR = Number(
   process.env.STATUS_SOFT_DEPRIORITIZE_FACTOR ?? "0.5"
 );
+
+// #15347: unreadable-quota soft-deprioritization factor.
+// A candidate whose provider has a quota fetcher that returned nothing readable
+// (quotaUnreadable) already scores 0 on the quota axis; this multiplier makes it strictly
+// lower than even a real exhausted reading with otherwise identical factors, without
+// blocking or evicting it. Routing then prefers providers whose usage we can actually see.
+export const UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR = 0.5;
 
 // G2: Module-level registry of active combo execution candidates.
 // Maps executionKey → Map<stepId, candidate mutable ref>.
@@ -259,7 +266,7 @@ export async function applyRequestTagRouting(
   await Promise.all(
     providerIds.map(async (providerId) => {
       try {
-        const connections = await getCachedProviderConnections({
+        const connections = await getCachedProviderPoolConnections({
           provider: providerId,
           isActive: true,
         });
@@ -406,6 +413,10 @@ export function scoreAutoTargets(
       if ("statusPenalty" in candidate && candidate.statusPenalty === true) {
         score *= STATUS_SOFT_DEPRIORITIZE_FACTOR;
       }
+      // #15347: malformed quota snapshot — penalise, never block.
+      if ("quotaUnreadable" in candidate && candidate.quotaUnreadable === true) {
+        score *= UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR;
+      }
       return {
         target,
         factors,
@@ -422,6 +433,28 @@ export function scoreAutoTargets(
       } => entry !== null
     )
     .sort((a, b) => b.score - a.score);
+}
+
+type AutoCustomModel = { id: string; supportedEndpoints?: readonly string[] };
+
+function isValidAutoCustomModel(model: unknown): model is AutoCustomModel {
+  if (!model || typeof model !== "object" || Array.isArray(model)) return false;
+  const candidate = model as { id?: unknown; supportedEndpoints?: unknown };
+  if (typeof candidate.id !== "string" || candidate.id.length === 0) return false;
+  if (candidate.supportedEndpoints === undefined) return true;
+  return (
+    Array.isArray(candidate.supportedEndpoints) &&
+    candidate.supportedEndpoints.every((endpoint) => typeof endpoint === "string")
+  );
+}
+
+/**
+ * `customModels` is an operator-writable key_value JSON blob: drop rows that are not
+ * objects with a non-empty string `id` (and, when present, a string[] `supportedEndpoints`)
+ * so one malformed row cannot abort the auto-pool expansion.
+ */
+function sanitizeAutoCustomModels(rawModels: unknown): AutoCustomModel[] {
+  return Array.isArray(rawModels) ? rawModels.filter(isValidAutoCustomModel) : [];
 }
 
 /**
@@ -472,7 +505,7 @@ export async function expandAutoComboCandidatePool(
   if (Array.isArray(explicitModels) && explicitModels.length > 0) return eligibleTargets;
 
   try {
-    const allConnections = await getCachedProviderConnections({ isActive: true });
+    const allConnections = await getCachedProviderPoolConnections({ isActive: true });
     const providerIds = [
       ...new Set(
         (allConnections as Array<{ provider?: unknown }>)
@@ -500,10 +533,11 @@ export async function expandAutoComboCandidatePool(
       // synced a subset (e.g. OpenRouter with importFreeModelsOnly).
       // #11088 (option 1): the synced store now persists non-chat models too —
       // chat combo pools must keep filtering them out at read time.
-      const [syncedModelsRaw, customModels] = await Promise.all([
+      const [syncedModelsRaw, rawCustomModels] = await Promise.all([
         getSyncedAvailableModels(providerId),
         getCustomModels(providerId),
       ]);
+      const customModels = sanitizeAutoCustomModels(rawCustomModels);
       const syncedModels = filterChatSelectableModels(providerId, syncedModelsRaw);
       // Custom rows include speech / transcription / image models imported from a
       // media provider's local catalog or added by hand; they are not chat targets.
@@ -516,7 +550,8 @@ export async function expandAutoComboCandidatePool(
       // A provider whose custom rows are all non-chat still has user models, so it
       // must not fall back to its static chat catalog.
       const hasUserModels =
-        userVisibleIds.size > 0 || customModels.some((m) => m.id && !hiddenModels?.has(m.id));
+        userVisibleIds.size > 0 ||
+        customModels.some((m: { id?: string }) => m.id && !hiddenModels?.has(m.id));
       const expandIds = hasUserModels
         ? Array.from(userVisibleIds)
         : getProviderModels(providerId).map((m) => m.id);

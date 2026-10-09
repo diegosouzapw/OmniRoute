@@ -1,0 +1,1 @@
+- **fix(sse):** record rejected chat requests in the request journal with status and reason ([#15741](https://github.com/diegosouzapw/OmniRoute/pull/15741)) — thanks @maxmad64bis

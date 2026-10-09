@@ -1,0 +1,1 @@
+- **fix(sse):** a request refused for quota on its own tools is retried once with the observed tool names appended, and the retry answer is served when it passes ([#15738](https://github.com/diegosouzapw/OmniRoute/pull/15738)) — thanks @maxmad64bis

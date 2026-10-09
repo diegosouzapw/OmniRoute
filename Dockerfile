@@ -45,15 +45,15 @@ RUN set -eux; \
   npm install -g npm@latest; \
   npm install --prefix /tmp/npm-cve-patch --no-audit --no-fund --ignore-scripts \
     --install-strategy=nested \
-    brace-expansion@5.0.9 ip-address@10.7.2 tar@7.5.22 undici@6.28.0; \
-  for pkg in brace-expansion ip-address tar undici; do \
+    brace-expansion@5.0.12 ip-address@10.7.3 postcss-selector-parser@7.1.6 tar@7.5.22 undici@6.29.0; \
+  for pkg in brace-expansion ip-address postcss-selector-parser tar undici; do \
     test -d "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
     rm -rf "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
     cp -R "/tmp/npm-cve-patch/node_modules/$pkg" \
       "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
   done; \
   rm -rf /tmp/npm-cve-patch; \
-  node -e "for (const p of ['brace-expansion','ip-address','tar','undici']) console.log(p, require('/usr/local/lib/node_modules/npm/node_modules/'+p+'/package.json').version);"; \
+  node -e "for (const p of ['brace-expansion','ip-address','postcss-selector-parser','tar','undici']) console.log(p, require('/usr/local/lib/node_modules/npm/node_modules/'+p+'/package.json').version);"; \
   npm --version; \
   npm cache clean --force
 
@@ -318,6 +318,8 @@ USER root
 COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
 COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 
+# xvfb is installed explicitly (#15300): zai-web needs a headed Chromium and the browser pool
+# starts a private Xvfb when the container has no DISPLAY.
 # Install Playwright browser binaries + OS dependencies under root, then hand
 # ownership of the browsers cache to the node user.
 # PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
@@ -328,6 +330,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && node node_modules/playwright/cli.js install chromium --with-deps \
+  && apt-get install -y --no-install-recommends xvfb \
   && chown -R node:node /home/node/.cache \
   && rm -rf /var/lib/apt/lists/*
 
@@ -363,7 +366,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #      build, not the floating `@latest`.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm install -g --no-audit --no-fund \
-    @openai/codex@0.156.1 \
+    @openai/codex@0.159.2 \
     @anthropic-ai/claude-code@2.1.260 \
     droid@0.212.0 \
     openclaw@2026.9.1

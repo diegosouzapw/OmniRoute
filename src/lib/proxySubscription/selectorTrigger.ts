@@ -38,6 +38,8 @@ import {
   isSelectorMemberAvoided,
   leastRecentlySetAside,
   noteProxyMemberRefusal,
+  snapshotProxySetAside,
+  type ProxyRefusalKind,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 import { parseSelectorTag } from "./selectorEndpoint";
 import { getGroupMembers, switchSelector, type SelectorSwitchReason } from "./selectorClient";
@@ -352,7 +354,8 @@ function readSwitchSecret(secretEnc: string | null): string | null {
 async function runSwitch(
   hit: { controlUrl: string; selector: string; secretEnc: string | null; subscriptionId: string },
   setAsideKey: string,
-  now: number
+  now: number,
+  kind: ProxyRefusalKind
 ): Promise<SelectorTriggerResult> {
   const throttleKey = `${hit.subscriptionId} ${hit.selector}`;
   // Reserve the slot BEFORE the await: two concurrent triggers for the same
@@ -367,6 +370,7 @@ async function runSwitch(
     await recordSelectorSwitchOutcome({
       subscriptionId: hit.subscriptionId,
       result: guarded.reason ?? "blocked",
+      kind,
     });
     return { switched: false, reason: guarded.reason };
   }
@@ -379,6 +383,7 @@ async function runSwitch(
     await recordSelectorSwitchOutcome({
       subscriptionId: hit.subscriptionId,
       result: "incomplete",
+      kind,
     });
     return { switched: false, reason: "incomplete" };
   }
@@ -392,7 +397,7 @@ async function runSwitch(
   // key, so the repeat doubles from that key's own streak).
   const live = await currentSelectorChoice(hit.controlUrl, secret, hit.selector);
   const currentName = live?.current ?? null;
-  if (currentName) noteProxyMemberRefusal(setAsideKey, currentName, "ip_quota_429", now);
+  if (currentName) noteProxyMemberRefusal(setAsideKey, currentName, kind, now);
   const res = await switchSelector(
     {
       controlUrl: hit.controlUrl,
@@ -409,6 +414,7 @@ async function runSwitch(
     await recordSelectorSwitchOutcome({
       subscriptionId: hit.subscriptionId,
       result: res.reason,
+      kind,
     });
     return { switched: false, reason: res.reason };
   }
@@ -416,11 +422,24 @@ async function runSwitch(
     subscriptionId: hit.subscriptionId,
     result: "ok",
     member: res.target ?? null,
+    kind,
   });
   return { switched: true, reason: "ok" };
 }
 
-/** Hand back a pre-reserved throttle slot after a failed switch attempt. */
+/**
+ * Refusal motive behind the current set-aside entry: the live decision reads
+ * the newest still-in-force (entry, kind) state, so the persisted switch kind
+ * always names the live motive, not a stale earlier write. Never throws.
+ */
+function setAsideKind(entryKey: string, now: number): ProxyRefusalKind | null {
+  try {
+    return snapshotProxySetAside(entryKey, now)?.kind ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function restoreSlot(throttleKey: string, prev: number | undefined): void {
   if (prev === undefined) lastSwitch.delete(throttleKey);
   else lastSwitch.set(throttleKey, prev);
@@ -432,7 +451,7 @@ function restoreSlot(throttleKey: string, prev: number | undefined): void {
  */
 export async function maybeSwitchOnSetAside(
   setAsideKey: string,
-  opts?: { nowMs?: number }
+  opts?: { nowMs?: number; kind?: ProxyRefusalKind }
 ): Promise<SelectorTriggerResult> {
   try {
     if (!isProxySkipRecentlyFailedEnabled()) return { switched: false, reason: "flag-off" };
@@ -450,7 +469,15 @@ export async function maybeSwitchOnSetAside(
     if (isThrottled(hit, now)) {
       return { switched: false, reason: "throttled" };
     }
-    return runSwitch(hit, setAsideKey, now);
+    // Propagated kind first (the caller that set the member aside knows why);
+    // live snapshot as fallback for the synchronous quota caller; hard default
+    // last so the column never stays unexplained.
+    return runSwitch(
+      hit,
+      setAsideKey,
+      now,
+      opts?.kind ?? setAsideKind(setAsideKey, now) ?? "ip_quota_429"
+    );
   } catch {
     return { switched: false, reason: "network-error" };
   }

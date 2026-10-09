@@ -70,28 +70,31 @@ OmniRoute 提供了三个不同的智能体相关接口。它们乍看之下很�
 ## 2. ACP — CLI 代理注册表
 
 **OmniRoute 端点：** `GET /api/acp/agents`
-**源代码：** `src/lib/acp/{index,manager,registry}.ts`
+**源文件：** `src/lib/acp/{index,manager,registry}.ts`
 
 ### 简介
 
-ACP 是 OmniRoute 的**本地 CLI 代理清单**。它会检测主机上安装了哪些编程 CLI（Cursor、Cline、Claude Code、Codex CLI、Continue 等），解析其版本，并将这些信息显示在仪表板中，以便用户将各个 CLI 配置为指向 OmniRoute。
+ACP 是 OmniRoute 的**本地 CLI 代理清单**。它会检测主机上安装了哪些编程 CLI（Cursor、Cline、Claude Code、Codex CLI、Continue 等），解析其版本，并将其显示在仪表板中，以便用户将各个 CLI 配置为指向 OmniRoute。
 
-这不是外部协议，而是一个内部注册表，用于支持“CLI 工具”界面和 CLI 指纹跟踪（参见 [CLI-TOOLS.md](../reference/CLI-TOOLS.md)）。
+该 HTTP 接口是一个内部清单，为“CLI 工具”UI 和
+CLI 指纹跟踪提供支持（参见 [CLI-TOOLS.md](../reference/CLI-TOOLS.md)）。此外，
+内部进程管理器为已注册的 Gemini 启动器提供原生 Agent Client Protocol 支持，并为其他协议提供旧版 stdio 适配器。
+有关这些不同模式及其限制，请参阅 [ACP 注册表和启动器](./ACP.md)。
 
 ### 功能
 
 - 探测主机上已安装的 CLI 二进制文件（根据操作系统使用 `which` / `where`）
-- 读取各个 CLI 的版本（调用 `<bin> --version`）
-- 可选择接受用户定义的自定义代理（二进制文件路径 + 版本探测命令 + 启动参数）
+- 读取每个 CLI 的版本（调用 `<bin> --version`）
+- 可选择接受用户定义的自定义代理（二进制文件路径 + 版本探测 + 生成参数）
 - 将自定义代理持久化到设置中
 - 向仪表板返回统一列表
 
 ### REST API
 
-| 端点              | 方法 | 描述                                                         | 认证     |
-| ----------------- | ---- | ------------------------------------------------------------ | -------- |
-| `/api/acp/agents` | GET  | 列出检测到的代理和自定义代理（已安装数量/总数）              | API 密钥 |
-| `/api/acp/agents` | POST | 添加/更新/移除自定义代理（请求体中通过 action 字段进行区分） | API 密钥 |
+| 端点              | 方法 | 描述                                                 | 身份验证 |
+| ----------------- | ---- | ---------------------------------------------------- | -------- |
+| `/api/acp/agents` | GET  | 列出检测到的代理和自定义代理（已安装数量/总数量）    | API 密钥 |
+| `/api/acp/agents` | POST | 添加/更新/移除自定义代理（请求体中使用操作判别字段） | API 密钥 |
 
 POST 的请求体结构（`src/app/api/acp/agents/route.ts` 中的 `customAgentBodySchema`）：
 
@@ -110,13 +113,15 @@ POST 的请求体结构（`src/app/api/acp/agents/route.ts` 中的 `customAgentB
 
 ### 使用场景
 
-- 仪表板的“CLI 工具”页面会列出已安装的工具，并帮助你将各个工具配置为指向 OmniRoute
-- 自定义代理允许高级用户注册 OmniRoute 默认不识别的内部/专有 CLI
-- 检测结果会用于生成 `cli-tools` 指纹矩阵
+- 仪表板的“CLI 工具”页面会列出已安装的工具，并帮助你将每个工具配置为指向 OmniRoute
+- 自定义代理允许高级用户注册 OmniRoute 默认不支持的内部/专有 CLI
+- 检测结果用于生成 `cli-tools` 指纹矩阵
 
 ### 不应使用 ACP 的场景
 
-- ACP 不会_运行_任务。它只负责检测和配置 CLI。要实际调用 CLI，你需要使用 OmniRoute 提供的环境变量（`OPENAI_BASE_URL`、`OPENAI_API_KEY` 等）自行启动它。
+- HTTP 注册表不接受任务，也不提供进程生成功能。内部管理器可以启动已注册的 CLI，但不会将其用作自动提供者
+  后备方案。对于普通交互式使用，请自行启动已配置的 CLI，或
+  使用 `omniroute run`。
 
 ## 3. 云代理
 
@@ -175,7 +180,7 @@ DELETE /api/v1/agents/tasks/[id]
 
 ## 集成示例
 
-### 发现 OmniRoute 的 A2A 功能
+### 探索 OmniRoute 的 A2A 能力
 
 ```bash
 curl http://localhost:20128/.well-known/agent.json
@@ -239,7 +244,7 @@ curl -X POST http://localhost:20128/api/v1/agents/tasks \
   }'
 ```
 
-### 轮询云端任务状态
+### 轮询云任务状态
 
 ```bash
 curl http://localhost:20128/api/v1/agents/tasks/<task-id> \

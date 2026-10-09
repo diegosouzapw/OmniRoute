@@ -4,11 +4,29 @@
 
 ---
 
-OmniRoute ភ្ជាប់មកជាមួយនូវក្រុមពាក្យបញ្ជា `setup-*` ដែលកំណត់រចនាសម្ព័ន្ធ CLI កូដកម្មវិធី (Codex, Claude Code, OpenCode, Cline, …) ឱ្យប្រើប្រាស់ OmniRoute ជា backend របស់វា — ដូច្នេះឧបករណ៍នេះទំនាក់ទំនងទៅកាន់ endpoint **មួយ** ហើយ OmniRoute នឹងបញ្ជូនទៅកាន់ provider ដែលត្រឹមត្រូវដោយមាន auto-fallback។ ពាក្យបញ្ជានីមួយៗអានកាតាឡុកម៉ូដែលដែលកំពុងដំណើរការពី OmniRoute (ក្នុងមូលដ្ឋាន ឬពីចម្ងាយ) ហើយសរសេរឯកសារកំណត់រចនាសម្ព័ន្ធរបស់ឧបករណ៍នោះទៅលើម៉ាស៊ីនរបស់**អ្នក**។ សោ API ត្រូវបានយោងដោយអថេរបរិស្ថាន (environment variable) នៅកន្លែងណាដែលឧបករណ៍គាំទ្រវា។ ពាក្យបញ្ជាដែលរក្សាទុកឯកសារបរិស្ថានក្នុងមូលដ្ឋានឧបករណ៍ត្រូវបានកត់សម្គាល់ខាងក្រោម។
+សម្រាប់ manifest នៃ executable រួម, environment កូនដែលបានដាក់កម្រិត និងការរៀបចំ Gemini អចិន្ត្រៃយ៍ សូមមើល [កិច្ចសន្យាចាប់ផ្ដើម CLI](./CLI-LAUNCH-CONTRACTS.md)។
 
-ក៏មាន launcher ទូទៅមួយផងដែរ — `omniroute run <target>` — ដែលបង្កើត `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ឬ `gemini` ជាមួយនឹង env ដែលបានបញ្ចូលត្រឹមត្រូវ ដោយមិនចាំបាច់សរសេរការកំណត់រចនាសម្ព័ន្ធអ្វីទាំងអស់។ គោលដៅ និងឈ្មោះហៅក្រៅរបស់ពួកវាបានមកពី manifest ផ្លូវការ `bin/cli/cli-manifest.mjs` (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`, `open-code`, `qwen-code`, `gemini-cli`) ហើយ `omniroute completion` ផ្តល់នូវពាក្យគោលដៅដែលបានមកពី manifest ដូចគ្នា។ launchers ចាស់ៗសម្រាប់ឧបករណ៍នីមួយៗ — `omniroute launch` (Claude Code) និង `omniroute launch-codex` (Codex) — នៅតែមាន។
+OmniRoute ភ្ជាប់មកជាមួយក្រុម command `setup-*` ដែលកំណត់រចនាសម្ព័ន្ធ coding
+CLI (Codex, Claude Code, OpenCode, Cline, …) ឱ្យប្រើ OmniRoute ជា backend របស់វា — ដូច្នេះ
+ឧបករណ៍នេះទាក់ទងទៅ endpoint **តែមួយ** ហើយ OmniRoute បញ្ជូនសំណើទៅ provider ដែលត្រឹមត្រូវ ព្រមទាំង
+មាន auto-fallback។ Command នីមួយៗអានកាតាឡុក model **ដែលកំពុងដំណើរការ** ពី OmniRoute
+ដែលកំពុងដំណើរការ (local ឬ remote) ហើយសរសេរឯកសារ config ផ្ទាល់ខ្លួនរបស់ឧបករណ៍នៅលើម៉ាស៊ីន
+**របស់អ្នក**។ API key ត្រូវបានយោងតាមរយៈ environment variable នៅគ្រប់ទីកន្លែងដែលឧបករណ៍
+គាំទ្រវា។ Command ដែលរក្សាទុកឯកសារ environment ក្នុងឧបករណ៍ត្រូវបានកត់សម្គាល់ខាងក្រោម។
 
-ការបញ្ចូល provider គឺអាចប្រើបានពីបរិបទក្នុងមូលដ្ឋាន/ពីចម្ងាយដូចគ្នា។ ពាក្យបញ្ជា API-first ខាងក្រោមរក្សាការផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវនៃការគ្រប់គ្រងដាច់ដោយឡែកពីព័ត៌មានសម្ងាត់របស់ provider ហើយមិនដែលបោះពុម្ពព័ត៌មានសម្ងាត់នៅក្នុងលទ្ធផលដែលមានរចនាសម្ព័ន្ធឡើយ៖
+ក៏មាន launcher ទូទៅមួយផងដែរ — `omniroute run <target>` — ដែលបើកដំណើរការ
+`claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` ឬ `gemini` ជាមួយនឹង
+env ត្រឹមត្រូវដែលបានបញ្ចូល ដោយមិនសរសេរ config ណាមួយឡើយ។ Target និង
+alias របស់ពួកវាមកពី manifest គោល `bin/cli/cli-manifest.mjs`
+(`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
+`open-code`, `qwen-code`, `gemini-cli`) ហើយ `omniroute completion` ផ្ដល់
+ពាក្យ target ដូចគ្នាដែលបានទាញយកពី manifest។ Launcher ចាស់ដាច់ដោយឡែកតាមឧបករណ៍ —
+`omniroute launch` (Claude Code) និង `omniroute launch-codex` (Codex) — នៅតែ
+អាចប្រើបាន។
+
+ការចាប់ផ្ដើមប្រើ provider អាចធ្វើបានពីបរិបទ local/remote ដូចគ្នា។ Command
+ដែលផ្ដោតលើ API ជាចម្បងខាងក្រោម រក្សាការផ្ទៀងផ្ទាត់អត្តសញ្ញាណសម្រាប់ការគ្រប់គ្រងឱ្យដាច់ដោយឡែកពីព័ត៌មានសម្ងាត់របស់ provider
+ហើយមិនដែលបង្ហាញព័ត៌មានសម្ងាត់ក្នុង structured output ឡើយ៖
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -18,16 +36,25 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-សម្រាប់ស្គ្រីប សូមជ្រើសរើស `--credential-stdin` ឬ `--credential-env`; `--credential` ត្រូវបានរក្សាទុកសម្រាប់ការប្រើប្រាស់ក្នុងមូលដ្ឋានដែលបានគ្រប់គ្រង។ `providers remove` តម្រូវឱ្យមាន `--yes` នៅលើ terminal ដែលមិនអន្តរកម្ម ហើយពាក្យបញ្ជាទាំងប្រាំគោរពតាមបរិបទសកម្ម ឬជម្រើស `--base-url`/`--api-key` សកល។
+សម្រាប់ script គួរប្រើ `--credential-stdin` ឬ `--credential-env`; `--credential`
+ត្រូវបានរក្សាទុកសម្រាប់ការប្រើប្រាស់ local ដែលមានការគ្រប់គ្រង។ `providers remove` តម្រូវឱ្យមាន `--yes` នៅលើ
+terminal ដែលមិនមានអន្តរកម្ម ហើយ command ទាំងប្រាំគោរពតាមបរិបទដែលសកម្ម ឬ
+ជម្រើស global `--base-url`/`--api-key`។
 
-ឧបករណ៍ជ្រើសរើស provider បដិសេធបុព្វបទ ID ឈ្មោះ ឬឈ្មោះ provider ដែលមិនច្បាស់លាស់; ប្រើ ID ការតភ្ជាប់ពេញលេញនៅពេលដែលការតភ្ជាប់ជាច្រើនត្រូវគ្នា។ ពាក្យបញ្ជាបង្កើត និងកែសម្រួលអានការតភ្ជាប់ដែលបានរក្សាទុកត្រឡប់មកវិញ ហើយការលុបចេញផ្ទៀងផ្ទាត់ថាវាមិនអាចអានបានទៀតទេ។ ការនាំចូលរំលងគូ provider/name ដែលមានស្រាប់។ ធាតុដែលបាននាំចូលមិនអាចបដិសេធ endpoint គ្រប់គ្រង បរិបទ ឬព័ត៌មានសម្ងាត់គ្រប់គ្រងដែលបានផ្តល់ទៅ CLI បានទេ។
+Provider selector បដិសេធបុព្វបទ ID, ឈ្មោះ ឬឈ្មោះ provider ដែលអាចបកស្រាយបានច្រើនន័យ; ប្រើ
+connection ID ពេញលេញ នៅពេលមាន connection ច្រើនត្រូវគ្នា។ Command សម្រាប់បង្កើត និងកែសម្រួល
+អាន connection ដែលបានរក្សាទុកត្រឡប់មកវិញ ហើយការលុបផ្ទៀងផ្ទាត់ថា វាមិនអាចអានបានទៀតទេ។
+ការនាំចូលរំលងគូ provider/ឈ្មោះដែលមានស្រាប់។ ធាតុដែលបាននាំចូលមិនអាចសរសេរជាន់លើ
+management endpoint, context ឬព័ត៌មានសម្ងាត់សម្រាប់ការគ្រប់គ្រងដែលបានផ្ដល់ទៅឱ្យ CLI បានទេ។
 
-សម្រាប់ការដំឡើងមូលដ្ឋានដែលសរសេរដោយដៃតែម្តងនៃ integration ដ៏សម្បូរបែបបំផុតទាំងពីរ សូមមើលការស្វែងយល់ស៊ីជម្រៅតាមឧបករណ៍នីមួយៗ៖
+សម្រាប់ការរៀបចំមូលដ្ឋានដែលសរសេរដោយដៃតែមួយលើក សម្រាប់ integration ពីរដែលមានមុខងារសម្បូរបំផុត សូមមើល
+ការពន្យល់ស៊ីជម្រៅតាមឧបករណ៍នីមួយៗ៖
 
 - [ការកំណត់រចនាសម្ព័ន្ធ Claude Code](./CLAUDE-CODE-CONFIGURATION.md)
 - [ការកំណត់រចនាសម្ព័ន្ធ Codex CLI](./CODEX-CLI-CONFIGURATION.md)
-- [របៀបពីចម្ងាយ (Remote Mode)](./REMOTE-MODE.md) — គ្រប់គ្រង OmniRoute ពីចម្ងាយ (VPS / Tailnet) ពីកុំព្យូទ័រយួរដៃរបស់អ្នក
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — extension OmniCopilot; វាក៏អាចដំណើរការពាក្យបញ្ជា `setup-*` ទាំងនេះសម្រាប់អ្នកពីក្នុង editor ផងដែរ
+- [Remote Mode](./REMOTE-MODE.md) — បញ្ជា OmniRoute ពីចម្ងាយ (VPS / Tailnet) ពី laptop របស់អ្នក
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — extension OmniCopilot; វាក៏អាចដំណើរការ
+  command `setup-*` ទាំងនេះឱ្យអ្នកពីខាងក្នុង editor បានផងដែរ
 
 ---
 
