@@ -46,7 +46,7 @@ export function parseSyntxTokenBalance(raw: unknown): number {
 export function parseSyntxPercentLeft(raw: unknown): number {
   if (typeof raw === "number" && Number.isFinite(raw)) return raw;
   if (typeof raw !== "string") return 0;
-  const n = Number.parseFloat(raw.replace("%", "").replace(",", ".").trim());
+  const n = Number.parseFloat(raw.replaceAll("%", "").replace(",", ".").trim());
   return Number.isFinite(n) ? n : 0;
 }
 
