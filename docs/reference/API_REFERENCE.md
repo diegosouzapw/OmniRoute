@@ -897,18 +897,25 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 
 ### Provider Management
 
-| Endpoint                                | Method                | Description                                                                                                                                               |
-| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | List / create providers                                                                                                                                   |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Manage a provider                                                                                                                                         |
-| `/api/providers/[id]/test`              | POST                  | Test provider connection                                                                                                                                  |
-| `/api/providers/[id]/models`            | GET                   | List provider models                                                                                                                                      |
-| `/api/providers/validate`               | POST                  | Validate provider config                                                                                                                                  |
-| `/api/providers/bulk`                   | POST                  | Bulk-add API keys for ONE provider                                                                                                                        |
-| `/api/providers/import`                 | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
-| `/api/provider-nodes*`                  | Various               | Provider node management                                                                                                                                  |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                                                                            |
-| `/api/provider-models/validate-and-add` | POST                  | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+| Endpoint                                | Method                    | Description                                                                                                                                               |
+| --------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | List / create providers                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Manage a provider                                                                                                                                         |
+| `/api/providers/[id]/test`              | POST                      | Test provider connection                                                                                                                                  |
+| `/api/providers/[id]/models`            | GET                       | List provider models                                                                                                                                      |
+| `/api/providers/validate`               | POST                      | Validate provider config                                                                                                                                  |
+| `/api/providers/bulk`                   | POST                      | Bulk-add API keys for ONE provider                                                                                                                        |
+| `/api/providers/import`                 | POST                      | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
+| `/api/provider-nodes*`                  | Various                   | Provider node management                                                                                                                                  |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Custom models and per-model overrides (add, update, hide/show, delete)                                                                                    |
+| `/api/provider-models/validate-and-add` | POST                      | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+
+For synced/imported models, `PUT /api/provider-models` accepts `provider`, `modelId`, and
+`maxOutputTokenOverride`: a positive integer sets the manual output-token cap, and `null`
+clears it to restore the default. `GET /api/provider-models?provider=<provider>` returns these
+values in `modelOutputOverrides`, including models without a custom-model row. The override
+uses the runtime `max_output_tokens` capability and survives a model re-sync. The OpenAI-compatible
+provider page offers the same edit/clear controls and marks models with explicit vision support.
 
 Custom Chat Completions nodes adapt explicit reasoning opt-outs to the upstream backend. A
 successful connection test automatically selects chat-template controls for each exact model ID

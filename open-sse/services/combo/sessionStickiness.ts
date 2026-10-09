@@ -144,11 +144,11 @@ async function resolveConnectionHealth(
   if (_connectionFetcherOverride) return _connectionFetcherOverride(connectionId, provider);
 
   try {
-    const mod = await import("../../../src/lib/db/readCache");
-    const getCachedProviderConnections = mod.getCachedProviderConnections as (
+    const mod = await import("../providerConnectionPool.ts");
+    const getCachedProviderPoolConnections = mod.getCachedProviderPoolConnections as (
       filter: Record<string, unknown>
     ) => Promise<StickyConnectionHealth[]>;
-    const connections = (await getCachedProviderConnections({
+    const connections = (await getCachedProviderPoolConnections({
       provider,
       isActive: true,
     })) as Array<StickyConnectionHealth & { id?: string }>;

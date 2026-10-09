@@ -372,9 +372,12 @@ export const APIKEY_PROVIDERS_REGIONAL = {
     // #5462 — this integration calls StepFun's China platform (api.stepfun.com),
     // whose sign-up appears to be phone-based. International users have a separate
     // global platform (platform.stepfun.ai, operated by Sparkling AI Pte Ltd,
-    // Singapore) with email/Google/Discord login.
+    // Singapore) with email/Google/Discord login. Keys are NOT interchangeable:
+    // a key from one platform 401s against the other. Operators with an
+    // international key set the connection's custom base URL to
+    // https://api.stepfun.ai/v1 (honored via providerSpecificData.baseUrl).
     notice: {
-      text: "This connects to StepFun's China platform (platform.stepfun.com), whose sign-up appears to require a Chinese phone number. Users outside mainland China can instead register at the global StepFun Open Platform (platform.stepfun.ai, operated by Sparkling AI Pte. Ltd., Singapore) with email/Google/Discord login.",
+      text: "This connects to StepFun's China platform (platform.stepfun.com), whose sign-up appears to require a Chinese phone number. Users outside mainland China can instead register at the global StepFun Open Platform (platform.stepfun.ai, operated by Sparkling AI Pte. Ltd., Singapore) with email/Google/Discord login. Keys are not interchangeable between the two platforms — with an international key, set this connection's custom base URL to https://api.stepfun.ai/v1.",
       signupUrl: "https://platform.stepfun.ai",
     },
   },
