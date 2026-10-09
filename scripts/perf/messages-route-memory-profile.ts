@@ -185,20 +185,78 @@ function appendPrivateJsonLine(file: string, value: unknown): void {
 }
 
 /**
+ * Raw heap snapshots this process owns that may still exist on disk, tracked at creation or
+ * handoff so interruption handlers can delete them even when `finally` cleanup never runs
+ * (Ctrl+C, terminal kill, crash).
+ */
+const trackedHeapSnapshots = new Set<string>();
+
+function trackHeapSnapshot(snapshotFile: string): void {
+  trackedHeapSnapshots.add(path.resolve(snapshotFile));
+}
+
+/**
+ * Best-effort raw snapshot deletion with the repo's bounded Windows-safe retry (EBUSY/EPERM
+ * from a child still holding the file open). Never throws: a deletion that still fails is left
+ * to the next run's startup sweep instead of crashing an exit path.
+ * @param snapshotFile - Raw snapshot file to remove.
+ * @returns Nothing.
+ */
+function removeRawSnapshot(snapshotFile: string): void {
+  try {
+    fs.rmSync(snapshotFile, { force: true, maxRetries: 5, retryDelay: 100 });
+  } catch {
+    // Best-effort only; the startup sweep of the next run retries.
+  }
+}
+
+/**
+ * Delete every tracked raw snapshot that still exists. Invoked from the exit/SIGINT/SIGTERM
+ * handlers and the early-error path; must never throw.
+ * @returns Nothing.
+ */
+function removeTrackedHeapSnapshots(): void {
+  for (const snapshotFile of trackedHeapSnapshots) {
+    removeRawSnapshot(snapshotFile);
+  }
+  trackedHeapSnapshots.clear();
+}
+
+/**
+ * Delete stale raw heap snapshots left anywhere under the output directory by previously
+ * interrupted runs, before the current run creates any.
+ * @param outputDir - Target output directory swept recursively.
+ * @returns Nothing.
+ */
+function sweepStaleHeapSnapshots(outputDir: string): void {
+  let entries: string[];
+  try {
+    entries = fs.readdirSync(outputDir, { recursive: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    if (!entry.endsWith(".heapsnapshot")) continue;
+    removeRawSnapshot(path.join(outputDir, entry));
+  }
+}
+
+/**
  * Run work while guaranteeing removal of its raw heap-snapshot path.
  * @param snapshotFile - Raw snapshot path owned by the operation.
  * @param work - Worker/analyzer operation to run before cleanup.
  * @returns The fulfilled result from `work`.
- * @throws The original work or cleanup error.
+ * @throws The original work error.
  */
 export async function withRawSnapshotCleanup<T>(
   snapshotFile: string,
   work: () => Promise<T>
 ): Promise<T> {
+  trackHeapSnapshot(snapshotFile);
   try {
     return await work();
   } finally {
-    fs.rmSync(snapshotFile, { force: true });
+    removeRawSnapshot(snapshotFile);
   }
 }
 
@@ -213,8 +271,12 @@ export function cleanupWorkerSnapshot(
   state: { workerComplete: boolean; snapshotHandoff: boolean }
 ): void {
   if (!state.workerComplete || !state.snapshotHandoff) {
-    fs.rmSync(snapshotFile, { force: true });
+    removeRawSnapshot(snapshotFile);
+    return;
   }
+  // After a successful handoff the driver owns deletion; untrack so this process's
+  // exit/SIGINT/SIGTERM handlers do not delete the snapshot the analyzer still needs.
+  trackedHeapSnapshots.delete(path.resolve(snapshotFile));
 }
 
 function forceGc(): void {
@@ -449,6 +511,7 @@ async function runWorker(): Promise<void> {
     if (!process.argv.includes("--no-snapshot")) {
       forceGc();
       heapSnapshotFile = path.join(outputDir, "post-gc.heapsnapshot");
+      trackHeapSnapshot(heapSnapshotFile);
       v8.writeHeapSnapshot(heapSnapshotFile);
       fs.chmodSync(heapSnapshotFile, 0o600);
     }
@@ -768,6 +831,7 @@ async function runAnalyzer(): Promise<void> {
   const snapshotArg = argValue("--snapshot");
   if (!snapshotArg) throw new Error("analyzer requires --snapshot");
   const snapshotFile = path.resolve(snapshotArg);
+  trackHeapSnapshot(snapshotFile);
   const outputArg = argValue("--output-dir");
   const marker = argValue("--marker") ?? "";
   try {
@@ -791,7 +855,7 @@ async function runAnalyzer(): Promise<void> {
     assertNoLargeBacking(result);
     process.stdout.write(JSON.stringify(redactedResult) + "\n");
   } finally {
-    fs.rmSync(snapshotFile, { force: true });
+    removeRawSnapshot(snapshotFile);
   }
 }
 
@@ -868,6 +932,7 @@ async function runDriver(): Promise<void> {
     throw new RangeError("--tokens must be a comma-separated list of integers >= 64");
   }
   privateDirectory(outputDir);
+  sweepStaleHeapSnapshots(outputDir);
 
   const cases: unknown[] = [];
   const scriptFile = fileURLToPath(import.meta.url);
@@ -988,9 +1053,21 @@ async function main(): Promise<void> {
 
 const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : "";
 if (invokedPath === import.meta.url) {
+  process.on("exit", () => {
+    removeTrackedHeapSnapshots();
+  });
+  process.on("SIGINT", () => {
+    removeTrackedHeapSnapshots();
+    process.exit(130);
+  });
+  process.on("SIGTERM", () => {
+    removeTrackedHeapSnapshots();
+    process.exit(143);
+  });
   main().catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     process.stderr.write(`[JON-562] ${message}\n`);
+    removeTrackedHeapSnapshots();
     process.exitCode = 1;
   });
 }
