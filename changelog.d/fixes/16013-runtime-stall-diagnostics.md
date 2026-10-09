@@ -1,1 +1,0 @@
-- Detect recent event-loop lag peaks instead of a lifetime average, and offer opt-in, content-free timing of synchronous better-sqlite3 adapter operations ([#16013](https://github.com/diegosouzapw/OmniRoute/issues/16013)).
