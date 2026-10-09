@@ -225,14 +225,23 @@ function tokenUsageAvailable(runFile: VideoBridgePromotionRunFile): boolean {
 
 function digestAllRuns(runFile: VideoBridgePromotionRunFile): PersistablePromotionRecord[] {
   return runFile.cases.flatMap((currentCase) =>
-    currentCase.runs.map((run) =>
-      buildPersistablePromotionRecord({
+    currentCase.runs.map((run) => ({
+      ...buildPersistablePromotionRecord({
         caseId: run.caseId,
         metrics: run.metrics,
         model: run.model,
         rawResponseText: run.rawResponseText,
-      })
-    )
+      }),
+      role: run.role,
+      ...(run.observationId !== undefined ? { observationId: run.observationId } : {}),
+      ...(run.repetition !== undefined ? { repetition: run.repetition } : {}),
+      ...(run.preAnalysisMs !== undefined ? { preAnalysisMs: run.preAnalysisMs } : {}),
+      ...(run.mediaDigest !== undefined ? { mediaDigest: run.mediaDigest } : {}),
+      ...(run.promptDigest !== undefined ? { promptDigest: run.promptDigest } : {}),
+      ...(run.configurationDigest !== undefined
+        ? { configurationDigest: run.configurationDigest }
+        : {}),
+    }))
   );
 }
 

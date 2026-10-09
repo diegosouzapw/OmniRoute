@@ -125,6 +125,15 @@ test("complete unit evidence can qualify only the measured lane, never promote a
   }
   assert.deepEqual(validatePromotionEvidence(manifest, runFile), []);
   const report = buildVideoBridgePromotionReport(manifest, runFile);
+  assert.ok(
+    report.records.every(
+      (record) =>
+        record.role &&
+        record.observationId &&
+        record.repetition !== undefined &&
+        record.preAnalysisMs !== undefined
+    )
+  );
   assert.equal(report.fu07.status, "eligible");
   assert.equal(report.fu09.status, "hold");
   assert.equal(report.promotion.fu07.status, "hold");
