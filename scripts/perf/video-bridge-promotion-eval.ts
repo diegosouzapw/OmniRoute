@@ -36,8 +36,10 @@ import {
 } from "../../src/lib/guardrails/videoBridgePromotionComparison";
 import {
   buildPersistablePromotionRecord,
+  digestPromotionText,
   type PersistablePromotionRecord,
 } from "../../src/lib/guardrails/videoBridgePromotionDigest";
+import type { PromotionConfirmation } from "../../src/lib/guardrails/videoBridgePromotionConfirmation";
 import {
   evaluateFu07Promotion,
   evaluateFu09Promotion,
@@ -97,6 +99,8 @@ export interface VideoBridgePromotionReport {
   kind: "video-bridge-fu07-fu09-promotion-eval";
   manifestId: string | null;
   missingConfiguration: string[];
+  observationsDigest: string | null;
+  promotion: PromotionConfirmation;
   records: PersistablePromotionRecord[];
   schemaVersion: 1;
 }
@@ -114,6 +118,8 @@ export function createVideoBridgePromotionHoldReport(
     kind: "video-bridge-fu07-fu09-promotion-eval",
     manifestId: null,
     missingConfiguration,
+    observationsDigest: null,
+    promotion: { fu07: { reasons, status: "hold" }, fu09: { reasons, status: "hold" } },
     records: [],
     schemaVersion: 1,
   };
@@ -235,6 +241,7 @@ export function buildVideoBridgePromotionReport(
     }
   }
 
+  const records = digestAllRuns(runFile);
   return {
     candidateModel: resolveModel(runFile, "candidate"),
     execution: { state: "executed", ...(runFile.execution ? { receipt: runFile.execution } : {}) },
@@ -244,7 +251,12 @@ export function buildVideoBridgePromotionReport(
     kind: "video-bridge-fu07-fu09-promotion-eval",
     manifestId: manifest.id,
     missingConfiguration: [],
-    records: digestAllRuns(runFile),
+    observationsDigest: digestPromotionText(JSON.stringify(records)),
+    promotion: {
+      fu07: { status: "hold", reasons: ["SECOND_INDEPENDENT_RUN_REQUIRED"] },
+      fu09: { status: "hold", reasons: ["SECOND_INDEPENDENT_RUN_REQUIRED"] },
+    },
+    records,
     schemaVersion: 1,
   };
 }
