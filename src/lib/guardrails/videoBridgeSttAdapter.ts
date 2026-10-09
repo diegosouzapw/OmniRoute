@@ -69,7 +69,10 @@ export function createVideoSttAdapter(input: {
           audioAvailable: false,
           videoAvailable: true,
           partial: true,
-          failures: { audio: outcome.reason === "TIMEOUT" ? "TIMEOUT" : "FAILED" },
+          failures: {
+            audio:
+              outcome.reason === "TIMEOUT" || outcome.reason === "ABORTED" ? "ABORTED" : "FAILED",
+          },
         },
       };
     }
