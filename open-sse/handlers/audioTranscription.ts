@@ -28,6 +28,7 @@ import { errorResponse } from "../utils/error.ts";
 import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 import { isJsonObject } from "../utils/kieTask.ts";
 import { handleOpenRouterTranscription } from "./openrouterTranscription.ts";
+import { handleSyntxTranscription } from "./syntxAudio.ts";
 
 type TranscriptionCredentials = {
   apiKey?: string;
@@ -975,6 +976,14 @@ export async function handleAudioTranscription({
 
   if (providerConfig.format === "openrouter-stt") {
     return handleOpenRouterTranscription(providerConfig, file, modelId, token, formData);
+  }
+
+  if (providerConfig.format === "syntx-audio") {
+    return handleSyntxTranscription({
+      model: modelId as string,
+      file: file as Blob & { name?: string },
+      credentials,
+    });
   }
 
   // Default: OpenAI/Groq/Qwen3-compatible multipart proxy

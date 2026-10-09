@@ -41,8 +41,13 @@ test("native continuation pins provider, model and connection", () => {
   });
   const pin = getNativeCodexTurnPin(body, "coding");
   assert.ok(pin);
-  assert.deepEqual(applyNativeCodexTurnPin([pinnedTarget], pin), [
-    { ...pinnedTarget, connectionId: "connection-a", allowedConnectionIds: ["connection-a"] },
+  assert.deepEqual(applyNativeCodexTurnPin([pinnedTarget], pin, ["connection-a"]), [
+    {
+      ...pinnedTarget,
+      connectionId: "connection-a",
+      executionKey: `${pinnedTarget.executionKey}@connection-a`,
+      allowedConnectionIds: ["connection-a"],
+    },
   ]);
   assert.equal(revokeNativeCodexTurnPinsForConnection("connection-a"), 1);
   assert.equal(getNativeCodexTurnPin(body, "coding"), null);

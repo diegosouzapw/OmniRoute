@@ -8,6 +8,8 @@ type ProviderExecution = {
   url?: string;
   headers?: Headers | Record<string, string>;
   transformedBody?: unknown;
+  /** Internal-only upstream failure classification carried by the retried execution (#3229). */
+  upstreamDiagnostic?: Record<string, unknown>;
 };
 
 type ParsedError = {

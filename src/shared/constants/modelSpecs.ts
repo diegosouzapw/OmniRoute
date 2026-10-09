@@ -134,6 +134,18 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-6-astra"],
   },
+  // #15023: Sol and Luna were missing from the spec map; the public API context
+  // window is 1,050,000 (same as Astra). Without an entry, getModelSpec() returned
+  // undefined and any spec-aware path (capability filter, compaction guard) fell
+  // back to 128k, the same wrong value advertised by the importer.
+  "gpt-6-sol": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-sol"],
+  },
+  "gpt-6-luna": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6-luna"],
+  },
   "gpt-6.1-sol": GPT_5_6_MODEL_SPEC,
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,
@@ -403,6 +415,21 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
+  },
+
+  // ── Claude Haiku 5.5 ────────────────────────────────────────────
+  // Adaptive-thinking-only, like Sonnet 5.5: `thinking.type:"enabled"` returns
+  // 400 ("use thinking.type.adaptive and output_config.effort"). Haiku 4.5 and
+  // earlier still accept manual budgets, so this spec must NOT be widened to
+  // the /haiku/ family. Limits from the gateway catalog (context 1M, output 128K).
+  "claude-haiku-5-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-haiku-5-5"),
   },
 
   // ── Claude Sonnet 5.5 ───────────────────────────────────────────

@@ -1,0 +1,1 @@
+- fix(providers): QwenCloud Token Plan quota now parses the new Monthly Quota window instead of going blank (#14763)

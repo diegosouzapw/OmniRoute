@@ -19,7 +19,6 @@ import {
 } from "../accountFallback.ts";
 import {
   errorResponse,
-  errorResponseWithComboDiagnostics,
   logRetryHintUnreadable,
   parseRetryAfterHeader,
   readProseRetryAfter,
@@ -52,6 +51,7 @@ import { recordStickyBinding } from "./sessionStickiness.ts";
 import { recordStickyWeightedSuccess } from "./rrState.ts";
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "../reasoningTokenBuffer.ts";
 import { parseModel } from "../model.ts";
+import { getNextFamilyFallback } from "../modelFamilyFallback.ts";
 import type { ProviderProfile } from "../accountFallback.ts";
 import {
   MAX_FALLBACK_WAIT_MS,
@@ -73,6 +73,7 @@ import {
   requestScopedReplayKey,
 } from "./comboPredicates.ts";
 import { applyComboTargetExhaustion } from "./targetExhaustion.ts";
+import { buildBudgetExhaustedResponse } from "./budgetExhaustion.ts";
 import { advanceNativeCodexTurnGeneration, pinNativeCodexTurn } from "./nativeCodexTurnPin.ts";
 import { recordComboDecision } from "./decisionTrace.ts";
 import { recordProviderCooldown } from "../providerCooldownTracker.ts";
@@ -91,7 +92,6 @@ import { classifyComboOutcome, redactConnectionLabel } from "./comboErrorAggrega
 import { readConnectionForCooldownGate } from "./executeTargetGates.ts";
 import { recordLkgpPin } from "./recordLkgpPin.ts";
 import {
-  buildComboDiag,
   handlePreContentStreamRetry,
   qualityValidationFailure,
   remainderIsHomogeneous,
@@ -119,8 +119,8 @@ export async function executeTargetAttempt(opts: {
   const { index: i, state, deps, targetForAttempt, protectedPriorityTarget } = opts;
   const profile = opts.profile as ProviderProfile | undefined;
   const target = state.orderedTargets[i];
-  const modelStr = target.modelStr;
-  const rawModel = parseModel(modelStr).model || modelStr;
+  let modelStr = target.modelStr;
+  let rawModel = parseModel(modelStr).model || modelStr;
   const provider = target.provider;
   const allowRateLimitedConnection =
     Boolean(provider && provider !== "unknown") &&
@@ -132,21 +132,14 @@ export async function executeTargetAttempt(opts: {
   const stopTarget = (message: string, cause?: ProtectedPriorityStopCause) =>
     stopProtectedPriorityTarget({
       protectedPriorityTarget,
+      state,
+      deps,
+      target,
       message,
       cause,
-      onStop: () => state.observeFailure(false, target.executionKey),
-      clearStale: () =>
-        deps.clearStaleLKGP(
-          deps.combo.name,
-          target.executionKey,
-          deps.combo.id,
-          deps.log,
-          "COMBO",
-          undefined,
-          target
-        ),
     });
 
+  const familyTried = new Set<string>();
   // Retry loop for transient errors
   for (let retry = 0; retry <= deps.maxRetries; retry++) {
     // Fix #1681: Bail out immediately if the client has disconnected
@@ -160,26 +153,13 @@ export async function executeTargetAttempt(opts: {
         "COMBO",
         `Maximum combo attempts (${maxGlobalAttempts}) exceeded across all targets and fallbacks. Terminating loop to prevent runaway background requests.`
       );
-      // Actionable failure instead of an opaque 503 when every candidate
-      // failed the same recoverable way. If the dominant cause was reasoning
-      // models exhausting a too-small max_tokens budget (no content output),
-      // retrying other models can't help — tell the caller to raise max_tokens.
-      // Silent-stop fix: bump the consecutive-failure counter for this session-combo pair
-      // so the pin gets cleared on the 3rd attempt (recovery.next_step tells the client).
-      const reasoningExhausted = /reasoning consumed \d+\/\d+ tokens/.test(state.lastError || "");
-      const failureReason = reasoningExhausted
-        ? "reasoning_budget_exhausted"
-        : "max_attempts_exceeded";
+      // Actionable failure instead of an opaque 503 (reasoning budget exhausted /
+      // context overflow — see budgetExhaustion.ts). Silent-stop fix: bump the
+      // consecutive-failure counter so the pin gets cleared on the 3rd attempt.
       recordComboFailure(deps.effectiveSessionId, deps.combo.name);
       return {
         ok: false,
-        response: errorResponseWithComboDiagnostics(
-          503,
-          reasoningExhausted
-            ? "All combo candidates exhausted their token budget on reasoning without producing content. Increase max_tokens — reasoning models need a larger budget to emit content."
-            : "Maximum combo retry limit reached",
-          buildComboDiag(state, deps.traceInvocationId, failureReason)
-        ),
+        response: buildBudgetExhaustedResponse(state, deps.traceInvocationId),
       };
     }
     // Predictive TTFT Circuit Breaker (skip slow models)
@@ -460,6 +440,21 @@ export async function executeTargetAttempt(opts: {
         });
         state.observeFailure(false, target.executionKey);
         if (handlePreContentStreamRetry(quality, retry, deps, modelStr)) continue;
+        familyTried.add(modelStr);
+        // A request-scoped refusal (invalid request, context overflow) is a property of
+        // the request, not of the effort tier — replaying it on a sibling alias of the
+        // same model just repeats the refusal, so let the combo advance instead.
+        const familyNext =
+          provider && provider !== "unknown" && !quality.upstreamFailure?.requestScoped
+            ? getNextFamilyFallback(modelStr, familyTried, provider)
+            : null;
+        if (familyNext && familyNext !== modelStr) {
+          deps.log.info("COMBO", `Quality fail ${modelStr} -> family sibling ${familyNext}`);
+          modelStr = familyNext;
+          rawModel = parseModel(modelStr).model || modelStr;
+          retry--;
+          continue;
+        }
         return protectedPriorityTarget ? qualityValidationFailure(quality) : null;
       }
 
@@ -1041,8 +1036,17 @@ export async function executeTargetAttempt(opts: {
     recordQuotaExhaustionClassification(result, quotaExhausted);
     // Balance exhaustion is upstream truth about credits, and it outranks the
     // stored snapshot — which can be hours stale and still claim headroom. Mark
-    // it so the next quota-weighted draw stops picking this connection.
-    if (quotaExhausted && result.status === 402 && targetWithConnection.connectionId && provider) {
+    // it so the next quota-weighted / fill-first draw stops preferring this
+    // connection. Include HTTP 403: some upstreams signal durable wallet
+    // exhaustion as 403 AUTHZ_INSUFFICIENT_BALANCE / "Insufficient account
+    // balance" instead of 402 (#10966 classifier; same-request hop still
+    // advances via the failure path below).
+    if (
+      quotaExhausted &&
+      (result.status === 402 || result.status === 403) &&
+      targetWithConnection.connectionId &&
+      provider
+    ) {
       markAccountExhaustedFromCredits(targetWithConnection.connectionId, provider);
     }
     state.observeFailure(quotaExhausted, target.executionKey);

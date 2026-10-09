@@ -1,0 +1,1 @@
+- fix(usage): Ollama Cloud usage cookie now accepts a bare value, name=value or a full Cookie header, and non-sign-in redirects are no longer reported as "authentication expired" (#15256)

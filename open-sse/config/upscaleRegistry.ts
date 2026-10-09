@@ -10,6 +10,7 @@
  *   - adobe-firefly  → Topaz models on firefly-3p `/v2/3p-images/upsample`
  *   - stability-ai   → `/v2beta/stable-image/upscale/{fast,conservative,creative}`
  *   - topaz          → Topaz Labs `/image/v1/enhance` (native API key)
+ *   - syntx          → Magnific / Topaz AI / Ideogram via /api/v1/design/generate
  *
  * Credentials/proxy resolution reuses each provider's existing connection, so a
  * configured Adobe Firefly / Stability AI / Topaz Labs account works with no
@@ -17,6 +18,7 @@
  */
 
 import { parseModelFromRegistry, getAllModelsFromRegistry } from "./registryUtils.ts";
+import { toRegistryUpscaleModels as toSyntxUpscaleModels } from "../services/syntxMediaCatalog.ts";
 
 /** Scale factors offered by default when a model does not restrict them. */
 export const DEFAULT_UPSCALE_FACTORS: readonly number[] = Object.freeze([2, 4]);
@@ -41,7 +43,7 @@ export interface UpscaleProviderConfig {
   baseUrl: string;
   authType: "apikey" | "none";
   authHeader: string;
-  format: "adobe-firefly-upscale" | "stability-upscale" | "topaz-upscale";
+  format: "adobe-firefly-upscale" | "stability-upscale" | "topaz-upscale" | "syntx-upscale";
   models: UpscaleModelEntry[];
 }
 
@@ -131,6 +133,15 @@ export const UPSCALE_PROVIDERS: Record<string, UpscaleProviderConfig> = {
         description: "Topaz Labs Image Enhance (auto model selection).",
       },
     ],
+  },
+  syntx: {
+    id: "syntx",
+    alias: "stx",
+    baseUrl: "https://api.syntx.ai/api/v1/design/generate",
+    authType: "apikey",
+    authHeader: "bearer",
+    format: "syntx-upscale",
+    models: toSyntxUpscaleModels(),
   },
 };
 
