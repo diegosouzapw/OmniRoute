@@ -153,27 +153,116 @@ function opaqueHashes(value: unknown, hashes = new Set<string>()): Set<string> {
   return hashes;
 }
 
+function addItemContinuationIds(item: Record<string, unknown>, ids: Set<string>): void {
+  if (
+    ["function_call", "function_call_output"].includes(String(item.type)) &&
+    typeof item.call_id === "string"
+  )
+    ids.add(`call:${item.call_id}`);
+  if (item.role === "tool" && typeof item.tool_call_id === "string")
+    ids.add(`call:${item.tool_call_id}`);
+  if (Array.isArray(item.tool_calls)) {
+    for (const call of item.tool_calls)
+      if (call && typeof call.id === "string") ids.add(`call:${call.id}`);
+  }
+  if (item.type === "item_reference" && typeof item.id === "string") ids.add(`item:${item.id}`);
+}
+
 function continuationIds(value: unknown, ids = new Set<string>()): Set<string> {
   if (Array.isArray(value)) {
     for (const item of value) continuationIds(item, ids);
   } else if (value && typeof value === "object") {
     const item = value as Record<string, unknown>;
-    if (
-      ["function_call", "function_call_output"].includes(String(item.type)) &&
-      typeof item.call_id === "string"
-    )
-      ids.add(`call:${item.call_id}`);
-    if (item.role === "tool" && typeof item.tool_call_id === "string")
-      ids.add(`call:${item.tool_call_id}`);
-    if (Array.isArray(item.tool_calls)) {
-      for (const call of item.tool_calls)
-        if (call && typeof call.id === "string") ids.add(`call:${call.id}`);
-    }
-    if (item.type === "item_reference" && typeof item.id === "string") ids.add(`item:${item.id}`);
+    addItemContinuationIds(item, ids);
     for (const nested of Object.values(item))
       if (nested && typeof nested === "object") continuationIds(nested, ids);
   }
   return ids;
+}
+
+const CONTINUATION_INPUT_TYPES = [
+  "reasoning",
+  "function_call",
+  "function_call_output",
+  "item_reference",
+];
+
+function carriesContinuationState(body: Record<string, unknown>): boolean {
+  return Boolean(
+    opaqueHashes(body).size ||
+    continuationIds(body).size ||
+    body.previous_response_id ||
+    body._omniroutePreviousResponseResumed ||
+    (Array.isArray(body.input) &&
+      body.input.some(
+        (item) =>
+          item && typeof item === "object" && CONTINUATION_INPUT_TYPES.includes(String(item.type))
+      ))
+  );
+}
+
+function assertResumableOwner(
+  owner: Owner,
+  current: Connection | null | undefined,
+  forcedId?: string | null
+): void {
+  if (!current || current.unavailable) {
+    throw new MuseOwnershipError(
+      "Muse session owner is unavailable; cross-account continuation is forbidden.",
+      503
+    );
+  }
+  if (forcedId && forcedId !== owner.connectionId) {
+    throw new MuseOwnershipError("Requested Muse account differs from the session owner.");
+  }
+}
+
+function assignNewOwner(
+  scope: string,
+  body: Record<string, unknown>,
+  candidates: Connection[],
+  forcedId?: string | null
+): Owner {
+  if (carriesContinuationState(body)) {
+    throw new MuseOwnershipError(
+      "Muse continuation has no recorded owner; start an independent session without imported opaque history."
+    );
+  }
+  const ordered = [...candidates].sort((a, b) => a.id.localeCompare(b.id));
+  if (!ordered.length)
+    throw new MuseOwnershipError("No native OAuth Muse account is available.", 503);
+  const cursor = Number(load("cursor") || "0");
+  const rotation = ordered.map((_, index) => ordered[(cursor + index) % ordered.length]);
+  const connection = forcedId
+    ? ordered.find((candidate) => candidate.id === forcedId)
+    : (rotation.find((candidate) => !candidate.unavailable) ?? rotation[0]);
+  if (!connection)
+    throw new MuseOwnershipError("Requested Muse OAuth account is unavailable.", 503);
+  const owner: Owner = { connectionId: connection.id };
+  save(`session:${scope}`, JSON.stringify(owner));
+  if (!forcedId) save("cursor", String(cursor + 1));
+  return owner;
+}
+
+function assertIssuedToGeneration(
+  scope: string,
+  owner: Owner,
+  body: Record<string, unknown>
+): void {
+  for (const hash of opaqueHashes(body)) {
+    if (!owner.generation || load(`opaque:${scope}:${hash}`) !== owner.generation) {
+      throw new MuseOwnershipError(
+        "Muse encrypted reasoning was not issued to this session and caller generation."
+      );
+    }
+  }
+  for (const id of continuationIds(body)) {
+    if (!owner.generation || load(`reference:${scope}:${digest(id)}`) !== owner.generation) {
+      throw new MuseOwnershipError(
+        "Muse tool continuation was not issued to this session and caller generation."
+      );
+    }
+  }
 }
 
 /** Atomic session assignment; once output was served, pins never expire or move to another account. */
@@ -192,68 +281,14 @@ export function claimMuseSession(
     const prior = stored ? (JSON.parse(stored) as Owner) : null;
     const current = prior && candidates.find((candidate) => candidate.id === prior.connectionId);
     const pinned = load(`served:${scope}`) === "1";
-    if (
-      prior &&
-      (pinned || (current && !current.unavailable && (!forcedId || forcedId === current.id)))
-    ) {
+    const resumable = current && !current.unavailable && (!forcedId || forcedId === current.id);
+    if (prior && (pinned || resumable)) {
       owner = prior;
-      if (!current || current.unavailable) {
-        throw new MuseOwnershipError(
-          "Muse session owner is unavailable; cross-account continuation is forbidden.",
-          503
-        );
-      }
-      if (forcedId && forcedId !== owner.connectionId) {
-        throw new MuseOwnershipError("Requested Muse account differs from the session owner.");
-      }
+      assertResumableOwner(owner, current, forcedId);
     } else {
-      if (
-        opaqueHashes(body).size ||
-        continuationIds(body).size ||
-        body.previous_response_id ||
-        body._omniroutePreviousResponseResumed ||
-        (Array.isArray(body.input) &&
-          body.input.some(
-            (item) =>
-              item &&
-              typeof item === "object" &&
-              ["reasoning", "function_call", "function_call_output", "item_reference"].includes(
-                String(item.type)
-              )
-          ))
-      ) {
-        throw new MuseOwnershipError(
-          "Muse continuation has no recorded owner; start an independent session without imported opaque history."
-        );
-      }
-      const ordered = [...candidates].sort((a, b) => a.id.localeCompare(b.id));
-      if (!ordered.length)
-        throw new MuseOwnershipError("No native OAuth Muse account is available.", 503);
-      const cursor = Number(load("cursor") || "0");
-      const rotation = ordered.map((_, index) => ordered[(cursor + index) % ordered.length]);
-      const connection = forcedId
-        ? ordered.find((candidate) => candidate.id === forcedId)
-        : (rotation.find((candidate) => !candidate.unavailable) ?? rotation[0]);
-      if (!connection)
-        throw new MuseOwnershipError("Requested Muse OAuth account is unavailable.", 503);
-      owner = { connectionId: connection.id };
-      save(`session:${scope}`, JSON.stringify(owner));
-      if (!forcedId) save("cursor", String(cursor + 1));
+      owner = assignNewOwner(scope, body, candidates, forcedId);
     }
-    for (const hash of opaqueHashes(body)) {
-      if (!owner.generation || load(`opaque:${scope}:${hash}`) !== owner.generation) {
-        throw new MuseOwnershipError(
-          "Muse encrypted reasoning was not issued to this session and caller generation."
-        );
-      }
-    }
-    for (const id of continuationIds(body)) {
-      if (!owner.generation || load(`reference:${scope}:${digest(id)}`) !== owner.generation) {
-        throw new MuseOwnershipError(
-          "Muse tool continuation was not issued to this session and caller generation."
-        );
-      }
-    }
+    assertIssuedToGeneration(scope, owner, body);
   });
   return owner;
 }
@@ -290,6 +325,32 @@ export function bindMuseGeneration(
   return generation;
 }
 
+function recordJsonText(text: string, record: (value: unknown) => void): void {
+  try {
+    record(JSON.parse(text));
+  } catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+  }
+}
+
+/** Record every complete SSE event in `buffer`; return the unterminated remainder. */
+function drainSseEvents(buffer: string, record: (value: unknown) => void): string {
+  // Responses events can cross arbitrary transport chunk boundaries.
+  let end: number;
+  while ((end = buffer.search(/\r?\n\r?\n/)) >= 0) {
+    const event = buffer.slice(0, end);
+    const separator = buffer.slice(end).match(/^\r?\n\r?\n/)![0];
+    buffer = buffer.slice(end + separator.length);
+    const data = event
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).trimStart())
+      .join("\n");
+    if (data && data !== "[DONE]") recordJsonText(data, record);
+  }
+  return buffer;
+}
+
 /** Observe the exact downstream output without altering events, tools, opaque reasoning, or terminal errors. */
 export function recordMuseOutput(response: Response, scope: string, generation: string): Response {
   if (!response.body || !response.ok) return response;
@@ -317,38 +378,12 @@ export function recordMuseOutput(response: Response, scope: string, generation: 
     new TransformStream<Uint8Array, Uint8Array>({
       transform(chunk, controller) {
         buffer += decoder.decode(chunk, { stream: true });
-        if (sse) {
-          // Responses events can cross arbitrary transport chunk boundaries.
-          let end: number;
-          while ((end = buffer.search(/\r?\n\r?\n/)) >= 0) {
-            const event = buffer.slice(0, end);
-            const separator = buffer.slice(end).match(/^\r?\n\r?\n/)![0];
-            buffer = buffer.slice(end + separator.length);
-            const data = event
-              .split(/\r?\n/)
-              .filter((line) => line.startsWith("data:"))
-              .map((line) => line.slice(5).trimStart())
-              .join("\n");
-            if (data && data !== "[DONE]") {
-              try {
-                record(JSON.parse(data));
-              } catch (error) {
-                if (!(error instanceof SyntaxError)) throw error;
-              }
-            }
-          }
-        }
+        if (sse) buffer = drainSseEvents(buffer, record);
         controller.enqueue(chunk);
       },
       flush() {
         buffer += decoder.decode();
-        if (!sse && buffer) {
-          try {
-            record(JSON.parse(buffer));
-          } catch (error) {
-            if (!(error instanceof SyntaxError)) throw error;
-          }
-        }
+        if (!sse && buffer) recordJsonText(buffer, record);
       },
     })
   );

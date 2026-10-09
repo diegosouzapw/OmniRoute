@@ -61,7 +61,7 @@ test("exhaustion lines carry the request id", async (t) => {
     // A receiver-only test (options hand-set at the auth call) would
     // still pass if a chat sender stopped forwarding the id. This test reads
     // the sender call sites directly: every chat sender must pass its
-    // in-scope request id via options. If any of the four senders drops the
+    // in-scope request id via options. If any of the five senders drops the
     // field, the count/asserts below fail.
     const chatSource = readSource("../../src/sse/handlers/chat.ts");
     const helpersSource = readSource("../../src/sse/handlers/chatHelpers.ts");
@@ -71,8 +71,8 @@ test("exhaustion lines carry the request id", async (t) => {
     ];
     assert.equal(
       chatSenders.length,
-      3,
-      "chat.ts must pass runtimeOptions.correlationId at all three markAccountUnavailable senders (:2089/:2138/:2383)"
+      4,
+      "chat.ts must pass runtimeOptions.correlationId at all four markAccountUnavailable senders (three generic plus the Muse owner path)"
     );
     assert.match(
       helpersSource,

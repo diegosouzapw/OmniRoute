@@ -53,6 +53,7 @@ test("service keeps no raw SQL: persistence goes through src/lib/db", () => {
     new URL("../../src/sse/services/museSessionOwnership.ts", import.meta.url),
     "utf8"
   );
+  assert.match(source, /export function claimMuseSession\(/);
   assert.doesNotMatch(source, /getDbInstance|\.prepare\(|key_value/);
 });
 
