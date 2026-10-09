@@ -6,6 +6,7 @@ import {
   parseDeepSeekToolCalls,
   buildToolConversationPrompt,
 } from "../translator/deepseekWebTools.ts";
+import { requestDeepSeekPowChallenge, type PowChallenge } from "./deepseek-web/pow.ts";
 import { DeepSeekImageError, uploadDeepSeekImages } from "./deepseek-web/image-upload.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
@@ -48,17 +49,6 @@ const FAKE_HEADERS: Record<string, string> = {
 };
 
 // ── Types ────────────────────────────────────────────────────────────────
-
-interface PowChallenge {
-  algorithm: string;
-  challenge: string;
-  salt: string;
-  signature: string;
-  difficulty: number;
-  expire_at: number;
-  expire_after: number;
-  target_path: string;
-}
 
 interface TokenInfo {
   accessToken: string;
@@ -746,21 +736,7 @@ async function getPowChallenge(
   signal?: AbortSignal | null,
   targetPath = "/api/v0/chat/completion"
 ): Promise<PowChallenge> {
-  const resp = await fetch(`${DEEPSEEK_API_BASE}/v0/chat/create_pow_challenge`, {
-    method: "POST",
-    headers: {
-      ...FAKE_HEADERS,
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({ target_path: targetPath }),
-    signal: signal ?? undefined,
-  });
-  if (!resp.ok) throw new Error(`create_pow_challenge HTTP ${resp.status}`);
-  const json = await resp.json();
-  const bizData = json?.data?.biz_data || json?.biz_data;
-  if (!bizData?.challenge?.challenge) throw new Error(`No PoW challenge: code=${json?.code}`);
-  return { ...bizData.challenge, target_path: targetPath } as PowChallenge;
+  return requestDeepSeekPowChallenge({ accessToken, headers: FAKE_HEADERS, signal, targetPath });
 }
 
 // ── Tool-call response builder (#2820) ──────────────────────────────────
