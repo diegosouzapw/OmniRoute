@@ -12,6 +12,10 @@ import {
   applyCacheHitTokensToUsage,
   applyCacheHitTokensToResponsesUsage,
 } from "./responseSanitizer/cacheHitTokens.ts";
+import {
+  ALLOWED_USAGE_FIELDS,
+  ALLOWED_RESPONSES_USAGE_FIELDS,
+} from "./responseSanitizer/usageFields.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
 import { normalizeArrayContentChunk } from "../utils/arrayContentDelta.ts";
 export {
@@ -29,31 +33,6 @@ export {
  * 3. Normalizes response id, object, and usage fields
  * 4. Converts developer role → system for non-OpenAI providers
  */
-
-const ALLOWED_USAGE_FIELDS = new Set([
-  "prompt_tokens",
-  "completion_tokens",
-  "total_tokens",
-  "cached_tokens",
-  "prompt_tokens_details",
-  "completion_tokens_details",
-  "cache_read_input_tokens",
-  "cache_creation_input_tokens",
-  // Keep through sanitize → applyClientUsageBuffer so heuristic web usage is
-  // not inflated by the default USAGE_TOKEN_BUFFER (2000).
-  "estimated",
-]);
-const ALLOWED_RESPONSES_USAGE_FIELDS = new Set([
-  "input_tokens",
-  "output_tokens",
-  "total_tokens",
-  "input_tokens_details",
-  "output_tokens_details",
-  "estimated",
-  "cost_in_usd_ticks",
-  "server_side_tool_usage_details",
-  "server_side_tool_usage",
-]);
 
 const RESPONSES_EXTRA_TOP_LEVEL_FIELDS = [
   "server_side_tool_usage_details",

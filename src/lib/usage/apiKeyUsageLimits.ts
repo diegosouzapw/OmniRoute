@@ -58,6 +58,8 @@ export interface ApiKeyUsageLimitDeps {
 }
 
 interface UsageCostRow {
+  storedCost: number | null;
+  unmeteredRequests: number | null;
   provider: string | null;
   model: string | null;
   serviceTier: string | null;
@@ -465,15 +467,17 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
         LOWER(provider) as provider,
         LOWER(model) as model,
         COALESCE(NULLIF(service_tier, ''), 'standard') as serviceTier,
-        COALESCE(SUM(tokens_input), 0) as promptTokens,
-        COALESCE(SUM(tokens_output), 0) as completionTokens,
-        COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
-        COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-        COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
+        COALESCE(SUM(provider_cost_usd), 0) as storedCost,
+        COALESCE(SUM(CASE WHEN provider_cost_usd IS NULL THEN 1 ELSE 0 END), 0) as unmeteredRequests,
+        COALESCE(SUM(CASE WHEN provider_cost_usd IS NULL THEN tokens_input ELSE 0 END), 0) as promptTokens,
+        COALESCE(SUM(CASE WHEN provider_cost_usd IS NULL THEN tokens_output ELSE 0 END), 0) as completionTokens,
+        COALESCE(SUM(CASE WHEN provider_cost_usd IS NULL THEN tokens_cache_read ELSE 0 END), 0) as cacheReadTokens,
+        COALESCE(SUM(CASE WHEN provider_cost_usd IS NULL THEN tokens_cache_creation ELSE 0 END), 0) as cacheCreationTokens,
+        COALESCE(SUM(CASE WHEN provider_cost_usd IS NULL THEN tokens_reasoning ELSE 0 END), 0) as reasoningTokens
       FROM usage_history
       WHERE api_key_id = @apiKeyId
         AND timestamp >= @sinceIso
-        AND success = 1
+        AND (success = 1 OR provider_cost_usd IS NOT NULL)
       GROUP BY LOWER(provider), LOWER(model), serviceTier
     `
     )
@@ -485,6 +489,12 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
     const provider = typeof row.provider === "string" ? row.provider : "";
     const model = typeof row.model === "string" ? row.model : "";
     if (!provider || !model) continue;
+
+    // A provider-reported exact cost is the billed amount (credit-metered providers,
+    // xAI). Those rows' tokens are excluded above, and they never make the group
+    // unpriced: only rows without a stored cost are priced from tokens.
+    total += toNumber(row.storedCost);
+    if (toNumber(row.unmeteredRequests) === 0) continue;
 
     const { costUsd, priced } = await calculateCostDetailed(
       provider,

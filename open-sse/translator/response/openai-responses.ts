@@ -190,6 +190,9 @@ export function openaiToOpenAIResponsesResponse(chunk, state) {
       typeof rawReasoning === "number" && Number.isFinite(rawReasoning) ? rawReasoning : 0;
 
     state.usage = {
+      // Exact provider-reported cost and its credit provenance; billing reads them.
+      ...(u.provider_credits !== undefined && { provider_credits: u.provider_credits }),
+      ...(u.cost_in_usd_ticks !== undefined && { cost_in_usd_ticks: u.cost_in_usd_ticks }),
       input_tokens,
       input_tokens_details: {
         cached_tokens: 0,
@@ -1417,6 +1420,12 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         ("cache_read_input_tokens" in responseUsage ? cacheReadTokens + cacheCreationTokens : 0);
 
       state.usage = {
+        ...(responseUsage.provider_credits !== undefined && {
+          provider_credits: responseUsage.provider_credits,
+        }),
+        ...(responseUsage.cost_in_usd_ticks !== undefined && {
+          cost_in_usd_ticks: responseUsage.cost_in_usd_ticks,
+        }),
         prompt_tokens: promptTokens,
         completion_tokens: outputTokens,
         total_tokens: promptTokens + outputTokens,

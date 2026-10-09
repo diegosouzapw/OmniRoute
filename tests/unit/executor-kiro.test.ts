@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import { KiroExecutor } from "../../open-sse/executors/kiro.ts";
 import { hasStreamReadinessSignal } from "../../open-sse/utils/streamReadiness.ts";
+import { getRegistryEntry } from "../../open-sse/config/providerRegistry.ts";
 
 const textEncoder = new TextEncoder();
 
@@ -652,4 +653,88 @@ test("KiroExecutor.refreshCredentials returns null when the token refresh fails"
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("Kiro bills summed credits across metrics frames and requires metering in strict mode", async () => {
+  process.env.KIRO_REQUIRE_CREDITS = "true";
+  process.env.KIRO_CREDIT_PRICE_USD = "0.02";
+  try {
+    const executor = new KiroExecutor();
+    const frames = [
+      buildEventFrame("assistantResponseEvent", { content: "OK" }),
+      buildEventFrame("meteringEvent", { unit: "credit", usage: 0.2 }),
+      buildEventFrame("metricsEvent", { inputTokens: 100, outputTokens: 1 }),
+      buildEventFrame("meteringEvent", { unit: "credit", usage: 0.3 }),
+    ];
+    const response = executor.transformEventStreamToSSE(
+      buildEventStreamResponse(frames),
+      "kiro-model"
+    );
+    const finish = parseSSEJsonChunks(await response.text()).find(
+      (chunk) => chunk.choices?.[0]?.finish_reason
+    );
+    // 0.5 credits × $0.02 = $0.01 = 1e8 USD ticks; the reported tokens are kept.
+    assert.equal(finish.usage.provider_credits, 0.5);
+    assert.equal(finish.usage.cost_in_usd_ticks, 100_000_000);
+    assert.equal(finish.usage.prompt_tokens, 100);
+
+    const creditOnly = executor.transformEventStreamToSSE(
+      buildEventStreamResponse([frames[1]]),
+      "kiro-model"
+    );
+    const metered = parseSSEJsonChunks(await creditOnly.text()).find(
+      (chunk) => chunk.choices?.[0]?.finish_reason
+    );
+    assert.equal(metered.usage.prompt_tokens, 0);
+    assert.equal(metered.usage.provider_credits, 0.2);
+
+    const missing = executor.transformEventStreamToSSE(
+      buildEventStreamResponse(frames.slice(0, 1)),
+      "kiro-model"
+    );
+    await assert.rejects(missing.text(), /without credit metering/);
+
+    const malformed = executor.transformEventStreamToSSE(
+      buildEventStreamResponse([buildEventFrame("meteringEvent", { unit: "token", usage: 1 })]),
+      "kiro-model"
+    );
+    await assert.rejects(malformed.text(), /invalid credit metering/);
+  } finally {
+    delete process.env.KIRO_REQUIRE_CREDITS;
+    delete process.env.KIRO_CREDIT_PRICE_USD;
+  }
+});
+
+test("Kiro preserves required write arguments across string fragments and bills their credits", async () => {
+  const executor = new KiroExecutor();
+  const model = "gpt-5.6-luna";
+  const args = { path: "diagnostic.txt", content: "Hello, UTF-8 ✓", i: "validate" };
+  const serialized = JSON.stringify(args);
+  const frames = [];
+  for (let offset = 0; offset < serialized.length; offset += 3) {
+    frames.push(
+      buildEventFrame("toolUseEvent", {
+        toolUseId: "test-write",
+        name: "write",
+        input: serialized.slice(offset, offset + 3),
+      })
+    );
+  }
+  frames.push(buildEventFrame("contextUsageEvent", { contextUsagePercentage: 10 }));
+  frames.push(buildEventFrame("meteringEvent", { unit: "credit", usage: 0.25 }));
+
+  const chunks = parseSSEJsonChunks(
+    await executor.transformEventStreamToSSE(buildEventStreamResponse(frames), model).text()
+  );
+  const calls = chunks.flatMap((chunk) => chunk.choices?.[0]?.delta?.tool_calls ?? []);
+  assert.deepEqual(JSON.parse(calls.map((call) => call.function?.arguments ?? "").join("")), args);
+
+  const usage = chunks.find((chunk) => chunk.choices?.[0]?.finish_reason)?.usage;
+  const entry = getRegistryEntry("kiro");
+  const contextLength =
+    entry?.models?.find((m) => m.id === model)?.contextLength || entry?.defaultContextLength;
+  assert.equal(usage.total_tokens, Math.floor((10 * contextLength) / 100));
+  // 0.25 credits × default $0.02 = $0.005 = 5e7 USD ticks.
+  assert.equal(usage.provider_credits, 0.25);
+  assert.equal(usage.cost_in_usd_ticks, 50_000_000);
 });

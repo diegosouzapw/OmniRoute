@@ -699,6 +699,8 @@ process.env[`${PROVIDER_ID}_USER_AGENT`]
 | `KIRO_USER_AGENT`                | `AWS-SDK-JS/3.0.0 kiro-ide/1.0.0`             | When Kiro IDE updates                                                                            |
 | `KIRO_OAUTH_CLIENT_ID`           | `kiro-cli`                                    | Override the Kiro social device-code `clientId` (public id)                                      |
 | `KIRO_VERIFY_FULL_CRC`           | `false`                                       | Opt-in: full per-frame message CRC validation on the Kiro event stream (debug corrupted streams) |
+| `KIRO_CREDIT_PRICE_USD`          | `0.02`                                        | USD per Kiro credit; converts `meteringEvent` credits into the exact per-request cost            |
+| `KIRO_REQUIRE_CREDITS`           | `false`                                       | Fail a Kiro response that reports no credit metering instead of recording it unbilled            |
 | `QODER_USER_AGENT`               | `Qoder-Cli`                                   | When Qoder CLI updates                                                                           |
 | `CURSOR_USER_AGENT`              | `Cursor/3.3`                                  | When Cursor updates                                                                              |
 

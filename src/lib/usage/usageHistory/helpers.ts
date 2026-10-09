@@ -8,6 +8,7 @@
 export { toNumber } from "@/shared/utils/numeric";
 // #13130: shared TPS math (generation-time denominator, reasoning-aware numerator).
 import { resolveGenerationMs, resolveTpsOutputTokens } from "@/shared/utils/logTps";
+import { toNumber as toNumberValue } from "@/shared/utils/numeric";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -24,6 +25,36 @@ export function normalizeServiceTier(value: unknown): string {
   if (tier === "priority" || tier === "fast") return "priority";
   if (tier === "flex") return "flex";
   return "standard";
+}
+
+/** One `usage_history` row as returned by getUsageDb / getUsageHistory. */
+export function mapUsageHistoryRow(row: unknown) {
+  const r = asRecord(row);
+  return {
+    provider: toStringOrNull(r.provider),
+    model: toStringOrNull(r.model),
+    connectionId: toStringOrNull(r.connection_id),
+    apiKeyId: toStringOrNull(r.api_key_id),
+    apiKeyName: toStringOrNull(r.api_key_name),
+    serviceTier: normalizeServiceTier(r.service_tier),
+    providerCredits: r.provider_credits ?? null,
+    providerCostUsd: r.provider_cost_usd ?? null,
+    tokens: {
+      input: toNumberValue(r.tokens_input),
+      output: toNumberValue(r.tokens_output),
+      cacheRead: toNumberValue(r.tokens_cache_read),
+      cacheCreation: toNumberValue(r.tokens_cache_creation),
+      reasoning: toNumberValue(r.tokens_reasoning),
+    },
+    status: toStringOrNull(r.status),
+    success: toNumberValue(r.success) === 1,
+    latencyMs: toNumberValue(r.latency_ms),
+    timeToFirstTokenMs: toNumberValue(r.ttft_ms),
+    errorCode: toStringOrNull(r.error_code),
+    timestamp: toStringOrNull(r.timestamp),
+    cpaAuthIndex: toStringOrNull(r.cpa_auth_index),
+    cpaAccountLabel: null as string | null,
+  };
 }
 
 export function percentile(sortedValues: number[], p: number): number {
