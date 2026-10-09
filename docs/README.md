@@ -184,6 +184,7 @@ Release, deployment, proxies, tunnels, coverage, database, monitoring.
 - [RELEASE_CHECKLIST.md](ops/RELEASE_CHECKLIST.md) — release flow checklist.
 - [RELEASE_GREEN.md](ops/RELEASE_GREEN.md) — keeping the PR queue and release branch green.
 - [BRANCHING_MODEL.md](ops/BRANCHING_MODEL.md) — branching & release model.
+- [RELEASE_STRATEGY.md](ops/RELEASE_STRATEGY.md) — LTS rail: branches, npm channels, forward-port, rail labels.
 - [MERGE_TRAIN.md](ops/MERGE_TRAIN.md) — merge queue & manual merge-train runbook.
 - [HOMOLOGATION.md](ops/HOMOLOGATION.md) — homologation suite (`npm run homolog`).
 - [QUALITY_GATE_PLAYBOOK.md](ops/QUALITY_GATE_PLAYBOOK.md) — quality-gate playbook.
