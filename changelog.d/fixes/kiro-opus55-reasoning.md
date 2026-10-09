@@ -1,0 +1,1 @@
+- Forward adaptive thinking for Kiro Claude Opus 5.5 and preserve its native `max` effort through Responses conversion without changing other providers' effort normalization.

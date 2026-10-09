@@ -913,7 +913,11 @@ export function openaiResponsesToOpenAIRequest(
     const reasoningRec = toRecord(root.reasoning);
     const effort = toString(reasoningRec.effort);
     if (effort && result.reasoning_effort === undefined) {
-      result.reasoning_effort = normalizeResponsesReasoningEffort(effort, model ?? root.model);
+      result.reasoning_effort = normalizeResponsesReasoningEffort(
+        effort,
+        model ?? root.model,
+        credentialRecord._targetFormat
+      );
     }
     if (
       credentialRecord._copilotClient === true &&
