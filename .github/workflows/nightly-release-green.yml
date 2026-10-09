@@ -247,7 +247,7 @@ jobs:
       - name: Upload report artifact
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: release-green-report
           path: |
@@ -392,7 +392,7 @@ jobs:
       - name: Upload report artifact
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: main-green-report
           path: |
@@ -595,7 +595,7 @@ jobs:
 
       - name: Upload headroom report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: baseline-headroom-${{ github.run_id }}
           path: reports/quality/headroom.*

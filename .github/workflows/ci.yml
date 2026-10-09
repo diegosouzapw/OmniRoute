@@ -131,7 +131,7 @@ jobs:
         run: npm run lint:json
       - name: Upload ESLint results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: eslint-results
           path: .artifacts/eslint-results.json
@@ -311,7 +311,7 @@ jobs:
         run: cat .artifacts/quality-ratchet.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload ratchet report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: quality-ratchet
           path: .artifacts/quality-ratchet.md
@@ -655,7 +655,7 @@ jobs:
           exit "$FAIL"
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: i18n-results
           path: i18n-results/
@@ -758,7 +758,7 @@ jobs:
             --exclude='.build/next/cache' \
             .build/next
       - name: Upload Next.js build for downstream jobs
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: next-build
           path: ${{ runner.temp }}/e2e-build.tar.gz
@@ -988,7 +988,7 @@ jobs:
             npm run test:unit:ci:shard
       - name: Upload raw shard coverage
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-shard-${{ matrix.shard }}
           path: coverage-shard/*.json
@@ -1185,7 +1185,7 @@ jobs:
           fail_ci_if_error: false
       - name: Upload coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-report
           path: |
@@ -1579,7 +1579,7 @@ jobs:
         run: node scripts/quality/admission-verdict.mjs ci
       - name: Retain admission receipt
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v7
         with:
           name: ci-admission-${{ github.run_id }}-${{ github.run_attempt }}
           path: .artifacts/ci-admission.json

@@ -366,7 +366,7 @@ jobs:
           fi
 
       - name: Upload base digests
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: digests-base-${{ matrix.arch }}
           path: /tmp/digests/base/*
@@ -374,7 +374,7 @@ jobs:
           retention-days: 1
 
       - name: Upload web digests
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: digests-web-${{ matrix.arch }}
           path: /tmp/digests/web/*
@@ -382,7 +382,7 @@ jobs:
           retention-days: 1
 
       - name: Upload bun-base digests
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v7
         with:
           name: digests-bun-base-${{ matrix.arch }}
           path: /tmp/digests/bun-base/*
@@ -394,7 +394,7 @@ jobs:
           retention-days: 1
 
       - name: Upload bun-web digests
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v7
         with:
           name: digests-bun-web-${{ matrix.arch }}
           path: /tmp/digests/bun-web/*

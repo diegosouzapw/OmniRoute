@@ -53,7 +53,7 @@ jobs:
         run: npx --no-install vitest run --config vitest.quarantine.config.ts --reporter=default --reporter=json --outputFile.json=.artifacts/quarantine/results.json
       - name: Preserve measured failures and issue evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: quarantine-${{ github.sha }}-${{ github.run_attempt }}
           path: .artifacts/quarantine/

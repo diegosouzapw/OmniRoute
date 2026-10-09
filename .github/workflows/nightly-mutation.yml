@@ -127,7 +127,7 @@ jobs:
         run: npx stryker run --mutate "$BATCH_MUTATE"
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: mutation-report-${{ matrix.batch.name }}
           path: reports/mutation/

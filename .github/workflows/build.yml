@@ -57,7 +57,7 @@ jobs:
           tar -czf omniroute-build.tar.gz .build dist
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: omniroute-build
           path: omniroute-build.tar.gz

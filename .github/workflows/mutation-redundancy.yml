@@ -55,7 +55,7 @@ jobs:
         run: npx stryker run --config-file stryker.disablebail.json --mutate "$BATCH_MUTATE"
       - name: Upload mutation report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: mutation-nobail-${{ matrix.batch.name }}
           path: reports/mutation/
