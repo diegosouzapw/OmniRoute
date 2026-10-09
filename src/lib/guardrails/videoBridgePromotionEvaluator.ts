@@ -33,6 +33,10 @@ function verdictFromGates(hardBlockers: string[], softFailures: string[]): Promo
   return { reasons: [], status: "eligible" };
 }
 
+function validMeasurement(value: number | null, min = -Infinity, max = Infinity): boolean {
+  return value === null || (Number.isFinite(value) && value >= min && value <= max);
+}
+
 // ── FU-07: segment-aware structural sampling ────────────────────────────────
 
 export const FU07_PROMOTION_THRESHOLDS = {
@@ -59,6 +63,13 @@ export interface Fu07PromotionInput {
 
 function fu07HardBlockers(input: Fu07PromotionInput): string[] {
   const blockers: string[] = [];
+  if (
+    !validMeasurement(input.qualityRetention, 0) ||
+    !validMeasurement(input.p95LatencyRatio, 0) ||
+    !validMeasurement(input.materialGain.qualityGain, -1, 1) ||
+    !validMeasurement(input.materialGain.captionEfficiencyGain, -Infinity, 1)
+  )
+    blockers.push("INVALID_MEASUREMENT");
   if (!input.tokenUsageAvailable) blockers.push("USAGE_DATA_MISSING");
   if (input.criticalFactLoss) blockers.push("CRITICAL_FACT_LOSS");
   if (!input.securityCasesPassed) blockers.push("SECURITY_CASE_FAILED");
@@ -117,6 +128,13 @@ export interface Fu09PromotionInput {
 
 function fu09HardBlockers(input: Fu09PromotionInput): string[] {
   const blockers: string[] = [];
+  if (
+    !validMeasurement(input.absoluteQuality, 0, 1) ||
+    !validMeasurement(input.qualityRetention, 0) ||
+    !validMeasurement(input.latencyReductionRatio, -Infinity, 1) ||
+    !validMeasurement(input.tokenReductionRatio, -Infinity, 1)
+  )
+    blockers.push("INVALID_MEASUREMENT");
   if (!input.tokenUsageAvailable) blockers.push("USAGE_DATA_MISSING");
   if (input.criticalOrSecurityLoss) blockers.push("CRITICAL_OR_SECURITY_LOSS");
   return blockers;
