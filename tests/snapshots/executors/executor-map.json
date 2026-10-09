@@ -575,10 +575,20 @@
       "configSource": "<custom-config>",
       "provider": "tinycms-web"
     },
+    "tm": {
+      "className": "TwinmindExecutor",
+      "configSource": "<custom-config>",
+      "provider": "twinmind"
+    },
     "trae": {
       "className": "TraeExecutor",
       "configSource": "trae",
       "provider": "trae"
+    },
+    "twinmind": {
+      "className": "TwinmindExecutor",
+      "configSource": "<custom-config>",
+      "provider": "twinmind"
     },
     "uc": {
       "className": "UcExecutor",
@@ -686,6 +696,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 137,
+  "keyCount": 139,
   "sharedInstances": []
 }
