@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
   try {
     const resolved = resolveAllFeatureFlags();
 
-    const flags = resolved.map(({ key, effectiveValue, source, definition }) => {
+    const flags = resolved.map(({ key, effectiveValue, source, definition, ...provenance }) => {
       // Flags whose gate resolves with env-wins-over-db precedence (the
       // opposite of resolveAllFeatureFlags' generic db-wins-over-env order)
       // report the gate's own resolution so the dashboard never shows a source
@@ -80,14 +80,19 @@ export async function GET(request: NextRequest) {
         const state = resolveAdaptiveVirtualLanesFlag();
         return flagPayload(definition, state.enabled ? "true" : "false", state.source);
       }
-      return flagPayload(definition, effectiveValue, source);
+      return { ...flagPayload(definition, effectiveValue, source), ...provenance };
     });
 
     const total = flags.length;
     const active = flags.filter((f) => isActive(f.effectiveValue)).length;
     const inactive = total - active;
-    const overriddenByDb = flags.filter((f) => f.source === "db").length;
-    const overriddenByEnv = flags.filter((f) => f.source === "env").length;
+    // Count this flag's configuration, not a dependency's inherited DB/env source twice.
+    const overriddenByDb = resolved.filter(
+      (f, i) => (f.configuredSource ?? flags[i].source) === "db"
+    ).length;
+    const overriddenByEnv = resolved.filter(
+      (f, i) => (f.configuredSource ?? flags[i].source) === "env"
+    ).length;
 
     return NextResponse.json({
       flags,
@@ -183,6 +188,14 @@ export async function PUT(request: NextRequest) {
       source: reportedSource,
       previousValue,
       previousSource,
+      ...(key === "UNPRICED_USAGE_BUDGET_POLICY"
+        ? {
+            configuredSource: updatedFlag.configuredSource,
+            sourceKey: updatedFlag.sourceKey,
+            previousConfiguredSource: prevFlag.configuredSource,
+            previousSourceKey: prevFlag.sourceKey,
+          }
+        : {}),
       requiresRestart: definition.requiresRestart,
     });
   } catch (error) {

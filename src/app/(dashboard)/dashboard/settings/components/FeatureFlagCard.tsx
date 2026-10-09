@@ -12,6 +12,8 @@ interface FeatureFlagCardProps {
     enumValues?: string[] | null;
     effectiveValue: string;
     source: "db" | "env" | "default";
+    configuredSource?: "db" | "env" | "default";
+    sourceKey?: string;
     requiresRestart: boolean;
     warningLevel?: "info" | "caution" | "danger";
   };
@@ -250,9 +252,12 @@ export default function FeatureFlagCard({
           >
             {source.label}
           </span>
+          {flag.sourceKey && flag.sourceKey !== flag.key && (
+            <span className="font-mono text-xs text-text-muted">{flag.sourceKey}</span>
+          )}
         </div>
 
-        {flag.source === "db" && (
+        {(flag.configuredSource ?? flag.source) === "db" && (
           <button
             aria-label={t("resetFlag", { label: flag.label })}
             disabled={saving}

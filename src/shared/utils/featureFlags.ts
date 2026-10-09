@@ -40,9 +40,14 @@ export function resolveAllFeatureFlags(): Array<{
   key: string;
   effectiveValue: string;
   source: "db" | "env" | "default";
+  configuredSource?: "db" | "env" | "default";
+  sourceKey?: string;
   definition: FeatureFlagDefinition;
 }> {
   return FEATURE_FLAG_DEFINITIONS.map((definition) => {
+    if (definition.key === "UNPRICED_USAGE_BUDGET_POLICY") {
+      return { key: definition.key, ...resolveUnpricedUsageBudgetPolicy(), definition };
+    }
     const dbOverride = getFeatureFlagOverride(definition.key);
     if (dbOverride !== undefined) {
       return { key: definition.key, effectiveValue: dbOverride, source: "db", definition };
@@ -140,6 +145,36 @@ export function getModelsCatalogPrefixMode(): ModelsCatalogPrefixMode {
 
 export type UnpricedUsageBudgetPolicy = "fail_closed" | "count_as_zero";
 
+/** Runtime policy and provenance; inherited DB values are not enum overrides. */
+export function resolveUnpricedUsageBudgetPolicy(): {
+  effectiveValue: UnpricedUsageBudgetPolicy;
+  source: "db" | "env" | "default";
+  configuredSource: "db" | "env" | "default";
+  sourceKey: string;
+} {
+  const key = "UNPRICED_USAGE_BUDGET_POLICY";
+  const dbPolicy = getFeatureFlagOverride(key);
+  const explicitPolicy = dbPolicy ?? (process.env[key] || undefined);
+  if (explicitPolicy !== undefined) {
+    const source = dbPolicy !== undefined ? "db" : "env";
+    return {
+      effectiveValue: explicitPolicy === "count_as_zero" ? "count_as_zero" : "fail_closed",
+      source,
+      configuredSource: source,
+      sourceKey: key,
+    };
+  }
+  const sourceKey = "USAGE_LIMIT_IGNORE_UNPRICED";
+  const effectiveValue = isFeatureFlagEnabled(sourceKey) ? "count_as_zero" : "fail_closed";
+  const source =
+    getFeatureFlagOverride(sourceKey) !== undefined
+      ? "db"
+      : process.env[sourceKey]
+        ? "env"
+        : "default";
+  return { effectiveValue, source, configuredSource: "default", sourceKey };
+}
+
 /**
  * How per-key USD limits treat usage that has no pricing row (#12341).
  *
@@ -151,13 +186,7 @@ export type UnpricedUsageBudgetPolicy = "fail_closed" | "count_as_zero";
  */
 export function getUnpricedUsageBudgetPolicy(): UnpricedUsageBudgetPolicy {
   try {
-    const explicitPolicy =
-      getFeatureFlagOverride("UNPRICED_USAGE_BUDGET_POLICY") ??
-      (process.env.UNPRICED_USAGE_BUDGET_POLICY || undefined);
-    if (explicitPolicy !== undefined) {
-      return explicitPolicy === "count_as_zero" ? "count_as_zero" : "fail_closed";
-    }
-    return isFeatureFlagEnabled("USAGE_LIMIT_IGNORE_UNPRICED") ? "count_as_zero" : "fail_closed";
+    return resolveUnpricedUsageBudgetPolicy().effectiveValue;
   } catch (error) {
     console.error(
       "[featureFlags] Failed to resolve UNPRICED_USAGE_BUDGET_POLICY, defaulting to fail_closed:",
