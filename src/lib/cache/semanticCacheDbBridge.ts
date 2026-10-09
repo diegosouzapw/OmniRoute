@@ -1,4 +1,4 @@
-import { getDatabaseSettings } from "@/lib/db/databaseSettings";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import { getDbInstance } from "@/lib/db/core";
 import { decryptConnectionFields } from "@/lib/db/encryption";
 import { registerSemanticCacheConfigResolver } from "@omniroute/open-sse/config/semanticCacheConfig.ts";
@@ -47,7 +47,8 @@ export function ensureSemanticCacheDbBridge(): void {
   registered = true;
   registerSemanticCacheConfigResolver(() => {
     try {
-      const s = getDatabaseSettings().cache;
+      // Configuration reads must not run full DB statistics or integrity checks.
+      const s = getUserDatabaseSettings().cache;
       if (!s) return null;
 
       const conn = s.semanticCacheEmbeddingProvider
