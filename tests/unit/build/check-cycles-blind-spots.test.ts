@@ -415,6 +415,23 @@ test("G-02: the shipped quality-baseline.json declares a cycles ceiling", async 
   );
 });
 
+test("G-02: the real ratchet CLI rejects a new cycle but admits the frozen ceiling", () => {
+  const baseline = JSON.parse(readFileSync("config/quality/quality-baseline.json", "utf8"));
+  const ceiling = baseline.metrics.cycles.value;
+  withTree((root) => {
+    for (let i = 0; i <= ceiling; i++) {
+      writeFile(root, `src/cycle${i}.ts`, `import "./cycle${i}";\nexport const value = ${i};\n`);
+    }
+    const regression = runGate(root, ["--ratchet", "src"]);
+    assert.equal(regression.status, 1, regression.stdout);
+    assert.match(regression.stderr, /RATCHET FAIL/);
+    fs.rmSync(join(root, `src/cycle${ceiling}.ts`));
+    const unchanged = runGate(root, ["--ratchet", "src"]);
+    assert.equal(unchanged.status, 0, unchanged.stderr);
+    assert.match(unchanged.stdout, /RATCHET OK/);
+  });
+});
+
 test("G-02: CI runs the ratcheting variant of check:cycles", () => {
   // The invariant is that CI enforces the ceiling, not that it spells a flag a
   // particular way. Accept either the npm alias or a literal `--ratchet`, and

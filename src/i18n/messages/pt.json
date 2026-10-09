@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Predefinição (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Máximo de tokens de saída",
+    "maxOutputTokenOverrideHint": "Introduza um número inteiro positivo de tokens. Deixe em branco para usar o valor predefinido.",
     "contextWindowOverrideLabel": "Substituição da Janela de Contexto",
     "contextWindowOverridePlaceholder": "ex. 131072",
     "contextWindowOverrideHint": "Defina manualmente a janela de contexto real deste modelo (tokens) quando o fornecedor a reportar incorretamente. Prevalece sobre os valores detetados automaticamente/do catálogo e evita que o encaminhamento combinado descarte o modelo.",

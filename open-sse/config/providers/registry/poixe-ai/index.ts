@@ -8,4 +8,6 @@ export const poixeAiProvider: RegistryEntry = buildOpenAiCompatibleRegistryEntry
   modelsUrl: "https://api.poixe.com/v1/models",
   models: [],
   passthroughModels: true,
+  // Discovery omits call-time billing aliases such as qwen3-32b:free (#12765).
+  liveCatalogAuthoritative: false,
 });

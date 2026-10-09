@@ -8,6 +8,7 @@
  * and the client only saw the opaque "Maximum combo retry limit reached".
  */
 import { errorResponseWithComboDiagnostics } from "../../utils/error.ts";
+import type { ComboDiagnostics } from "../../utils/error.ts";
 import { isContextOverflow400 } from "./comboPredicates.ts";
 import { buildComboDiag } from "./executeTargetClassify.ts";
 import type { AttemptLoopState } from "./attemptLoopTypes.ts";
@@ -18,6 +19,33 @@ export const CONTEXT_OVERFLOW_BUDGET_MESSAGE =
 interface BudgetErrorEntry {
   status?: number;
   error?: string;
+}
+
+/** Runtime-unit loops do not otherwise retain error text for terminal diagnostics. */
+export async function readBudgetFailure(response: Response): Promise<BudgetErrorEntry> {
+  let error = "";
+  if (response.status === 400 || response.status === 413) {
+    try {
+      error = await response.clone().text();
+    } catch {
+      // An unreadable body is not proof of context overflow.
+    }
+  }
+  return { status: response.status, error };
+}
+
+export function buildContextBudgetResponse(
+  lastError: string | null | undefined,
+  errors: ReadonlyArray<BudgetErrorEntry>,
+  diagnostics: ComboDiagnostics
+): Response {
+  if (isContextOverflowDominant(lastError, errors)) {
+    return errorResponseWithComboDiagnostics(400, CONTEXT_OVERFLOW_BUDGET_MESSAGE, diagnostics, {
+      code: "context_length_exceeded",
+      type: "invalid_request_error",
+    });
+  }
+  return errorResponseWithComboDiagnostics(503, "Maximum combo retry limit reached", diagnostics);
 }
 
 /** True when the last failure and at least half of the recorded failures were context overflows. */
@@ -49,15 +77,8 @@ export function buildBudgetExhaustedResponse(
   const reasoningExhausted = /reasoning consumed \d+\/\d+ tokens/.test(state.lastError || "");
   const failureReason = reasoningExhausted ? "reasoning_budget_exhausted" : "max_attempts_exceeded";
   const diag = buildComboDiag(state, traceInvocationId, failureReason);
-  if (!reasoningExhausted && isContextOverflowDominant(state.lastError, state.comboErrors)) {
-    return errorResponseWithComboDiagnostics(400, CONTEXT_OVERFLOW_BUDGET_MESSAGE, diag, {
-      code: "context_length_exceeded",
-      type: "invalid_request_error",
-    });
+  if (!reasoningExhausted) {
+    return buildContextBudgetResponse(state.lastError, state.comboErrors, diag);
   }
-  return errorResponseWithComboDiagnostics(
-    503,
-    reasoningExhausted ? REASONING_EXHAUSTED_MESSAGE : "Maximum combo retry limit reached",
-    diag
-  );
+  return errorResponseWithComboDiagnostics(503, REASONING_EXHAUSTED_MESSAGE, diag);
 }

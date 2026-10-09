@@ -264,6 +264,36 @@ const CLAUDE_REASONING_DELTA_TYPES = new Set(["thinking_delta", "signature_delta
 const CLAUDE_REASONING_BLOCK_TYPES = new Set(["thinking", "redacted_thinking"]);
 const RESPONSES_ITEM_EVENTS = new Set(["response.output_item.added", "response.output_item.done"]);
 
+function hasGeminiReasoningProgress(payload: Record<string, unknown>): boolean {
+  if (!Array.isArray(payload.candidates)) return false;
+  return payload.candidates.some((candidate) => {
+    if (!isRecord(candidate) || !isRecord(candidate.content)) return false;
+    const parts = candidate.content.parts;
+    return (
+      Array.isArray(parts) &&
+      parts.some((part) => isRecord(part) && hasNonEmptyString(part.thoughtSignature))
+    );
+  });
+}
+
+function hasChatReasoningProgress(payload: Record<string, unknown>): boolean {
+  if (!Array.isArray(payload.choices)) return false;
+  return payload.choices.some((choice) => {
+    if (!isRecord(choice) || !isRecord(choice.delta)) return false;
+    const delta = choice.delta;
+    if (typeof delta.reasoning_content === "string" || typeof delta.reasoning === "string")
+      return true;
+    return (
+      Array.isArray(delta.reasoning_details) &&
+      delta.reasoning_details.some((detail) => {
+        if (!isRecord(detail)) return false;
+        if (detail.type === "reasoning.encrypted") return hasNonEmptyString(detail.data);
+        return detail.type === "reasoning.text" && hasNonEmptyString(detail.signature);
+      })
+    );
+  });
+}
+
 function isReasoningProgressPayload(payload: Record<string, unknown>, type: string): boolean {
   if (type === "content_block_delta") {
     const delta = isRecord(payload.delta) ? payload.delta : null;
@@ -276,19 +306,24 @@ function isReasoningProgressPayload(payload: Record<string, unknown>, type: stri
   if (RESPONSES_ITEM_EVENTS.has(type)) {
     return isRecord(payload.item) && payload.item.type === "reasoning";
   }
-  return type.startsWith("response.reasoning");
+  return (
+    type.startsWith("response.reasoning") ||
+    hasGeminiReasoningProgress(payload) ||
+    hasChatReasoningProgress(payload)
+  );
 }
 
 /**
  * True when an SSE frame shows a reasoning model still working: a Claude thinking block
  * (start, thinking_delta or signature_delta, even with no visible thinking text) or an
- * OpenAI Responses reasoning item or reasoning delta. These frames are not model output —
+ * OpenAI Responses reasoning item, Gemini thought signature, or Chat reasoning delta.
+ * Encrypted/signature-only Chat reasoning details also count. These frames are not model output —
  * an encrypted or omitted thought is not something the client can show, so
- * hasUsefulStreamContent stays false for them (#8649) — but they prove the upstream is
- * producing tokens rather than heartbeats, which the content-stall watchdog needs to know.
+ * hasUsefulStreamContent stays false for them (#8649). They signal reasoning activity
+ * to the content-stall watchdog; an explicitly empty delta does not prove token emission.
  */
 export function isReasoningProgressFrame(frame: string): boolean {
-  if (!/thinking|signature|reasoning/.test(frame)) return false;
+  if (!/thinking|signature|reasoning|thoughtSignature/.test(frame)) return false;
   let eventType = "";
   for (const line of frame.split(/\r?\n/)) {
     const trimmed = line.trim();

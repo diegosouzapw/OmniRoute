@@ -1,3 +1,6 @@
+import type { CredentialSelectionOptions } from "./credentialSelectionOptions";
+export type { CredentialSelectionOptions } from "./credentialSelectionOptions";
+import { qoderSupportsCallerTools } from "@omniroute/open-sse/services/qoderCapabilities";
 import { randomUUID } from "crypto";
 import { nodeTypeFromId } from "@/lib/db/providerNodeSelect";
 import { hydrateConnectionProviderSpecificData } from "./compatibleNodeBaseUrl.ts"; // #13452
@@ -200,7 +203,6 @@ import {
   applyExclusiveConnectionLeasePolicy,
   invalidateManagedConnectionLease,
   mutateExclusiveConnectionLease,
-  type CredentialLeaseSelectionContext,
 } from "./exclusiveConnectionLeasePolicy";
 import { readHeaderValue, type AuthRequestHeaders } from "./headerReader.ts";
 import { isRequestScopedServerFailure } from "./syntheticEmptyStream.ts";
@@ -218,26 +220,6 @@ interface RecoverableConnectionState {
   errorCode?: string | number | null;
   lastErrorType?: string | null;
   lastErrorSource?: string | null;
-}
-export interface CredentialSelectionOptions {
-  allowSuppressedConnections?: boolean;
-  allowRateLimitedConnections?: boolean;
-  bypassQuotaPolicy?: boolean;
-  forcedConnectionId?: string | null;
-  excludeConnectionIds?: string[] | null;
-  sessionKey?: string | null;
-  sessionAffinityTtlMs?: number | null;
-  reserveOAuthSession?: boolean;
-  lease?: CredentialLeaseSelectionContext;
-  materializeCredentials?: boolean;
-  deferLeaseClaim?: boolean;
-  /** Internal: a same-call UNIQUE retry already holds the provider/owner selection lock. */
-  _leaseRetryWithLockHeld?: boolean;
-  /** Internal: freeze the original policy-valid candidate set across lease race/preflight retry. */
-  _leaseCandidateIds?: string[];
-  /** Antigravity account lease (#10011): only the final chat dispatch opts in. */
-  reserveAntigravityLease?: boolean;
-  routingRequestId?: string | null;
 }
 export type ExclusiveLeaseSelectionResult = {
   exclusiveLease: ExclusiveConnectionLease;
@@ -1401,6 +1383,9 @@ export async function getProviderCredentials(
         connections = connections.filter((conn) => conn.id === forcedConnectionId);
       }
     }
+    if (resolvedId === "qoder" && options.requireToolCalling) {
+      connections = connections.filter(qoderSupportsCallerTools);
+    }
     const activeConnectionsCount = connections.length;
     const rawConnectionsCount = connectionsRaw.length;
     const blockedByForcedConnection = forcedConnectionId
@@ -1456,6 +1441,9 @@ export async function getProviderCredentials(
         );
       if (forcedConnectionId) {
         allConnections = allConnections.filter((conn) => conn.id === forcedConnectionId);
+      }
+      if (resolvedId === "qoder" && options.requireToolCalling) {
+        allConnections = allConnections.filter(qoderSupportsCallerTools);
       }
       log.debug("AUTH", `${provider} | all connections (incl inactive): ${allConnections.length}`);
       if (allConnections.length > 0) {
