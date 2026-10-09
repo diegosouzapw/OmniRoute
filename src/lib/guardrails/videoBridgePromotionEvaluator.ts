@@ -5,8 +5,8 @@
  * aggregated metrics (see videoBridgePromotionAggregator.ts) for one (case, model) pair
  * and returns exactly one of `"experimental" | "eligible" | "hold"` by applying the
  * ticket's frozen numeric thresholds. Both functions are pure (no I/O, no clock reads) so
- * identical input always yields an identical verdict — the mechanism behind #11656's "two
- * consecutive runs produce the same eligible verdict" requirement.
+ * identical input always yields an identical verdict. Determinism does NOT establish
+ * two independent evidence runs; that requires separately bound execution receipts.
  *
  * Status model (not fully specified by the ticket beyond "missing usage remains HOLD" —
  * documented explicitly here since the PR that introduces this file calls it out as a
@@ -37,13 +37,15 @@ function verdictFromGates(hardBlockers: string[], softFailures: string[]): Promo
 
 export const FU07_PROMOTION_THRESHOLDS = {
   maxP95LatencyRatio: 1.2,
+  minCaptionEfficiencyGain: 0.1,
+  minAbsoluteQualityGain: 0.05,
   minQualityRetention: 0.98,
 } as const;
 
 export interface Fu07PromotionInput {
   /** Any critical fact lost by the candidate relative to the baseline. Hard blocker. */
   criticalFactLoss: boolean;
-  /** At least one of these must be strictly positive for a "material" gain. */
+  /** +0.05 absolute recall with equivalent calls, OR >=10% fewer captions. */
   materialGain: { captionEfficiencyGain: number | null; qualityGain: number | null };
   /** candidate p95 latency / baseline p95 latency. null counts as failing (never assumed passing). */
   p95LatencyRatio: number | null;
@@ -75,7 +77,11 @@ function fu07SoftFailures(input: Fu07PromotionInput): string[] {
     failures.push("P95_LATENCY_RATIO_EXCEEDED");
   }
   const hasMaterialGain =
-    (input.materialGain.qualityGain ?? 0) > 0 || (input.materialGain.captionEfficiencyGain ?? 0) > 0;
+    (input.materialGain.captionEfficiencyGain === 0 &&
+      (input.materialGain.qualityGain ?? 0) >=
+        FU07_PROMOTION_THRESHOLDS.minAbsoluteQualityGain - Number.EPSILON) ||
+    (input.materialGain.captionEfficiencyGain ?? 0) >=
+      FU07_PROMOTION_THRESHOLDS.minCaptionEfficiencyGain - Number.EPSILON;
   if (!hasMaterialGain) failures.push("NO_MATERIAL_GAIN");
   return failures;
 }
