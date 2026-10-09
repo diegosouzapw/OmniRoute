@@ -1066,16 +1066,21 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   }
 
   // Text content delta
-  if (eventType === "response.output_text.delta") {
+  if (eventType === "response.output_text.delta" || eventType === "response.refusal.delta") {
     const delta = data.delta;
     if (typeof delta !== "string" || !delta) return null;
     recordResponsesTextDelta(state, data, delta);
-    return buildTextSnapshotChunk(state, delta);
+    return buildTextSnapshotChunk(
+      state,
+      delta,
+      eventType === "response.refusal.delta" ? "refusal" : "content"
+    );
   }
 
-  if (eventType === "response.output_text.done") {
-    const suffix = reconcileResponsesTextDone(state, data, data.text);
-    return suffix ? buildTextSnapshotChunk(state, suffix) : null;
+  if (eventType === "response.output_text.done" || eventType === "response.refusal.done") {
+    const refusal = eventType === "response.refusal.done";
+    const suffix = reconcileResponsesTextDone(state, data, refusal ? data.refusal : data.text);
+    return suffix ? buildTextSnapshotChunk(state, suffix, refusal ? "refusal" : "content") : null;
   }
   if (eventType === "response.output_item.added" && data.item?.type === "message") {
     bindResponsesTextItem(state, data.item, data.output_index);

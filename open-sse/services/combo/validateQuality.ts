@@ -237,13 +237,13 @@ function responsesApiOutputHasContent(output: unknown): boolean {
       const content = record.content;
       return (
         Array.isArray(content) &&
-        content.some(
-          (part) =>
-            !!part &&
-            typeof part === "object" &&
-            typeof (part as Record<string, unknown>).text === "string" &&
-            ((part as Record<string, string>).text as string).length > 0
-        )
+        content.some((part) => {
+          if (!isRecord(part)) return false;
+          return (
+            (typeof part.text === "string" && part.text.length > 0) ||
+            (part.type === "refusal" && typeof part.refusal === "string" && part.refusal.length > 0)
+          );
+        })
       );
     })
   );
@@ -921,7 +921,8 @@ export async function validateResponseQuality(
     return { valid: false, reason: specViolation };
   }
 
-  if (!hasContent && !hasToolCalls) {
+  const hasRefusal = typeof message.refusal === "string" && message.refusal.trim().length > 0;
+  if (!hasContent && !hasToolCalls && !hasRefusal) {
     // finish_reason "length" is a truncated completion (max_tokens hit), the
     // same case the Claude shape exempts as stop_reason "max_tokens" (#12968).
     // A thinking model that spends the whole budget before any visible token

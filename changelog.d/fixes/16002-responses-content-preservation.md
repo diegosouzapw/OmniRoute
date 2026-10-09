@@ -1,0 +1,1 @@
+- **fix(sse):** Preserve structured Responses refusals through translation and combo validation, and retain received text when a matching terminal message snapshot is empty. Refusals remain refusals instead of empty-response failures.

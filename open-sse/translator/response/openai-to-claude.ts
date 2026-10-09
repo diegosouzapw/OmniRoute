@@ -405,6 +405,25 @@ export function openaiToClaudeResponse(chunk, state) {
     state._reasoningAccum = (state._reasoningAccum || "") + reasoningContent;
   }
 
+  // Refusal text is literal output, never input for XML/DSML tool-call shims.
+  if (typeof delta?.refusal === "string" && delta.refusal) {
+    if (!state.textBlockStarted) {
+      state.textBlockIndex = state.nextBlockIndex++;
+      state.textBlockStarted = true;
+      state.textBlockClosed = false;
+      results.push({
+        type: "content_block_start",
+        index: state.textBlockIndex,
+        content_block: { type: "text", text: "" },
+      });
+    }
+    results.push({
+      type: "content_block_delta",
+      index: state.textBlockIndex,
+      delta: { type: "text_delta", text: delta.refusal },
+    });
+  }
+
   // Handle regular content — strip the internal reasoning placeholder if
   // the model echoed it through ordinary content (#8081). Only the content
   // block emission is skipped when nothing meaningful remains; the chunk
