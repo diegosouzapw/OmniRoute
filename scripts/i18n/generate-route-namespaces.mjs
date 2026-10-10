@@ -24,7 +24,11 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { analyzeRouteNamespaces, REPO_ROOT } from "./lib/routeNamespacesAnalyzer.mjs";
+import {
+  analyzeRouteNamespaces,
+  HOME_ROUTE_DIR,
+  REPO_ROOT,
+} from "./lib/routeNamespacesAnalyzer.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MAP_PATH = join(REPO_ROOT, "src", "i18n", "routeNamespaces.generated.json");
@@ -60,10 +64,45 @@ export default function ${pascalCase(sectionDirName)}SectionLayout({ children }:
 `;
 }
 
+/**
+ * Provider layout for the /home route.
+ *
+ * /home is a SIBLING of dashboard/, not a section beneath it, so the section
+ * loop below never saw it and #14835 shipped /home with no provider at all —
+ * it inherited the chrome set alone and rendered home.*, providers.* and the
+ * three sponsor-banner namespaces as literal dotted keys. It gets its own
+ * generated layout for the same reason every section does.
+ */
+function homeLayoutSource() {
+  return `${GENERATED_MARKER}
+import { SectionI18nProvider } from "@/i18n/SectionI18nProvider";
+import routeNamespaces from "@/i18n/routeNamespaces.generated.json";
+
+/**
+ * Home route (/home) i18n provider — serves the namespaces used by the client
+ * components under \`src/app/(dashboard)/home/\` and the \`dashboard/\`
+ * companions its page imports (see scripts/i18n/generate-route-namespaces.mjs).
+ */
+export default function HomeSectionLayout({ children }: { children: React.ReactNode }) {
+  return <SectionI18nProvider namespaces={routeNamespaces.home}>{children}</SectionI18nProvider>;
+}
+`;
+}
+
 const analysis = analyzeRouteNamespaces();
 
 // Map file: the source of truth consumed at runtime.
 writeFileSync(MAP_PATH, `${JSON.stringify(analysis, null, 2)}\n`);
+
+// Home route layout — written first so a route that is NOT under
+// dashboard/ still gets a provider (#14835 regression).
+const homeLayoutPath = join(HOME_ROUTE_DIR, "layout.tsx");
+let homeCreated = false;
+if (!existsSync(homeLayoutPath)) {
+  mkdirSync(HOME_ROUTE_DIR, { recursive: true });
+  writeFileSync(homeLayoutPath, homeLayoutSource());
+  homeCreated = true;
+}
 
 // Section layouts.
 let created = 0;
@@ -88,6 +127,7 @@ console.log(
   `root=${analysis.root.length} chrome=${analysis.chrome.length} home=${analysis.home.length} sections=${sectionCount}`
 );
 console.log(`section layouts created: ${created}, pre-existing (kept): ${sectionCount - created}`);
+console.log(`home route layout: ${homeCreated ? "created" : "pre-existing (kept)"}`);
 if (skippedNames.length > 0) {
   console.log(
     `WARNING: pre-existing layouts without SectionI18nProvider: ${skippedNames.join(", ")}`

@@ -42,12 +42,14 @@ const SRC_ROOT = join(REPO_ROOT, "src");
 const APP_ROOT = join(SRC_ROOT, "app");
 const DASHBOARD_ROOT = join(APP_ROOT, "(dashboard)");
 const SECTIONS_ROOT = join(DASHBOARD_ROOT, "dashboard");
+/** The /home route — a SIBLING of dashboard/, not a section beneath it. */
+export const HOME_ROUTE_DIR = join(DASHBOARD_ROOT, "home");
 
 const SKIP_DIRS = new Set(["node_modules", ".next", ".claude", ".git", "_tasks", "__pycache__"]);
 
 const CLIENT_DIRECTIVE = /["']use client["']/;
 
-function walkFiles(dir, out = []) {
+export function walkFiles(dir, out = []) {
   let entries;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
@@ -157,7 +159,7 @@ function readCached(file) {
 }
 
 /** BFS over the import graph from entry files; unions client namespaces. */
-function closureNamespaces(entryFiles) {
+export function closureNamespaces(entryFiles) {
   const namespaces = new Set();
   const visited = new Set();
   const queue = [...entryFiles];
@@ -228,12 +230,15 @@ export function analyzeRouteNamespaces() {
   // Dashboard chrome: everything reachable from the (dashboard) root layout.
   const chrome = closureNamespaces([join(DASHBOARD_ROOT, "layout.tsx")]);
 
-  // Dashboard home: files directly under dashboard/ (page + companions).
-  const homeFiles = readdirSync(SECTIONS_ROOT)
-    .filter((name) => /\.(tsx|ts)$/.test(name))
-    .map((name) => join(SECTIONS_ROOT, name));
+  // Dashboard home: the /home ROUTE subtree. Its page.tsx renders
+  // HomePageClient and the sponsor banners, which live in the sibling
+  // dashboard/ directory — the import closure pulls those in, so walking
+  // home/ is what actually determines what the route needs. Deriving this
+  // from dashboard/ instead (as #14835 did) both missed namespaces used by
+  // components under home/ and left /home itself without a provider, since
+  // the generator only writes layouts for `sections`.
   const home = new Set([...chrome]);
-  for (const ns of closureNamespaces(homeFiles)) home.add(ns);
+  for (const ns of closureNamespaces(walkFiles(HOME_ROUTE_DIR))) home.add(ns);
 
   // Sections: one entry per top-level dir under dashboard/ with a page.
   const sections = {};

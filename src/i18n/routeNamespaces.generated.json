@@ -90,6 +90,7 @@
     "stats",
     "traeAuthModal",
     "trafficInspector",
+    "usage",
     "vscodeCopilotBanner"
   ],
   "sections": {
