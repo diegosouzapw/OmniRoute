@@ -122,7 +122,7 @@ test("keeps transcript metadata attached, reclassifies a forged source, and rend
   assert.match(redacted ?? "", /a scene/);
 });
 
-test("fuses an explicitly supplied audio-bridge track without starting STT", async () => {
+test("fuses an externally supplied audio track as client provenance without starting STT", async () => {
   let captionCalls = 0;
   const described = await describeVideoPart(
     {
@@ -149,7 +149,7 @@ test("fuses an explicitly supplied audio-bridge track without starting STT", asy
   );
 
   assert.equal(captionCalls, 1);
-  assert.equal(described.transcriptCues?.[0]?.source, "audio-bridge");
+  assert.equal(described.transcriptCues?.[0]?.source, "client");
   assert.match(described.description, /audio cue/);
   assert.deepEqual(described.fusion, {
     audioAvailable: true,
@@ -331,11 +331,11 @@ test("deduplicates an exact cue shared by provided and fused transcript tracks",
 // closes. Rewritten to prove the new contract instead: the generic
 // `transcript` field always reclassifies a declared "embedded"/"audio-bridge"
 // source to "client" (no way to verify the claim), the dedicated
-// `audioTranscript` fusion field always forces "audio-bridge" regardless of
+// `audioTranscript` fusion field also forces "client" regardless of
 // what the caller declared there, and cues that end up overlapping in time
 // with identical text across the two channels are reconciled into one cue
 // that keeps every contributing source instead of silently dropping one.
-test("labels transcript cues by channel and reconciles overlapping cross-channel duplicates with contributing-source metadata", async () => {
+test("reclassifies both external transcript channels and reconciles their overlapping duplicates", async () => {
   const described = await describeVideoPart(
     {
       container: "messages",
@@ -350,7 +350,9 @@ test("labels transcript cues by channel and reconciles overlapping cross-channel
         ],
       },
       audioTranscript: {
-        cues: [{ confidence: 0.9, end: 4, source: "client" as const, start: 3, text: "shared cue" }],
+        cues: [
+          { confidence: 0.9, end: 4, source: "client" as const, start: 3, text: "shared cue" },
+        ],
       },
     },
     { frameCount: 1, timeoutMs: 1000 },
@@ -370,8 +372,8 @@ test("labels transcript cues by channel and reconciles overlapping cross-channel
   assert.equal(cues.length, 2);
   assert.equal(clientOnly?.source, "client");
   assert.equal(clientOnly?.contributingSources, undefined);
-  assert.equal(shared?.source, "audio-bridge");
-  assert.deepEqual(shared?.contributingSources, ["client", "audio-bridge"]);
+  assert.equal(shared?.source, "client");
+  assert.equal(shared?.contributingSources, undefined);
   assert.equal(described.description.split("shared cue").length - 1, 1);
 });
 

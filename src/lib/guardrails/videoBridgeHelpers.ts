@@ -642,13 +642,12 @@ export async function describeVideoPart(
           normalizedFusionTranscriptCues = normalizeVideoTranscript(
             deps.serverAudioTranscript ?? part.audioTranscript,
             extracted.durationSeconds,
-            // Structural trust seam: whatever the caller supplies in the
-            // dedicated audioTranscript field is always labeled "audio-bridge"
-            // by this fusion channel, regardless of any per-cue `source` the
-            // caller declared. This is not an authenticity claim about the
-            // caller's own transcription — only that it arrived through the
-            // audio-bridge fusion field rather than the generic transcript.
-            { trustedSource: "audio-bridge", focusWindow }
+            // A request-body field cannot establish server provenance. Only
+            // the code-owned STT dependency may mint the audio-bridge label.
+            {
+              trustedSource: deps.serverAudioTranscript !== undefined ? "audio-bridge" : "client",
+              focusWindow,
+            }
           );
           return {
             observations: normalizedFusionTranscriptCues.map((cue) => ({
