@@ -699,6 +699,10 @@ export async function runCut(opts, io, log = (line) => process.stdout.write(`${l
   }
   const result = await executeCut(plan, opts, io, (q) => io.confirm(q));
   log("");
+  if (result.developCommit) {
+    log(`stable/v3 → ${plan.sourceSha}`);
+    log(`develop   → ${result.developCommit} (bump commit; reusable for the real cut)`);
+  }
   log(result.aborted ? "ABORTED at a declined step — nothing after it ran." : "DONE.");
   return result.aborted ? 1 : 0;
 }
