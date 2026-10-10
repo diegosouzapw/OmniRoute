@@ -17,6 +17,7 @@ import type {
   ProviderExecutionOutcome,
   ProviderExecutionPolicy,
 } from "./providerExecutionPipeline.ts";
+import { bufferedResponsesFailure } from "./bufferedResponsesFailure.ts";
 import { translateNonStreamingClientResponse } from "./nonStreamingClientTranslate.ts";
 import { parseNonStreamingResponseBody, isJsonRecord } from "./nonStreamingResponseParse.ts";
 import { restoreNonStreamingToolNames } from "./passthroughToolNames.ts";
@@ -36,7 +37,6 @@ import {
 import { isEmptyContentResponse } from "../../services/errorClassifier.ts";
 import { FORMATS } from "../../translator/formats.ts";
 import { hasActiveClaudeThinking } from "../../utils/thinkingBudget.ts";
-import { normalizeStreamFailurePayload } from "../../utils/streamErrorFormat.ts";
 
 /* -- exported types -------------------------------------------------------- */
 
@@ -263,35 +263,8 @@ function finishOk(
     requestUrl?: string;
   }
 ): NonStreamingProviderLegResult {
-  // A buffered Responses stream can fail inside HTTP 200. Classify it before
-  // translation drops status/error, and before the caller records success.
-  // Keeping this in the common tail covers the initial send and fallback legs.
-  if (params.responseBody.object === "response" && params.responseBody.status === "failed") {
-    const failure = normalizeStreamFailurePayload({ response: params.responseBody });
-    const usage = extractUsage(params.responseBody, params.provider);
-    const message = failure?.message ?? "Upstream failure";
-    const status = failure?.status ?? 502;
-    const result = legError(status, message, undefined, null, failure?.code, failure?.type);
-    result.rawMessage = message;
-    result.upstreamHeaders = params.upstreamResponse?.headers ?? params.headers;
-    result.upstreamErrorBody = params.responseBody;
-    return {
-      kind: "error",
-      result,
-      usage,
-      receipt: buildReceipt(input, {
-        httpStatus: status,
-        errorType: failure?.code ?? null,
-        usage,
-        termination: "provider_error",
-        latencyMs: Date.now() - params.startMs,
-        startedAt: params.startedAt,
-        endedAt: new Date().toISOString(),
-        connectionId: params.connectionId,
-        model: params.model,
-      }),
-    };
-  }
+  const failed = bufferedResponsesFailure(input, params, { legError, extractUsage, buildReceipt });
+  if (failed) return failed;
   // F-02: restore + sanitize + translate is the only success tail.
   // Fallback/retry must not skip this with responseToolNameMap: null.
   const restoreClaudeNames = params.sourceFormat === "claude" && params.targetFormat === "claude";
