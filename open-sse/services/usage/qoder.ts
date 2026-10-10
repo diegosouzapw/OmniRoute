@@ -13,7 +13,7 @@
  */
 
 import { sanitizeErrorMessage } from "../../utils/error.ts";
-import { resolveQoderJobToken } from "../qoderCli.ts";
+import { invalidateQoderJobToken, resolveQoderJobToken } from "../qoderCli.ts";
 import { toRecord, toNumber, toTitleCase } from "./scalars.ts";
 import { type UsageQuota, parseResetTime } from "./quota.ts";
 
@@ -126,6 +126,8 @@ export async function getQoderUsage(apiKey?: string, providerSpecificData?: Json
   }
 
   if (response.status === 401 || response.status === 403) {
+    // The cached jt-* is dead (expired/revoked) — drop it so the next call re-exchanges.
+    invalidateQoderJobToken(token);
     return {
       message: "Qoder connected. The token was rejected by the usage API — re-test the connection.",
     };

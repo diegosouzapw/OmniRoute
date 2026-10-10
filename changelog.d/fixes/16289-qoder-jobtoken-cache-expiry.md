@@ -1,0 +1,1 @@
+- **fix(sse):** the Qoder usage view re-exchanges a PAT after its cached job token is rejected, and job-token TTLs are read in either unit and capped at 24h ([#16289](https://github.com/diegosouzapw/OmniRoute/pull/16289)) — thanks @AmirSys-dev
