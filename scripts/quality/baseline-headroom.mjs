@@ -14,8 +14,8 @@
 //           warn      0 ≤ headroom < --warn     → the next few PRs will trip the gate
 //           critical  headroom < 0              → the gate is already red on this tip
 //
-// Runs nightly (nightly-release-green.yml → baseline-headroom job) and posts the table to
-// the issue "📈 Baseline headroom". Locally:
+// Runs nightly (nightly-release-green.yml → baseline-headroom job) and publishes the table
+// in the run summary and its retained JSON/Markdown artifact. Locally:
 //   node scripts/quality/baseline-headroom.mjs                 # table on stdout
 //   node scripts/quality/baseline-headroom.mjs --json out.json --md out.md
 //   node scripts/quality/baseline-headroom.mjs --only deadExports,fileSize
@@ -67,7 +67,7 @@ export function sumTypecheckBaseline(json) {
 // their emitter's exact output size (≈0% headroom by construction — growth is policed
 // by re-freezing, e.g. openapi.generated.ts in #12212), and vendored code is upstream's.
 // The GATE (check:file-size) still enforces both; only the monitor skips them so the
-// nightly headroom-alert reflects files a human can actually slim.
+// nightly headroom report reflects files a human can actually slim.
 export function isMonitorExemptFile(file) {
   return file.includes(".generated.") || /(^|\/)vendor\//.test(file);
 }
@@ -96,7 +96,7 @@ export function fileSizeHeadroom(frozen, locOf, warnFraction = 0.1) {
   return { measured, nearCap, over, worst };
 }
 
-/** Render the markdown table the nightly job posts. */
+/** Render the markdown table for the nightly run summary and artifact. */
 export function renderMarkdown(rows, { policy, generatedAt = new Date().toISOString() } = {}) {
   const icon = { ok: "🟢", warn: "🟡", critical: "🔴", unknown: "⚪" };
   const lines = [

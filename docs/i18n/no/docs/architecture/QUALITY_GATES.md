@@ -307,12 +307,14 @@ docs/env-kontrakt, i18n-paritet, enhetstester) er uendret — en rød test er fo
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — engangslempingen
   (`scripts/quality/relax-baselines.mjs`); nekter å kjøre to ganger med samme merknad.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  måler hver numeriske port på samme måte som CI og skriver ut gjenværende slingringsmonn per port
-  (`scripts/quality/baseline-headroom.mjs`). Den nattlige `baseline-headroom`-jobben publiserer
-  tabellen i den løpende saken **📈 Slingringsmonn for grunnverdier (velocity-fase)** og legger til
-  etiketten `headroom-alert` når en port er innenfor 10 % av grensen eller allerede har overskredet den. Denne saken
-  fungerer som tidlig varsling: Et budsjett som fylles på få dager, betyr at lempingen blir brukt opp av
-  noen få PR-er, ikke av hele teamet — se på `_rebaseline_*`-merknadene for porten det gjelder.
+  måler hver numeriske kvalitetskontroll på samme måte som CI og viser gjenværende margin for hver kontroll
+  (`scripts/quality/baseline-headroom.mjs`). Den nattlige jobben `baseline-headroom` publiserer tabellen
+  i sammendraget for arbeidsflytkjøringen og laster opp JSON/Markdown-rapporten som
+  `baseline-headroom-<run_id>`, som oppbevares i 90 dager. Advarselsrader og kritiske rader viser
+  kontroller som har høyst 10% igjen til grensen, eller som allerede har overskredet den.
+  Bruk disse rapportene som et tidlig varsel om at budsjettene brukes opp; se gjennom
+  `_rebaseline_*`-notatene for den aktuelle kontrollen. Jobben oppretter eller oppdaterer ikke lenger en permanent sak;
+  #12149 bevarer historikken fra de tidligere rapportene.
 
 **Modus for ny kode (Clean-as-You-Code) — siden 2026-08-30, kun rask PR-flyt**
 

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Recursos</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Provedores</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provedores</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI e MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ do histórico do seu shell. → [Integrações com CLIs](docs/guides/CLI-INTEGRA
 
 <div align="center">
 
-## 🌐 357 provedores de IA — 152 marcados como gratuitos no catálogo
+## 🌐 372 provedores de IA — 154 marcados como gratuitos no catálogo
 
 </div>
 

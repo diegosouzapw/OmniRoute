@@ -444,6 +444,11 @@
       "disposition": "separately-invoked"
     },
     {
+      "name": "quality:boundary",
+      "command": "node scripts/quality/measure-boundary.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
       "name": "quality:collect",
       "command": "node scripts/quality/collect-metrics.mjs",
       "disposition": "separately-invoked"

@@ -311,12 +311,14 @@ dokumentaation ja ympäristön välinen sopimus, i18n-vastaavuus, yksikkötestit
   väljennys (`scripts/quality/relax-baselines.mjs`); kieltäytyy suorittamasta toimintoa kahdesti samalla
   huomautuksella.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mittaa jokaisen numeerisen portin samalla tavalla kuin CI ja tulostaa jäljellä olevan liikkumavaran porteittain
-  (`scripts/quality/baseline-headroom.mjs`). Öinen `baseline-headroom`-työ julkaisee
-  taulukon jatkuvasti päivitettävään tehtävään **📈 Lähtötasojen liikkumavara (nopeusvaihe)** ja lisää
-  `headroom-alert`-tunnisteen, kun jokin portti on enintään 10 %:n päässä ylärajastaan tai on jo ylittänyt sen. Kyseinen tehtävä
-  toimii ennakkovaroituksena: jos budjetti täyttyy muutamassa päivässä, väljennys kuluu
-  muutamaan PR:ään eikä koko tiimin käyttöön — tarkista kyseisen portin `_rebaseline_*`-huomautukset.
+  mittaa jokaisen numeerisen laatutarkistuksen samalla tavalla kuin CI ja tulostaa kunkin tarkistuksen jäljellä olevan liikkumavaran
+  (`scripts/quality/baseline-headroom.mjs`). Öinen `baseline-headroom`-ajo julkaisee taulukon
+  työnkulun ajon yhteenvedossa ja tallentaa JSON/Markdown-raporttinsa nimellä
+  `baseline-headroom-<run_id>`; raporttia säilytetään 90 päivää. Varoitus- ja kriittiset rivit osoittavat
+  tarkistukset, joilla on enintään 10% liikkumavaraa ylärajaan tai jotka ovat jo ylittäneet sen.
+  Tarkastele raportteja ennakkovaroituksena budjettien kulumisesta; lue kyseisen tarkistuksen
+  `_rebaseline_*`-muistiinpanot. Ajo ei enää luo eikä päivitä pysyvää ongelmaraporttia;
+  #12149 säilyttää aiempien raporttien historian.
 
 **Uuden koodin tila (Clean-as-You-Code) — 2026-08-30 alkaen, vain PR-pikapolulla**
 

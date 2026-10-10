@@ -254,6 +254,7 @@
     "log": "Prikaži strežniške dnevnike neposredno",
     "no_recovery": "Onemogoči samodejni ponovni zagon ob sesutju (način za razhroščevanje)",
     "max_restarts": "Največje število ponovnih zagonov po sesutju v 30 s, preden se poskušanje opusti (privzeto: 2)",
+    "headless": "Zaženi samo posredniški pogon: nadzorna plošča onemogočena (404), izbirni podsistemi preskočeni (nastavi OMNIROUTE_HEADLESS=1)",
     "tray": "Zaženi v sistemski vrstici (samo za namizne sisteme, po izbiri)",
     "no_tray": "Onemogoči ikono sistemske vrstice",
     "ready_timeout": "Časovna omejitev preverjanja pripravljenosti v ms (tudi OMNIROUTE_READY_TIMEOUT_MS, privzeto 60000)",

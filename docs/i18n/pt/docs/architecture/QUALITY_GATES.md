@@ -312,11 +312,12 @@ contrato de documentação/ambiente, paridade de i18n, testes unitários) perman
   mesma nota.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
   mede todos os controlos numéricos da mesma forma que a CI e apresenta a margem restante por controlo
-  (`scripts/quality/baseline-headroom.mjs`). A tarefa noturna `baseline-headroom` publica a
-  tabela na ocorrência dinâmica **📈 Margem dos valores de referência (fase de velocidade)** e adiciona a
-  etiqueta `headroom-alert` quando qualquer controlo está a menos de 10% do respetivo limite ou já o ultrapassou. Essa ocorrência
-  é o aviso antecipado: um orçamento que se esgota em poucos dias significa que a flexibilização está a ser consumida por
-  alguns PRs, não por toda a equipa — consulte as notas `_rebaseline_*` do controlo em causa.
+  (`scripts/quality/baseline-headroom.mjs`). A tarefa noturna `baseline-headroom` publica a tabela
+  no resumo da execução do fluxo de trabalho e carrega o respetivo relatório JSON/Markdown como
+  `baseline-headroom-<run_id>`, conservado durante 90 dias. As linhas de aviso e críticas identificam controlos
+  com uma margem de até 10% do limite ou que já o ultrapassaram. Consulte estes relatórios como aviso
+  antecipado do consumo dos orçamentos; examine as notas `_rebaseline_*` do controlo em causa.
+  A tarefa já não cria nem atualiza uma ocorrência permanente; #12149 conserva o histórico dos relatórios anteriores.
 
 **Modo de código novo (Clean-as-You-Code) — desde 2026-08-30, apenas no percurso rápido de PRs**
 

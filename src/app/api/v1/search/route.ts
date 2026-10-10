@@ -25,7 +25,7 @@ import {
   isValidationFailure,
   validateBody,
 } from "@/shared/validation/helpers";
-import { recordCost } from "@/domain/costRules";
+import { recordSearchUsageCost } from "@omniroute/open-sse/handlers/search/reportedCost.ts";
 import {
   computeCacheKey,
   getOrCoalesce,
@@ -415,11 +415,11 @@ async function postHandler(request: Request, context: unknown) {
     }
 
     // Record cost for budget tracking (skip cache hits — no provider cost)
-    if (!cached && policy.apiKeyInfo?.id && searchResult.usage?.search_cost_usd > 0) {
+    if (!cached) {
       try {
-        recordCost(policy.apiKeyInfo.id, searchResult.usage.search_cost_usd);
-      } catch (e: any) {
-        log.warn("SEARCH", `Cost recording failed: ${e?.message}`);
+        recordSearchUsageCost(policy.apiKeyInfo?.id, searchResult.provider, searchResult.usage);
+      } catch (e: unknown) {
+        log.warn("SEARCH", `Cost recording failed: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
 

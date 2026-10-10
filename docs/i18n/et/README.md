@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funktsioonid</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombod</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Pakkujad</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Pakkujad</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ja MCP</a></td>
   </tr>
   <tr>
@@ -675,7 +675,7 @@ teie shell’i ajaloost eemal. → [CLI-integratsioonid](docs/guides/CLI-INTEGRA
 
 <div align="center">
 
-## 🌐 357 tehisintellekti pakkujat — 152 kataloogis tasuta märgitud
+## 🌐 372 tehisintellekti pakkujat — 154 kataloogis tasuta märgitud
 
 </div>
 

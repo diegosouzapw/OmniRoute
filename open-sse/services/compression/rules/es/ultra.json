@@ -4,8 +4,8 @@
   "rules": [
     {
       "name": "es_articles",
-      "pattern": "\\b(?:[Ee]l|[Ll]a|[Ll]os|[Ll]as|[Uu]n|[Uu]na|[Uu]nos|[Uu]nas)\\s+(?=[a-záéíóúñ])",
-      "flags": "g",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:[Ee]l|[Ll]a|[Ll]os|[Ll]as|[Uu]n|[Uu]na|[Uu]nos|[Uu]nas)\\s+(?=[a-záéíóúñ])",
+      "flags": "gu",
       "replacement": "",
       "context": "all",
       "category": "terse",
@@ -29,27 +29,30 @@
     },
     {
       "name": "es_ultra_config_abbreviation",
-      "pattern": "\\bconfiguracion\\b|\\bconfiguración\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])configuracion(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])configuración(?![\\p{L}\\p{N}_])",
       "replacement": "config",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "es_ultra_function_abbreviation",
-      "pattern": "\\bfuncion\\b|\\bfunción\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])funcion(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])función(?![\\p{L}\\p{N}_])",
       "replacement": "fn",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "es_ultra_request_abbreviation",
-      "pattern": "\\b(?:peticion|petición|solicitud)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:peticion|petición|solicitud)(?![\\p{L}\\p{N}_])",
       "replacement": "req",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "es_ultra_response_abbreviation",
@@ -61,35 +64,39 @@
     },
     {
       "name": "es_ultra_implementation_abbreviation",
-      "pattern": "\\bimplementacion\\b|\\bimplementación\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])implementacion(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])implementación(?![\\p{L}\\p{N}_])",
       "replacement": "impl",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "es_ultra_authentication_abbreviation",
-      "pattern": "\\bautenticacion\\b|\\bautenticación\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])autenticacion(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])autenticación(?![\\p{L}\\p{N}_])",
       "replacement": "auth",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "es_ultra_authorization_abbreviation",
-      "pattern": "\\bautorizacion\\b|\\bautorización\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])autorizacion(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])autorización(?![\\p{L}\\p{N}_])",
       "replacement": "authz",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "es_ultra_application_abbreviation",
-      "pattern": "\\baplicacion\\b|\\baplicación\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])aplicacion(?![\\p{L}\\p{N}_])|(?<![\\p{L}\\p{N}_])aplicación(?![\\p{L}\\p{N}_])",
       "replacement": "app",
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "es_ultra_dependency_abbreviation",

@@ -326,12 +326,14 @@ contrat documentation/environnement, parité i18n, tests unitaires) restent inch
   ponctuel (`scripts/quality/relax-baselines.mjs`) ; refuse de s'exécuter deux fois avec la
   même note.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mesure chaque barrière numérique comme le fait la CI et affiche la marge restante pour chacune
-  (`scripts/quality/baseline-headroom.mjs`). La tâche nocturne `baseline-headroom` publie le
-  tableau dans l'issue évolutive **📈 Marge des références (phase de vélocité)** et ajoute le
-  libellé `headroom-alert` lorsqu'une barrière se trouve à moins de 10 % de son plafond ou l'a déjà dépassé. Cette issue
-  sert d'alerte précoce : un budget épuisé en quelques jours signifie que l'assouplissement est consommé par
-  quelques PR, et non par toute l'équipe — consultez les notes `_rebaseline_*` de la barrière concernée.
+  mesure chaque contrôle numérique comme le fait la CI et affiche la marge restante pour chaque contrôle
+  (`scripts/quality/baseline-headroom.mjs`). La tâche nocturne `baseline-headroom` publie le tableau
+  dans le résumé de l’exécution du workflow et téléverse son rapport JSON/Markdown sous le nom
+  `baseline-headroom-<run_id>`, conservé pendant 90 jours. Les lignes d’avertissement et les lignes critiques signalent
+  les contrôles auxquels il reste au plus 10% de marge avant le plafond ou qui l’ont déjà dépassé.
+  Consultez ces rapports comme un avertissement précoce de la consommation des budgets ; examinez les notes
+  `_rebaseline_*` du contrôle concerné. La tâche ne crée ni ne met plus à jour de ticket permanent ;
+  #12149 conserve l’historique des rapports antérieurs.
 
 **Mode nouveau code (Clean-as-You-Code) — depuis le 2026-08-30, chemin rapide des PR uniquement**
 

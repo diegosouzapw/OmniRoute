@@ -310,12 +310,14 @@ sənədlər/mühit müqaviləsi, i18n uyğunluğu, vahid testləri) dəyişməyi
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — birdəfəlik
   yumşaltma (`scripts/quality/relax-baselines.mjs`); eyni qeydlə ikinci dəfə işləməkdən imtina edir.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  hər ədədi keçidi CI ilə eyni qaydada ölçür və hər keçid üzrə qalan ehtiyatı göstərir
-  (`scripts/quality/baseline-headroom.mjs`). Gecəlik `baseline-headroom` tapşırığı cədvəli aktual
-  **📈 Baza ehtiyatı (sürət mərhələsi)** məsələsinə göndərir və hər hansı keçid həddinin 10%-i daxilindədirsə
-  və ya artıq onu keçibsə, `headroom-alert` etiketini əlavə edir. Həmin məsələ erkən xəbərdarlıqdır:
-  bir neçə günə dolan büdcə yumşalmanın bütün komanda tərəfindən deyil, bir neçə PR tərəfindən
-  istifadə edildiyini göstərir — problemli keçidin `_rebaseline_*` qeydlərinə baxın.
+  hər rəqəmsal keyfiyyət yoxlamasını CI ilə eyni qaydada ölçür və hər yoxlama üçün qalan ehtiyatı göstərir
+  (`scripts/quality/baseline-headroom.mjs`). Gecə işləyən `baseline-headroom` tapşırığı cədvəli
+  iş axınının icra xülasəsində dərc edir və JSON/Markdown hesabatını
+  `baseline-headroom-<run_id>` adı ilə yükləyir; hesabat 90 gün saxlanılır. Xəbərdarlıq və kritik sətirlər
+  limitə qədər 10% və ya daha az ehtiyatı qalan, yaxud limiti artıq aşmış yoxlamaları göstərir.
+  Bu hesabatları ayrılmış büdcələrin tükənməsinə dair erkən xəbərdarlıq kimi nəzərdən keçirin;
+  problemli yoxlamanın `_rebaseline_*` qeydlərini araşdırın. Tapşırıq artıq daimi məsələ yaratmır və ya yeniləmir;
+  #12149 əvvəlki hesabatların tarixçəsini saxlayır.
 
 **Yeni kod rejimi (Clean-as-You-Code) — 2026-08-30 tarixindən, yalnız PR sürətli yolu**
 

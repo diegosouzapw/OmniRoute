@@ -36,6 +36,7 @@ import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.t
 import type { AttemptLoopDeps, AttemptLoopState, GateDecision } from "./attemptLoopTypes.ts";
 import { modelAvailabilitySkipReason, type ResolvedComboTarget } from "./types.ts";
 import type { PreDispatchExclusion } from "./pinRecovery.ts";
+import { getStrategyTraits } from "./strategyRegistry.ts";
 
 /**
  * The breaker that keeps a target from being dispatched: the provider-wide one
@@ -109,8 +110,9 @@ export async function evaluateExecuteTargetGates(opts: {
   const modelStr = target.modelStr;
   const rawModel = parseModel(modelStr).model || modelStr;
   const provider = target.provider;
+  const strategyTraits = getStrategyTraits(deps.strategy);
   const protectedPriorityTarget =
-    deps.strategy === "priority" && target.fallbackOnlyOnQuotaExhaustion === true;
+    strategyTraits.honorsFallbackOnlyTargets && target.fallbackOnlyOnQuotaExhaustion === true;
 
   const stopProtectedPriorityTarget = (message: string, cause?: ProtectedPriorityStopCause) =>
     stopPriorityTarget({
@@ -270,7 +272,7 @@ export async function evaluateExecuteTargetGates(opts: {
     };
   }
 
-  if (deps.strategy !== "auto" && provider && target.connectionId) {
+  if (strategyTraits.appliesQuotaCutoffGate && provider && target.connectionId) {
     const quotaCutoff = await resolveQuotaExhaustionCutoffForTarget(
       provider,
       target.connectionId,

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funktioner</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinationer</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Leverantörer</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Leverantörer</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI och MCP</a></td>
   </tr>
   <tr>
@@ -673,7 +673,7 @@ från din skikhistorik. → [CLI-integrationer](docs/guides/CLI-INTEGRATIONS.md)
 
 <div align="center">
 
-## 🌐 357 AI-leverantörer — 152 katalogmärkta som kostnadsfria
+## 🌐 372 AI-leverantörer — 154 katalogmärkta som kostnadsfria
 
 </div>
 

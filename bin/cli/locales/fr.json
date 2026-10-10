@@ -254,6 +254,7 @@
     "log": "Afficher les journaux du serveur en ligne",
     "no_recovery": "Désactiver le redémarrage automatique après un plantage (mode débogage)",
     "max_restarts": "Nombre maximal de redémarrages après plantage en 30 s avant abandon (par défaut : 2)",
+    "headless": "Exécuter uniquement le moteur de proxy : tableau de bord désactivé (404), sous-systèmes optionnels ignorés (définit OMNIROUTE_HEADLESS=1)",
     "tray": "Démarrer dans la zone de notification système (ordinateur uniquement, option à activer)",
     "no_tray": "Désactiver l’icône de la zone de notification système",
     "ready_timeout": "Délai d’expiration de la sonde de disponibilité en ms (également OMNIROUTE_READY_TIMEOUT_MS, valeur par défaut : 60000)",

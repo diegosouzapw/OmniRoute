@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Ominaisuudet</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Yhdistelmät</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Palveluntarjoajat</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Palveluntarjoajat</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ komentotulkkisi historiasta. → [CLI-integraatiot](docs/guides/CLI-INTEGRATIONS
 
 <div align="center">
 
-## 🌐 357 tekoälypalveluntarjoajaa — 152 merkitty luettelossa ilmaisiksi
+## 🌐 372 tekoälypalveluntarjoajaa — 154 merkitty luettelossa ilmaisiksi
 
 </div>
 

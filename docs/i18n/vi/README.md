@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Tính năng</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Nhà cung cấp</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Nhà cung cấp</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ lưu khóa bí mật vào lịch sử shell. → [Tích hợp CLI](docs/guides/C
 
 <div align="center">
 
-## 🌐 357 Nhà cung cấp AI — 152 nhà cung cấp miễn phí được đánh dấu trong danh mục
+## 🌐 372 Nhà cung cấp AI — 154 nhà cung cấp miễn phí được đánh dấu trong danh mục
 
 </div>
 
