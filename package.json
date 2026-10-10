@@ -470,6 +470,7 @@
     "lockfile-lint": "^5.0.1",
     "node-loader": "^2.1.0",
     "opencode-ai": "1.18.34",
+    "picomatch": "4.0.7",
     "playwright-ctrf-json-reporter": "^0.1.0",
     "prettier": "^3.9.6",
     "promptfoo": "^0.123.0",

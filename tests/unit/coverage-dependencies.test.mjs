@@ -10,6 +10,7 @@ for (const name of [
   "istanbul-lib-instrument",
   "istanbul-lib-report",
   "istanbul-reports",
+  "picomatch",
 ]) {
   test(`coverage tooling declares and pins ${name} directly`, () => {
     const version = manifest.devDependencies[name];
@@ -22,3 +23,18 @@ for (const name of [
     assert.equal(lock.packages[`node_modules/${name}`].version, version);
   });
 }
+
+test("new coverage dependencies have explicit verified allowlist justifications", () => {
+  const policy = JSON.parse(
+    readFileSync(new URL("../../config/quality/dependency-allowlist.json", import.meta.url))
+  );
+  for (const name of [
+    "istanbul-lib-coverage",
+    "istanbul-lib-report",
+    "istanbul-reports",
+    "picomatch",
+  ]) {
+    assert.ok(policy.allowed.includes(name), `${name} must pass check:deps`);
+    assert.match(policy._justifications[name] ?? "", /Official/);
+  }
+});

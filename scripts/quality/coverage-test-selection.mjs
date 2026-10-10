@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import ts from "typescript";
 import { load } from "js-yaml";
+import picomatch from "picomatch";
 import { parseVitestExcludes } from "./quarantine-contract.mjs";
 
 const POLICY_PATH = "config/quality/coverage-test-selection.json";
@@ -40,7 +41,7 @@ function canonical(value) {
 function validatePolicy(policy) {
   if (
     policy?.schemaVersion !== 1 ||
-    policy.policyVersion !== "coverage-test-selection/1" ||
+    policy.policyVersion !== "coverage-test-selection/2" ||
     policy.profile !== "ci-coverage-shadow" ||
     !Array.isArray(policy.partitions) ||
     policy.partitions.length !== REQUIRED.size
@@ -157,12 +158,18 @@ export function createCoverageTestPlan(root, sha) {
     });
   const partitions = [];
   for (const specification of policy.partitions) {
+    // Node's native test globs and Vitest's picomatch globs differ, notably for
+    // route-group parentheses. Do not silently broaden the Vitest selection.
+    const includes =
+      specification.lane === "node"
+        ? (path) => specification.include.some((pattern) => matchesGlob(path, pattern))
+        : picomatch(specification.include, { dot: false, posix: true });
+    const excludes =
+      specification.lane === "node"
+        ? (path) => specification.exclude.some((pattern) => matchesGlob(path, pattern))
+        : picomatch(specification.exclude, { dot: false, posix: true });
     const selected = tracked
-      .filter(
-        (entry) =>
-          specification.include.some((pattern) => matchesGlob(entry.path, pattern)) &&
-          !specification.exclude.some((pattern) => matchesGlob(entry.path, pattern))
-      )
+      .filter((entry) => includes(entry.path) && !excludes(entry.path))
       .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
     if (!selected.length) fail(`empty required segment: ${specification.id}`);
     if (
