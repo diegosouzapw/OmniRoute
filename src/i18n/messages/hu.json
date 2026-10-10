@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Alapbináris elérési út",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opcionális: ellenőrzi a generált fájlt a binárissal az elfogadott fájl cseréje előtt. Hagyja üresen, ha mellette szeretné továbbra is írni. A könyvtár hiányzóan jön létre."
+      "coreBinaryPathHelp": "Opcionális: ellenőrzi a generált fájlt a binárissal az elfogadott fájl cseréje előtt. Hagyja üresen, ha mellette szeretné továbbra is írni. A könyvtár hiányzóan jön létre.",
+      "urlFeedlessHint": "Hagyja üresen a csak választós feliratkozáshoz: állítson be egy vezérlő-URL-t lentebb, nem töltődik le, nem frissül és nem kötődik hozzá semmilyen hírforrás."
     },
     "bulkHealthcheck": "Tömeges állapotellenőrzés",
     "bulkHealthcheckDesc": "Az összes beállított proxy tesztelése egy cél-URL-en annak megállapításához, hogy melyek működnek.",

@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Jalur binari inti",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opsional: memverifikasi file yang dihasilkan dengan binari inti sebelum mengganti file yang diadopsi. Biarkan kosong untuk terus menulis di sebelahnya. Direktori dibuat jika tidak ada."
+      "coreBinaryPathHelp": "Opsional: memverifikasi file yang dihasilkan dengan binari inti sebelum mengganti file yang diadopsi. Biarkan kosong untuk terus menulis di sebelahnya. Direktori dibuat jika tidak ada.",
+      "urlFeedlessHint": "Biarkan kosong untuk langganan selector saja: tetapkan URL kontrol di bawah, tidak ada umpan yang diambil, disegarkan, atau ditautkan."
     },
     "bulkHealthcheck": "Pemeriksaan Kesehatan Massal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasi terhadap URL target untuk mengetahui mana yang berfungsi.",

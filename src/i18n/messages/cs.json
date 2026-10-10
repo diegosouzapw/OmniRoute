@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Cesta k binárnímu souboru jádra",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Volitelné: ověří vygenerovaný soubor binárním souborem jádra před nahrazením přijatého souboru. Ponechte prázdné pro zápis vedle něj. Adresář se vytvoří, pokud neexistuje."
+      "coreBinaryPathHelp": "Volitelné: ověří vygenerovaný soubor binárním souborem jádra před nahrazením přijatého souboru. Ponechte prázdné pro zápis vedle něj. Adresář se vytvoří, pokud neexistuje.",
+      "urlFeedlessHint": "Ponechte prázdné pro předplatné pouze se selektorem: níže nastavte ovládací URL, feed se nebude načítat, obnovovat ani vázat."
     },
     "bulkHealthcheck": "Hromadná kontrola stavu",
     "bulkHealthcheckDesc": "Otestovat všechny nakonfigurované proxy servery vůči cílové URL a zjistit, které fungují.",

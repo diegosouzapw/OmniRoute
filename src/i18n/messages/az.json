@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Əsas ikili fayl yolu",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Seçimə görə: əsas ikili fayl ilə yaradılan faylı qəbul edilmiş fayl əvəz etməzdən əvvəl yoxlayır. Yanında yazmaqda davam etmək üçün boş buraxın. Qovluq yoxdursa, yaradılır."
+      "coreBinaryPathHelp": "Seçimə görə: əsas ikili fayl ilə yaradılan faylı qəbul edilmiş fayl əvəz etməzdən əvvəl yoxlayır. Yanında yazmaqda davam etmək üçün boş buraxın. Qovluq yoxdursa, yaradılır.",
+      "urlFeedlessHint": "Yalnız seçici abunəsi üçün boş buraxın: aşağıdakı URL nəzarətini təyin edin, heç bir lent alınmır, yenilənmir və bağlanmır."
     },
     "bulkHealthcheck": "Toplu sağlamlıq yoxlaması",
     "bulkHealthcheckDesc": "Hansılarının işlədiyini müəyyən etmək üçün bütün konfiqurasiya edilmiş proksiləri hədəf URL-də sınaqdan keçirin.",

@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Path ng core binary",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opsyonal: sinusuri ang nabuo na file gamit ang core binary bago palitan ang inadopt na file. Iwanang blangko upang magpatuloy ang pagsulat sa tabi nito. Ginagawa ang directory kung wala pa."
+      "coreBinaryPathHelp": "Opsyonal: sinusuri ang nabuo na file gamit ang core binary bago palitan ang inadopt na file. Iwanang blangko upang magpatuloy ang pagsulat sa tabi nito. Ginagawa ang directory kung wala pa.",
+      "urlFeedlessHint": "Iwanang walang laman para sa isang subscription na puro tagapili: magtakda ng control URL sa ibaba, walang feed na kinukuha, na-refresh, o naka-bind."
     },
     "bulkHealthcheck": "Maramihang Pagsusuri sa Kalagayan",
     "bulkHealthcheckDesc": "Subukan ang lahat ng naka-configure na proxy gamit ang isang target na URL upang malaman kung alin ang gumagana.",

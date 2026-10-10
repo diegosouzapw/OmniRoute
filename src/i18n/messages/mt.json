@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Triq tal-binarju ċentrali",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opzjonali: tivverifika l-fajl mġenerat bil-binarju ċentrali qabel ma tissostitixxi l-fajl adottat. Ħalli l-boxx biex tikteb minn taħtu. Id-direttorju jinħoloq jekk ma jkunx hemm."
+      "coreBinaryPathHelp": "Opzjonali: tivverifika l-fajl mġenerat bil-binarju ċentrali qabel ma tissostitixxi l-fajl adottat. Ħalli l-boxx biex tikteb minn taħtu. Id-direttorju jinħoloq jekk ma jkunx hemm.",
+      "urlFeedlessHint": "Ħalli lvojt għal abbonament biss b'seleettur: issettja URL ta' kontroll hawn taħt, l-ebda feed ma jiġi mkabb, aġġornat jew marbut."
     },
     "bulkHealthcheck": "Kontroll tas-Saħħa tal-Massa",
     "bulkHealthcheckDesc": "Ittestja l-proxies konfigurati kollha ma' URL fil-mira biex issib liema minnhom jaħdmu.",

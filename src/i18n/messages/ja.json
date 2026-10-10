@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "コアバイナリのパス",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "任意: 置き換える前に、コアバイナリで生成されたファイルを検証します。空欄にすると、隣に書き込んだままになります。ディレクトリが存在しない場合は作成されます。"
+      "coreBinaryPathHelp": "任意: 置き換える前に、コアバイナリで生成されたファイルを検証します。空欄にすると、隣に書き込んだままになります。ディレクトリが存在しない場合は作成されます。",
+      "urlFeedlessHint": "セレクター専用のサブスクリプションの場合は空欄のままにしてください。下にコントロール URL を設定してください。フィードは取得、更新、バインドされません。"
     },
     "bulkHealthcheck": "一括ヘルスチェック",
     "bulkHealthcheckDesc": "設定済みのすべてのプロキシを対象URLに対してテストし、動作するものを確認します。",

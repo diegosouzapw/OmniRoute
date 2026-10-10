@@ -218,7 +218,10 @@ export default function SubscriptionTab() {
     setFormError(null);
     try {
       if (!form.name.trim()) throw new Error(t("proxySubscription.nameRequired"));
-      if (!form.url.trim()) throw new Error(t("proxySubscription.urlRequired"));
+      // Mirror of requireNameUrl (server): a feedless subscription carries no
+      // URL and is accepted only with a control URL.
+      if (!form.url.trim() && !form.controlUrl.trim())
+        throw new Error(t("proxySubscription.urlRequired"));
       if (form.mode === "rule" && form.ruleProviders.length === 0) {
         throw new Error(t("proxySubscription.ruleModeProviderRequired"));
       }
@@ -385,6 +388,9 @@ export default function SubscriptionTab() {
                 onChange={(e) => setForm({ ...form, url: e.target.value })}
                 placeholder={t("proxySubscription.urlPlaceholder")}
               />
+              <span className="text-xs text-text-muted">
+                {t("proxySubscription.urlFeedlessHint")}
+              </span>
             </label>
           </div>
 

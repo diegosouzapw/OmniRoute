@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Chemin du binaire de base",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Facultatif : vérifie le fichier généré avec le binaire de base avant de remplacer le fichier adopté. Laissez vide pour continuer à écrire à côté. Le dossier est créé s'il est absent."
+      "coreBinaryPathHelp": "Facultatif : vérifie le fichier généré avec le binaire de base avant de remplacer le fichier adopté. Laissez vide pour continuer à écrire à côté. Le dossier est créé s'il est absent.",
+      "urlFeedlessHint": "Laissez vide pour un abonnement uniquement à sélecteur : définissez une URL de contrôle ci-dessous, aucun flux n'est récupéré, actualisé ni lié."
     },
     "bulkHealthcheck": "Vérification groupée de l’état",
     "bulkHealthcheckDesc": "Testez tous les proxys configurés avec une URL cible afin d’identifier ceux qui fonctionnent.",

@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Põhibinaari tee",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Valikuline: kontrollib genereeritud faili põhibinaariga enne vastuvõetud faili asendamist. Jäta tühjaks, et kirjutada edasi selle kõrvale. Puuduv kataloog luuakse."
+      "coreBinaryPathHelp": "Valikuline: kontrollib genereeritud faili põhibinaariga enne vastuvõetud faili asendamist. Jäta tühjaks, et kirjutada edasi selle kõrvale. Puuduv kataloog luuakse.",
+      "urlFeedlessHint": "Jäta tühjaks ainult valiku tellimuse jaoks: määra allpool kontroll-URL-i, ühtegi RSS-voogu ei laadita, värskendata ega seota."
     },
     "bulkHealthcheck": "Hulgiviisiline seisundikontroll",
     "bulkHealthcheckDesc": "Testige kõiki seadistatud puhverservereid siht-URL-iga, et teha kindlaks, millised neist töötavad.",

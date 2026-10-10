@@ -36,7 +36,7 @@ import {
   upsertProxy,
 } from "../db/proxies";
 import { bumpProxyConfigGeneration } from "../db/settings";
-import { isSubscriptionDue } from "./due";
+import { isSubscriptionDue, isFeedlessSubscription } from "./due";
 import {
   isLocalCoreEndpointAllowed,
   parseLocalCoreEndpoints,
@@ -44,6 +44,7 @@ import {
 } from "./coreEndpoint";
 import { isProxyReachable } from "../proxyHealth";
 import { removeStaleSubscriptionNodes } from "./staleNodes";
+import { throwIfFeedlessUpdate, throwIfFeedlessWithoutControl } from "./schema";
 import { resolveTargetScopes } from "./scopes";
 import { clampSelectorGapSeconds, setAnyControlUrlConfigured } from "./selectorTrigger";
 import { stripSelectorSuffix } from "./selectorEndpoint";
@@ -255,6 +256,7 @@ export async function createSubscription(
   const enabled = payload.enabled === true ? 1 : 0;
   const db = getDbInstance();
   const controlUrl = payload.controlUrl ?? null;
+  throwIfFeedlessWithoutControl(payload.url, controlUrl);
   const coreConfigPath = payload.coreConfigPath ?? null;
   const controlSecretEnc =
     payload.controlSecret != null && payload.controlSecret.length > 0
@@ -283,7 +285,7 @@ export async function createSubscription(
   );
   if (controlUrl) setAnyControlUrlConfigured(true);
   const created = (await getSubscriptionById(id))!;
-  if (created.enabled) {
+  if (created.enabled && !isFeedlessSubscription(created.url)) {
     await syncSubscription(id);
   }
   // Re-read so the returned record reflects the post-sync status/error/lastNodes.
@@ -406,6 +408,7 @@ export async function updateSubscription(
   const db = getDbInstance();
   const { controlUrl, gapSeconds } = readControlFields(payload, existing);
   const now = new Date().toISOString();
+  throwIfFeedlessUpdate(payload, existing);
   const enabledChanged = payload.enabled !== undefined && payload.enabled !== existing.enabled;
   const enabled =
     payload.enabled !== undefined ? (payload.enabled ? 1 : 0) : existing.enabled ? 1 : 0;
@@ -633,6 +636,17 @@ async function syncSubscriptionUnsafe(id: string): Promise<SyncResult> {
       boundProxies: 0,
       status: "error",
       error: "not found",
+      applied: false,
+    };
+  }
+  if (isFeedlessSubscription(sub.url)) {
+    return {
+      subscriptionId: id,
+      nodes: 0,
+      needsCore: 0,
+      boundProxies: 0,
+      status: sub.status,
+      error: sub.error,
       applied: false,
     };
   }

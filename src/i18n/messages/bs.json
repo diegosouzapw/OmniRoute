@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Putanja jezgrene binarne datoteke",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opcionalno: provjerava generiranu datoteku jezgrenom binarnom datotekom prije zamjene usvojene datoteke. Prazno ostavlja pisanje pored nje. Direktorij se kreira ako nedostaje."
+      "coreBinaryPathHelp": "Opcionalno: provjerava generiranu datoteku jezgrenom binarnom datotekom prije zamjene usvojene datoteke. Prazno ostavlja pisanje pored nje. Direktorij se kreira ako nedostaje.",
+      "urlFeedlessHint": "Ostavite prazno za pretplatu samo sa selektorom: postavite kontrolni URL ispod, nijedan feed se ne preuzima, ne osvježava ne vezuje."
     },
     "bulkHealthcheck": "Masovna provjera zdravlja",
     "bulkHealthcheckDesc": "Testirajte sve konfigurisane proksije protiv ciljanog URL-a kako biste saznali koji rade.",

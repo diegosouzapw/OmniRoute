@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "የዋናውን መስርቀኛ መልዕክት መንገድ",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "አማራጭ፦ ከመቀጠያ በፊት የተፈጠረውን ወርቀ መስርቀኛ መልዕክት አረጋግጠው የተቀባዩን ወርቀ ይረጋግጓል። በታኅወሯ መጻፊያውን ለመቀጠል ባዶ ይተዉ። ማህደሩ ባይኖር ሲፈጠር ይፈጠራል።"
+      "coreBinaryPathHelp": "አማራጭ፦ ከመቀጠያ በፊት የተፈጠረውን ወርቀ መስርቀኛ መልዕክት አረጋግጠው የተቀባዩን ወርቀ ይረጋግጓል። በታኅወሯ መጻፊያውን ለመቀጠል ባዶ ይተዉ። ማህደሩ ባይኖር ሲፈጠር ይፈጠራል።",
+      "urlFeedlessHint": "ለመራጭ-ብቻ ምዝገባ ባዶ ይተዉት፡ ከዚህ በታች URL ያስገቡ፣ ምንም ምግብ አይመጣም፣ አይዘምንም፣ አይታሰርም"
     },
     "bulkHealthcheck": "የጅምላ ጤና ምርመራ",
     "bulkHealthcheckDesc": "የትኞቹ እንደሚሰሩ ለማወቅ ሁሉንም የተዋቀሩ ፕሮክሲዎች በዒላማ URL ላይ ይሞክሩ።",

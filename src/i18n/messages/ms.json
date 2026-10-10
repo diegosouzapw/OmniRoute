@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Laluan binari teras",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Pilihan: mengesahkan fail yang dijana dengan binari teras sebelum menggantikan fail yang diterima pakai. Biarkan kosong untuk terus menulis di sebelahnya. Direktori akan dicipta jika tiada."
+      "coreBinaryPathHelp": "Pilihan: mengesahkan fail yang dijana dengan binari teras sebelum menggantikan fail yang diterima pakai. Biarkan kosong untuk terus menulis di sebelahnya. Direktori akan dicipta jika tiada.",
+      "urlFeedlessHint": "Kosongkan untuk langganan pemilih sahaja: tetapkan URL kawalan di bawah, tiada umpan diambil, disegar atau dipaut."
     },
     "bulkHealthcheck": "Pemeriksaan Kesihatan Pukal",
     "bulkHealthcheckDesc": "Uji semua proksi yang dikonfigurasikan terhadap URL sasaran untuk mengenal pasti proksi yang berfungsi.",

@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Uzuzu ọrụ mkpanaka",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Nhọrọ: dele faịlụ e mepụtara n'aka ọrụ mkpanaka tupu ị gbanwee faịlụ e zụtara ya. Hapụ ya ka e debanye ya n'akụkụ. A na-emepe folda ma ọ bụla."
+      "coreBinaryPathHelp": "Nhọrọ: dele faịlụ e mepụtara n'aka ọrụ mkpanaka tupu ị gbanwee faịlụ e zụtara ya. Hapụ ya ka e debanye ya n'akụkụ. A na-emepe folda ma ọ bụla.",
+      "urlFeedlessHint": "Hara naenwe ọdụrụrụ maka nkesọ nhọrọ: setee URL njikwa n'okpuru, aghọtara onyonyo ọ bụla, emeliela ma jikọtaghị."
     },
     "bulkHealthcheck": "Nnyocha ahụike n'ìgwè",
     "bulkHealthcheckDesc": "Nwalee proxy niile ahaziri megide URL ebumnuche iji chọpụta ndị na-arụ ọrụ.",

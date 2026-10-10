@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Sti til kernebinærfil",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Valgfrit: verificerer den genererede fil med kernebinærfilen, før den adopterede fil erstattes. Lad feltet stå tomt for fortsat at skrive ved siden af. Mappen oprettes, hvis den mangler."
+      "coreBinaryPathHelp": "Valgfrit: verificerer den genererede fil med kernebinærfilen, før den adopterede fil erstattes. Lad feltet stå tomt for fortsat at skrive ved siden af. Mappen oprettes, hvis den mangler.",
+      "urlFeedlessHint": "Lad tom for kun en vælger-abonnement: angiv en kontrol-URL nedenfor, ingen feed hentes, opdateres eller bindes."
     },
     "bulkHealthcheck": "Samlet sundhedstjek",
     "bulkHealthcheckDesc": "Test alle konfigurerede proxyer mod en destinations-URL for at finde ud af, hvilke der virker.",

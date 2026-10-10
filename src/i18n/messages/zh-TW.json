@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "核心二進位檔路徑",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "選用：在取代已採用的檔案前，先以核心二進位檔驗證產生的檔案。若要持續寫入其旁，請留空。目錄不存在時會自動建立。"
+      "coreBinaryPathHelp": "選用：在取代已採用的檔案前，先以核心二進位檔驗證產生的檔案。若要持續寫入其旁，請留空。目錄不存在時會自動建立。",
+      "urlFeedlessHint": "僅選擇器訂閱時請留空：於下方設定控制 URL，不會擷取、重新整理或綁定任何 feed。"
     },
     "bulkHealthcheck": "批次健康檢查",
     "bulkHealthcheckDesc": "針對目標 URL 測試所有已設定代理，找出可用代理。",

@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pamatbinārā fails",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Neobligāti: pārbauda ģenerēto failu ar pamatbināro failu pirms pieņemtā faila aizstāšanas. Atstājiet tukšu, lai turpinātu rakstīt blakus. Direktorijs, ja tā nav, tiek izveidots."
+      "coreBinaryPathHelp": "Neobligāti: pārbauda ģenerēto failu ar pamatbināro failu pirms pieņemtā faila aizstāšanas. Atstājiet tukšu, lai turpinātu rakstīt blakus. Direktorijs, ja tā nav, tiek izveidots.",
+      "urlFeedlessHint": "Atstājiet tukšu, lai abonētu tikai selektoru: iestatiet kontroles URL zemāk, neviens plūsma netiek ielādēta, atjaunināta vai piesaistīta."
     },
     "bulkHealthcheck": "Masveida darbspējas pārbaude",
     "bulkHealthcheckDesc": "Pārbaudi visus konfigurētos starpniekserverus, izmantojot mērķa URL, lai noskaidrotu, kuri darbojas.",

@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pad van kernbinaire bestand",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinaire bestand voordat het overgenomen bestand wordt vervangen. Leeg laten om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt."
+      "coreBinaryPathHelp": "Optioneel: verifieert het gegenereerde bestand met het kernbinaire bestand voordat het overgenomen bestand wordt vervangen. Leeg laten om ernaast te blijven schrijven. De map wordt aangemaakt als deze ontbreekt.",
+      "urlFeedlessHint": "Leeg laten voor een abonnement met alleen een selector: stel hieronder een besturings-URL in; er wordt geen feed opgehaald, vernieuwd of gekoppeld."
     },
     "bulkHealthcheck": "Bulkstatuscontrole",
     "bulkHealthcheckDesc": "Test alle geconfigureerde proxy's met een doel-URL om te bepalen welke werken.",

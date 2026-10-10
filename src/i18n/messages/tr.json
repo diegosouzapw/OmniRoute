@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Çekirdek ikili dosya yolu",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "İsteğe bağlı: benimsenmiş dosyayı değiştirmeden önce oluşturulan dosyayı çekirdek ikili dosyasıyla doğrular. Yanında yazmaya devam etmek için boş bırakın. Dizin yoksa oluşturulur."
+      "coreBinaryPathHelp": "İsteğe bağlı: benimsenmiş dosyayı değiştirmeden önce oluşturulan dosyayı çekirdek ikili dosyasıyla doğrular. Yanında yazmaya devam etmek için boş bırakın. Dizin yoksa oluşturulur.",
+      "urlFeedlessHint": "Yalnızca seçici aboneliği için boş bırakın: aşağıda bir denetim URL'si belirleyin, hiçbir akış getirilmez, yenilenmez veya bağlanmaz."
     },
     "bulkHealthcheck": "Toplu Durum Denetimi",
     "bulkHealthcheckDesc": "Hangilerinin çalıştığını belirlemek için yapılandırılmış tüm proxy'leri bir hedef URL ile test edin.",
