@@ -20,6 +20,13 @@ vi.mock("next/image", () => ({
 
 const { default: ProviderIcon } = await import("@/shared/components/ProviderIcon");
 
+// Prepare the real catalog during collection: cold Vite dependency evaluation
+// can exceed the per-test deadline under the full UI worker pool. The production
+// loader and its initial state remain untouched; the first test observes the
+// placeholder before that loader's promise settles. This does not measure cold
+// catalog transformation inside an individual test.
+await import("@/shared/components/lobeProviderIcons");
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 // Deliberately absent from the local assets and LobeHub aliases. After the real
@@ -154,6 +161,19 @@ afterEach(() => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("ProviderIcon — custom remote icon URL (#2166)", () => {
+  it("shows the placeholder until the real lazy catalog resolves", async () => {
+    const container = renderIcon({});
+    expect(container.querySelector('svg[data-provider-icon="generic"]')).not.toBeNull();
+    expect(container.querySelector("img")).toBeNull();
+
+    await settleIconImports();
+
+    expect(container.querySelector('svg[data-provider-icon="generic"]')).toBeNull();
+    expect(container.querySelector("img")?.getAttribute("src")).toBe(
+      "https://thesvg.org/icons/openai-compatible-test-node-xyz/default.svg"
+    );
+  });
+
   it("renders an <img> with the given src when `src` is set", () => {
     const container = renderIcon({ src: "https://example.com/logo.png", size: 32 });
     const img = container.querySelector("img");
