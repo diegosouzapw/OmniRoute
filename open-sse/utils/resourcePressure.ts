@@ -461,22 +461,66 @@ export function createResourcePressureRuntime(
   };
 }
 
-let defaultRuntime = createResourcePressureRuntime();
+// Turbopack compiles this module once per entry graph: `open-sse/` imports it
+// by relative specifier while `src/` imports it via the `@omniroute/open-sse`
+// alias, so the packaged build ships two live copies (module ids 7186 and
+// 51118 in the 2026-10-09 `.build/next` evidence, issue #13621) with disjoint
+// import graphs. A bare module-level singleton would split per copy and a
+// reload through one copy would leave the other serving a stale runtime;
+// keying the singleton on globalThis via Symbol.for keeps exactly one live
+// runtime process-wide. Same idiom as proxyRefusalMemory.ts (duplicate-copy
+// alarm) and providerRequestLogging.ts (shared capture state).
+const RESOURCE_PRESSURE_RUNTIME_KEY = Symbol.for("omniroute.resourcePressure.runtime");
+// Symbol-keyed globalThis indexing needs the cast — the globalThis type has no
+// symbol index signature (mirror of proxyRefusalMemory.ts's holder cast).
+const runtimesHolder = globalThis as unknown as {
+  [RESOURCE_PRESSURE_RUNTIME_KEY]?: ResourcePressureRuntime;
+};
+
+function bindDefaultRuntime(): ResourcePressureRuntime {
+  const existing = runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY];
+  if (existing) return existing;
+  const created = createResourcePressureRuntime();
+  runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY] = created;
+  return created;
+}
+
+let defaultRuntime = bindDefaultRuntime();
+
+// Readers go through the holder, not the captured var, so every compiled copy
+// serves the runtime the latest copy (re)loaded; the ?? only guards
+// out-of-order evaluation — in practice the holder is set by the same
+// statement that sets defaultRuntime.
+function activeRuntime(): ResourcePressureRuntime {
+  return runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY] ?? defaultRuntime;
+}
 
 export function checkResourcePressureGuard(): ResourcePressureGuardResult | null {
-  return defaultRuntime.check();
+  return activeRuntime().check();
 }
 
 export function getResourcePressureObservation(): ResourcePressureObservation {
-  return defaultRuntime.getObservation();
+  return activeRuntime().getObservation();
 }
 
-/** Replaces and disposes the process singleton when configuration is reloaded. */
+/**
+ * Replaces and disposes the process singleton when configuration is reloaded.
+ * Cross-copy semantics (last reloader wins): the runtime currently in the
+ * holder is the one being superseded, so it is disposed regardless of which
+ * copy created it — disposing only this copy's own `defaultRuntime` would leak
+ * the holder's background driver whenever a different copy reloaded last (the
+ * non-owning copy's stale runtime was already disposed by whoever replaced
+ * it). The new runtime is installed in both the holder and this copy's module
+ * var; every other copy adopts it via the holder on its next read, and
+ * references captured before the reload are superseded.
+ */
 export function reloadResourcePressureRuntime(
   options: ResourcePressureRuntimeOptions = {}
 ): ResourcePressureRuntime {
-  defaultRuntime.dispose();
+  const superseded = runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY] ?? defaultRuntime;
   defaultRuntime = createResourcePressureRuntime(options);
+  runtimesHolder[RESOURCE_PRESSURE_RUNTIME_KEY] = defaultRuntime;
+  superseded.dispose();
   return defaultRuntime;
 }
 
