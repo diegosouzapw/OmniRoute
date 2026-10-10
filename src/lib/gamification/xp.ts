@@ -74,6 +74,8 @@ export function calculateLevel(totalXp: number): number {
 
 /**
  * Get XP needed to reach the next level from the current total XP.
+ * Non-finite totals start at zero; positive totals share calculateLevel's safe
+ * integer cap. Finite negative totals retain their existing XP debt.
  *
  * @param totalXp - Current total XP
  * @returns Remaining XP until next level-up
@@ -83,9 +85,10 @@ export function calculateLevel(totalXp: number): number {
  * xpToNextLevel(5000) // XP needed from 5000 to next level
  */
 export function xpToNextLevel(totalXp: number): number {
-  const currentLevel = calculateLevel(totalXp);
+  const boundedXp = Number.isFinite(totalXp) ? Math.min(totalXp, Number.MAX_SAFE_INTEGER) : 0;
+  const currentLevel = calculateLevel(boundedXp);
   const nextLevelXp = cumulativeXpForLevel(currentLevel + 1);
-  return nextLevelXp - totalXp;
+  return nextLevelXp - boundedXp;
 }
 
 // ─── Level Titles & Tiers ────────────────────────────────────────────────────

@@ -224,11 +224,11 @@ test("xp: level titles and tiers at every boundary", () => {
   );
 });
 
-test("characterization: xp currently maps non-finite totals to level 1 and leaks NaN/-Infinity", () => {
+test("xp: non-finite totals consistently start from level 1 with 282 XP remaining", () => {
   assert.equal(xp.calculateLevel(Number.NaN), 1);
   assert.equal(xp.calculateLevel(Number.POSITIVE_INFINITY), 1);
-  assert.ok(Number.isNaN(xp.xpToNextLevel(Number.NaN)));
-  assert.equal(xp.xpToNextLevel(Number.POSITIVE_INFINITY), Number.NEGATIVE_INFINITY);
+  assert.equal(xp.xpToNextLevel(Number.NaN), 282);
+  assert.equal(xp.xpToNextLevel(Number.POSITIVE_INFINITY), 282);
 });
 
 // ─── (b) Contracts — award pipeline (deterministic fixture) ──────────────────

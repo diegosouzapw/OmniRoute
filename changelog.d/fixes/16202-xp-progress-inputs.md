@@ -1,0 +1,1 @@
+- **Gamification:** Keep XP-to-next-level finite for non-finite totals and consistent with the level calculation's safe-integer cap, while preserving finite negative XP debt and normal level boundaries. Fixes #16202.
