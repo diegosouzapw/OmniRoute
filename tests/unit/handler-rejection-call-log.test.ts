@@ -13,6 +13,7 @@ const core = await import("../../src/lib/db/core.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
 const usageHistory = await import("../../src/lib/usage/usageHistory.ts");
 const apiKeysDb = await import("../../src/lib/db/apiKeys.ts");
+const continuationStore = await import("../../src/lib/db/responsesContinuationStore.ts");
 const chatHandler = await import("../../src/sse/handlers/chat.ts");
 
 type RejectionRow = {
@@ -182,5 +183,114 @@ test("admitted then dispatched writes no rejection line", async () => {
   assert.ok(
     rows.every((row) => !(row.duration === 0 && row.error)),
     "no rejection row may appear for an admitted request"
+  );
+});
+
+test("logs unknown previous response id with one 400 line", async () => {
+  const correlationId = uniqueCorrelationId("unknown-prev-response");
+  const response = await chatHandler.handleChat(
+    chatRequest(
+      "http://localhost/v1/responses",
+      {
+        model: "openai/gpt-4.1",
+        previous_response_id: `resp_never_seen_by_omniroute-${correlationId}`,
+        input: [{ type: "message", role: "user", content: "hi" }],
+      },
+      correlationId
+    ),
+    null,
+    null,
+    correlationId
+  );
+  assert.equal(response.status, 400);
+  const payload = (await response.clone().json()) as { error?: { code?: string } };
+  assert.equal(payload.error?.code, "previous_response_not_found");
+
+  const rows = await rowsByCorrelation(correlationId);
+  assert.equal(
+    rows.length,
+    1,
+    "an unknown previous response id must leave exactly one call_logs row"
+  );
+  assert.equal(rows[0].status, 400);
+  assert.match(rows[0].error ?? "", /previous_response_not_found/);
+  assert.equal(rows[0].duration, 0);
+});
+
+test("known previous response id writes no rejection line", async () => {
+  const previousEnv = process.env.ENABLE_REQUEST_LOGS;
+  process.env.ENABLE_REQUEST_LOGS = "true";
+  const responseId = `resp_known_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+  const created = await apiKeysDb.createApiKey("Previous Response Key", "machine-prev-response");
+  const correlationId = uniqueCorrelationId("known-prev-response");
+  try {
+    continuationStore.seedPendingContinuationState(
+      responseId,
+      created.id,
+      {
+        clientRawRequest: {
+          effectiveInput: [{ type: "message", role: "user", content: "hi" }],
+        },
+        clientResponse: {
+          output: [{ type: "message", role: "assistant", content: "ok" }],
+        },
+      },
+      false
+    );
+    const response = await chatHandler.handleChat(
+      chatRequest(
+        "http://localhost/v1/responses",
+        {
+          model: "openai/gpt-4.1",
+          previous_response_id: responseId,
+          input: [{ type: "message", role: "user", content: "again" }],
+        },
+        correlationId,
+        { Authorization: `Bearer ${created.key}` }
+      ),
+      null,
+      null,
+      correlationId
+    );
+    void response;
+    const rows = await noRowsFor(correlationId);
+    assert.ok(
+      rows.every((row) => !(row.duration === 0 && row.error)),
+      "no rejection row may appear for a known previous response id"
+    );
+  } finally {
+    if (previousEnv === undefined) delete process.env.ENABLE_REQUEST_LOGS;
+    else process.env.ENABLE_REQUEST_LOGS = previousEnv;
+    continuationStore.clearPendingContinuationState(responseId);
+  }
+});
+
+test("keeps previous response not found body byte identical", async () => {
+  const correlationId = uniqueCorrelationId("prev-response-body");
+  const response = await chatHandler.handleChat(
+    chatRequest(
+      "http://localhost/v1/responses",
+      {
+        model: "openai/gpt-4.1",
+        previous_response_id: `resp_never_seen_by_omniroute-${correlationId}`,
+        input: [{ type: "message", role: "user", content: "hi" }],
+      },
+      correlationId
+    ),
+    null,
+    null,
+    correlationId
+  );
+  assert.equal(response.status, 400);
+  assert.equal(response.headers.get("Content-Type"), "application/json");
+  assert.equal(
+    await response.text(),
+    JSON.stringify({
+      error: {
+        message: "Previous response not found.",
+        type: "invalid_request_error",
+        code: "previous_response_not_found",
+      },
+    })
   );
 });

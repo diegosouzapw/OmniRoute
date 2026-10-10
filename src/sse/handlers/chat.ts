@@ -829,15 +829,25 @@ async function handleChatImplementation(
       // or expired server-side state) so a client with the matching retry
       // behavior -- resend the full request, same turn -- recovers exactly
       // as it would against the real OpenAI backend.
-      return new Response(
-        JSON.stringify({
-          error: {
-            message: "Previous response not found.",
-            type: "invalid_request_error",
-            code: "previous_response_not_found",
-          },
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+      return logHandlerRejection(
+        new Response(
+          JSON.stringify({
+            error: {
+              message: "Previous response not found.",
+              type: "invalid_request_error",
+              code: "previous_response_not_found",
+            },
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        ),
+        {
+          path: new URL(request.url).pathname,
+          model: modelStr,
+          requestBody: body ?? null,
+          apiKeyId: apiKeyInfo?.id ?? null,
+          apiKeyName: apiKeyInfo?.name ?? null,
+          correlationId: reqId,
+        }
       );
     }
     const deltaInput = Array.isArray((body as { input?: unknown }).input)
