@@ -1,0 +1,1 @@
+- **fix(codex):** detect the fake-200 "servers are currently overloaded" output-text stream and convert it to a 503 so account fallback engages ([#16287](https://github.com/diegosouzapw/OmniRoute/pull/16287)) — thanks @dungartoriaaa
