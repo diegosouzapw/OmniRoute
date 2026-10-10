@@ -1,0 +1,1 @@
+- **fix(perplexity-web):** publish a received 400+ status on the active proxy sink instead of counting it as a transport failure ([#16292](https://github.com/diegosouzapw/OmniRoute/pull/16292)) — thanks @maxmad64bis
