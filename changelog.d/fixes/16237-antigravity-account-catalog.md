@@ -1,0 +1,1 @@
+- Resolve Antigravity Gemini 3.7 Flash high/medium/low requests against the fresh catalog of the selected connection before global aliases, preserving tiered-only accounts and rechecking the same connection after a 404 discovery sync. Explicit overrides, other model families, stale-catalog fallback and conservative concurrency leases retain their existing behavior. Fixes #16237.

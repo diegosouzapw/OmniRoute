@@ -401,7 +401,12 @@ export async function sendAntigravityRequest(
           // module) forms an async ESM init cycle that deadlocks the bundled MCP server
           // on startup (tests/unit/build/mcp-bundle-startup.test.ts).
           const { cleanModelName } = await import("../antigravity.ts");
-          const reResolvedModel = await cleanModelName(model, undefined, provider);
+          const reResolvedModel = await cleanModelName(
+            model,
+            undefined,
+            provider,
+            credentials.connectionId
+          );
           const retryBody: Record<string, unknown> = {
             ...transformedBody,
             model: reResolvedModel,
