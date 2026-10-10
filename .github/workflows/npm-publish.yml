@@ -70,6 +70,7 @@ jobs:
       version: ${{ steps.resolve.outputs.version }}
       tag: ${{ steps.resolve.outputs.tag }}
       skip: ${{ steps.resolve.outputs.skip }}
+      tarball_sha256: ${{ steps.npm_tarball.outputs.sha256 }}
     permissions:
       actions: read # find + download the CI run's next-build artifact for this SHA
       contents: write # gh release upload (attach SBOM to the GitHub Release)
@@ -290,12 +291,30 @@ jobs:
           fi
           gh release upload "$TAG" sbom-npm.cdx.json --repo "$GITHUB_REPOSITORY" --clobber
 
-      # WS1.2/WS1.3 (#7065 class): the artifact that is about to be published must
-      # BOOT. build:cli already assembled dist/ above; this packs+installs+boots the
-      # real tarball and fails the publish before anything reaches the registry.
+      # Pack once: boot validation and the hosted upload consume these same bytes.
+      - name: Pack the tarball for validation and upload
+        id: npm_tarball
+        if: steps.resolve.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          npm pack --ignore-scripts
+          TARBALL="omniroute-${VERSION}.tgz"
+          test -f "$TARBALL" && test ! -L "$TARBALL"
+          SHA=$(sha256sum "$TARBALL" | cut -d' ' -f1)
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "packed $TARBALL sha256=$SHA"
+
+      # WS1.2/WS1.3 (#7065 class): the exact upload candidate must BOOT.
       - name: Boot-smoke the tarball before ANY publish
         if: steps.resolve.outputs.skip != 'true'
-        run: npm run check:pack-boot
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+          EXPECTED_SHA: ${{ steps.npm_tarball.outputs.sha256 }}
+        run: |
+          TARBALL="omniroute-${VERSION}.tgz"
+          npm run check:pack-boot -- --tarball "$TARBALL" --sha256 "$EXPECTED_SHA"
 
       # The boot-smoke above proves a CLEAN install boots. It does not prove the path that
       # actually broke us: installing over an existing version, where ~110 SQLite migrations
@@ -339,18 +358,17 @@ jobs:
       # hosted one (16 GB is not enough for build:cli's next-build fallback — see
       # this job's runs-on comment). So this job proves the bytes and hands them
       # over; a tiny hosted job does the upload.
-      - name: Pack the verified tarball for the upload job
+      - name: Verify validated tarball before upload
         if: steps.resolve.outputs.skip != 'true'
         env:
           VERSION: ${{ steps.resolve.outputs.version }}
+          EXPECTED_SHA: ${{ steps.npm_tarball.outputs.sha256 }}
         run: |
           set -euo pipefail
-          # --ignore-scripts: prepublishOnly would re-run build:cli-api && build:cli,
-          # rebuilding bytes this job has already built, validated and boot-smoked.
-          npm pack --ignore-scripts
           TARBALL="omniroute-${VERSION}.tgz"
-          test -f "$TARBALL" || { echo "expected $TARBALL to exist after npm pack" >&2; ls -la ./*.tgz || true; exit 1; }
-          echo "packed $TARBALL ($(du -h "$TARBALL" | cut -f1))"
+          test -f "$TARBALL" && test ! -L "$TARBALL"
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{64}$ ]]
+          printf '%s  %s\n' "$EXPECTED_SHA" "$TARBALL" | sha256sum --check --strict
 
       - name: Hand the tarball to the hosted publish job
         if: steps.resolve.outputs.skip != 'true'
@@ -434,10 +452,14 @@ jobs:
         env:
           VERSION: ${{ needs.publish.outputs.version }}
           TAG: ${{ needs.publish.outputs.tag }}
+          EXPECTED_SHA: ${{ needs.publish.outputs.tarball_sha256 }}
         run: |
           set -euo pipefail
           TARBALL="omniroute-${VERSION}.tgz"
           test -f "$TARBALL" || { echo "tarball $TARBALL did not arrive from the publish job" >&2; ls -la; exit 1; }
+          test ! -L "$TARBALL"
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{64}$ ]]
+          printf '%s  %s\n' "$EXPECTED_SHA" "$TARBALL" | sha256sum --check --strict
           # Deliberately NO NODE_AUTH_TOKEN in this step: npm >= 11.5 detects the GitHub
           # OIDC token itself. Always pass --tag explicitly (defense in depth: an older
           # VERSION can never claim `@latest`).
@@ -450,11 +472,15 @@ jobs:
         env:
           VERSION: ${{ needs.publish.outputs.version }}
           TAG: ${{ needs.publish.outputs.tag }}
+          EXPECTED_SHA: ${{ needs.publish.outputs.tarball_sha256 }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
           TARBALL="omniroute-${VERSION}.tgz"
           test -f "$TARBALL" || { echo "tarball $TARBALL did not arrive from the publish job" >&2; ls -la; exit 1; }
+          test ! -L "$TARBALL"
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{64}$ ]]
+          printf '%s  %s\n' "$EXPECTED_SHA" "$TARBALL" | sha256sum --check --strict
           # Always pass --tag explicitly. Defense in depth: even if VERSION is
           # accidentally an older release, the historic tag will NOT claim `@latest`.
           # --ignore-scripts: publishing a built tarball must never re-run
@@ -479,11 +505,15 @@ jobs:
         env:
           VERSION: ${{ needs.publish.outputs.version }}
           TAG: ${{ needs.publish.outputs.tag }}
+          EXPECTED_SHA: ${{ needs.publish.outputs.tarball_sha256 }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
           TARBALL="omniroute-${VERSION}.tgz"
           test -f "$TARBALL" || { echo "tarball $TARBALL did not arrive from the publish job" >&2; ls -la; exit 1; }
+          test ! -L "$TARBALL"
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{64}$ ]]
+          printf '%s  %s\n' "$EXPECTED_SHA" "$TARBALL" | sha256sum --check --strict
           npm publish "$TARBALL" --provenance --access public --tag "$TAG" --ignore-scripts
           echo "✅ Published omniroute@$VERSION (dist-tag=$TAG) [DIRECT mode]"
 

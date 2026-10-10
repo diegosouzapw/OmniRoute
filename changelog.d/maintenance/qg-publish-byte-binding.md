@@ -1,0 +1,1 @@
+Pack the npm publication candidate before boot validation, transfer its SHA-256 as an independent job output, and reject changed tarball bytes before upload and every hosted publication mode. No registry publication is performed by the regression tests.
