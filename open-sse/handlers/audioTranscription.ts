@@ -24,6 +24,7 @@ import {
 import { buildAuthHeaders } from "../config/registryUtils.ts";
 import { kieExecutor } from "../executors/kie.ts";
 import { vertexTranscribe } from "../executors/vertexMedia.ts";
+import { geminiLiveTranscribe } from "../executors/geminiLiveTranscribe.ts";
 import { errorResponse } from "../utils/error.ts";
 import { hasUnsafeModelIdSyntax } from "../utils/modelIdSafety.ts";
 import { isJsonObject } from "../utils/kieTask.ts";
@@ -900,7 +901,7 @@ export async function handleAudioTranscription({
   if (!providerConfig) {
     return errorResponse(
       400,
-      `No transcription provider found for model "${model}". Available: openai, openrouter, groq, deepgram, assemblyai, nvidia, huggingface, qwen, gladia, rev-ai, speechmatics`
+      `No transcription provider found for model "${model}". Available: openai, openrouter, groq, deepgram, assemblyai, nvidia, huggingface, qwen, gladia, rev-ai, speechmatics, gemini`
     );
   }
 
@@ -912,6 +913,28 @@ export async function handleAudioTranscription({
   }
 
   // Route to provider-specific handler
+  if (providerConfig.format === "gemini-live") {
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const languageValue = formData.get("language");
+      const promptValue = formData.get("prompt");
+      const text = await geminiLiveTranscribe(credentials ?? {}, {
+        model: modelId as string,
+        audioBuffer: buffer,
+        prompt: typeof promptValue === "string" ? promptValue : undefined,
+        language: typeof languageValue === "string" ? languageValue : undefined,
+        baseUrl: providerConfig.baseUrl,
+      });
+      return Response.json({ text }, { headers: { ...CORS_HEADERS } });
+    } catch (err) {
+      const error = err as { message?: string; status?: number };
+      return errorResponse(
+        typeof error?.status === "number" ? error.status : 500,
+        `Gemini Live transcription failed: ${error?.message || "unknown error"}`
+      );
+    }
+  }
+
   if (providerConfig.format === "vertex-gemini") {
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
