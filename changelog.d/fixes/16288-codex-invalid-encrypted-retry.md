@@ -1,0 +1,1 @@
+- **fix(codex):** retry once on the same account without undecryptable reasoning ciphertext instead of failing the turn with `invalid_encrypted_content` ([#16288](https://github.com/diegosouzapw/OmniRoute/pull/16288)) — thanks @ryanngit
