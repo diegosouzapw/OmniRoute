@@ -153,6 +153,51 @@ function zonedLocalToUtc(
 }
 
 /**
+ * Resolve an existing wall time to its earliest occurrence. Offset iteration is
+ * intentionally kept as the base resolver because it also handles DST gaps;
+ * when a fall-back repeats the requested wall time, walk backward through the
+ * local date to find the earlier occurrence. This matters for calendar windows:
+ * choosing the later midnight can put the window start after `nowMs`.
+ */
+function zonedLocalToUtcFirstOccurrence(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+  timeZone: string
+): number {
+  const candidate = zonedLocalToUtc(year, month, day, hour, minute, second, timeZone);
+  let earliest = candidate;
+  for (let step = 1; step <= MAX_GAP_WALK_MINUTES; step++) {
+    const earlier = candidate - step * 60_000;
+    const parts = zonedParts(earlier, timeZone);
+    if (
+      parts.year === year &&
+      parts.month === month &&
+      parts.day === day &&
+      parts.hour === hour &&
+      parts.minute === minute &&
+      parts.second === second
+    ) {
+      earliest = earlier;
+      continue;
+    }
+    // Once the local date has moved before the requested date, no earlier
+    // occurrence of this wall time can remain in the same fold.
+    if (
+      parts.year !== year ||
+      parts.month !== month ||
+      parts.day !== day
+    ) {
+      break;
+    }
+  }
+  return earliest;
+}
+
+/**
  * Next local `hour:00:00` in `timezone` strictly after `nowMs`.
  * If now lands exactly on that instant, return the following cycle.
  */
@@ -165,6 +210,33 @@ export function nextDailyResetAtMs(timezone: string, hour: number, nowMs: number
     next = zonedLocalToUtc(date.year, date.month, date.day, hour, 0, 0, timezone);
   }
   return next;
+}
+
+/**
+ * Local calendar week (Monday 00:00 → next Monday 00:00) in `timezone` that
+ * contains `nowMs`. Both edges go through the same DST-aware wall-clock
+ * conversion, so a week that crosses a DST change can have a variable length.
+ */
+export function calendarWeekWindowMs(
+  timezone: string,
+  nowMs: number
+): { startMs: number; resetMs: number } {
+  const now = zonedParts(nowMs, timezone);
+  const weekday = new Date(Date.UTC(now.year, now.month - 1, now.day)).getUTCDay();
+  const daysSinceMonday = (weekday + 6) % 7;
+  const toUtc = (dayOffset: number) => {
+    const date = new Date(Date.UTC(now.year, now.month - 1, now.day + dayOffset));
+    return zonedLocalToUtcFirstOccurrence(
+      date.getUTCFullYear(),
+      date.getUTCMonth() + 1,
+      date.getUTCDate(),
+      0,
+      0,
+      0,
+      timezone
+    );
+  };
+  return { startMs: toUtc(-daysSinceMonday), resetMs: toUtc(7 - daysSinceMonday) };
 }
 
 export function parseTpdLimitFromText(text: string): number | null {

@@ -33,6 +33,11 @@ const getMode = (): PiiMode => {
   return "redact";
 };
 
+/** Current response-sanitization mode (redact | warn | block | off). */
+export function getPiiResponseMode(): PiiMode {
+  return getMode();
+}
+
 // ── PII Patterns ──
 
 interface PIIPattern {

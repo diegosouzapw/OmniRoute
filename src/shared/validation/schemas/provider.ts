@@ -1,22 +1,9 @@
 import { z } from "zod";
 import {
-  ACCOUNT_FALLBACK_STRATEGY_VALUES,
-  ROUTING_STRATEGY_VALUES,
-} from "@/shared/constants/routingStrategies";
-import { SUPPORTED_BATCH_ENDPOINTS } from "@/shared/constants/batchEndpoints";
-import { MAX_REQUEST_BODY_LIMIT_MB, MIN_REQUEST_BODY_LIMIT_MB } from "@/shared/constants/bodySize";
-import { COMBO_CONFIG_MODES } from "@/shared/constants/comboConfigMode";
-import {
   MODEL_SUPPORTED_ENDPOINT_VALUES,
   normalizeModelSupportedEndpoints,
 } from "@/shared/constants/modelSupportedEndpoints";
 import { providerAllowsOptionalApiKey } from "@/shared/constants/providers";
-import { HIDEABLE_SIDEBAR_ITEM_IDS } from "@/shared/constants/sidebarVisibility";
-import {
-  isForbiddenUpstreamHeaderName,
-  isForbiddenCustomHeaderName,
-} from "@/shared/constants/upstreamHeaders";
-import { MAX_TIMER_TIMEOUT_MS } from "@/shared/utils/runtimeTimeouts";
 import { validateProviderSpecificData } from "@/shared/validation/providerSpecificData";
 import {
   isReservedProviderPrefix,
@@ -32,6 +19,10 @@ import {
   customHeadersSchema,
 } from "./misc.ts";
 import { isValidProviderIconUrl } from "@/shared/validation/iconUrl";
+import {
+  MODEL_CONCURRENCY_MAX_CAP,
+  MODEL_CONCURRENCY_MAX_KEY_LENGTH,
+} from "@/shared/constants/modelConcurrency";
 
 export { validateProviderSpecificData };
 
@@ -85,6 +76,16 @@ const providerNodeIconUrlSchema = z
 // Same fix shape as #6562 (priority cap raised to 100_000).
 export const MAX_PROVIDER_CREDENTIAL_LENGTH = 100_000;
 
+// #15930: credentials arriving with this prefix are encrypted envelopes produced by a
+// credential store. `encrypt()` deliberately skips re-encrypting values that already
+// carry it, so an envelope would be stored verbatim, fail to decrypt at runtime, and
+// surface only as a misleading "Missing API key" on the connection test. Plaintext
+// keys from every provider (sk-…, tvly-…, JWTs, cookie headers, JSON storage state)
+// start with something else, so rejecting at validation time is near-zero-false-positive.
+// Checked inline rather than via lib/db/encryption's looksEncrypted() because this
+// schema is imported by client-side dashboard code and must stay free of node:crypto.
+const ENCRYPTED_ENVELOPE_PREFIX = "enc:v1:";
+
 export const createProviderSchema = z
   .object({
     provider: z.string().min(1).max(100),
@@ -116,6 +117,14 @@ export const createProviderSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "API key is required",
+        path: ["apiKey"],
+      });
+    }
+    if (apiKey.startsWith(ENCRYPTED_ENVELOPE_PREFIX)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "apiKey looks like an encrypted envelope from a credential store, not a plaintext key — store the plaintext API key",
         path: ["apiKey"],
       });
     }
@@ -299,6 +308,7 @@ export const providerModelMutationSchema = z.object({
   // over the auto-discovery/static-catalog context window in `getModelContextLimit()`
   // — fixes the "provider misreports context length" combo-drop case. `null` clears
   // a previously set override.
+  maxOutputTokenOverride: z.number().int().positive().nullable().optional(),
   contextWindowOverride: z.number().int().positive().nullable().optional(),
   // #1904: manual vision-capability override for custom OpenAI-compatible models whose
   // upstream discovery metadata does not self-report an image input modality (many
@@ -518,6 +528,35 @@ function rateLimitOverrideNumber(max: number) {
   }, z.coerce.number().int().min(0).max(max));
 }
 
+// Per-model concurrency ceilings inside `rateLimitOverrides.modelConcurrency`.
+// Unlike the scalar fields above, a cap of 0 is meaningless (it would bypass
+// the gate), so values are positive integers (1..MODEL_CONCURRENCY_MAX_CAP).
+// Keys are exact upstream model ids, bounded to MODEL_CONCURRENCY_MAX_KEY_LENGTH
+// chars. `null` normalizes to absent so a dashboard save can clear just the
+// map; `{}` is accepted and normalized away at the DB sanitizer.
+function modelConcurrencyMap() {
+  return z.preprocess(
+    (raw) => (raw === null ? undefined : raw),
+    z
+      .record(
+        z.string().min(1).max(MODEL_CONCURRENCY_MAX_KEY_LENGTH),
+        rateLimitOverridePositiveInt(MODEL_CONCURRENCY_MAX_CAP)
+      )
+      .optional()
+  );
+}
+
+function rateLimitOverridePositiveInt(max: number) {
+  return z.preprocess((raw) => {
+    if (typeof raw === "string") {
+      if (raw.trim() === "") return NaN;
+      const parsed = Number(raw);
+      return Number.isNaN(parsed) ? raw : parsed;
+    }
+    return raw;
+  }, z.coerce.number().int().min(1).max(max));
+}
+
 export const updateProviderConnectionSchema = z
   .object({
     name: z.string().max(200).optional(),
@@ -583,6 +622,7 @@ export const updateProviderConnectionSchema = z
         maxConcurrent: rateLimitOverrideNumber(10_000).optional(),
         maxWaitMs: rateLimitOverrideNumber(120_000).optional(),
         executionMaxWaitMs: rateLimitOverrideNumber(600_000).optional(),
+        modelConcurrency: modelConcurrencyMap(),
       })
       .partial()
       .strict()
@@ -605,6 +645,15 @@ export const updateProviderConnectionSchema = z
         code: z.ZodIssueCode.custom,
         message: "No valid fields to update",
         path: [],
+      });
+    }
+    const apiKey = typeof value.apiKey === "string" ? value.apiKey.trim() : "";
+    if (apiKey.startsWith(ENCRYPTED_ENVELOPE_PREFIX)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "apiKey looks like an encrypted envelope from a credential store, not a plaintext key — store the plaintext API key",
+        path: ["apiKey"],
       });
     }
   });

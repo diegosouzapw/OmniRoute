@@ -49,7 +49,7 @@ const pluginOptionsSchema = z
     providersAllow: z.array(z.string()).optional(),
     usableOnly: z.boolean().default(false),
     freeOnly: z.boolean().default(false),
-    toolsOnly: z.boolean().default(true),
+    toolsOnly: z.boolean().default(false),
     visionOnly: z.boolean().default(false),
     // Per-provider showcase size: how many models each provider keeps in
     // the default view. Absent means the catalog default below.

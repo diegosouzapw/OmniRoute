@@ -1,0 +1,1 @@
+- **fix(ci):** restrict Docker runner-alert schedules to the upstream repository and enforce the scheduled-job guard across all Docker jobs while preserving manual dispatch and publish conditions ([#15782](https://github.com/diegosouzapw/OmniRoute/pull/15782)).

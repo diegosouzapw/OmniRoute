@@ -46,6 +46,7 @@ const scheduledGuard = findScheduledJobsWithoutGuard as (
 // ─────────────────────────────────────────────────────────────────────────────
 
 const EXPECTED_SCHEDULED_WORKFLOWS = [
+  "docker-publish.yml",
   "nightly-compat.yml",
   "nightly-llm-security.yml",
   "nightly-mutation.yml",

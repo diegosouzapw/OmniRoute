@@ -407,7 +407,7 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Policies (5) ────────────────
+  // ──────────────── Policies (6) ────────────────
   {
     key: "TOOL_POLICY_MODE",
     label: "Tool Policy Mode",
@@ -456,6 +456,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "caution",
   },
   {
+    key: "USAGE_LIMIT_IGNORE_UNPRICED",
+    label: "Ignore Unpriced Usage in USD Quotas",
+    description:
+      "Count usage of models that have no price as $0 in per-key USD usage quotas instead of treating the quota as exceeded. Off by default: an unpriced model or routing alias can hide real spend, so the quota fails closed.",
+    descriptionI18nKey: "featureFlagUsageLimitIgnoreUnpricedDescription",
+    category: "policies",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
     key: "RADAR_ENABLED",
     label: "Radar",
     description:
@@ -468,13 +480,25 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     warningLevel: "info",
   },
 
-  // ──────────────── Runtime (17) ────────────────
+  // ──────────────── Runtime (18) ────────────────
   {
     key: "UNIVERSAL_CONTEXT_HANDOFF_ENABLED",
     label: "Universal Context Handoff",
     description:
       "Generate and inject conversation summaries when combo routing switches models. Disable to treat model switches independently and prevent background handoff requests for all existing and future combos.",
     descriptionI18nKey: "featureFlagUniversalContextHandoffEnabledDescription",
+    category: "runtime",
+    defaultValue: "true",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "info",
+  },
+  {
+    key: "REASONING_REPLAY_ENABLED",
+    label: "Reasoning Replay",
+    description:
+      "Cache and replay model reasoning across multi-turn conversations. Disable to stop storing and re-injecting reasoning.",
+    descriptionI18nKey: "featureFlagReasoningReplayEnabledDescription",
     category: "runtime",
     defaultValue: "true",
     type: "boolean",
@@ -844,6 +868,18 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagDefinition[] = [
     description:
       "Reserve the selected Antigravity account for the streaming lifecycle of the request that picked it, so a concurrent retry or the credential handoff cannot re-pick an account already committed to an in-flight stream. The reservation is scoped to (connection, callable upstream model), so one account can still serve two different models at once. When every eligible account is already leased for that model, the request returns a structured 503 POOL_BUSY with a bounded Retry-After instead of piling onto a busy account. Off by default: account selection stays exactly as before, and no reservation is taken.",
     descriptionI18nKey: "featureFlagAntigravityAccountLeaseEnabledDescription",
+    category: "runtime",
+    defaultValue: "false",
+    type: "boolean",
+    requiresRestart: false,
+    warningLevel: "caution",
+  },
+  {
+    key: "COMBO_AUTO_PRUNE_STALE_STEPS",
+    label: "Auto-Prune Stale Combo Steps",
+    description:
+      "After a successful model sync against an authoritative live catalog, remove combo steps pinned to models the catalog no longer lists, with one audit entry per removed step. Never prunes on a failed, degraded or free-only sync, and never empties a combo. Off by default: stale steps are only flagged.",
+    descriptionI18nKey: "featureFlagComboAutoPruneStaleStepsDescription",
     category: "runtime",
     defaultValue: "false",
     type: "boolean",

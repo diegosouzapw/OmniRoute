@@ -1,0 +1,1 @@
+- fix(auto): `auto/thrifty` keeps its subscription-ladder rung order after scoring instead of letting the score re-sort escalate to metered models first (#15546, complements #15813)

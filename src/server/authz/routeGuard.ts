@@ -206,6 +206,13 @@ export const ALWAYS_PROTECTED_API_PATHS: ReadonlyArray<string> = [
   // the /webdav child. ALWAYS_PROTECTED rather than LOCAL_ONLY so an operator
   // driving the dashboard through a tunnel keeps the feature.
   "/api/settings/obsidian",
+  // GET spreads every provider_connections row verbatim, so the lazy-decrypt
+  // proxy returns each connection's apiKey / accessToken / refreshToken /
+  // idToken in plaintext, and the route has no auth call of its own. Left on the
+  // fail-open MANAGEMENT tier it served all of them anonymously under
+  // requireLogin=false (GHSA-qxg2-rm3h-4cxp). The dashboard consumers send the
+  // session cookie, so ALWAYS_PROTECTED keeps them working through a tunnel.
+  "/api/providers/client",
 ];
 
 /**

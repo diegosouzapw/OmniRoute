@@ -3,6 +3,7 @@ import {
   FEATURE_FLAG_DEFINITIONS,
   type FeatureFlagDefinition,
 } from "@/shared/constants/featureFlagDefinitions";
+import { registerFeatureFlagResolver } from "@/shared/utils/featureFlagResolverBridge";
 
 /**
  * Resolve the effective value of a feature flag.
@@ -27,6 +28,10 @@ export function isFeatureFlagEnabled(key: string): boolean {
   const value = resolveFeatureFlag(key);
   return value === "true" || value === "1" || value === "yes";
 }
+
+// Expose the DB-aware resolver to client-reachable pure-data registries
+// (imageRegistry) without them importing this server-only module (#10692).
+registerFeatureFlagResolver(isFeatureFlagEnabled);
 
 /**
  * Resolve all feature flags with their effective values and sources.

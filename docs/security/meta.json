@@ -10,6 +10,7 @@
     "CORS",
     "EGRESS_POLICY",
     "SUPPLY_CHAIN",
+    "LTS_SECURITY_BASELINE",
     "COMPLIANCE",
     "CLI_TOKEN"
   ]

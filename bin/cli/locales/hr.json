@@ -254,6 +254,7 @@
     "log": "Prikaži zapise poslužitelja u retku",
     "no_recovery": "Onemogući automatski ponovni pokretanje nakon pada (način za otklanjanje pogrešaka)",
     "max_restarts": "Maksimalni broj ponovnih pokretanja nakon pada unutar 30 s prije odustajanja (zadano: 2)",
+    "headless": "Pokreni samo proxy pogon: nadzorna ploča onemogućena (404), izborni podsustavi preskočeni (postavlja OMNIROUTE_HEADLESS=1)",
     "tray": "Pokretanje u programskoj traci (samo za stolna računala, po izboru)",
     "no_tray": "Onemogući ikonu programske trake",
     "ready_timeout": "Vremensko ograničenje provjere spremnosti u ms (također OMNIROUTE_READY_TIMEOUT_MS, zadano 60000)",

@@ -1,0 +1,1 @@
+- **fix(quota):** replace quadratic USD cost history matching with an indexed nearest-unused lookup, yield between calculation batches so HTTP requests can progress, and skip detailed cost loading for aggregate-only keys ([#16041](https://github.com/diegosouzapw/OmniRoute/pull/16041)) — thanks @insoln

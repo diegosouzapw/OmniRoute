@@ -1,0 +1,1 @@
+- fix(tests): match exact Codex discovery hosts and preserve token boundaries when masking skill-manifest comments, with adversarial URL and dangling-link regression coverage. (#15306).

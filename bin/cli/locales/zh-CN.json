@@ -254,6 +254,7 @@
     "log": "内联显示服务器日志",
     "no_recovery": "禁用崩溃自动重启（调试模式）",
     "max_restarts": "30 秒内的最大崩溃重启次数（默认：2）",
+    "headless": "仅运行代理引擎：禁用仪表板（404），跳过可选子系统（设置 OMNIROUTE_HEADLESS=1）",
     "tray": "显示系统托盘图标（仅桌面，选择加入）",
     "no_tray": "禁用系统托盘图标",
     "ready_timeout": "就绪探测超时（毫秒）（也可用 OMNIROUTE_READY_TIMEOUT_MS，默认 60000）",

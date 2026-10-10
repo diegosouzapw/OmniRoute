@@ -25,6 +25,22 @@ export function extractImportWarning(data: unknown): string | null {
 }
 
 /**
+ * #15069 — pure phase resolver for the zero-new-models branch in handleImportModels.
+ *
+ * When all fetched models are already registered, what the user sees depends on whether
+ * the fetch came from the live upstream API or fell back to the local catalog:
+ *
+ *  - `importWarning` present → local-catalog fallback → phase "warning" (the remote API was
+ *    unreachable; a success indicator would be misleading).
+ *  - `importWarning` absent  → remote catalog actually fetched → phase "done" (genuine success).
+ *
+ * Extracted as a pure function so unit tests can cover this branch without a React renderer.
+ */
+export function resolveNoNewModelsPhase(importWarning: string | null): "warning" | "done" {
+  return importWarning ? "warning" : "done";
+}
+
+/**
  * B-03 (#15159): decide what the Import button should SAY, given the raw
  * `/api/providers/[id]/models?refresh=true` payload.
  *
@@ -56,8 +72,16 @@ export type ClassifyModelImportInput = {
 
 export type ModelImportOutcome = "no-models" | "nothing-new" | "import";
 
-/** A model entry as discovery returns it; the id may be under any of these keys. */
-export type DiscoveredModel = { id?: unknown; name?: unknown; model?: unknown };
+/**
+ * A model entry as discovery returns it; the id may be under any of these keys. The rest of the
+ * entry (apiFormat, dimensions, inputTokenLimit, …) is forwarded to the import call as-is.
+ */
+export type DiscoveredModel = {
+  id?: unknown;
+  name?: unknown;
+  model?: unknown;
+  [field: string]: unknown;
+};
 
 export type ModelImportClassification = {
   outcome: ModelImportOutcome;

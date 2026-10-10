@@ -318,13 +318,14 @@ Az engedélyezési listák (`eslint-suppressions.json`, `test-masking-allowlist.
   egyszeri lazítás (`scripts/quality/relax-baselines.mjs`); ugyanazzal a megjegyzéssel nem hajlandó
   kétszer lefutni.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  minden numerikus kaput a CI-vel megegyező módon mér, és kiírja a kapunként fennmaradó
-  mozgásteret (`scripts/quality/baseline-headroom.mjs`). Az éjszakai `baseline-headroom` feladat
-  közzéteszi a táblázatot a folyamatosan frissített **📈 Baseline headroom (velocity phase)**
-  hibajegyben, és hozzáadja a `headroom-alert` címkét, ha bármelyik kapu a korlátja 10%-án belülre
-  kerül, vagy már túl is lépte azt. Ez a hibajegy a korai figyelmeztetés: ha egy keret napok alatt
-  betelik, az azt jelenti, hogy a lazítást néhány PR használja fel, nem az egész csapat — tekintse
-  meg az érintett kapu `_rebaseline_*` megjegyzéseit.
+  minden számszerű minőségellenőrzést a CI-vel azonos módon mér, és kiírja az ellenőrzésenként fennmaradó mozgásteret
+  (`scripts/quality/baseline-headroom.mjs`). Az éjszakai `baseline-headroom` feladat közzéteszi a táblázatot
+  a munkafolyamat futásának összegzésében, és feltölti a JSON/Markdown-jelentést
+  `baseline-headroom-<run_id>` néven; a jelentés 90 napig megmarad. A figyelmeztető és kritikus sorok azokat
+  az ellenőrzéseket jelölik, amelyeknél legfeljebb 10% maradt a felső határig, vagy amelyek már túllépték azt.
+  Tekintse át ezeket a jelentéseket a keretek fogyására utaló korai figyelmeztetésként; vizsgálja meg az érintett ellenőrzés
+  `_rebaseline_*` megjegyzéseit. A feladat már nem hoz létre és nem frissít állandó hibajegyet;
+  a #12149 megőrzi a korábbi jelentések történetét.
 
 **Új kód mód (Clean-as-You-Code) — 2026-08-30 óta, csak a PR gyorsított útvonalán**
 

@@ -364,6 +364,8 @@ export interface RunSingleModelTestOptions {
   connectionId?: string;
   timeoutMs?: number;
   streamChat?: boolean;
+  /** A manual connection message; only supported for chat models. */
+  prompt?: string;
 }
 
 export interface SingleModelTestResult {
@@ -534,6 +536,16 @@ export async function runSingleModelTest(
     };
   }
 
+  if (options.prompt !== undefined && (isEmbedding || isRerank || isAudioTranscription)) {
+    return {
+      modelId: fullModelStr,
+      status: "error",
+      latencyMs: Date.now() - startTime,
+      httpStatus: 400,
+      error: "Test messages require a chat model",
+    };
+  }
+
   const testBody = isRerank
     ? {
         model: fullModelStr,
@@ -563,6 +575,10 @@ export async function runSingleModelTest(
             stream: !isEmbedding && streamChat,
             maxTokens: !isEmbedding && streamChat ? STREAMING_CHAT_TEST_MAX_TOKENS : undefined,
           });
+
+  if (options.prompt !== undefined && "messages" in testBody) {
+    testBody.messages = [{ role: "user", content: options.prompt }];
+  }
 
   // Per-model AbortController. We track whether the timeout fired so we can
   // distinguish "rate-limit queue aborted" (withRateLimit threw AbortError

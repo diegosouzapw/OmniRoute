@@ -10,6 +10,9 @@ lastUpdated: 2026-10-05
 
 Core reference for the OmniRoute API. It covers the public `/v1` surface and the most-used management endpoints; the machine-readable [`docs/openapi.yaml`](../openapi.yaml) and the route tree under `src/app/api/` are the exhaustive sources.
 
+For the focused OpenAI-compatible protocol and provider capability matrix, see
+[`OPENAI_COMPATIBILITY.md`](./OPENAI_COMPATIBILITY.md).
+
 ---
 
 ## Table of Contents
@@ -274,6 +277,12 @@ Provider translation (canonical items are never forwarded unchanged):
   top-level item.
 - Gemini Embedding 2 family: one top-level array becomes a single native
   `models/{model}:embedContent` request with `content.parts` (`text` or `inline_data`).
+- llama.cpp (`llama-cpp/<model>`, any model the local server loaded): canonical `text` items
+  become plain strings, and `image` / `audio` / `video` become one
+  `{"content": [part]}` object each, using llama-server's chat content parts (`image_url`,
+  `input_audio` with format `wav` / `mp3` / `flac`, `input_video`) with inline data; one vector
+  per top-level item. The server must run with `--embedding --mmproj …`; without a projector it
+  rejects media itself. `document` is not supported.
 - Unknown/dynamic models without explicit modality metadata reject structured input with HTTP 400.
 
 ```json
@@ -533,7 +542,10 @@ POST /v1/music/generations  { "model": "kie/suno-v4.0",   "prompt": "..." }
 
 > **Rerank provider nodes:** `POST /v1/rerank` also routes to OpenAI-compatible provider nodes
 > (oMLX, vLLM, Infinity, TEI behind a gateway, …) addressed as `<node-prefix>/<model>`. Loopback
-> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible. Nodes on any other
+> nodes (`localhost`, `127.0.0.1`, `172.16.0.0/12`) are always eligible, and so are hostnames the
+> operator lists in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (e.g. a Docker/Compose service name such
+> as `http://reranker:8080/v1`; these are called directly, never through `HTTP(S)_PROXY` or a
+> connection's pinned proxy). Nodes on any other
 > host — a LAN box or Tailscale peer — are eligible only when the operator enables the
 > `RERANK_REMOTE_PROVIDER_NODES` feature flag **and** the node's base URL passes the provider
 > outbound URL policy (`OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS` / `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`).
@@ -864,18 +876,25 @@ ordinary inference API keys. Credential families, scopes, and curl examples:
 
 ### Provider Management
 
-| Endpoint                                | Method                | Description                                                                                                                                               |
-| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | List / create providers                                                                                                                                   |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Manage a provider                                                                                                                                         |
-| `/api/providers/[id]/test`              | POST                  | Test provider connection                                                                                                                                  |
-| `/api/providers/[id]/models`            | GET                   | List provider models                                                                                                                                      |
-| `/api/providers/validate`               | POST                  | Validate provider config                                                                                                                                  |
-| `/api/providers/bulk`                   | POST                  | Bulk-add API keys for ONE provider                                                                                                                        |
-| `/api/providers/import`                 | POST                  | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
-| `/api/provider-nodes*`                  | Various               | Provider node management                                                                                                                                  |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Custom models (add, update, hide/show, delete)                                                                                                            |
-| `/api/provider-models/validate-and-add` | POST                  | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+| Endpoint                                | Method                    | Description                                                                                                                                               |
+| --------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | List / create providers                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Manage a provider                                                                                                                                         |
+| `/api/providers/[id]/test`              | POST                      | Test provider connection                                                                                                                                  |
+| `/api/providers/[id]/models`            | GET                       | List provider models                                                                                                                                      |
+| `/api/providers/validate`               | POST                      | Validate provider config                                                                                                                                  |
+| `/api/providers/bulk`                   | POST                      | Bulk-add API keys for ONE provider                                                                                                                        |
+| `/api/providers/import`                 | POST                      | Import a heterogeneous provider LIST from a parsed CSV/JSON file (#6836); per-row partial-failure results                                                 |
+| `/api/provider-nodes*`                  | Various                   | Provider node management                                                                                                                                  |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Custom models and per-model overrides (add, update, hide/show, delete)                                                                                    |
+| `/api/provider-models/validate-and-add` | POST                      | Management-authenticated, opt-in strict-connection validation and atomic custom-model registration; see [Model validation](../guides/MODEL-VALIDATION.md) |
+
+For synced/imported models, `PUT /api/provider-models` accepts `provider`, `modelId`, and
+`maxOutputTokenOverride`: a positive integer sets the manual output-token cap, and `null`
+clears it to restore the default. `GET /api/provider-models?provider=<provider>` returns these
+values in `modelOutputOverrides`, including models without a custom-model row. The override
+uses the runtime `max_output_tokens` capability and survives a model re-sync. The OpenAI-compatible
+provider page offers the same edit/clear controls and marks models with explicit vision support.
 
 Custom Chat Completions nodes adapt explicit reasoning opt-outs to the upstream backend. A
 successful connection test automatically selects chat-template controls for each exact model ID
@@ -1073,13 +1092,15 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 
 ### Internal / System APIs
 
-| Endpoint                 | Method | Description                                          |
-| ------------------------ | ------ | ---------------------------------------------------- |
-| `/api/init`              | GET    | Application initialization check (used on first run) |
-| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`           | POST   | Trigger graceful server restart                      |
-| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
-| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| Endpoint                 | Method | Description                                            |
+| ------------------------ | ------ | ------------------------------------------------------ |
+| `/api/init`              | GET    | Application initialization check (used on first run)   |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)      |
+| `/api/restart`           | POST   | Trigger graceful server restart                        |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                       |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables            |
+| `/api/system/version`    | GET    | Current/latest version, update status, release channel |
+| `/api/system/version`    | POST   | Start a deployment-aware update to the latest version  |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
 
@@ -1103,6 +1124,43 @@ Repairs missing or corrupted OAuth environment variables for a specific provider
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Version and Release Channel
+
+```bash
+GET /api/system/version
+```
+
+Loopback-only management route (admin auth). Returns the running version, the latest
+published version and the auto-update status. `releaseChannel` and `channels` are additive
+fields (rail 3.8.54); `channel` keeps its meaning — the deployment mode the dashboard updater
+uses (`npm`, `source` or `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — npm channel of the running build: `nightly` for `-nightly.*` versions,
+  `next` for other pre-releases (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` for a stable version of an
+  older major than `channels.latest`, otherwise `latest`. Same rules as
+  `scripts/release/dist-tag.mjs`, which picks the npm dist-tag at publish time.
+- `channels` — published head of each dist-tag, from `npm view omniroute dist-tags` (registry
+  HTTP fallback), cached with the same 10-minute TTL as `latest`. `latest` is always present
+  (falls back to the `latest` field, then `"unavailable"`); `next`, `nightly` and `lts` appear
+  only when that dist-tag exists. A `Cache-Control: no-cache` request refreshes both lookups.
+
+The channel model (`latest` = v3 until the 4.0 GA, `next` = rc, `nightly` = `develop` builds,
+`lts` = v3 patches after the 4.0 GA) is described in `docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

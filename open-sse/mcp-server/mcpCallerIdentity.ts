@@ -19,10 +19,22 @@
  * → the anonymous (`__anon__`) bucket, which only matches unauthenticated stores.
  */
 import { getMcpHttpAuthHeadersForInternalFetch } from "./httpAuthContext.ts";
-import { extractApiKey } from "../../src/sse/services/auth.ts";
-import { getApiKeyMetadata } from "../../src/lib/db/apiKeys.ts";
 
 type ApiKeyLookup = (rawKey: string) => Promise<{ id?: string | number | null } | null>;
+
+/**
+ * Load the API-key lookup only after a key is present. Importing the database
+ * module eagerly makes every unauthenticated MCP tool import initialize the
+ * full SQLite migration stack, even though there is no principal to resolve.
+ * That is both unnecessary at runtime and makes parallel test workers contend
+ * on a temporary database before the audit test can reach its mock seam.
+ */
+async function lookupApiKeyMetadata(
+  rawKey: string
+): Promise<{ id?: string | number | null } | null> {
+  const { getApiKeyMetadata } = await import("../../src/lib/db/apiKeys.ts");
+  return getApiKeyMetadata(rawKey);
+}
 
 /**
  * Pure resolver: given the request auth headers and a key→metadata lookup, return
@@ -31,10 +43,11 @@ type ApiKeyLookup = (rawKey: string) => Promise<{ id?: string | number | null } 
  */
 export async function resolvePrincipalFromHeaders(
   headers: Record<string, string>,
-  lookup: ApiKeyLookup = getApiKeyMetadata
+  lookup: ApiKeyLookup = lookupApiKeyMetadata
 ): Promise<string | undefined> {
   // Nothing to resolve without an Authorization / x-api-key header.
   if (!headers.Authorization && !headers["x-api-key"]) return undefined;
+  const { extractApiKey } = await import("../../src/sse/services/auth.ts");
   const rawKey = extractApiKey({ headers: new Headers(headers) }, { allowUrl: false });
   if (!rawKey) return undefined;
   try {
@@ -80,7 +93,7 @@ async function resolvePrincipalFromEnv(): Promise<string | undefined> {
   const rawKey = process.env.OMNIROUTE_API_KEY || process.env.ROUTER_API_KEY;
   if (!rawKey) return undefined;
   try {
-    const meta = await getApiKeyMetadata(rawKey);
+    const meta = await lookupApiKeyMetadata(rawKey);
     return meta?.id != null && meta.id !== "" ? String(meta.id) : undefined;
   } catch {
     return undefined;

@@ -1,14 +1,16 @@
 /**
- * Best-effort `call_logs` row for an admission rejection (413/503/499).
+ * Best-effort `call_logs` row for a rejected request returned before dispatch.
  *
- * Admission rejections return before dispatch, so without this call they leave
- * no server-side trace. The rejection response is returned untouched — the
- * reason is read from a `clone()` and every failure is swallowed, so logging
- * can never turn a rejection into a second failure. Fire-and-forget on
- * purpose: awaiting disk I/O here would hold the admission decision path.
+ * Admission rejections (413/503/499) and handler rejections decided before
+ * dispatch (validation, key policy, guardrails, hooks) return without a trace
+ * unless logged. The rejection response is returned untouched — the reason is
+ * read from a `clone()` and every failure is swallowed, so logging can never
+ * turn a rejection into a second failure. Fire-and-forget on purpose:
+ * awaiting disk I/O here would hold the rejection path.
  */
 import { saveCallLog } from "@/lib/usageDb";
 import { cloneLogPayload } from "@/lib/logPayloads";
+import { redactVideoTranscriptFieldsForLog } from "@/lib/guardrails/videoBridgeSnapshotRedaction";
 
 export interface AdmissionRejectionLogEntry {
   path: string;
@@ -46,11 +48,19 @@ export async function logAdmissionRejection(
       provider: "-",
       duration: 0,
       error: admissionError,
-      requestBody: cloneLogPayload(entry.requestBody) ?? null,
+      requestBody: cloneLogPayload(redactVideoTranscriptFieldsForLog(entry.requestBody)) ?? null,
       apiKeyId: entry.apiKeyId,
       apiKeyName: entry.apiKeyName,
       correlationId: entry.correlationId,
       sessionTag: null,
     });
   } catch {}
+}
+
+export function logHandlerRejection(
+  rejection: Response,
+  entry: AdmissionRejectionLogEntry
+): Response {
+  void logAdmissionRejection(rejection, entry);
+  return rejection;
 }

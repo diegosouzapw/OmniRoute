@@ -17,6 +17,7 @@ import type {
   ProviderExecutionOutcome,
   ProviderExecutionPolicy,
 } from "./providerExecutionPipeline.ts";
+import { bufferedResponsesFailure } from "./bufferedResponsesFailure.ts";
 import { translateNonStreamingClientResponse } from "./nonStreamingClientTranslate.ts";
 import { parseNonStreamingResponseBody, isJsonRecord } from "./nonStreamingResponseParse.ts";
 import { restoreNonStreamingToolNames } from "./passthroughToolNames.ts";
@@ -45,6 +46,7 @@ export interface ChatCoreExecutorResult {
   headers: Record<string, string>;
   transformedBody: unknown;
   transport?: string;
+  upstreamDiagnostic?: Record<string, unknown>;
   _executionCredentials?: Record<string, unknown>;
   _accountSemaphoreRelease?: () => void;
 }
@@ -262,6 +264,8 @@ function finishOk(
     requestUrl?: string;
   }
 ): NonStreamingProviderLegResult {
+  const failed = bufferedResponsesFailure(input, params, { legError, extractUsage, buildReceipt });
+  if (failed) return failed;
   // F-02: restore + sanitize + translate is the only success tail.
   // Fallback/retry must not skip this with responseToolNameMap: null.
   const restoreClaudeNames = params.sourceFormat === "claude" && params.targetFormat === "claude";
@@ -455,6 +459,7 @@ export async function runNonStreamingProviderLeg(
             upstreamErrorBody: outcome.result.upstreamErrorBody,
             upstreamHeaders: outcome.result.upstreamHeaders ?? outcome.result.response?.headers,
           },
+          upstreamDiagnostic: outcome.upstreamDiagnostic,
           receipt,
           usage: outcome.providerUsage,
         };
@@ -464,6 +469,7 @@ export async function runNonStreamingProviderLeg(
         url: outcome.url,
         headers: outcome.headers,
         transformedBody: outcome.transformedBody,
+        upstreamDiagnostic: outcome.upstreamDiagnostic,
       };
     } else {
       executorResult = await input.executeProviderRequest(
@@ -783,6 +789,7 @@ export async function runNonStreamingProviderLeg(
     return {
       kind: "error",
       result: errorResult as ChatCoreErrorResult,
+      upstreamDiagnostic: executorResult.upstreamDiagnostic,
       receipt,
       usage,
     };

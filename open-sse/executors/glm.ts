@@ -34,6 +34,12 @@ import { FORMATS } from "../translator/formats.ts";
 import { createSSETransformStreamWithLogger } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
+import { applyFieldDowngradeRecovery } from "./base/fieldDowngradeRecovery.ts";
+import { readBodyReasoningEffort, writeBodyReasoningEffort } from "./base/reasoningEffort.ts";
+import {
+  clampToLearned,
+  getLearnedReasoningEffort,
+} from "../services/learnedReasoningEffortCaps.ts";
 import { STREAM_READINESS_TIMEOUT_MS } from "../config/constants.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 
@@ -438,13 +444,27 @@ export class GlmExecutor extends DefaultExecutor {
     applyConfiguredUserAgent(headers, credentials.providerSpecificData);
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 
-    const transformedBody = this.transformForTransport(
+    let transformedBody = this.transformForTransport(
       input.model,
       input.body,
       input.stream,
       credentials,
       transport
     );
+
+    // Reuse only observed OpenAI capabilities; leave unknown first attempts and
+    // Anthropic's translated thinking/effort contract untouched.
+    if (transport === "openai") {
+      const learnedEfforts = getLearnedReasoningEffort(this.provider, input.model);
+      const requestedEffort = readBodyReasoningEffort(transformedBody);
+      const learnedEffort =
+        learnedEfforts && requestedEffort
+          ? clampToLearned(requestedEffort.toLowerCase(), learnedEfforts)
+          : null;
+      if (learnedEffort) {
+        transformedBody = writeBodyReasoningEffort(transformedBody, learnedEffort);
+      }
+    }
 
     const fetchStartTimeoutMs = this.getTimeoutMs();
     const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
@@ -490,6 +510,19 @@ export class GlmExecutor extends DefaultExecutor {
         log: input.log,
       });
       response = recovery.response;
+      transformedBody = recovery.body;
+      response = await applyFieldDowngradeRecovery({
+        response,
+        url,
+        provider: this.provider,
+        model: input.model,
+        body: transformedBody,
+        fetchOptions: { method: "POST", headers, signal: combinedSignal || undefined },
+        fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+        serializeBody: (value) => JSON.stringify(value),
+        strippedFields: new Set<string>(),
+        log: input.log,
+      });
     }
 
     if (input.stream && response.ok) {

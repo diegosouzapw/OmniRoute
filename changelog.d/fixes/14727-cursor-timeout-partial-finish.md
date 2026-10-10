@@ -1,0 +1,1 @@
+- fix(cursor): finish a Cursor stream that hits the 5-minute safety timeout after partial output with finish_reason "length" + [DONE] instead of dropping the response mid-answer (#14727)

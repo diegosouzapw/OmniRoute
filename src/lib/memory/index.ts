@@ -19,6 +19,7 @@ export * from "./genericBackend";
 // Auto-register SQLiteBackend with MemoryManager on import (sync only)
 import { memoryManager } from "./manager";
 import { sqliteBackend } from "./sqliteBackend";
+import { createClaudeMemBackendFromSettings } from "./claudeMemBackend";
 
 memoryManager.register(sqliteBackend);
 
@@ -27,6 +28,12 @@ export { sqliteBackend } from "./sqliteBackend";
 export { createGenericMemoryBackend, createKnownBackend } from "./genericBackend";
 export type { GenericBackendConfig, KnownBackendId } from "./genericBackend";
 export { KNOWN_BACKENDS } from "./genericBackend";
+export {
+  ClaudeMemBackend,
+  CLAUDE_MEM_BACKEND_ID,
+  createClaudeMemBackendFromSettings,
+} from "./claudeMemBackend";
+export type { ClaudeMemBackendConfig } from "./claudeMemBackend";
 
 /**
  * Initialize memory backends from settings.
@@ -36,6 +43,10 @@ export async function initMemoryBackends(): Promise<void> {
   const { getMemorySettings } = await import("./settings");
   try {
     const settings = await getMemorySettings();
+    // Optional backends are opt-in via `backendConfigs[<id>]`; register before configure()
+    // so they can be selected as primary or fallback.
+    const claudeMem = createClaudeMemBackendFromSettings(settings.backendConfigs);
+    if (claudeMem) memoryManager.register(claudeMem);
     memoryManager.configure(settings.primaryBackend, settings.fallbackBackends);
     await memoryManager.initialize();
   } catch (e) {

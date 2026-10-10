@@ -304,12 +304,14 @@ clone) `check-openapi-breaking`ን በመከተል፣ `SKIP reason=base-unresolv
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — የአንድ ጊዜ
   ማላላት (`scripts/quality/relax-baselines.mjs`)፤ በተመሳሳይ ማስታወሻ ሁለት ጊዜ መሄድን አይፈቅድም።
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  CI በሚለካበት መንገድ እያንዳንዱን ቁጥራዊ በር ይለካል እና ለእያንዳንዱ በር የቀረውን ክፍተት
-  ያትማል (`scripts/quality/baseline-headroom.mjs`)። የሌሊቱ `baseline-headroom` ሥራ ሰንጠረዡን
-  በቀጣይነት በሚዘመነው **📈 የመነሻ መስፈርት ክፍተት (የፍጥነት ምዕራፍ)** ጉዳይ ላይ ይለጥፋል፣ እና ማንኛውም በር
-  ከገደቡ በ10% ውስጥ ከሆነ ወይም ገደቡን ካለፈ `headroom-alert` መለያን ያክላል። ይህ ጉዳይ
-  የቅድሚያ ማስጠንቀቂያ ነው፦ በቀናት ውስጥ የሚሞላ በጀት ማለት ማላላቱን እየተጠቀመ ያለው
-  መላው ቡድን ሳይሆን ጥቂት PRs ናቸው — የችግሩን በር `_rebaseline_*` ማስታወሻዎች ይመልከቱ።
+  እያንዳንዱን የቁጥር ጥራት መፈተሻ CI በሚጠቀምበት መንገድ ይለካል፣ ለእያንዳንዱም የቀረውን ልዩነት ያሳያል
+  (`scripts/quality/baseline-headroom.mjs`)። በየሌሊቱ የሚሠራው `baseline-headroom` ተግባር ሰንጠረዡን
+  በሥራ ፍሰቱ አፈጻጸም ማጠቃለያ ያትማል፣ የJSON/Markdown ሪፖርቱንም
+  `baseline-headroom-<run_id>` በሚል ስም ይሰቅላል፤ ሪፖርቱ ለ90 ቀናት ይቀመጣል። የማስጠንቀቂያና ወሳኝ ረድፎች
+  እስከ ከፍተኛ ወሰናቸው 10% ወይም ከዚያ ያነሰ የቀራቸውን፣ ወይም ወሰኑን ያለፉ መፈተሻዎችን ያመለክታሉ።
+  የተመደበው በጀት እየተጠቀመ መሆኑን አስቀድሞ ለማወቅ እነዚህን ሪፖርቶች ይገምግሙ፤ የተጠቀሰውን መፈተሻ
+  `_rebaseline_*` ማስታወሻዎች ያንብቡ። ተግባሩ ከእንግዲህ ቋሚ የጉዳይ መዝገብ አይፈጥርም ወይም አያዘምንም፤
+  #12149 የቀደሙ ሪፖርቶችን ታሪክ ይጠብቃል።
 
 **የአዲስ ኮድ ሁነታ (በምትጽፉበት ጊዜ ያጽዱ) — ከ2026-08-30 ጀምሮ፣ ለPR ፈጣን መንገድ ብቻ**
 

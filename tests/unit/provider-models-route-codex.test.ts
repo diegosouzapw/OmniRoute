@@ -176,10 +176,12 @@ test("provider models route merges live Codex models with the local catalog then
     },
   ]);
   assert.ok(modelIds.has("gpt-5.6-sol"));
-  assert.ok(modelIds.has("gpt-5.6-sol-ultra"));
-  assert.ok(modelIds.has("gpt-5.6-sol-max"));
-  // Live payload wins on overlapping fields; local catalog supplies local-only
-  // variants. EXCEPTION: capacity limits (inputTokenLimit/outputTokenLimit)
+  // The live inventory is authoritative: static effort aliases the account does
+  // not advertise are no longer appended to it.
+  assert.equal(modelIds.has("gpt-5.6-sol-ultra"), false);
+  assert.equal(modelIds.has("gpt-5.6-sol-max"), false);
+  // Live payload wins on overlapping fields; the local catalog only enriches
+  // ids the live payload already lists. EXCEPTION: capacity limits (inputTokenLimit/outputTokenLimit)
   // merge conservatively — the smaller of live vs. pinned wins, never the
   // larger, so a stale/inflated live number can never make OmniRoute promise
   // more context than the account can actually serve (#7012). Here the pinned
@@ -193,13 +195,13 @@ test("provider models route merges live Codex models with the local catalog then
   assert.deepEqual(liveModel?.supportedEndpoints, ["responses"]);
   assert.equal(liveModel?.supportsThinking, true);
   assert.equal(liveModel?.supportsVision, true);
-  assert.ok(modelIds.has("gpt-5.5-low"));
+  assert.equal(modelIds.has("gpt-5.5-low"), false);
   assert.equal(
     [...modelIds].some((id) => String(id).startsWith("gpt-5.4")),
     false
   );
   assert.ok(syncedIds.has("gpt-5.6-sol"));
-  assert.ok(syncedIds.has("gpt-5.5-low"));
+  assert.equal(syncedIds.has("gpt-5.5-low"), false);
   assert.equal(
     [...syncedIds].some((id) => String(id).startsWith("gpt-5.4")),
     false
@@ -290,7 +292,8 @@ test("provider models route uses the GitHub Codex catalog when live discovery fa
   assert.ok(seenUrls.some((url) => url.includes("backend-api/codex/models")));
   assert.ok(seenUrls.some((url) => url.includes("raw.githubusercontent.com/openai/codex")));
   assert.ok(modelIds.has("gpt-5.6-sol"));
-  assert.ok(modelIds.has("gpt-5.5-low"));
+  // GitHub manifest ids only: static effort aliases are not appended to it.
+  assert.equal(modelIds.has("gpt-5.5-low"), false);
   assert.equal(
     [...modelIds].some((id) => String(id).startsWith("gpt-5.4")),
     false
@@ -330,14 +333,16 @@ test("provider models route returns cached Codex models when refresh discovery f
   assert.equal(body.discoveredCandidateCount, undefined);
   const modelIds = new Set((body.models || []).map((model) => model.id));
   assert.ok(modelIds.has("gpt-5.6-sol"));
-  assert.ok(modelIds.has("gpt-5.6-sol-ultra"));
+  // The account's cached inventory is authoritative: no static effort aliases.
+  assert.equal(modelIds.has("gpt-5.6-sol-ultra"), false);
   assert.equal(
     [...modelIds].some((id) => String(id).startsWith("gpt-5.4")),
     false
   );
   const syncedModels = await modelsDb.getSyncedAvailableModelsForConnection("codex", connection.id);
   const syncedIds = new Set(syncedModels.map((model) => model.id));
-  assert.ok(syncedIds.has("gpt-5.6-sol-ultra"));
+  assert.ok(syncedIds.has("gpt-5.6-sol"));
+  assert.equal(syncedIds.has("gpt-5.6-sol-ultra"), false);
   assert.equal(syncedIds.has("gpt-5.4"), false);
 });
 

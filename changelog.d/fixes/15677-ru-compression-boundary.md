@@ -1,0 +1,1 @@
+- fix(compression): use Unicode-aware word boundaries in Russian rule packs and language detector so Cyrillic rules actually match (#15677)

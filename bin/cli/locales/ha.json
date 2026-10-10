@@ -254,6 +254,7 @@
     "log": "Nuna rajistan ayyukan uwar garke a nan take",
     "no_recovery": "Kashe sake farawa ta atomatik idan ya rushe (yanayin debugging)",
     "max_restarts": "Matsakaicin sake farawa bayan rushewa cikin daƙiƙa 30 kafin a haƙura (tsoho: 2)",
+    "headless": "Gudanar da injin proxy kawai: an kashe dashboard (404), an tsallake ƙananan tsarin zaɓi (yana saita OMNIROUTE_HEADLESS=1)",
     "tray": "Fara a tiren tsarin (na kwamfutar tebur kawai, sai an zaɓa)",
     "no_tray": "Kashe gunkin tiren tsarin",
     "ready_timeout": "Lokacin ƙarewar gwajin shiri a ms (har ila yau OMNIROUTE_READY_TIMEOUT_MS, tsoho 60000)",

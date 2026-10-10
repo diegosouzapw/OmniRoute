@@ -29,6 +29,8 @@ import { grokCli } from "./grok-cli";
 import { xaiOauth } from "./xai-oauth";
 import { openference } from "./openference";
 import { codebuddyCn } from "./codebuddy-cn";
+import { codebuddyIntl } from "./codebuddy-intl";
+import { workbuddy } from "./workbuddy";
 import { zed } from "./zed";
 import { zedHosted } from "./zed-hosted";
 import { museCode } from "./muse-code";
@@ -62,6 +64,12 @@ export const PROVIDERS = {
   "xai-oauth": xaiOauth,
   openference,
   "codebuddy-cn": codebuddyCn,
+  "codebuddy-intl": codebuddyIntl,
+  // WorkBuddy is a separate Tencent product from CodeBuddy CN (own host, own
+  // account system, own catalog). It shares the plugin-auth protocol shape, so
+  // it deliberately gets its OWN module rather than aliasing codebuddyCn —
+  // aliasing would point the state request at copilot.tencent.com.
+  workbuddy,
   // Zed IDE credential bridge — uses keychain import, not standard OAuth
   zed,
   "zed-hosted": zedHosted,

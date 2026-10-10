@@ -8,6 +8,7 @@ import AutoDisableCard from "./AutoDisableCard";
 import ModelLockoutCard from "./ModelLockoutCard";
 import TokenRefreshBreakerCard, { type TokenRefreshBreakerValue } from "./TokenRefreshBreakerCard";
 import { NumberField, BooleanField } from "./ResilienceFields";
+import { throwIfResilienceSaveFailed } from "./resilienceSaveError";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -1181,9 +1182,7 @@ export default function ResilienceTab() {
         body: JSON.stringify(payload),
       });
       const json = await response.json();
-      if (!response.ok) {
-        throw new Error(json?.error?.message || json?.error || `HTTP ${response.status}`);
-      }
+      /* prettier-ignore */ throwIfResilienceSaveFailed(response.ok, json, tx("saveFailed", "Failed to save resilience settings"));
       setData(toResilienceResponse(json));
       notify.success(tx("savedSuccessfully", "Resilience settings updated."));
     } catch (error) {

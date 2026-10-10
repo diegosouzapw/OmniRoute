@@ -1,0 +1,1 @@
+- **fix(gemini):** send Gemini 3.8 `thinkingLevel` instead of a numeric `thinkingBudget`, and omit `includeThoughts` unless the client asked, so hidden thoughts stop eating `maxOutputTokens`

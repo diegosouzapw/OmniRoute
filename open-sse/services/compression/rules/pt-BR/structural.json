@@ -13,57 +13,63 @@
     },
     {
       "name": "pt_connectors",
-      "pattern": "\\b(?:alem disso|além disso|adicionalmente|outrossim|não obstante|por outro lado)\\b[,]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:alem disso|além disso|adicionalmente|outrossim|não obstante|por outro lado)(?![\\p{L}\\p{N}_])[,]?\\s*",
       "replacement": "também ",
       "context": "all",
       "category": "structural",
       "minIntensity": "lite",
-      "description": "Verbose additive connectors"
+      "description": "Verbose additive connectors",
+      "flags": "giu"
     },
     {
       "name": "pt_emphasis",
-      "pattern": "\\b(?:muito|realmente|extremamente|bastante|totalmente|completamente|absolutamente)\\s+(?=[a-záéíóúâêôãõç])",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:muito|realmente|extremamente|bastante|totalmente|completamente|absolutamente)\\s+(?=[a-záéíóúâêôãõç])",
       "replacement": "",
       "context": "all",
       "category": "structural",
       "minIntensity": "lite",
-      "description": "Intensity adverbs before adjectives — rarely add precision"
+      "description": "Intensity adverbs before adjectives — rarely add precision",
+      "flags": "giu"
     },
     {
       "name": "pt_passive_voice",
-      "pattern": "\\b(?:é necessário que|é preciso que|é importante que|é fundamental que|é essencial que)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:é necessário que|é preciso que|é importante que|é fundamental que|é essencial que)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Deve ",
       "context": "all",
       "category": "structural",
       "minIntensity": "full",
-      "description": "Impersonal passive constructions → direct imperative"
+      "description": "Impersonal passive constructions → direct imperative",
+      "flags": "giu"
     },
     {
       "name": "pt_causality_verbose",
-      "pattern": "\\b(?:isso acontece porque|isso ocorre porque|isso se deve ao fato de que|a causa disso é que)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:isso acontece porque|isso ocorre porque|isso se deve ao fato de que|a causa disso é que)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Causa: ",
       "context": "assistant",
       "category": "structural",
       "minIntensity": "full",
-      "description": "Verbose causality explanation → diagnostic label"
+      "description": "Verbose causality explanation → diagnostic label",
+      "flags": "giu"
     },
     {
       "name": "pt_consequence",
-      "pattern": "\\b(?:como consequência|como resultado|por conta disso|em decorrência disso|por causa disso)\\b[,]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:como consequência|como resultado|por conta disso|em decorrência disso|por causa disso)(?![\\p{L}\\p{N}_])[,]?\\s*",
       "replacement": "→ ",
       "context": "all",
       "category": "structural",
       "minIntensity": "full",
-      "description": "Consequence connectors → arrow notation (troglodita style)"
+      "description": "Consequence connectors → arrow notation (troglodita style)",
+      "flags": "giu"
     },
     {
       "name": "pt_comparison_verbose",
-      "pattern": "\\b(?:em comparação com|quando comparado com|se compararmos com|diferente de)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:em comparação com|quando comparado com|se compararmos com|diferente de)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "vs ",
       "context": "all",
       "category": "structural",
       "minIntensity": "full",
-      "description": "Verbose comparisons → compact 'vs'"
+      "description": "Verbose comparisons → compact 'vs'",
+      "flags": "giu"
     },
     {
       "name": "pt_conclusion",

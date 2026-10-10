@@ -24,6 +24,17 @@ import {
 export const DEFAULT_PRICING_FRONTIER = {
   openai: {
     "gpt-6-astra": GPT_6_ASTRA_PRICING,
+    // Sol/Luna mirror the dollar-equivalent Codex Standard rates already used for the
+    // codex provider (oauth-subscriptions.ts) until OpenAI publishes distinct API rates;
+    // without these rows the openai registry entries resolved to $0 (catalog pricing gate).
+    "gpt-6-sol": { input: 2.0, output: 10.0, cached: 0.2, reasoning: 10.0, cache_creation: 2.5 },
+    "gpt-6-luna": {
+      input: 0.1,
+      output: 0.5,
+      cached: 0.01,
+      reasoning: 0.5,
+      cache_creation: 0.125,
+    },
     "gpt-6.1-sol": GPT_6_SOL_PRICING,
     "gpt-5.6": GPT_5_6_SOL_PRICING,
     "gpt-5.6-sol": GPT_5_6_SOL_PRICING,

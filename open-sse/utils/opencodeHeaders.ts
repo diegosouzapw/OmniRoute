@@ -167,6 +167,10 @@ function findHeader(headers: Record<string, string>, name: string): string | und
  * @param options.keepAgentUserAgent - OpenCode Go (#15311): keep a client User-Agent that
  *   names the agent itself, as Go's client requirements ask. A generic SDK / HTTP-library
  *   UA is still replaced, and a missing one is still filled.
+ * @param options.forwardUserAgent - Set to false (DefaultExecutor, #15632) to NOT copy the
+ *   caller's User-Agent onto the upstream request: a library UA such as Python-urllib is
+ *   blocked by Cloudflare-fronted providers (Groq) and would override the provider/env/
+ *   connection User-Agent. Defaults to true.
  * @param options.sessionBody - Request body fields used to generate a
  *   conversation-stable session fingerprint (model, system, messages or input, tools).
  *   When provided, x-opencode-session is a deterministic hash instead of a random
@@ -180,11 +184,12 @@ export function forwardOpencodeClientHeaders(
     cliDefaults?: { userAgent: string; client: string; project: string };
     keepAgentUserAgent?: boolean;
     sessionBody?: OpencodeSessionBody;
+    forwardUserAgent?: boolean;
   }
 ): void {
-  // 1. Forward User-Agent
+  // 1. Forward User-Agent (opt-out for generic providers, #15632)
   const clientUA = clientHeaders["User-Agent"] || clientHeaders["user-agent"];
-  if (clientUA) {
+  if (clientUA && options?.forwardUserAgent !== false) {
     setUserAgentHeader(headers, clientUA);
   }
 

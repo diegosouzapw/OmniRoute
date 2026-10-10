@@ -254,6 +254,7 @@
     "log": "Serverlogboeken inline weergeven",
     "no_recovery": "Automatisch opnieuw starten na crash uitschakelen (foutopsporingsmodus)",
     "max_restarts": "Maximaal aantal herstarts na crashes binnen 30 s voordat wordt opgegeven (standaard: 2)",
+    "headless": "Alleen de proxy-engine uitvoeren: dashboard uitgeschakeld (404), optionele subsystemen overgeslagen (stelt OMNIROUTE_HEADLESS=1 in)",
     "tray": "Starten in het systeemvak (alleen desktop, optioneel)",
     "no_tray": "Systeemvakpictogram uitschakelen",
     "ready_timeout": "Time-out voor gereedheidscontrole in ms (ook OMNIROUTE_READY_TIMEOUT_MS, standaard 60000)",

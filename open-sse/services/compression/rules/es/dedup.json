@@ -4,35 +4,39 @@
   "rules": [
     {
       "name": "es_repeated_context",
-      "pattern": "\\b(?:como mencionamos antes|como se menciono antes|como se mencionó antes|como dije antes|como comentamos anteriormente)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:como mencionamos antes|como se menciono antes|como se mencionó antes|como dije antes|como comentamos anteriormente)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "Ver arriba. ",
       "context": "all",
       "category": "dedup",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_repeated_question",
-      "pattern": "\\b(?:misma pregunta que antes|pregunte esto antes|pregunté esto antes|esta es la misma pregunta|es la misma pregunta)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:misma pregunta que antes|pregunte esto antes|pregunté esto antes|esta es la misma pregunta|es la misma pregunta)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "[misma pregunta] ",
       "context": "user",
       "category": "dedup",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_reestablished_context",
-      "pattern": "\\b(?:volviendo al codigo anterior|volviendo al código anterior|refiriendome a|refiriéndome a|retomando)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:volviendo al codigo anterior|volviendo al código anterior|refiriendome a|refiriéndome a|retomando)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Re: ",
       "context": "all",
       "category": "dedup",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_summary_replacement",
-      "pattern": "\\b(?:para resumir lo que hemos hablado|en resumen de nuestra conversacion|en resumen de nuestra conversación|recapitulando)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:para resumir lo que hemos hablado|en resumen de nuestra conversacion|en resumen de nuestra conversación|recapitulando)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "Resumen: ",
       "context": "assistant",
       "category": "dedup",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

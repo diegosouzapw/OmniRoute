@@ -5,6 +5,7 @@ import {
   isCodexSparkLimitDescriptor,
 } from "../config/codexQuotaScopes.ts";
 import { inferWindowFamilyLabel } from "./quotaWindowLabel.ts";
+import { parseCodexPaidCredits, type CodexPaidCredits } from "@/lib/providers/codexPaidCredits";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -263,6 +264,7 @@ function parseRateLimitReachedType(data: JsonRecord): string | undefined {
 }
 
 export function buildCodexUsageQuotas(dataValue: unknown): {
+  paidCredits?: CodexPaidCredits;
   rateLimit: JsonRecord;
   quotas: Record<string, CodexUsageQuota>;
   /** Banked reset credits available on the account (undefined when absent/not eligible). */
@@ -271,6 +273,7 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
   rateLimitReachedType?: string;
 } {
   const data = toRecord(dataValue);
+  const paidCredits = parseCodexPaidCredits(data.credits);
   const rateLimit = toRecord(getFieldValue(data, "rate_limit", "rateLimit"));
   const quotas: Record<string, CodexUsageQuota> = {};
   const bankedResetCredits = parseBankedResetCredits(data);
@@ -362,7 +365,31 @@ export function buildCodexUsageQuotas(dataValue: unknown): {
   return {
     rateLimit,
     quotas,
-    ...(bankedResetCredits !== undefined ? { bankedResetCredits } : {}),
-    ...(rateLimitReachedType !== undefined ? { rateLimitReachedType } : {}),
+    ...buildOptionalUsageFields({ bankedResetCredits, paidCredits, rateLimitReachedType }),
+  };
+}
+
+/**
+ * Merges the optional top-level fields of buildCodexUsageQuotas' return value,
+ * isolated so the presence-check ternaries don't count against the parent
+ * function's cyclomatic/cognitive complexity ratchet.
+ */
+function buildOptionalUsageFields(fields: {
+  bankedResetCredits: number | undefined;
+  paidCredits: CodexPaidCredits | undefined;
+  rateLimitReachedType: string | undefined;
+}): {
+  bankedResetCredits?: number;
+  paidCredits?: CodexPaidCredits;
+  rateLimitReachedType?: string;
+} {
+  return {
+    ...(fields.bankedResetCredits !== undefined
+      ? { bankedResetCredits: fields.bankedResetCredits }
+      : {}),
+    ...(fields.paidCredits ? { paidCredits: fields.paidCredits } : {}),
+    ...(fields.rateLimitReachedType !== undefined
+      ? { rateLimitReachedType: fields.rateLimitReachedType }
+      : {}),
   };
 }

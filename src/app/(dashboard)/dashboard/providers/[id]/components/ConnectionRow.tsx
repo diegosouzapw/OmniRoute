@@ -1,5 +1,7 @@
 "use client";
 
+import ConnectionTestButton from "@/shared/components/ConnectionTestButton";
+
 // Phase 1d extraction — Issue #3501
 // ConnectionRow (and its local helpers CooldownTimer, inferErrorType,
 // getStatusPresentation) moved out of ProviderDetailPageClient.tsx.
@@ -20,6 +22,12 @@ import { normalizeCodexLimitPolicy, providerText, ERROR_TYPE_LABELS } from "../p
 import { getCodexPlanLabel } from "../codexPlanLabel";
 import type { CodexAccountPoolProjection } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import CodexAccountDetails from "./CodexAccountDetails";
+import ConnectionQuotaPanel from "./ConnectionQuotaPanel";
+import type { ProviderQuotaCacheEntry } from "../hooks/useProviderQuota";
+import {
+  isProviderQuotaVisible,
+  supportsProviderQuota,
+} from "@/shared/utils/providerQuotaVisibility";
 import ProviderQuotaVisibilityToggle from "./ProviderQuotaVisibilityToggle";
 
 // ---------------------------------------------------------------------------
@@ -70,6 +78,7 @@ export interface ConnectionRowProps {
   onToggleRateLimit: (enabled?: boolean) => void;
   onToggleQuotaVisibility?: (visible: boolean) => void;
   onToggleClaudeExtraUsage?: (enabled?: boolean) => void;
+  onToggleCodexPaidCredits?: (enabled: boolean) => void;
   onToggleAutoSync?: (enabled: boolean) => void;
   onToggleCodex5h?: (enabled?: boolean) => void;
   onToggleCodexWeekly?: (enabled?: boolean) => void;
@@ -107,6 +116,10 @@ export interface ConnectionRowProps {
   isApplyingClaudeAuthLocal?: boolean;
   onExportClaudeAuthFile?: () => void;
   isExportingClaudeAuthFile?: boolean;
+  /** Latest cached usage/limits snapshot for this account (see useProviderQuota). */
+  quotaCache?: ProviderQuotaCacheEntry | null;
+  quotaRefreshing?: boolean;
+  onRefreshQuota?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -366,6 +379,7 @@ export default function ConnectionRow({
   onToggleRateLimit,
   onToggleQuotaVisibility,
   onToggleClaudeExtraUsage,
+  onToggleCodexPaidCredits,
   onToggleAutoSync,
   onToggleCodex5h,
   onToggleCodexWeekly,
@@ -394,6 +408,9 @@ export default function ConnectionRow({
   onTogglePerKeyProxyEnabled,
   proxyEnabled,
   onToggleProxyEnabled,
+  quotaCache,
+  quotaRefreshing,
+  onRefreshQuota,
 }: ConnectionRowProps) {
   const t = useTranslations("providers");
   const emailsVisible = useEmailPrivacyStore((s) => s.emailsVisible);
@@ -519,7 +536,24 @@ export default function ConnectionRow({
   const claudeBlockExtraUsageEnabled = isClaude
     ? isClaudeExtraUsageBlockEnabled("claude", connection.providerSpecificData)
     : false;
+  const codexPaidCreditsEnabled = connection.providerSpecificData?.allowPaidCredits === true;
   const codexPlanLabel = getCodexPlanLabel(!!isCodex, connection.providerSpecificData);
+  // Per-account quota strip — gated per connection (not per page) so family
+  // aliases and openai-compatible-* nodes with their own quotaEndpoint qualify.
+  const quotaPanelSupported =
+    supportsProviderQuota(String(connection.provider || ""), connection) &&
+    isProviderQuotaVisible(connection);
+  // Subscription/plan label from the usage cache (claude tier, antigravity
+  // tier, grok subscription, …). Codex keeps its dedicated badge above. The
+  // badge is quota-derived, so it disappears together with the quota strip
+  // when the connection opts out or the provider has no usage API.
+  const planLabel =
+    quotaPanelSupported &&
+    !codexPlanLabel &&
+    typeof quotaCache?.plan === "string" &&
+    quotaCache.plan.trim()
+      ? quotaCache.plan.trim()
+      : null;
   // #dario: this control is now a full mode selector (native/CLIProxyAPI/
   // Dario/fallback), not a binary toggle — cliproxyapiEnabled/
   // onToggleCliproxyapiMode are kept on the props interface for any other
@@ -571,6 +605,13 @@ export default function ConnectionRow({
               <Badge variant="primary" size="sm" className="capitalize">
                 {codexPlanLabel}
               </Badge>
+            )}
+            {planLabel && (
+              <span title={t("quotaPlanBadge")}>
+                <Badge variant="primary" size="sm" className="capitalize">
+                  {planLabel}
+                </Badge>
+              </span>
             )}
             {/* T12: Token expiry status indicator (state-driven, no Date.now in render) */}
             {/* #5836: the red "Token Expired" badge is TERMINAL-only — for OAuth
@@ -683,6 +724,25 @@ export default function ConnectionRow({
                   <span className="material-symbols-outlined text-[13px]">payments</span>
                   {t("claudeExtraUsageShort")}{" "}
                   {!claudeBlockExtraUsageEnabled ? t("toggleOnShort") : t("toggleOffShort")}
+                </button>
+              </>
+            )}
+            {isCodex && connection.provider === "codex" && onToggleCodexPaidCredits && (
+              <>
+                <span className="text-text-muted/30 select-none">|</span>
+                <button
+                  onClick={() => onToggleCodexPaidCredits(!codexPaidCreditsEnabled)}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
+                    codexPaidCreditsEnabled
+                      ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25"
+                      : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
+                  }`}
+                  title={t("codexPaidCreditsToggleTitle")}
+                  aria-pressed={codexPaidCreditsEnabled}
+                >
+                  <span className="material-symbols-outlined text-[13px]">payments</span>
+                  {t("codexPaidCreditsShort")}{" "}
+                  {codexPaidCreditsEnabled ? t("toggleOnShort") : t("toggleOffShort")}
                 </button>
               </>
             )}
@@ -851,6 +911,10 @@ export default function ConnectionRow({
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <ConnectionTestButton
+          connectionId={connection.id}
+          disabled={connection.isActive === false}
+        />
         <Button
           size="sm"
           variant="ghost"
@@ -975,6 +1039,15 @@ export default function ConnectionRow({
       </div>
       {isCodex && connection.codexAccountPool ? (
         <CodexAccountDetails pool={connection.codexAccountPool} />
+      ) : null}
+      {quotaPanelSupported ? (
+        <ConnectionQuotaPanel
+          providerId={String(connection.provider || "")}
+          connection={connection}
+          cache={quotaCache}
+          refreshing={quotaRefreshing}
+          onRefresh={onRefreshQuota}
+        />
       ) : null}
     </div>
   );

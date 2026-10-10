@@ -217,7 +217,12 @@ export function detectMalformedNonStream(
             Array.isArray(it.content) &&
             (it.content as unknown[]).some((c) => {
               const part = c as Record<string, unknown>;
-              return typeof part?.text === "string" && (part.text as string).length > 0;
+              return (
+                (typeof part?.text === "string" && part.text.length > 0) ||
+                (part?.type === "refusal" &&
+                  typeof part.refusal === "string" &&
+                  part.refusal.length > 0)
+              );
             })
           );
         }
@@ -331,6 +336,7 @@ export function detectMalformedNonStream(
     const c = choice as Record<string, unknown>;
     const msg = c?.message as Record<string, unknown> | undefined;
     if (typeof msg?.content === "string" && (msg.content as string).length > 0) return true;
+    if (typeof msg?.refusal === "string" && msg.refusal.length > 0) return true;
     // #5559: some OpenAI-compatible upstreams (e.g. Cline via OAuth) return
     // `message.content` as an array of Anthropic-style content blocks rather than
     // a plain string. An array with at least one non-empty text block is real
@@ -370,9 +376,15 @@ export function detectMalformedNonStream(
     // thinking model can burn a 1-token probe budget and return no visible
     // text. Rejecting the translated form reintroduces the 502 the exemption
     // removed. "stop" with no output stays empty_choices.
+    // #13560: tool_calls / content_filter are likewise terminal stops that
+    // isEmptyContentResponse already accepts, not silent fake-successes.
     const truncated = choices.some((choice) => {
       const c = choice as Record<string, unknown>;
-      return c?.finish_reason === "length";
+      return (
+        c?.finish_reason === "length" ||
+        c?.finish_reason === "tool_calls" ||
+        c?.finish_reason === "content_filter"
+      );
     });
     if (truncated) return null;
     return "empty_choices";

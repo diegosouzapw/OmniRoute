@@ -25,6 +25,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "antigravity",
   "agy",
   "claude",
+  "anthropic",
   "codex",
   "cursor",
   "kiro",
@@ -41,9 +42,12 @@ export const USAGE_FETCHER_PROVIDERS = [
   "minimax",
   "minimax-cn",
   "crof",
+  // ClinePass 5-hour / weekly / monthly limits (GET /api/v1/users/me/plan/usage-limits)
+  "clinepass",
   "bailian-coding-plan",
   "qwen-cloud-token-plan",
   "nanogpt",
+  "apmix",
   "deepseek",
   "moonshot",
   "kimi",
@@ -58,6 +62,8 @@ export const USAGE_FETCHER_PROVIDERS = [
   "vertex",
   "vertex-partner",
   "codebuddy-cn",
+  "codebuddy-intl",
+  "cbai",
   "openrouter",
   // LLM Gateway DevPass allowance (GET /v1/key → monthly + weekly premium)
   "llmgateway",
@@ -83,6 +89,10 @@ export const USAGE_FETCHER_PROVIDERS = [
   // Tavily monthly credits & quota (GET /usage)
   "tavily-search",
   "tavily",
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
@@ -90,11 +100,16 @@ export const USAGE_FETCHER_PROVIDERS = [
   "command-code",
   "conol-web",
   "cnl",
+  "syntx",
+  "stx",
   // AgentRouter (New-API) console balance (GET /api/user/self)
   "agentrouter",
   "kilocode",
   // Devin CLI agentic quota (Codeium seat-management GetUserStatus, protobuf)
   "devin-cli",
+  // ChatPlayground subscription and daily credits (GET /api/user)
+  "chatplayground",
+  "cpl",
 ] as const;
 
 export type UsageFetcherProvider = (typeof USAGE_FETCHER_PROVIDERS)[number];

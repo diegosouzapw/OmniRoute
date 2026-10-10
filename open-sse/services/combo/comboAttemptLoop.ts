@@ -62,6 +62,7 @@ import { collectCircuitOpenExclusions, evaluateExecuteTargetGates } from "./exec
 import { executeTargetAttempt } from "./executeTargetAttempt.ts";
 import { buildComboDiag } from "./executeTargetClassify.ts";
 import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./attemptLoopTypes.ts";
+import { getStrategyTraits } from "./strategyRegistry.ts";
 
 /** A second in-flight copy of a body larger than this sits in the TLS send buffer. */
 const HEDGE_MAX_BODY_BYTES = 256 * 1024;
@@ -276,7 +277,7 @@ export async function dispatchWithCooldownRetry(opts: {
       // and a slow upstream holds both copies for the whole headers wait.
       const bodySmallEnoughToHedge = isBodySmallEnoughToHedge(deps.body);
       const hasProtectedPriorityTarget =
-        deps.strategy === "priority" &&
+        getStrategyTraits(deps.strategy).honorsFallbackOnlyTargets &&
         state.orderedTargets.some((target) => target.fallbackOnlyOnQuotaExhaustion === true);
 
       const executeTarget = async (i: number): Promise<ExecuteTargetResult> => {
@@ -429,9 +430,9 @@ export async function dispatchWithCooldownRetry(opts: {
         );
       }
 
-      // #10681: finalize the decision trace (success).
+      // A resolved fatal response also sets anySuccess to stop dispatching.
+      // Record its actual HTTP status, not an unconditional success.
       finalizeComboTrace(deps.traceInvocationId, state.orderedTargets);
-      finishComboTrace(deps.traceInvocationId, { status: 200 });
       if (anySuccess) {
         // G1: clear the safety timer on the happy path so a successful combo does
         // not leave a 10-minute timer alive per request.
@@ -439,7 +440,9 @@ export async function dispatchWithCooldownRetry(opts: {
           clearTimeout(loopSafetyTimer);
           loopSafetyTimer = null;
         }
-        return await globalPromise;
+        const response = await globalPromise;
+        finishComboTrace(deps.traceInvocationId, { status: response.status });
+        return response;
       }
 
       // #10681: finalize the decision trace (global timeout).

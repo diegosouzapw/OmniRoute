@@ -145,6 +145,99 @@ test("#9597: Responses input/input_image is described before combo vision filter
   );
 });
 
+test("reroute mode preserves a nested function_call_output image and targets Responses-native vision", async () => {
+  let visionCallCount = 0;
+  const targetModel = "codex/gpt-5.6-sol-medium";
+
+  const guardrail = new VisionBridgeGuardrail({
+    deps: {
+      getSettings: async () => ({
+        modalityBridgeVisionEnabled: true,
+        modalityBridgeVisionMode: "reroute",
+        modalityBridgeVisionModel: targetModel,
+        modalityBridgeCacheEnabled: false,
+      }),
+      callVisionModel: async () => {
+        visionCallCount++;
+        return "description mode must not run";
+      },
+      checkModelHasComboMapping: async () => true,
+      hasUsableCredentials: async () => true,
+    },
+  });
+
+  const payload = {
+    model: "omniroute-coding-light",
+    input: [
+      {
+        role: "user",
+        content: [{ type: "input_text", text: "Describe the image returned by read." }],
+      },
+      {
+        type: "function_call",
+        call_id: "call_read_1",
+        name: "read",
+        arguments: '{"path":"/tmp/screenshot.png"}',
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_read_1",
+        output: [{ type: "input_image", image_url: IMAGE_DATA_URI }],
+      },
+    ],
+  };
+
+  const result = await guardrail.preCall(payload, context9597(payload.model));
+  const modified = result.modifiedPayload as typeof payload;
+
+  assert.equal(result.block, false);
+  assert.equal(modified.model, targetModel);
+  assert.deepEqual(modified.input, payload.input, "reroute must preserve the raw nested image");
+  assert.equal(result.meta?.rerouted, true);
+  assert.equal(result.meta?.imagesKept, 1);
+  assert.equal(visionCallCount, 0, "reroute mode must never describe the image");
+});
+
+test("reroute mode blocks nested image requests instead of describing when no vision target works", async () => {
+  let visionCallCount = 0;
+
+  const guardrail = new VisionBridgeGuardrail({
+    deps: {
+      getSettings: async () => ({
+        modalityBridgeVisionEnabled: true,
+        modalityBridgeVisionMode: "reroute",
+        modalityBridgeVisionModel: "codex/gpt-5.6-sol-medium",
+        modalityBridgeCacheEnabled: false,
+      }),
+      callVisionModel: async () => {
+        visionCallCount++;
+        return "description mode must not run";
+      },
+      checkModelHasComboMapping: async () => true,
+      hasUsableCredentials: async () => false,
+    },
+  });
+
+  const result = await guardrail.preCall(
+    {
+      model: "omniroute-coding-light",
+      input: [
+        {
+          type: "function_call_output",
+          call_id: "call_read_2",
+          output: [{ type: "input_image", image_url: IMAGE_DATA_URI }],
+        },
+      ],
+    },
+    context9597("omniroute-coding-light")
+  );
+
+  assert.equal(result.block, true);
+  assert.match(result.message ?? "", /vision-capable model/i);
+  assert.equal(result.modifiedPayload, undefined);
+  assert.equal(visionCallCount, 0, "reroute mode must fail closed, never describe");
+});
+
 function settings9597(): Record<string, unknown> {
   return {
     modalityBridgeVisionEnabled: true,

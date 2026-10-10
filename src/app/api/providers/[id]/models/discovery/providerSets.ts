@@ -101,6 +101,9 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // (11 chat-capable). Live fetch keeps it fresh; the registry seed stays as the
   // offline fallback.
   "logfare",
+  // Token Market is an OpenAI-compatible multi-model gateway. Its catalog is
+  // discovered from the authenticated https://api.tokensmarket.ai/v1/models endpoint.
+  "tokenmarket",
   // Agnes hosts a live OpenAI-style /v1/models catalog on both the
   // international (apihub.agnes-ai.com) and CN (api.agnes-ai.cn) hosts.
   // Without this, sync-models serves the static registry seed and CN
@@ -116,6 +119,12 @@ export const NAMED_OPENAI_STYLE_PROVIDERS = new Set([
   // Same case as #4249 (vercel-ai-gateway). Seed stays as the offline fallback.
   "xiaomi-mimo",
   "xiaomi-mimo-token-plan",
+  // Apmix (https://apmix.ai) — subscription gateway, live-verified 2026-09-25:
+  // GET https://api.apmix.ai/v1/models is key-scoped (every plan sees a
+  // different slice of the catalog), so live discovery is the only way a
+  // connection's model list matches what its key can reach. The registry seed
+  // (41-model union of apmix.ai/models) stays as the offline fallback.
+  "apmix",
 ]);
 
 export function isNamedOpenAIStyleProvider(provider: string): boolean {
