@@ -268,6 +268,8 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
             name,
             description: typeof record.description === "string" ? record.description : "", // fix: never null (#276)
             parameters: normalizeToolSchema(record.input_schema),
+            // Preserve tool-level strict schema enforcement (9router#4172).
+            ...(record.strict === true ? { strict: true } : {}),
           },
         };
       })
@@ -284,6 +286,10 @@ export function claudeToOpenAIRequest(model, body, stream, credentials: unknown 
       body.tool_choice,
       useNativeResponsesWebSearch && hasClaudeServerWebSearchTool(body.tools)
     );
+    // Claude carries the single-call restriction on tool_choice (9router#4171).
+    if (body.tool_choice?.disable_parallel_tool_use === true) {
+      result.parallel_tool_calls = false;
+    }
   }
 
   // Reasoning effort: map Claude-side thinking controls to OpenAI reasoning_effort.
