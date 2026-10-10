@@ -409,8 +409,15 @@ test("KiroExecutor scales the usage estimate by the model's own context window",
     total_tokens: 100000,
   });
 
-  // 10% of 272000.
-  assert.equal((await estimateFor("gpt-5.6-sol")).total_tokens, 27200);
+  // 10% of 1000000 — Kiro raised GPT-5.6 Sol/Terra/Luna from 272k to 1M on
+  // 2026-09-14, so the old 272000 budget would have reported 27200 here.
+  for (const model of ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"]) {
+    assert.deepEqual(await estimateFor(model), {
+      prompt_tokens: 99900,
+      completion_tokens: 100,
+      total_tokens: 100000,
+    });
+  }
 
   // Registry models without their own contextLength inherit defaultContextLength,
   // and an unknown id falls back to the same budget rather than reporting zero.
