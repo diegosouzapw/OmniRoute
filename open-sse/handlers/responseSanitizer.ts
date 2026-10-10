@@ -847,7 +847,6 @@ function sanitizeResponsesOutput(output: unknown): JsonRecord[] {
     .map((item, index) => sanitizeResponsesOutputItem(item, index))
     .filter((item): item is JsonRecord => item !== null);
 }
-
 function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord | null {
   const itemRecord = toRecord(item);
   if (!itemRecord) return null;
@@ -856,12 +855,12 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
 
   if (type === "message") {
     const content = sanitizeResponsesMessageContent(itemRecord.content);
+    // prettier-ignore
     const sanitized: JsonRecord = {
       id: toString(itemRecord.id) || `msg_${index}`,
       type: "message",
       role: toString(itemRecord.role) || "assistant",
-      content,
-      ...(itemRecord.phase ? { phase: toString(itemRecord.phase) } : {}),
+      content, ...(itemRecord.phase ? { phase: toString(itemRecord.phase) } : {}),
     };
     return sanitized;
   }

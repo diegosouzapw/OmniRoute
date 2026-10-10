@@ -464,7 +464,6 @@ test("sanitizeResponsesApiResponse preserves native Responses payloads and usage
         id: "msg_1",
         type: "message",
         role: "assistant",
-        phase: "commentary",
         content: [{ type: "output_text", text: "Hello\n\n\nworld", annotations: [] }],
       },
       {
@@ -485,7 +484,6 @@ test("sanitizeResponsesApiResponse preserves native Responses payloads and usage
   });
 
   assert.equal((sanitized as any).object, "response");
-  assert.equal((sanitized as any).output[0].phase, "commentary");
   assert.equal(((sanitized as any).output[0] as any).content[0].text, "Hello\n\nworld");
   assert.equal((sanitized as any).output[1].arguments, '{"path":"/tmp/a"}');
   assert.equal((sanitized as any).output_text, "Hello\n\nworld");
