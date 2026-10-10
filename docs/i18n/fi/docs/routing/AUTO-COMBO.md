@@ -280,55 +280,68 @@ arvot syötetään moottorin olemassa oleviin `config.modePack` / `config.budget
 
 ## Kaikki reititysstrategiat
 
-OmniRouten yhdistelmämoottori tukee **20:tä reititysstrategiaa** (määritelty tiedostossa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo -moottori on käytettävissä `auto`-strategiana; muut strategiat ovat käytettävissä tallennetuille yhdistelmille.
+OmniRouten yhdistelmämoottori tukee **20 reititysstrategiaa** (määritelty tiedostossa `src/shared/constants/routingStrategies.ts` → `ROUTING_STRATEGY_VALUES`). Auto Combo -moottori on käytettävissä `auto`-strategialla; muut strategiat ovat käytettävissä tallennetuille yhdistelmille.
 
-| Strategia           | Kuvaus                                                                                                                                                                                                                               |
-| :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `priority`          | Ensisijaisen kohteen mukaan järjestetty luettelo, jossa prioriteetti määritetään erikseen                                                                                                                                            |
-| `weighted`          | Painotettu satunnaisvalinta kohdekohtaisten painojen perusteella                                                                                                                                                                     |
-| `round-robin`       | Kohteiden vuorottelu järjestyksessä (erissä; katso alta)                                                                                                                                                                             |
-| `context-relay`     | Kontekstin siirtäminen kohteelta toiselle (pitkät keskustelut)                                                                                                                                                                       |
-| `fill-first`        | Kunkin kohteen kiintiön täyttäminen ennen seuraavaan siirtymistä                                                                                                                                                                     |
-| `p2c`               | Kahden satunnaisen vaihtoehdon menetelmään perustuva kuormantasaus                                                                                                                                                                   |
-| `random`            | Tasajakautunut satunnaisvalinta                                                                                                                                                                                                      |
-| `least-used`        | Valitsee kohteen, jolla on pienin nykyinen kuormitus                                                                                                                                                                                 |
-| `cost-optimized`    | Minimoi pyynnön hinnan ($) luettelohintojen perusteella                                                                                                                                                                              |
-| `reset-aware` ⭐    | Priorisoi kiintiön nollausajan mukaan — lyhyet nollausikkunat sijoitetaan korkeammalle                                                                                                                                               |
-| `reset-window`      | Suosii kohteita, joiden kiintiöikkuna nollautuu pian                                                                                                                                                                                 |
-| `headroom`          | Valitsee kohteen, jolla on eniten jäljellä olevaa kiintiövaraa                                                                                                                                                                       |
-| `quota-weighted`    | Ohittaa kiintiönsä käyttäneet tilit ja valitsee sitten muista suhteessa jäljellä olevaan kiintiöön jaettuna keskeneräisten pyyntöjen kuormalla; nykyiset keskustelut pysyvät kiinnitettyinä                                          |
-| `strict-random`     | Satunnaisvalinta ilman toistojen poistoa                                                                                                                                                                                             |
-| `auto`              | Käyttää Auto Combon pisteytystä (16 tekijää) — **suositeltu**                                                                                                                                                                        |
-| `lkgp`              | Viimeksi toimivaksi tunnettu polku (kiinnittää viimeksi onnistuneeseen palveluntarjoajaan ja käyttää sitten sääntöjä varavaihtoehtona)                                                                                               |
-| `context-optimized` | Valitsee nykyiseen kontekstikokoon parhaiten sopivan kohteen                                                                                                                                                                         |
-| `cache-optimized`   | Järjestää kohteet uudelleen kehotteiden välimuistiaffiniteetin mukaan — ensin kokeillaan yhteyttä, jolla tämän pyynnön välimuistissa oleva etuliite todennäköisimmin jo on (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
-| `fusion` 🧬         | Lähettää pyynnön rinnakkain joukolle malleja ja koostaa sitten yhden vastauksen arvioijamallin avulla (katso alta)                                                                                                                   |
-| `pipeline`          | Suorittaa kohteet peräkkäin ja välittää kunkin vaiheen tulosteen seuraavan vaiheen syötteeksi; vain lopullinen vastaus palautetaan (#6396)                                                                                           |
+| Strategia           | Kuvaus                                                                                                                                                                                                                                          |
+| :------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priority`          | Ensimmäisen kohteen järjestetty luettelo eksplisiittisellä prioriteetilla                                                                                                                                                                       |
+| `weighted`          | Painotettu satunnaisvalinta kohdekohtaisen painon perusteella                                                                                                                                                                                   |
+| `round-robin`       | Kohteiden kiertäminen järjestyksessä (eräajona; katso alta)                                                                                                                                                                                     |
+| `context-relay`     | Kontekstin välittäminen kohteiden välillä (pitkät keskustelut)                                                                                                                                                                                  |
+| `fill-first`        | Kunkin kohteen kiintiön täyttäminen ennen seuraavaan siirtymistä                                                                                                                                                                                |
+| `p2c`               | Satunnainen kuormantasaus kahden vaihtoehdon menetelmällä                                                                                                                                                                                       |
+| `random`            | Tasajakaumaan perustuva satunnaisvalinta                                                                                                                                                                                                        |
+| `least-used`        | Valitse kohde, jolla on tällä hetkellä pienin kuormitus                                                                                                                                                                                         |
+| `cost-optimized`    | Minimoi pyynnön hinta ($) luettelohinnoittelun perusteella                                                                                                                                                                                      |
+| `reset-aware` ⭐    | Priorisoi kiintiön nollausajan mukaan — lyhyemmät nollausjaksot sijoitetaan korkeammalle                                                                                                                                                        |
+| `reset-window`      | Suosi kohteita, joiden kiintiöjakso nollautuu pian                                                                                                                                                                                              |
+| `headroom`          | Valitse kohde, jolla on eniten jäljellä olevaa kiintiövaraa                                                                                                                                                                                     |
+| `quota-weighted`    | Ohita loppuun käytetyt tilit ja valitse sitten muiden joukosta suhteessa jäljellä olevaan kiintiöön jaettuna käynnissä olevalla kuormalla; olemassa olevat keskustelut pysyvät kiinnitettyinä                                                   |
+| `strict-random`     | Satunnainen valinta ilman toistojen poistamista                                                                                                                                                                                                 |
+| `auto`              | Käytä Auto Combon pisteytystä (16 tekijää) — **suositeltu**                                                                                                                                                                                     |
+| `lkgp`              | Viimeisin toimivaksi tiedetty polku (kiinnittyy viimeksi onnistuneeseen palveluntarjoajaan ja käyttää sitten sääntöjä varavaihtoehtona)                                                                                                         |
+| `context-optimized` | Valitse nykyiseen kontekstikokoon parhaiten sopiva kohde                                                                                                                                                                                        |
+| `cache-optimized`   | Järjestä kohteet uudelleen kehotteen välimuistiyhteensopivuuden perusteella — ensin kokeillaan yhteyttä, jolla tämän pyynnön välimuistiin tallennettu etuliite todennäköisimmin jo on (`open-sse/services/combo/promptCacheAffinity.ts`, #8008) |
+| `fusion` 🧬         | Lähetä pyyntö rinnakkain mallipaneelille ja syntetisoi sitten yksi vastaus arviointimallin avulla (katso alta)                                                                                                                                  |
+| `pipeline`          | Suorita kohteet peräkkäin välittäen kunkin vaiheen tulos seuraavan vaiheen syötteeksi; vain lopullinen vastaus palautetaan (#6396)                                                                                                              |
 
 ⭐ = Uusi versiossa v3.8.0 · 🧬 = Uusi versiossa v3.8.36
 
 ### `weighted`-strategian semantiikka
 
-`weighted` tekee **suhteellisen satunnaisotannan jokaiselle pyynnölle**
+`weighted` tekee **suhteellisen satunnaisotannan pyyntökohtaisesti**
 (`open-sse/services/combo/targetSorters.ts` → `selectWeightedTarget`), eikä tasaa jakaumaa:
 
-- Jokaiselle pyynnölle arvotaan **yksi** vaihe todennäköisyydellä `weight / totalWeight`; jäljellä olevat vaiheet
-  järjestetään kyseisen pyynnön varavaihtoehtoketjuksi painon mukaan laskevaan järjestykseen.
+- Jokainen pyyntö arpoo **yhden** vaiheen todennäköisyydellä `weight / totalWeight`; jäljelle jäävät vaiheet
+  järjestetään painon mukaan laskevaan järjestykseen kyseisen pyynnön varaketjuksi.
 - Vaihetta, jonka paino on `0` (tai puuttuu), **ei koskaan arvota**, jos jonkin muun vaiheen
-  paino on > 0 — sitä voidaan käyttää vain varavaihtoehtona arvotun vaiheen epäonnistuttua. Valinnasta tulee tasajakautunut vain, kun **kaikki**
+  paino on > 0 — sitä voidaan käyttää vain varavaihtoehtona arvotun vaiheen epäonnistuttua. Valinta muuttuu tasajakaumaiseksi vain, kun **kaikki**
   painot ovat 0.
 - Vaiheet, joiden kaikki kohteet eivät ole käytettävissä — palveluntarjoajan katkaisija on `OPEN`, yhteys on
   jäähdytysajalla tai malli on lukittu pois käytöstä — poistetaan arvonnasta ennen sen suorittamista
-  (`open-sse/services/combo/targetResolution.ts`), joten yksi toimintakuntoinen vaihe voi tilapäisesti
+  (`open-sse/services/combo/targetResolution.ts`), joten yksi toimintakuntoinen vaihe voi väliaikaisesti
   voittaa jokaisen pyynnön.
 - `stickyWeightedLimit` (yhdistelmän määritys, oletusarvo `1` = pois käytöstä) kiinnittää arvotun vaiheen näin monen
   peräkkäisen onnistumisen ajaksi ennen uutta arvontaa.
 
-Käytä tiukkaan kierrätykseen strategiaa `round-robin`; yhtäläiset painot `weighted`-strategiassa tuottavat tilastollisen — eivät tiukan — tasapainon.
+Käytä tiukkaan kiertoon `round-robin`-strategiaa; yhtäläiset painot `weighted`-strategiassa tuottavat tilastollisen — eivät
+tiukan — tasapainon.
 
-### Agenttiputkitila
+### Agenttinen liukuhihnatila
 
-Kaksivaiheinen `pipeline`-yhdistelmä voi ottaa suunnittelija-/suorittaja-reitityksen käyttöön asetuksella `config.agenticOrchestration.enabled`. Ensimmäinen kohde vastaa suunnittelusta ja lopullisista vastauksista; toinen kohde tuottaa asiakasnatiiveja työkalukutsuja. OmniRoute tunnistaa työkalutulosten jatkopyynnöt pyyntöprotokollasta, kysyy suunnittelijalta, tarvitaanko uusi työkalukierros, ja valitsee dynaamisesti joko suorittajan tai suunnittelijan asiakkaalle näkyväksi viimeiseksi vaiheeksi.
+Vähintään kaksi mallia sisältävä `pipeline`-yhdistelmä voi ottaa käyttöön suunnittelijan ja suorittajan välisen reitityksen asetuksella
+`config.agenticOrchestration.enabled`. Ensimmäinen kohde vastaa suunnittelusta ja lopullisista vastauksista;
+toinen kohde tuottaa asiakasohjelman natiiveja työkalukutsuja. OmniRoute tunnistaa työkalutulosten
+jatkopyynnöt pyyntöprotokollasta, kysyy suunnittelijalta, tarvitaanko uusi työkalukierros,
+ja valitsee dynaamisesti joko suorittajan tai suunnittelijan viimeiseksi asiakkaalle näkyväksi
+vaiheeksi.
+
+Toisen kohteen jälkeen määritetyt lisämallit ovat järjestyksessä käytettäviä suorittajan varamalleja. Epäonnistunut
+HTTP-vastaus tai siirtopoikkeus siirtää käsittelyn seuraavalle suorittajalle säilyttäen
+saman suunnittelijan päätöksen ja natiivit työkalut mutta käyttäen kyseisen suorittajan omaa vaihekohtaista kehotetta ja
+ratkaistua yhteyttä. Ensimmäinen onnistunut vastaus palautetaan muuttamattomana, mukaan lukien
+SSE-suoratoisto; onnistuneen suoratoiston alkamisen jälkeisiä virheitä ei voida tässä yrittää uudelleen.
+Jos kaikki suorittajat epäonnistuvat, viimeinen virhe palautetaan. Asiakkaan keskeytykset lopettavat välityksen.
 
 ```json
 {
@@ -340,17 +353,35 @@ Kaksivaiheinen `pipeline`-yhdistelmä voi ottaa suunnittelija-/suorittaja-reitit
 }
 ```
 
-Suorittaja voi tuottaa useita toisistaan riippumattomia kutsuja yhdessä vastauksessa. Riippuvaiset kutsut käsitellään myöhemmillä asiakkaan työkalutuloskierroksilla, ja suunnittelija tarkistaa jokaisen tuloksen. `maxToolRounds`-asetuksen oletusarvo on `8`, ja se hyväksyy arvot `1`–`32`; kun raja saavutetaan, suunnittelijan on tuotettava paras saatavilla oleva lopullinen vastaus. Suunnittelijan sisäiset päätökset puskuroidaan, kun taas valittu asiakkaalle näkyvä vastaus säilyttää alkuperäisen suoratoistoasetuksen.
+Suorittaja voi tuottaa yhdessä vastauksessa useita toisistaan riippumattomia kutsuja. Riippuvaiset kutsut
+käsitellään asiakkaan myöhemmillä työkalutuloskierroksilla, ja suunnittelija tarkistaa jokaisen tuloksen.
+`maxToolRounds`-asetuksen oletusarvo on `8`, ja se hyväksyy arvot `1`–`32`; kun raja saavutetaan, suunnittelijan on
+tuotettava paras saatavilla oleva lopullinen vastaus. Suunnittelijan sisäiset päätökset puskuroidaan, kun taas
+valittu asiakkaalle näkyvä vastaus säilyttää alkuperäisen suoratoistoasetuksen.
 
-### `round-robin`-strategian pysyvät erät ja tililaajennus
+### `round-robin`-strategian pysyvä erä ja tilikohtainen laajennus
 
 Round-robin toimii erissä, ei yksi pyyntö vaihetta kohden:
 
-- `stickyRoundRobinLimit` (ensin yhdistelmän määritys, sitten `comboStickyRoundRobinLimit`, sitten `settings.stickyRoundRobinLimit`, oletus **3**) säilyttää saman kohteen näin monen peräkkäisen onnistumisen ajan ennen kierrätystä. Aseta yhdistelmäkohtaiseksi ohitusarvoksi `1`, jos haluat kierrättää jokaisen pyynnön jälkeen. Yhdistelmäeditori näyttää käytössä olevan arvon ja tason, jolta se on peräisin.
-- `connectionAwareExpansion` (ensin yhdistelmän määritys, sitten asetukset, oletus **false**) laajentaa jokaisen palveluntarjoajatason vaiheen tilikohtaisiksi kohteiksi ennen kierrätystä. Ryhmän B strategiat (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp, fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion, pipeline) säilyttävät palveluntarjoajatason näkymän, kunnes tämä otetaan käyttöön. Yhdistelmäeditorissa ovat valittavissa periytä / käytössä / pois käytöstä; periytys käyttää yleistä oletusarvoa (pois käytöstä).
-- Kehotevälimuistin paikallisuuteen perustuva reititys (`promptCacheAffinityEnabled`, oletus **true**) järjestää kiinnitetyt yhteydet uudelleen niin, että täsmäävät välimuistiavaimet pysyvät samalla tilillä. Se ohittaa round-robin- ja weighted-kierrätyksen kiinnitettyjen tilikohtaisten vaiheiden välillä. Poista se käytöstä kohdassa Settings → Combo defaults, jos tarvitset tiukkaa kierrätystä. Yhdistelmäkohtaista ohitusta ei ole.
+- `stickyRoundRobinLimit` (ensin yhdistelmän määritys, sitten `comboStickyRoundRobinLimit`, sitten
+  `settings.stickyRoundRobinLimit`, oletus **3**) säilyttää saman kohteen näin monen
+  peräkkäisen onnistumisen ajan ennen kiertoa. Aseta yhdistelmäkohtaiseksi arvoksi `1`, jos haluat kierron
+  jokaisen pyynnön jälkeen. Yhdistelmäeditori näyttää käytössä olevan arvon ja sen määrityskerroksen.
+- `connectionAwareExpansion` (ensin yhdistelmän määritys, sitten asetukset, oletus **false**) laajentaa
+  jokaisen palveluntarjoajatason vaiheen tilikohtaisiksi kohteiksi ennen kiertoa. Ryhmän B strategiat
+  (priority, weighted, round-robin, random, p2c, least-used, cost-optimized, lkgp,
+  fill-first, strict-random, context-optimized, cache-optimized, context-relay, fusion,
+  pipeline) säilyttävät palveluntarjoajatason näkymän, kunnes tämä otetaan käyttöön. Yhdistelmäeditorissa voi valita
+  periytymisen / käytössä / pois käytöstä; periytyminen käyttää yleistä oletusarvoa (pois käytöstä).
+- Kehotevälimuistin paikallisuuteen perustuva reititys (`promptCacheAffinityEnabled`, oletus **true**) järjestää
+  kiinnitetyt yhteydet uudelleen, jotta vastaavat välimuistiavaimet pysyvät samalla tilillä. Se ohittaa
+  round-robin- ja weighted-kierron kiinnitetyissä tilikohtaisissa vaiheissa. Poista se käytöstä kohdassa
+  Settings → Combo defaults, jos tarvitset tiukkaa kiertoa. Yhdistelmäkohtaista ohitusta ei ole.
 
-Kun yhdellä mallilla käytetään usean tilin kierrätystä, suosi **yhtä dynaamisen tilin vaihetta** (tyhjä `connectionId`, koko pooli), jonka pysyvyysraja on `1`, kolmen kiinnitetyn `connectionId`-arvon sijaan. Kiinnitetyt vaiheet yhdessä affiniteetin kanssa kohdistuvat samalle tilille, vaikka RR-laskuri etenisi.
+Kun haluat käyttää usean tilin kiertoa yhdellä mallilla, suosi **yhtä dynaamisen tilin vaihetta** (tyhjä
+`connectionId`, koko varanto), jonka pysyvyysraja on `1`, kolmen kiinnitetyn `connectionId`-arvon sijaan.
+Kiinnitetyt vaiheet yhdessä affiniteetin kanssa kohdistuvat samalle tilille, vaikka RR-laskuri
+etenee.
 
 ## Fuusiostrategia
 
@@ -452,20 +483,20 @@ Tämä tarkoittaa, että **uuden palveluntarjoajan lisääminen niin, että `aut
 
 **Erillistä `POST /api/combos/auto`-päätepistettä ei ole** — Auto-Comboa käytetään kahdella tavalla:
 
-1. **Ilman määrityksiä (suositus):** Lähetä mikä tahansa chat-täydennyspyyntö käyttäen arvoa `model: "auto"` tai `model: "auto/<variant>"`. Virtuaalinen tehdas muodostaa combon jokaiselle pyynnölle — pysyvää tallennusta tai API-kutsuja ei tarvita.
+1. **Nollakonfiguraatio (suositeltu):** Lähetä mikä tahansa keskustelun täydennyspyyntö käyttäen arvoa `model: "auto"` tai `model: "auto/<variant>"`. Virtuaalinen tehdas muodostaa kombon jokaiselle pyynnölle — pysyvää tallennusta tai API-kutsuja ei tarvita.
 
-2. **Tallennettu combo, jossa `strategy: "auto"`:** Luo tavallinen combo `POST /api/combos`-kutsulla ja aseta `strategy: "auto"` sekä `config.auto.weights` / `config.auto.candidatePool`. Käytössä on sama pisteytysmoottori; combo tallennetaan `combos`-tauluun, ja sitä voidaan käyttää uudelleen tunnisteen perusteella.
+2. **Pysyvästi tallennettu kombo käyttäen asetusta `strategy: "auto"`:** Luo tavallinen kombo päätepisteen `POST /api/combos` kautta ja aseta `strategy: "auto"` sekä `config.auto.weights` / `config.auto.candidatePool`. Käytössä on sama pisteytysmoottori; kombo tallennetaan `combos`-kohteeseen, ja sitä voidaan käyttää uudelleen tunnuksen perusteella.
 
-Hakua varten `GET /api/combos/auto` luettelee jokaisen variantin ratkaistuine ehdokasjoukkoineen sekä arvot `context_length` / `max_output_tokens` — ehdokasjoukon ikkunoiden ENIMMÄISARVOT. Asiakkaiden (esimerkiksi opencode-liitännäisen) on ilmoitettava nämä arvot arvon `0` sijaan: nollan suuruinen konteksti poistaa opencoden automaattisen tiivistyksen kokonaan käytöstä, jolloin istunnot kasvavat, kunnes yhdyskäytävän historian tyhjennys tuhoaa kontekstin. ENIMMÄISARVO on turvallinen ilmoittaa, koska Auto-Combon kontekstin esisuodatin reitittää liian suuret pyynnöt suuren konteksti-ikkunan ehdokkaille.
+Tarkastelua varten `GET /api/combos/auto` luettelee jokaisen variantin sekä sen ratkaistun ehdokasjoukon ja arvot `context_length` / `max_output_tokens` — ehdokasjoukon konteksti-ikkunoiden MAKSIMIARVOT. Asiakasohjelmien (esim. opencode-laajennuksen) on ilmoitettava nämä arvot arvon `0` sijaan: nollan pituinen konteksti poistaa opencoden automaattisen tiivistyksen kokonaan käytöstä, jolloin istunnot kasvavat, kunnes yhdyskäytävän historiatietojen tyhjennys tuhoaa kontekstin. MAKSIMIARVON ilmoittaminen on turvallista, koska Auto-Combon kontekstin esisuodatus reitittää ylisuuret pyynnöt ehdokkaille, joilla on suuret konteksti-ikkunat.
 
 ```bash
-# Käyttö ilman määrityksiä (comboa ei luoda)
+# Käyttö nollakonfiguraatiolla (komboa ei luoda)
 curl -X POST http://localhost:20128/v1/chat/completions \
   -H "Authorization: Bearer <key>" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto/coding","messages":[{"role":"user","content":"Hello"}]}'
 
-# Tallennettu automaattinen combo tavallisen combos-päätepisteen kautta
+# Pysyvästi tallennettu automaattinen kombo tavallisen combos-päätepisteen kautta
 curl -X POST http://localhost:20128/api/combos \
   -H "Content-Type: application/json" \
   -d '{"id":"my-auto","name":"Auto Coder","strategy":"auto","config":{"auto":{"candidatePool":["anthropic","google","openai"],"weights":{"quota":0.15,"health":0.3,"costInv":0.05,"latencyInv":0.35,"taskFit":0.1,"stability":0,"tierPriority":0.05}}}}'
@@ -473,30 +504,32 @@ curl -X POST http://localhost:20128/api/combos \
 
 ### Automaattisen reitittimen strategiat
 
-Tallennetut `strategy: "auto"`-combot voivat asettaa `config.routerStrategy`-arvon (tai vanhan
-`config.auto.routerStrategy`-arvon) joksikin seuraavista:
+Pysyvästi tallennetuissa `strategy: "auto"`-komboissa `config.routerStrategy`-asetukseksi (tai vanhassa muodossa
+`config.auto.routerStrategy`) voidaan määrittää jokin seuraavista:
 
-- `rules` — painotettu oletuspisteytys
+- `rules` — oletusarvoinen painotettu pisteytys
 - `score` — valitsee suurimman määritetyn painotetun pistemäärän. Täsmällisissä tasatilanteissa säilytetään määritetty
-  ehdokkaiden järjestys; nykyinen `explorationRate` ottaa otoksia koko järjestetystä joukosta.
+  ehdokkaiden järjestys; nykyinen `explorationRate` ottaa otoksen koko järjestetystä joukosta.
 - `cost` / `eco` — halvin toimintakuntoinen palveluntarjoaja
 - `latency` / `fast` — pienin p95-viive luotettavuusrangaistus huomioiden
-- `sla-aware` / `sla` — suosii ehdokkaita, jotka täyttävät p95-viiveen, virheprosentin ja valinnaiset
+- `sla-aware` / `sla` — suosi ehdokkaita, jotka täyttävät p95-viivettä, virheprosenttia ja valinnaisia
   kustannuksia koskevat SLO-tavoitteet
-- `lkgp` — viimeksi toimivaksi tiedetty palveluntarjoaja ensin
+- `lkgp` — viimeisin tunnetusti toimiva palveluntarjoaja ensin
+- `nadir` — kysyy [Nadirin](https://getnadir.com) päätös-API:lta, minkä joukon mallin
+  kehote tarvitsee; erikseen käyttöön otettava, ja häiriötilanteessa siirrytään avoimesti `rules`-strategiaan
 
-### Reititysstrategiat yksityiskohtaisesti
+### Reititinstrategiat yksityiskohtaisesti
 
-Auto-Combo-moottori tarjoaa 6 vaihdettavaa **RouterStrategy**-toteutusta, joita
-voidaan vaihtaa `config.routerStrategy`-arvolla (tai vanhalla `config.auto.routerStrategy`-arvolla).
-Kukin strategia valitsee yhden palveluntarjoajan ehdokasjoukosta annetun `RoutingContext`-kontekstin perusteella
-(tehtävätyyppi, työkaluihin/näköominaisuuksiin liittyvät vihjeet, tunnisteiden arvioitu määrä, valinnainen SLA-käytäntö, valinnainen
-viimeksi toimivaksi tiedetty palveluntarjoaja).
+Auto-Combo-moottori tarjoaa 7 vaihdettavaa **RouterStrategy**-toteutusta, joita
+voidaan vaihtaa `config.routerStrategy`-asetuksella (tai vanhalla `config.auto.routerStrategy`-asetuksella).
+Kukin strategia valitsee ehdokasjoukosta yhden palveluntarjoajan annetun `RoutingContext`-kontekstin perusteella
+(tehtävätyyppi, työkaluihin/näkösyötteeseen liittyvät vihjeet, token-määrän arvio, valinnainen SLA-käytäntö, valinnainen
+viimeisin tunnetusti toimiva palveluntarjoaja).
 
 #### 1. `rules` (oletus) — 16 tekijän painotettu pisteytys
 
-Käärii olemassa olevan pisteytysmoottorin. Suodattaa pois `OPEN`-tilassa olevat piirikatkaisijan
-ehdokkaat ja suorittaa sitten `scorePool()`-funktion nykyisellä tehtävätyypillä ja `getTaskFitness()`-funktiolla
+Käärii nykyisen pisteytysmoottorin. Suodattaa pois `OPEN`-tilassa olevat katkaisijapiirin
+ehdokkaat ja suorittaa sitten `scorePool()`-funktion nykyisellä tehtävätyypillä sekä `getTaskFitness()`-funktiolla
 valiten eniten pisteitä saaneen palveluntarjoajan.
 
 ```ts
@@ -517,7 +550,7 @@ class RulesStrategyImpl implements RouterStrategy {
 }
 ```
 
-**Käyttötilanne**: Oletus. Käytä, kun haluat tasapainoisen kompromissin kaikkien signaalien välillä.
+**Milloin käyttää**: Oletusvalinta. Käytä, kun haluat tasapainoisen kompromissin kaikkien signaalien välillä.
 
 **Alias**: `rules` (ei aliasta)
 
@@ -541,7 +574,7 @@ class CostStrategyImpl implements RouterStrategy {
 }
 ```
 
-**Käyttötilanne**: Kustannusherkät työkuormat, eräkäsittely tai taustatehtävät.
+**Milloin käyttää**: Kustannusherkät työkuormat, eräkäsittely tai taustatyöt.
 
 **Aliakset**: `cost`, `eco`
 
@@ -549,8 +582,8 @@ class CostStrategyImpl implements RouterStrategy {
 
 #### 3. `latency` / `fast` — pienin p95-viive luotettavuusrangaistus huomioiden
 
-Lajittelee arvon `p95LatencyMs + (errorRate * 1000)` perusteella. Virheasteen rangaistus varmistaa,
-että epäluotettavat palveluntarjoajat sijoittuvat alemmaksi, vaikka niiden nimellinen latenssi olisi pieni.
+Järjestää arvon `p95LatencyMs + (errorRate * 1000)` mukaan. Virheprosenttiin perustuva rangaistus varmistaa,
+että epäluotettavat palveluntarjoajat sijoittuvat alemmas, vaikka niiden nimellinen viive olisi pieni.
 
 ```ts
 class LatencyStrategyImpl implements RouterStrategy {
@@ -567,28 +600,28 @@ class LatencyStrategyImpl implements RouterStrategy {
 }
 ```
 
-**Käyttötilanteet**: Latenssiherkät työkuormat, kuten reaaliaikainen keskustelu, automaattinen täydennys tai
+**Milloin käyttää**: Viiveherkät työkuormat, kuten reaaliaikainen keskustelu, automaattinen täydennys tai
 vuorovaikutteiset koodausavustajat.
 
 **Aliakset**: `latency`, `fast`
 
 ---
 
-#### 4. `sla-aware` / `sla` — latenssia, virheitä ja kustannuksia koskevien SLO-tavoitteiden noudattaminen
+#### 4. `sla-aware` / `sla` — viive-, virhe- ja kustannus-SLO-vaatimusten täyttäminen
 
 Pisteyttää jokaisen ehdokkaan sen perusteella, kuinka hyvin se täyttää määritetyn SLO-käytännön:
 
 | Tekijä           | Painoarvo | Kaava                                                     |
 | ---------------- | --------- | --------------------------------------------------------- |
-| Latenssipisteet  | 35%       | `threshold / max(value, ε)`                               |
+| Viivepisteet     | 35%       | `threshold / max(value, ε)`                               |
 | Virhepisteet     | 35%       | `threshold / max(value, ε)`                               |
 | Kuntopisteet     | 15%       | `1.0` (CLOSED) / `0.5` (HALF_OPEN) / `0.0` (OPEN)         |
 | Kustannuspisteet | 10%       | `threshold / max(value, ε)` tai käänteisesti normalisoitu |
-| Vakauspisteet    | 5%        | käänteisesti normalisoitu latenssin keskihajonta          |
+| Vakauspisteet    | 5%        | käänteisesti normalisoitu viiveen keskihajonta            |
 
 Kun `hardConstraints: true`, ehdokkaat lajitellaan ensisijaisesti **rikkomuspisteiden**
-(minkä verran ne ylittävät jonkin SLO-tavoitteen) ja sen jälkeen yhdistelmäpisteiden perusteella. Muussa tapauksessa lajittelu perustuu vain
-yhdistelmäpisteisiin.
+(miten paljon ne ylittävät jonkin SLO:n) ja sen jälkeen yhdistelmäpisteiden perusteella. Muussa tapauksessa
+käytetään vain yhdistelmäpisteitä.
 
 ```ts
 class SLAStrategyImpl implements RouterStrategy {
@@ -617,16 +650,16 @@ class SLAStrategyImpl implements RouterStrategy {
 }
 ```
 
-**Käyttötilanteet**: Tuotantotyökuormat, joilla on tiukat latenssi-, virheaste- tai kustannusrajat.
+**Milloin käyttää**: Tuotantotyökuormissa, joilla on tiukat viive-, virheprosentti- tai kustannusbudjetit.
 
 **Aliakset**: `sla-aware`, `sla`
 
 ---
 
-#### 5. `lkgp` — viimeisin toimivaksi tunnettu palveluntarjoaja ensin
+#### 5. `lkgp` — viimeksi tunnettu toimiva palveluntarjoaja ensin
 
-Kokeilee ensin **viimeisintä toimivaksi tunnettua palveluntarjoajaa** (jos se on määritetty) ja käyttää sitten varavaihtoehtona
-`rules`-strategiaa. Hyödyllinen istunnon pysyvyyden kannalta — sama palveluntarjoaja käsittelee
+Kokeilee ensin **viimeksi tunnettua toimivaa palveluntarjoajaa** (jos määritetty) ja käyttää sen jälkeen
+varamenetelmänä `rules`-strategiaa. Hyödyllinen istuntokohtaisen pysyvyyden kannalta — sama palveluntarjoaja käsittelee
 keskustelun jatkopyynnöt.
 
 ```ts
@@ -648,16 +681,61 @@ class LKGPStrategyImpl implements RouterStrategy {
       }
     }
 
-    // Käytä varavaihtoehtona rules-strategiaa
+    // Käytä varamenetelmänä rules-strategiaa
     return getStrategy("rules").select(pool, context);
   }
 }
 ```
 
-**Käyttötilanteet**: Monivaiheiset keskustelut, joissa saman palveluntarjoajan halutaan käsittelevän
+**Milloin käyttää**: Monivaiheisissa keskusteluissa, joissa haluat saman palveluntarjoajan käsittelevän
 jatkopyynnöt (esimerkiksi välimuistin, kontekstin jatkuvuuden tai hinnoittelun yhdenmukaisuuden vuoksi).
 
 **Alias**: `lkgp` (ei aliasta)
+
+---
+
+#### 6. `nadir` — kehotteen huomioiva mallin valinta Nadirin avulla
+
+Kaikki edellä mainitut strategiat asettavat ehdokkaat järjestykseen oman telemetriansa perusteella; mikään niistä ei lue
+pyyntöä. `nadir` lähettää viimeisimmän käyttäjävuoron sekä joukon mallitunnukset
+[Nadirin](https://getnadir.com) päätöksenteko-API:lle (`POST /v1/bucket`) ja reitittää pyynnön malliin,
+jonka Nadir valitsee kyseisestä valikoimasta (`simple` → halvin kykenevä malli, `complex` → edistynein
+malli). Kyseistä mallia palveleva yhteys valitaan edelleen `rules`-strategialla, joten kiintiö,
+kunto ja kustannukset ratkaisevat edelleen, mitä tiliä käytetään.
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "nadir",
+    "nadir": {
+      "apiKey": "ndr_...",
+      "baseUrl": "https://api.getnadir.com",
+      "timeoutMs": 2000
+    }
+  }
+}
+```
+
+`OMNIROUTE_NADIR_API_KEY` ja `OMNIROUTE_NADIR_BASE_URL` ovat ympäristömuuttujapohjaisia varavaihtoehtoja näille kahdelle
+merkkijonolle. `baseUrl` tarvitaan vain itse isännöidylle Nadirille (lopussa oleva `/v1` hyväksytään).
+Ilman avainta tehdyt kutsut ohjautuvat Nadirin anonyymille tasolle, jonka nopeutta rajoitetaan IP-osoitekohtaisesti.
+
+Palvelusta lähtevät tiedot: viimeisimmän käyttäjäviestin teksti (ensimmäiset 16 000 merkkiä), ehdokkaiden
+mallitunnukset ja `source: "omniroute"`-kanavatunniste. Järjestelmäkehotetta, historiaa, työkaluja tai
+otsakkeita ei lähetetä.
+
+Virhetilanteissa toiminta on avoin: aikakatkaisu (oletusarvoisesti 2000 ms), muu kuin 2xx-vastaus, tavoittamaton
+palvelin, virheellisesti muodostettu vastaus tai joukon ulkopuolinen valinta johtaa `rules`-päätökseen,
+ja syyn alkuun lisätään `NadirStrategy: fallback (…)`. Epäonnistuneen kutsun jälkeen
+strategia ohittaa verkkokutsut 30 sekunnin ajan, joten käyttökatkos aiheuttaa yhden aikakatkaisun 30 sekuntia kohden eikä
+yhtä jokaista pyyntöä kohden. Reititystapahtumat ilmoittavat `strategy: "nadir"` vain, kun Nadir todella teki
+valinnan.
+
+**Milloin käyttää**: Vaikeustasoltaan vaihtelevalle liikenteelle joukossa, joka kattaa useita mallitasoja (pieni, keskitasoinen
+ja edistynein malli), kun haluat vähentää aina edistyneimmän mallin käyttämisestä aiheutuvia kustannuksia.
+
+**Alias**: `nadir` (ei aliasta)
 
 ---
 
@@ -708,13 +786,14 @@ Käytä sitä sitten:
 
 | Käyttötapaus             | Strategia   | Peruste                                            |
 | ------------------------ | ----------- | -------------------------------------------------- |
-| Tasapainoinen työkuorma  | `rules`     | Oletus — ottaa huomioon kaikki tekijät             |
-| Kustannusten minimointi  | `cost`      | Valitsee aina edullisimman                         |
-| Latenssin minimointi     | `latency`   | Valitsee nopeimman luotettavan palveluntarjoajan   |
-| Tiukat SLO-tavoitteet    | `sla-aware` | Suodattaa p95-/virhe-/kustannusrajojen perusteella |
-| Monivaiheinen keskustelu | `lkgp`      | Istunnon pysyvyys                                  |
+| Tasapainoinen työkuorma  | `rules`     | Oletus — huomioi kaikki tekijät                    |
+| Kustannusten minimointi  | `cost`      | Valitsee aina halvimman                            |
+| Viiveen minimointi       | `latency`   | Valitsee nopeimman luotettavan palveluntarjoajan   |
+| Tiukat SLO:t             | `sla-aware` | Suodattaa p95-/virhe-/kustannusrajojen perusteella |
+| Monivaiheinen keskustelu | `lkgp`      | Istuntokohtainen pysyvyys                          |
+| Vaihteleva vaikeustaso   | `nadir`     | Valitsee mallitason kehotekohtaisesti              |
 
-SLA-tietoinen kentät:
+SLA-tietoinen-strategian kentät:
 
 ```json
 {
