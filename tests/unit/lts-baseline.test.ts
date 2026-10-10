@@ -521,3 +521,23 @@ test("renderMarkdown lists every measurement and every TTFB endpoint", () => {
   assert.match(md, /load/i); // busy-host warning rendered
   assert.ok(!md.includes("hostname"));
 });
+
+test("renderMarkdown escapes backslashes before pipes so a summary cannot split its row", () => {
+  const md = renderMarkdown(
+    buildReport({
+      generatedAt: "2026-10-10T00:00:00.000Z",
+      host: { cpuCount: 2, totalMemMB: 1024, loadAvg: [0, 0, 0], nodeVersion: "v24" },
+      gitSha: "abc1234",
+      options: { runs: 20, withBuild: false },
+      measurements: {
+        heapGrowth: { status: "error", durationMs: 1, summary: "C:\\tmp\\|x" },
+      },
+    })
+  );
+  const row = md.split("\n").find((line) => line.startsWith("| heapGrowth |"));
+  assert.ok(row, "heapGrowth row rendered");
+  assert.ok(row.includes("C:\\\\tmp\\\\\\|x"), row);
+  // Unescaped pipes (not preceded by an odd run of backslashes) are column separators.
+  const separators = row.match(/(?<!\\)(?:\\\\)*\|/g) ?? [];
+  assert.equal(separators.length, 5, row);
+});

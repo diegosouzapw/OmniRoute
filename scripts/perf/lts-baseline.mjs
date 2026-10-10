@@ -548,6 +548,7 @@ export async function runBaseline(options, deps) {
 
 const cell = (s) =>
   String(s ?? "")
+    .replace(/\\/g, "\\\\")
     .replace(/\|/g, "\\|")
     .replace(/\n/g, " ");
 
