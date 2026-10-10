@@ -23,6 +23,7 @@ export const PROVIDER_ENDPOINTS = {
   onomeo: "https://onomeo.com/v1/chat/completions",
   eurouter: "https://api.eurouter.ai/v1/chat/completions",
   unifically: "https://api.unifically.com/v1/chat/completions",
+  atlascloud: "https://api.atlascloud.ai/v1/chat/completions",
   "y-api": "https://api.y-api.bestvirtualgoods.com/v1/chat/completions",
   "mnn-ai": "https://api.mnnai.ru/v1/chat/completions",
   "meganova-ai": "https://api.meganova.ai/v1/chat/completions",
