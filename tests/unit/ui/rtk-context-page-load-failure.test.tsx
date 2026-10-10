@@ -6,6 +6,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 const containers: HTMLElement[] = [];
 const roots: Array<{ unmount: () => void }> = [];
 
+// Compile the page once during collection, like other UI fixtures; assertions measure
+// the mounted request/UI lifecycle, not a cold Vite transform inside the first test.
+const { default: RtkContextPageClient } =
+  await import("../../../src/app/(dashboard)/dashboard/context/rtk/RtkContextPageClient");
+
 function mount(ui: React.ReactElement): HTMLElement {
   const container = document.createElement("div");
   document.body.appendChild(container);
@@ -25,18 +30,17 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  vi.restoreAllMocks();
   await act(async () => {
     while (roots.length > 0) roots.pop()?.unmount();
   });
-  for (let i = 0; i < 10; i++) await Promise.resolve();
   while (containers.length > 0) containers.pop()?.remove();
-  document.body.innerHTML = "";
+  vi.restoreAllMocks();
 });
 
-async function flush() {
-  await act(async () => {
-    for (let i = 0; i < 10; i++) await Promise.resolve();
+async function waitForState(assertion: () => void) {
+  await vi.waitFor(async () => {
+    await act(async () => {});
+    assertion();
   });
 }
 
@@ -67,13 +71,8 @@ function rtkConfig() {
 }
 
 async function mountPage() {
-  const { default: RtkContextPageClient } =
-    await import("../../../src/app/(dashboard)/dashboard/context/rtk/RtkContextPageClient");
-  let container!: HTMLElement;
-  await act(async () => {
-    container = mount(<RtkContextPageClient />);
-  });
-  await flush();
+  const container = mount(<RtkContextPageClient />);
+  await waitForState(() => expect(container.textContent).toContain("Failed To Load"));
   return container;
 }
 
@@ -117,30 +116,68 @@ describe("RtkContextPageClient when the settings GET fails", () => {
   );
 
   it("drops the master-switch-off banner once Retry answers", async () => {
-    const fetchSpy = vi
-      .spyOn(globalThis, "fetch")
-      .mockImplementation(async (input: RequestInfo | URL) => {
-        const url = input.toString();
-        if (url.includes("/api/settings/compression")) return json({ enabled: true });
-        if (url.includes("/api/context/rtk/filters")) return json({ filters: [] });
-        if (url.includes("/api/context/rtk/config")) return json(rtkConfig());
-        if (url.includes("/api/context/analytics")) return json({});
-        return json({}, 404);
-      });
-    fetchSpy.mockImplementationOnce(
-      async () => new Response(JSON.stringify({ error: "unavailable" }), { status: 500 })
-    );
+    let settingsAttempts = 0;
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes("/api/settings/compression")) {
+        settingsAttempts += 1;
+        return settingsAttempts === 1
+          ? json({ error: "unavailable" }, 500)
+          : json({ enabled: true });
+      }
+      if (url.includes("/api/context/rtk/filters")) return json({ filters: [] });
+      if (url.includes("/api/context/rtk/config")) return json(rtkConfig());
+      if (url.includes("/api/context/analytics")) return json({});
+      return json({}, 404);
+    });
     const container = await mountPage();
     expect(container.textContent).toContain("Failed To Load");
 
     await act(async () => {
       retryButton(container)!.click();
     });
-    await flush();
+    await waitForState(() =>
+      expect(container.querySelectorAll("input, select, textarea").length).toBeGreaterThan(0)
+    );
 
     expect(container.textContent).not.toContain("Failed To Load");
     // The stored flag is on, so the banner the defaults would show stays hidden.
     expect(container.textContent).not.toContain("master switch is OFF");
     expect(container.querySelectorAll("input, select, textarea").length).toBeGreaterThan(0);
+  });
+
+  it("does not finish mounting before a delayed settings failure is rendered", async () => {
+    let answer!: (response: Response) => void;
+    const settings = new Promise<Response>((resolve) => {
+      answer = resolve;
+    });
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockImplementation(async (input: RequestInfo | URL) => {
+        const url = input.toString();
+        if (url.includes("/api/settings/compression")) return settings;
+        if (url.includes("/api/context/rtk/filters")) return json({ filters: [] });
+        if (url.includes("/api/context/rtk/config")) return json(rtkConfig());
+        if (url.includes("/api/context/analytics")) return json({});
+        return json({}, 404);
+      });
+    let settled = false;
+    const mounting = mountPage().then((container) => {
+      settled = true;
+      return container;
+    });
+    try {
+      await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledWith("/api/settings/compression"));
+      // Drain a real event-loop turn, not a guessed count of promise callbacks.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      expect(settled).toBe(false);
+      answer(json({ error: "unavailable" }, 500));
+      const container = await mounting;
+      expect(container.textContent).toContain("Failed To Load");
+      expect(retryButton(container)).toBeTruthy();
+    } finally {
+      answer(json({ error: "unavailable" }, 500));
+      await mounting;
+    }
   });
 });
