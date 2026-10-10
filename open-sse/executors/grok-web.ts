@@ -28,6 +28,7 @@ import {
   type TlsFetchResult,
 } from "../services/grokTlsClient.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
 import {
   shouldUseGrokBrowserBacked,
@@ -71,6 +72,12 @@ function isTlsClientUnavailableError(error: unknown): error is TlsClientUnavaila
     // A rejected Proxy may throw while instanceof walks its prototype chain.
     return false;
   }
+}
+
+// Publish the received status so proxy health counts it as upstream.
+function recordGrokUpstreamStatus(status: number): void {
+  const sink = currentAppliedProxySink();
+  if (sink && status >= 400) sink.upstreamStatus = status;
 }
 
 // ─── Model mappings ─────────────────────────────────────────────────────────
@@ -1094,6 +1101,7 @@ export class GrokWebExecutor extends BaseExecutor {
 
     if (!tlsResult.body) {
       const status = tlsResult.status;
+      recordGrokUpstreamStatus(status);
       const classification = classifyGrokNullBodyError(status, tlsResult.text);
       log?.warn?.("GROK-WEB", classification.message);
       const errResp = buildGrokNullBodyErrorResponse(status, classification);
