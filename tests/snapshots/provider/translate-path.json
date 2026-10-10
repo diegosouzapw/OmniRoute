@@ -497,6 +497,29 @@
       "stream": "https://api.arcee.ai/api/v1/chat/completions"
     }
   },
+  "atlascloud": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.atlascloud.ai/v1/chat/completions",
+      "stream": "https://api.atlascloud.ai/v1/chat/completions"
+    }
+  },
   "auggie": {
     "format": "openai",
     "headers": {

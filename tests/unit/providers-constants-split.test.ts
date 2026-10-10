@@ -54,7 +54,9 @@ const P = await import("../../src/shared/constants/providers.ts");
 
 // Apmix (#14821) adds one apikey/regional entry — 246.
 // Token Market (#13191) adds one apikey/gateways entry — measured 248 on the #13191 branch.
-const APIKEY_PROVIDER_COUNT = 249;
+// Atlas Cloud extracts one aggregator gateway into apikey/atlascloud.ts and spreads it from
+// the barrel, like BeatAPI — 250.
+const APIKEY_PROVIDER_COUNT = 250;
 
 test("barrel still exports every catalog + key helpers", () => {
   for (const name of [
@@ -79,16 +81,17 @@ test("barrel still exports every catalog + key helpers", () => {
   }
 });
 
-test(`APIKEY_PROVIDERS merges the 6 family files plus the beatapi extract into ${APIKEY_PROVIDER_COUNT} entries (no loss / no dup)`, async () => {
+test(`APIKEY_PROVIDERS merges the 6 family files plus the beatapi and atlascloud extracts into ${APIKEY_PROVIDER_COUNT} entries (no loss / no dup)`, async () => {
   const keys = Object.keys((P as Record<string, object>).APIKEY_PROVIDERS);
   assert.equal(keys.length, APIKEY_PROVIDER_COUNT);
   assert.equal(new Set(keys).size, APIKEY_PROVIDER_COUNT, "duplicate keys after spread-merge");
   // the merged object's entry-count equals the sum of the 6 semantic family files plus the
-  // beatapi overflow extract; they are a strict partition (every provider in exactly one),
+  // beatapi and atlascloud overflow extracts; they are a strict partition (every provider in exactly one),
   // so the sum must be exactly APIKEY_PROVIDER_COUNT.
   const families: [string, string][] = [
     ["gateways", "APIKEY_PROVIDERS_GATEWAYS"],
     ["beatapi", "APIKEY_PROVIDERS_BEATAPI"],
+    ["atlascloud", "APIKEY_PROVIDERS_ATLASCLOUD"],
     ["frontier-labs", "APIKEY_PROVIDERS_FRONTIER"],
     ["inference-hosts", "APIKEY_PROVIDERS_INFERENCE"],
     ["enterprise-cloud", "APIKEY_PROVIDERS_ENTERPRISE"],
