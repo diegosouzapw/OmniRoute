@@ -123,7 +123,8 @@ export function isMatchingOauthIdentity(
   row: { provider_specific_data?: unknown },
   incomingUsername: string | null,
   incomingProfileArn: string | null,
-  incomingOrganizationUuid: string | null = null
+  incomingOrganizationUuid: string | null = null,
+  incomingFactoryOrgId: string | null = null
 ): boolean {
   const existingPsd = parseProviderSpecificData(row.provider_specific_data);
   const usernameMatch = fieldMatch(incomingUsername, nonEmptyString(existingPsd?.username));
@@ -132,7 +133,16 @@ export function isMatchingOauthIdentity(
     incomingOrganizationUuid,
     nonEmptyString(existingPsd?.organizationUUID)
   );
-  if (usernameMatch === false || profileArnMatch === false || organizationMatch === false) {
+  const factoryOrgMatch = bothSidesFieldMatch(
+    incomingFactoryOrgId,
+    nonEmptyString(existingPsd?.orgId)
+  );
+  if (
+    usernameMatch === false ||
+    profileArnMatch === false ||
+    organizationMatch === false ||
+    factoryOrgMatch === false
+  ) {
     return false;
   }
   return true;

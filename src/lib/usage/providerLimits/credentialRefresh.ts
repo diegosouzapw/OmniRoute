@@ -1,10 +1,11 @@
-import { updateProviderConnection } from "@/lib/db/providers";
+import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
 import type { BaseExecutor } from "@omniroute/open-sse/executors/base";
 import { isUnrecoverableRefreshError } from "@omniroute/open-sse/services/tokenRefresh/shared.ts";
 import {
   rotationGroupFor,
   serializeRefresh,
 } from "@omniroute/open-sse/services/refreshSerializer.ts";
+import { getAccessToken } from "@omniroute/open-sse/services/tokenRefresh.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -96,6 +97,59 @@ function buildCredentialUpdateData(
   return updateData;
 }
 
+async function refreshFactoryCredentialsWithCommit(
+  connection: ProviderConnectionLike,
+  credentials: JsonRecord
+): Promise<{ connection: ProviderConnectionLike; refreshed: boolean }> {
+  let committed: ProviderConnectionLike | null = null;
+  const result = (await getAccessToken("factory", credentials, console, null, async (refreshed) => {
+    const updateData = buildCredentialUpdateData(connection, refreshed as CredentialRefreshResult);
+    if (
+      refreshed.providerSpecificData &&
+      typeof refreshed.providerSpecificData === "object" &&
+      !Array.isArray(refreshed.providerSpecificData)
+    ) {
+      updateData.providerSpecificData = refreshed.providerSpecificData;
+    }
+    const saved = await updateProviderConnection(connection.id, updateData, {
+      mergeProviderSpecificData: true,
+    });
+    if (!saved || typeof saved.id !== "string") {
+      throw withStatus(new Error("Factory credential persistence failed"), 409);
+    }
+    committed = { ...connection, ...saved, id: saved.id, provider: "factory" };
+  })) as CredentialRefreshResult | null;
+
+  if (!result || isUnrecoverableRefreshError(result)) {
+    if (connection.accessToken) return { connection, refreshed: false };
+    throw withStatus(
+      new Error("Failed to refresh credentials. Please re-authorize the connection."),
+      401
+    );
+  }
+  if (!result.accessToken) return { connection, refreshed: false };
+  if (committed) return { connection: committed, refreshed: true };
+
+  const winner = await getProviderConnectionById(connection.id);
+  if (
+    winner?.provider === "factory" &&
+    typeof winner.accessToken === "string" &&
+    winner.accessToken
+  ) {
+    return {
+      connection: {
+        ...connection,
+        ...winner,
+        id: connection.id,
+        provider: "factory",
+        accessToken: winner.accessToken,
+      },
+      refreshed: false,
+    };
+  }
+  throw withStatus(new Error("Factory refresh was superseded without a committed credential"), 409);
+}
+
 /** Refresh and persist credentials using a caller-supplied executor resolver. */
 export async function refreshAndUpdateCredentialsWithResolver(
   connection: ProviderConnectionLike,
@@ -118,6 +172,9 @@ export async function refreshAndUpdateCredentialsWithResolver(
 
   if (!opts.force && !executor.needsRefresh(credentials)) {
     return { connection, refreshed: false };
+  }
+  if (connection.provider === "factory") {
+    return refreshFactoryCredentialsWithCommit(connection, credentials);
   }
 
   const refreshResult = (await serializeRefresh(connection.provider, () =>

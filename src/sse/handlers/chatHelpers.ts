@@ -531,19 +531,30 @@ export async function executeChatWithBreaker({
             fallbackAttempts,
             forcedConnectionId,
             skipResourcePressureGuard: true,
-            onCredentialsRefreshed: async (newCreds: any) => {
-              await updateProviderCredentials(credentials.connectionId, {
-                accessToken: newCreds.accessToken,
-                refreshToken: newCreds.refreshToken,
-                expiresIn: newCreds.expiresIn,
-                expiresAt: newCreds.expiresAt,
-                providerSpecificData: newCreds.providerSpecificData,
-                // Cookie/session providers may rotate apiKey mid-request; forward it so the DB
-                // credential doesn't go stale after Set-Cookie rotation.
-                apiKey: newCreds.apiKey,
-                testStatus: newCreds.testStatus ?? "active",
-                isActive: newCreds.isActive,
-              });
+            onCredentialsRefreshed: async (newCreds: Record<string, unknown>) => {
+              const saved = await updateProviderCredentials(
+                credentials.connectionId,
+                {
+                  accessToken:
+                    typeof newCreds.accessToken === "string" ? newCreds.accessToken : undefined,
+                  refreshToken:
+                    typeof newCreds.refreshToken === "string" ? newCreds.refreshToken : undefined,
+                  expiresIn:
+                    typeof newCreds.expiresIn === "number" ? newCreds.expiresIn : undefined,
+                  expiresAt:
+                    typeof newCreds.expiresAt === "string" ? newCreds.expiresAt : undefined,
+                  providerSpecificData: newCreds.providerSpecificData as
+                    Record<string, unknown> | undefined,
+                  apiKey: typeof newCreds.apiKey === "string" ? newCreds.apiKey : undefined,
+                  testStatus:
+                    typeof newCreds.testStatus === "string" ? newCreds.testStatus : "active",
+                  isActive: typeof newCreds.isActive === "boolean" ? newCreds.isActive : undefined,
+                },
+                provider === "factory" ? { mergeProviderSpecificData: true } : undefined
+              );
+              if (provider === "factory" && !saved) {
+                throw new Error("Factory credential persistence failed");
+              }
             },
             onRequestSuccess: async () => {
               if (isShadowTraffic) return;

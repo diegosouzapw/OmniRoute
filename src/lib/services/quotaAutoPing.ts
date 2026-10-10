@@ -26,6 +26,7 @@ import type { BaseExecutor } from "@omniroute/open-sse/executors/base";
 import { splitCodexReasoningSuffix } from "@omniroute/open-sse/executors/codex/reasoningSuffix.ts";
 import { isModelSelectable } from "@omniroute/open-sse/services/modelLifecycle.ts";
 import { getCodexUsage } from "@omniroute/open-sse/services/usage/codex.ts";
+import { getFactoryUsage } from "@omniroute/open-sse/services/usage/factory.ts";
 import { throttleQuotaFetch } from "@omniroute/open-sse/services/quotaFetchThrottle.ts";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { getSettings, resolveProxyForConnection } from "@/lib/db/settings";
@@ -34,12 +35,14 @@ import { isConnectionUnavailableToAuxiliaryActivity } from "@/lib/exclusiveLease
 import { refreshAndUpdateCredentialsWithResolver } from "@/lib/usage/providerLimits/credentialRefresh";
 import { getCircuitBreaker } from "@/shared/utils/circuitBreaker";
 import {
+  FACTORY_PING_MODEL,
   QUOTA_AUTOPING_FAILURE_COOLDOWN_MS,
   QUOTA_AUTOPING_FAR_RESET_SKIP_MS,
   QUOTA_AUTOPING_PROVIDERS,
   QUOTA_AUTOPING_REFRESH_AHEAD_MS,
   QUOTA_AUTOPING_TICK_INTERVAL_MS,
   type QuotaAutoPingProviderConfig,
+  type QuotaAutoPingProviderId,
 } from "@/shared/constants/quotaAutoPing";
 
 const log = logger("QuotaAutoPing");
@@ -70,25 +73,23 @@ export interface QuotaAutoPingDeps {
   refreshAndUpdateCredentials: (
     connection: QuotaAutoPingConnection
   ) => Promise<{ connection: QuotaAutoPingConnection }>;
+  getProviderUsage?: (
+    provider: QuotaAutoPingProviderId,
+    accessToken?: string,
+    providerSpecificData?: JsonRecord
+  ) => Promise<JsonRecord>;
   getCodexUsage: (accessToken?: string, providerSpecificData?: JsonRecord) => Promise<JsonRecord>;
-  /**
-   * #11904: the #6009/#6058 gate that spaces genuine upstream quota fetches. Every
-   * other Codex quota read is behind it; this scheduler's read has to be too, since
-   * it runs unattended once a minute per connection.
-   */
+  getFactoryUsage?: (
+    accessToken?: string,
+    providerSpecificData?: JsonRecord
+  ) => Promise<JsonRecord>;
   throttleQuotaFetch: () => Promise<void>;
   resolveProxyForConnection: (connectionId: string) => Promise<{ proxy?: unknown } | null>;
   runWithProxyContext: <T>(proxyConfig: unknown, callback: () => Promise<T>) => Promise<T>;
-  getExecutor: (provider: "codex") => Promise<BaseExecutor>;
+  getExecutor: (provider: QuotaAutoPingProviderId) => Promise<BaseExecutor>;
   canExecuteProvider: (provider: string) => boolean;
   isConnectionUnavailableToAuxiliaryActivity: (connectionId: string) => Promise<boolean>;
-  /**
-   * #11905: which model the tiny ping is sent as. Resolved from the live provider
-   * catalog + lifecycle registry every tick (see resolveQuotaAutoPingModel) instead
-   * of a pinned id, so a vendor shutdown pauses the ping with a diagnostic rather
-   * than turning the scheduler into a retry loop against a dead model.
-   */
-  resolvePingModel: (provider: "codex", nowMs: number) => Promise<string | null>;
+  resolvePingModel: (provider: QuotaAutoPingProviderId, nowMs: number) => Promise<string | null>;
 }
 
 export interface QuotaAutoPingState {
@@ -104,8 +105,20 @@ export function createQuotaAutoPingState(): QuotaAutoPingState {
 }
 
 let codexExecutorPromise: Promise<BaseExecutor> | null = null;
+let factoryExecutorPromise: Promise<BaseExecutor> | null = null;
 
 async function loadQuotaAutoPingExecutor(provider: string): Promise<BaseExecutor> {
+  if (provider === "factory") {
+    try {
+      factoryExecutorPromise ??= import("@omniroute/open-sse/executors/factory.ts").then(
+        ({ FactoryExecutor }) => new FactoryExecutor()
+      );
+      return await factoryExecutorPromise;
+    } catch (error) {
+      factoryExecutorPromise = null;
+      throw error;
+    }
+  }
   if (provider !== "codex") {
     throw new Error(`Quota auto-ping does not support provider "${provider}"`);
   }
@@ -121,23 +134,14 @@ async function loadQuotaAutoPingExecutor(provider: string): Promise<BaseExecutor
   }
 }
 
-/**
- * Pick the model the Codex ping is sent as (#11905).
- *
- * Walks the provider's catalog in registry order (the same "first entry is the
- * default" rule as getDefaultModel) and returns the first id that is a base model
- * — the ping sets `reasoning.effort` itself, so `-low`/`-max` variants are
- * redundant — and that the lifecycle gate would let through on the request path
- * (`checkLifecycle` in chatCore uses the same provider-scoped isModelSelectable).
- * Returns null when nothing in the catalog is selectable; the caller logs and
- * pauses instead of sending.
- */
 export async function resolveQuotaAutoPingModel(
-  provider: "codex",
+  provider: QuotaAutoPingProviderId,
   asOf: Date | number | string = Date.now()
 ): Promise<string | null> {
-  // Lazy for the same reason loadQuotaAutoPingExecutor is: this module sits on the
-  // instrumentation boot path and the model registry is a large import graph (#12074).
+  if (provider === "factory") {
+    const { isModelSelectable } = await import("@omniroute/open-sse/services/modelLifecycle.ts");
+    return isModelSelectable("factory", FACTORY_PING_MODEL, { asOf }) ? FACTORY_PING_MODEL : null;
+  }
   const { getProviderModels } = await import("@omniroute/open-sse/config/providerModels.ts");
   for (const model of getProviderModels(provider)) {
     if (splitCodexReasoningSuffix(model.id).effort !== null) continue;
@@ -153,8 +157,17 @@ export function createDefaultQuotaAutoPingDeps(): QuotaAutoPingDeps {
     getProviderConnections,
     updateProviderConnection,
     refreshAndUpdateCredentials: async (connection) =>
-      refreshAndUpdateCredentialsWithResolver(connection, loadQuotaAutoPingExecutor),
+      refreshAndUpdateCredentialsWithResolver(connection, loadQuotaAutoPingExecutor, {
+        allowRotatingRefresh: connection.provider === "factory",
+      }),
+    getProviderUsage: async (provider, accessToken, providerSpecificData) => {
+      if (provider === "factory") {
+        return (await getFactoryUsage(accessToken, providerSpecificData)) as JsonRecord;
+      }
+      return (await getCodexUsage(accessToken, providerSpecificData)) as JsonRecord;
+    },
     getCodexUsage,
+    getFactoryUsage,
     throttleQuotaFetch,
     resolveProxyForConnection,
     runWithProxyContext,
@@ -203,9 +216,16 @@ function isQuotaExhausted(quota: JsonRecord | undefined): boolean {
 }
 
 function hasExhaustedBlockingQuota(quotas: JsonRecord, sessionKey: string): boolean {
+  const sessionTier = sessionKey.startsWith("core_")
+    ? "core_"
+    : sessionKey.startsWith("standard_")
+      ? "standard_"
+      : null;
   return Object.entries(quotas).some(([name, quota]) => {
     if (name === sessionKey) return false;
-    if (String(name).toLowerCase().includes("session")) return false;
+    const lower = String(name).toLowerCase();
+    if (lower.includes("session") || lower.includes("5h")) return false;
+    if (sessionTier && !name.startsWith(sessionTier)) return false;
     return isQuotaExhausted(quota as JsonRecord);
   });
 }
@@ -299,15 +319,61 @@ async function sendCodexPing(
   return true;
 }
 
+function buildFactoryPingBody(providerConfig: ResolvedQuotaAutoPingProviderConfig): JsonRecord {
+  return {
+    model: providerConfig.pingModel,
+    messages: [{ role: "user", content: providerConfig.pingText }],
+    max_tokens: providerConfig.pingMaxTokens ?? 1,
+    stream: true,
+  };
+}
+
+async function sendFactoryPing(
+  connection: QuotaAutoPingConnection,
+  providerConfig: ResolvedQuotaAutoPingProviderConfig,
+  deps: QuotaAutoPingDeps
+): Promise<boolean> {
+  const executor = await deps.getExecutor("factory");
+  const result = await executor.execute({
+    model: providerConfig.pingModel,
+    stream: true,
+    credentials: {
+      accessToken: connection.accessToken,
+      connectionId: connection.id,
+      providerSpecificData: connection.providerSpecificData,
+    },
+    log: null,
+    body: buildFactoryPingBody(providerConfig),
+  });
+  const response = (result as { response?: Response }).response;
+  if (!response || !response.ok) {
+    try {
+      await (response as { body?: { cancel?: () => Promise<void> } })?.body?.cancel?.();
+    } catch {
+      // Ignore — best-effort cleanup of an already-failed ping.
+    }
+    return false;
+  }
+  await drainResponseBody(response);
+  return true;
+}
+
 function shouldPingForReset(
   providerConfig: QuotaAutoPingProviderConfig,
   cachedReset: string | undefined,
-  resetAt: string,
+  resetAt: string | undefined,
   nowMs: number
 ): boolean {
-  void nowMs;
-  if (!cachedReset) return false;
-  return getResetDriftMs(cachedReset, resetAt) >= providerConfig.resetAtDriftMs;
+  if (providerConfig.pingWhenResetAtSlides) {
+    if (!cachedReset || !resetAt) return false;
+    return getResetDriftMs(cachedReset, resetAt) >= (providerConfig.resetAtDriftMs || 0);
+  }
+  if (providerConfig.pingWhenWindowInactive) {
+    if (!resetAt) return true;
+    const resetMs = new Date(resetAt).getTime();
+    return !Number.isFinite(resetMs) || nowMs >= resetMs;
+  }
+  return false;
 }
 
 /**
@@ -316,7 +382,7 @@ function shouldPingForReset(
  */
 async function isPingCandidateBlocked(
   connection: QuotaAutoPingConnection,
-  provider: "codex",
+  provider: QuotaAutoPingProviderId,
   providerConfig: QuotaAutoPingProviderConfig,
   deps: QuotaAutoPingDeps,
   state: QuotaAutoPingState,
@@ -324,39 +390,33 @@ async function isPingCandidateBlocked(
   cachedReset: string | undefined,
   nowMs: number
 ): Promise<boolean> {
-  if (!deps.canExecuteProvider(provider)) return true; // provider circuit breaker OPEN
+  if (!deps.canExecuteProvider(provider)) return true;
   if (await deps.isConnectionUnavailableToAuxiliaryActivity(connection.id)) return true;
-  if (isRateLimited(connection, nowMs)) return true; // connection cooldown active
+  if (isRateLimited(connection, nowMs)) return true;
   if (shouldSkipAfterFailure(state, key, nowMs)) return true;
-
-  // Codex has no fixed reset schedule (pingWhenResetAtSlides): resetAt keeps
-  // sliding forward while the window is idle, so we must re-fetch usage every
-  // tick to detect the slide. Providers with a real fixed reset (future
-  // Antigravity buckets) would skip re-fetching until close to the cached
-  // resetAt — the guard is preserved here for that case.
   return Boolean(
     !providerConfig.pingWhenResetAtSlides &&
+    !providerConfig.pingWhenWindowInactive &&
     cachedReset &&
     nowMs < new Date(cachedReset).getTime() - QUOTA_AUTOPING_REFRESH_AHEAD_MS
   );
 }
 
-/** Post-fetch decision — everything we know once usage has been read. */
 function shouldSendPing(
   providerConfig: QuotaAutoPingProviderConfig,
   quotas: JsonRecord,
   quota: JsonRecord | undefined,
   cachedReset: string | undefined,
-  resetAt: string,
+  resetAt: string | undefined,
   current: QuotaAutoPingConnection,
   resetKey: string,
   nowMs: number
 ): boolean {
-  // #13601: warming a window whose reset is days away has no benefit — the
-  // window cannot roll soon, so the ping can only fail (quota-hammering).
-  const resetAtMs = new Date(resetAt).getTime();
-  if (Number.isFinite(resetAtMs) && resetAtMs - nowMs > QUOTA_AUTOPING_FAR_RESET_SKIP_MS) {
-    return false;
+  if (resetAt) {
+    const resetAtMs = new Date(resetAt).getTime();
+    if (Number.isFinite(resetAtMs) && resetAtMs - nowMs > QUOTA_AUTOPING_FAR_RESET_SKIP_MS) {
+      return false;
+    }
   }
   if (
     providerConfig.skipWhenBlockingQuotaExhausted &&
@@ -367,13 +427,24 @@ function shouldSendPing(
   if (isQuotaExhausted(quota)) return false;
   if (!shouldPingForReset(providerConfig, cachedReset, resetAt, nowMs)) return false;
   if (wasPingedRecently(current, providerConfig.minPingIntervalMs, nowMs)) return false;
-  if (current.lastPingedResetKey === resetKey) return false;
+  if (providerConfig.pingWhenWindowInactive) {
+    if (current.lastPingedResetKey && current.lastPingedResetKey !== "factory:standard:inactive") {
+      if (
+        resetAt &&
+        current.lastPingedResetKey === `factory:standard:${normalizeResetKey(resetAt)}`
+      ) {
+        return false;
+      }
+    }
+  } else {
+    if (current.lastPingedResetKey === resetKey) return false;
+  }
   return true;
 }
 
 async function refreshConnectionForPing(
   connection: QuotaAutoPingConnection,
-  provider: "codex",
+  provider: QuotaAutoPingProviderId,
   deps: QuotaAutoPingDeps,
   state: QuotaAutoPingState,
   key: string,
@@ -393,7 +464,7 @@ async function refreshConnectionForPing(
 
 async function pingConnection(
   connection: QuotaAutoPingConnection,
-  provider: "codex",
+  provider: QuotaAutoPingProviderId,
   providerConfig: ResolvedQuotaAutoPingProviderConfig,
   deps: QuotaAutoPingDeps,
   state: QuotaAutoPingState,
@@ -421,25 +492,52 @@ async function pingConnection(
 
   const proxyInfo = await deps.resolveProxyForConnection(current.id);
   await deps.runWithProxyContext(proxyInfo?.proxy ?? null, async () => {
-    // Pace this the same way every other quota fetcher does. Placed after the skip
-    // checks above so a connection that never reaches the network does not consume a
-    // slot and delay the ones that do.
     await deps.throttleQuotaFetch();
-    const usage = await deps.getCodexUsage(current.accessToken, current.providerSpecificData);
-    const quotas = (usage.quotas as JsonRecord) || {};
-    const quota = quotas[providerConfig.quotaKey] as JsonRecord | undefined;
-    const resetAt = quota?.resetAt as string | undefined;
-    if (!resetAt) return;
-    state.resetCache[key] = resetAt;
-
-    const resetKey = normalizeResetKey(resetAt);
+    const fetchUsage =
+      deps.getProviderUsage ??
+      (async (p: QuotaAutoPingProviderId, token?: string, psd?: JsonRecord) => {
+        if (p === "factory") {
+          return deps.getFactoryUsage
+            ? deps.getFactoryUsage(token, psd)
+            : getFactoryUsage(token, psd);
+        }
+        return deps.getCodexUsage ? deps.getCodexUsage(token, psd) : getCodexUsage(token, psd);
+      });
+    const usage = await fetchUsage(provider, current.accessToken, current.providerSpecificData);
+    const quotas =
+      usage &&
+      typeof usage === "object" &&
+      "quotas" in usage &&
+      usage.quotas &&
+      typeof usage.quotas === "object"
+        ? (usage.quotas as JsonRecord)
+        : {};
+    const quota = quotas[providerConfig.quotaKey];
+    const quotaRecord = quota && typeof quota === "object" ? (quota as JsonRecord) : undefined;
+    const resetAt = typeof quotaRecord?.resetAt === "string" ? quotaRecord.resetAt : undefined;
+    if (resetAt) state.resetCache[key] = resetAt;
+    if (provider === "factory" && !quotaRecord) return;
+    const resetKey = resetAt ? normalizeResetKey(resetAt) : "";
+    if (!resetKey && !providerConfig.pingWhenWindowInactive) return;
     if (
-      !shouldSendPing(providerConfig, quotas, quota, cachedReset, resetAt, current, resetKey, nowMs)
+      !shouldSendPing(
+        providerConfig,
+        quotas,
+        quotaRecord,
+        cachedReset,
+        resetAt,
+        current,
+        resetKey,
+        nowMs
+      )
     ) {
       return;
     }
 
-    const ok = await sendCodexPing(current, providerConfig, deps);
+    const ok =
+      provider === "factory"
+        ? await sendFactoryPing(current, providerConfig, deps)
+        : await sendCodexPing(current, providerConfig, deps);
     if (!ok) {
       state.failureCache[key] = nowMs;
       log.warn(`${provider}:${current.id}: ping failed`, { resetAt });
@@ -447,8 +545,41 @@ async function pingConnection(
     }
 
     delete state.failureCache[key];
+    let nextResetKey = resetKey;
+    if (provider === "factory") {
+      nextResetKey = "factory:standard:inactive";
+      try {
+        const postUsage = await fetchUsage(
+          provider,
+          current.accessToken,
+          current.providerSpecificData
+        );
+        const postQuotas =
+          postUsage &&
+          typeof postUsage === "object" &&
+          "quotas" in postUsage &&
+          postUsage.quotas &&
+          typeof postUsage.quotas === "object"
+            ? (postUsage.quotas as JsonRecord)
+            : {};
+        const postQuota = postQuotas[providerConfig.quotaKey];
+        const postResetAt =
+          typeof (postQuota as JsonRecord)?.resetAt === "string"
+            ? ((postQuota as JsonRecord).resetAt as string)
+            : undefined;
+        if (postResetAt) {
+          const postResetMs = new Date(postResetAt).getTime();
+          if (Number.isFinite(postResetMs) && postResetMs > nowMs) {
+            nextResetKey = `factory:standard:${normalizeResetKey(postResetAt)}`;
+            state.resetCache[key] = postResetAt;
+          }
+        }
+      } catch {
+        // Fall back to inactive marker on post-ping fetch failure
+      }
+    }
     await deps.updateProviderConnection(current.id, {
-      lastPingedResetKey: resetKey,
+      lastPingedResetKey: nextResetKey,
       lastPingAt: new Date(nowMs).toISOString(),
     });
     log.info(`${provider}:${current.id}: ping sent`, { resetAt, model: providerConfig.pingModel });
@@ -461,7 +592,7 @@ async function pingConnection(
  * per tick, and a model swap after an upgrade is visible in the log.
  */
 async function resolveProviderPingModel(
-  provider: "codex",
+  provider: QuotaAutoPingProviderId,
   deps: QuotaAutoPingDeps,
   state: QuotaAutoPingState,
   nowMs: number
@@ -492,7 +623,7 @@ function getEnabledConnectionIds(
 }
 
 async function pingProviderConnections(
-  provider: "codex",
+  provider: QuotaAutoPingProviderId,
   providerConfig: ResolvedQuotaAutoPingProviderConfig,
   enabledMap: Record<string, boolean>,
   deps: QuotaAutoPingDeps,
@@ -534,10 +665,15 @@ export async function runQuotaAutoPingTick(
     for (const [provider, providerConfig] of Object.entries(QUOTA_AUTOPING_PROVIDERS)) {
       const enabledMap = getEnabledConnectionIds(settings, providerConfig);
       if (Object.keys(enabledMap).length === 0) continue;
-      const pingModel = await resolveProviderPingModel(provider as "codex", deps, state, nowMs);
+      const pingModel = await resolveProviderPingModel(
+        provider as QuotaAutoPingProviderId,
+        deps,
+        state,
+        nowMs
+      );
       if (!pingModel) continue;
       await pingProviderConnections(
-        provider as "codex",
+        provider as QuotaAutoPingProviderId,
         { ...providerConfig, pingModel },
         enabledMap,
         deps,

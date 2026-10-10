@@ -1657,11 +1657,6 @@
       "count": 1
     }
   },
-  "src/shared/components/OAuthModal.tsx": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
-    }
-  },
   "src/shared/components/RequestLoggerV2.tsx": {
     "@typescript-eslint/no-unused-vars": {
       "count": 3

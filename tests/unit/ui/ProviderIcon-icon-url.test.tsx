@@ -228,6 +228,7 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
 describe("ProviderIcon — local SVG dimensions", () => {
   it.each([
     ["cline", "/providers/cline.svg"],
+    ["factory", "/providers/factory.svg"],
     ["kimi-coding", "/providers/kimi-logomark-light.svg"],
     ["opper", "/providers/opper.svg"],
     ["bigmodel", "/providers/zhipu.svg"],

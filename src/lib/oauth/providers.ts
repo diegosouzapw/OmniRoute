@@ -280,28 +280,37 @@ export async function pollForToken(providerName, deviceCode, codeVerifier, extra
         extra = await provider.postExchange(result.data, extraData || undefined);
       }
       return { success: true, tokens: provider.mapTokens(result.data, extra) };
-    } else {
-      if (result.data.error === "authorization_pending" || result.data.error === "slow_down") {
-        return {
-          success: false,
-          error: result.data.error,
-          errorDescription: result.data.error_description || result.data.message,
-          pending: result.data.error === "authorization_pending",
-        };
-      } else {
-        return {
-          success: false,
-          error: result.data.error || "no_access_token",
-          errorDescription:
-            result.data.error_description || result.data.message || "No access token received",
-        };
-      }
     }
+    if (result.data.error === "authorization_pending" || result.data.error === "slow_down") {
+      return {
+        success: false,
+        error: result.data.error,
+        errorDescription: result.data.error_description || result.data.message,
+        pending: result.data.error === "authorization_pending",
+      };
+    }
+    return {
+      success: false,
+      error: result.data.error || "no_access_token",
+      errorDescription:
+        result.data.error_description || result.data.message || "No access token received",
+    };
+  }
+
+  if (providerName === "factory" && result.data?.error === "organization_selection_required") {
+    return {
+      success: false,
+      error: "organization_selection_required",
+      organizationSession: result.data.organizationSession,
+      organizations: result.data.organizations,
+    };
   }
 
   return {
     success: false,
     error: result.data.error,
     errorDescription: result.data.error_description,
+    organizations: result.data?.organizations,
+    organizationSession: result.data?.organizationSession,
   };
 }

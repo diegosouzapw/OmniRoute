@@ -9,7 +9,7 @@ import { parse, type MessageFormatElement } from "@formatjs/icu-messageformat-pa
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (name: string) => JSON.parse(readFileSync(path.join(root, name), "utf8"));
 const source = read("src/i18n/messages/en.json").settings as Record<string, string>;
-const files = ["CacheSettingsTab.tsx", "AccessTokensTab.tsx"];
+const files = ["CacheSettingsTab.tsx", "AccessTokensTab.tsx", "FactoryAutoPingTab.tsx"];
 const required = new Set(
   files.flatMap((file) => {
     const text = readFileSync(
@@ -38,7 +38,7 @@ function argumentsOf(elements: MessageFormatElement[]): string[] {
 }
 
 test("cache and access-token UI keys compile in every supported locale with source arguments", () => {
-  assert.ok(required.size > 90, "both settings components must be included");
+  assert.ok(required.size > 95, "all settings components must be included");
   for (const { code } of locales) {
     const settings = read(`src/i18n/messages/${code}.json`).settings;
     for (const key of required) {
@@ -88,13 +88,45 @@ test("cache and access-token UI keys compile in every supported locale with sour
 
 test("the newly localized settings sections do not silently fall back to long English copy", () => {
   const keys = [...required].filter(
-    (key) => key.startsWith("semanticCache") || key.startsWith("accessTokens")
+    (key) =>
+      key.startsWith("semanticCache") ||
+      key.startsWith("accessTokens") ||
+      key.startsWith("factoryAutoPing")
   );
   for (const { code } of locales.filter((locale) => locale.code !== "en")) {
     const settings = read(`src/i18n/messages/${code}.json`).settings;
     for (const key of keys) {
-      if (source[key].split(/\s+/).length >= 7)
+      if (key.startsWith("factoryAutoPing") || source[key].split(/\s+/).length >= 7) {
         assert.notEqual(settings[key], source[key], `${code}.${key}: English copy`);
+      }
+    }
+  }
+});
+
+test("Factory reconnect notice is translated in every supported locale", () => {
+  const english = read("src/i18n/messages/en.json").providers.factoryReconnectWithOAuth;
+  assert.equal(typeof english, "string");
+  for (const { code } of locales) {
+    const value = read(`src/i18n/messages/${code}.json`).providers.factoryReconnectWithOAuth;
+    assert.equal(typeof value, "string", `${code}: missing providers.factoryReconnectWithOAuth`);
+    assert.ok(value.trim(), `${code}: empty Factory reconnect label`);
+    if (code !== "en") assert.notEqual(value, english, `${code}: English fallback`);
+  }
+});
+
+test("Factory OAuth chooser and local import copy stays localized in every catalog", () => {
+  const sourceModal = read("src/i18n/messages/en.json").oauthModal as Record<string, string>;
+  const keys = Object.keys(sourceModal).filter(
+    (key) => key.startsWith("factoryOrganization") || key.startsWith("factoryLocalImport")
+  );
+  assert.equal(keys.length, 11);
+  for (const { code } of locales) {
+    const messages = read(`src/i18n/messages/${code}.json`).oauthModal as Record<string, string>;
+    for (const key of keys) {
+      const value = messages[key];
+      assert.equal(typeof value, "string", `${code}: missing oauthModal.${key}`);
+      assert.deepEqual(argumentsOf(parse(value)), argumentsOf(parse(sourceModal[key])));
+      if (code !== "en") assert.notEqual(value, sourceModal[key], `${code}.${key}: English copy`);
     }
   }
 });

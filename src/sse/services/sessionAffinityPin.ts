@@ -36,7 +36,7 @@ import {
 } from "@/lib/db/sessionAccountAffinity";
 import { touchConnectionLastUsed } from "@/lib/db/providers";
 import { isModelExcludedByConnection } from "@/domain/connectionModelRules";
-import { isAccountQuotaExhausted } from "@/domain/quotaCache";
+import { isAccountQuotaExhausted, isQuotaExhaustedForRequest } from "@/domain/quotaCache";
 import {
   isAccountUnavailable,
   isModelLocked,
@@ -505,7 +505,13 @@ function isConnectionEligibleForAffinityPin(
     }
     if (requestedModel && isModelLocked(provider, connection.id, requestedModel)) return false;
   }
-  if (isAccountQuotaExhausted(connection.id)) return false;
+  if (
+    provider === "factory" && requestedModel
+      ? isQuotaExhaustedForRequest(connection.id, provider, requestedModel)
+      : isAccountQuotaExhausted(connection.id)
+  ) {
+    return false;
+  }
   if (options.bypassQuotaPolicy !== true && params.isQuotaPolicyBlocked(connection)) return false;
   return true;
 }
