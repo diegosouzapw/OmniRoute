@@ -216,13 +216,13 @@ memusatkan kelayakan pasukan. Pembaikan ini menjadikan model ancaman lebih telus
 
 ## Profil binaan: `minimal`
 
-Bagi pengguna yang memerlukan artifak mesra Socket, bina dengan:
+Bagi pengguna yang memerlukan artefak mesra Socket, bina dengan:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpack `NormalModuleReplacementPlugin` mengalias empat modul kepada stub:
+`NormalModuleReplacementPlugin` webpack mengalias empat modul kepada stub:
 
 | Modul                                       | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -231,13 +231,12 @@ Webpack `NormalModuleReplacementPlugin` mengalias empat modul kepada stub:
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Setiap stub mengeksport antara muka yang sama tetapi setiap fungsi melemparkan
-`featureDisabledError(name)` semasa masa jalan. Laluan yang bergantung pada modul yang dilumpuhkan
-mengembalikan HTTP 503 dengan mesej yang jelas dan bukannya mengaktifkan
-laluan kod sensitif.
+Setiap stub mengeksport antara muka yang sama, tetapi setiap fungsi melontarkan
+`featureDisabledError(name)` semasa masa jalan. Laluan yang bergantung pada modul
+yang dinyahdayakan mengembalikan HTTP 503 dengan mesej yang jelas dan bukannya
+mengaktifkan laluan kod sensitif tersebut.
 
-Himpunan yang terhasil bertujuan untuk diterbitkan sebagai `omniroute-secure`. Lihat
-`docs/ops/PUBLISHING_SECURE.md` untuk panduan penerbitan.
+Himpunan yang terhasil bertujuan untuk diterbitkan sebagai `omniroute-secure`.
 
 ---
 

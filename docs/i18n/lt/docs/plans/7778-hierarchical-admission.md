@@ -4,25 +4,25 @@
 
 ---
 
-1. Įtvirtinkite esamą vieno rakto semaforo sutartį ir naują atominę kelių raktų
-   sutartį tiksliniais testais: jokių dalinių rezervacijų, FIFO eilė, nutraukimas,
+1. Įtvirtinkite esamą vieno rakto semaforo kontraktą ir naują atominį kelių raktų
+   kontraktą tiksliniais testais: jokių dalinių rezervavimų, FIFO eilės tvarka, nutraukimas,
    skirtasis laikas, pilna eilė, idempotentinis atlaisvinimas, statistika ir išvalymas.
 2. Apibendrinkite esamą paskyros semaforą vietoje. Palikite `acquire()` kaip
-   suderinamumo aplanką aplink `acquireMany()`; nepridėkite antro planuoklio
+   suderinamumo apvalkalą aplink `acquireMany()`; nepridėkite antro planuoklio
    ar priklausomybės.
 3. Pakeiskite tik paskyrai skirtą išteklių gavimą `chatCore` vienu kaupiamuoju
-   visuotiniu / teikėjo / paskyros išteklių gavimu prieš pat `withRateLimit`.
-   Iš naujo gaukite visą rinkinį kaskart, kai pakeitus paskyrą pasikeičia ryšys,
+   visuotiniu / teikėjo / paskyros išteklių gavimu iškart prieš `withRateLimit`.
+   Iš naujo gaukite visą rinkinį, kai dėl paskyros pakeitimo pasikeičia ryšys,
    ir neatlaisvinkite jo iki srautinio perdavimo pabaigos.
-4. Išplėskite esamą atsparumo nuostatų konvejerį (tipus, numatytąsias reikšmes,
-   normalizavimą, schemą, API atsaką, naudotojo sąsają ir vertimus) visuotiniais
-   ir teikėjo limitais. Pervadinkite senąjį „Bottleneck“ lygiagretumo valdiklį į
-   ryšio / kvotos aprėpties lygiagretumo valdiklį, kad būtų aiškiai nurodyta jo
-   tikroji aprėptis.
-5. Vykdykite tikslinius testus, lintavimą, tipų tikrinimą, statines patikras ir
-   visą testų rinkinį; aprašykite elgsenos pakeitimą pakeitimų žurnale.
+4. Išplėskite esamą atsparumo nustatymų apdorojimo grandinę (tipus, numatytąsias
+   reikšmes, normalizavimą, schemą, API atsaką, naudotojo sąsają ir vertimus)
+   visuotiniais ir teikėjo apribojimais. Pervadinkite senąjį Bottleneck lygiagretumo
+   valdiklį į ryšio / kvotos aprėpties lygiagretumo valdiklį, kad būtų aiškiai
+   nurodyta tikroji jo aprėptis.
+5. Vykdykite tikslinius testus, lint, tipų patikrą, statines patikras ir visą testų
+   rinkinį; aprašykite elgsenos pakeitimą pakeitimų žurnale.
 
-Sąmoningai išsaugota elgsena: nulinė / `null` lygiagretumo reikšmė apeina
-užtvarą, tik paskyrai skirti iškvietėjai toliau naudoja `acquire()`, užblokuotų
-paskyrų valdikliai išlaiko savo rakto formatą ir API, o teikėjo dažnio ribojimo
+Sąmoningai išsaugota elgsena: nulinė / `null` lygiagretumo reikšmė apeina vartus,
+tik paskyrai skirti kvietėjai ir toliau naudoja `acquire()`, užblokuotų paskyrų
+valdikliai išlaiko savo rakto formatą ir API, o teikėjo užklausų dažnio ribojimo
 eilės elgsena nesikeičia.

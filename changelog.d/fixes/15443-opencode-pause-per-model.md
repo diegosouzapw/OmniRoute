@@ -1,0 +1,1 @@
+- **fix(auth):** limit the no-auth free-tier pause to the refused model so sibling models stay eligible ([#15443](https://github.com/diegosouzapw/OmniRoute/pull/15443)) — thanks @maxmad64bis

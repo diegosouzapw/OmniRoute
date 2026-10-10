@@ -218,7 +218,16 @@ test("tools declared by the client are never removed, even for a title prompt", 
     "the upstream refuses this shape and we do not second-guess it"
   );
   assert.equal(bodies.length, 1, "no replay: the injection was not ours");
-  assert.equal(toolCount(bodies[0]), 1, "the client's tool list went out untouched");
+  // Since #14156 the contract appends the required placeholder names AFTER the client's
+  // own tools (it no longer sends a client tool list verbatim), but it never removes or
+  // reshapes what the client declared: the client's tool is still first and intact.
+  const sent = bodies[0].tools as Array<Record<string, unknown>>;
+  assert.ok(toolCount(bodies[0]) >= 1);
+  assert.deepEqual(
+    sent[0],
+    (body.tools as unknown[])[0],
+    "the client's own tool went out first, untouched"
+  );
 });
 
 const shapesOf = (from: number): string[] =>

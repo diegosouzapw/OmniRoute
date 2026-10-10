@@ -212,13 +212,13 @@ ohumudeli ausaks: „server allkirjastab, klient kontrollib, operaator lubab“.
 
 ## Koosteprofiil: `minimal`
 
-Kasutajad, kes vajavad Socketiga ühilduvat artefakti, saavad selle koostada käsuga:
+Kasutajatele, kes vajavad Socketiga ühilduvat artefakti, koostage see käsuga:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpacki `NormalModuleReplacementPlugin` seob neli moodulit pseudomoodulitega:
+Webpacki `NormalModuleReplacementPlugin` suunab neli moodulit pseudomoodulitele:
 
 | Moodul                                      | Pseudomoodul                                     |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -227,13 +227,12 @@ Webpacki `NormalModuleReplacementPlugin` seob neli moodulit pseudomoodulitega:
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Iga pseudomoodul ekspordib sama liidese, kuid iga funktsioon viskab käitusajal
-`featureDisabledError(name)` vea. Keelatud moodulist sõltuvad marsruudid
-tagastavad HTTP 503 koos selge sõnumiga, selle asemel et tundlikku
-kooditeed aktiveerida.
+Iga pseudomoodul ekspordib sama liidese, kuid iga funktsioon kutsub käitusajal esile
+vea `featureDisabledError(name)`. Keelatud moodulist sõltuvad marsruudid
+tagastavad HTTP 503 koos selge sõnumiga, selle asemel et aktiveerida
+tundlikku kooditeed.
 
-Saadud komplekt on mõeldud avaldamiseks nimega `omniroute-secure`. Avaldamisjuhised
-leiate failist `docs/ops/PUBLISHING_SECURE.md`.
+Saadud komplekt on mõeldud avaldamiseks nime `omniroute-secure` all.
 
 ---
 

@@ -45,11 +45,12 @@ ACP Agents (obrnuti tok pokretanja):
 
 ---
 
-## Auto-konfiguracija pomoću `setup-*`
+## Automatsko konfigurisanje sa `setup-*`
 
-Ne morate ručno pisati konfiguraciju za svaki alat. OmniRoute isporučuje `setup-*`
-komandu za svaki podržani CLI koja čita **aktivni** katalog modela sa pokrenutog
-OmniRoute-a (lokalnog ili udaljenog) i zapisuje konfiguraciju alata na vašu mašinu:
+Ne morate ručno pisati konfiguraciju svakog alata. OmniRoute isporučuje `setup-*`
+komandu po podržanom CLI-ju koja čita **živi** katalog modela iz pokrenutog
+OmniRoute-a (lokalnog ili udaljenog) i piše vlastitu konfiguraciju alata na vašoj
+mašini:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -59,47 +60,52 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-Svaka od njih prihvata `--remote <url> --api-key <key>` (konfigurisanje lokalnog alata prema
-udaljenom OmniRoute-u), `--dry-run` (pregled bez zapisivanja) i `--port`. Alati
-bez auto-otkrivanja modela (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) primaju
-`--model <id>` (i `--yes` za neinteraktivna pokretanja). `setup-5dive` je jedini
-recept koji ne piše pod `$HOME`: on konfiguriše 5dive agent fleet zapisivanjem auth profila u vlasništvu root-a na fleet hostu, tako da se ponovo izvršava putem `sudo`
-i nema sopstveni remote mod. Da biste pokrenuli CLI sa
-ubrizganim ispravnim env-om i bez ikakvog zapisivanja konfiguracije, koristite generički
-`omniroute run <target>` launcher (claude, codex, aider, goose, opencode, qwen,
-gemini — targeti i aliasi dolaze iz `bin/cli/cli-manifest.mjs`); zastarjeli
-launcheri po alatu `omniroute launch` (Claude Code) i `omniroute launch-codex`
-(Codex) ostaju dostupni. Gemini CLI je samo za pokretanje: on je `omniroute run`
-target, ali nema `setup-*`/`configure` recept.
+Svaka prihvata `--remote <url> --api-key <key>` (konfiguriše lokalni alat prema
+udaljenom OmniRoute-u), `--dry-run` (pregled bez pisanja) i `--port`. Alati
+bez automatskog otkrivanja modela (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive)
+prihvataju `--model <id>` (i `--yes` za neinteraktivna pokretanja). `setup-5dive`
+je jedini recept koji ne piše pod `$HOME`: on konfiguriše flotu agenata 5dive
+pisanjem auth profila u vlasništvu roota na hostu flote, tako da se ponovo izvršava
+preko `sudo` i nema vlastiti udaljeni način rada. Za pokretanje CLI-ja sa
+pravilno ubrizganim okruženjem i bez ikakve napisane konfiguracije, koristite generički
+`omniroute run <target>` pokretač (claude, codex, aider, goose, opencode, qwen,
+gemini — ciljevi i aliasi dolaze iz `bin/cli/cli-manifest.mjs`); naslijeđeni
+pokretači po alatu `omniroute launch` (Claude Code) i `omniroute launch-codex`
+(Codex) ostaju dostupni. Gemini CLI je samo za pokretanje: to je `omniroute run`
+cilj, ali nema `setup-*`/`configure` recept.
 
-> **Potpuna referenca:** glavna tabela — šta svaka komanda zapisuje, svaka zastavica,
-> lokalno naspram udaljenog, i koji alati zahtijevaju `/v1` sufiks — nalazi se u
+> **Potpuna referenca:** glavna tabela — šta svaka komanda piše, svaka zastavica,
+> lokalno vs udaljeno, i koji alati žele `/v1` sufiks — nalazi se u
 > **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**.
 
 ### Pokretanje unutar kontejnera
 
-`setup-*` komanda izvršena unutar OmniRoute kontejnera piše u
-vlastiti home direktorijum kontejnera, koji nijedan host CLI ne čita i koji nestaje sa
-kontejnerom. OmniRoute to detektuje i izlazi sa kodom `2` uz instrukcije umjesto
-zapisivanja. Postoje dva podržana načina za dalje — instalirajte CLI na host i
-koristite `omniroute connect` ka kontejneru, ili bind-mount-ujte konfiguracione direktorijume i postavite
-`CLI_CONFIG_HOME` (compose `host` profil). Svaka `setup-*` komanda, kao i
+`setup-*` komanda izvršena unutar OmniRoute kontejnera piše u vlastiti home
+kontejnera, koji nijedan host CLI ne čita i koji nestaje sa kontejnerom. OmniRoute
+to detektuje i izlazi sa `2` i uputstvima umjesto pisanja. Dva podržana načina
+naprijed — instalirajte CLI na hostu i `omniroute connect` na kontejner, ili
+bind-mount-ujte konfiguracijske direktorijume i postavite `CLI_CONFIG_HOME`
+(compose `host` profil). Svaka `setup-*` komanda, plus
 `omniroute configure` i `omniroute config set`, prihvata
-`--allow-container-write` kada je konfigurisanje CLI-jeva samog kontejnera ono što
-ste zapravo željeli; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` radi isto za
-server. Pogledajte
+`--allow-container-write` kada je konfigurisanje vlastitih CLI-jeva kontejnera
+ono što ste zapravo mislili; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` čini
+isto za server. Pogledajte
 [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**Apply endpoint** kontrolne ploče (`POST /api/cli-tools/apply`) primjenjuje
-istu zaštitu: u kontejneru, zapis čiji target nije bind-mount-ovan sa
-hosta odgovara sa **`422`** i `containerEphemeralTarget: true`, sigurnim tekstom greške i — za alate sa host receptom (claude, codex, opencode, cline,
-kilo, continue) — `hostSetupCommand` (npr. `omniroute setup-opencode`) koji treba pokrenuti
-na hostu umjesto toga; ništa nije zapisano. `dryRun: true` nastavlja raditi u container
-modu i vraća generisani sadržaj + putanju targeta bez diranja diska, tako da
-možete pregledati iz kontrolne ploče i primijeniti na hostu. Ovo ponašanje je
-namjerno i zaštićeno od regresije putem
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nikada ne "popravljajte" 422
-uklanjanjem zaštite.
+Kontrolna tabla **apply endpoint** (`POST /api/cli-tools/apply`) primjenjuje
+istu zaštitu: u kontejneru, pisanje čiji cilj nije bind-mount-ovan sa hosta
+odgovara **`422`** sa `containerEphemeralTarget: true`, sigurnim tekstom greške
+i — za alate sa host receptom (claude, codex, opencode, cline, kilo, continue) —
+`hostSetupCommand` (npr. `omniroute setup-opencode`) za pokretanje na hostu
+umjesto toga; ništa se ne piše. `dryRun: true` nastavlja raditi u kontejnerskom
+načinu i vraća redigovani pregled + ciljnu putanju bez dodirivanja diska. Sadržaj
+pregleda nije konfiguracija koja sadrži vjerodajnice za kopiranje ili uvoz. Primijenite
+sa originalnim alatom/osnovnim URL-om/API ključem/ulazima modela na hostu, ili
+koristite naznačenu komandu za podešavanje na strani hosta. Pogledajte
+[CLI configuration security](../security/CLI-CONFIGURATION.md) za zaglavlje pregleda
+i ugovor zahtjeva. Ovo ponašanje je namjerno i zaštićeno od regresije pomoću
+`tests/unit/api/cli-tools/apply-container-guard.test.ts` — nikada ne "popravljajte"
+422 uklanjanjem zaštite.
 
 ---
 
@@ -142,12 +148,12 @@ jednu površinu bez ostalih uzrokovat će pad testnog seta umjesto da tiho odstu
 
 ---
 
-## 1. Katalog CLI koda (26 alata)
+## 1. Katalog CLI alata (26 alata)
 
-Svi alati koji se pojavljuju u `/dashboard/cli-code`. Oni s vrijednošću `baseUrlSupport: none` povezani su putem MITM-a ili ručnog vodiča umjesto prilagođenog osnovnog URL-a:
+Svi alati koji se pojavljuju u `/dashboard/cli-code`. Oni sa `baseUrlSupport: none` su povezani putem MITM-a ili ručnog vodiča umjesto prilagođenog osnovnog URL-a:
 
 | id           | naziv                   | dobavljač           | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
+| :----------- | :---------------------- | :------------------ | :------------- | :------------- | :----------- |
 | claude       | Claude Code             | Anthropic           | full           | env            | true         |
 | codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
 | zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
@@ -175,7 +181,7 @@ Svi alati koji se pojavljuju u `/dashboard/cli-code`. Oni s vrijednošću `baseU
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Prilagođeni CLI         | —                   | full           | custom-builder | false        |
 
-Alati s vrijednošću `baseUrlSupport: "partial"` prikazuju oznaku „⚠ Djelimični osnovni URL“ na kartici kontrolne ploče.
+Alati sa `baseUrlSupport: "partial"` prikazuju značku "⚠ Djelomični osnovni URL" na kartici nadzorne ploče.
 ---
 
 ## 2. Katalog CLI agenata (10 alata)

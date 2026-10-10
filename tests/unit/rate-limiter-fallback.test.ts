@@ -27,7 +27,11 @@ test("rate limiter uses in-memory fallback when REDIS_URL is unset", async () =>
     const second = await rateLimiter.checkRateLimit("key-1", [{ limit: 1, window: 60 }]);
 
     assert.deepEqual(first, { allowed: true });
-    assert.deepEqual(second, { allowed: false, failedWindow: 60 });
+    assert.equal(second.allowed, false);
+    assert.equal(second.failedWindow, 60);
+    assert.equal(typeof second.resetAt, "number");
+    assert.ok(second.resetAt! > Date.now());
+    assert.ok(second.resetAt! - Date.now() <= 60_000);
   } finally {
     if (previousRedisUrl === undefined) delete process.env.REDIS_URL;
     else process.env.REDIS_URL = previousRedisUrl;

@@ -1,0 +1,1 @@
+- Include a nested error object in post-keepalive Responses failures for LiteLLM-compatible clients, preserving status and retry metadata and displaying bounded, sanitized upstream details.

@@ -100,6 +100,8 @@ type ResponsesWsHistoryContext = {
   errorMessage: string | null;
   timestamp: string;
   durationMs: number;
+  /** Turn start → first output event, in ms; null when the turn produced none. */
+  firstOutputMs: number | null;
   provider: string;
   model: string;
   requestedModel: string | null;
@@ -146,6 +148,13 @@ async function buildHistoryContext(body: JsonRecord): Promise<ResponsesWsHistory
   const outcome = resolveOutcome(body, getErrorRecord(body, responseBody));
   const timestamp = getTimestamp(body.startedAt);
   const durationMs = Math.max(0, Math.round(toFiniteNumber(body.durationMs, 0)));
+  const rawFirstOutputMs = Number(body.firstOutputMs);
+  const firstOutputMs =
+    body.firstOutputMs !== null &&
+    body.firstOutputMs !== undefined &&
+    Number.isFinite(rawFirstOutputMs)
+      ? Math.max(0, Math.round(rawFirstOutputMs))
+      : null;
   const provider = toStringOrNull(body.provider) || "codex";
   const model =
     toStringOrNull(body.model) ||
@@ -164,6 +173,7 @@ async function buildHistoryContext(body: JsonRecord): Promise<ResponsesWsHistory
     ...outcome,
     timestamp,
     durationMs,
+    firstOutputMs,
     provider,
     model,
     requestedModel,
@@ -224,7 +234,8 @@ function buildUsageEntry(context: ResponsesWsHistoryContext): JsonRecord {
     status: String(context.status),
     success: context.success,
     latencyMs: context.durationMs,
-    timeToFirstTokenMs: context.durationMs,
+    // Older proxies do not send firstOutputMs; keep their previous value (the duration).
+    timeToFirstTokenMs: context.firstOutputMs ?? context.durationMs,
     errorCode: context.errorCode,
     endpoint: "/v1/responses",
   };

@@ -6,14 +6,14 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute ダッシュボード" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute Dashboard" width="820"/>
 
 <br/>
 <br/>
 
-# 🚀 OmniRoute — 無料の AI ゲートウェイ
+# 🚀 OmniRoute — 無料のAIゲートウェイ
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — コーディングを止めない。あらゆる AI ツール → 359 のプロバイダー — 150 以上が無料 — に、1 つのエンドポイントから接続。Claude Code、Codex、Cursor、Cline、Copilot、Antigravity を無料の Claude / GPT / Gemini に接続し、自動フォールバックを実現。RTK + Caveman の多層圧縮によりトークンを 15～95%（平均約 89%）節約 — 上限到達を回避。359 の AI プロバイダー · 150 以上の無料枠 · 月間約 16.2 億無料トークン · 19 のルーティング戦略 · $0 から開始。"/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Never stop coding. Every AI tool → 358 providers — 150+ free — through one endpoint. Claude Code, Codex, Cursor, Cline, Copilot & Antigravity into FREE Claude / GPT / Gemini with auto-fallback. RTK + Caveman stacked compression saves 15–95% tokens (~89% avg) — never hit limits. 358 AI providers · 150+ free tiers · ~1.62B free tokens/mo · 19 routing strategies · $0 to start."/>
 
 </div>
 
@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ 機能</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 コンボ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 プロバイダー</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 プロバイダー</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -214,47 +214,47 @@
 
 <div align="center">
 
-## 🆓 インストールした瞬間から使える — キーも設定も不要
+## 🆓 インストール後すぐに動作 — キーも設定も不要
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="インストールした瞬間から使える — 設定不要。3つのステップ：1. インストール — npm i -g omniroute を実行すると、localhost:20128 でサーバーが起動。2. ツールの接続先を http://localhost:20128/v1 に設定 — OpenAI互換ツールなら何でも利用可能（Claude Code、Cursor、Cline）。3. 応答を取得 — APIキー、登録、設定なしで、モデル auto を呼び出せば即座に応答。キーレスプロバイダーのOpenCode Freeはautoコンボにあらかじめ組み込まれているため、新規インストール直後からそのまま応答します。"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="インストール後すぐに動作 — 設定不要。3つのステップ：1. インストール — npm i -g omniroute、サーバーはlocalhost:20128で起動します。2. ツールをhttp://localhost:20128/v1にポイントします — OpenAI互換ツール（Claude Code、Cursor、Cline）なら何でも。3. 応答します — APIキー、サインアップ、設定なしで、即座に返信を得るためにモデルautoを呼び出します。キーレスプロバイダーOpenCode Freeはautoコンボに事前に配線されているため、新規インストールで箱から出してすぐに応答します。"/>
 
 ```bash
-# 新規インストール、認証情報ゼロ — `auto` はすでに動作します：
+# 新規インストール、認証情報ゼロ — `auto`はすでに動作します：
 curl http://localhost:20128/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>特定の無料バックエンドを使いたい場合は、`oc/…`（OpenCode Free）を直接呼び出してください。その後は`auto`に移行し、OmniRouteに選択を任せましょう。</sub>
+<sub>特定の無料バックエンドをご希望ですか？`oc/…` (OpenCode Free) を直接呼び出してください。その後、`auto`に移行してOmniRouteに選択させましょう。</sub>
 
-<sub>📦 **Python、Node.js、PHP、cURL**向けのコピペ可能なクイックスタートスクリプト → [`examples/quickstart/`](examples/quickstart/)</sub>
+<sub>📦 **Python、Node.js、PHP、cURL** のクイックスタートスクリプトをコピー＆ペースト → [`examples/quickstart/`](examples/quickstart/)</sub>
 
 <br/>
 
 <div align="center">
 
-# 💥 約束すること
+# 💥 約束
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="約束すること — 1つのエンドポイントと359のプロバイダー。正常なターゲットがほかに存在する限り、自動フォールバックによってルーティングを継続。6つの柱：359のプロバイダーにまたがる耐障害性の高いフォールバック · 対象ワークロードで最大95%のトークンを節約 · 150以上の無料枠と、定期更新またはキーレスで永久無料の54プロバイダーにより$0から開始 · 1つの設定で36のCLI/エージェントを統合 · /v1でOpenAI、Claude、Gemini、Responses APIとの互換性を提供 · サーキットブレーカー、TLSステルス、MCPの110ツール、A2A、メモリ、ガードレール、評価、および追跡対象の5,100以上のテストファイルにわたる39,000以上の静的テスト宣言を含む本番運用向け制御。"/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="約束 — 1つのエンドポイントと358のプロバイダー。自動フォールバックにより、健全なターゲットが利用可能な限りルーティングを維持します。6つの柱：358のプロバイダーにわたる回復力のあるフォールバック · 対象となるワークロードで最大95%のトークン節約 · 150以上の無料ティアと54の定期/キーレス永久無料プロバイダーで$0から開始 · 1つの設定で36のCLI/エージェント統合 · /v1でのOpenAI、Claude、GeminiおよびResponses API互換性 · サーキットブレーカー、TLSステルス、MCP 110ツール、A2A、メモリ、ガードレール、評価、5,100以上の追跡されたテストファイルにわたる39,000以上の静的テスト宣言を含む本番環境制御。"/>
 
 <br/>
 <br/>
 
 <div align="center">
 
-# 🤔 OmniRouteを選ぶ理由
+# 🤔 なぜOmniRouteなのか？
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="OmniRouteを選ぶ理由 — 10個ものダッシュボード、無効なAPIキー、予想外の請求をやりくりするのはもう終わり。日常的な10の課題と解決策：クォータを使い切れずに失効 → サブスクリプションを最大限に活用；コーディング中のレート制限 → 4段階の自動フォールバック（Subscription → API → Cheap → Free）；ツール出力によるトークン浪費 → RTK + Caveman圧縮（15〜95%）；高価なAPI → コスト最適化ルーティング；ツールごとに個別のセットアップが必要 → 1つのエンドポイント、1つのダッシュボード；AIへのアクセスがブロック → 3段階プロキシ + TLSステルス；無効なキー → 3層の耐障害性（サーキットブレーカー、キーのクールダウン、モデルのロックアウト）；チームで1つのサブスクリプションを共有 → 公平な割り当てクォータを備えたキープール；プロンプトが他者のクラウドを経由 → AES-256-GCMで暗号化されたキーによるローカルファースト；支出の可視性がない → リアルタイム分析（使用量、クォータ、節約額、p95レイテンシ）。"/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="なぜOmniRouteなのか — 10個のダッシュボード、期限切れのAPIキー、予期せぬ請求に悩まされるのをやめましょう。10の日常的な問題と解決策：未使用のクォータが期限切れになる → サブスクリプションを最大化；コーディング中にレート制限 → 4層自動フォールバック（サブスクリプション → API → 安価 → 無料）；ツール出力がトークンを消費 → RTK + Caveman圧縮（15～95%）；高価なAPI → コスト最適化ルーティング；すべてのツールに独自のセットアップ → 1つのエンドポイント、1つのダッシュボード；AIがブロックされる → 3レベルプロキシ + TLSステルス；期限切れのキー → 3層レジリエンス（サーキットブレーカー、キークールダウン、モデルロックアウト）；チームで1つのサブスクリプションを共有 → 公平なクォータを持つキープール；誰かのクラウドを介したプロンプト → AES-256-GCM暗号化キーによるローカルファースト；支出の可視性なし → ライブ分析（使用量、クォータ、節約、p95レイテンシ）。"/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRouteのリクエストフロー：IDEまたはCLI（Claude Code、Cursor、Cline…）から1つのローカルエンドポイント（http://localhost:20128/v1）を呼び出し；OmniRoute Smart Router（RTK + Caveman圧縮、19種類のルーティング戦略、サーキットブレーカー、TLSステルス、MCP、A2A、ガードレール）は、利用可能で正常なターゲットが存在する限り、4つのプロバイダー階層間でフォールバック可能 — Tier 1 Subscription、Tier 2 API Key、Tier 3 Cheap、Tier 4 Free。"/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRouteリクエストフロー：IDEまたはCLI（Claude Code、Cursor、Clineなど）が1つのローカルエンドポイント（http://localhost:20128/v1）を呼び出します。OmniRouteスマートルーター（RTK + Caveman圧縮、19のルーティング戦略、サーキットブレーカー、TLSステルス、MCP、A2A、ガードレール）は、適格な健全なターゲットが残っている限り、4つのプロバイダーティア（ティア1サブスクリプション、ティア2 APIキー、ティア3安価、ティア4無料）にフォールバックできます。"/>
 
 </div>
 
@@ -341,35 +341,35 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🎯 コンボ — 主要機能
+## 🎯 コンボ — フラッグシップ機能
 
 </div>
 
-<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="全19種類のコンボルーティング戦略のアニメーション — 戦略ごとに1つのタイル：priority、fill-first、weighted、round-robin、p2c、least-used、random、strict-random、cost-optimized、headroom、reset-window、reset-aware、context-relay、context-optimized、cache-optimized、lkgp、auto、fusion、pipeline。各戦略の動作については上の表を参照してください。"/>
+<img src="./docs/diagrams/strategies-grid.svg" width="100%" alt="19種類すべてのコンボルーティング戦略のアニメーション — 戦略ごとに1つのタイル：priority、fill-first、weighted、round-robin、p2c、least-used、random、strict-random、cost-optimized、headroom、reset-window、reset-aware、context-relay、context-optimized、cache-optimized、lkgp、auto、fusion、pipeline。それぞれの動作については上の表を参照してください。"/>
 
-> **コンボ**とは、OmniRouteがモデル間を**自動的に**ルーティングするためのチェーンです。クォータを使い切った場合、プロバイダーで障害が発生した場合、またはコストが急増した場合、コンボは次に利用可能な正常なモデルへ移行できます。🛡️
+> **コンボ**とは、OmniRouteがモデル間を**自動的に**ルーティングするチェーンです。クォータを使い切った場合、プロバイダーで障害が発生した場合、またはコストが急増した場合、コンボは条件を満たす次の正常なモデルへ移行できます。🛡️
 
 ### ⚡ 設定不要 — `auto`を使うだけ
 
-コンボを作成する必要はありません。モデルを`auto`（またはそのバリアント）に設定すると、OmniRouteが接続済みのプロバイダーから仮想コンボを構築し、リアルタイムでスコアリングします：
+コンボを作成する必要はありません。モデルを`auto`（またはそのバリエーション）に設定すると、OmniRouteが接続済みのプロバイダーから仮想コンボを構築し、リアルタイムでスコアリングします：
 
 <table>
-  <tr><th align="left">モデルID</th><th align="left">最適化対象</th></tr>
-  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 バランスの取れたデフォルト（LKGP — 最後に正常に動作したプロバイダーを継続使用）</td></tr>
+  <tr><th align="left">モデルID</th><th align="left">最適化の対象</th></tr>
+  <tr><td align="left" nowrap><code>auto</code></td><td align="left">🎯 バランスの取れたデフォルト（LKGP — 最後に正常だったプロバイダーを継続使用）</td></tr>
   <tr><td align="left" nowrap><code>auto/coding</code></td><td align="left">🧑💻 コード生成向けの品質優先ウェイト</td></tr>
   <tr><td align="left" nowrap><code>auto/fast</code></td><td align="left">⚡ レイテンシが最も低いものを優先</td></tr>
   <tr><td align="left" nowrap><code>auto/cheap</code></td><td align="left">💰 トークン単価が最も安いものを優先</td></tr>
   <tr><td align="left" nowrap><code>auto/offline</code></td><td align="left">🔋 クォータ／レート制限の余裕が最も大きいものを優先</td></tr>
-  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 品質優先 + より優れたモデルを見つけるための10%の探索</td></tr>
-  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 最後に正常に動作したプロバイダーを明示的に継続使用</td></tr>
-  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 レジリエンステスト（カオスエンジニアリング）向けの障害注入ウェイト</td></tr>
+  <tr><td align="left" nowrap><code>auto/smart</code></td><td align="left">🔭 品質優先 + より優れたモデルを発見するための10%の探索</td></tr>
+  <tr><td align="left" nowrap><code>auto/lkgp</code></td><td align="left">📌 最後に正常だったプロバイダーへの明示的な固定</td></tr>
+  <tr><td align="left" nowrap><code>auto/chaos</code></td><td align="left">🧪 モデルのパネル（プロバイダーごとに1つ、デフォルトでは5つ）へ並列にファンアウトし、1つの回答を返します。上流呼び出しはパネルモデルごとに1回であり、フォールトインジェクションではありません</td></tr>
 </table>
 
 ##
 
 ### 🔀 または独自に構築 — 19種類のルーティング戦略
 
-**19種類すべて**の戦略を、コンボのステップごとに自由に組み合わせられます：
+**19種類**すべての戦略を、コンボのステップごとに自由に組み合わせられます：
 
 <table>
   <tr>
@@ -380,12 +380,12 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">1</td>
     <td nowrap><code>priority</code></td>
-    <td>先頭ターゲット優先の順序付きリスト — 各ターゲットを使い切ってから次へ移行 🥇</td>
+    <td>最初のターゲットを優先する順序付きリスト — 各ターゲットを使い切ってから次へ移行 🥇</td>
   </tr>
   <tr>
     <td align="center">2</td>
     <td nowrap><code>fill-first</code></td>
-    <td>次へ移る前に、各ターゲットのクォータを完全に使い切る</td>
+    <td>次へ移行する前に、各ターゲットのクォータを完全に使い切る</td>
   </tr>
   <tr>
     <td align="center">3</td>
@@ -400,7 +400,7 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">5</td>
     <td nowrap><code>p2c</code></td>
-    <td>「2つの選択肢」方式によるランダム負荷分散</td>
+    <td>2つの候補から選択するランダム負荷分散</td>
   </tr>
   <tr>
     <td align="center">6</td>
@@ -415,27 +415,27 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">8</td>
     <td nowrap><code>strict-random</code></td>
-    <td>重複を排除せずにランダム選択 🎲</td>
+    <td>繰り返しの重複を除外せずにランダム選択 🎲</td>
   </tr>
   <tr>
     <td align="center">9</td>
     <td nowrap><code>cost-optimized</code></td>
-    <td>リアルタイムのカタログ価格に基づき、リクエストあたりのコストを最小化 💸</td>
+    <td>最新のカタログ価格に基づいてリクエストあたりのコストを最小化 💸</td>
   </tr>
   <tr>
     <td align="center">10</td>
     <td nowrap><code>headroom</code></td>
-    <td>残りクォータが最も多いターゲットを選択</td>
+    <td>残りのクォータが最も多いターゲットを選択</td>
   </tr>
   <tr>
     <td align="center">11</td>
     <td nowrap><code>reset-window</code></td>
-    <td>クォータウィンドウが最も早くリセットされるターゲットを優先</td>
+    <td>クォータ期間が最も早くリセットされるターゲットを優先</td>
   </tr>
   <tr>
     <td align="center">12</td>
     <td nowrap><code>reset-aware</code></td>
-    <td>クォータのリセット時刻で順位付け — 短いウィンドウを優先 📊</td>
+    <td>クォータのリセット時間で順位付け — 短い期間を優先 📊</td>
   </tr>
   <tr>
     <td align="center">13</td>
@@ -445,42 +445,42 @@ curl http://localhost:20128/v1/chat/completions \
   <tr>
     <td align="center">14</td>
     <td nowrap><code>context-optimized</code></td>
-    <td>現在のコンテキストサイズに最適なターゲットを選択</td>
+    <td>現在のコンテキストサイズに最も適したターゲットを選択</td>
   </tr>
   <tr>
     <td align="center">15</td>
     <td nowrap><code>cache-optimized</code></td>
-    <td>再利用可能な各プロンプトプレフィックスを同じアカウントに固定 — プロンプトキャッシュのヒット率を最大化 🎯</td>
+    <td>再利用可能な各プロンプト接頭辞を同じアカウントに固定 — プロンプトキャッシュのヒット率を最大化 🎯</td>
   </tr>
   <tr>
     <td align="center">16</td>
     <td nowrap><code>lkgp</code></td>
-    <td>Last-Known-Good Path — 最後に成功したプロバイダーに固定し、その後ルールに従ってフォールバック</td>
+    <td>最後に正常だったパス（Last-Known-Good Path）— 最後に成功したプロバイダーに固定し、その後ルールにフォールバック</td>
   </tr>
   <tr>
     <td align="center">17</td>
     <td nowrap><code>auto</code></td>
-    <td>すべての接続を16要素でリアルタイムにスコアリング 🤖</td>
+    <td>すべての接続を対象とした16要素のリアルタイムスコアリング 🤖</td>
   </tr>
   <tr>
     <td align="center">18</td>
     <td nowrap><code>fusion</code></td>
-    <td>複数のモデルへ並列展開し、判定モデルが1つの回答に統合 🧬</td>
+    <td>モデルのパネルへファンアウトし、判定モデルが1つの回答に統合 🧬</td>
   </tr>
   <tr>
     <td align="center">19</td>
     <td nowrap><code>pipeline</code></td>
-    <td>ステップを連結 — 各ターゲットの出力を次のターゲットへ渡す 🔗</td>
+    <td>ステップを連結 — 各ターゲットの出力を次のターゲットへ入力 🔗</td>
   </tr>
 </table>
 
-<sub>Auto-Comboエンジンは、各候補を**16の要素**（正常性、クォータ、コスト、レイテンシ、タスク適合度、品質、セッション可用性など）でスコアリングします — 詳細は[`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)を参照してください。</sub>
+<sub>Auto-Comboエンジンは、すべての候補を**16の要素**（正常性、クォータ、コスト、レイテンシ、タスク適合度、品質、セッション可用性など）でスコアリングします — [`docs/routing/AUTO-COMBO.md`](docs/routing/AUTO-COMBO.md)を参照してください。</sub>
 
 ##
 
 ### 🧱 レジリエンスを標準搭載（独立した3つのレイヤー）
 
-<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute のレジリエンス — 3つの独立した自己修復レイヤーにより、障害ごとに適切なレイヤーで対応。レイヤー1：プロバイダーのサーキットブレーカー（プロバイダー全体）。408/5xx でのみ作動し、しきい値は OAuth 8回 / API キー 12回 / ローカル 2回。60s/30s/15s 後に HALF-OPEN プローブへ移行し、遅延回復を行う。OPEN 中は、コンボが次のプロバイダーへ再ルーティングする。レイヤー2：接続クールダウン（1つのキー/アカウント）。基本時間は OAuth 5s / API キー 3s。サンダリングハード防止ガード付きの指数関数的 ×2 バックオフを適用し、429 では Retry-After に従い、成功するとすべてのエラー状態がクリアされる。クールダウン中のキーはスキップされ、同じグループ内の他のキーは引き続き処理を行う。レイヤー3：モデルのロックアウト（1つのモデル）。モデル単位の 429、ローカルの 404、またはモード拒否では、そのモデルだけをロックし、接続全体をロックすることはない。終端状態（禁止、期限切れ、クレジット枯渇）はオペレーターが対処するものであり、クールダウンの対象ではない。"/>
+<img src="./docs/diagrams/resilience-layers.svg" width="100%" alt="OmniRoute のレジリエンス — 3つの独立した自己修復レイヤーにより、障害ごとに適切なレイヤーで対処します。レイヤー1：プロバイダーのサーキットブレーカー（プロバイダー全体）。408/5xx の場合にのみ作動し、しきい値は OAuth 8回 / API-key 12回 / local 2回です。60s/30s/15s 後に HALF-OPEN のプローブ状態へ移行し、遅延回復します。OPEN の間、コンボは次のプロバイダーへ再ルーティングします。レイヤー2：接続クールダウン（1つのキー/アカウント）。基本時間は OAuth 5s / API-key 3s で、サンダリングハード防止機構を備えた指数関数的な ×2 バックオフを使用します。429 では Retry-After に従い、成功するとすべてのエラー状態がクリアされます。クールダウン中のキーはスキップされますが、同じグループの他のキーは処理を継続します。レイヤー3：モデルのロックアウト（1つのモデル）。モデル単位の 429、local の 404、またはモード拒否では、そのモデルだけがロックされ、接続全体がロックされることはありません。終端状態（禁止、期限切れ、クレジット枯渇）はクールダウンではなく、オペレーターによる対応が必要です。"/>
 
 <sub>📖 [自動コンボエンジン](docs/routing/AUTO-COMBO.md) · [レジリエンスガイド](docs/architecture/RESILIENCE_GUIDE.md)</sub>
 
@@ -488,13 +488,13 @@ curl http://localhost:20128/v1/chat/completions \
 
 <div align="center">
 
-## 🏆 OmniRoute が他と一線を画す理由
+## 🏆 OmniRoute の特徴
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute が他と一線を画す理由 — 13の機能について、9router、OpenRouter、CLIProxyAPI、LiteLLM と比較した特定時点の機能スナップショット。OmniRoute：359のプロバイダー、150以上の無料枠を標準搭載、19のルーティング戦略、12エンジンによるトークン圧縮、110のツールを備えた組み込み MCP サーバー、A2A エージェントプロトコル、永続メモリ、ガードレール、クラウドエージェント、TLS フィンガープリントステルス、Desktop/Termux/PWA、42の国際化 UI ロケール。OmniRoute は MIT ライセンスで、セルフホスト可能です。競合製品の機能や数値は変更される可能性があります。リンク先の調査方法をご覧ください。"/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="OmniRoute の特徴 — 9router、OpenRouter、CLIProxyAPI、LiteLLM との13の機能における最新の機能スナップショット。OmniRoute: 358のプロバイダー、150以上の無料ティアを内蔵、19のルーティング戦略、12エンジンのトークン圧縮、110のツールを備えた内蔵MCPサーバー、A2Aエージェントプロトコル、永続メモリ、ガードレール、クラウドエージェント、TLSフィンガープリントステルス、デスクトップ/Termux/PWA、42のi18n UIロケール。OmniRoute は MIT ライセンスで自己ホスト可能です。競合の機能と数は変更される可能性があります。リンクされた方法論を参照してください。"/>
 
-<sub>📊 9router、OpenRouter、CLIProxyAPI、LiteLLM との比較に関する完全な調査方法と機能ごとの詳細 → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 9router、OpenRouter、CLIProxyAPI、LiteLLM との比較における完全な方法論と機能ごとの詳細 → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -562,29 +562,29 @@ Radarはオプトイン方式で、GETリクエストのみを使用します。
 
 </div>
 
-> **v3.8.20 → v3.8.50** の最近の主な変更点。完全な履歴は [`CHANGELOG.md`](CHANGELOG.md) をご覧ください。
+> **v3.8.20 → v3.8.50** の最近のハイライト。完全な履歴は [`CHANGELOG.md`](CHANGELOG.md) を参照してください。
 
 - **🎛️ OmniConductor** — エージェント群への受信 A2A 委任、Agent Card 上の Conductor スキル、Faro のプッシュ・トゥ・トーク音声チャットを備えたダッシュボードパネル。→ [A2A サーバー](docs/frameworks/A2A-SERVER.md)
-- **🛂 適応型アドミッション制御と過負荷保護** — 高負荷のチャットリクエストは 503 を返す代わりにキューへ投入され、接続ごとにアトミックな RPM ローリングリースを使用。→ [耐障害性ガイド](docs/architecture/RESILIENCE_GUIDE.md)
-- **🗂️ 正規化された `/v1/models` の順序** — プロバイダーごとに、プロバイダー単位でグループ化された連続ブロックを1つ配置（コンボを先頭に固定）し、すべてのカタログソースで安定した順序を維持。→ [API リファレンス](docs/reference/API_REFERENCE.md)
-- **🗜️ 圧縮の堅牢化** — デフォルト有効の展開ガード、DE / FR / JA + 中国語（文言）向け Caveman パック、Gradle と .NET 向け RTK フィルター。→ [圧縮](docs/compression/COMPRESSION_ENGINES.md)
-- **💸 正確な定額料金コスト** — サブスクリプション／コーディングプランのプロバイダーは、コスト分析で **$0** と表示。予算、クォータ、ルーティングでは引き続き推定を実施。→ [API リファレンス](docs/reference/API_REFERENCE.md)
-- **⚖️ Quota-Share ルーティング** — 共有アカウントのクォータをプールされたキー間で公平に分割し、アイドル状態の割り当て分を貸し出すことで、リソースを無駄なく活用。→ [耐障害性ガイド](docs/architecture/RESILIENCE_GUIDE.md)
-- **🤖 1コマンドでの CLI／エージェントセットアップ** — 登録済みの `setup-*` コマンドは13個。`omniroute run` で7つの CLI（Claude Code、Codex、Aider、Goose、OpenCode、Qwen Code、Gemini CLI）を起動。`omniroute configure` は、対話型のプロバイダー＋モデル選択とコンテキスト別のお気に入りにより、10のターゲットをサポート。→ [CLI 連携](docs/guides/CLI-INTEGRATIONS.md)
-- **🛰️ リモートモード** — スコープ付きトークン（`connect` / `contexts` / `tokens`）を使用してリモートの OmniRoute を操作し、VPS インストール向けの `antigravity` OAuth ヘルパーも提供。→ [リモートモード](docs/guides/REMOTE-MODE.md)
-- **🧭 よりスマートな自動ルーティング** — `auto/<category>:<tier>` コンボ、**Fusion**（モデルパネル＋ジャッジ）、タスク対応ルーティング、リクエスト単位のモデル／モード／USD 予算オーバーライド。→ [Auto-Combo](docs/routing/AUTO-COMBO.md)
-- **🗜️ プラグイン可能な圧縮** — 組み合わせ可能な12のエンジン＋Compression Studios：LLMLingua-2、2層 Ultra、omniglyph、ステップごとの忠実度ゲート、GCF v3.2、ドラッグによる並べ替えエディター。→ [圧縮](docs/compression/COMPRESSION_ENGINES.md)
-- **🕵️ 透過的 MITM 復号（TPROXY）** — プロキシ環境変数を無視する CLI を、SNI ごとの CA とトラストストアインストーラーを使用してキャプチャ。→ [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
-- **💸 あらゆる場所でのコストテレメトリ** — すべてのエンドポイントに `X-OmniRoute-*` コスト／使用量ヘッダー、キャッシュ HIT による節約額ヘッダー、キーごとの USD 使用額クォータを提供。→ [API リファレンス](docs/reference/API_REFERENCE.md)
-- **🧠 ユーザーが制御できるメモリ** — デフォルトでは無効。オプトインの int8 ベクトル量子化＋型付き減衰、リクエスト単位の `x-omniroute-no-memory`。→ [メモリ](docs/frameworks/MEMORY.md)
-- **🛡️ セキュリティ** — すべての LLM ルートにプロンプトインジェクションガード（レッドチームスイート）を適用。オプトインの認証情報マスキングガードレール（両方向で漏洩した API キー／シークレットを秘匿）、無料の最終手段となる DuckDuckGo ウェブ検索、ダッシュボード向けのオプションの OIDC ログインゲート（パスワードログインは常に利用可能）。→ [ガードレール](docs/security/GUARDRAILS.md)
+- **🛂 適応型アドミッション制御と過負荷保護** — 高負荷なチャットリクエストは 503 を返す代わりにキューへ入り、接続ごとにアトミックな RPM ローリングリースを使用。→ [レジリエンスガイド](docs/architecture/RESILIENCE_GUIDE.md)
+- **🗂️ 正規化された `/v1/models` の順序** — プロバイダーごとに連続したプロバイダー別ブロックを1つ配置（コンボを先頭に固定）し、すべてのカタログソースで順序を安定化。→ [API リファレンス](docs/reference/API_REFERENCE.md)
+- **🗜️ 圧縮の堅牢化** — デフォルト有効の展開ガード、DE / FR / JA + 中国語（文言）の Caveman パック、Gradle と .NET 向けの RTK フィルター。→ [圧縮](docs/compression/COMPRESSION_ENGINES.md)
+- **💸 正確な定額料金コスト** — サブスクリプション／コーディングプランのプロバイダーは、コスト分析で **$0** として表示。予算、クォータ、ルーティングでは引き続き推定を実施。→ [API リファレンス](docs/reference/API_REFERENCE.md)
+- **⚖️ Quota-Share ルーティング** — 共有アカウントのクォータをプールされたキー間で公平に分割し、未使用の割り当てを貸し出すことで処理能力を無駄なく活用。→ [レジリエンスガイド](docs/architecture/RESILIENCE_GUIDE.md)
+- **🤖 1コマンドでの CLI／エージェント設定** — 登録済みの `setup-*` コマンドは13個。`omniroute run` は7つの CLI（Claude Code、Codex、Aider、Goose、OpenCode、Qwen Code、Gemini CLI）を起動。`omniroute configure` は、対話式のプロバイダー＋モデル選択とコンテキストごとのお気に入り機能を備え、10のターゲットに対応。→ [CLI 統合](docs/guides/CLI-INTEGRATIONS.md)
+- **🛰️ リモートモード** — スコープ付きトークン（`connect` / `contexts` / `tokens`）と VPS インストール向けの `antigravity` OAuth ヘルパーを使用して、リモートの OmniRoute を操作。→ [リモートモード](docs/guides/REMOTE-MODE.md)
+- **🧭 よりスマートな自動ルーティング** — `auto/<category>:<tier>` コンボ、**Fusion**（モデルパネル＋ジャッジ）、タスク対応ルーティング、リクエストごとのモデル／モード／USD 予算オーバーライド。→ [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🗜️ プラグイン可能な圧縮** — 12種類の合成可能なエンジン＋Compression Studios：LLMLingua-2、2段階 Ultra、omniglyph、ステップごとの忠実度ゲート、GCF v3.2、ドラッグによる並べ替えエディター。→ [圧縮](docs/compression/COMPRESSION_ENGINES.md)
+- **🕵️ 透過的な MITM 復号（TPROXY）** — SNI ごとの CA とトラストストアインストーラーを使用して、プロキシ環境変数を無視する CLI を捕捉。→ [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **💸 あらゆる場所でのコストテレメトリ** — すべてのエンドポイントに `X-OmniRoute-*` コスト／使用量ヘッダー、キャッシュ HIT による節約額ヘッダー、キーごとの USD 支出クォータを追加。→ [API リファレンス](docs/reference/API_REFERENCE.md)
+- **🧠 自分で制御できるメモリ** — デフォルトでは無効。オプトインの int8 ベクトル量子化＋型付き減衰、リクエストごとの `x-omniroute-no-memory`。→ [メモリ](docs/frameworks/MEMORY.md)
+- **🛡️ セキュリティ** — すべての LLM ルートにプロンプトインジェクションガード（レッドチームスイート）を適用。オプトインの認証情報マスキングガードレール（双方向で漏えいした API キー／シークレットを秘匿化）、無料の最終手段となる DuckDuckGo ウェブ検索、ダッシュボード向けのオプションの OIDC ログインゲート（パスワードログインは常に利用可能）。→ [ガードレール](docs/security/GUARDRAILS.md)
 - **🖼️ 新しいエンドポイント** — `/v1/ocr`（Mistral OCR）と `/v1/audio/translations`（Whisper 形式）により、メディア機能をさらに拡充。→ [API リファレンス](docs/reference/API_REFERENCE.md)
-- **🎨 画像／動画／音声生成** — メディア向けの統一 API：xAI Grok Imagine と Novita AI の動画生成、ComfyUI、Magnific、Adobe Firefly、Segmind、および ElevenLabs などの音声プロバイダー。→ [API リファレンス](docs/reference/API_REFERENCE.md)
+- **🎨 画像／動画／音声生成** — メディア向けの統一 API：xAI Grok Imagine と Novita AI video、ComfyUI、Magnific、Adobe Firefly、Segmind、および ElevenLabs などの音声プロバイダー。→ [API リファレンス](docs/reference/API_REFERENCE.md)
 - **🌍 デプロイと運用** — リバースプロキシの `basePath`、ブラウザー言語の自動検出、キーごとのデバイス追跡、root 不要の MITM 信頼設定、zh-TW ローカライズ。→ [環境](docs/reference/ENVIRONMENT.md)
-- **🤝 さらに多くのプロバイダーとエージェント** — クラウドエージェント（Codex Cloud、Cursor、Devin、Jules）、ブラウザー＋OAuth ログインを備えた Grok Build（xAI）、第一級サポートの Ollama カード、Claude Opus 5 と Sonnet 5、Kimi 公式パートナーシップ（Code/Web/Moonshot）、Zed、Requesty、SenseNova、Yuanbao、Agnes AI…そして刷新された **352プロバイダーのカタログ**。→ [プロバイダー](docs/reference/PROVIDER_REFERENCE.md)
-- **📡 ルーティングの透明性** — すべてのレスポンスに、処理を担当した戦略／プロバイダー／レイテンシーを示す `X-OmniRoute-Decision` ヘッダーを付与。新しい `cache-optimized` コンボ戦略＋Auto-Combo の `cacheAffinity` 係数により、同じリクエストをキャッシュ済みプレフィックスを保持する接続へ再ルーティング。読み取り専用の `/v1/auto-combo/{channel}/candidates` エンドポイントで、`auto/*` チャンネルのリアルタイム候補プールを公開。→ [Auto-Combo](docs/routing/AUTO-COMBO.md)
+- **🤝 さらに多くのプロバイダーとエージェント** — クラウドエージェント（Codex Cloud、Cursor、Devin、Jules）、ブラウザー＋OAuth ログインを備えた Grok Build（xAI）、ファーストクラスの Ollama カード、Claude Opus 5 と Sonnet 5、Kimi 公式パートナーシップ（Code/Web/Moonshot）、Zed、Requesty、SenseNova、Yuanbao、Agnes AI…さらに刷新された **352プロバイダーのカタログ**。→ [プロバイダー](docs/reference/PROVIDER_REFERENCE.md)
+- **📡 ルーティングの透明性** — すべてのレスポンスに、処理を担当した戦略／プロバイダー／レイテンシーを示す `X-OmniRoute-Decision` ヘッダーを付与。新しい `cache-optimized` コンボ戦略と Auto-Combo の `cacheAffinity` 係数により、繰り返しリクエストをキャッシュ済みプレフィックスを保持する接続へ戻すほか、読み取り専用の `/v1/auto-combo/{channel}/candidates` エンドポイントで `auto/*` チャンネルのライブ候補プールを公開。→ [Auto-Combo](docs/routing/AUTO-COMBO.md)
 - **⚡ ローカルパフォーマンスとインフラ** — ワンクリックのローカル Redis、Cloudflare Workers / Deno Deploy リレーデプロイヤー、監視対象の組み込みサービスとしての Bifrost と Mux。→ [組み込みサービス](docs/frameworks/EMBEDDED-SERVICES.md)
-- **🧩 そのほかの同梱機能** — プラグインフレームワーク＋マーケットプレイス、Omni/Agent/GitHub スキルフレームワーク、Obsidian vault 連携（22の MCP ツール）、OpenAI 互換の Batch API と Files API、セマンティックレスポンスキャッシュ、リーダーボード付きゲーミフィケーション、ACP エージェント検出（15の組み込みエージェント）、BigQuery へのスケジュール済みログエクスポート、`auto/chaos` 障害注入、Telegram ボットブリッジ、アプリ内バージョンマネージャー、LMArena-ELO の無料プロバイダーランキング。→ [ドキュメント](docs/README.md)
+- **🧩 そのほかの同梱機能** — プラグインフレームワーク＋マーケットプレイス、Omni/Agent/GitHub スキルフレームワーク、Obsidian Vault 統合（22個の MCP ツール）、OpenAI 互換の Batch API と Files API、セマンティックレスポンスキャッシュ、リーダーボード付きゲーミフィケーション、ACP エージェント検出（15個の組み込みエージェント）、BigQuery へのスケジュール済みログエクスポート、`auto/chaos` による複数モデルへの並列ファンアウト、Telegram ボットブリッジ、アプリ内バージョンマネージャー、LMArena-ELO の無料プロバイダーランキング。→ [ドキュメント](docs/README.md)
 
 <br/>
 
@@ -665,7 +665,7 @@ omniroute configure codex          # 対応ツール：claude opencode qwen aide
 
 <div align="center">
 
-## 🌐 357のAIプロバイダー — うち152がカタログ上で無料
+## 🌐 372のAIプロバイダー — うち154がカタログ上で無料
 
 </div>
 
@@ -1263,21 +1263,21 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 でも省略さ�
 <table>
   <tr><th align="left">レイヤー</th><th align="left">テクノロジー</th></tr>
   <tr><td nowrap><b>ランタイム</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
-  <tr><td nowrap><b>言語</b></td><td>TypeScript 6.0 — <code>src/</code> および <code>open-sse/</code> 全体で <b>100% TypeScript</b> (v2.0以降、コアに <code>any</code> なし)</td></tr>
+  <tr><td nowrap><b>言語</b></td><td>TypeScript 6.0 — <code>src/</code>および<code>open-sse/</code>の全体で<b>100% TypeScript</b>（v2.0以降、コアでの<code>any</code>使用はゼロ）</td></tr>
   <tr><td nowrap><b>フレームワーク</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>データベース</b></td><td>better-sqlite3 (SQLite, WALジャーナリング) + LowDB (JSONレガシー) — 122のドメインモジュール、182のマイグレーション</td></tr>
-  <tr><td nowrap><b>メモリ</b></td><td>SQLite FTS5 全文検索 + int8-量子化ベクトル埋め込み、型付き減衰</td></tr>
-  <tr><td nowrap><b>スキーマ</b></td><td>Zod 4 — MCPツールI/O検証 + APIコントラクト</td></tr>
-  <tr><td nowrap><b>プロトコル</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
-  <tr><td nowrap><b>ストリーミング</b></td><td>Server-Sent Events (SSE) + WebSocketブリッジ (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>圧縮</b></td><td>12エンジンパイプライン — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>認証 &amp; セキュリティ</b></td><td>OAuth 2.0 (PKCE) + JWT + API Keys + MCPスコープ認証 · AES-256-GCM (保存時) · DOMPurify</td></tr>
-  <tr><td nowrap><b>ステルス</b></td><td>wreq-js — JA3 / JA4 TLSフィンガープリント偽装、3レベルプロキシ</td></tr>
-  <tr><td nowrap><b>レジリエンス</b></td><td>サーキットブレーカー、指数関数的バックオフ、アンチサンダリングハード、自動コンボ自己修復</td></tr>
-  <tr><td nowrap><b>ロギング</b></td><td>pino — リクエストコンテキスト付き構造化JSONログ</td></tr>
-  <tr><td nowrap><b>テスト</b></td><td>Node.js test runner + Vitest — 5,100以上の追跡テストファイル (ユニット、統合、E2E、セキュリティ、エコシステム) にわたる<b>39,000以上の静的テスト宣言</b></td></tr>
-  <tr><td nowrap><b>プラットフォーム</b></td><td>デスクトップ (Electron) · Android (Termux) · PWA (任意のブラウザ)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — リリース時の自動npm公開 + Docker Hub</td></tr>
+  <tr><td nowrap><b>データベース</b></td><td>better-sqlite3（SQLite、WALジャーナリング）+ LowDB（従来のJSON）— 137個のドメインモジュール、202件のマイグレーション</td></tr>
+  <tr><td nowrap><b>メモリ</b></td><td>SQLite FTS5全文検索 + int8量子化ベクトル埋め込み、型付き減衰</td></tr>
+  <tr><td nowrap><b>スキーマ</b></td><td>Zod 4 — MCPツールの入出力検証 + APIコントラクト</td></tr>
+  <tr><td nowrap><b>プロトコル</b></td><td>MCP（stdio / HTTP / SSE）+ A2A v0.3（JSON-RPC 2.0 + SSE）</td></tr>
+  <tr><td nowrap><b>ストリーミング</b></td><td>Server-Sent Events（SSE）+ WebSocketブリッジ（<code>/v1/ws</code>）</td></tr>
+  <tr><td nowrap><b>圧縮</b></td><td>12エンジンのパイプライン — RTK、Caveman、LLMLingua-2（MobileBERT ONNX）、GCF、OmniGlyph</td></tr>
+  <tr><td nowrap><b>認証とセキュリティ</b></td><td>OAuth 2.0（PKCE）+ JWT + APIキー + MCPスコープ認証 · 保存時のAES-256-GCM暗号化 · DOMPurify</td></tr>
+  <tr><td nowrap><b>ステルス</b></td><td>wreq-js — JA3 / JA4 TLSフィンガープリント偽装、3段階プロキシ</td></tr>
+  <tr><td nowrap><b>耐障害性</b></td><td>サーキットブレーカー、指数バックオフ、サンダリングハード対策、自動コンボによる自己修復</td></tr>
+  <tr><td nowrap><b>ロギング</b></td><td>pino — リクエストコンテキストを含む構造化JSONログ</td></tr>
+  <tr><td nowrap><b>テスト</b></td><td>Node.jsテストランナー + Vitest — 5,100以上の追跡対象テストファイルにわたる<b>39,000以上の静的テスト宣言</b>（単体、統合、E2E、セキュリティ、エコシステム）</td></tr>
+  <tr><td nowrap><b>プラットフォーム</b></td><td>デスクトップ（Electron）· Android（Termux）· PWA（任意のブラウザー）</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — リリース時にnpmおよびDocker Hubへ自動公開</td></tr>
   <tr><td nowrap><b>リンク</b></td><td><a href="https://omniroute.online">ウェブサイト</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
@@ -1729,7 +1729,7 @@ MIT License - 詳細は [LICENSE](LICENSE) をご覧ください。
 
 **[⬆ トップに戻る](#-omniroute)** · オープンソースAIコミュニティのために❤️を込めて開発されています。
 
-<sub>OmniRoute v3.8.51 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
+<sub>OmniRoute v3.8.52 · Node ≥22.22.2 · MIT License · <a href="https://omniroute.online">omniroute.online</a></sub>
 
 </div>
 <!-- コミュニティのQ&A向けにGitHub Discussionsが有効化されています -->

@@ -1,0 +1,1 @@
+- **fix(tests):** Compression worker-pool and RTK TOML test assertions now cross-platform — worker specifier compares URL pathnames via `pathToFileURL`, and the 0600 permission check is POSIX-only. Both failures were Windows-only test bugs, not runtime regressions.

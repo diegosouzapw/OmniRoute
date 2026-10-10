@@ -9,6 +9,10 @@ import {
   isCodexGlobalFastServiceTierEnabled,
   resolveCodexGlobalFastServiceTier,
 } from "../../src/lib/providers/codexFastTier.ts";
+import {
+  expandVscodeServiceTierModels,
+  resolveVscodeServiceTierRequest,
+} from "../../src/lib/vscode/serviceTierVariants.ts";
 
 test("Codex global fast tier recognizes legacy and current setting shapes", () => {
   assert.equal(isCodexGlobalFastServiceTierEnabled({ codexServiceTier: { enabled: true } }), true);
@@ -41,7 +45,16 @@ test("Codex global service mode distinguishes no setting from explicit tiers", (
     {
       enabled: true,
       tier: "default",
-      supportedModels: ["gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.5"],
+      supportedModels: [
+        "gpt-6.1-sol",
+        "gpt-6-astra",
+        "gpt-6-sol",
+        "gpt-6-luna",
+        "gpt-5.6-sol",
+        "gpt-5.6-terra",
+        "gpt-5.6-luna",
+        "gpt-5.5",
+      ],
     }
   );
 });
@@ -175,4 +188,76 @@ test("Codex global service tier only short-circuits on valid body service_tier",
     unchanged
   );
   assert.equal(validBody.service_tier, "flex");
+});
+
+test("GPT-6 global Fast defaults inject priority for base and prefixed effort models", () => {
+  const settingsVariants = [
+    { codexServiceTier: { enabled: true } },
+    { codexServiceTier: { enabled: true, tier: "priority" } },
+    { codexServiceTier: true },
+    { codexFastServiceTier: true },
+  ];
+  for (const model of ["gpt-6-astra", "gpt-6-sol", "gpt-6-luna"]) {
+    for (const id of [model, `cx/${model}`, `codex/${model}-high`]) {
+      for (const settings of settingsVariants) {
+        const body: Record<string, unknown> = {};
+        const result = applyCodexGlobalFastServiceTier(
+          "codex",
+          { providerSpecificData: {} },
+          settings,
+          { model: id, body }
+        );
+        assert.equal(body.service_tier, "priority", id);
+        assert.deepEqual(result.providerSpecificData, {
+          requestDefaults: { serviceTier: "priority" },
+        });
+      }
+    }
+  }
+});
+
+test("GPT-6 Fast defaults preserve explicit tiers and operator model selections", () => {
+  const credentials = { providerSpecificData: {} };
+  const settings = { codexServiceTier: { enabled: true, tier: "priority" } };
+  for (const tier of ["default", "flex", "priority"]) {
+    const body: Record<string, unknown> = { service_tier: tier };
+    assert.equal(
+      applyCodexGlobalFastServiceTier("codex", credentials, settings, {
+        model: "gpt-6-sol",
+        body,
+      }),
+      credentials
+    );
+    assert.equal(body.service_tier, tier);
+  }
+  for (const [provider, override] of [
+    ["codex", { codexServiceTier: { enabled: false } }],
+    ["codex", { codexServiceTier: { enabled: true, supportedModels: ["gpt-5.5"] } }],
+    ["openai", settings],
+  ] as const) {
+    const body: Record<string, unknown> = {};
+    assert.equal(
+      applyCodexGlobalFastServiceTier(provider, credentials, override, {
+        model: "gpt-6-sol",
+        body,
+      }),
+      credentials
+    );
+    assert.equal(body.service_tier, undefined);
+  }
+});
+
+test("GPT-6 VS Code service-tier choices rewrite Fast variants to priority requests", () => {
+  for (const model of ["gpt-6-astra", "gpt-6-sol", "gpt-6-luna"]) {
+    const id = `codex/${model}`;
+    const variants = expandVscodeServiceTierModels([{ id, owned_by: "codex" }]);
+    assert.deepEqual(
+      variants.map((entry) => entry.id),
+      [id, `${id}__tier_priority`, `${id}__tier_flex`]
+    );
+    assert.deepEqual(resolveVscodeServiceTierRequest({ model: `${id}__tier_priority` }), {
+      model: id,
+      service_tier: "priority",
+    });
+  }
 });

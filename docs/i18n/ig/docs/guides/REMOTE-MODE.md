@@ -343,67 +343,58 @@ opencode -m omniroute/glm/glm-5.2 "..."          # buru ụzọ export OMNIROUTE
 
 ---
 
-## Ijikwa contexts (ịgbanwee n'etiti sava)
+## Ijikwaa contexts (ịgbanwe n'etiti sava)
 
-**Context** bụ sava echekwara (baseUrl + credential + scope). `omniroute connect`
-na-emepụta otu ma mee ka ọ bụrụ nke na-arụ ọrụ; site mgbe ahụ gaa n'ihu, iwu ọ bụla na-ezubere ya. Jikwaa ma
-gbanwee n'etiti ha site na `omniroute contexts`:
+A **context** bụ sava echekwara (baseUrl + credential + scope). `omniroute connect` na-emepụta otu ma mee ka ọ rụọ ọrụ; site mgbe ahụ gaa n'ihu, iwu ọ bụla na-elekwasị anya na ya. Jikwaa ma gbanwee n'etiti ha na `omniroute contexts`:
 
 ```bash
-omniroute contexts list            # contexts niile; a na-eji ● akara nke na-arụ ọrụ
-omniroute contexts current         # sava na-arụ ọrụ, ọnọdụ auth, scope
+omniroute contexts list            # all contexts; the active one is marked ●
+omniroute contexts current         # the active server, auth status, scope
 ```
 
 ```text
-  | Aha     | URL Ntọala                | Auth  | Scope | Nkọwa
-● | vps     | http://100.67.86.91:20128 | token | admin | OmniRoute dị anya (…)
+  | Name    | Base URL                  | Auth  | Scope | Description
+● | vps     | http://100.67.86.91:20128 | token | admin | Remote OmniRoute (…)
   | default | http://localhost:20128    | ✗     |       |
 ```
 
-**Gbanwee sava** — iwu ọ bụla sochirinụ na-agbaso context na-arụ ọrụ:
+**Gbanwee sava** — iwu ọ bụla na-esote na-agbaso context na-arụ ọrụ:
 
 ```bash
-omniroute contexts use vps         # → iwu niile na-aga ugbu a na VPS dị anya
-omniroute tokens list              #   (na-arụ ọrụ megide VPS)
+omniroute contexts use vps         # → all commands now hit the remote VPS
+omniroute tokens list              #   (na-agba ọsọ megide VPS)
 
-omniroute contexts use default     # → laghachi na localhost
-omniroute tokens list              #   (na-arụ ọrụ megide sava mpaghara)
+omniroute contexts use default     # → back to localhost
+omniroute tokens list              #   (na-agba ọsọ megide sava mpaghara)
 ```
 
-**Tinye context n'onwe gị** (kama iji `connect`), nyochaa, ma ọ bụ nyegharịa aha:
+**Tinye context n'onwe gị** (n'ọnọdụ `connect`), nyochaa, ma ọ bụ gbanwee aha:
 
 ```bash
 omniroute contexts add staging --url https://staging.example.com:20128 \
-  --access-token oma_live_xxxx --scope write --description "igbe staging"
-omniroute contexts show staging    # nkọwa zuru ezu maka otu context
+  --access-token oma_live_xxxx --scope write --description "staging box"
+omniroute contexts show staging    # full details for one context
 omniroute contexts rename staging stg
 ```
 
-**Wepụ context** — ọ na-arịọ nkwenye; tinye `--yes` ka ịwụfee ya
-(a chọrọ nke a maka scripts / shells ndị na-abụghị interactive, nke ga-ajụ n'enweghị nsogbu ma ọ bụghị ya):
+**Wepụ context** — na-arịọ maka nkwenye; gafere `--yes` ka ịwụpụ ya (achọrọ maka scripts / shells na-abụghị interactive, nke na-ajụ n'enweghị nsogbu):
 
 ```bash
 omniroute contexts remove stg --yes
 ```
 
-> Enweghị ike iwepụ `default` (localhost). Iwepụ context na-arụ ọrụ na-eme ka e jiri
-> `default` dochie ya. Ndụmọdụ: iwepụ context na-ehichapụ naanị credential echekwara **na mpaghara** —
-> kagbuo token ahụ na sava site na `omniroute tokens revoke <id>` iji
-> kwụsị ohere n'ezie.
+> `default` (localhost) enweghị ike iwepụ. Iwepụ context na-arụ ọrụ na-alaghachi na `default`. Ndụmọdụ: iwepụ context na-ewepụ naanị credential **mpaghara** echekwara — kagbuo token ahụ na sava ahụ na `omniroute tokens revoke <id>` iji gbuo ohere n'ezie.
 
-**Mbupụ / mbubata** contexts (dịka ọmụmaatụ, iji bugharịa ha n'etiti igwe). Contexts ọhụrụ na-echekwa
-naanị ntụaka keychain; anaghị edetụ credentials n'ime mbupụ ahụ mgbe keychain nke OS
-dị:
+**Export / import** contexts (dịka ọmụmaatụ, iji bufee ha n'etiti igwe). Exports na-ewepụ credentials na ndabara, gụnyere credentials echekwara site na nkwado faịlụ. Jiri `--include-secrets` n'ụzọ doro anya mgbe achọrọ nkwado nwere ike ibugharị nke nwere credential:
 
 ```bash
-omniroute contexts export --out contexts.json     # ndabara: stdout
-omniroute contexts import contexts.json            # degharịa ihe dị; jiri --merge idowe ndị dị ugbu a
-omniroute contexts migrate --yes                  # bugharịa legacy plaintext tokens gaa na keychain
+omniroute contexts export --out contexts.json     # ezoro ezo; ebe nchekwa ndabara: stdout
+omniroute contexts export --include-secrets --out private-contexts.json
+omniroute contexts import contexts.json            # dee n'elu; --merge iji debe ndị dị adị
+omniroute contexts migrate --yes                  # bufee tokens plaintext ochie na keychain
 ```
 
-Na sistemụ headless na-enweghị keychain OS a pụrụ iji, CLI na-eji
-`config.json` nwere mode `0600` kama ya ma bipụta ịdọ aka ná ntị otu ugboro. Were mbupụ sitere na
-ụzọ nnọchi ahụ (yana legacy config ọ bụla tupu migration) dị ka ihe nzuzo.
+`--include-secrets` na-edozi ntụaka keychain tupu exporting ma na-ada ma ọ bụrụ na enweghị ike ịgụ credential ọ bụla akpọrọ aha. `--no-secrets` na-ebute ụzọ mgbe niile. A na-ede faịlụ export n'ụzọ atomic na mode `0600`. Were export nwere ihe nzuzo doro anya dị ka ihe nzuzo. Na sistemụ na-enweghị isi na-enweghị keychain OS nwere ike iji, CLI na-alaghachi na `config.json` na mode `0600` ma na-ebipụta ịdọ aka ná ntị otu oge; export ndabara na-anọgide na-ezoro ezo na mode a.
 
 ---
 

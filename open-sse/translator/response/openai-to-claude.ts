@@ -224,24 +224,47 @@ function stopTextBlock(state, results) {
   state.textBlockStarted = false;
 }
 
+// First numeric value among `candidates`, else 0. Used to read usage fields
+// that upstreams report under either Chat Completions or Responses naming.
+function firstNumber(...candidates: unknown[]): number {
+  for (const value of candidates) {
+    if (typeof value === "number") return value;
+  }
+  return 0;
+}
+
+// Normalize an upstream usage block to prompt/output/cache counters, accepting
+// both OpenAI chat-completions naming (prompt_tokens / completion_tokens /
+// prompt_tokens_details) and Responses naming (input_tokens / output_tokens /
+// input_tokens_details): several OpenAI-compatible upstreams report the latter,
+// and the rest of the pipeline (stream.ts usage aggregation, usageTracking.ts,
+// openai-responses.ts) already reads both.
+function readUsageCounters(usage) {
+  const promptDetails = usage.prompt_tokens_details;
+  const inputDetails = usage.input_tokens_details;
+  return {
+    promptTokens: firstNumber(usage.prompt_tokens, usage.input_tokens),
+    outputTokens: firstNumber(usage.completion_tokens, usage.output_tokens),
+    cacheReadTokens: firstNumber(promptDetails?.cached_tokens ?? inputDetails?.cached_tokens),
+    cacheCreateTokens: firstNumber(
+      promptDetails?.cache_creation_tokens ?? inputDetails?.cache_creation_tokens
+    ),
+    writeInPrompt: (promptDetails ?? inputDetails)?.cache_creation_in_prompt !== false,
+  };
+}
+
 // Harvest the upstream usage block from any chunk, including trailing
 // usage-only chunks that carry `choices: []` (#11817).
 function trackUsageFromChunk(chunk, state) {
   if (!chunk.usage || typeof chunk.usage !== "object") return;
-  const promptTokens =
-    typeof chunk.usage.prompt_tokens === "number" ? chunk.usage.prompt_tokens : 0;
-  const outputTokens =
-    typeof chunk.usage.completion_tokens === "number" ? chunk.usage.completion_tokens : 0;
+  const { promptTokens, outputTokens, cacheReadTokens, cacheCreateTokens, writeInPrompt } =
+    readUsageCounters(chunk.usage);
 
-  // Extract cache tokens from prompt_tokens_details
-  const cachedTokens = chunk.usage.prompt_tokens_details?.cached_tokens;
-  const cacheCreationTokens = chunk.usage.prompt_tokens_details?.cache_creation_tokens;
-  const cacheReadTokens = typeof cachedTokens === "number" ? cachedTokens : 0;
-  const cacheCreateTokens = typeof cacheCreationTokens === "number" ? cacheCreationTokens : 0;
-
-  // input_tokens = prompt_tokens - cached_tokens - cache_creation_tokens
-  // Because OpenAI's prompt_tokens includes all prompt-side tokens
-  const inputTokens = promptTokens - cacheReadTokens - cacheCreateTokens;
+  // #2215 reports cache creation outside prompt_tokens.
+  const inputTokens = Math.max(
+    0,
+    promptTokens - cacheReadTokens - (writeInPrompt ? cacheCreateTokens : 0)
+  );
 
   state.usage = {
     input_tokens: inputTokens,
@@ -382,6 +405,25 @@ export function openaiToClaudeResponse(chunk, state) {
     // and the compact is rejected, looping the session. When real content DOES
     // arrive, it starts its own text block and this buffer is simply ignored.
     state._reasoningAccum = (state._reasoningAccum || "") + reasoningContent;
+  }
+
+  // Refusal text is literal output, never input for XML/DSML tool-call shims.
+  if (typeof delta?.refusal === "string" && delta.refusal) {
+    if (!state.textBlockStarted) {
+      state.textBlockIndex = state.nextBlockIndex++;
+      state.textBlockStarted = true;
+      state.textBlockClosed = false;
+      results.push({
+        type: "content_block_start",
+        index: state.textBlockIndex,
+        content_block: { type: "text", text: "" },
+      });
+    }
+    results.push({
+      type: "content_block_delta",
+      index: state.textBlockIndex,
+      delta: { type: "text_delta", text: delta.refusal },
+    });
   }
 
   // Handle regular content — strip the internal reasoning placeholder if

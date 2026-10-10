@@ -3,7 +3,7 @@
 // Untyped on purpose, like cliRuntimeGrokBuild.ts (matches CLI_TOOLS' `Record<string, any>`).
 
 /**
- * WhyCodes: honour WHYCODES_HOME (or the platform project config dir) instead of a
+ * WhyCodes: honour WHYCODES_HOME (or ~/.whycodes) instead of a
  * $HOME-relative join. The relative path is documentation only.
  */
 export const WHYCODES_RUNTIME_ENTRY = {

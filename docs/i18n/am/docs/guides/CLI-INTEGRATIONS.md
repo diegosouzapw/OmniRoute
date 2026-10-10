@@ -4,23 +4,33 @@
 
 ---
 
-OmniRoute፣ የኮድ ማዘጋጃ CLI (Codex፣ Claude Code፣ OpenCode፣ Cline፣ …) OmniRouteን እንደ የኋላ አገልግሎቱ እንዲጠቀም የሚያዋቅሩ የ`setup-*` ትዕዛዞች ስብስብን ያቀርባል — በዚህም
-መሣሪያው ከ**አንድ** የመገናኛ ነጥብ ጋር ይገናኛል፣ OmniRoute ደግሞ በራስ-ሰር ወደ ተለዋጭ አቅራቢ የመሸጋገር ችሎታ በመጠቀም ወደ ትክክለኛው አቅራቢ ይመራዋል። እያንዳንዱ ትዕዛዝ በሥራ ላይ ካለ
-OmniRoute (አካባቢያዊ ወይም የርቀት) **ቀጥታ** የሞዴል ካታሎጉን ያነባል እና የመሣሪያውን የራሱን የውቅር ፋይል በ**እርስዎ**
-ማሽን ላይ ይጽፋል። መሣሪያው በሚደግፍበት ቦታ ሁሉ የAPI ቁልፉ በአካባቢ ተለዋዋጭ በኩል ይጠቀሳል። መሣሪያ-አካባቢያዊ የአካባቢ ፋይልን በቋሚነት የሚያስቀምጡ ትዕዛዞች ከታች ተጠቅሰዋል።
+ስለ የጋራ executable manifest፣ የተገደቡ የልጅ environments እና ቀጣይነት ያለው
+የGemini ማዋቀር፣ [CLI ማስጀመሪያ ውሎች](./CLI-LAUNCH-CONTRACTS.md)ን ይመልከቱ።
 
-አጠቃላይ ማስጀመሪያም አለ — `omniroute run <target>` — ምንም ዓይነት ውቅር ሳይጽፍ፣ ትክክለኛውን አካባቢ በማስገባት
-`claude`፣ `codex`፣ `aider`፣ `goose`፣ `opencode`፣ `qwen` ወይም `gemini`ን ያስነሳል። ዒላማዎችና ተለዋጭ ስሞቻቸው
-ከመደበኛው ማኒፌስት `bin/cli/cli-manifest.mjs`
+OmniRoute የcoding CLIን (Codex፣ Claude Code፣ OpenCode፣ Cline፣ …) OmniRouteን
+እንደ backend እንዲጠቀም የሚያዋቅሩ የ`setup-*` ትዕዛዞች ስብስብ ይዞ ይመጣል — በዚህም
+መሣሪያው ከ**አንድ** endpoint ጋር ይገናኛል፣ OmniRoute ደግሞ auto-fallbackን በመጠቀም
+ወደ ትክክለኛው provider ይመራዋል። እያንዳንዱ ትዕዛዝ እየሰራ ካለ
+OmniRoute (አካባቢያዊ ወይም ሩቅ) የ**ቀጥታ** model catalogን ያነባል
+እና የመሣሪያውን የራሱ config file በ**እርስዎ** ማሽን ላይ ይጽፋል።
+መሣሪያው በሚደግፈው ቦታ ሁሉ API keyው በenvironment variable አማካይነት
+ይጠቀሳል። የመሣሪያውን አካባቢያዊ environment file በቋሚነት የሚያስቀምጡ
+ትዕዛዞች ከታች ተጠቅሰዋል።
+
+በተጨማሪም አጠቃላይ launcher አለ — `omniroute run <target>` — ይህም
+`claude`፣ `codex`፣ `aider`፣ `goose`፣ `opencode`፣ `qwen` ወይም `gemini`ን
+ትክክለኛው env ተካትቶ ያስነሳል፣ ምንም config ሳይጽፍ። Targets እና
+aliases ከዋናው manifest `bin/cli/cli-manifest.mjs` ይመጣሉ
 (`claude-code|cc|anthropic`፣ `codex-cli|openai-codex|openai`፣ `goose-cli`፣
-`open-code`፣ `qwen-code`፣ `gemini-cli`) የሚመጡ ሲሆን፣ `omniroute completion`ም
-ከዚሁ ማኒፌስት የተገኙ የዒላማ ቃላትን ያቀርባል። የቀድሞዎቹ ለእያንዳንዱ መሣሪያ የተዘጋጁ ማስጀመሪያዎች —
-`omniroute launch` (Claude Code) እና `omniroute launch-codex` (Codex) — አሁንም
-ይገኛሉ።
+`open-code`፣ `qwen-code`፣ `gemini-cli`)፣ እና `omniroute completion` በተመሳሳይ
+ከmanifest የተገኙ target ቃላትን ያቀርባል። የቀድሞዎቹ ለእያንዳንዱ መሣሪያ
+የተለዩ launchers — `omniroute launch` (Claude Code) እና
+`omniroute launch-codex` (Codex) — አሁንም ይገኛሉ።
 
-አቅራቢን የማስጀመሪያ ሂደት ከዚሁ አካባቢያዊ/የርቀት አውድ ይገኛል። ከታች ያሉት
-APIን ቀዳሚ የሚያደርጉ ትዕዛዞች የአስተዳደር ማረጋገጫን ከአቅራቢ ምስክርነቶች
-ለይተው ያቆያሉ፣ እንዲሁም በተዋቀረ ውጤት ውስጥ ምስክርነትን ፈጽሞ አያትሙም፦
+Provider onboarding ከዚያው አካባቢያዊ/ሩቅ context ውስጥ ይገኛል። ከታች
+ያሉት API-first ትዕዛዞች የmanagement authenticationን ከprovider
+credentials ለይተው ያቆያሉ፣ እንዲሁም በstructured output ውስጥ credentialን
+ፈጽሞ አያትሙም፦
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -30,18 +40,28 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-ለስክሪፕቶች `--credential-stdin` ወይም `--credential-env`ን ይምረጡ፤ `--credential`
-ቁጥጥር ላለው አካባቢያዊ አጠቃቀም ተቀምጧል። `providers remove` በይነተገናኝ ባልሆነ
-ተርሚናል ላይ `--yes`ን ይፈልጋል፣ እና አምስቱም ትዕዛዞች ንቁውን አውድ ወይም
-አጠቃላይ `--base-url`/`--api-key` አማራጮችን ያከብራሉ።
+ለscripts፣ `--credential-stdin` ወይም `--credential-env`ን ይምረጡ፤
+`--credential` ቁጥጥር በተደረገበት አካባቢያዊ አጠቃቀም እንዲውል
+ተቀምጧል። `providers remove` በnon-interactive terminal ላይ `--yes`ን
+ይፈልጋል፣ እና አምስቱም ትዕዛዞች ገቢር contextን ወይም አጠቃላይ
+`--base-url`/`--api-key` optionsን ያከብራሉ።
 
-በእጅ አንድ ጊዜ ብቻ ለሚከናወነው የሁለቱ ባለጸጋ ውህደቶች መሠረታዊ ማዋቀር፣ ለእያንዳንዱ መሣሪያ የተዘጋጁትን ዝርዝር መመሪያዎች ይመልከቱ፦
+Provider selectors አሻሚ የID prefixes፣ names ወይም provider namesን
+ውድቅ ያደርጋሉ፤ ብዙ connections ሲዛመዱ ሙሉ connection IDን ይጠቀሙ።
+የcreate እና edit ትዕዛዞች የተቀመጠውን connection መልሰው ያነባሉ፣
+removal ደግሞ ከዚያ በኋላ ሊነበብ እንደማይችል ያረጋግጣል። Import
+ቀድሞ ያለ provider/name pairን ይዘላል። ወደውስጥ የገቡ entries
+ለCLIው የቀረቡትን management endpoint፣ context ወይም management
+credentials ሊተኩ አይችሉም።
+
+በእጅ አንድ ጊዜ ብቻ ስለሚጻፈው የሁለቱ እጅግ ባለጸጋ integrations መሠረታዊ
+ማዋቀር፣ ለእያንዳንዱ መሣሪያ የተዘጋጁትን ዝርዝር መመሪያዎች ይመልከቱ፦
 
 - [የClaude Code ውቅር](./CLAUDE-CODE-CONFIGURATION.md)
 - [የCodex CLI ውቅር](./CODEX-CLI-CONFIGURATION.md)
-- [የርቀት ሁነታ](./REMOTE-MODE.md) — የርቀት OmniRouteን (VPS / Tailnet) ከላፕቶፕዎ ያስተዳድሩ
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — የOmniCopilot ቅጥያ፤ እነዚህን
-  `setup-*` ትዕዛዞች ከአርታዒው ውስጥ ሆኖም ሊያስኬድልዎ ይችላል
+- [የርቀት ሁነታ](./REMOTE-MODE.md) — ሩቅ OmniRouteን (VPS / Tailnet) ከlaptopዎ ይቆጣጠሩ
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot extension፤ እነዚህን
+  `setup-*` ትዕዛዞችም ከeditor ውስጥ ሆኖ ሊያስኬድልዎ ይችላል
 
 ---
 

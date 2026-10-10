@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Une erreur s'est produite",
+      "description": "Une erreur inattendue s'est produite. Elle a été enregistrée et notre équipe va l'examiner.",
+      "detailsAriaLabel": "Détails de l'erreur",
+      "retryAriaLabel": "Réessayer de charger la page",
+      "tryAgain": "Réessayer",
+      "statusAriaLabel": "Ouvrir l'état du système",
+      "systemStatus": "État du système"
+    }
+  }
+}

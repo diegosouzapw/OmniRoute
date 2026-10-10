@@ -43,11 +43,9 @@ ACP නියෝජිතයන් (ප්රතිවිරුද්ධ ආර�
 
 ---
 
-## `setup-*` සමඟ ස්වයංක්රීයව වින්යාස කිරීම
+## `setup-*` සමඟ ස්වයංක්රීයව වින්යාස කරන්න
 
-ඔබට එක් එක් මෙවලමෙහි වින්යාසය අතින් ලිවීමට අවශ්ය නොවේ. OmniRoute සහාය දක්වන සෑම CLI එකක් සඳහාම `setup-*`
-විධානයක් සපයයි. එය ක්රියාත්මක වන OmniRoute එකකින් (දේශීය හෝ දුරස්ථ) **සජීවී** ආකෘති නාමාවලිය කියවා,
-ඔබේ යන්ත්රයේ එම මෙවලමෙහිම වින්යාසය ලියයි:
+ඔබට එක් එක් මෙවලමෙහි වින්යාසය අතින් ලිවීමට අවශ්ය නැත. OmniRoute මඟින් සහාය දක්වන සෑම CLI එකක් සඳහාම `setup-*` විධානයක් සපයයි, එය ක්රියාත්මක වන OmniRoute (දේශීය හෝ දුරස්ථ) වෙතින් **සජීවී** මාදිලි නාමාවලිය කියවා ඔබේ යන්ත්රයේ මෙවලමෙහිම වින්යාසය ලියයි:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
@@ -57,45 +55,15 @@ omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
 omniroute setup-5dive
 ```
 
-සෑම එකක්ම `--remote <url> --api-key <key>` (දුරස්ථ OmniRoute එකක් සඳහා දේශීය මෙවලමක්
-වින්යාස කිරීම), `--dry-run` (ලිවීමකින් තොරව පෙරදසුන් කිරීම), සහ `--port` පිළිගනී. ආකෘති
-ස්වයංක්රීය සොයාගැනීම නොමැති මෙවලම් (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) සඳහා
-`--model <id>` (සහ අන්තර්ක්රියාකාරී නොවන ධාවනයන් සඳහා `--yes`) ලබා දිය යුතුය. `$HOME` යටතේ
-නොලියන එකම ක්රමලේඛය `setup-5dive` වේ: එය fleet ධාරකයේ root හිමිකාරිත්වය ඇති සත්යාපන පැතිකඩක්
-ලිවීමෙන් 5dive නියෝජිත සමූහයක් වින්යාස කරයි. එබැවින් එය `sudo` හරහා නැවත ක්රියාත්මක වන අතර
-එයටම දුරස්ථ ප්රකාරයක් නොමැත. නිවැරදි පරිසර විචල්ය ඇතුළත් කර කිසිදු වින්යාසයක් නොලියා CLI එකක්
-ආරම්භ කිරීමට, පොදු `omniroute run <target>` ආරම්භකය භාවිත කරන්න (claude, codex, aider, goose, opencode, qwen,
-gemini — ඉලක්ක සහ අන්වර්ථ නාම `bin/cli/cli-manifest.mjs` වෙතින් පැමිණේ); පැරණි
-එක් එක් මෙවලමට අදාළ ආරම්භකයන් වන `omniroute launch` (Claude Code) සහ `omniroute launch-codex`
-(Codex) තවමත් ලබා ගත හැකිය. Gemini CLI ආරම්භ කිරීමට පමණි: එය `omniroute run`
-ඉලක්කයක් වන නමුත් `setup-*`/`configure` ක්රමලේඛයක් නොමැත.
+සෑම එකක්ම `--remote <url> --api-key <key>` (දුරස්ථ OmniRoute එකකට එරෙහිව දේශීය මෙවලමක් වින්යාස කරන්න), `--dry-run` (නොලියා පෙරදසුන් කරන්න), සහ `--port` පිළිගනී. මාදිලි ස්වයං-සොයාගැනීමක් නොමැති මෙවලම් (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) `--model <id>` (සහ අන්තර්ක්රියාකාරී නොවන ධාවනයන් සඳහා `--yes`) ගනී. `setup-5dive` යනු `$HOME` යටතේ නොලියන එකම වට්ටෝරුවයි: එය බලඇණි සත්කාරකයේ root-හිමි auth profile එකක් ලිවීමෙන් 5dive නියෝජිත බලඇණියක් වින්යාස කරයි, එබැවින් එය `sudo` හරහා නැවත ක්රියාත්මක වන අතර එයට තමන්ගේම දුරස්ථ මාදිලියක් නොමැත. නිවැරදි env එන්නත් කර කිසිදු වින්යාසයක් නොලියා CLI එකක් දියත් කිරීමට, සාමාන්ය `omniroute run <target>` දියත් කිරීම භාවිතා කරන්න (claude, codex, aider, goose, opencode, qwen, gemini — ඉලක්ක සහ අන්වර්ථ නාම `bin/cli/cli-manifest.mjs` වෙතින් පැමිණේ); පැරණි මෙවලම්-ප්රති-දියත් කිරීම් `omniroute launch` (Claude Code) සහ `omniroute launch-codex` (Codex) තවමත් පවතී. Gemini CLI යනු දියත් කිරීම-පමණි: එය `omniroute run` ඉලක්කයක් වන නමුත් `setup-*`/`configure` වට්ටෝරුවක් නොමැත.
 
-> **සම්පූර්ණ යොමුව:** ප්රධාන වගුව — එක් එක් විධානය ලියන්නේ කුමක්ද, සෑම ධජයක්ම,
-> දේශීය සහ දුරස්ථ අතර වෙනස, සහ `/v1` උපසර්ගයක් අවශ්ය මෙවලම් —
-> **[CLI ඒකාබද්ධ කිරීම්](../guides/CLI-INTEGRATIONS.md)** තුළ ඇත.
+> **සම්පූර්ණ යොමුව:** ප්රධාන වගුව — එක් එක් විධානය ලියන දේ, සෑම ධජයක්ම, දේශීය එදිරිව දුරස්ථ, සහ කුමන මෙවලම් `/v1` උපසර්ගයක් අවශ්යද — **[CLI Integrations](../guides/CLI-INTEGRATIONS.md)** හි ඇත.
 
 ### මේවා කන්ටේනරයක් තුළ ධාවනය කිරීම
 
-OmniRoute කන්ටේනරය තුළ ක්රියාත්මක කරන `setup-*` විධානයක් කන්ටේනරයේම home වෙත ලියයි.
-කිසිදු ධාරක CLI එකක් එය නොකියවන අතර කන්ටේනරය සමඟ එය අතුරුදහන් වේ. OmniRoute එය හඳුනාගෙන
-ලිවීම වෙනුවට උපදෙස් සමඟ `2` කේතයෙන් පිටවෙයි. ඉදිරියට යාමට සහාය දක්වන ක්රම දෙකක් ඇත —
-ධාරකයේ CLI ස්ථාපනය කර කන්ටේනරයට `omniroute connect` කිරීම, හෝ වින්යාස නාමාවලි bind-mount කර
-`CLI_CONFIG_HOME` සැකසීම (compose `host` පැතිකඩ). සෑම `setup-*` විධානයක්ම, මෙන්ම
-`omniroute configure` සහ `omniroute config set`, කන්ටේනරයේම CLI වින්යාස කිරීම ඔබ සැබවින්ම
-අදහස් කළ දෙය නම් `--allow-container-write` පිළිගනී; සේවාදායකය සඳහා
-`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` ද එයම කරයි. බලන්න:
-[Docker මාර්ගෝපදේශය → ධාරක CLI මෙවලම් වින්යාස කිරීම](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+OmniRoute කන්ටේනරය තුළ ක්රියාත්මක වන `setup-*` විධානයක් කන්ටේනරයේම නිවසට ලියයි, එය කිසිදු සත්කාරක CLI එකක් කියවන්නේ නැති අතර කන්ටේනරය සමඟ අතුරුදහන් වේ. OmniRoute එය හඳුනාගෙන ලිවීමට වඩා උපදෙස් සමඟ `2` පිටවේ. ඉදිරියට යාමට සහාය දක්වන ක්රම දෙකක් — සත්කාරකයේ CLI ස්ථාපනය කර කන්ටේනරයට `omniroute connect` කරන්න, නැතහොත් වින්යාස නාමාවලි බන්ධනය කර `CLI_CONFIG_HOME` සකසන්න (compose `host` profile). සෑම `setup-*` විධානයක්ම, `omniroute configure` සහ `omniroute config set` සමඟ, කන්ටේනරයේම CLIs වින්යාස කිරීම ඔබට ඇත්ත වශයෙන්ම අදහස් කළ විට `--allow-container-write` පිළිගනී; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` සේවාදායකය සඳහාද එයම කරයි. [Docker Guide → Configuring host CLI tools](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker) බලන්න.
 
-උපකරණ පුවරුවේ **යෙදුම් අන්ත ලක්ෂ්යය** (`POST /api/cli-tools/apply`) ද එම ආරක්ෂණයම බලාත්මක කරයි:
-කන්ටේනරයක් තුළ, ධාරකයෙන් bind-mount කර නොමැති ඉලක්කයකට ලිවීමක් සිදු කරන විට
-**`422`**, `containerEphemeralTarget: true`, ආරක්ෂිත දෝෂ පෙළ සහ — ධාරක ක්රමලේඛයක් ඇති
-මෙවලම් සඳහා (claude, codex, opencode, cline, kilo, continue) — ඒ වෙනුවට ධාරකය මත ක්රියාත්මක කිරීමට
-`hostSetupCommand` එකක් (උදා. `omniroute setup-opencode`) සමඟ පිළිතුරු දෙයි; කිසිවක් ලියනු නොලැබේ.
-`dryRun: true` කන්ටේනර් ප්රකාරයේදී දිගටම ක්රියා කරන අතර තැටියට අත නොතබා උත්පාදිත අන්තර්ගතය +
-ඉලක්ක මාර්ගය ආපසු ලබා දෙයි. එබැවින් ඔබට උපකරණ පුවරුවෙන් පෙරදසුන් කර ධාරකයේ යෙදිය හැකිය.
-මෙම හැසිරීම හිතාමතාම ක්රියාත්මක කර ඇති අතර
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` මඟින් ප්රතිගමනවලින් ආරක්ෂා කර ඇත —
-ආරක්ෂණය ඉවත් කිරීමෙන් 422 දෝෂයක් කිසිවිටෙකත් "නිවැරදි" නොකරන්න.
+පාලක පැනලයේ **apply endpoint** (`POST /api/cli-tools/apply`) එකම ආරක්ෂාව ක්රියාත්මක කරයි: කන්ටේනරයක, සත්කාරකයෙන් බන්ධනය නොකළ ඉලක්කයක් සහිත ලිවීමක් `containerEphemeralTarget: true`, ආරක්ෂිත දෝෂ පෙළ සහ — සත්කාරක වට්ටෝරුවක් සහිත මෙවලම් සඳහා (claude, codex, opencode, cline, kilo, continue) — සත්කාරකයේ ධාවනය කිරීමට `hostSetupCommand` (උදා: `omniroute setup-opencode`) සමඟ **`422`** පිළිතුරු දෙයි; කිසිවක් ලියා නැත. `dryRun: true` කන්ටේනර මාදිලියේ දිගටම ක්රියා කරන අතර තැටියට ස්පර්ශ නොකර සංස්කරණය කළ පෙරදසුනක් + ඉලක්ක මාර්ගයක් ආපසු ලබා දෙයි. පෙරදසුන් අන්තර්ගතය පිටපත් කිරීමට හෝ ආයාත කිරීමට අක්තපත්ර දරන වින්යාසයක් නොවේ. සත්කාරකයේ මුල් මෙවලම/මූල URL/API යතුර/මාදිලි ආදාන සමඟ යොදන්න, නැතහොත් දක්වා ඇති සත්කාරක-පැති සැකසුම් විධානය භාවිතා කරන්න. පෙරදසුන් ශීර්ෂය සහ ඉල්ලීම් ගිවිසුම සඳහා [CLI configuration security](../security/CLI-CONFIGURATION.md) බලන්න. මෙම හැසිරීම හිතාමතා වන අතර `tests/unit/api/cli-tools/apply-container-guard.test.ts` මඟින් ප්රතිගාමී-ආරක්ෂිත වේ — කිසිවිටෙක ආරක්ෂාව ඉවත් කිරීමෙන් 422 "නිවැරදි" නොකරන්න.
 
 ---
 

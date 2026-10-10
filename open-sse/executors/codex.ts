@@ -1,3 +1,5 @@
+import { getApiKeyCodexServiceTier } from "../../src/lib/providers/codexApiKeyServiceMode";
+import { buildErrorBody } from "../utils/error.ts";
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   getCodexModelScope,
@@ -33,9 +35,11 @@ import {
   applyCodexClientMetadata,
   applyCodexOriginalIdentityHeaders,
   type CodexClientIdentity,
+  resolveCodexThreadScopedPromptCacheKey,
   withCodexFingerprintCredentials,
 } from "../config/codexIdentity.ts";
 import { getAccessToken } from "../services/tokenRefresh.ts";
+import { isUnrecoverableRefreshError } from "../services/tokenRefresh/shared.ts";
 import { sanitizeCodexResponsesInput } from "../services/responsesInputSanitizer.ts";
 import { applyReasoningInputPolicy } from "../services/reasoningInputPolicy.ts";
 import { getForcedReasoningEffort } from "../utils/reasoningRuleContext.ts";
@@ -44,7 +48,11 @@ import { getThinkingBudgetConfig, ThinkingMode } from "../services/thinkingBudge
 import { CORS_HEADERS } from "../utils/cors.ts";
 import { projectCodexPublicError } from "../utils/codexPublicError.ts";
 import { errorResponse } from "../utils/error.ts";
-import { buildSyntheticResponsesFailedEvent } from "../utils/responsesSequence.ts";
+import {
+  buildSyntheticResponsesFailureId,
+  buildSyntheticResponsesFailedEvent,
+} from "../utils/responsesSequence.ts";
+import { hasCodexSsePeekProgress } from "./codex/ssePeekProgress.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
@@ -59,13 +67,18 @@ export {
 } from "./codex/quota.ts";
 import { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
 import {
-  CODEX_EFFORT_ORDER as EFFORT_ORDER,
-  CODEX_ULTRA_ALIAS_MODELS,
-  splitCodexReasoningSuffix,
-  type CodexEffortLevel as EffortLevel,
-} from "./codex/reasoningSuffix.ts";
+  ensureCodexCompactionReplayTools,
+  isCodexCompactionWebReplay,
+} from "./codex/compactionReplay.ts";
+import { CODEX_ULTRA_ALIAS_MODELS, splitCodexReasoningSuffix } from "./codex/reasoningSuffix.ts";
+import { applyCodexReasoningSelection } from "./codex/reasoningPolicy.ts";
 import { repairMissingCodexToolCallOutputs } from "./codex/toolCallRepair.ts";
+import {
+  CODEX_REASONING_REPLAY_ERROR_CODE,
+  readCodexReasoningReplayRejection,
+} from "./codex/reasoningReplayRejection.ts";
 import { resolveAppServerConfig } from "./codex/appServerConfig.ts";
+import { getResponsesSubpath } from "./codex/responsesSubpath.ts";
 import { CodexAppServerExecutor } from "./codex-app-server.ts";
 // Re-exported for external importers (tests + provider services).
 export { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
@@ -294,30 +307,6 @@ function stripOrphanedCodexFunctionCallOutputs(body: Record<string, unknown>): v
   }
 }
 
-function getResponsesSubpath(endpointPath: unknown): string | null {
-  let normalizedEndpoint = String(endpointPath || "");
-  while (normalizedEndpoint.endsWith("/") && normalizedEndpoint.length > 0) {
-    normalizedEndpoint = normalizedEndpoint.slice(0, -1);
-  }
-
-  const lower = normalizedEndpoint.toLowerCase();
-  if (lower === "responses" || lower.endsWith("/responses")) {
-    return "";
-  }
-
-  const responsesSlash = "/responses/";
-  const idx = lower.lastIndexOf(responsesSlash);
-  if (idx !== -1) {
-    return normalizedEndpoint.slice(idx + "/responses".length);
-  }
-
-  if (lower.startsWith("responses/")) {
-    return normalizedEndpoint.slice("responses".length);
-  }
-
-  return null;
-}
-
 export function isCompactResponsesEndpoint(endpointPath: unknown): boolean {
   return getResponsesSubpath(endpointPath)?.toLowerCase() === "/compact";
 }
@@ -328,34 +317,6 @@ function normalizeServiceTierValue(value: unknown): string | undefined {
   if (!normalized) return undefined;
   if (normalized === "fast") return CODEX_FAST_WIRE_VALUE;
   return normalized;
-}
-
-/** Maximum reasoning effort per Codex model; unlisted models keep the xhigh cap. */
-const MAX_EFFORT_BY_MODEL: Record<string, EffortLevel> = {
-  "gpt-6-astra": "ultra",
-  "gpt-5.6-sol": "ultra",
-  "gpt-5.6-terra": "ultra",
-  "gpt-5.6-luna": "max",
-  "gpt-5.3-codex": "xhigh",
-  "gpt-5.1-codex-max": "xhigh",
-  "gpt-5-mini": "high",
-  "gpt-5.1-mini": "high",
-  "gpt-4.1-mini": "high",
-};
-
-/**
- * Clamp reasoning effort to the model's maximum allowed level.
- * Returns the original value if within limits, or the cap if it exceeds it.
- */
-function clampEffort(model: string, requested: string): string {
-  const max: EffortLevel = MAX_EFFORT_BY_MODEL[model] ?? "xhigh";
-  const reqIdx = EFFORT_ORDER.indexOf(requested as EffortLevel);
-  const maxIdx = EFFORT_ORDER.indexOf(max);
-  if (reqIdx > maxIdx) {
-    console.debug(`[Codex] clampEffort: "${requested}" → "${max}" (model: ${model})`);
-    return max;
-  }
-  return requested;
 }
 
 const CODEX_REASONING_ENCRYPTED_CONTENT_INCLUDE = "reasoning.encrypted_content";
@@ -513,7 +474,7 @@ function toCodexResponseFailedEvent(parsed: Record<string, unknown>): Record<str
   if (statusCode !== null) error.status_code = statusCode;
 
   return buildSyntheticResponsesFailedEvent({
-    id: typeof response?.id === "string" ? response.id : null,
+    id: typeof response?.id === "string" ? response.id : buildSyntheticResponsesFailureId(),
     status: "failed",
     error,
   });
@@ -682,12 +643,9 @@ export async function peekCodexSseTransientError(
         matched = hit;
         break;
       }
-      // A real content/completion event this early means the response is
-      // healthy — stop peeking so we do not needlessly buffer a long stream.
-      if (
-        lower.includes('"type":"response.output_text.delta"') ||
-        lower.includes('"type":"response.completed"')
-      ) {
+      // Hand off actual text/reasoning/tool progress, but retain the early
+      // error window across lifecycle-only frames such as response.created.
+      if (hasCodexSsePeekProgress(text)) {
         break;
       }
     }
@@ -839,6 +797,22 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     if (isCodexAppServerRequired(nextInput.credentials)) {
+      // The app-server adapter does not forward service tiers. Never silently
+      // ignore an API-key override (especially a cost-controlling Standard mode).
+      if (getApiKeyCodexServiceTier(nextInput.credentials)) {
+        return {
+          response: Response.json(
+            buildErrorBody(
+              400,
+              "Forced API-key Codex service mode requires the HTTP or Responses WebSocket transport; the app-server transport cannot enforce it"
+            ),
+            { status: 400 }
+          ),
+          url: "",
+          headers: {},
+          transformedBody: nextInput.body,
+        };
+      }
       if (!this.appServer) {
         this.appServer = new CodexAppServerExecutor({
           websocketFn: getCodexAppServerWebsocketTransport(),
@@ -856,6 +830,19 @@ export class CodexExecutor extends BaseExecutor {
         }
       }
       const resp = (httpResult as { response?: Response }).response;
+      if (resp && !resp.ok) {
+        const replayRejection = await readCodexReasoningReplayRejection(resp);
+        if (replayRejection) {
+          input.log?.warn?.("CODEX", "upstream rejected a replayed reasoning item");
+          await resp.body?.cancel().catch(() => undefined);
+          (httpResult as { response: Response }).response = errorResponse(
+            HTTP_STATUS.BAD_REQUEST,
+            replayRejection.message,
+            { type: "invalid_request_error", code: CODEX_REASONING_REPLAY_ERROR_CODE }
+          );
+          return httpResult;
+        }
+      }
       if (resp) {
         const peek = await peekCodexSseTransientError(resp);
         if (peek.matched) {
@@ -979,7 +966,9 @@ export class CodexExecutor extends BaseExecutor {
       const controller = streamController;
       const payload = JSON.stringify(
         buildSyntheticResponsesFailedEvent({
-          id: null,
+          // #15202: the WebSocket failure path has no upstream id to preserve, so it
+          // must synthesize a string id instead of emitting `id: null`.
+          id: buildSyntheticResponsesFailureId(),
           status: "failed",
           error: projectCodexPublicError({ status: 502, code, type: "provider_error" }),
         })
@@ -1225,6 +1214,11 @@ export class CodexExecutor extends BaseExecutor {
         "TOKEN_REFRESH",
         `Codex: token refresh failed (${result.error}) — re-authentication required`
       );
+      // A dead refresh token is terminal for this connection, not a provider
+      // outage: surface it so the retry helper skips retries and leaves the
+      // provider breaker alone. Other connections keep serving (the proactive
+      // path drops this shape before spreading it onto live credentials).
+      if (isUnrecoverableRefreshError(result)) return result;
       // Return null (not the error-only object): base.ts spreads any truthy
       // result onto activeCredentials and persists it via onCredentialsRefreshed.
       // Spreading `{ error }` would keep the stale/expired accessToken in place
@@ -1255,6 +1249,7 @@ export class CodexExecutor extends BaseExecutor {
 
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
+    ensureCodexCompactionReplayTools(body, isCompactRequest);
     const requestDefaults = getCodexRequestDefaults(credentials?.providerSpecificData);
     const thinkingBudgetConfig = getThinkingBudgetConfig();
     const allowConnectionReasoningDefaults = thinkingBudgetConfig.mode === ThinkingMode.PASSTHROUGH;
@@ -1271,7 +1266,8 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body._nativeCodexPassthrough;
 
-    const requestServiceTier = normalizeServiceTierValue(body.service_tier);
+    const requestServiceTier =
+      getApiKeyCodexServiceTier(credentials) ?? normalizeServiceTierValue(body.service_tier);
     if (requestServiceTier) {
       body.service_tier = requestServiceTier;
     } else if (requestDefaults.serviceTier) {
@@ -1396,6 +1392,7 @@ export class CodexExecutor extends BaseExecutor {
       dropImageGeneration:
         isCodexFreePlan(credentials?.providerSpecificData) || getCodexModelScope(model) === "spark",
       preserveCustomTools: nativeCodexPassthrough,
+      preserveWebSearchPreviewVersion: isCodexCompactionWebReplay(body),
       defaultFunctionStrict: nativeCodexPassthrough ? undefined : false,
     });
 
@@ -1404,66 +1401,14 @@ export class CodexExecutor extends BaseExecutor {
     delete body.messages;
     delete body.prompt;
 
-    let modelEffort: string | null = null;
-    let cleanModel = typeof body.model === "string" ? body.model : model;
-    const splitModel = splitCodexReasoningSuffix(cleanModel);
-    if (splitModel.effort) {
-      modelEffort = splitModel.effort;
-      body.model = splitModel.baseModel;
-      cleanModel = splitModel.baseModel;
-    }
-
-    const reasoningRecord =
-      body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
-        ? (body.reasoning as Record<string, unknown>)
-        : null;
-    const explicitReasoning = normalizeEffortValue(reasoningRecord?.effort);
-    const requestReasoningEffort = normalizeEffortValue(body.reasoning_effort);
-    const fallbackReasoningEffort = allowConnectionReasoningDefaults
-      ? requestDefaults.reasoningEffort || "medium"
-      : undefined;
-    // Issue #2331: model suffix aliases (for example gpt-5.5-xhigh) represent an
-    // explicit model selection, so they must override client-injected defaults such
-    // as OpenCode's automatic reasoning.effort=medium for GPT-5-family requests.
-    // A server-selected force rule is stronger than either source.
-    // OpenRouter-style `enabled: false` asks for reasoning to be off. It
-    // wins over the connection default but still loses to any per-request
-    // effort selection (model suffix, reasoning.effort, or flat
-    // reasoning_effort).
-    const clientDisabledReasoning = reasoningRecord?.enabled === false;
-    const rawEffort =
-      getForcedReasoningEffort(credentials) ||
-      modelEffort ||
-      explicitReasoning ||
-      requestReasoningEffort ||
-      (clientDisabledReasoning ? "none" : fallbackReasoningEffort);
-
-    if (rawEffort) {
-      const clampedEffort = clampEffort(cleanModel, rawEffort);
-      body.reasoning = {
-        ...(reasoningRecord || {}),
-        // Ultra coordinates delegation in Codex clients; the upstream wire effort is Max.
-        effort: clampedEffort === "ultra" ? "max" : clampedEffort,
-      };
-    }
-
-    // The Codex Responses API accepts only `effort` and `summary` inside
-    // `reasoning`. Client ecosystems send OpenRouter-style keys (`enabled`,
-    // `max_tokens`, `exclude`, ...) that the upstream rejects with HTTP 400
-    // "Unknown parameter: 'reasoning.<key>'", so whitelist the object before
-    // it reaches the wire. This must run even when no effort was resolved,
-    // because the client's original object is forwarded unchanged in that
-    // case.
-    const wireReasoning =
-      body.reasoning && typeof body.reasoning === "object" && !Array.isArray(body.reasoning)
-        ? (body.reasoning as Record<string, unknown>)
-        : null;
-    if (wireReasoning) {
-      for (const key of Object.keys(wireReasoning)) {
-        if (key !== "effort" && key !== "summary") delete wireReasoning[key];
-      }
-      if (Object.keys(wireReasoning).length === 0) delete body.reasoning;
-    }
+    applyCodexReasoningSelection(
+      model,
+      body,
+      credentials.providerSpecificData?._omnirouteCodexThinking,
+      allowConnectionReasoningDefaults ? requestDefaults.reasoningEffort : undefined,
+      allowConnectionReasoningDefaults,
+      getForcedReasoningEffort(credentials)
+    );
     ensureCodexReasoningSummary(body);
     if (isCompactRequest) {
       delete body.include;
@@ -1482,13 +1427,26 @@ export class CodexExecutor extends BaseExecutor {
     delete body.truncation;
     delete body.background; // Droid CLI sends this but Codex Responses API rejects it
 
-    stripCodexPassthroughRejectedParams(cleanModel || model, body);
+    // applyCodexReasoningSelection already replaced body.model with the suffix-free base id.
+    stripCodexPassthroughRejectedParams(typeof body.model === "string" ? body.model : model, body);
 
     // Inject prompt_cache_key for Codex prompt caching.
     // The official Codex client sets this to conversation_id (a stable UUID per session).
     // Ref: openai/codex core/src/client.rs line 853:
     //   let prompt_cache_key = Some(self.client.state.conversation_id.to_string());
     // IMPORTANT: Capture session/conversation IDs BEFORE deletion below (#1643).
+    // Opt-in (`codexPromptCacheKeyScope: "thread"`): align the client's key with the
+    // converged thread id instead of forwarding it raw next to a rewritten thread.
+    const threadScopedCacheKey = resolveCodexThreadScopedPromptCacheKey(
+      body.prompt_cache_key,
+      credentials?.providerSpecificData?.codexClientIdentity as
+        CodexClientIdentity | null | undefined,
+      credentials?.providerSpecificData,
+      credentials?.connectionId ?? null
+    );
+    if (threadScopedCacheKey) {
+      body.prompt_cache_key = threadScopedCacheKey;
+    }
     if (!body.prompt_cache_key) {
       const cacheSessionId = this.getPromptCacheSessionId(credentials, body);
       if (cacheSessionId) {
@@ -1511,6 +1469,7 @@ export class CodexExecutor extends BaseExecutor {
 
     applyReasoningInputPolicy(body, "responses", {
       provider: "codex",
+      preserveWebSearchCalls: isCodexCompactionWebReplay(body),
       preserveEncryptedReasoning:
         credentials?.providerSpecificData?.preserveEncryptedReasoning === true,
     });

@@ -1,12 +1,109 @@
 /**
- * Pure classify helpers for executeTarget's retry loop.
- * Lift-as-is from combo.ts #8375 / #2101 / #4279. No I/O.
+ * Classify helpers for executeTarget's retry loop.
+ * Lift-as-is from combo.ts #8375 / #2101 / #4279; stop cleanup uses injected deps.
  *
  * @internal — not part of the public combo.ts barrel.
  */
 import { isInputBoundRequestFailure } from "./comboPredicates.ts";
 import { comboTargetDecision } from "./statusDecisionTable.ts";
-import { errorResponse } from "../../utils/error.ts";
+import { errorResponse, errorResponseWithComboDiagnostics } from "../../utils/error.ts";
+import { buildRedactedSummary } from "./comboErrorAggregation.ts";
+import type { ComboDiagnostics } from "../../utils/error.ts";
+import { formatExhaustedConnectionKey } from "./comboDiagFormat.ts";
+import { collectQuotaWindowExclusions } from "./quotaSkipDiagnostics.ts";
+import { getComboTrace, summarizeSkippedTargets } from "./decisionTrace.ts";
+import { buildRecoveryHint } from "./pinRecovery.ts";
+import type { AttemptLoopDeps, AttemptLoopState } from "./attemptLoopTypes.ts";
+import type { ResolvedComboTarget } from "./types.ts";
+import {
+  protectedPriorityStopStatus,
+  type ProtectedPriorityStopCause,
+} from "./protectedPriorityStopStatus.ts";
+import type { ResponseQualityResult } from "./validateQuality.ts";
+
+/**
+ * Terminal diagnostics attached to combo-level errors. Shared by the priority
+ * target loop and the set-retry loop so both emit the same trace shape.
+ */
+export function buildComboDiag(
+  state: AttemptLoopState,
+  traceInvocationId: string,
+  terminalReason: string,
+  retryAfterSeconds?: number
+): ComboDiagnostics {
+  return {
+    poolSize: state.orderedTargets.length,
+    attempted: state.recordedAttempts,
+    excluded: [
+      ...[...state.exhaustedProviders].map((p) => ({ provider: p, reason: "exhausted" })),
+      ...[...state.exhaustedConnections].map((c) => formatExhaustedConnectionKey(String(c))),
+      ...(terminalReason === "all_targets_skipped"
+        ? collectQuotaWindowExclusions(state.orderedTargets)
+        : []),
+    ],
+    attemptOrder: state.comboAttemptOrder,
+    terminalReason,
+    recovery: buildRecoveryHint(terminalReason, retryAfterSeconds),
+    // #12659: surface per-target skip reasons (e.g. persisted_cooldown) that
+    // `excluded` never captures — only worth the trace lookup on the
+    // diagnostic-heavy terminal reason.
+    skippedTargets:
+      terminalReason === "all_targets_skipped"
+        ? summarizeSkippedTargets(getComboTrace(traceInvocationId)).map((g) => ({
+            reason: g.reason,
+            targets: g.targets,
+          }))
+        : undefined,
+  };
+}
+
+/** Preserve prior attempt metadata without exposing upstream bodies or changing stop policy. */
+export function buildProtectedPriorityStopResponse(opts: {
+  state: AttemptLoopState;
+  traceInvocationId: string;
+  message: string;
+  cause?: ProtectedPriorityStopCause;
+}): Response {
+  const previous = buildRedactedSummary(opts.state.comboErrors);
+  return errorResponseWithComboDiagnostics(
+    protectedPriorityStopStatus(opts.cause),
+    previous ? `${opts.message}; earlier attempts: ${previous}` : opts.message,
+    buildComboDiag(opts.state, opts.traceInvocationId, "protected_priority_stop")
+  );
+}
+
+/** Record a target stop, returning a terminal response only for protected targets. */
+export function stopProtectedPriorityTarget(opts: {
+  protectedPriorityTarget: boolean;
+  state: AttemptLoopState;
+  deps: Pick<AttemptLoopDeps, "combo" | "log" | "clearStaleLKGP" | "traceInvocationId">;
+  target: ResolvedComboTarget;
+  message: string;
+  cause?: ProtectedPriorityStopCause;
+}): { ok: false; response: Response } | null {
+  const { state, deps, target } = opts;
+  state.observeFailure(false, target.executionKey);
+  deps.clearStaleLKGP(
+    deps.combo.name,
+    target.executionKey,
+    deps.combo.id,
+    deps.log,
+    "COMBO",
+    undefined,
+    target
+  );
+  return opts.protectedPriorityTarget
+    ? {
+        ok: false as const,
+        response: buildProtectedPriorityStopResponse({
+          state,
+          traceInvocationId: deps.traceInvocationId,
+          message: opts.message,
+          cause: opts.cause,
+        }),
+      }
+    : null;
+}
 
 export function remainderIsHomogeneous(
   orderedTargets: { modelStr: string }[],
@@ -22,7 +119,7 @@ export function remainderIsHomogeneous(
  * returns true when the caller should retry, false to fall through.
  */
 export function handlePreContentStreamRetry(
-  quality: { reason?: string | null },
+  quality: ResponseQualityResult,
   retry: number,
   deps: {
     maxRetries: number;
@@ -31,11 +128,7 @@ export function handlePreContentStreamRetry(
   },
   modelStr: string
 ): boolean {
-  if (
-    quality.reason !== "streaming upstream error" ||
-    retry >= deps.maxRetries ||
-    deps.signal?.aborted
-  ) {
+  if (!quality.upstreamFailure?.retryable || retry >= deps.maxRetries || deps.signal?.aborted) {
     return false;
   }
   deps.log.info(
@@ -47,8 +140,16 @@ export function handlePreContentStreamRetry(
 }
 
 /** Protected-priority target whose upstream body failed quality validation. */
-export function qualityValidationFailure(): { ok: false; response: Response } {
-  return { ok: false, response: errorResponse(502, "Upstream response failed quality validation") };
+export function qualityValidationFailure(quality: ResponseQualityResult): {
+  ok: false;
+  response: Response;
+} {
+  return {
+    ok: false,
+    response: quality.upstreamFailure
+      ? errorResponse(quality.upstreamFailure.status, quality.reason || "Upstream request failed")
+      : errorResponse(502, "Upstream response failed quality validation"),
+  };
 }
 
 export function shouldAbortOnInputBoundFailure(opts: {

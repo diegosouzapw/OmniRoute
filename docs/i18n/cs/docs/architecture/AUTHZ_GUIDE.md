@@ -17,58 +17,60 @@ OmniRoute používá autorizační řetězec zohledňující routy, který kontr
 
 ### 1. Klíč API (Bearer)
 
-Používá se pro klientská API kompatibilní s OpenAI/Anthropic/Gemini a pro několik tras správy, pokud má klíč rozsah oprávnění `manage`.
+Používá se pro klientská API kompatibilní s OpenAI/Anthropic/Gemini a pro několik tras správy, pokud má klíč oprávnění `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Ověřuje se pomocí `isValidApiKey()` / `extractApiKey()` v `src/sse/services/auth.ts` a je znovu exportován prostřednictvím `src/shared/utils/apiAuth.ts`. Validátor také přijímá proměnné prostředí `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trvalé průchozí klíče (issue #1350).
+Ověřuje se pomocí `isValidApiKey()` / `extractApiKey()` v `src/sse/services/auth.ts` a znovu se exportuje prostřednictvím `src/shared/utils/apiAuth.ts`. Validátor také přijímá proměnné prostředí `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` jako trvalé klíče pro přímý průchod (issue #1350).
 
 ### 2. Relace řídicího panelu (cookie auth_token)
 
 Pro stránky řídicího panelu a operace správce.
 
 ```
-Cookie: auth_token=<JWT signed with JWT_SECRET>
+Cookie: auth_token=<JWT podepsaný pomocí JWT_SECRET>
 ```
 
 Cookie představuje relaci pouze tehdy, když je JWT úspěšně ověřen **a** obsahuje `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Každý
-spotřebitel této cookie (ochrana tras, obnovení autorizačního řetězce, navázání spojení WebSocket, živý
-server, `/api/settings/require-login`, `/api/auth/status`) používá tohoto pomocníka.
-Existují i jiné JWT podepsané pomocí `JWT_SECRET` — průchozí mechanismus Cursor CLI vydává
-držitelům klíčů tokeny s `iss "omniroute" / aud "cursor-cli"` — ty však nikdy nepředstavují relace
+příjemce této cookie (ochrana tras řídicího panelu (`isDashboardSessionAuthenticated()`), obnovení autorizačního řetězce, navázání spojení WebSocket, živý
+server, `/api/settings/require-login`, `/api/auth/status`) používá tuto pomocnou funkci.
+Existují i jiné JWT podepsané pomocí `JWT_SECRET` — přímý průchod pro Cursor CLI vytváří
+pro držitele klíčů tokeny s `iss "omniroute" / aud "cursor-cli"` — a ty nikdy nepředstavují relace
 (#13298).
 
-Ověřuje se pomocí `isDashboardSessionAuthenticated()` v `src/shared/utils/apiAuth.ts`. Řetězec automaticky obnoví JWT, pokud do konce jeho 30denní platnosti zbývá méně než 7 dní.
+Ověřuje se pomocí `isDashboardSessionAuthenticated()` v `src/shared/utils/apiAuth.ts`. Řetězec JWT automaticky obnoví, pokud do konce jeho 30denní platnosti zbývá méně než 7 dní.
 
-Některé trasy správy přijímají **kterýkoli** režim: cookie NEBO `Bearer <key>`, pokud má klíč API rozsah oprávnění `manage` (nebo `admin`). To umožňuje pracovní postup „konfigurovatelné prostřednictvím volání API“, který byl přidán ve verzi v3.8.
+Relace může také skončit před uplynutím 30 dní, protože každý vystavitel používá `mintDashboardSessionToken` (čas vydání `iat` a identifikátor `jti`) a ověřovací mechanismus kontroluje dvě nastavení: `sessionsValidAfter`, které se nastaví při změně hesla, takže se přestanou ověřovat všechny relace vydané před tímto okamžikem (prohlížeč, ve kterém bylo heslo změněno, obdrží novou cookie), a `revokedDashboardSessions`, do kterého `POST /api/auth/logout` přidá `jti` odhlášené relace. Relace vytvořené starší verzí neobsahují ani jeden z těchto údajů a zůstávají platné až do první změny hesla. Pokud nastavení nelze načíst, relace se nepovažuje za důvěryhodnou.
+
+Některé trasy správy přijímají **kterýkoli** režim: cookie NEBO `Bearer <key>`, pokud má klíč API oprávnění `manage` (nebo `admin`). To umožňuje pracovní postup „konfigurovatelný prostřednictvím volání API“, který byl přidán ve verzi v3.8.
 
 #### Volitelná přihlašovací brána OIDC (#6973)
 
-Přihlášení správce řídicího panelu podporuje vedle výchozího přihlášení heslem také **volitelný** tok OIDC (OpenID Connect) — přihlášení heslem není nikdy odstraněno, pouze
+Přihlášení správce do řídicího panelu podporuje kromě výchozího přihlašování heslem také **volitelný** tok OIDC (OpenID Connect) — přihlašování heslem není nikdy odstraněno, pouze
 doplněno:
 
-- Je zakázáno, pokud `settings.oidcEnabled !== true` **nebo** nejsou všechny hodnoty `oidcIssuer` /
-  `oidcClientId` / `oidcClientSecret` nakonfigurovány (Nastavení → Ověřování).
-  V opačném případě vrací `GET /api/auth/oidc/login` stav `400`.
-- `GET /api/auth/oidc/login` zjistí `authorization_endpoint` z konfigurace
-  `/.well-known/openid-configuration` vydavatele (jako záložní možnost použije
-  `<issuer>/authorize`), sestaví URI přesměrování z příchozího požadavku
-  (s podporou `x-forwarded-proto`) a přesměruje na poskytovatele identity (IdP) s náhodnou hodnotou `state`
+- Je zakázáno, pokud `settings.oidcEnabled === true` **a zároveň** nejsou nakonfigurovány všechny hodnoty `oidcIssuer` /
+  `oidcClientId` / `oidcClientSecret` (Nastavení → Ověřování).
+  Jinak `GET /api/auth/oidc/login` vrátí `400`.
+- `GET /api/auth/oidc/login` zjistí `authorization_endpoint` z
+  `/.well-known/openid-configuration` vystavitele (případně použije
+  `<issuer>/authorize`), sestaví URI pro přesměrování z příchozího požadavku
+  (se zohledněním `x-forwarded-proto`) a přesměruje na IdP s náhodnou hodnotou `state`
   uloženou v cookie `oidc_state` s příznakem `httpOnly`.
 - `GET /api/auth/oidc/callback` ověří `state`, vymění autorizační
-  kód a ověří podpis tokenu ID prostřednictvím JWKS vydavatele
-  (`createRemoteJWKSet` z balíčku `jose`, ukládáno do mezipaměti pro každé URI JWKS) s kontrolami `issuer`/`audience`.
-  Volitelný seznam povolených hodnot `oidcAllowedSubjects` porovnává deklaraci `sub`
-  tokenu nebo jeho deklaraci `email` — deklarace e-mailu je akceptována pouze tehdy, když
-  `email_verified === true`, takže neověřený e-mail u IdP nemůže nikdy projít
-  bránou.
+  kód a ověří podpis tokenu ID prostřednictvím JWKS vystavitele
+  (`createRemoteJWKSet` z balíčku `jose`, ukládané do mezipaměti pro každé URI JWKS) s kontrolami `issuer`/`audience`.
+  Volitelný seznam povolených hodnot `oidcAllowedSubjects` porovnává deklaraci
+  `sub` tokenu nebo jeho deklaraci `email` — deklarace e-mailu se zohlední pouze tehdy, když
+  `email_verified === true`, takže neověřený e-mail u IdP nemůže nikdy
+  projít touto bránou.
 - Při úspěchu vytvoří **naprosto stejný** 30denní JWT `auth_token`, jaký vydává přihlášení
   heslem (`src/app/api/auth/login/route.ts`), takže zbytek řetězce relace
   řídicího panelu (automatické obnovení, příznaky cookie) zůstává beze změny —
-  OIDC pouze nahrazuje způsob vytvoření cookie, nikoli oprávnění, která cookie uděluje.
+  OIDC mění pouze způsob vytvoření cookie, nikoli oprávnění, která uděluje.
 
 ## Třídy tras
 

@@ -214,27 +214,26 @@ rawBody)`)՝ նախքան JSON-ի վերլուծումը։ Եթե գաղտնիք
 
 ## Կառուցման պրոֆիլ՝ `minimal`
 
-Socket-ի համար ընդունելի արտեֆակտի կարիք ունեցող օգտատերերը կարող են կառուցել հետևյալ հրամանով․
+Socket-ի հետ համատեղելի արտեֆակտի կարիք ունեցող օգտատերերի համար կառուցեք հետևյալ հրամանով՝
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack-ի `NormalModuleReplacementPlugin`-ը չորս մոդուլ փոխարինում է խցաններով․
+Webpack-ի `NormalModuleReplacementPlugin`-ը չորս մոդուլ փոխարինում է stub-երով՝
 
-| Մոդուլ                                      | Խցան                                             |
+| Մոդուլ                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Յուրաքանչյուր խցան արտահանում է նույն միջերեսը, սակայն յուրաքանչյուր ֆունկցիա կատարման պահին
-նետում է `featureDisabledError(name)`։ Անջատված մոդուլից կախված երթուղիները
-զգայուն կոդային ուղին ակտիվացնելու փոխարեն վերադարձնում են HTTP 503՝ հստակ հաղորդագրությամբ։
+Յուրաքանչյուր stub արտահանում է նույն ինտերֆեյսը, սակայն կատարման ժամանակ յուրաքանչյուր ֆունկցիա գեներացնում է
+`featureDisabledError(name)` սխալ։ Անջատված մոդուլից կախված երթուղիները
+զգայուն կոդի ուղին ակտիվացնելու փոխարեն վերադարձնում են HTTP 503՝ հստակ հաղորդագրությամբ։
 
-Ստացված փաթեթը նախատեսված է `omniroute-secure` անվամբ հրապարակելու համար։ Հրապարակման
-հրահանգներին ծանոթանալու համար տե՛ս `docs/ops/PUBLISHING_SECURE.md`։
+Ստացված փաթեթը նախատեսված է որպես `omniroute-secure` հրապարակելու համար։
 
 ---
 

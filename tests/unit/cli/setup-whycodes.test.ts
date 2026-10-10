@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import path from "node:path";
 import {
+  defaultConfigPath,
   resolveWhyCodesTarget,
   buildWhyCodesToml,
   buildWhyCodesCliRecipe,
@@ -43,4 +45,29 @@ test("buildWhyCodesCliRecipe never prints the API key value", () => {
   assert.match(r, /whycodes provider add omniroute --api-key "\$OMNIROUTE_API_KEY"/);
   assert.match(r, /whycodes model default omniroute glm\/glm-5.2/);
   assert.equal(r.includes("sk-"), false);
+});
+
+test("defaultConfigPath follows WhyCodes >= 0.6.5: $WHYCODES_HOME, else ~/.whycodes", () => {
+  const saved = {
+    WHYCODES_HOME: process.env.WHYCODES_HOME,
+    HOME: process.env.HOME,
+    USERPROFILE: process.env.USERPROFILE,
+  };
+  try {
+    process.env.WHYCODES_HOME = path.join("custom", "wc");
+    assert.equal(defaultConfigPath(), path.join("custom", "wc", "config.toml"));
+
+    delete process.env.WHYCODES_HOME;
+    process.env.HOME = path.join("home", "op");
+    assert.equal(defaultConfigPath(), path.join("home", "op", ".whycodes", "config.toml"));
+
+    process.env.HOME = "";
+    process.env.USERPROFILE = path.join("Users", "op");
+    assert.equal(defaultConfigPath(), path.join("Users", "op", ".whycodes", "config.toml"));
+  } finally {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 });

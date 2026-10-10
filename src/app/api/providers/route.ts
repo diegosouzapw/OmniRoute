@@ -8,6 +8,7 @@ import {
 } from "@/lib/compliance/providerAudit";
 import {
   getProviderConnections,
+  getProviderConnectionById,
   getProviderConnectionsCount,
   createProviderConnection,
   deleteProviderConnections,
@@ -19,6 +20,7 @@ import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
+  providerAllowsOptionalApiKey,
   resolveProviderId,
 } from "@/shared/constants/providers";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
@@ -60,6 +62,14 @@ import {
 import { isAutoFetchModelsEnabled } from "@/lib/providerModels/modelDiscovery";
 import { testSingleConnection } from "./[id]/test/route";
 import { rejectRetiredCommonChatGptWebProvider } from "@/lib/providers/chatgptWebRetirementResponse";
+import {
+  chatGptWebStorageStateFromCookieHeader,
+  normalizeChatGptWebStorageState,
+} from "@omniroute/open-sse/utils/chatgptWebExecutorAdapter.ts";
+import { applyOperatorActivationIntent } from "@/lib/providers/operatorDisable";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
+import { hydrateCompatibleNodeCreation } from "@/lib/providers/compatibleNodeCreation";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 function projectCodexAccountPoolWithRoutingQuota(
   connection: Parameters<typeof projectCodexAccountPool>[0],
@@ -146,9 +156,12 @@ export async function GET(request: Request) {
           ? {
               codexAccountPool: projectCodexAccountPoolWithRoutingQuota(
                 {
-                  id: c.id,
+                  id: String(c.id),
                   provider: c.provider,
-                  providerSpecificData: c.providerSpecificData ?? {},
+                  providerSpecificData:
+                    c.providerSpecificData && typeof c.providerSpecificData === "object"
+                      ? (c.providerSpecificData as Readonly<Record<string, unknown>>)
+                      : {},
                 },
                 Date.now(),
                 quotaCache[String(c.id)]
@@ -189,12 +202,29 @@ export async function POST(request: Request) {
       defaultModel,
       testStatus,
       providerSpecificData: incomingPsd,
+      allowNoCredential,
     } = validation.data;
     const provider = resolveProviderId(requestedProvider);
+    if (provider === "cloudflare-ai" && Object.hasOwn(body, "accountId")) {
+      return NextResponse.json(
+        {
+          error: sanitizeErrorMessage(
+            "Use providerSpecificData.accountId instead of top-level accountId"
+          ),
+        },
+        { status: 400 }
+      );
+    }
     const retirementResponse =
       rejectRetiredCommonChatGptWebProvider(requestedProvider) ??
       rejectRetiredCommonChatGptWebProvider(provider);
     if (retirementResponse) return retirementResponse;
+    if (allowNoCredential === true && !providerAllowsOptionalApiKey(provider)) {
+      return NextResponse.json(
+        { error: "This provider does not allow a connection without a credential" },
+        { status: 400 }
+      );
+    }
 
     // Business validation
     const isValidProvider =
@@ -211,6 +241,27 @@ export async function POST(request: Request) {
 
     if (provider === "qoder") {
       providerSpecificData = normalizeQoderPatProviderData(providerSpecificData || {});
+    }
+
+    if (provider === "chatgpt-web" && typeof apiKey === "string") {
+      try {
+        persistedApiKey = JSON.stringify(normalizeChatGptWebStorageState(JSON.parse(apiKey)));
+      } catch (error) {
+        if (!(error instanceof SyntaxError)) {
+          return NextResponse.json(
+            { error: "ChatGPT Web storage state JSON is invalid or contains foreign origins" },
+            { status: 400 }
+          );
+        }
+        try {
+          persistedApiKey = JSON.stringify(chatGptWebStorageStateFromCookieHeader(apiKey));
+        } catch {
+          return NextResponse.json(
+            { error: "ChatGPT Web storage state JSON or Cookie header is invalid" },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     if (provider === "chatgpt-web-codex") {
@@ -246,16 +297,11 @@ export async function POST(request: Request) {
 
       // Allow multiple connections for compatible nodes exactly like first-party providers
 
-      providerSpecificData = {
-        ...(providerSpecificData || {}),
-        prefix: node.prefix,
-        apiType: node.apiType,
-        baseUrl: node.baseUrl,
-        nodeName: node.name,
-        ...(node.chatPath ? { chatPath: node.chatPath } : {}),
-        ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
-        ...(node.customHeaders ? { customHeaders: node.customHeaders } : {}),
-      };
+      const hydrated = hydrateCompatibleNodeCreation(provider, node, providerSpecificData, true);
+      if (hydrated.error) {
+        return NextResponse.json({ error: sanitizeErrorMessage(hydrated.error) }, { status: 400 });
+      }
+      providerSpecificData = hydrated.data;
     } else if (isAnthropicCompatibleProvider(provider)) {
       const node: any = await resolveProviderNodeForConnection(provider);
       if (!node) {
@@ -271,15 +317,11 @@ export async function POST(request: Request) {
 
       // Allow multiple connections for compatible nodes exactly like first-party providers
 
-      providerSpecificData = {
-        ...(providerSpecificData || {}),
-        prefix: node.prefix,
-        baseUrl: node.baseUrl,
-        nodeName: node.name,
-        ...(node.chatPath ? { chatPath: node.chatPath } : {}),
-        ...(node.modelsPath ? { modelsPath: node.modelsPath } : {}),
-        ...(node.customHeaders ? { customHeaders: node.customHeaders } : {}),
-      };
+      const hydrated = hydrateCompatibleNodeCreation(provider, node, providerSpecificData, false);
+      if (hydrated.error) {
+        return NextResponse.json({ error: sanitizeErrorMessage(hydrated.error) }, { status: 400 });
+      }
+      providerSpecificData = hydrated.data;
     }
 
     providerSpecificData = normalizeProviderSpecificData(provider, providerSpecificData) || null;
@@ -369,7 +411,13 @@ export async function POST(request: Request) {
     // seconds (OAuth refresh, upstream round-trip) and must not block the
     // 201 response. testSingleConnection() persists testStatus/lastError/etc.
     // itself, so nothing further is needed here beyond logging failures.
-    void testSingleConnection(newConnection.id).catch((testError: unknown) => {
+    // GHSA-jmq6-8j86-8xqj: the local CLI probe spawns on the host — only for local callers.
+    // S-01 (#15159): allowLocalSpawn covers the devin cloud-agent validator's CLI
+    // fallback, which also spawns. Same gate, same reason.
+    void testSingleConnection(newConnection.id, undefined, {
+      allowLocalRuntimeProbe: getRequestPeerLocality(request) !== "remote",
+      allowLocalSpawn: getRequestPeerLocality(request) !== "remote",
+    }).catch((testError: unknown) => {
       console.log(
         `[providers] Auto-test failed for ${newConnection.id}:`,
         (testError as { message?: string })?.message || testError
@@ -462,7 +510,18 @@ export async function PATCH(request: Request) {
     const updatedIds: string[] = [];
     const notFoundIds: string[] = [];
     for (const id of ids) {
-      const updated = await updateProviderConnection(id, { isActive });
+      // Record the operator's on/off intent next to isActive, so the connection
+      // test does not re-enable a connection that was switched off on purpose.
+      const existing = (await getProviderConnectionById(id)) as Record<string, unknown> | null;
+      const updated = existing
+        ? await updateProviderConnection(id, {
+            isActive,
+            providerSpecificData: applyOperatorActivationIntent(
+              existing.providerSpecificData,
+              isActive
+            ),
+          })
+        : null;
       if (updated) updatedIds.push(id);
       else notFoundIds.push(id);
     }

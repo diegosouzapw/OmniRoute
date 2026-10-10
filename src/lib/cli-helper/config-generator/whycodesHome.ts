@@ -2,11 +2,10 @@
  * WhyCodes home / config.toml resolver.
  *
  * WhyCodes (`crates/core/src/paths.rs`) uses `WHYCODES_HOME` as the instance
- * root when set; otherwise `directories::ProjectDirs::from("com",
- * "whycorporation", "whycodes")`. Those platform dirs are:
- *   - Windows: `%APPDATA%\whycorporation\whycodes`
- *   - macOS:   `~/Library/Application Support/com.whycorporation.whycodes`
- *   - Linux:   `$XDG_CONFIG_HOME/com.whycorporation.whycodes`
+ * root when set and non-empty; otherwise `$HOME/.whycodes`, falling back to
+ * `%USERPROFILE%\.whycodes` (same lookup order as WhyCodes' `user_home()`).
+ * WhyCodes 0.6.5 moved here from the `directories::ProjectDirs` platform dirs
+ * and migrates an old install on first load, so we never write the old path.
  *
  * Env vars are read at call-time so tests can set/unset them without a
  * module-cache freeze (same constraint as hermesHome.ts / #3628).
@@ -17,27 +16,18 @@ import path from "node:path";
 
 export function getWhyCodesHome(
   env: NodeJS.ProcessEnv = process.env,
-  homeDir: string = os.homedir(),
-  platform: NodeJS.Platform = process.platform
+  homeDir: string = os.homedir()
 ): string {
   const override = String(env.WHYCODES_HOME || "").trim();
   if (override) return override;
 
-  if (platform === "win32") {
-    const appData = String(env.APPDATA || "").trim() || path.join(homeDir, "AppData", "Roaming");
-    return path.join(appData, "whycorporation", "whycodes");
-  }
-  if (platform === "darwin") {
-    return path.join(homeDir, "Library", "Application Support", "com.whycorporation.whycodes");
-  }
-  const xdg = String(env.XDG_CONFIG_HOME || "").trim();
-  return path.join(xdg || path.join(homeDir, ".config"), "com.whycorporation.whycodes");
+  const userHome = String(env.HOME || "").trim() || String(env.USERPROFILE || "").trim() || homeDir;
+  return path.join(userHome, ".whycodes");
 }
 
 export function getWhyCodesConfigPath(
   env: NodeJS.ProcessEnv = process.env,
-  homeDir: string = os.homedir(),
-  platform: NodeJS.Platform = process.platform
+  homeDir: string = os.homedir()
 ): string {
-  return path.join(getWhyCodesHome(env, homeDir, platform), "config.toml");
+  return path.join(getWhyCodesHome(env, homeDir), "config.toml");
 }

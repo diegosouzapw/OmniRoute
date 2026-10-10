@@ -41,18 +41,19 @@ export function extendCodexGpt56EffortValues(
   }
 
   const match = normalizedModel.match(
-    /^gpt-5\.6-(sol|terra|luna)(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
+    /^gpt-(?:5\.6-(sol|terra|luna)|6(?:\.1)?-(astra|sol|luna))(?:-(?:none|low|medium|high|xhigh|max|ultra))?$/
   );
   if (!match) return values;
 
   if (isKiroProvider) {
+    if (!match[1]) return values;
     return values.includes("max") ? values : [...values, "max"];
   }
 
   if (normalizedProvider !== "codex" && normalizedProvider !== "cx") return values;
 
   const nativeValues = ["low", "medium", "high", "xhigh", "max"];
-  return match[1] === "luna" ? nativeValues : [...nativeValues, "ultra"];
+  return (match[1] || match[2]) === "luna" ? nativeValues : [...nativeValues, "ultra"];
 }
 
 /**
@@ -156,6 +157,45 @@ function asModelId(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value : undefined;
 }
 
+function hasCompetingReasoningControl(
+  body: Record<string, unknown>,
+  reasoning: Record<string, unknown>
+): boolean {
+  const outputConfig = isPlainObject(body.output_config) ? body.output_config : null;
+  const templateKwargs = isPlainObject(body.chat_template_kwargs)
+    ? body.chat_template_kwargs
+    : null;
+  const generationConfig = isPlainObject(body.generationConfig) ? body.generationConfig : null;
+  return (
+    body.reasoningEffort !== undefined ||
+    body.thinking !== undefined ||
+    body.thinkingLevel !== undefined ||
+    body.thinking_level !== undefined ||
+    body.thinking_budget !== undefined ||
+    body.thinkingBudget !== undefined ||
+    outputConfig?.effort !== undefined ||
+    reasoning.budget_tokens !== undefined ||
+    reasoning.budgetTokens !== undefined ||
+    reasoning.max_tokens !== undefined ||
+    typeof templateKwargs?.thinking === "boolean" ||
+    typeof templateKwargs?.enable_thinking === "boolean" ||
+    generationConfig?.thinkingConfig !== undefined ||
+    generationConfig?.thinking_config !== undefined
+  );
+}
+
+/** Whether OpenRouter's disabled toggle is the request's only reasoning control. */
+export function shouldDeriveDisabledReasoningEffort(body: Record<string, unknown>): boolean {
+  const reasoning = isPlainObject(body.reasoning) ? body.reasoning : null;
+  if (reasoning?.enabled !== false) return false;
+  return (
+    body.reasoning_effort === undefined &&
+    reasoning.effort === undefined &&
+    body.effort === undefined &&
+    !hasCompetingReasoningControl(body, reasoning)
+  );
+}
+
 /**
  * Fold the canonical `effort` / `thinking` request params onto the per-provider reasoning
  * fields the existing translators already consume (`reasoning_effort`, `reasoning.effort`,
@@ -165,6 +205,8 @@ function asModelId(value: unknown): string | undefined {
  * Backward compatibility rules (an explicit client signal ALWAYS wins):
  *  - `reasoning_effort` / `reasoning.effort` explicitly set by the client are never
  *    overwritten by the canonical `effort`.
+ *  - OpenRouter-style `reasoning.enabled: false` becomes the canonical `none` fallback
+ *    only when no explicit effort, thinking, native override, or budget is present.
  *  - An explicit object-shaped `thinking` (the Anthropic `{ type, budget_tokens }` config)
  *    is never overwritten by the canonical boolean `thinking`.
  */
@@ -181,23 +223,37 @@ export function normalizeReasoningRequest<T>(body: T, provider?: string | null):
       : normalizeEffort(body.effort);
   const canonicalThinking = body.thinking;
   const hasCanonicalThinkingBool = typeof canonicalThinking === "boolean";
-
-  if (canonicalEffort === undefined && !hasCanonicalThinkingBool) return body;
-
   const reasoning = body.reasoning;
+  const reasoningRecord = isPlainObject(reasoning) ? reasoning : null;
+  const clientDisabledReasoning = reasoningRecord?.enabled === false;
+
+  if (canonicalEffort === undefined && !hasCanonicalThinkingBool && !clientDisabledReasoning) {
+    return body;
+  }
+
   const clientSetReasoningEffort = body.reasoning_effort !== undefined;
-  const clientSetReasoningObjEffort = isPlainObject(reasoning) && reasoning.effort !== undefined;
+  const clientSetReasoningObjEffort = reasoningRecord?.effort !== undefined;
+  const effectiveEffort =
+    canonicalEffort ?? (shouldDeriveDisabledReasoningEffort(body) ? "none" : undefined);
 
   const next: Record<string, unknown> = { ...body };
+  const normalizedReasoning = reasoningRecord ? { ...reasoningRecord } : null;
+  if (clientDisabledReasoning && normalizedReasoning) delete normalizedReasoning.enabled;
 
-  // Canonical effort → the fields the mappers read. Skip entirely if the client already
+  // Resolved effort → the fields the mappers read. Skip entirely if the client already
   // expressed a reasoning effort (either shape) so client intent is preserved.
-  if (canonicalEffort !== undefined && !clientSetReasoningEffort && !clientSetReasoningObjEffort) {
-    next.reasoning_effort = canonicalEffort;
+  if (effectiveEffort !== undefined && !clientSetReasoningEffort && !clientSetReasoningObjEffort) {
+    next.reasoning_effort = effectiveEffort;
     next.reasoning = {
-      ...(isPlainObject(reasoning) ? reasoning : {}),
-      effort: canonicalEffort,
+      ...(normalizedReasoning ?? {}),
+      effort: effectiveEffort,
     };
+  } else if (clientDisabledReasoning) {
+    if (normalizedReasoning && Object.keys(normalizedReasoning).length > 0) {
+      next.reasoning = normalizedReasoning;
+    } else {
+      delete next.reasoning;
+    }
   }
 
   // Canonical boolean `thinking` → keep the truthy toggle the mappers read. Only when the

@@ -19,11 +19,6 @@ const HERMES_ROLES: Role[] = [
   },
   { id: "vision", labelKey: "hermesRoleVision", descriptionKey: "hermesRoleVisionDesc" },
   {
-    id: "web_extract",
-    labelKey: "hermesRoleWebExtract",
-    descriptionKey: "hermesRoleWebExtractDesc",
-  },
-  {
     id: "compression",
     labelKey: "hermesRoleCompression",
     descriptionKey: "hermesRoleCompressionDesc",
@@ -38,6 +33,7 @@ const HERMES_ROLES: Role[] = [
     labelKey: "hermesRoleApproval",
     descriptionKey: "hermesRoleApprovalDesc",
   },
+  { id: "review", labelKey: "hermesRoleReview", descriptionKey: "hermesRoleReviewDesc" },
   { id: "mcp", labelKey: "hermesRoleMcp", descriptionKey: "hermesRoleMcpDesc" },
   {
     id: "title_generation",
@@ -76,6 +72,16 @@ const HERMES_ROLES: Role[] = [
     id: "background_review",
     labelKey: "hermesRoleBackgroundReview",
     descriptionKey: "hermesRoleBackgroundReviewDesc",
+  },
+  {
+    id: "moa_reference",
+    labelKey: "hermesRoleMoaReference",
+    descriptionKey: "hermesRoleMoaReferenceDesc",
+  },
+  {
+    id: "moa_aggregator",
+    labelKey: "hermesRoleMoaAggregator",
+    descriptionKey: "hermesRoleMoaAggregatorDesc",
   },
 ];
 

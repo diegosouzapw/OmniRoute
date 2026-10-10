@@ -117,6 +117,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "sessionCookie", "authCookie"],
   },
+  chatplayground: {
+    kind: "cookie",
+    credentialName: "Clerk Session / __client Cookie or JWT",
+    placeholder: "__client=...; __session=... or Clerk Bearer JWT",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "__client", "__session", "sessionToken", "jwt", "apiKey"],
+  },
   "blackbox-web": {
     kind: "cookie",
     credentialName: "__Secure-authjs.session-token",
@@ -204,6 +211,13 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "hy_user", "hy_token"],
   },
+  "notrack-web": {
+    kind: "cookie",
+    credentialName: "full Cookie header (uid + si_usr_id + si_ses_id)",
+    placeholder: "uid=...; si_usr_id=...; si_ses_id=... (full Cookie header from notrack.ai)",
+    acceptsFullCookieHeader: true,
+    storageKeys: ["cookie", "uid", "si_usr_id", "si_ses_id", "nt_session"],
+  },
   "poe-web": {
     kind: "cookie",
     credentialName: "p-b",
@@ -213,10 +227,10 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   "venice-web": {
     kind: "cookie",
-    credentialName: "session",
-    placeholder: "session=... or full Cookie header from venice.ai",
+    credentialName: "__client",
+    placeholder: "__client=... or full Cookie header from clerk.venice.ai",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "session"],
+    storageKeys: ["cookie", "__client"],
   },
   "v0-vercel-web": {
     kind: "cookie",
@@ -341,6 +355,20 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
     placeholder: "__Secure-better-auth.session_token=... or full Cookie header from conol.ai",
     acceptsFullCookieHeader: true,
     storageKeys: ["cookie", "__Secure-better-auth.session_token"],
+  },
+  twinmind: {
+    kind: "token",
+    credentialName: "Firebase stsTokenManager JSON (accessToken + refreshToken)",
+    placeholder: "Paste stsTokenManager JSON, or accessToken JWT + refreshToken",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "refreshToken", "refresh_token", "apiKey", "accessToken"],
+  },
+  syntx: {
+    kind: "token",
+    credentialName: "SYNTX.ai Bearer JWT",
+    placeholder: "Paste eyJ… JWT from Authorization: Bearer on api.syntx.ai",
+    acceptsFullCookieHeader: false,
+    storageKeys: ["token", "apiKey", "accessToken"],
   },
   maxai: {
     kind: "token",

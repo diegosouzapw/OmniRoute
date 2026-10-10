@@ -1,0 +1,1 @@
+- fix(compression): Unicode-aware word boundaries in the de/es/fr/it/pt-BR/hu rule packs and a working user overlay dir `$DATA_DIR/compression/rules` (#15677)

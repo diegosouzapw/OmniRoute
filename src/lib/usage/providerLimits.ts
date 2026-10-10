@@ -39,6 +39,7 @@ import {
   normalizeUsageQuotasForProvider,
   sanitizeUsageQuotasForProvider,
 } from "./providerLimits/quotaNormalize";
+import { getCachedLiveModelIds, refreshLiveModelIds } from "./providerLimits/liveModelIds";
 import { syncInChunksWithSpacing } from "./providerLimits/chunkedSpacingSync";
 import {
   refreshAndUpdateCredentialsWithResolver,
@@ -60,6 +61,7 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "minimax-cn",
   "crof",
   "nanogpt",
+  "apmix",
   "deepseek",
   "xiaomi-mimo",
   "vertex",
@@ -78,6 +80,16 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "hyperagent",
   "ha",
   "firecrawl",
+  // Context7 rate limit quota (ratelimit-* headers of GET https://context7.com/api/v1/search)
+  "context7",
+  // Tavily API key → /usage account & plan credits
+  "tavily-search",
+  "tavily",
+  // Jina wallet balance (GET https://dash.jina.ai/api/v1/api_key/fe_user)
+  "jina-search",
+  "jina",
+  "jina-ai",
+  "jina-reader",
   // Volcano Ark Plan subscriptions (agent-plan / coding-plan)
   "volcengine-agent-plan",
   "volcengine-coding-plan",
@@ -85,6 +97,8 @@ const PROVIDER_LIMITS_APIKEY_PROVIDERS = new Set([
   "command-code",
   "conol-web",
   "cnl",
+  "syntx",
+  "stx",
   // Alibaba Coding Plan (console API key) + Qwen personal Token Plan (console cookie) — #9603
   "bailian-coding-plan",
   "qwen-cloud-token-plan",
@@ -159,7 +173,11 @@ function sanitizeProviderLimitsCacheForConnection(
   if (!connection || !entry || !entry.quotas) return entry;
   if (connection.provider !== "antigravity" && connection.provider !== "agy") return entry;
 
-  const sanitizedQuotas = normalizeUsageQuotasForProvider(connection.provider, entry.quotas);
+  const sanitizedQuotas = normalizeUsageQuotasForProvider(
+    connection.provider,
+    entry.quotas,
+    getCachedLiveModelIds(connection.provider)
+  );
   return sanitizedQuotas === entry.quotas ? entry : { ...entry, quotas: sanitizedQuotas };
 }
 
@@ -173,7 +191,12 @@ function shouldRefreshProviderLimitsCache(
   return (
     !hasRetrieveUserQuotaSource(connection.provider, cache) ||
     Object.keys(cache.quotas).some(
-      (quotaKey) => !isUsageQuotaKeyAllowed(connection.provider, quotaKey)
+      (quotaKey) =>
+        !isUsageQuotaKeyAllowed(
+          connection.provider,
+          quotaKey,
+          getCachedLiveModelIds(connection.provider)
+        )
     )
   );
 }
@@ -709,6 +732,10 @@ export async function getSanitizedCachedProviderLimitsMap(): Promise<
     return { ...caches };
   }
 
+  // Refresh the live-discovery snapshot the sync sanitizer reads, so a model the
+  // connection reports but the static catalog predates keeps its quota bucket.
+  await Promise.all([refreshLiveModelIds("antigravity"), refreshLiveModelIds("agy")]);
+
   const byId = new Map(sanitizableConnections.map((conn) => [conn.id, conn]));
   const sanitized: Record<string, ProviderLimitsCacheEntry> = {};
   for (const [connectionId, entry] of Object.entries(caches)) {
@@ -752,10 +779,16 @@ async function fetchLiveProviderLimitsWithOptions(
       connection.provider,
       (await runWithProxyContext(apiKeyProxy?.proxy ?? null, () =>
         getUsageForProvider(connection as unknown as JsonRecord, options)
-      )) as JsonRecord
+      )) as JsonRecord,
+      await refreshLiveModelIds(connection.provider)
     );
     if (isRecord(usage.quotas)) {
-      setQuotaCache(connectionId, connection.provider, usage.quotas);
+      setQuotaCache(
+        connectionId,
+        connection.provider,
+        usage.quotas,
+        isRecord(usage.modelQuotas) ? usage.modelQuotas : {}
+      );
     }
     connection = await syncExpiredStatusIfNeeded(connection, usage);
     connection = await syncClaudeExtraUsageStateIfNeeded(connection, usage);
@@ -784,7 +817,8 @@ async function fetchLiveProviderLimitsWithOptions(
 
       let usageData = sanitizeUsageQuotasForProvider(
         conn.provider,
-        (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord
+        (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord,
+        await refreshLiveModelIds(conn.provider)
       );
 
       // Reactive 401 recovery (on-demand/force path only): an unauthorized usage
@@ -802,7 +836,8 @@ async function fetchLiveProviderLimitsWithOptions(
           await syncToCloudIfEnabled();
           usageData = sanitizeUsageQuotasForProvider(
             conn.provider,
-            (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord
+            (await getUsageForProvider(conn as unknown as JsonRecord, options)) as JsonRecord,
+            await refreshLiveModelIds(conn.provider)
           );
         }
       }
@@ -878,7 +913,12 @@ async function fetchLiveProviderLimitsWithOptions(
     if (data) connection = { ...connection, providerSpecificData: data };
   }
   if (isRecord(result.usage.quotas)) {
-    setQuotaCache(connectionId, connection.provider, result.usage.quotas);
+    setQuotaCache(
+      connectionId,
+      connection.provider,
+      result.usage.quotas,
+      isRecord(result.usage.modelQuotas) ? result.usage.modelQuotas : {}
+    );
   }
   connection = await syncExpiredStatusIfNeeded(connection, result.usage);
   connection = await syncClaudeExtraUsageStateIfNeeded(connection, result.usage);
@@ -918,6 +958,7 @@ export async function fetchAndPersistProviderLimits(
       modelQuotas: previous.modelQuotas,
       plan: previous.plan ?? usage.plan ?? null,
       bankedResetCredits: previous.bankedResetCredits,
+      paidCredits: previous.paidCredits,
       billing: previous.billing,
       message: null,
       _stale: true,
@@ -977,6 +1018,7 @@ export async function syncAllProviderLimits(
 
   const fetchOne = async (connection: ProviderConnectionLike) => {
     const existingCache = getProviderLimitsCache(connection.id);
+    await refreshLiveModelIds(connection.provider);
     const forceRefresh =
       source === "manual" ||
       shouldRefreshProviderLimitsCache(connection, existingCache || undefined);

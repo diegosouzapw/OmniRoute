@@ -202,15 +202,15 @@ rawBody)`) មុនពេល parse JSON។ ប្រសិនបើ secret ត�
 
 ---
 
-## ទម្រង់ build: `minimal`
+## ទម្រង់ build៖ `minimal`
 
-សម្រាប់អ្នកប្រើដែលត្រូវការ artifact ដែលសមស្របជាមួយ Socket សូម build ដោយប្រើ៖
+សម្រាប់អ្នកប្រើប្រាស់ដែលត្រូវការ artifact ដែលសមស្របជាមួយ Socket សូម build ដោយប្រើ៖
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin` កំណត់ alias ម៉ូឌុលចំនួនបួនទៅជា stub៖
+webpack `NormalModuleReplacementPlugin` កំណត់ alias ម៉ូឌុលចំនួនបួនទៅកាន់ stubs៖
 
 | ម៉ូឌុល                                      | Stub                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -219,13 +219,12 @@ webpack `NormalModuleReplacementPlugin` កំណត់ alias ម៉ូឌុល
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Stub នីមួយៗ export ផ្ទៃ API ដូចគ្នា ប៉ុន្តែគ្រប់ function ទាំងអស់បោះចេញ
-`featureDisabledError(name)` នៅពេល runtime។ Route ដែលពឹងផ្អែកលើម៉ូឌុលដែលបានបិទ
-ត្រឡប់ HTTP 503 ជាមួយសារច្បាស់លាស់ ជំនួសឱ្យការធ្វើឱ្យ
-ផ្លូវកូដរសើបសកម្ម។
+Stub នីមួយៗ export ចំណុចប្រទាក់ដូចគ្នា ប៉ុន្តែ function ទាំងអស់បោះ
+`featureDisabledError(name)` នៅពេលដំណើរការ។ Route ដែលពឹងផ្អែកលើម៉ូឌុលដែលបានបិទ
+នឹងត្រឡប់ HTTP 503 ជាមួយសារច្បាស់លាស់ ជំនួសឱ្យការធ្វើឱ្យដំណើរការ
+code path ដែលងាយរងហានិភ័យ។
 
-Bundle ដែលបានបង្កើតឡើងនេះមានបំណងត្រូវបានចេញផ្សាយជា `omniroute-secure`។ សូមមើល
-`docs/ops/PUBLISHING_SECURE.md` សម្រាប់វិធីសាស្ត្រចេញផ្សាយ។
+Bundle ដែលទទួលបានត្រូវបានរៀបចំសម្រាប់បោះពុម្ពផ្សាយជា `omniroute-secure`។
 
 ---
 

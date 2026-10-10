@@ -237,16 +237,16 @@ Stack na prod yana aiki a lokaci guda da compose na dev (suna da sunayen contain
 
 ## Matakan Dockerfile
 
-Ma'ajiyar tana zuwa da Dockerfile mai matakai da yawa (`Dockerfile`). Ana samar da matakai huɗu; zaɓi `target` da ya dace da yanayin amfaninka.
+Ma'ajiyar tana zuwa da Dockerfile mai matakai da yawa (`Dockerfile`). An samar da matakai huɗu; zaɓi `target` da ya dace da amfaninka.
 
-| Mataki        | Hoton tushe           | Manufa                                                                                                                                                                                                                                                                                                                      |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Yana shigar da abubuwan dogaro (`npm ci --legacy-peer-deps`) sannan ya gudanar da `npm run build` (yana amfani da Turbopack ta tsohuwa — duba Albarkatun lokacin ginawa a ƙasa)                                                                                                                                             |
-| `runner-base` | `node:26-trixie-slim` | Muhallin gudanarwar samarwa tare da fitowar Next.js mai cin gashin kanta. **Ba a haɗa CLI na masu samarwa ba.**                                                                                                                                                                                                             |
-| `runner-cli`  | `runner-base`         | Yana ƙara `git`, `docker.io`, `docker-compose` da CLI na duniya: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Zaɓi wannan don ayyukan wakilai.**                                                                                                                                                    |
-| `runner-web`  | `runner-base`         | Yana ƙara Playwright + burauzar Chromium (`--with-deps`) don masu samar da zaman yanar gizo: `gemini-web`, `claude-web`, `claude-turnstile`. **Zaɓi wannan idan kana amfani da waɗannan masu samarwa** — hoto na yau da kullum zai gaza a lokacin buƙata idan babu shi (duba bayanin `-web` a ƙarƙashin Tashoshin Fitarwa). |
+| Mataki        | Hoton tushe           | Manufa                                                                                                                                                                                                                                                                                                                   |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `builder`     | `node:26-trixie-slim` | Yana shigar da abubuwan dogaro (`npm ci --legacy-peer-deps`) sannan ya gudanar da `npm run build` (Turbopack ne ta tsohuwa — duba Albarkatun lokacin gini a ƙasa)                                                                                                                                                        |
+| `runner-base` | `node:26-trixie-slim` | Muhallin gudanar da samarwa tare da fitarwar Next.js mai zaman kanta. **Ba a haɗa CLI na masu samarwa ba.**                                                                                                                                                                                                              |
+| `runner-cli`  | `runner-base`         | Yana ƙara `git`, `docker.io`, `docker-compose` da CLI na gama-gari: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Zaɓi wannan don ayyukan wakilai.**                                                                                                                                              |
+| `runner-web`  | `runner-base`         | Yana ƙara Playwright + burauzar Chromium (`--with-deps`) don masu samar da zaman yanar gizo: `gemini-web`, `claude-web`, `claude-turnstile`. **Zaɓi wannan idan kana amfani da waɗannan masu samarwa** — hoton yau da kullum yana gaza a lokacin buƙata idan babu shi (duba bayanin `-web` ƙarƙashin Tashoshin Fitarwa). |
 
-Gina takamaiman manufa da hannu:
+Gina takamaiman target da hannu:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -254,80 +254,86 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Albarkatun lokacin ginawa
+### Albarkatun lokacin gini
 
-Muhawarar ginawa guda uku suna sarrafa adadin albarkatun da matakin `builder` ke amfani da su. Na lokacin ginawa ne kawai —
-`OMNIROUTE_MEMORY_MB` (a ƙasa) wani saitin lokacin gudanarwa ne na daban.
+Muhawarar gini guda uku suna sarrafa yawan albarkatun da matakin `builder` ke amfani da su. Na lokacin gini ne kawai —
+`OMNIROUTE_MEMORY_MB` (a ƙasa) wani saitin lokacin gudanarwa ne dabam.
 
-| Muhawarar ginawa            | Tsoho  | Tasiri                                                                                             |
-| --------------------------- | ------ | -------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`    | `0` yana ginawa da webpack maimakon haka. Ƙarancin iyakar amfani da ƙwaƙwalwa, amma ya fi jinkiri. |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | Matsakaicin heap na V8 (`--max-old-space-size`) don `next build` da aka ƙaddamar.                  |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Yana ciyar da `CIRCLE_NODE_TOTAL`; Next yana samo `workers = N - 1` don tattara bayanan shafi.     |
+| Muhawarar gini              | Tsoho  | Tasiri                                                                                          |
+| --------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`    | `0` yana gini da webpack: ƙarancin ƙwaƙwalwar ganiya, amma a hankali. `1` yana kunna Turbopack. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144` | Iyakar heap na V8 (`--max-old-space-size`) don `next build` da aka ƙaddamar.                    |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`    | Yana ba `CIRCLE_NODE_TOTAL` ƙima; Next yana samo `workers = N - 1` don tattara bayanan shafi.   |
 
-`OMNIROUTE_BUILD_WORKERS` shi ne wanda za a ƙara a kan babban injin ginawa, kuma shi ne wanda
-ya kamata a fara zargi idan ginawa mai ƙarancin albarkatu ya mutu **bayan** `✓ Compiled successfully`. Kowane
-ma'aikacin bayanan shafi tsari ne mai zaman kansa, haka kuma babban `next build` kansa;
-wani gwaji kai tsaye a kan VPS (matsala #7518) ya auna iyakar RSS na kowane tsari a
-~4.5 GB ba tare da la'akari da tutar heap ta `NODE_OPTIONS` ba (Turbopack yana tarawa a cikin
-ƙwaƙwalwar native/Rust da ke wajen heap na V8). An tsara tsohon ƙimar `2` (→ ma'aikaci 1, jimillar
-tsaruka 2) don injinan GitHub masu 16 GB / 4 vCPU waɗanda tsarin
-bugawa ke amfani da su. A `8` (→ ma'aikata 7), ƙwaƙwalwar wannan injin ta ƙare kuma
+`OMNIROUTE_BUILD_WORKERS` shi ne abin da za a ƙara a kan babban mai gini, kuma shi ne
+abin da za a fara zargi idan gini mai ƙarancin albarkatu ya mutu **bayan** `✓ Compiled successfully`. Kowane
+worker na bayanan shafi yana da nasa process, haka ma uwar `next build` kanta;
+gwaji kai tsaye a VPS (issue #7518) ya auna ganiyar RSS ta kowane process a
+~4.5 GB ba tare da tasirin tutar heap ta `NODE_OPTIONS` ba (Turbopack yana yin compile a
+ƙwaƙwalwar native/Rust da ke wajen heap na V8). An daidaita tsohuwar ƙimar `2` (→ worker 1, jimillar
+processes 2) don runners na GitHub masu 16 GB / 4 vCPU waɗanda pipeline ɗin
+bugawa ke amfani da su. A `8` (→ workers 7), ƙwaƙwalwar wannan runner ta ƙare kuma
 buildkit ya gaza matakin da `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ ma'aikata 2) ma bai samu isasshen wuri ba bayan an auna RSS na kowane tsari
-kai tsaye maimakon ƙiyasta shi. `tests/unit/docker-build-memory-budget.test.ts`
-yana yin lissafin bisa adadin da aka auna kuma yana gaza idan ɗaya daga cikin saitunan
-ya zarce ƙarfin injin.
+`3` (→ workers 2) ma bai isa ba bayan an auna RSS na kowane process
+kai tsaye maimakon ƙiyastawa. `tests/unit/docker-build-memory-budget.test.ts`
+yana yin lissafin bisa ƙimar da aka auna kuma yana gaza idan ɗaya daga cikin saitunan
+ya wuce ƙarfin runner.
 
-Turbopack yana tarawa a cikin ƙwaƙwalwar native Rust wadda take **a wajen** heap na V8, saboda haka
-`OMNIROUTE_BUILD_MEMORY_MB` ba ya iyakance ta. A kan na'ura mai iyakar ƙwaƙwalwa,
-mai kashe OOM zai kashe aikin ginawa da SIGKILL ba tare da kowane rubutun kuskure ba — kawai
-yana tsayawa a tsakiyar `Creating an optimized production build`, wanda ke kama da ya makale
-maimakon ƙarewar ƙwaƙwalwa. Idan albarkatun na'urar ginawa suna da iyaka, sauya mai haɗa kunshin:
+Turbopack yana yin compile a ƙwaƙwalwar native Rust da ke rayuwa **a wajen** heap na V8, saboda haka
+`OMNIROUTE_BUILD_MEMORY_MB` ba ya iyakance ta. A kan host mai iyakar ƙwaƙwalwa,
+OOM killer zai kashe ginin da SIGKILL ba tare da wani rubutun kuskure ba — kawai zai
+tsaya a tsakiyar `Creating an optimized production build`, wanda zai yi kama da ya maƙale
+maimakon ƙarewar ƙwaƙwalwa. Wannan ne ya sa `Dockerfile` yake amfani da webpack a matsayin tsoho
+(`OMNIROUTE_USE_TURBOPACK=0`), sabanin `npm run dev` / `npm run build`, inda
+Turbopack yake zama tsohon zaɓin lamba: dole ne `docker build .` kai tsaye ba tare da muhawarar gini ba (abin da
+Railway da sauran hosts na dannawa sau ɗaya suke gudanarwa) kada ya mutu shiru a kan
+mai gini mai iyakantacciyar ƙwaƙwalwa. Hotunan da aka buga sun riga sun wuce da `OMNIROUTE_USE_TURBOPACK=0`
+a sarari cikin `docker-publish.yml`. A kan mai gini mai wadatacciyar RAM, kunna
+Turbopack don gini mafi sauri:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-An kunna `webpackBuildWorker`, saboda haka `next build` yana gudanar da babban tsari **da kuma** tsarin
-ma'aikaci, kuma kowannensu yana bin `OMNIROUTE_BUILD_MEMORY_MB` daban. Saita iyakar ƙwaƙwalwar kwantenar
-sama da kusan ninki biyu na wannan ƙimar, ba sau ɗaya ba.
+An kunna `webpackBuildWorker`, saboda haka `next build` yana gudanar da uwar process **da** worker
+process, kuma kowannensu yana mutunta `OMNIROUTE_BUILD_MEMORY_MB` dabam. Saita iyakar container
+sama da kusan ninkin wannan ƙimar sau biyu, ba sau ɗaya ba.
 
-An auna a wannan bishiyar (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+An auna a kan wannan bishiyar (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Mai haɗa kunshi | Iyakar kwantena | Sakamako                                          |
-| --------------- | --------------- | ------------------------------------------------- |
-| Turbopack       | 8 GiB / 16 GiB  | OOM ya kashe shi a duka biyun, ba tare da saƙo ba |
-| webpack         | 8 GiB           | An kashe ma'aikacin ginawa da SIGKILL             |
-| webpack         | 12 GiB          | ya yi nasara, ya kai iyakar 11.1 GiB              |
+| Bundler   | Iyakar container | Sakamako                                          |
+| --------- | ---------------- | ------------------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB   | OOM ya kashe shi a duka biyun, ba tare da saƙo ba |
+| webpack   | 8 GiB            | An kashe build worker da SIGKILL                  |
+| webpack   | 12 GiB           | ya yi nasara, ganiya ta kai 11.1 GiB              |
 
-### Tsoffin saitunan lokacin gudanarwa
+### Saitunan lokacin gudanarwa na tsohuwa
 
-Tsoffin saitunan da `runner-base` ke fitarwa: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Saitunan tsohuwa da `runner-base` ke fitarwa: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
-Halayen ƙwaƙwalwa a cikin Docker:
+Halin ƙwaƙwalwa a Docker:
 
-- Hoton yana saita `OMNIROUTE_MEMORY_MB=1024` kuma yana samo `NODE_OPTIONS=--max-old-space-size=1024` daga gare shi.
-- Mai ƙaddamarwa na standalone ne ke fara ainihin tsarin uwar garken, wanda ke karanta `OMNIROUTE_MEMORY_MB` sannan ya ƙara `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node yana amfani da ƙimar `--max-old-space-size` ta ƙarshe idan an maimaita ta, don haka saita `OMNIROUTE_MEMORY_MB` yana sarrafa iyakar heap ta Docker da ake amfani da ita.
-- Saboda hoton koyaushe yana saita shi, madadin da mai ƙaddamarwar yake daidaitawa bisa RAM ba ya taɓa aiki a ƙarƙashin Docker. Ƙara shi kai tsaye gwargwadon nauyin aikin (duba teburin da ke ƙasa). `2048` har yanzu ya yi ƙanƙanta ga `/v1/responses` na coding-agent.
+- Hoton yana saita `OMNIROUTE_MEMORY_MB=1024` kuma yana samar da `NODE_OPTIONS=--max-old-space-size=1024` daga gare shi.
+- Ana fara ainihin aikin uwar garken ta hanyar standalone launcher, wanda ke karanta `OMNIROUTE_MEMORY_MB` kuma ya ƙara `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node yana amfani da ƙimar `--max-old-space-size` ta ƙarshe idan an maimaita ta, don haka saita `OMNIROUTE_MEMORY_MB` ne ke sarrafa iyakar heap ta Docker da ake amfani da ita.
+- Saboda hoton koyaushe yana saita shi, madadin da launcher ke daidaitawa bisa RAM ba ya taɓa aiki a ƙarƙashin Docker. Ƙara shi kai tsaye gwargwadon aikin (teburin da ke ƙasa). `2048` har yanzu bai isa ga `/v1/responses` na coding-agent ba.
 
 ### RAM na lokacin aiki don coding agents
 
-Tsohuwar ƙimar Docker ta 1 GiB ita ce mafi ƙarancin abin da dashboard/hira mai sauƙi ke buƙata, ba girman da ya dace da yanayin samarwa ba. Dogayen jikin buƙatun `POST /v1/responses` (ɗaruruwan saƙonni, kayan aiki da yawa) suna riƙe da tsarin bayanai masu alaƙa da juna da dama a cikin ƙwaƙwalwa yayin matsawa. Buƙatu biyu masu cin karo da juna na kusan ~3 MiB / ~750k-token sun sa V8 ya dakata a old-space na **12 GiB** (`FATAL ERROR: Reached heap limit`) sannan kuma suka jawo cgroup OOM na 16 GiB. Duba [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Tsohon saitin Docker na 1 GiB shi ne mafi ƙarancin da ya dace da dashboard/hira mai sauƙi, ba girman da ya dace da production ba. Dogayen jikin buƙatun `POST /v1/responses` (ɗaruruwan saƙonni, kayan aiki goma-goma) suna riƙe da graphs da yawa a ƙwaƙwalwa yayin compression. Buƙatu biyu masu cin karo da juna na kusan ~3 MiB / ~750k-token sun sa V8 ya dakata a old-space na **12 GiB** (`FATAL ERROR: Reached heap limit`) kuma suka haddasa cgroup OOM na 16 GiB. Duba [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Saita girman **cgroup `--memory` sama da heap** — native buffers, SQLite, da bayanan wucin-gadi na matsawa suna wajen V8.
+Saita girman **cgroup `--memory` sama da heap** — native buffers, SQLite, da compression intermediates suna wajen V8.
 
-| Nauyin aiki                                | `OMNIROUTE_MEMORY_MB`         | Container / cgroup  | Bayani                                                                                                                |
-| ------------------------------------------ | ----------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Dashboard, hira mai sauƙi guda ɗaya        | `1024` (tsohuwar ƙimar hoton) | ≥2 GiB              |                                                                                                                       |
-| Coding agent guda ɗaya (Claude/Codex/Grok) | `8192`                        | ≥10 GiB             | Zaman `/v1/responses` guda ɗaya na yau da kullum                                                                      |
-| Dogayen `/v1/responses` biyu a lokaci guda | `10240`–`12288`               | ≥12–16 GiB          | An auna dakatarwar V8 a heap na kusan ~12 GiB                                                                         |
-| Dogayen contexts uku ko fiye a lokaci guda | kada a yi a process guda ɗaya | jera su / ƙarin RAM | Tsohuwar iyakar karɓar nauyi mai yawa ita ce buƙata 1 mai gudana; ƙara ta ba tare da RAM ba yana sake jawo dakatarwar |
+| Nauyin aiki                                     | `OMNIROUTE_MEMORY_MB`         | Container / cgroup | Bayani                                                                                                   |
+| ----------------------------------------------- | ----------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------- |
+| Dashboard, hira mai sauƙi guda ɗaya             | `1024` (tsohon saitin image)  | ≥2 GiB             |                                                                                                          |
+| Coding agent guda ɗaya (Claude/Codex/Grok)      | `8192`                        | ≥10 GiB            | Zaman `/v1/responses` guda ɗaya na yau da kullum                                                         |
+| Dogayen `/v1/responses` guda biyu a lokaci guda | `10240`–`12288`               | ≥12–16 GiB         | An auna dakatarwar V8 a heap na kusan ~12 GiB                                                            |
+| Dogayen contexts guda uku ko fiye               | kada a yi a process guda ɗaya | jera su / ƙara RAM | Tsohon heavyweight admission shi ne 1 in-flight; ƙara shi ba tare da RAM ba yana sake haddasa dakatarwar |
 
-`omniroute serve` a kan bare metal yana daidaita kusan ~35% na RAM (an iyakance shi zuwa `[512, 4096]`) idan ba a saita `OMNIROUTE_MEMORY_MB` **ba**. Docker koyaushe yana saita `1024`, don haka wannan daidaitawar ba ta taɓa gudana a cikin hoton hukuma.
+`omniroute serve` a kan bare metal yana daidaita kusan ~35% na RAM (an taƙaita zuwa `[512, 4096]`) lokacin da ba a saita `OMNIROUTE_MEMORY_MB` **ba**. Docker koyaushe yana saita `1024`, don haka wannan daidaitawar ba ta taɓa gudana a official image.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

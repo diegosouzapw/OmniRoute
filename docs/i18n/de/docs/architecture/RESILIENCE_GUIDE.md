@@ -95,6 +95,8 @@ Regressionsschutz: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Schutz vor einer Anfragelawine:** verhindert, dass gleichzeitige Fehler den Cooldown übermäßig verlängern oder `backoffLevel` doppelt erhöhen.
 
+Binäre `reasoningContentEvent`-Frames von Kiro mit einer nicht leeren Signatur erhalten die Denkaktivität beim Durchlaufen des Executors als leeres `reasoning_content`-Delta. Die Signatur wird nicht weitergegeben. Metadaten, unvollständige Frames und leere Signaturen starten das Zeitbudget für Inhalte nicht neu; das unabhängige Zeitlimit für den aktiven Stream und der Abbruch durch den Client gelten weiterhin. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Endzustände (KEINE Cooldowns):**
 
 - `banned` — wird durch die Erkennung gesperrter Schlüsselwörter/Kontensperren (siehe [BAN_DETECTION](../security/BAN_DETECTION.md)) sowie durch drei aufeinanderfolgende vorgelagerte Ablehnungen pro Anfrage gesetzt (`request_rejected`, z. B. Anthropic OAuth 403 „Request not allowed“ — `open-sse/services/requestRejectedStreak.ts`); eine einzelne Ablehnung versetzt die Verbindung lediglich in den Cooldown

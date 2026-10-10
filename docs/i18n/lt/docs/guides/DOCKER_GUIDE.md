@@ -240,14 +240,14 @@ Produkcinis rinkinys veikia lygiagrečiai su kūrimo „Compose“ aplinka (naud
 
 Saugykloje pateikiamas kelių etapų Dockerfile (`Dockerfile`). Galimi keturi etapai; pasirinkite jūsų naudojimo atvejui tinkamą `target`.
 
-| Etapas        | Bazinis atvaizdas     | Paskirtis                                                                                                                                                                                                                                                                                                  |
-| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Įdiegia priklausomybes (`npm ci --legacy-peer-deps`) ir paleidžia `npm run build` (pagal numatytuosius nustatymus naudojamas Turbopack — žr. toliau pateiktą skiltį „Kompiliavimo ištekliai“)                                                                                                              |
-| `runner-base` | `node:26-trixie-slim` | Produkcinė vykdymo aplinka su autonomine Next.js išvestimi. **Teikėjų CLI neįtrauktos.**                                                                                                                                                                                                                   |
-| `runner-cli`  | `runner-base`         | Prideda `git`, `docker.io`, `docker-compose` ir visuotines CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Rinkitės šį etapą agentinėms darbo eigoms.**                                                                                                                          |
-| `runner-web`  | `runner-base`         | Prideda Playwright ir Chromium naršyklę (`--with-deps`), skirtą žiniatinklio seansų teikėjams: `gemini-web`, `claude-web`, `claude-turnstile`. **Rinkitės šį etapą, kai naudojate šiuos teikėjus** — be jo įprastas atvaizdas užklausos metu neveiks (žr. pastabą apie `-web` skiltyje „Leidimų kanalai“). |
+| Etapas        | Bazinis atvaizdas     | Paskirtis                                                                                                                                                                                                                                                                                                     |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Įdiegia priklausomybes (`npm ci --legacy-peer-deps`) ir paleidžia `npm run build` (pagal numatytuosius nustatymus naudojamas Turbopack — žr. toliau pateiktą skiltį „Kompiliavimo ištekliai“)                                                                                                                 |
+| `runner-base` | `node:26-trixie-slim` | Produkcinė vykdymo aplinka su autonomine Next.js išvestimi. **Teikėjų CLI neįtrauktos.**                                                                                                                                                                                                                      |
+| `runner-cli`  | `runner-base`         | Prideda `git`, `docker.io`, `docker-compose` ir visuotines CLI: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Rinkitės šį etapą agentinėms darbo eigoms.**                                                                                                                             |
+| `runner-web`  | `runner-base`         | Prideda Playwright ir Chromium naršyklę (`--with-deps`), skirtą žiniatinklio seansų teikėjams: `gemini-web`, `claude-web`, `claude-turnstile`. **Rinkitės šį etapą, kai naudojate šiuos teikėjus** — paprastasis atvaizdas be jo užklausos metu neveiks (žr. pastabą apie `-web` skiltyje „Leidimų kanalai“). |
 
-Norėdami rankiniu būdu sukurti konkretų tikslą:
+Konkretaus etapo kompiliavimas rankiniu būdu:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -257,78 +257,88 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Kompiliavimo ištekliai
 
-Trys kompiliavimo argumentai valdo `builder` etapo išteklių sąnaudas. Jie taikomi tik kompiliuojant —
+Trys kompiliavimo argumentai valdo `builder` etapo išteklių sąnaudas. Jie naudojami tik kompiliavimo metu —
 `OMNIROUTE_MEMORY_MB` (toliau) yra atskiras vykdymo aplinkos parametras.
 
-| Kompiliavimo argumentas     | Numatytoji reikšmė | Poveikis                                                                                               |
-| --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`                | Nustačius `0`, kompiliuojama naudojant webpack. Mažesnis didžiausias atminties naudojimas, bet lėčiau. |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`             | V8 krūvos riba (`--max-old-space-size`) paleistam `next build` procesui.                               |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`                | Perduodama į `CIRCLE_NODE_TOTAL`; Next nustato `workers = N - 1` puslapių duomenims rinkti.            |
+| Kompiliavimo argumentas     | Numatytoji reikšmė | Poveikis                                                                                                         |
+| --------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`                | `0` kompiliuoja naudojant webpack: mažesnis didžiausias atminties naudojimas, bet lėčiau. `1` įjungia Turbopack. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`             | V8 kaupui nustatyta riba (`--max-old-space-size`), taikoma paleistam `next build`.                               |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`                | Nustato `CIRCLE_NODE_TOTAL`; Next apskaičiuoja `workers = N - 1` puslapių duomenims rinkti.                      |
 
-`OMNIROUTE_BUILD_WORKERS` yra parametras, kurį reikia didinti galingame kompiliavimo serveryje ir
-kurį reikėtų įtarti, kai ribotų išteklių aplinkoje kompiliavimas nutrūksta **po** `✓ Compiled successfully`. Kiekvienas
-puslapių duomenų darbinis procesas yra atskiras procesas, kaip ir pats pagrindinis `next build`;
-atkuriant problemą veikiančiame VPS (problema #7518), nustatyta, kad kiekvieno proceso didžiausias RSS siekė
-~4.5 GB, nepriklausomai nuo `NODE_OPTIONS` krūvos parametro (Turbopack kompiliuoja
-naudodamas savąją / Rust atmintį už V8 krūvos ribų). Numatytoji reikšmė `2` (→ 1 darbinis procesas, iš viso 2
-procesai) pritaikyta 16 GB / 4 vCPU GitHub prieglobos vykdyklėms, kurias
-naudoja publikavimo konvejeris. Nustačius `8` (→ 7 darbiniai procesai), toje vykdyklėje pritrūko atminties ir
-buildkit nutraukė veiksmą su klaida `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ 2 darbiniai procesai) vis tiek netilpo, kai vieno proceso RSS buvo išmatuotas
-tiesiogiai, o ne apskaičiuotas. `tests/unit/docker-build-memory-budget.test.ts`
-atlieka skaičiavimus pagal išmatuotą reikšmę ir nepavyksta, jei kuris nors parametras
-viršija vykdyklės galimybes.
+`OMNIROUTE_BUILD_WORKERS` reikšmę verta didinti galingame kompiliavimo serveryje ir
+pirmiausia tikrinti, kai ribotų išteklių aplinkoje kompiliavimas nutrūksta **po**
+`✓ Compiled successfully`. Kiekvienas puslapių duomenų darbinis procesas yra
+atskiras procesas, kaip ir pats pirminis `next build` procesas; realiame VPS
+atliktas bandymas (problema #7518) parodė, kad kiekvieno proceso didžiausias RSS
+siekė ~4.5 GB, nepriklausomai nuo `NODE_OPTIONS` kaupo parametro (Turbopack
+kompiliuoja naudodamas savąją / Rust atmintį už V8 kaupo ribų). Numatytoji reikšmė
+`2` (→ 1 darbinis procesas, iš viso 2 procesai) pritaikyta 16 GB / 4 vCPU GitHub
+prieglobos vykdyklėms, kurias naudoja publikavimo konvejeris. Nustačius `8` (→ 7
+darbiniai procesai), toje vykdyklėje pritrūko atminties, o buildkit nutraukė etapą
+su klaida `ResourceExhausted: ... cannot allocate memory`; `3` (→ 2 darbiniai
+procesai) vis tiek netilpo, kai kiekvieno proceso RSS buvo išmatuotas tiesiogiai,
+o ne nustatytas netiesiogiai. `tests/unit/docker-build-memory-budget.test.ts`
+atlieka skaičiavimus pagal išmatuotą reikšmę ir nepavyksta, jei kuris nors
+parametras viršija vykdyklės galimybes.
 
-Turbopack kompiliuoja naudodamas savąją Rust atmintį, esančią **už** V8 krūvos ribų, todėl
-`OMNIROUTE_BUILD_MEMORY_MB` jos neriboja. Pagrindiniame kompiuteryje su atminties apribojimu
-OOM nutraukimo mechanizmas siunčia kompiliavimo procesui SIGKILL be jokio klaidos teksto — jis tiesiog
-sustoja vykdant `Creating an optimized production build`, todėl tai labiau primena užstrigimą,
-o ne atminties trūkumą. Jei kompiliavimo pagrindinio kompiuterio ištekliai riboti, pakeiskite pakavimo priemonę:
+Turbopack kompiliuoja naudodamas savąją Rust atmintį, esančią **už** V8 kaupo
+ribų, todėl `OMNIROUTE_BUILD_MEMORY_MB` jos neriboja. Kompiuteryje su atminties
+riba OOM nutraukimo mechanizmas tada užbaigia kompiliavimo procesą signalu
+SIGKILL nepateikdamas jokio klaidos teksto — procesas tiesiog sustoja vykdant
+`Creating an optimized production build`, todėl tai labiau primena užstrigimą,
+o ne atminties trūkumą. Dėl šios priežasties `Dockerfile`, kitaip nei `npm run dev`
+/ `npm run build`, kur Turbopack yra numatytasis programos pasirinkimas, pagal
+numatytuosius nustatymus naudoja webpack (`OMNIROUTE_USE_TURBOPACK=0`): paprastas
+`docker build .` be kompiliavimo argumentų (tokį paleidžia Railway ir kitos vieno
+spustelėjimo prieglobos platformos) neturi tyliai nutrūkti ribotos atminties
+kompiliavimo serveryje. Publikuojami atvaizdai faile `docker-publish.yml` jau
+aiškiai perduoda `OMNIROUTE_USE_TURBOPACK=0`. Jei kompiliavimo serveryje yra daug
+RAM, įjunkite Turbopack, kad kompiliavimas vyktų greičiau:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` yra įjungtas, todėl `next build` paleidžia pagrindinį **ir** darbinį
-procesą, o kiekvienas jų atskirai paiso `OMNIROUTE_BUILD_MEMORY_MB`. Nustatykite konteinerio
-ribą maždaug dvigubai didesnę už šią reikšmę, o ne lygią jai.
+`webpackBuildWorker` yra įjungtas, todėl `next build` paleidžia pirminį **ir**
+darbinį procesą, o kiekvienas jų atskirai laikosi `OMNIROUTE_BUILD_MEMORY_MB`.
+Konteinerio ribą nustatykite didesnę nei maždaug dviguba ši reikšmė, o ne vienguba.
 
 Išmatuota šiame medyje (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Pakavimo priemonė | Konteinerio riba | Rezultatas                                        |
+| Susiejimo įrankis | Konteinerio riba | Rezultatas                                        |
 | ----------------- | ---------------- | ------------------------------------------------- |
-| Turbopack         | 8 GiB / 16 GiB   | Abiem atvejais tyliai nutraukta dėl OOM           |
-| webpack           | 8 GiB            | Darbinis kompiliavimo procesas nutrauktas SIGKILL |
-| webpack           | 12 GiB           | Pavyko, didžiausias naudojimas siekė 11.1 GiB     |
+| Turbopack         | 8 GiB / 16 GiB   | abiem atvejais tyliai nutraukta dėl OOM           |
+| webpack           | 8 GiB            | darbinis kompiliavimo procesas nutrauktas SIGKILL |
+| webpack           | 12 GiB           | pavyko, didžiausias naudojimas siekė 11.1 GiB     |
 
-### Vykdymo aplinkos numatytosios reikšmės
+### Numatytosios vykdymo aplinkos reikšmės
 
 `runner-base` eksportuojamos numatytosios reikšmės: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Atminties veikimas Docker aplinkoje:
 
-- Atvaizdas nustato `OMNIROUTE_MEMORY_MB=1024` ir pagal jį išveda `NODE_OPTIONS=--max-old-space-size=1024`.
+- Atvaizde nustatoma `OMNIROUTE_MEMORY_MB=1024`, o iš jos išvedama `NODE_OPTIONS=--max-old-space-size=1024`.
 - Faktinį serverio procesą paleidžia autonominė paleidyklė, kuri nuskaito `OMNIROUTE_MEMORY_MB` ir prideda `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node naudoja paskutinę pasikartojančią `--max-old-space-size` reikšmę, todėl `OMNIROUTE_MEMORY_MB` nustato faktinį Docker kaupo limitą.
-- Kadangi atvaizdas visada jį nustato, paleidyklės atsarginė reikšmė, apskaičiuojama pagal RAM kiekį, Docker aplinkoje niekada netaikoma. Aiškiai padidinkite ją pagal darbo krūvį (žr. lentelę toliau). `2048` vis tiek yra per mažai programavimo agento `/v1/responses` užklausoms.
+- Node naudoja paskutinę pasikartojančią `--max-old-space-size` reikšmę, todėl nustatant `OMNIROUTE_MEMORY_MB` valdoma faktinė Docker kaupo riba.
+- Kadangi atvaizde ši reikšmė visada nustatyta, paleidyklės atsarginė reikšmė, apskaičiuojama pagal RAM, naudojant Docker niekada netaikoma. Aiškiai padidinkite ją pagal darbo krūvį (žr. lentelę toliau). `2048` vis tiek yra per mažai kodavimo agentų `/v1/responses` užklausoms.
 
-### Vykdymo aplinkos RAM programavimo agentams
+### Vykdymo RAM kodavimo agentams
 
-Numatytasis 1 GiB Docker limitas yra minimalus dydis valdymo skydeliui ir nesudėtingiems pokalbiams, o ne gamybinei aplinkai. Apdorojant ilgas `POST /v1/responses` užklausas (šimtai pranešimų, dešimtys įrankių), glaudinimo metu atmintyje laikomos kelios duomenų struktūros. Dvi persidengiančios ~3 MiB / ~750k žetonų užklausos nutraukė V8 veikimą esant **12 GiB** senosios kartos kaupui (`FATAL ERROR: Reached heap limit`) ir taip pat pasiekė 16 GiB cgroup OOM limitą. Žr. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Numatytoji 1 GiB Docker reikšmė yra minimalus dydis valdymo skydeliui ir lengviems pokalbiams, o ne gamybinei aplinkai. Ilgi `POST /v1/responses` turiniai (šimtai pranešimų, dešimtys įrankių) glaudinimo metu atmintyje išlaiko kelis grafus. Dvi persidengiančios ~3 MiB / ~750k žetonų užklausos nutraukė V8 veikimą esant **12 GiB** senosios kartos atminties sričiai (`FATAL ERROR: Reached heap limit`) ir taip pat pasiekė 16 GiB cgroup OOM ribą. Žr. [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Nustatykite **cgroup `--memory` didesnį už kaupą** — savieji buferiai, SQLite ir tarpiniai glaudinimo duomenys laikomi už V8 ribų.
+Nustatykite **cgroup `--memory` didesnę už kaupą** — vietiniai buferiai, SQLite ir tarpiniai glaudinimo duomenys yra už V8 ribų.
 
-| Darbo krūvis                                     | `OMNIROUTE_MEMORY_MB`                | Konteineris / cgroup                        | Pastabos                                                                                                                                    |
-| ------------------------------------------------ | ------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Valdymo skydelis, vienas nesudėtingas pokalbis   | `1024` (numatytoji atvaizdo reikšmė) | ≥2 GiB                                      |                                                                                                                                             |
-| Vienas programavimo agentas (Claude/Codex/Grok)  | `8192`                               | ≥10 GiB                                     | Įprasta vieno seanso `/v1/responses` užklausa                                                                                               |
-| Dvi lygiagrečios ilgos `/v1/responses` užklausos | `10240`–`12288`                      | ≥12–16 GiB                                  | Išmatuotas V8 veikimo nutraukimas esant ~12 GiB kaupui                                                                                      |
-| Trys ar daugiau lygiagrečių ilgų kontekstų       | nenaudokite viename procese          | vykdykite nuosekliai / skirkite daugiau RAM | Pagal numatytuosius nustatymus vienu metu apdorojama 1 didelė užklausa; padidinus šį skaičių be papildomos RAM, veikimas vėl bus nutrauktas |
+| Darbo krūvis                                | `OMNIROUTE_MEMORY_MB`                | Konteineris / cgroup                        | Pastabos                                                                                                                                 |
+| ------------------------------------------- | ------------------------------------ | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Valdymo skydelis, vienas lengvas pokalbis   | `1024` (atvaizdo numatytoji reikšmė) | ≥2 GiB                                      |                                                                                                                                          |
+| Vienas kodavimo agentas (Claude/Codex/Grok) | `8192`                               | ≥10 GiB                                     | Įprasta vieno seanso `/v1/responses` užklausa                                                                                            |
+| Dvi lygiagrečios ilgos `/v1/responses`      | `10240`–`12288`                      | ≥12–16 GiB                                  | Užfiksuotas V8 veikimo nutraukimas esant ~12 GiB kaupui                                                                                  |
+| Trys ar daugiau lygiagrečių ilgų kontekstų  | nenaudokite viename procese          | vykdykite nuosekliai / skirkite daugiau RAM | Pagal numatytuosius nustatymus vienu metu vykdoma 1 didelė užklausa; padidinus šią ribą be papildomos RAM, veikimas vėl bus nutraukiamas |
 
-`omniroute serve` fizinėje sistemoje nustato ~35% RAM (apribojant intervalu `[512, 4096]`), kai `OMNIROUTE_MEMORY_MB` yra **nenustatytas**. Docker visada nustato `1024`, todėl oficialiame atvaizde šis kalibravimas niekada nevykdomas.
+`omniroute serve` fizinėje sistemoje nustato maždaug 35 % RAM (apribojant intervalu `[512, 4096]`), kai `OMNIROUTE_MEMORY_MB` yra **nenustatyta**. Docker visada nustato `1024`, todėl oficialiame atvaizde šis kalibravimas niekada nevykdomas.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

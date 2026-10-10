@@ -89,23 +89,27 @@ CORS_ALLOWED_ORIGINS="http://localhost:5173, http://localhost:3000"
   共享路径上不存在 `Access-Control-Allow-Credentials` 的双重保护。
   不要将管理/控制面板源纳入任何宽松配置；它们必须严格保持默认拒绝。
 
-## 示例：OmniRoute 前方的反向代理
+## 示例：在 OmniRoute 前设置反向代理
 
 CORS 由 OmniRoute 自身强制执行，因此代理通常**不应**添加或
-重写 `Access-Control-*` 标头（重复的标头会导致浏览器出错）。只需终止 TLS
+重写 `Access-Control-*` 标头（重复标头会导致浏览器出错）。终止 TLS
 并转发请求——让 OmniRoute 响应预检请求：
 
 ```nginx
-# nginx — 转发到 OmniRoute；不要在此处注入 Access-Control-*
+# nginx — 转发到 OmniRoute；请勿在此处注入 Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # 不要将 X-Forwarded-For 设置为 127.0.0.1——这会使环回路由防护失效。
+    # 保留这些转发标头：同一主机上的代理会通过环回地址连接，而这些标头
+    # 会告知 OmniRoute 调用方并非本地操作员。完全不添加这些标头的代理
+    # 会让所有远程调用方看起来都来自本地。也绝不要将 X-Forwarded-For 设置为 127.0.0.1。
 }
 ```
 
-请在 OmniRoute（`CORS_ALLOWED_ORIGINS` 或“Security”选项卡）中设置允许的浏览器源，
+请在 OmniRoute（`CORS_ALLOWED_ORIGINS` 或“安全”选项卡）中设置允许的浏览器来源，
 而不是在代理中设置。
 
 ## 源文件

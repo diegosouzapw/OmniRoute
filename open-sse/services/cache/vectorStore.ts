@@ -11,6 +11,8 @@ export interface CacheEntry {
   hash: string;
   signature?: string;
   embedding?: number[];
+  /** Only complete, unconstrained text projections are eligible for similarity reuse. */
+  semanticProjectionVersion?: 1;
   promptText: string;
   model: string;
   provider: string;

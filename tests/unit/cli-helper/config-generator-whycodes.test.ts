@@ -110,21 +110,31 @@ describe("WhyCodes config generator", () => {
 });
 
 describe("WhyCodes home resolver", () => {
-  it("prefers WHYCODES_HOME over platform dirs", () => {
-    assert.equal(getWhyCodesHome({ WHYCODES_HOME: "/tmp/wc" }, "/home/op", "linux"), "/tmp/wc");
+  it("prefers WHYCODES_HOME over ~/.whycodes", () => {
+    assert.equal(getWhyCodesHome({ WHYCODES_HOME: "/tmp/wc", HOME: "/home/op" }), "/tmp/wc");
     assert.equal(
-      getWhyCodesConfigPath({ WHYCODES_HOME: "/tmp/wc" }, "/home/op", "linux"),
+      getWhyCodesConfigPath({ WHYCODES_HOME: "/tmp/wc" }, "/home/op"),
       path.join("/tmp/wc", "config.toml")
     );
   });
 
-  it("uses the Windows roaming project dir when WHYCODES_HOME is unset", () => {
-    const resolved = getWhyCodesHome(
-      { APPDATA: "C:\\Users\\op\\AppData\\Roaming" },
-      "C:\\Users\\op",
-      "win32"
+  it("defaults to ~/.whycodes (WhyCodes >= 0.6.5), never the old platform project dir", () => {
+    assert.equal(
+      getWhyCodesConfigPath({ HOME: "/home/op" }, "/ignored"),
+      path.join("/home/op", ".whycodes", "config.toml")
     );
-    assert.ok(resolved.toLowerCase().includes("whycorporation"));
-    assert.ok(resolved.toLowerCase().includes("whycodes"));
+    const resolved = getWhyCodesHome(
+      { USERPROFILE: "C:\Users\op", APPDATA: "C:\Users\op\AppData\Roaming" },
+      "/ignored"
+    );
+    assert.equal(resolved, path.join("C:\Users\op", ".whycodes"));
+    assert.ok(!resolved.toLowerCase().includes("whycorporation"));
+  });
+
+  it("treats an empty WHYCODES_HOME as unset and falls back to os.homedir()", () => {
+    assert.equal(
+      getWhyCodesHome({ WHYCODES_HOME: "" }, "/home/fallback"),
+      path.join("/home/fallback", ".whycodes")
+    );
   });
 });

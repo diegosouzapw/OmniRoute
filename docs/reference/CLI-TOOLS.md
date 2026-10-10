@@ -690,6 +690,18 @@ redacted presence/shape. `providers available` reads the OmniRoute catalog;
 `providers list/test/test-all/validate` retain their local SQLite behavior and
 do not require the server to be running.
 
+For a custom OpenAI-compatible or Anthropic-compatible node, attach credentials to
+the node ID returned by `omniroute nodes add`, using `omniroute keys add "$NODE_ID" --stdin`.
+This requires a running server and management authentication for the active context.
+The CLI uses `POST /api/providers`, which validates the node and copies its endpoint
+settings into the connection. A missing node, authorization failure, or unavailable
+server returns an error without creating a local fallback credential.
+
+`nodes add --base-url` sets the node endpoint; it is distinct from the server address
+in `OMNIROUTE_BASE_URL`. For OpenAPI files, use
+`omniroute openapi dump --format json --out ./openapi.json`; the global `--output`
+selects CLI display formatting, not a destination filename.
+
 ### Recovery & Reset
 
 ```bash

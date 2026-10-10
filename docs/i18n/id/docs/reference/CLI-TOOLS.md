@@ -43,58 +43,28 @@ Agen ACP (alur peluncuran terbalik):
 
 ---
 
-## Konfigurasi otomatis dengan `setup-*`
+## Konfigurasi Otomatis dengan `setup-*`
 
-Anda tidak perlu menulis konfigurasi setiap alat dengan tangan. OmniRoute menyediakan perintah `setup-*`
-untuk setiap CLI yang didukung yang membaca katalog model **langsung** dari OmniRoute yang berjalan
-(lokal atau jarak jauh) dan menulis konfigurasi alat itu sendiri di mesin Anda:
+Anda tidak perlu menulis konfigurasi setiap alat secara manual. OmniRoute menyediakan perintah `setup-*` per CLI yang didukung yang membaca katalog model **langsung** dari OmniRoute yang sedang berjalan (lokal atau jarak jauh) dan menulis konfigurasi alat itu sendiri di mesin Anda:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-Setiap perintah menerima `--remote <url> --api-key <key>` (mengonfigurasi alat lokal terhadap
-OmniRoute jarak jauh), `--dry-run` (prabaca tanpa menulis), dan `--port`. Alat
-tanpa penemuan model otomatis (Cline, Kilo, Roo, Goose, Aider, Qwen) menggunakan
-`--model <id>` (dan `--yes` untuk eksekusi non-interaktif). Untuk meluncurkan CLI dengan
-lingkungan yang tepat disuntikkan dan tanpa konfigurasi yang ditulis sama sekali, gunakan
-peluncur generik `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — target dan alias berasal dari `bin/cli/cli-manifest.mjs`); peluncur per-alat warisan
-`omniroute launch` (Claude Code) dan `omniroute launch-codex`
-(Codex) tetap tersedia. CLI Gemini hanya untuk peluncuran: itu adalah target `omniroute run`
-tetapi tidak memiliki resep `setup-*`/`configure`.
+Masing-masing menerima `--remote <url> --api-key <key>` (mengonfigurasi alat lokal terhadap OmniRoute jarak jauh), `--dry-run` (pratinjau tanpa menulis), dan `--port`. Alat tanpa penemuan model otomatis (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) mengambil `--model <id>` (dan `--yes` untuk eksekusi non-interaktif). `setup-5dive` adalah satu-satunya resep yang tidak menulis di bawah `$HOME`: ia mengonfigurasi armada agen 5dive dengan menulis profil otentikasi yang dimiliki root pada host armada, sehingga ia mengeksekusi ulang melalui `sudo` dan tidak memiliki mode jarak jauh sendiri. Untuk meluncurkan CLI dengan env yang tepat disuntikkan dan tanpa konfigurasi yang ditulis sama sekali, gunakan peluncur generik `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — target dan alias berasal dari `bin/cli/cli-manifest.mjs`); peluncur warisan per-alat `omniroute launch` (Claude Code) dan `omniroute launch-codex` (Codex) tetap tersedia. Gemini CLI hanya dapat diluncurkan: ini adalah target `omniroute run` tetapi tidak memiliki resep `setup-*`/`configure`.
 
-> **Referensi lengkap:** tabel utama — apa yang ditulis setiap perintah, setiap flag,
-> lokal vs jarak jauh, dan alat mana yang memerlukan akhiran `/v1` — ada di
-> **[Integrasi CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **Referensi lengkap:** tabel utama — apa yang ditulis setiap perintah, setiap flag, lokal vs jarak jauh, dan alat mana yang memerlukan sufiks `/v1` — ada di **[Integrasi CLI](../guides/CLI-INTEGRATIONS.md)**.
 
 ### Menjalankan ini di dalam kontainer
 
-Perintah `setup-*` yang dieksekusi di dalam kontainer OmniRoute menulis ke
-rumah kontainer itu sendiri, yang tidak dibaca oleh CLI host dan yang menghilang bersama
-kontainer. OmniRoute mendeteksi itu dan keluar dengan kode `2` dengan instruksi daripada
-menulis. Dua cara yang didukung untuk melanjutkan — instal CLI di host dan
-`omniroute connect` ke kontainer, atau bind-mount direktori konfigurasi dan set
-`CLI_CONFIG_HOME` (profil `host` compose). Setiap perintah `setup-*`, ditambah
-`omniroute configure` dan `omniroute config set`, menerima
-`--allow-container-write` ketika mengonfigurasi CLI kontainer itu sendiri adalah apa yang sebenarnya Anda maksud; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` melakukan hal yang sama untuk
-server. Lihat
+Perintah `setup-*` yang dieksekusi di dalam kontainer OmniRoute menulis ke home kontainer itu sendiri, yang tidak dibaca oleh CLI host mana pun dan yang hilang bersama kontainer. OmniRoute mendeteksi hal itu dan keluar dengan kode `2` dengan instruksi daripada menulis. Dua cara yang didukung ke depan — instal CLI di host dan `omniroute connect` ke kontainer, atau bind-mount direktori konfigurasi dan atur `CLI_CONFIG_HOME` (profil `host` compose). Setiap perintah `setup-*`, ditambah `omniroute configure` dan `omniroute config set`, menerima `--allow-container-write` ketika mengonfigurasi CLI kontainer itu sendiri adalah yang sebenarnya Anda maksud; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` melakukan hal yang sama untuk server. Lihat
 [Panduan Docker → Mengonfigurasi alat CLI host](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-**Titik akhir apply** di dasbor (`POST /api/cli-tools/apply`) menerapkan
-pengaman yang sama: di dalam kontainer, penulisan yang targetnya tidak bind-mounted dari
-host menjawab **`422`** dengan `containerEphemeralTarget: true`, teks kesalahan yang aman
-dan — untuk alat dengan resep host (claude, codex, opencode, cline,
-kilo, continue) — sebuah `hostSetupCommand` (misalnya `omniroute setup-opencode`) untuk dijalankan
-di host sebagai gantinya; tidak ada yang ditulis. `dryRun: true` tetap berfungsi dalam
-mode kontainer dan mengembalikan konten yang dihasilkan + jalur target tanpa menyentuh disk, sehingga
-Anda dapat prabaca dari dasbor dan menerapkan di host. Perilaku ini
-sengaja dan dilindungi regresi oleh
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — jangan pernah "memperbaiki" 422
-dengan menghapus pengaman.
+**Endpoint apply** dasbor (`POST /api/cli-tools/apply`) memberlakukan penjaga yang sama: dalam kontainer, penulisan yang targetnya tidak di-bind-mount dari host menjawab **`422`** dengan `containerEphemeralTarget: true`, teks kesalahan yang aman dan — untuk alat dengan resep host (claude, codex, opencode, cline, kilo, continue) — sebuah `hostSetupCommand` (misalnya `omniroute setup-opencode`) untuk dijalankan di host sebagai gantinya; tidak ada yang ditulis. `dryRun: true` tetap berfungsi dalam mode kontainer dan mengembalikan pratinjau yang disunting + jalur target tanpa menyentuh disk. Konten pratinjau bukanlah konfigurasi yang berisi kredensial untuk disalin atau diimpor. Terapkan dengan alat asli/URL dasar/kunci API/input model di host, atau gunakan perintah setup sisi host yang ditunjukkan. Lihat [keamanan konfigurasi CLI](../security/CLI-CONFIGURATION.md) untuk header pratinjau dan kontrak permintaan. Perilaku ini disengaja dan dilindungi dari regresi oleh `tests/unit/api/cli-tools/apply-container-guard.test.ts` — jangan pernah "memperbaiki" 422 dengan menghapus penjaga.
 
 ---
 

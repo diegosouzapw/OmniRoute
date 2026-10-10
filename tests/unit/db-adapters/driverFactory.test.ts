@@ -462,6 +462,44 @@ describe("driverFactory", () => {
     assert.equal(openWithoutNativeDrivers(":memory:"), null);
   });
 
+  test("guards the Node addon report and keeps Bun on its own SQLite driver", () => {
+    // better-sqlite3 13 resolves its prebuild via process.report.getReport() (isLinuxMusl).
+    // With open TCP handles that report reverse-resolves every socket, which took ~6s per
+    // first DB open on a host with slow reverse DNS (#15106 vitest timeouts). The driver
+    // must construct the addon with excludeNetwork on, then restore the caller's value.
+    const report = process.report as NodeJS.ProcessReport & { excludeNetwork: boolean };
+    const original = report.excludeNetwork;
+    let seenDuringConstruct: boolean | undefined;
+    const requestedModules: string[] = [];
+    const open = createSyncDriverFactory((moduleName: string) => {
+      requestedModules.push(moduleName);
+      if (moduleName === "better-sqlite3") {
+        return class {
+          constructor() {
+            seenDuringConstruct = report.excludeNetwork;
+            throw new Error("stop after observing the report flag");
+          }
+        };
+      }
+      throw new Error("forced driver load failure");
+    });
+
+    report.excludeNetwork = false;
+    try {
+      assert.equal(open(":memory:"), null);
+      if (isBun) {
+        assert.deepEqual(requestedModules, ["bun:sqlite"]);
+        assert.equal(seenDuringConstruct, undefined);
+      } else {
+        assert.deepEqual(requestedModules, ["better-sqlite3", "node:sqlite"]);
+        assert.equal(seenDuringConstruct, true);
+      }
+      assert.equal(report.excludeNetwork, false, "the caller's excludeNetwork must be restored");
+    } finally {
+      report.excludeNetwork = original;
+    }
+  });
+
   test("pack-boot sql.js forcing requires both smoke-only markers", () => {
     assert.equal(isPackBootForcedSqlJsSmoke({}), false);
     assert.equal(isPackBootForcedSqlJsSmoke({ OMNIROUTE_PACK_BOOT_SMOKE: "1" }), false);

@@ -1,19 +1,17 @@
----
-title: "Rozszerzanie potoku kompresji"
-version: 3.8.44
-lastUpdated: 2026-07-02
+# Extending the Compression Pipeline (Polski)
+
+🌐 **Languages:** 🇺🇸 [English](../../../../compression/EXTENDING_COMPRESSION.md) · 🇪🇹 [am](../../../am/docs/compression/EXTENDING_COMPRESSION.md) · 🇸🇦 [ar](../../../ar/docs/compression/EXTENDING_COMPRESSION.md) · 🇦🇿 [az](../../../az/docs/compression/EXTENDING_COMPRESSION.md) · 🇧🇬 [bg](../../../bg/docs/compression/EXTENDING_COMPRESSION.md) · 🇧🇩 [bn](../../../bn/docs/compression/EXTENDING_COMPRESSION.md) · 🇧🇦 [bs](../../../bs/docs/compression/EXTENDING_COMPRESSION.md) · 🇨🇿 [cs](../../../cs/docs/compression/EXTENDING_COMPRESSION.md) · 🇩🇰 [da](../../../da/docs/compression/EXTENDING_COMPRESSION.md) · 🇩🇪 [de](../../../de/docs/compression/EXTENDING_COMPRESSION.md) · 🇬🇷 [el](../../../el/docs/compression/EXTENDING_COMPRESSION.md) · 🇪🇸 [es](../../../es/docs/compression/EXTENDING_COMPRESSION.md) · 🇪🇪 [et](../../../et/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇷 [fa](../../../fa/docs/compression/EXTENDING_COMPRESSION.md) · 🇫🇮 [fi](../../../fi/docs/compression/EXTENDING_COMPRESSION.md) · 🇫🇷 [fr](../../../fr/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇪 [ga](../../../ga/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [gu](../../../gu/docs/compression/EXTENDING_COMPRESSION.md) · 🇳🇬 [ha](../../../ha/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇱 [he](../../../he/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [hi](../../../hi/docs/compression/EXTENDING_COMPRESSION.md) · 🇭🇷 [hr](../../../hr/docs/compression/EXTENDING_COMPRESSION.md) · 🇭🇺 [hu](../../../hu/docs/compression/EXTENDING_COMPRESSION.md) · 🇦🇲 [hy](../../../hy/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇩 [id](../../../id/docs/compression/EXTENDING_COMPRESSION.md) · 🇳🇬 [ig](../../../ig/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇹 [it](../../../it/docs/compression/EXTENDING_COMPRESSION.md) · 🇯🇵 [ja](../../../ja/docs/compression/EXTENDING_COMPRESSION.md) · 🇬🇪 [ka](../../../ka/docs/compression/EXTENDING_COMPRESSION.md) · 🇰🇭 [km](../../../km/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [kn](../../../kn/docs/compression/EXTENDING_COMPRESSION.md) · 🇰🇷 [ko](../../../ko/docs/compression/EXTENDING_COMPRESSION.md) · 🇱🇹 [lt](../../../lt/docs/compression/EXTENDING_COMPRESSION.md) · 🇱🇻 [lv](../../../lv/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [ml](../../../ml/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [mr](../../../mr/docs/compression/EXTENDING_COMPRESSION.md) · 🇲🇾 [ms](../../../ms/docs/compression/EXTENDING_COMPRESSION.md) · 🇲🇹 [mt](../../../mt/docs/compression/EXTENDING_COMPRESSION.md) · 🇲🇲 [my](../../../my/docs/compression/EXTENDING_COMPRESSION.md) · 🇳🇵 [ne](../../../ne/docs/compression/EXTENDING_COMPRESSION.md) · 🇳🇱 [nl](../../../nl/docs/compression/EXTENDING_COMPRESSION.md) · 🇳🇴 [no](../../../no/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [or](../../../or/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [pa](../../../pa/docs/compression/EXTENDING_COMPRESSION.md) · 🇵🇭 [phi](../../../phi/docs/compression/EXTENDING_COMPRESSION.md) · 🇵🇹 [pt](../../../pt/docs/compression/EXTENDING_COMPRESSION.md) · 🇧🇷 [pt-BR](../../../pt-BR/docs/compression/EXTENDING_COMPRESSION.md) · 🇷🇴 [ro](../../../ro/docs/compression/EXTENDING_COMPRESSION.md) · 🇷🇺 [ru](../../../ru/docs/compression/EXTENDING_COMPRESSION.md) · 🇱🇰 [si](../../../si/docs/compression/EXTENDING_COMPRESSION.md) · 🇸🇰 [sk](../../../sk/docs/compression/EXTENDING_COMPRESSION.md) · 🇸🇮 [sl](../../../sl/docs/compression/EXTENDING_COMPRESSION.md) · 🇷🇸 [sr](../../../sr/docs/compression/EXTENDING_COMPRESSION.md) · 🇸🇪 [sv](../../../sv/docs/compression/EXTENDING_COMPRESSION.md) · 🇰🇪 [sw](../../../sw/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [ta](../../../ta/docs/compression/EXTENDING_COMPRESSION.md) · 🇮🇳 [te](../../../te/docs/compression/EXTENDING_COMPRESSION.md) · 🇹🇭 [th](../../../th/docs/compression/EXTENDING_COMPRESSION.md) · 🇹🇷 [tr](../../../tr/docs/compression/EXTENDING_COMPRESSION.md) · 🇺🇦 [uk-UA](../../../uk-UA/docs/compression/EXTENDING_COMPRESSION.md) · 🇵🇰 [ur](../../../ur/docs/compression/EXTENDING_COMPRESSION.md) · 🇺🇿 [uz](../../../uz/docs/compression/EXTENDING_COMPRESSION.md) · 🇻🇳 [vi](../../../vi/docs/compression/EXTENDING_COMPRESSION.md) · 🇳🇬 [yo](../../../yo/docs/compression/EXTENDING_COMPRESSION.md) · 🇨🇳 [zh-CN](../../../zh-CN/docs/compression/EXTENDING_COMPRESSION.md) · 🇹🇼 [zh-TW](../../../zh-TW/docs/compression/EXTENDING_COMPRESSION.md)
+
 ---
 
-# Rozszerzanie potoku kompresji
-
-> **TL;DR**: Silnik kompresji OmniRoute jest **podłączalny (pluggable)** — możesz rejestrować własne silniki, dostarczać language packi dla nowych języków i składać stacked pipelines. Ten przewodnik pokazuje jak.
+> **W skrócie**: silnik kompresji OmniRoute jest **rozszerzalny** — możesz rejestrować niestandardowe silniki, dostarczać pakiety językowe dla nowych języków oraz tworzyć wieloetapowe potoki. Ten przewodnik pokazuje, jak to zrobić.
 
 **Powiązane przewodniki:**
 
 - [COMPRESSION_GUIDE.md](./COMPRESSION_GUIDE.md) — Pełny przegląd potoku
 - [COMPRESSION_ENGINES.md](./COMPRESSION_ENGINES.md) — Rejestr silników i wbudowane silniki
 - [RTK_COMPRESSION.md](./RTK_COMPRESSION.md) — Silnik RTK i niestandardowe filtry
-- [COMPRESSION_RULES_FORMAT.md](./COMPRESSION_RULES_FORMAT.md) — Referencja formatu pakietów reguł
+- [COMPRESSION_RULES_FORMAT.md](./COMPRESSION_RULES_FORMAT.md) — Dokumentacja formatu pakietu reguł
 
 ---
 
@@ -21,17 +19,17 @@ lastUpdated: 2026-07-02
 
 System kompresji ma **3 punkty rozszerzeń**:
 
-| Punkt rozszerzenia   | Zastosowanie                                                          | Trudność     |
-| -------------------- | --------------------------------------------------------------------- | ------------ |
-| **Custom engine**    | Dodanie zupełnie nowego algorytmu kompresji (np. summarizer domenowy) | Zaawansowany |
-| **Language pack**    | Dodanie wsparcia dla nowego języka naturalnego (np. hindi, arabski)   | Średni       |
-| **Stacked pipeline** | Złożenie istniejących silników w niestandardowej kolejności           | Początkujący |
+| Punkt rozszerzenia        | Przypadek użycia                                                                        | Poziom trudności |
+| ------------------------- | --------------------------------------------------------------------------------------- | ---------------- |
+| **Niestandardowy silnik** | Dodanie zupełnie nowego algorytmu kompresji (np. podsumowania specyficznego dla domeny) | Zaawansowany     |
+| **Pakiet językowy**       | Dodanie obsługi nowego języka naturalnego (np. hindi, arabskiego)                       | Średni           |
+| **Potok wieloetapowy**    | Połączenie istniejących silników w niestandardowej kolejności                           | Początkujący     |
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Compression Strategy                      │
+│                    Strategia kompresji                       │
 │                                                              │
-│   Input messages ──▶ getEffectiveMode() ──▶ mode            │
+│   Wiadomości wejściowe ─▶ getEffectiveMode() ─▶ tryb        │
 │                                              │               │
 │                      ┌───────────────────────┼──────────┐    │
 │                      │         │         │         │    │    │
@@ -40,37 +38,37 @@ System kompresji ma **3 punkty rozszerzeń**:
 │                      │         │         │         │    │    │
 │                      ▼         ▼         ▼         ▼    │    │
 │                   RTK       Lite     Caveman   engines[]   │
-│                   engine    engine   engine    chained     │
+│                   silnik    silnik   silnik    połączone   │
 │                      │         │         │         │    │    │
 │                      └─────────┴─────────┴─────────┘    │    │
 │                                      │                    │
 │                                      ▼                    │
-│                             Compressed output              │
+│                              Skompresowany wynik           │
 └─────────────────────────────────────────────────────────────┘
 
-The strategy selector is MODE-BASED: each request selects ONE mode
+Selektor strategii DZIAŁA NA PODSTAWIE TRYBU: każde żądanie wybiera JEDEN tryb
 (rtk / lite / standard / aggressive / ultra / stacked / off).
-Only mode "stacked" chains multiple engines in sequence.
-Default auto-trigger mode is "lite" (not a 3-tier priority chain).
+Tylko tryb "stacked" łączy kolejno wiele silników.
+Domyślnym trybem automatycznego wyzwalania jest "lite" (a nie 3-poziomowy łańcuch priorytetów).
 ```
 
 ---
 
-## Pisanie własnego silnika kompresji
+## Tworzenie niestandardowego silnika kompresji
 
-Interfejs silnika (`open-sse/services/compression/engines/types.ts`) to kontrakt, który musi spełniać każdy silnik. Ma 5 wymaganych metod.
+Interfejs silnika (`open-sse/services/compression/engines/types.ts`) stanowi kontrakt, który musi spełnić każdy silnik. Zawiera 5 wymaganych metod.
 
 ### Interfejs `CompressionEngine`
 
 ```ts
 interface CompressionEngine {
-  id: string; // Unique engine ID
-  name: string; // Display name
-  description: string; // Short description
-  icon: string; // Icon (emoji or URL)
+  id: string; // Unikatowy identyfikator silnika
+  name: string; // Nazwa wyświetlana
+  description: string; // Krótki opis
+  icon: string; // Ikona (emoji lub adres URL)
   targets: CompressionEngineTarget[]; // ["messages", "tool_results", "code_blocks"]
-  stackable: boolean; // Can be used in a stacked pipeline
-  stackPriority: number; // Order in stacked pipelines (lower = earlier)
+  stackable: boolean; // Czy może być używany w potoku wieloetapowym
+  stackPriority: number; // Kolejność w potokach wieloetapowych (niższa wartość = wcześniej)
   metadata: CompressionEngineMetadata;
 
   apply(body, options?): CompressionResult;
@@ -80,23 +78,23 @@ interface CompressionEngine {
 }
 ```
 
-### Minimalny przykład: silnik Whitespace
+### Minimalny przykład: silnik usuwający nadmiarowe białe znaki
 
-Najprostszy możliwy silnik — usuwa nadmiarowe białe znaki z wiadomości.
+Najprostszy możliwy silnik — usuwa dodatkowe białe znaki z wiadomości.
 
 ````ts
 import type { CompressionEngine } from "omniroute/compression/engines/types";
 import { registerCompressionEngine } from "omniroute/compression/engines/registry";
 
 function preserveCodeBlocks(text: string): string {
-  // Split by code block markers and preserve whitespace inside them
+  // Podziel według znaczników bloków kodu i zachowaj znajdujące się w nich białe znaki
   const parts = text.split(/(```[\s\S]*?```)/);
   return parts
     .map((part) => {
       if (part.startsWith("```")) {
-        return part; // Don't modify code blocks
+        return part; // Nie modyfikuj bloków kodu
       }
-      return part.replace(/\n{3,}/g, "\n\n"); // Only apply to prose
+      return part.replace(/\n{3,}/g, "\n\n"); // Zastosuj tylko do tekstu opisowego
     })
     .join("");
 }
@@ -108,7 +106,7 @@ const whitespaceEngine: CompressionEngine = {
   icon: "📝",
   targets: ["messages", "tool_results"],
   stackable: true,
-  stackPriority: 100, // Run AFTER caveman/rtk
+  stackPriority: 100, // Uruchom PO caveman/rtk
 
   metadata: {
     id: "whitespace",
@@ -128,7 +126,7 @@ const whitespaceEngine: CompressionEngine = {
     let originalLength = 0;
     let compressedLength = 0;
 
-    // Traverse message array — handle both string and multipart content
+    // Przejdź przez tablicę wiadomości — obsłuż zarówno zawartość tekstową, jak i wieloczęściową
     const compressedBody = (body.messages || []).map((msg) => {
       if (typeof msg.content === "string") {
         originalLength += msg.content.length;
@@ -139,7 +137,7 @@ const whitespaceEngine: CompressionEngine = {
         compressedLength += compressed.length;
         return { ...msg, content: compressed };
       }
-      // Multipart content: traverse parts, compress text parts only
+      // Zawartość wieloczęściowa: przejdź przez części i kompresuj tylko części tekstowe
       if (Array.isArray(msg.content)) {
         const newParts = msg.content.map((part) => {
           if (part.type === "text" && typeof part.text === "string") {
@@ -151,7 +149,7 @@ const whitespaceEngine: CompressionEngine = {
             compressedLength += compressed.length;
             return { ...part, text: compressed };
           }
-          return part; // preserve image_url, tool_use, etc.
+          return part; // zachowaj image_url, tool_use itp.
         });
         return { ...msg, content: newParts };
       }
@@ -190,21 +188,21 @@ const whitespaceEngine: CompressionEngine = {
   },
 };
 
-// Register globally
+// Zarejestruj globalnie
 registerCompressionEngine(whitespaceEngine);
 ````
 
-### Gdzie umieszczać własne silniki
+### Gdzie umieścić niestandardowe silniki
 
 ```
-~/.omniroute/compression/engines/my-engine.ts    # User-level
-<project>/compression-engines/my-engine.ts        # Project-level (loaded on startup)
+~/.omniroute/compression/engines/my-engine.ts    # Poziom użytkownika
+<project>/compression-engines/my-engine.ts        # Poziom projektu (ładowany podczas uruchamiania)
 ```
 
-Albo załaduj programowo z pluginu:
+Możesz też załadować je programowo z wtyczki:
 
 ```ts
-// In your plugin
+// W Twojej wtyczce
 import {
   registerCompressionEngine,
   unregisterCompressionEngine,
@@ -213,66 +211,67 @@ import { myEngine } from "./engines/my-engine";
 
 export default definePlugin({
   name: "my-compression-plugin",
-  // The plugin SDK exposes onRequest / onResponse / onError hooks. Register the
-  // engine when the plugin module loads (or on first onRequest); unregister it
-  // from your own teardown path.
+  // SDK wtyczek udostępnia punkty zaczepienia onRequest / onResponse / onError. Zarejestruj
+  // silnik podczas ładowania modułu wtyczki (lub przy pierwszym onRequest); wyrejestruj go
+  // we własnej procedurze zamykania.
   onRequest: async (ctx) => {
     registerCompressionEngine(myEngine);
   },
 });
 
-// On teardown:
+// Podczas zamykania:
 // unregisterCompressionEngine("my-engine");
 ```
 
 ### Testowanie silnika
 
-Zarejestruj silnik w pluginie lub funkcji startowej. Po rejestracji będzie dostępny w strategy selectorze przez swoje `id`. Przetestuj integrację, składając go w stacked pipeline:
+Zarejestruj silnik we wtyczce lub funkcji uruchamianej podczas startu. Po rejestracji silnik będzie dostępny
+w selektorze strategii za pośrednictwem swojego `id`. Przetestuj integrację, umieszczając go w potoku złożonym:
 
 ---
 
-## Tworzenie language packów
+## Tworzenie pakietów językowych
 
-Kompresja w stylu Caveman używa **pakietów reguł zależnych od języka**, aby obsługiwać wypełniacze (fillers), hedging i rozwlekłe wzorce w każdym języku naturalnym. OmniRoute dostarcza **6 language packów**: `en`, `es`, `fr`, `de`, `ja`, `pt-BR`.
+Kompresja w stylu telegraficznym wykorzystuje **pakiety reguł specyficzne dla języka**, aby obsługiwać wyrażenia wypełniające, asekuracyjne oraz rozwlekłe konstrukcje w każdym języku naturalnym. OmniRoute jest dostarczany z **6 pakietami językowymi**: `en`, `es`, `fr`, `de`, `ja`, `pt-BR`.
 
 ### Struktura pakietu
 
-Language pack to katalog **plików JSON** pod `open-sse/services/compression/rules/<language>/`:
+Pakiet językowy jest katalogiem zawierającym **pliki JSON** w lokalizacji `open-sse/services/compression/rules/<language>/`:
 
 ```
 open-sse/services/compression/rules/
 ├── en/
-│   ├── filler.json          # Pleasantries, hedging, politeness
-│   ├── context.json         # Context-reducing rules
-│   ├── dedup.json           # Deduplication rules
-│   ├── structural.json      # Punctuation, formatting
-│   └── ultra.json           # Aggressive compression rules
-├── es/  (same structure)
-├── fr/  (same structure)
-├── de/  (same structure)
-├── ja/  (same structure)
-└── pt-BR/ (same structure)
+│   ├── filler.json          # Zwroty grzecznościowe, asekuracyjne i uprzejmości
+│   ├── context.json         # Reguły redukujące kontekst
+│   ├── dedup.json           # Reguły deduplikacji
+│   ├── structural.json      # Interpunkcja, formatowanie
+│   └── ultra.json           # Reguły agresywnej kompresji
+├── es/  (ta sama struktura)
+├── fr/  (ta sama struktura)
+├── de/  (ta sama struktura)
+├── ja/  (ta sama struktura)
+└── pt-BR/ (ta sama struktura)
 ```
 
-### Anatomia reguły
+### Budowa reguły
 
-Każda reguła ma ten kształt (z `open-sse/services/compression/ruleLoader.ts`):
+Każda reguła ma następującą postać (z pliku `open-sse/services/compression/ruleLoader.ts`):
 
 ```ts
 interface FileRule {
-  name: string; // Human-readable name (kebab-case)
-  pattern: string; // JavaScript regex pattern
-  replacement?: string; // What to replace the match with
-  replacementMap?: Record<string, string>; // OR a key→replacement map
-  flags?: string; // Regex flags ("gi" typically)
+  name: string; // Nazwa czytelna dla człowieka (kebab-case)
+  pattern: string; // Wzorzec wyrażenia regularnego JavaScript
+  replacement?: string; // Tekst, którym należy zastąpić dopasowanie
+  replacementMap?: Record<string, string>; // LUB mapa klucz→zamiennik
+  flags?: string; // Flagi wyrażenia regularnego (zwykle „gi”)
   context?: "all" | "user" | "system" | "assistant";
   category?: "filler" | "context" | "structural" | "dedup" | "terse" | "ultra";
-  minIntensity?: "lite" | "full" | "ultra"; // Skip below this intensity
-  description?: string; // Documentation
+  minIntensity?: "lite" | "full" | "ultra"; // Pomiń poniżej tego poziomu intensywności
+  description?: string; // Dokumentacja
 }
 ```
 
-### Przykład: dodawanie reguł filler dla hindi
+### Przykład: dodawanie reguł usuwania wypełniaczy w języku hindi
 
 ```json
 {
@@ -312,7 +311,7 @@ interface FileRule {
 
 ### Walidacja
 
-Pakiety reguł są walidowane względem `_schema.json` przy ładowaniu. Pakiet o złej strukturze nie załaduje się i zaloguje błąd:
+Pakiety reguł są podczas ładowania sprawdzane względem `_schema.json`. Pakiet o nieprawidłowej strukturze nie zostanie załadowany, a błąd zostanie zapisany w dzienniku:
 
 ```
 RULE_LOADER: pack "hi/filler.json" failed validation:
@@ -320,9 +319,9 @@ RULE_LOADER: pack "hi/filler.json" failed validation:
   - rules.1.context: must be one of [all, user, system, assistant]
 ```
 
-Walidacja uruchamia się automatycznie przy ładowaniu pakietu (względem `_schema.json`); nieprawidłowy pakiet jest odrzucany, a powyższy błąd trafia do logów. Nie ma osobnego skryptu `npm run` do walidacji pakietów — załaduj pakiet (np. uruchom serwer lub przejdź ścieżkę kompresji) i obserwuj logi.
+Walidacja jest uruchamiana automatycznie podczas ładowania pakietu (względem `_schema.json`); nieprawidłowy pakiet zostaje odrzucony, a powyższy błąd jest zapisywany w dzienniku. Nie istnieje osobny skrypt `npm run` do walidacji pakietu — załaduj pakiet (np. uruchamiając serwer lub wykonując ścieżkę kompresji) i obserwuj dzienniki.
 
-### Ładowanie własnego language packa
+### Ładowanie niestandardowego pakietu językowego
 
 ```ts
 import { loadRulePack } from "omniroute/compression/ruleLoader";
@@ -330,103 +329,102 @@ import { loadRulePack } from "omniroute/compression/ruleLoader";
 await loadRulePack("./my-custom-rules/hi/filler.json");
 ```
 
-Albo umieść w rozpoznawanej lokalizacji:
+Możesz również umieścić go w rozpoznawanej lokalizacji:
 
 ```
-~/.omniroute/compression/rules/hi/filler.json  # User-level
-<project>/.compression/rules/hi/filler.json   # Project-level
+~/.omniroute/compression/rules/hi/filler.json  # Poziom użytkownika
 ```
 
-### Dobre praktyki dla language packów
+### Najlepsze praktyki dotyczące pakietów językowych
 
-1. **Zacznij od `filler`** — to reguły o największym wpływie
-2. **Używaj `minIntensity`**, aby bramkować agresywne reguły — chroni przed nadmierną kompresją
-3. **Dołączaj przypadki testowe** — dodaj tablicę `tests[]` w JSON, aby weryfikować zachowanie
-4. **Kolejność ma znaczenie** — wcześniejsze reguły stosują się pierwsze; umieszczaj reguły o wysokim wpływie na początku
-5. **Bądź konserwatywny z `replacement`** — pusty string zwykle jest poprawny; nigdy nie wprowadzaj nowej treści
+1. **Zacznij od `filler`** — te reguły mają największy wpływ
+2. **Używaj `minIntensity`** do ograniczania agresywnych reguł — chroni to przed nadmierną kompresją
+3. **Uwzględniaj przypadki testowe** — dodaj tablicę `tests[]` w pliku JSON, aby zweryfikować działanie
+4. **Kolejność ma znaczenie** — wcześniejsze reguły są stosowane jako pierwsze; reguły o największym wpływie umieszczaj na początku
+5. **Zachowaj ostrożność przy `replacement`** — pusty ciąg znaków jest zwykle właściwym wyborem; nigdy nie wprowadzaj nowej treści
 
 ### Strategia tłumaczenia
 
-Przy lokalizacji pakietów reguł na nowy język:
+Podczas lokalizowania pakietów reguł dla nowego języka:
 
-1. **Przetłumacz nazwy reguł** — pojawiają się w wyjściu debug
-2. **Dostosuj wzorce regex** — dosłowne tłumaczenie często zawodzi (różnice w granicach słów)
-3. **Testuj na prawdziwych rozmowach** — pakiet powinien być bezpieczny na rzeczywistym wejściu
-4. **Dopasuj konwencje kulturowe** — np. pakiety japońskie mają więcej honoryfikatywnych fillerów niż angielskie
+1. **Przetłumacz nazwy reguł** — pojawiają się one w danych diagnostycznych
+2. **Dostosuj wzorce wyrażeń regularnych** — bezpośrednie tłumaczenie często nie działa (granice słów różnią się między językami)
+3. **Testuj na rzeczywistych rozmowach** — pakiet powinien działać bezpiecznie na rzeczywistych danych wejściowych
+4. **Uwzględniaj konwencje kulturowe** — na przykład pakiety japońskie zawierają więcej honoratywnych wyrażeń wypełniających niż angielskie
 
 ---
 
-## Stacked pipelines
+## Potoki warstwowe
 
-**Stacked pipeline** uruchamia wiele silników sekwencyjnie, a wyjście każdego zasila następny. W ten sposób wewnętrznie działa `mode: stacked`.
+**Potok warstwowy** uruchamia wiele silników sekwencyjnie, a dane wyjściowe każdego silnika są przekazywane do następnego. Tak właśnie działa wewnętrznie `mode: stacked`.
 
-### Jak działa stacking
+### Jak działa przetwarzanie warstwowe
 
 ```
-Input (10,000 tokens)
+Dane wejściowe (10 000 tokenów)
         │
         ▼
    ┌──────────┐
-   │  Engine  │  priority 10
-   │  A       │  ──▶ output: 6,000 tokens (-40%)
+   │  Silnik  │  priorytet 10
+   │  A       │  ──▶ wynik: 6000 tokenów (-40%)
    └────┬─────┘
         ▼
    ┌──────────┐
-   │  Engine  │  priority 50
-   │  B       │  ──▶ output: 2,400 tokens (-60%)
+   │  Silnik  │  priorytet 50
+   │  B       │  ──▶ wynik: 2400 tokenów (-60%)
    └────┬─────┘
         ▼
    ┌──────────┐
-   │  Engine  │  priority 100
-   │  C       │  ──▶ output: 1,200 tokens (-80%)
+   │  Silnik  │  priorytet 100
+   │  C       │  ──▶ wynik: 1200 tokenów (-80%)
    └────┬─────┘
         │
         ▼
-Final output (1,200 tokens, ~88% savings combined)
+Wynik końcowy (1200 tokenów, łącznie ~88% oszczędności)
 ```
 
-Gdy wybrany jest `mode: "stacked"`, silniki wykonują się sekwencyjnie w kolejności z tablicy `pipeline`.
-Wyjście silnika N staje się wejściem silnika N+1.
+Po wybraniu `mode: "stacked"` silniki są uruchamiane sekwencyjnie, w kolejności określonej w tablicy `pipeline`.
+Dane wyjściowe silnika N stają się danymi wejściowymi silnika N+1.
 
 ### Tryby kompresji
 
-OmniRoute wybiera **JEDEN tryb na żądanie** na podstawie konfiguracji, progów auto-trigger i override'ów combo.
+OmniRoute wybiera **JEDEN tryb dla każdego żądania** na podstawie konfiguracji, progów automatycznego uruchamiania i nadpisań kombinacji.
 Dostępne tryby są zdefiniowane w `open-sse/services/compression/types.ts` (typ `CompressionMode`):
 
-| Mode         | Engines              | Use case                                                                                                                                                                                            |
-| ------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `off`        | None                 | Wyłącza całą kompresję                                                                                                                                                                              |
-| `rtk`        | RTK only             | Sesje z dużą ilością wyjścia poleceń (oszczędności 80%+)                                                                                                                                            |
-| `lite`       | Lite only            | Konserwatywna kompresja (szybka, bezpieczna)                                                                                                                                                        |
-| `standard`   | Caveman              | Kompresja prozy z language packami                                                                                                                                                                  |
-| `aggressive` | Caveman + Aggressive | Agresywna proza + agresywne końcowe przejście                                                                                                                                                       |
-| `ultra`      | Ultra                | Maksymalna kompresja (stratna, ostateczność). Opcjonalnie kierowana przez silnik SLM **LLMLingua-2**, gdy ustawione jest `ultra.modelPath` (fail-open do ścieżki regułowej, gdy model niedostępny). |
-| `stacked`    | Custom pipeline      | Składanie silników w dowolnej kolejności (patrz poniżej)                                                                                                                                            |
+| Tryb         | Silniki              | Zastosowanie                                                                                                                                                                                                                      |
+| ------------ | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `off`        | Brak                 | Wyłączenie całej kompresji                                                                                                                                                                                                        |
+| `rtk`        | Tylko RTK            | Sesje z dużą ilością danych wyjściowych poleceń (ponad 80% oszczędności)                                                                                                                                                          |
+| `lite`       | Tylko Lite           | Zachowawcza kompresja (szybka i bezpieczna)                                                                                                                                                                                       |
+| `standard`   | Caveman              | Kompresja prozy za pomocą pakietów językowych                                                                                                                                                                                     |
+| `aggressive` | Caveman + Aggressive | Agresywna kompresja prozy + agresywne przetwarzanie końcowe                                                                                                                                                                       |
+| `ultra`      | Ultra                | Maksymalna kompresja (stratna, używana w ostateczności). Opcjonalnie kierowana przez silnik SLM **LLMLingua-2**, gdy ustawiono `ultra.modelPath` (w razie niedostępności modelu następuje powrót do ścieżki opartej na regułach). |
+| `stacked`    | Niestandardowy potok | Łączenie silników w dowolnej kolejności (patrz poniżej)                                                                                                                                                                           |
 
-> Poza silnikami trybów powyżej rejestr zawiera też specjalistyczne silniki stackable —
+> Oprócz powyższych silników trybów rejestr zawiera również wyspecjalizowane silniki, które można łączyć warstwowo —
 > **CCR**, **headroom**, **ionizer** i **session-dedup** — opisane w
 > [COMPRESSION_ENGINES.md](./COMPRESSION_ENGINES.md#additional-built-in-engines).
 
-Wybór trybu określa `getEffectiveMode()` w `open-sse/services/compression/strategySelector.ts`:
+Wybór trybu jest określany przez `getEffectiveMode()` w `open-sse/services/compression/strategySelector.ts`:
 
 1. Jeśli kompresja jest wyłączona: `"off"`
-2. Jeśli istnieje override combo: użyj override
-3. Jeśli przekroczono próg auto-trigger: użyj `autoTriggerMode` (domyślnie: `"lite"`)
+2. Jeśli istnieje nadpisanie kombinacji: użyj nadpisania
+3. Jeśli próg automatycznego uruchamiania został przekroczony: użyj `autoTriggerMode` (domyślnie: `"lite"`)
 4. W przeciwnym razie: użyj `defaultMode`
 
-### Domyślny stacked pipeline
+### Domyślny potok warstwowy
 
-Gdy `mode: "stacked"` jest jawnie skonfigurowany, domyślny pipeline składa:
+Gdy jawnie skonfigurowano `mode: "stacked"`, domyślny potok składa się z:
 
-1. **RTK** — usuwa szum wyjścia poleceń (~80% oszczędności na wyjściu terminala)
-2. **Caveman** — usuwa fillery, skraca prozę (~46% na pozostałym tekście)
-3. **Lite** — końcowe przejście whitespace + dedup
+1. **RTK** — usuwa zbędne elementy z danych wyjściowych poleceń (~80% oszczędności dla danych wyjściowych terminala)
+2. **Caveman** — usuwa wypełniacze i upraszcza prozę (~46% dla pozostałego tekstu)
+3. **Lite** — końcowy etap usuwania zbędnych białych znaków i duplikatów
 
-Ta kompozycja osiąga **78–95% oszczędności** w sesjach bogatych w tool output.
+Ta kompozycja pozwala uzyskać **78–95% oszczędności** w sesjach intensywnie korzystających z narzędzi.
 
-### Konfiguracja stacked pipelines
+### Konfigurowanie potoków warstwowych
 
-W konfiguracji combo:
+W konfiguracji kombinacji:
 
 ```json
 {
@@ -441,43 +439,43 @@ W konfiguracji combo:
 }
 ```
 
-Możesz pomijać silniki, dodawać własne albo zmieniać ich kolejność.
+Można pomijać silniki, dodawać niestandardowe lub zmieniać ich kolejność.
 
 ### Przekazywanie stanu
 
-Silniki mogą czytać metadane z kontekstu żądania (w `options`):
+Silniki mogą odczytywać metadane z kontekstu żądania (w `options`):
 
 ```ts
 compress(body, config) {
-  // Read metadata from previous engines
+  // Odczyt metadanych z poprzednich silników
   const original = options?.compressionComboId;  // "my-coding-combo"
   // ...
 }
 ```
 
-Metadane są **tylko do odczytu** — silniki nie mogą mutować kontekstu żądania, tylko własne wyjście body.
+Metadane są **tylko do odczytu** — silniki nie mogą modyfikować kontekstu żądania, a jedynie własne dane wyjściowe treści.
 
-### Pułapki kolejności wykonania
+### Pułapki związane z kolejnością wykonywania
 
-| Kolejność silników                          | Efekt                                                                              |
-| ------------------------------------------- | ---------------------------------------------------------------------------------- |
-| RTK → Caveman → Lite                        | **Zalecane** (najpierw szum, potem język, potem whitespace)                        |
-| Lite → RTK → Caveman                        | Źle — Lite usuwa whitespace z surowego wyjścia, przez co matching wzorców RTK pada |
-| Caveman → RTK                               | Źle — Caveman może przepisać tekst w sposób nierozpoznawalny dla RTK               |
-| Dowolna kolejność z `tool_results` najpierw | Lepiej — wyjście tooli to najbardziej szumna treść                                 |
+| Kolejność silników                          | Efekt                                                                                                  |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| RTK → Caveman → Lite                        | **Zalecana** (najpierw usuwa zbędne elementy, potem upraszcza język, a na końcu usuwa białe znaki)     |
+| Lite → RTK → Caveman                        | Zła — Lite usuwa białe znaki z surowych danych wyjściowych, przez co dopasowywanie wzorców RTK zawodzi |
+| Caveman → RTK                               | Zła — Caveman może przekształcić tekst w sposób, którego RTK nie rozpoznaje                            |
+| Dowolna kolejność z `tool_results` najpierw | Lepsza — dane wyjściowe narzędzi zawierają najwięcej zbędnych elementów                                |
 
-### Kiedy NIE stackować
+### Kiedy NIE stosować przetwarzania warstwowego
 
-Stacking nie zawsze jest lepszy:
+Przetwarzanie warstwowe nie zawsze jest lepsze:
 
-- **Proste wiadomości** (bez tool output) — wystarczy sam Caveman lub Lite
-- **Wrażliwość na koszt** — każdy silnik dodaje ~5–50 ms opóźnienia
-- **Konkretne tool'e** — samo RTK zwykle wystarcza dla wyjścia shella
+- **Proste wiadomości** (bez danych wyjściowych narzędzi) — wystarczy sam Caveman lub Lite
+- **Wrażliwość na koszty** — każdy silnik zwiększa opóźnienie o ~5–50 ms
+- **Konkretne narzędzia** — sam RTK zwykle wystarcza w przypadku danych wyjściowych powłoki
 
-### Budowanie własnego pipeline'u
+### Tworzenie niestandardowego potoku
 
-Nie ma rejestru nazwanych pipeline'ów. Stacked pipeline to po prostu **inline tablica
-kroków** przekazywana do `applyStackedCompression()` (eksport z
+Nie istnieje rejestr nazwanych potoków. Potok warstwowy to po prostu **wbudowana tablica
+kroków** przekazywana do `applyStackedCompression()` (eksportowanej z
 `@omniroute/open-sse/services/compression/strategySelector`):
 
 ```ts
@@ -489,10 +487,10 @@ const result = applyStackedCompression(body, [
 ]);
 ```
 
-Gdy nie podasz pipeline'u, domyślnie jest `rtk(standard) → caveman(full)`.
+Jeśli nie przekażesz potoku, domyślnie używany jest `rtk(standard) → caveman(full)`.
 
-Aby sterować z konfiguracji, ustaw `mode: "stacked"` i podaj tablicę kroków pod
-`stackedPipeline` (odczytywane z `config.stackedPipeline`):
+Aby sterować nim z poziomu konfiguracji, ustaw `mode: "stacked"` i podaj tablicę kroków w
+`stackedPipeline` (odczytywaną z `config.stackedPipeline`):
 
 ```json
 {
@@ -508,103 +506,138 @@ Aby sterować z konfiguracji, ustaw `mode: "stacked"` i podaj tablicę kroków p
 
 ---
 
-## Polityka synchronizacji z upstreamem
+## Zasady synchronizacji z projektami upstream
 
-Silniki kompresji OmniRoute w README przypisują zasługi kilku projektom upstream
-(„inspired by RTK, Caveman, LLMLingua-2, Troglodita”). Częste pytanie kontrybutorów:
-**gdy upstream RTK doda nowy filtr toola albo Caveman doda rule pack, jak to trafia do OmniRoute?**
-Ta sekcja jest autorytatywną odpowiedzią.
+Silniki kompresji OmniRoute wskazują w README kilka projektów upstream jako źródła inspiracji
+(„inspired by RTK, Caveman, LLMLingua-2, Troglodita”). Częste pytanie od współtwórców
+brzmi: **gdy upstream RTK dodaje nowy filtr narzędzia albo Caveman dodaje pakiet
+reguł, w jaki sposób trafia to do OmniRoute?** Ta sekcja stanowi wiążącą odpowiedź.
 
-### Kopie vendored vs niezależne implementacje
+### Kopie vendored a niezależne implementacje
 
-| Engine                       | Relacja do upstreamu                                                                                                                    | Location                                                            |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **RTK**                      | **Niezależna reimplementacja** (inspired-by, nie kopia)                                                                                 | `open-sse/services/compression/engines/rtk/`                        |
-| **Caveman**                  | **Niezależna reimplementacja** (inspired-by)                                                                                            | `open-sse/services/compression/engines/cavemanAdapter.ts`           |
-| **Headroom**                 | Głównie wewnętrzny; tylko kodek `gcf/` jest **rzeczywiście vendored** z `gcf-typescript` (MIT, oznaczony SPDX, tylko profil generyczny) | `open-sse/services/compression/engines/headroom/gcf/`               |
-| **LLMLingua-2 / Troglodita** | Inspired-by (napędzają silniki `llmlingua` + `session-dedup`)                                                                           | `open-sse/services/compression/engines/llmlingua/`, `session-dedup` |
+| Silnik                       | Relacja z upstream                                                                                                                | Lokalizacja                                                         |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **RTK**                      | **Niezależna reimplementacja** (inspirowana projektem, a nie jego kopia)                                                          | `open-sse/services/compression/engines/rtk/`                        |
+| **Caveman**                  | **Niezależna reimplementacja** (inspirowana projektem)                                                                            | `open-sse/services/compression/engines/cavemanAdapter.ts`           |
+| **Headroom**                 | Głównie wewnętrzny; tylko kodek `gcf/` jest **faktycznie vendored** z `gcf-typescript` (MIT, oznaczony SPDX, tylko profil ogólny) | `open-sse/services/compression/engines/headroom/gcf/`               |
+| **LLMLingua-2 / Troglodita** | Inspirowane projektami (stanowią podstawę silników `llmlingua` + `session-dedup`)                                                 | `open-sse/services/compression/engines/llmlingua/`, `session-dedup` |
 
-Kluczowy punkt: **RTK i Caveman to clean-room implementacje TypeScript _idei_
-(reguły filtrów, rule packi), a nie vendored drzewa źródeł.** Nie ma
-kopii upstreamu, z której można zrobić `git pull` — właśnie dlatego README mówi
-„inspired by”, a nie „bundled”.
+Najważniejsze: **RTK i Caveman to stworzone metodą clean-room implementacje
+pomysłów w TypeScript (reguł filtrów i pakietów reguł), a nie drzewa kodu źródłowego
+vendored.** Nie istnieje kopia upstream, z której można wykonać `git pull` — właśnie
+dlatego README mówi „inspired by”, a nie „bundled”.
 
-### Jak mergowane są usprawnienia z upstreamu
+### Jak scalane są ulepszenia z upstream
 
 **Nie ma automatycznego śledzenia wydań upstream ani etykiety `compression-sync`**
-— z założenia. Ponieważ silniki to reimplementacje, filtr upstream RTK
-lub rule pack Caveman nie jest mergowany jako kod; jest **wyrażany na nowo jako nowa
-reguła/filtr w formacie OmniRoute** (zob.
-[COMPRESSION_RULES_FORMAT.md](./COMPRESSION_RULES_FORMAT.md)) i trafia ad hoc przez
-zwykły PR. Punkty rozszerzeń powyżej (custom engine, language pack, filtr RTK)
-to sankcjonowany sposób na kontrybucję.
+— jest tak celowo. Ponieważ silniki są reimplementacjami, filtr RTK lub pakiet
+reguł Caveman z upstream nie jest scalany jako kod; jest **ponownie wyrażany jako
+nowa reguła lub nowy filtr we własnym formacie OmniRoute** (zobacz
+[COMPRESSION_RULES_FORMAT.md](./COMPRESSION_RULES_FORMAT.md)) i trafia do projektu
+doraźnie za pośrednictwem zwykłego PR. Powyższe punkty rozszerzeń (niestandardowy
+silnik, pakiet językowy, filtr RTK) są zatwierdzonym sposobem wnoszenia takich zmian.
 
-Niedawne przykłady dokładnie tego przepływu:
+Najnowsze przykłady dokładnie takiego procesu:
 
-- Filtry RTK dla wyjścia buildów Gradle i `dotnet` (v3.8.42)
+- Filtry RTK dla danych wyjściowych kompilacji Gradle i `dotnet` (v3.8.42)
 - Filtry RTK dla kubectl / docker-build / composer / gh (#2824)
-- Language pack indonezyjski Caveman (#3975), plus pakiety niemiecki / francuski / japoński / chiński
+- Indonezyjski pakiet językowy Caveman (#3975) oraz pakiety niemiecki / francuski / japoński / chiński
 
-### Headroom (proxy kompresji wejścia)
+### Headroom (serwer proxy kompresji danych wejściowych)
 
-Headroom jest **w pełni wewnętrzny** — przypięty snapshot vendored kodeka `gcf` plus
-własne warstwy OmniRoute `smartcrusher` / `toon` / `tabular`. Nie ma żywego
-upstreamu do śledzenia poza kopią vendored; aktualizacje `gcf` odświeża się
-ręcznie przy zmianie kodeka i ponownie waliduje względem bramki budżetu kompresji
-(`check:compression-budget`).
+Headroom jest **w pełni wewnętrzny** — obejmuje przypiętą migawkę kodeka `gcf`
+vendored oraz własne warstwy OmniRoute: `smartcrusher` / `toon` / `tabular`. Nie
+ma aktywnego upstream do śledzenia poza kopią vendored; aktualizacje `gcf` są
+odświeżane ręcznie po zmianie kodeka i ponownie weryfikowane względem bramki
+budżetu kompresji (`check:compression-budget`).
 
-### Proponowanie usprawnienia inspirowanego upstreamem
+### Proponowanie ulepszenia inspirowanego upstream
 
-1. **Nie vendoruj** — wyraź regułę/filtr upstream w formacie OmniRoute.
-2. Dodaj ją przez odpowiadający punkt rozszerzenia poniżej (language pack, filtr RTK albo
-   custom engine).
-3. Odnieś się do projektu upstream w opisie PR (atrybucja), a nie przez
-   kopiowanie jego źródeł objętych licencją.
-4. Dołącz testy i potwierdź, że bramka `check:compression-budget` nadal przechodzi.
-
----
-
-## Dobre praktyki
-
-### Rozwój silników
-
-1. **Zawsze implementuj `validateConfig`** — silniki bez walidacji powodują ciche awarie
-2. **Ustaw realistyczne `targetLatencyMs`** — używane przez strategy selector do wyboru silników
-3. **Używaj `getConfigSchema` dla dashboardu** — nigdy nie ukrywaj konfiguracji przed użytkownikami
-4. **Ustaw `stackable: true`, jeśli silnik jest pure** — silniki z efektami ubocznymi nie powinny się stackować
-5. **Pisz testy inline** — silniki powinny dać się zweryfikować w <1 s
-
-### Rozwój language packów
-
-1. **Zacznij od intensywności `lite`** — reguły powinny być bezpieczne na najniższym ustawieniu
-2. **Używaj `context` do zakresowania reguł** — reguły tylko `user` nie mogą przypadkiem wpłynąć na system prompt
-3. **Unikaj przechwytywania kluczy JSON** — `\\bword\\b` może matchować wewnątrz JSON i psuć dane strukturalne
-4. **Testuj edge case'y** — puste wejście, unicode, tekst RTL, emoji
-5. **Używaj istniejących pakietów jako szablonów** — `en/filler.json` to najbardziej rozwinięty przykład
-
-### Projektowanie pipeline'ów
-
-1. **Profiluj przed optymalizacją** — najpierw mierz z `compression_stats`
-2. **Preferuj kompozycję zamiast reimplementacji** — rozszerzaj reguły Caveman, zanim napiszesz nowy silnik
-3. **Dokumentuj uzasadnienie kolejności** — komentuj, dlaczego silnik A przed silnikiem B
-4. **Testuj na wszystkich 3 poziomach intensywności** — `lite` jest szybki, ale stratny; `ultra` wolny, ale precyzyjny
+1. **Nie twórz kopii vendored** — ponownie wyraź regułę lub filtr upstream w formacie OmniRoute.
+2. Dodaj je za pośrednictwem odpowiedniego punktu rozszerzenia poniżej (pakietu
+   językowego, filtra RTK lub niestandardowego silnika).
+3. W opisie PR wskaż projekt upstream (uznanie autorstwa), zamiast kopiować jego
+   kod źródłowy objęty licencją.
+4. Dodaj testy i potwierdź, że bramka `check:compression-budget` nadal przechodzi.
 
 ---
 
-## Referencja: wbudowane silniki
+## Dodawanie stylu wyjściowego
 
-| Engine ID            | Stackable | Default stackPriority | Targets                             |
-| -------------------- | --------- | --------------------- | ----------------------------------- |
-| `lite`               | Yes       | 5                     | messages, tool_results              |
-| `rtk`                | Yes       | 10                    | tool_results                        |
-| `standard` (caveman) | Yes       | 20                    | messages, tool_results, code_blocks |
-| `aggressive`         | Yes       | 30                    | messages                            |
-| `ultra`              | Yes       | 40                    | messages, code_blocks               |
+Style wyjściowe (zobacz [tabelę katalogu w przewodniku](./COMPRESSION_GUIDE.md#output-styles-catalog))
+są odpowiednikiem silników wejściowych po stronie odpowiedzi: zamiast kompresować to, co
+wysyłasz, instruują model, aby generował tańsze odpowiedzi. Rejestr to
+`OUTPUT_STYLE_CATALOG` w `open-sse/services/compression/outputStyles/catalog.ts`, a
+**jeden wpis katalogu stanowi całą funkcję**: moduł wstrzykujący, panel ustawień pulpitu,
+mechanizmy trwałego zapisu i telemetria korzystają z katalogu — nie ma żadnej innej listy do zaktualizowania.
 
-### Zobacz też
+1. **Dodaj jeden wpis do `OUTPUT_STYLE_CATALOG`** z polami `id`, `label`, `description` oraz
+   trzema angielskimi `levels` (`lite`, `full`, `ultra`). Każdy poziom musi kończyć się
+   `${SHARED_BOUNDARIES}`, aby kod, ścieżki, polecenia, błędy i adresy URL pozostały niezmienione.
+   Tekst instrukcji musi być **statyczny i deterministyczny** dla każdej kombinacji
+   `(id, level, language)` — `${SHARED_BOUNDARIES}` jest jedyną dozwoloną interpolacją.
+2. **Przetłumacz go.** Dodaj co najmniej blok `pt-BR` w sekcji `i18n`; wzorcową strukturę stanowią
+   `ponytail` oraz `i-have-adhd` (en, pt-BR, es, de, fr, it, ru, zh, ja, id, vi). Styl celowo
+   przeznaczony dla jednego języka określa zamiast tego `locale` (jak `terse-cjk` → `zh`) i jest wtedy
+   oferowany wyłącznie dla tej lokalizacji.
+3. **Zaktualizuj zabezpieczenie macierzy** — dodaj języki stylu do `BASELINE_LANGUAGES` w
+   `tests/unit/compression/output-styles-i18n-matrix.test.ts`. Mechanizm kontrolny odrzuca każdy nowy
+   styl bez ograniczenia lokalizacji, który nie ma wymaganych tłumaczeń, chyba że zawiera
+   jawny wpis `KNOWN_ENGLISH_ONLY` z odnośnikiem do zgłoszenia.
+4. **Dodaj test dla danego stylu** wzorowany na
+   `tests/unit/compression/i-have-adhd-catalog.test.ts`: struktura katalogu, klauzula granic
+   dla każdego poziomu oraz asercja kontrolna potwierdzająca, że każde tłumaczenie jest napisane
+   we właściwym języku, a nie skopiowane z angielskiego.
+5. **Atrybucja**: jeśli styl zaadaptowano z projektu zewnętrznego, wskaż jego autorów w komentarzu
+   źródłowym przy wpisie (np. `i-have-adhd` → ayghri/i-have-adhd, MIT) — obowiązuje ta sama
+   zasada co w sekcji „Proponowanie ulepszenia inspirowanego projektem zewnętrznym” powyżej.
 
-- [COMPRESSION_GUIDE.md](./COMPRESSION_GUIDE.md) — Przegląd potoku
-- [COMPRESSION_ENGINES.md](./COMPRESSION_ENGINES.md) — Referencja rejestru silników
+Nie są wymagane żadne zmiany w interfejsie użytkownika, schemacie ani telemetrii — te elementy są generowane na podstawie katalogu.
+
+---
+
+## Najlepsze praktyki
+
+### Tworzenie silników
+
+1. **Zawsze implementuj `validateConfig`** — silniki bez walidacji powodują niewidoczne błędy
+2. **Ustaw realistyczną wartość `targetLatencyMs`** — selektor strategii używa jej do wyboru silników
+3. **Używaj `getConfigSchema` na potrzeby pulpitu** — nigdy nie ukrywaj konfiguracji przed użytkownikami
+4. **Obsługuj `stackable: true`, jeśli silnik jest czysty** — silniki z efektami ubocznymi nie powinny być łączone
+5. **Pisz testy wbudowane** — weryfikacja silników powinna zajmować mniej niż 1 s
+
+### Tworzenie pakietów językowych
+
+1. **Zacznij od intensywności `lite`** — reguły powinny być bezpieczne przy najniższym ustawieniu
+2. **Używaj `context`, aby ograniczać zakres reguł** — reguły działające wyłącznie dla `user` nie mogą przypadkowo wpłynąć na prompty systemowe
+3. **Unikaj przechwytywania kluczy JSON** — `\\bword\\b` może dopasować tekst wewnątrz JSON, uszkadzając dane strukturalne
+4. **Testuj przypadki brzegowe** — puste dane wejściowe, Unicode, tekst RTL, emoji
+5. **Używaj istniejących pakietów jako szablonów** — `en/filler.json` jest najbardziej rozbudowanym przykładem
+
+### Projektowanie potoku
+
+1. **Profiluj przed optymalizacją** — najpierw wykonaj pomiary za pomocą `compression_stats`
+2. **Preferuj kompozycję zamiast ponownej implementacji** — rozszerzaj reguły Caveman, zanim napiszesz nowy silnik
+3. **Dokumentuj uzasadnienie kolejności** — opisz w komentarzu, dlaczego silnik A znajduje się przed silnikiem B
+4. **Testuj na wszystkich 3 poziomach intensywności** — `lite` jest szybki, ale stratny, natomiast `ultra` jest wolny, lecz precyzyjny
+
+---
+
+## Dokumentacja: wbudowane silniki
+
+| ID silnika           | Łączalny | Domyślny stackPriority | Elementy docelowe                       |
+| -------------------- | -------- | ---------------------- | --------------------------------------- |
+| `lite`               | Tak      | 5                      | wiadomości, wyniki narzędzi             |
+| `rtk`                | Tak      | 10                     | wyniki narzędzi                         |
+| `standard` (caveman) | Tak      | 20                     | wiadomości, wyniki narzędzi, bloki kodu |
+| `aggressive`         | Tak      | 30                     | wiadomości                              |
+| `ultra`              | Tak      | 40                     | wiadomości, bloki kodu                  |
+
+### Zobacz także
+
+- [COMPRESSION_GUIDE.md](./COMPRESSION_GUIDE.md) — Omówienie potoku
+- [COMPRESSION_ENGINES.md](./COMPRESSION_ENGINES.md) — Dokumentacja rejestru silników
 - [COMPRESSION_RULES_FORMAT.md](./COMPRESSION_RULES_FORMAT.md) — Specyfikacja formatu reguł
-- [COMPRESSION_LANGUAGE_PACKS.md](./COMPRESSION_LANGUAGE_PACKS.md) — Szczegóły language packów
-- [RTK_COMPRESSION.md](./RTK_COMPRESSION.md) — Silnik RTK i niestandardowe filtry
+- [COMPRESSION_LANGUAGE_PACKS.md](./COMPRESSION_LANGUAGE_PACKS.md) — Szczegóły pakietów językowych
+- [RTK_COMPRESSION.md](./RTK_COMPRESSION.md) — Silnik RTK i filtry niestandardowe
+- Źródło: `open-sse/services/compression/` (117 plików, ~250 KB)

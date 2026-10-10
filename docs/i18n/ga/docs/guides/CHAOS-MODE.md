@@ -4,22 +4,45 @@
 
 ---
 
-> **Painéal:** **Mód Anordúil** (barra taoibh) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (seisiún painéil) · `POST /api/skills/collect/chaos` (eochair API)  
+> **Deais:** **Chaos Mode** (taobh-bharra) → `/dashboard/chaos`  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (seisiún deaise) · `POST /api/skills/collect/chaos` (eochair API)  
 > **Foinse:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
-Seolann Mód Anordúil **tasc amháin chuig roinnt soláthraithe ag an am céanna** — cuireann gach soláthraí rannpháirteach
+Seolann Chaos Mode **tasc amháin chuig roinnt soláthraithe ag an am céanna** — cuireann gach soláthraí rannpháirteach
 ásc samhla amháin ar fáil, agus faigheann tú na freagraí go léir taobh le taobh (nó i slabhra). Is
-comhéadan rite ilsamhla é, ní straitéis ródaithe: ní dhéanann sé difear riamh do do ghnáththrácht
+dromchla rite ilsamhla é, ní straitéis ródaithe: ní théann sé i bhfeidhm riamh ar do ghnáth-thrácht
 `/v1/chat/completions`.
 
-**Soiléiriú — seoltar trí rud éagsúla a bhfuil "chaos" ina n-ainm:**
+**Idirdhealú — seoltar trí rud éagsúla a bhfuil "chaos" san ainm orthu:**
 
-| Rud                       | Cad atá ann                                                                                                                                | Cá bhfuil sé doiciméadaithe                  |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| **Mód Anordúil**          | Leathanach an phainéil + an API a ndéantar cur síos orthu anseo: dáil tasc amháin ar go leor soláthraithe (comhthreomhar nó comhoibríoch). | An treoir seo                                |
-| `auto/chaos`              | Aitheantas samhla Auto-Combo le hualuithe scórála insteallta lochta, le haghaidh tástáil athléimneachta. Níl aon rud le cumrú.             | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Cumraíocht teaglama chaos | Teaglama marthanach ina ndáileann `config.chaos.enabled` an tasc ar phainéal le samhail bhreithimh roghnach (API amháin).                  | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Rud                       | Cad atá ann                                                                                                                                                                                              | An áit a bhfuil sé doiciméadaithe            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**            | Leathanach na deaise + an API a bhfuil cur síos orthu anseo: scaip tasc amháin chuig go leor soláthraithe (go comhthreomhar nó go comhoibríoch).                                                         | An treoir seo                                |
+| `auto/chaos`              | Aitheantas samhla Auto-Combo: leathadh comhthreomhar, samhail amháin in aghaidh an tsoláthraí, glao amháin réamhtheachtach an ceann. Ní instealladh lochtanna é ([sonraí](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Cumraíocht teaglama Chaos | Leathann teaglama marthanach le `config.chaos.enabled` amach ar an mbealach céanna (API amháin); ní roghnaíonn `judgeModel` ach an freagra deiridh, gan aon ghlao sintéise.                              | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: leathadh comhthreomhar
+
+**Ní** rialtán insteallta lochtanna ná tástála athléimneachta é `auto/chaos`. Nuair a iarrtar
+`model: "auto/chaos"` ar `/v1/chat/completions`:
+
+1. Tógtar painéal ina bhfuil **samhail amháin in aghaidh an tsoláthraí**: an chéad iarrthóir ó gach
+   soláthraí nasctha, in ord linn na n-iarrthóirí, suas le 5 bhall
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, teoranta ag 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). Ní shocraíonn pacáiste meáchain `chaos-mode`
+   ach `weight` gach baill; ní léann an leathadh amach é.
+2. Seoltar an t-iarratas céanna chuig gach ball den phainéal **go comhthreomhar**, mar sin cosnaíonn iarratas amháin
+   glao réamhtheachtach amháin in aghaidh gach baill den phainéal
+   (`open-sse/services/autoCombo/chaosEngine.ts`, á sheoladh ó
+   `open-sse/services/combo.ts`).
+3. Sruthaítear líne stádais amháin in aghaidh gach baill den phainéal de réir mar a thagann sí: nóta tráchta SSE
+   (`: chaos <index> ok|fail <model>`) de réir réamhshocraithe, chomh maith le teagmhas `omni-chaos-part`
+   (`model`, `index`, `ok`, `error`) nuair a shocraíonn an t-iarratas
+   `stream_options.include_chaos_parts: true`. Níl aon téacs freagraí iontu seo.
+4. Seoltar **freagra amháin** ón bpainéal mar an smután deiridh i stíl OpenAI: freagra an chéad
+   bhaill den phainéal (socraíonn `auto/chaos` é mar `judgeModel`) nuair a éiríonn leis, nó
+   freagra an bhaill dheireanaigh ar éirigh leis murach sin. Ní sheoltar na freagraí eile ón bpainéal ar ais, mar sin
+   íocann tú as N glao agus faigheann tú aon chríochnú amháin.
 
 ## Socrú
 

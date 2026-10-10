@@ -6,6 +6,9 @@ lastUpdated: 2026-08-18
 
 # CLI Integrations
 
+For the shared executable manifest, restricted child environments and persistent
+Gemini setup, see [CLI launch contracts](./CLI-LAUNCH-CONTRACTS.md).
+
 OmniRoute ships a family of `setup-*` commands that configure a coding
 CLI (Codex, Claude Code, OpenCode, Cline, …) to use OmniRoute as its backend — so
 the tool talks to **one** endpoint and OmniRoute routes to the right provider with
@@ -81,7 +84,7 @@ server and writes the config locally.
 | `omniroute setup-aider`    | Aider                        | `~/.aider.conf.yml` (`openai-api-base` + `model: openai/<id>`) + prints env recipe                                                                                | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Both            |
 | `omniroute setup-qwen`     | Qwen Code                    | `~/.qwen/settings.json` — V4 `modelProviders.openai` array + `OMNIROUTE_API_KEY` in `~/.qwen/.env`                                                                | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path` `--env-path`                                                 | Both            |
 | `omniroute setup-5dive`    | 5dive (agent fleet)          | Nothing under `$HOME` — writes a 5dive **auth profile** (`/var/lib/5dive/auth-profiles/<name>/`) via `5dive agent auth set`; root-only, runs on the fleet host    | `--remote` `--api-key` `--model` `--auth-profile` `--agent` `--byo-provider` `--fivedive-bin` `--no-sudo` `--yes` `--dry-run` `--port`     | Both            |
-| `omniroute setup-whycodes` | WhyCodes                     | WhyCodes `config.toml` (`[providers.omniroute]` + `[default_model]`); path is `$WHYCODES_HOME/config.toml` or the platform project dir                            | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Both            |
+| `omniroute setup-whycodes` | WhyCodes                     | WhyCodes `config.toml` (`[providers.omniroute]` + `[default_model]`); path is `$WHYCODES_HOME/config.toml` or `~/.whycodes/config.toml`                           | `--remote` `--api-key` `--model` `--yes` `--dry-run` `--port` `--config-path`                                                              | Both            |
 | `omniroute run <target>`   | Runtime launch (generic)     | Nothing — spawn `claude`/`codex`/`aider`/`goose`/`opencode`/`qwen`/`gemini`/`whycodes` with the right env and args; Qwen and Gemini use a temporary isolated home | `--remote` `--base-url` `--context` `--provider` `--model` `--api-key` `--api-key-env` `--dry-run` `--json` `--port` `--profile` `--token` | Both            |
 | `omniroute launch`         | Claude Code                  | Nothing — spawns `claude` with `ANTHROPIC_BASE_URL`/`ANTHROPIC_AUTH_TOKEN` injected                                                                               | `--remote` `--api-key` `--token` `--profile` `--port`                                                                                      | Both            |
 | `omniroute launch-codex`   | OpenAI Codex CLI             | Nothing — spawns `codex` with the `omniroute` provider injected via `-c` flags                                                                                    | `--remote` `--api-key` `--profile` (`-p`) `--port`                                                                                         | Both            |

@@ -149,7 +149,12 @@ export function buildEmptyComboTargetsPayload(
 
 /** Which weighted-selection gate dropped a target before dispatch. */
 export type PreDispatchExclusionReason =
-  "circuit_open" | "provider_cooldown" | "model_lockout" | "free_tier_drained" | "unavailable";
+  | "circuit_open"
+  | "provider_cooldown"
+  | "connection_cooldown"
+  | "model_lockout"
+  | "free_tier_drained"
+  | "unavailable";
 
 export interface PreDispatchExclusion {
   provider: string;
@@ -168,6 +173,7 @@ export interface PreDispatchExclusion {
 const TEMPORARY_EXCLUSION_REASONS: ReadonlySet<PreDispatchExclusionReason> = new Set([
   "circuit_open",
   "provider_cooldown",
+  "connection_cooldown",
   "model_lockout",
 ]);
 
@@ -207,7 +213,7 @@ export function buildAllTargetsCoolingDownResponse(
     known.length > 0 ? Math.max(1, Math.ceil(Math.min(...known) / 1000)) : undefined;
   const response = errorResponseWithComboDiagnostics(
     503,
-    "Service temporarily unavailable: every target in this combo is cooling down (model lockout, circuit breaker or provider cooldown)",
+    `Service temporarily unavailable: every target in this combo is cooling down (model lockout, circuit breaker, provider or connection cooldown): ${formatPreDispatchExclusions(cooling)}`,
     {
       poolSize: exclusions.length,
       attempted: 0,

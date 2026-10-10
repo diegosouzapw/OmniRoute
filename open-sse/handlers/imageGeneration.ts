@@ -21,6 +21,7 @@ import { getCodexClientVersion, getCodexUserAgent } from "../config/codexClient.
 import { isCodexFreePlan } from "../executors/codex/tools.ts";
 import { saveCallLog } from "@/lib/usageDb";
 import { sleep } from "../utils/sleep.ts";
+import { normalizeImageBuffer } from "../utils/imageNormalize.ts";
 import {
   getKieErrorMessage,
   getKieErrorStatus,
@@ -60,10 +61,16 @@ import { handleSegmindImageGeneration } from "./imageGeneration/providers/segmin
 import { handleUcImageGeneration } from "./imageGeneration/providers/ucImage.ts";
 import { handleCursorAgentImageGeneration } from "./imageGeneration/providers/cursorAgentImage.ts";
 import { handleMinimaxImageGeneration } from "./imageGeneration/providers/minimax.ts";
+import { handleCloudflareAiImageGeneration } from "./imageGeneration/providers/cloudflareAi.ts";
+import { buildXaiImageRequest } from "./imageGeneration/providers/xaiImage.ts";
 import { handleMaxaiImageGeneration } from "./imageGeneration/providers/maxaiImage.ts";
 import { handleAdobeFireflyImageGeneration } from "./imageGeneration/providers/adobeFirefly.ts";
+import { handleSyntxImageGeneration } from "./imageGeneration/providers/syntx.ts";
+import { geminiInlineImagePart } from "./imageGeneration/providers/geminiInline.ts";
 import { handleAlibabaImageGeneration } from "./imageGeneration/providers/alibabaImage.ts";
 import { handleAiHordeImageGeneration } from "./imageGeneration/providers/aihorde.ts";
+import * as codexImages from "./imageGeneration/providers/codexImages.ts";
+import { handleZenmuxImageGeneration } from "./imageGeneration/providers/zenmux.ts";
 import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
@@ -71,6 +78,8 @@ import {
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
+export { handleSyntxImageGeneration };
+export { isCodexChatGptModelAccessError };
 
 interface KieImageOptions {
   model: string;
@@ -125,21 +134,11 @@ interface KieImageOptions {
 //     ideogram/v3-reframe has no dedicated docs.kie.ai page as of this sweep
 //     (its 3 siblings above are all direct id matches, so it is assumed
 //     correct by pattern, not independently confirmed).
-// One catalog entry remains UNRESOLVED after this sweep and is deliberately
-// left untouched pending a follow-up (see #11296 discussion):
-//   - z-image/4.0-text-to-image and z-image/4.5-text-to-image: the only
-//     documented Z-Image Market page (docs.kie.ai/market/z-image/z-image)
-//     shows a single fixed `model` enum value `"z-image"` with no
-//     version-specific id or "version" input field found — unclear whether
-//     both catalog ids should collapse to the same upstream call.
-// flux/kontext is RESOLVED (#11296): it is catalogued with `isMarket: true`
-// but has no `docs.kie.ai/market/flux2/kontext` (or similar) Market page —
-// Flux Kontext is documented under the separate `/flux-kontext-api/*` docs
-// tree with its own endpoint (`POST /api/v1/flux/kontext/generate`, poll
-// `GET /api/v1/flux/kontext/record-info`, models `flux-kontext-pro`/
-// `flux-kontext-max`), not the Market `createTask` flow this map feeds. It is
-// NOT in KIE_MARKET_UPSTREAM_MODEL_IDS below on purpose — handleKieImageGeneration
-// reroutes it to the dedicated endpoint instead of rewriting its id.
+// #14335 (2026-10-08): https://docs.kie.ai/market/z-image/z-image declares
+// `z-image`. The old versioned picker ids remain compatibility aliases only.
+// Flux Kontext's dedicated API/tier is now explicit in the registry. The current
+// main docs also offer a Market API, but existing requests retain the documented
+// /old-model/flux-kontext-api contract rather than migrating endpoints implicitly.
 export const KIE_MARKET_UPSTREAM_MODEL_IDS: ReadonlyMap<string, string> = new Map([
   ["google-imagen/nano-banana", "google/nano-banana"],
   ["google-imagen/nano-banana-2", "nano-banana-2"],
@@ -157,6 +156,8 @@ export const KIE_MARKET_UPSTREAM_MODEL_IDS: ReadonlyMap<string, string> = new Ma
   ["flux/2-image-to-image", "flux-2/flex-image-to-image"],
   ["wan/2.7-image", "wan/2-7-image"],
   ["wan/2.7-image-pro", "wan/2-7-image-pro"],
+  ["z-image/4.0-text-to-image", "z-image"],
+  ["z-image/4.5-text-to-image", "z-image"],
 ]);
 
 export function resolveKieMarketUpstreamModelId(publicModelId: string): string {
@@ -184,6 +185,27 @@ const IMAGE_ASPECT_RATIO_PATTERN = /^\d+:\d+$/;
 const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
 
 /**
+ * Read the configured node base URL from a custom provider's credentials:
+ * `providerSpecificData.baseUrl` first, then the legacy top-level
+ * `credentials.baseUrl`. Returns null when neither is set, so callers can
+ * fall back to a default or fail closed.
+ */
+function pickConfiguredNodeBaseUrl(
+  credentials:
+    { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined
+): string | null {
+  const psd = credentials?.providerSpecificData;
+  const psdBaseUrl =
+    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
+      ? psd.baseUrl.trim()
+      : null;
+  if (psdBaseUrl) return psdBaseUrl;
+  return typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
+    ? credentials.baseUrl.trim()
+    : null;
+}
+
+/**
  * Resolve the upstream images endpoint for a custom (OpenAI-compatible) image
  * provider node (#3205).
  *
@@ -191,7 +213,8 @@ const IMAGE_SIZE_PATTERN = /^(?:1K|2K|4K)$/;
  * in `credentials.providerSpecificData.baseUrl` (e.g. `https://example.com/v1`),
  * NOT as a top-level `credentials.baseUrl`. Older callers may still pass a
  * top-level `baseUrl`, so we honor that as a secondary source. When neither is
- * present we fall back to `fallback` (the built-in Gemini OpenAI endpoint).
+ * present the caller may use its explicit fallback. Custom-node callers use
+ * failClosed so they never route to a built-in provider endpoint.
  *
  * Resolution order: providerSpecificData.baseUrl → credentials.baseUrl → fallback.
  *
@@ -206,20 +229,12 @@ export function resolveImageBaseUrl(
   credentials:
     { baseUrl?: unknown; providerSpecificData?: { baseUrl?: unknown } | null } | null | undefined,
   fallback: string,
-  endpoint: "generations" | "edits" = "generations"
+  endpoint: "generations" | "edits" = "generations",
+  failClosed = false
 ): string {
-  const psd = credentials?.providerSpecificData;
-  const psdBaseUrl =
-    psd && typeof psd === "object" && typeof psd.baseUrl === "string" && psd.baseUrl.trim()
-      ? psd.baseUrl.trim()
-      : null;
-  const topLevelBaseUrl =
-    typeof credentials?.baseUrl === "string" && credentials.baseUrl.trim()
-      ? credentials.baseUrl.trim()
-      : null;
-  const nodeBaseUrl = psdBaseUrl || topLevelBaseUrl;
+  const nodeBaseUrl = pickConfiguredNodeBaseUrl(credentials);
 
-  if (!nodeBaseUrl) return fallback;
+  if (!nodeBaseUrl) return failClosed ? "" : fallback;
 
   // A single configured node serves both image routes: honor a base URL that already
   // points at the requested OpenAI image path, and rewrite one that points at the other
@@ -272,7 +287,7 @@ function parseJsonOrNull(value: string): unknown | null {
   }
 }
 
-function sanitizeImageProviderError(errorText: string): unknown {
+export function sanitizeImageProviderError(errorText: string): unknown {
   const parsed = parseJsonOrNull(errorText);
   if (parsed !== null) {
     return sanitizeUpstreamDetails(parsed) || sanitizeErrorMessage(errorText);
@@ -328,12 +343,6 @@ const BFL_EDIT_MODELS = new Set([
 ]);
 
 const BFL_FAILURE_STATUSES = new Set(["Error", "Failed", "Content Moderated", "Request Moderated"]);
-
-function formatImageProviderError(err) {
-  const sanitized = sanitizeErrorMessage(err);
-  const message = (sanitized || "").replace(/^Error:\s*/i, "").trim();
-  return message ? `Image provider error: ${message}` : "Image provider error";
-}
 
 const STABILITY_GENERATION_ENDPOINTS = {
   "sd3.5-large": "/v2beta/stable-image/generate/sd3",
@@ -491,14 +500,19 @@ export async function handleImageGeneration({
       // Previously only the (always-absent) top-level credentials.baseUrl was
       // read, so every custom image node fell back to the Gemini endpoint and
       // returned "Please pass a valid API key".
-      baseUrl: resolveImageBaseUrl(
-        credentials,
-        `https://generativelanguage.googleapis.com/v1beta/openai/images/generations`
-      ),
+      baseUrl: resolveImageBaseUrl(credentials, "", "generations", true),
       authType: "apikey",
       authHeader: "bearer",
       format: "openai",
     };
+
+    if (!syntheticConfig.baseUrl) {
+      return {
+        success: false,
+        status: 501,
+        error: `Image generation is not configured for custom provider: ${provider}`,
+      };
+    }
 
     return handleOpenAIImageGeneration({
       model,
@@ -507,6 +521,18 @@ export async function handleImageGeneration({
       body,
       credentials,
       log,
+    });
+  }
+
+  if (providerConfig.format === "zenmux-image") {
+    return handleZenmuxImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+      signal,
     });
   }
 
@@ -670,6 +696,10 @@ export async function handleImageGeneration({
     });
   }
 
+  if (providerConfig.format === "syntx-image") {
+    return handleSyntxImageGeneration({ model, provider, providerConfig, body, credentials, log });
+  }
+
   if (providerConfig.format === "nanobanana") {
     return handleNanoBananaImageGeneration({
       model,
@@ -756,6 +786,17 @@ export async function handleImageGeneration({
 
   if (providerConfig.format === "nvidia-nim") {
     return handleNvidiaNimImageGeneration({
+      model,
+      provider,
+      providerConfig,
+      body,
+      credentials,
+      log,
+    });
+  }
+
+  if (providerConfig.format === "cloudflare-ai-image") {
+    return handleCloudflareAiImageGeneration({
       model,
       provider,
       providerConfig,
@@ -871,13 +912,7 @@ async function handleKieImageGeneration({
   // Check if model is a Market model (unified API)
   const fullRegistry = getImageProvider(provider);
   const modelEntry = fullRegistry?.models?.find((m) => m.id === model);
-  // #11296 — flux/kontext is catalogued with `isMarket: true`, but KIE does not
-  // expose it through the Market catalog at all: it lives under a dedicated API
-  // tree (POST /api/v1/flux/kontext/generate, poll .../flux/kontext/record-info)
-  // that rejects the Market createTask flow with "model name not supported". Route
-  // it there instead of treating it as a Market entry (see KIE_MARKET_UPSTREAM_MODEL_IDS
-  // comment above for the same finding).
-  const isFluxKontext = model === "flux/kontext";
+  const isFluxKontext = Boolean(modelEntry?.kieFluxKontextModel);
   const isMarket = !isFluxKontext && (modelEntry?.isMarket || model.includes("/"));
 
   const { imageUrl } = extractImageInputs(body);
@@ -885,12 +920,12 @@ async function handleKieImageGeneration({
   let payload: Record<string, unknown> = {};
 
   if (isFluxKontext) {
-    // Dedicated Flux Kontext API endpoint (not part of the Market catalog).
+    // Preserve the dedicated API and choose Pro/Max from the catalog contract.
     baseUrl = `${providerConfig.baseUrl.replace(/\/$/, "")}/api/v1/flux/kontext/generate`;
     payload = {
       prompt,
       aspectRatio: mapImageSize(size),
-      model: "flux-kontext-pro",
+      model: modelEntry.kieFluxKontextModel,
       ...(imageUrl ? { inputImage: imageUrl } : {}),
     };
   } else if (isMarket) {
@@ -1089,6 +1124,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
     });
   }
 
+  const inlineImage = geminiInlineImagePart(body);
   const antigravityBody = {
     project: projectId,
     requestId: `image_gen/${Date.now()}/${randomUUID()}/0`,
@@ -1096,7 +1132,7 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       contents: [
         {
           role: "user",
-          parts: [{ text: promptText }],
+          parts: [...(inlineImage ? [inlineImage] : []), { text: promptText }],
         },
       ],
       generationConfig: {
@@ -1279,7 +1315,11 @@ async function handleOpenAIImageGeneration({
           prompt: body.prompt,
         };
 
-  if (providerConfig.format !== "agnes-image") {
+  if (providerConfig.format === "xai-image") {
+    const request = buildXaiImageRequest(model, body);
+    if ("error" in request) return { success: false, status: 400, error: request.error };
+    Object.assign(upstreamBody, request.body);
+  } else if (providerConfig.format !== "agnes-image") {
     // Pass optional parameters for ordinary OpenAI-compatible providers.
     if (body.n !== undefined) upstreamBody.n = body.n;
     if (body.size !== undefined) upstreamBody.size = body.size;
@@ -2489,11 +2529,29 @@ export function extractImageGenerationCalls(
 // The image_generation hosted tool accepts { "auto" | "low" | "medium" | "high" }
 // for `quality`. Legacy image clients often send "standard" / "hd". Map those values
 // so OpenWebUI's quality dropdown doesn't silently get rejected upstream.
-function mapLegacyImageQualityToImageTool(value: string): string {
+export function mapLegacyImageQualityToImageTool(value: string): string {
   const normalized = value.toLowerCase();
   if (normalized === "standard") return "medium";
   if (normalized === "hd") return "high";
   return normalized;
+}
+
+// The Codex backend answers 503 when an inline reference image is large (seen above ~400 KB);
+// a 1024px long edge keeps edits working without changing what the model sees in practice.
+const CODEX_REFERENCE_MAX_BYTES = 400_000;
+const CODEX_REFERENCE_MAX_LONG_EDGE = 1024;
+
+export async function shrinkCodexReferenceImage(image: {
+  bytes: Buffer;
+  mime?: string;
+}): Promise<{ bytes: Buffer; mime: string }> {
+  const mime = image.mime || "image/png";
+  if (image.bytes.length <= CODEX_REFERENCE_MAX_BYTES) return { bytes: image.bytes, mime };
+  const out = await normalizeImageBuffer(image.bytes, {
+    maxLongEdge: CODEX_REFERENCE_MAX_LONG_EDGE,
+  });
+  if (!out.resized) return { bytes: image.bytes, mime };
+  return { bytes: out.buffer, mime: out.mime || mime };
 }
 
 async function handleCodexImageGeneration({
@@ -2559,11 +2617,10 @@ async function handleCodexImageGeneration({
     !Array.isArray(credentials.providerSpecificData)
       ? (credentials.providerSpecificData as Record<string, unknown>).workspaceId
       : undefined;
-
-  // Forward size/quality from the GPT-Image-style body into the hosted tool so
-  // OpenWebUI's size/quality selectors actually take effect. Everything else
-  // (model, n, background, moderation, output_compression) is left to the
-  // Codex backend's defaults — today that's `gpt-image-2`.
+  if (codexImages.isCodexImagesApiModel(model)) {
+    // prettier-ignore
+    return codexImages.handleCodexImagesApi({ model, provider, baseUrl: providerConfig.baseUrl, body, token, workspaceId, requestedCount, referenceImages, startTime, log, signal, logPath });
+  }
   const toolConfig: Record<string, unknown> = { type: "image_generation", output_format: "png" };
   if (referenceImages.length > 0) toolConfig.action = "edit";
   if (typeof body.size === "string" && body.size.trim()) {
@@ -2572,12 +2629,18 @@ async function handleCodexImageGeneration({
   if (typeof body.quality === "string" && body.quality.trim()) {
     toolConfig.quality = mapLegacyImageQualityToImageTool(body.quality.trim());
   }
+  // The hosted image_generation tool accepts `background` ("transparent" | "opaque" | "auto");
+  // without it a logo/sticker request always comes back on an opaque canvas.
+  if (typeof body.background === "string" && body.background.trim()) {
+    toolConfig.background = body.background.trim();
+  }
 
   const inputContent: Array<Record<string, unknown>> = [{ type: "input_text", text: prompt }];
   for (const image of referenceImages) {
+    const reference = await shrinkCodexReferenceImage(image);
     inputContent.push({
       type: "input_image",
-      image_url: `data:${image.mime || "image/png"};base64,${image.bytes.toString("base64")}`,
+      image_url: `data:${reference.mime};base64,${reference.bytes.toString("base64")}`,
     });
   }
 

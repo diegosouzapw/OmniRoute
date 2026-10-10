@@ -216,9 +216,10 @@ function hasExited(child) {
  * reap, throw, so boot #2 cannot start against a port a zombie still holds.
  *
  * The child is spawned with detached:true, so it leads its own process group and
- * -child.pid signals the whole tree, not just the launcher.
+ * -child.pid signals the whole tree, not just the launcher. Exported for reuse by the
+ * local candidate loop (scripts/dev/candidate.mjs), which boots packaged artifacts the same way.
  */
-async function stopChild(child, graceMs = 30_000) {
+export async function stopChild(child, graceMs = 30_000) {
   if (!child?.pid) return;
   // Fast path: already reaped (crashed mid-smoke, or exited before this call) — nothing
   // left to signal or wait for.
@@ -311,7 +312,13 @@ function spawnServer(binPath, port, dataDir) {
   return { child, tail };
 }
 
-function derivePackagedCliToken(packageRoot) {
+/**
+ * Derive the loopback machine token exactly as the installed CLI would for this install.
+ * Since #13679/#13909 the token salt is per-install, persisted under <DATA_DIR>, so the
+ * derivation MUST see the same DATA_DIR the server boots on — otherwise the CLI resolves
+ * a different salt, the server rejects the token and health serves the anonymous view.
+ */
+export function derivePackagedCliToken(packageRoot, dataDir) {
   const cliModuleUrl = pathToFileURL(
     path.join(packageRoot, "bin", "cli", "utils", "cliToken.mjs")
   ).href;
@@ -323,7 +330,7 @@ function derivePackagedCliToken(packageRoot) {
       "import(process.argv[1]).then(async m => process.stdout.write(await m.getCliToken()))",
       cliModuleUrl,
     ],
-    { encoding: "utf8", env: { ...process.env } }
+    { encoding: "utf8", env: { ...process.env, DATA_DIR: dataDir } }
   ).trim();
 }
 
@@ -454,7 +461,7 @@ async function main() {
     const dataDir = path.join(tmp, "data");
     fs.mkdirSync(dataDir, { recursive: true });
     const binPath = path.join(prefix, "bin", "omniroute");
-    const packagedCliToken = derivePackagedCliToken(packageRoot);
+    const packagedCliToken = derivePackagedCliToken(packageRoot, dataDir);
 
     // BOOT #1 — boot, prove the forced sql.js tier, PATCH a setting, then shut down cleanly
     // so the sql.js adapter's graceful persist actually lands on disk. The in-flow stopChild

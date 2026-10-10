@@ -7,52 +7,52 @@
 OmniRoute har **två** processlokala körfältssystem med olika omfång. De är
 kompletterande; operatörer bör veta vilket av dem de tittar på.
 
-## 1. Processomfattande admission på byte-nivå (`chatBodyAdmission.ts`)
+## 1. Bytebaserad processomfattande åtkomstkontroll (`chatBodyAdmission.ts`)
 
 - **Omfattning:** sökvägen för buffrad body/heap för `POST /v1/chat/completions`,
-  `/v1/messages`, `/v1/responses` och övriga chattliknande routes. Skyddar
+  `/v1/messages`, `/v1/responses` och övriga chattliknande rutter. Skyddar
   mot heap-amplifiering från stora bodies från kodningsagenter (#4380).
 - **En processglobal styrenhet, inte separata banor per nyckel (#10110).** Varje API-nyckel
   (hashad) eller `anonymous`-session använder **samma** delade budget —
-  det hashade sessions-id:t används ENDAST som schemaläggningsnyckel för rättvisa (round-robin-
-  distribution mellan väntande), aldrig som en kapacitetspartition. En tidigare version av detta
-  dokument beskrev separata banor per nyckel med oberoende kapacitet; den modellen
-  togs bort i #10110 eftersom den gjorde det möjligt för oautentiserade falska autentiseringsuppgifter att multiplicera
+  det hashade sessions-id:t används ENDAST som en schemaläggningsnyckel för rättvisa (round-robin-
+  fördelning mellan väntande), aldrig som en kapacitetspartition. En tidigare version av detta
+  dokument beskrev banor per nyckel med oberoende kapacitet; den modellen
+  togs bort i #10110 eftersom den gjorde det möjligt för oautentiserade falska inloggningsuppgifter att multiplicera
   den processomfattande gränsen.
 - **Grind (#503-fanout): en automatiskt härledd BYTE-budget för inläsning, inte ett fast antal
-  anrop.** Det äldre taket `CHAT_MAX_HEAVY_IN_FLIGHT` för antal anrop (standardvärde `1`
-  före denna korrigering) reducerade fan-out för kodningsagenter (flera underagenter/CLI:er,
+  förfrågningar.** Det äldre taket för antal förfrågningar, `CHAT_MAX_HEAVY_IN_FLIGHT` (standardvärde `1`
+  före denna korrigering), reducerade fan-out för kodningsagenter (flera underagenter/CLI:er,
   bodies rutinmässigt > 256 KB) till en effektiv samtidighet på ~1, vilket gav
-  503-fel under helt normal belastning. Det är nu endast bindande när en operatör uttryckligen
-  anger `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Om det lämnas oangivet styrs admission i stället
-  av `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — en budget som automatiskt härleds från
-  processens verkliga minnesgräns (`src/shared/middleware/admissionBudget.ts`):
-  25 % av den lägre gränsen av V8-heapgränsen och eventuell cgroup-/containergräns,
+  503-fel vid helt normal belastning. Det är nu endast bindande när en operatör uttryckligen
+  anger `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`. Om det inte anges styrs åtkomsten i stället
+  av `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — en budget som härleds automatiskt från
+  processens faktiska minnesgräns (`src/shared/middleware/admissionBudget.ts`):
+  25 % av den lägre av V8:s heap-gräns och eventuell cgroup-/containergräns,
   dividerat med en faktor på 8x för tillfällig amplifiering, begränsat till mellan 8 MiB och
-  2 GiB. Explicita åsidosättningar använder samma gränser. Detta skalas automatiskt från en
+  2 GiB. Uttryckliga åsidosättningar använder samma gränser. Detta skalas automatiskt från en
   container på 512 MB till en stationär dator med 32 GB utan justering av miljövariabler. En body som inte
   ryms inom den effektiva budgeten misslyckas omedelbart med `413 body_exceeds_budget`;
-  endast konkurrens mellan bodies som var och en kan hanteras placeras i den begränsade
-  rättvisekön. En aktiv resurstrycksspårare med flera signaler (V8-heapkvot,
+  endast konkurrens mellan bodies som var för sig kan hanteras placeras i den begränsade
+  rättvisekön. En resursbelastningsspårare med flera direktsignaler (V8-heap-kvot,
   cgroup, PSI, OOM-händelser — `open-sse/utils/resourcePressurePolicy.ts`) förkortar
-  den begränsade väntetiden vid `high` tryck och avvisar omedelbart med
-  `503 resource_pressure` vid `critical` tryck, innan några byte ens har
-  lästs in. PSI läses från denna enhets cgroup-`memory.pressure` när den finns
-  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` är
-  värdomfattande och används endast som reserv på fysisk maskin/cgroup v1, så en värd
-  som använder växlingsutrymme kan inte orsaka 503-fel i en inaktiv container.
+  den begränsade väntetiden vid `high` belastning och avvisar omedelbart med
+  `503 resource_pressure` vid `critical` belastning, innan några byte ens
+  har lästs in. PSI läses från denna enhets cgroup `memory.pressure` när den finns
+  (`open-sse/utils/resourcePressureSampler.ts`); `/proc/pressure/memory` gäller
+  hela värden och används endast som reserv på bare metal / cgroup v1, så en värd
+  som swappar kan inte orsaka 503-fel i en inaktiv container.
 - **Justering:**
   - `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — åsidosättning av den automatiskt härledda bytebudgeten
-  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — äldre tak för antal anrop, endast genom uttryckligt val
-  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — köväntetid före 503 (standardvärde 2000)
-  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heapventil för köade byte (standardvärde 4 MB)
+  - `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` — äldre tak för antal förfrågningar, endast genom aktivt val
+  - `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` — köväntetid före 503 (standardvärdet är `RATE_LIMIT_MAX_WAIT_MS`)
+  - `OMNIROUTE_CHAT_ADMISSION_MAX_QUEUED_BYTES` — heap-ventil för köade byte (standardvärde 4 MB)
   - `OMNIROUTE_CHAT_VIRTUAL_TTL_MS` / `OMNIROUTE_CHAT_VIRTUAL_MAX_SESSIONS` — utfasade
-    utan effekt sedan #10110 (accepteras för konfigurationskompatibilitet, ignoreras)
+    utan effekt sedan #10110 (accepteras för konfigurationskompatibilitet men ignoreras)
 - **Rapporter:** `GET /api/monitoring/health` → `chatAdmission` (#11244) — inklusive
   tilläggen från #503-fanout: `inflightBytes`, `maxInflightBytes`, `budgetSource`
   (`v8_heap` | `cgroup` | `override`), `pressureSeverity` och `countCapEnabled`
   (false i en standarddistribution — bekräftar att det är bytebudgeten, inte det äldre
-  antalsgränsvärdet, som faktiskt är bindande).
+  antalsbaserade taket, som faktiskt är bindande).
 
 ## 2. Adaptiva virtuella körfält under körning (`open-sse/services/admission`)
 

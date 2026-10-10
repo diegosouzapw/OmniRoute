@@ -19,6 +19,7 @@ export default function DefaultToolCard({
   activeProviders = [],
   cloudEnabled = false,
   batchStatus,
+  catalog = [],
 }) {
   const t = useTranslations("cliTools");
   const translateOrFallback = useCallback(
@@ -232,12 +233,14 @@ export default function DefaultToolCard({
         models: getSelectedModels(),
         model: getSelectedModels()[0],
         modelLabels: getSelectedModelLabelMap(),
+        catalog,
       }),
       null,
       2
     );
   }, [
     baseUrlWithV1,
+    catalog,
     getSelectedModels,
     getSelectedModelLabelMap,
     replaceVars,
@@ -293,6 +296,7 @@ export default function DefaultToolCard({
           model: modelValue,
           models: isMultiModelTool ? getSelectedModels() : undefined,
           modelLabels: getSelectedModelLabelMap(),
+          ...(usesOpenCodePreview ? { catalog } : {}),
         }),
       });
       const data = await res.json();

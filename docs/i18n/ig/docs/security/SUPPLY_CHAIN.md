@@ -4,56 +4,59 @@
 
 ---
 
-OmniRoute na-ebipụta arịfakt npm + Docker. Nnyocha ndị a na-enye ihe akaebe banyere ebe ha si,
-ndepụta ihe mejupụtara (SBOM) na nyocha CVE; ha niile bụ OSS ma jikọta ha na usoro ọrụ mwepụta.
-Ụkpụrụ **ndụmọdụ-bụ-ụzọ-mbụ** — ha na-enye akụkọ ugbu a, a ga-eme ka ha bụrụ ndị na-egbochi mgbe
-mwepụta ndụ ndụ mbụ gasịrị.
+OmniRoute na-ebipụta npm + Docker artifacts. Ọnụ ụzọ ndị a na-enye akaebe (provenance), ndepụta ihe (SBOM) na nyocha CVE, ha niile bụ OSS, ejikọta ya na usoro mwepụta. Ọnọdụ **ndụmọdụ-mbụ** — ha na-akọ ugbu a, na-ebuli elu ka ọ bụrụ ihe mgbochi mgbe mwepụta mbụ na-aga nke ọma gasịrị.
 
-| Nnyocha                | Ngwaọrụ                                        | Ebe                           | Ọ na-egbochi?        | Nsonaazụ                                      |
-| ---------------------- | ---------------------------------------------- | ----------------------------- | -------------------- | --------------------------------------------- |
-| Ihe akaebe SLSA (npm)  | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | naanị ma mbipụta daa | baajị npmjs / `npm audit signatures`          |
-| SBOM npm               | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | naanị ma mmepụta daa | Arịfakt mwepụta + arịfakt                     |
-| Onyonyo SBOM           | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | ndụmọdụ              | Arịfakt CycloneDX                             |
-| Trivy CVE (SARIF)      | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | ndụmọdụ              | SARIF (HIGH+CRITICAL) → taabụ Security        |
-| Nnyocha CRITICAL Trivy | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **na-egbochi**       | `exit-code: '1'` na CRITICAL nwere ndozi      |
-| osv vulnCount          | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **na-egbochi**       | na-ejide `metrics.vulnCount` (direction:down) |
-| OpenSSF Scorecard      | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | ndụmọdụ              | SARIF → Security + baajị                      |
+| Ọnụ Ụzọ               | Ngwa Ọrụ                                       | Ebe                           | Ọ Na-egbochi?                     | Nsonaazụ                                     |
+| --------------------- | ---------------------------------------------- | ----------------------------- | --------------------------------- | -------------------------------------------- |
+| SLSA provenance (npm) | `npm --provenance` (OIDC)                      | `npm-publish.yml`             | naanị ma ọ bụrụ na mbipụta adaala | badge npmjs / `npm audit signatures`         |
+| SBOM npm              | `@cyclonedx/cyclonedx-npm`                     | `npm-publish.yml`             | naanị ma ọ bụrụ na ọgbọ adaala    | Release asset + artifact                     |
+| SBOM image            | `anchore/sbom-action` (syft)                   | `docker-publish.yml` (merge)  | ndụmọdụ                           | CycloneDX artifact                           |
+| Trivy CVE (SARIF)     | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | ndụmọdụ                           | SARIF (HIGH+CRITICAL) → Security tab         |
+| Trivy CRITICAL gate   | `aquasecurity/trivy-action`                    | `docker-publish.yml` (merge)  | **na-egbochi**                    | `exit-code: '1'` on fixable CRITICAL         |
+| osv vulnCount         | `osv-scanner` (`check:vuln-ratchet --ratchet`) | `ci.yml` (`quality-extended`) | **na-egbochi**                    | na-agbada `metrics.vulnCount` (ntụziaka:ala) |
+| OpenSSF Scorecard     | `ossf/scorecard-action`                        | `scorecard.yml` (cron)        | ndụmọdụ                           | SARIF → Security + badge                     |
 
-Usoro ijide CVE nke onyonyo na-eji **nzọụkwụ abụọ** na `docker-publish.yml`: nzọụkwụ SARIF
-(`HIGH,CRITICAL`, `exit-code: 0`) na-eme ka HIGH+CRITICAL nọgide na-apụta na taabụ Security
-n'egbochighị usoro ahụ; nzọụkwụ _nnyocha CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`,
-`exit-code: 1`) na-eme ka mwepụta daa ma enwere CVE CRITICAL **nke nwere ndozi dị**. `ignore-unfixed`
-na-egbochi igbochi mwepụta n'ihi CVE nke onyonyo ntọala na-enweghị patch sitere n'aka ndị upstream.
+CVE ratchet nke onyonyo na-eji **usoro abụọ** na `docker-publish.yml`: usoro SARIF (`HIGH,CRITICAL`, `exit-code: 0`) na-eme ka HIGH+CRITICAL pụta ìhè na taabụ Nchedo n'egbochighị; usoro _ọnụ ụzọ CRITICAL_ (`severity: CRITICAL`, `ignore-unfixed: true`, `exit-code: 1`) na-eme ka mwepụta ahụ daa na CRITICAL CVE **nke nwere ndozi dịnụ**. `ignore-unfixed` na-egbochi igbochi mwepụta maka CVE onyonyo-isi na-enweghị patch sitere n'elu.
 
-## ⚠️ Mgbanwe CVE (nnyocha osv/Trivy ndị na-egbochi)
+## ⚠️ Ọdịiche CVE (na-egbochi ọnụ ụzọ osv/Trivy)
 
-osv na Trivy na-atụnyere deps na nchekwa data CVE ndị **na-eto mgbe niile**. PR
-nke **na-adịghị emetụ dependencies ọ bụla** nwere ike ịgbanwe gaa uhie na mberede n'ihi na e
-kpughere CVE ọhụrụ n'ime dep dịbu adị (osv: `vulnCount` a tụrụ > baseline; Trivy: CRITICAL ọhụrụ
-nwere ndozi n'ime onyonyo ahụ). **Nke a bụ omume arụmọrụ A TỤRỤ ANYA nke nnyocha CVE
-na-egbochi, ọ bụghị ndaghachi azụ nke ngwaahịa.**
+osv na Trivy na-atụnyere deps megide nchekwa data CVE ndị **na-eto eto mgbe niile**. PR nke **na-emetụghị ihe ọ bụla dabere na ya** nwere ike ịghọ ọbara ọbara na mberede n'ihi na ekpughere CVE ọhụrụ na dep dị adị (osv: `vulnCount` tụrụ atụ > baseline; Trivy: CRITICAL ọhụrụ a ga-edozi na onyonyo ahụ). **Nke a bụ omume ọrụ a na-atụ anya ya nke ọnụ ụzọ CVE na-egbochi, ọ bụghị mbelata ngwaahịa.**
 
-Mgbe osv ma ọ bụ Trivy gbanwere uhie n'ihi CVE e kpughere ọhụrụ, ihe ngwọta bụ:
+Mgbe osv ma ọ bụ Trivy ghọrọ ọbara ọbara n'ihi CVE ekpughere ọhụrụ, ngwọta ya bụ:
 
-1. **Bulie ụdị dep metụtara** (nke ka mma) — kwalite gaa na ụdị nwere patch site na `package.json`
-   `overrides` (transitive deps) ma ọ bụ wughachi onyonyo ahụ n'elu ntọala nwere patch.
-2. **Ọ bụrụ na enweghị ndozi upstream:**
-   - **osv:** tọọ baseline ọhụrụ maka `metrics.vulnCount` na `config/quality/quality-baseline.json`
-     (`npm run quality:ratchet -- --update` anaghị ekpuchi nnyocha ndị pụrụ iche — jiri aka dezie uru ahụ,
-     `direction:down`) tinyere ndetu nkọwa + issue nsuso.
-   - **Trivy:** tinye ndenye na `.trivyignore` (CVE-ID otu n'ahịrị ọ bụla) tinyere comment
-     nkọwa + issue nsuso. `ignore-unfixed: true` ekpuchilarị CVE ndị na-enweghị
-     patch na-akpaghị aka.
+1.  **Bulie dep emetụtara** (nke kacha mma) — kwalite na ụdị e doziri site na `package.json` `overrides` (transitive deps) ma ọ bụ wughachi onyonyo ahụ na ntọala e doziri.
+2.  **Ọ bụrụ na enweghị ndozi sitere n'elu:**
+    - **osv:** megharịa baseline `metrics.vulnCount` na `config/quality/quality-baseline.json` (`npm run quality:ratchet -- --update` anaghị ekpuchi ọnụ ụzọ raara onwe ya nye — dezie uru ahụ n'aka, `direction:down`) ya na ndetu nkwado + nsogbu nsochi.
+    - **Trivy:** tinye ntinye na `.trivyignore` (CVE-ID kwa ahịrị) ya na nkọwa nkwado + nsogbu nsochi. `ignore-unfixed: true` ekpuchilarị CVEs na-enweghị patches na-akpaghị aka.
 
-Nnyocha abụọ ahụ na-eme **SKIP n'enweghị nsogbu** (exit 0) mgbe ngwaọrụ adịghị ma ọ bụ ntụ ahụ
-daa (osv-scanner adịghị na PATH, enweghị ike iru osv.dev/netwọkụ, JSON ezighi ezi) — ọdịda
-**ntụ** anaghị egbochi mgbe ọ bụla; naanị ndaghachi azụ **a tụrụ** na-egbochi.
+Ọnụ ụzọ abụọ ahụ **na-agafe nwayọ** (exit 0) mgbe ngwa ọrụ adịghị ma ọ bụ mgbe nlele ahụ daa (osv-scanner adịghị na PATH, osv.dev/network enweghị ike iru, JSON ezighi ezi) — ọdịda **nlele** anaghị egbochi, naanị mbelata **tụrụ atụ** ka na-egbochi.
 
-## Backlog: Ndụmọdụ Scorecard → na-egbochi
+## Ihe Egwu Anabatara Amaara
 
-Mgbe mwepụta ndụ ndụ mbụ nke nwere akụkọ Scorecard gasịrị:
+### extract-zip 2.0.1 — GHSA-7pqw-9j4j-h8q3 / GHSA-jmr9-qjv8-65gv (#14482)
 
-- Scorecard: usoro ijide akara (na-eme ka akara a tụrụ ghara ịgbanwe; ọ gaghị enwe ike ibelata).
+`extract-zip@2.0.1` nwere ndụmọdụ abụọ dị oke egwu gbasara symlink-traversal na-enweghị ndozi.
+Dị ka ngalaba "enweghị ndozi n'elu" nke ngwọta CVE Variance dị n'elu si dị, nke a bụ **ihe egwu anabatara**, ọ bụghị nkwalite:
 
-Ọ na-emeju nnyocha Phase 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor
-na-enyocha usoro ọrụ ndị ahụ n'onwe ha; Scorecard na-atụ ọnọdụ repo n'ozuzu ya.
+- **Njikọ:** `promptfoo` (devDependency) → `@openai/codex-security` → `extract-zip@2.0.1`.
+  Ekwenyere site na `package-lock.json` — otu ngwugwu kpọmkwem n'ime osisi ndabere niile
+  (`@openai/codex-security`) na-ekwupụta `extract-zip`, ma otu ngwugwu kpọmkwem
+  (`promptfoo`) na-ekwupụta `@openai/codex-security`.
+- **Enweghị mwepụta edoziri dị ebe ọ bụla na njikọ ahụ.** `extract-zip@2.0.1` (ewepụtara na 2020) bụ mwepụta ikpeazụ nke ngwugwu ahụ — anaghị elekọta ya. `@openai/codex-security`'s
+  npm-latest ugbu a (`0.1.29`) ka na-adọta `extract-zip@2.0.1`.
+- **Enweghị ike iru ya site na mmepụta.** `promptfoo` bụ naanị devDependency (anaghị edepụta ya
+  n'okpuru `dependencies`), ma ọ nweghị faịlụ dị n'okpuru `src/`, `open-sse/`, ma ọ bụ `bin/` na-ebubata ngwugwu npm `extract-zip` — onye enyemaka `extractZip()` nke OmniRoute
+  (`src/lib/versionManager/binaryManager.ts:93`) na-eji `unzip`/`tar` nke ala ma ọ nweghị njikọ. `@openai/codex-security` na-ebukwa nchedo symlink-traversal nke ya n'elu onEntry callback nke extract-zip.
+- **Emelela** `extract-zip` site na `package.json` `overrides` — naanị ihe nnọchi anya kwesịrị ekwesị bụ Electron-org-internal ma ọ dakọghị na API na nyocha onEntry/defaultDirMode/defaultFileMode nke
+  `@openai/codex-security`; ịkwụsị ya ga-emebi nyocha nchekwa nke ngwugwu ahụ n'ụzọ dị jụụ.
+- **Ntọala:** osv `vulnCount` a tụrụ (3) adịlarị n'okpuru ntọala `config/quality/quality-baseline.json` (27) — ọ dịghị mgbanwe ratchet achọrọ.
+- **Nchedo mmebi:** `tests/unit/extract-zip-14482-exposure.test.ts` na-ekwusi ike na njikọ ahụ na enweghị ntinye mmepụta n'elu; ọ na-ada CI ma ọ bụrụ na otu n'ime ha emebie (dịka ọmụmaatụ, PR n'ọdịnihu na-eme ka `extract-zip` nwee ike iru site na mmepụta).
+- **Nsochi:** okwu #14482.
+
+## Nchịkọta ọrụ: Ndụmọdụ Scorecard → igbochi
+
+Mgbe mwepụta akwụkwọ ndụ akwụkwọ ndụ mbụ na akụkọ Scorecard gasịrị:
+
+- Scorecard: ratchet akara (na-eme ka akara a tụrụ atụ kwụsị; enweghị ike ibelata).
+
+Na-agbakwunye ọnụ ụzọ Phase 7 (osv-scanner, gitleaks, actionlint+zizmor): zizmor na-enyocha usoro ọrụ n'onwe ha; Scorecard na-atụle ọnọdụ repo n'ozuzu.

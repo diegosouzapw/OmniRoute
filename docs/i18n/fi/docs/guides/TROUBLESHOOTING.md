@@ -37,33 +37,33 @@ OmniRouten yleisiä ongelmia ja niiden ratkaisuja.
 
 ---
 
-### Maksuttomien palveluntarjoajien pyyntötiheyden rajoitus (429 / 400 / 401)
+### Ilmaispalveluntarjoajien nopeusrajoitukset (429 / 400 / 401)
 
-**Oire**: Kun käytät asetusta `model: "auto"` maksuttomien tai tunnistautumista vaatimattomien palveluntarjoajien (opencode, auggie jne.) kanssa, saat ajoittain vastauksen sijaan virheen `HTTP 429`, `400` tai `401`. Pyynnöt onnistuvat, kun sama kehote lähetetään uudelleen hetkeä myöhemmin, mutta automaatio (cron-työt, agentit, komentosarjat) keskeytyy ensimmäiseen virheeseen.
+**Oire**: Kun käytät asetusta `model: "auto"` ilmaisten tai tunnistautumista vaatimattomien palveluntarjoajien (opencode, auggie jne.) kanssa, saat ajoittain vastausten sijaan virheen `HTTP 429`, `400` tai `401`. Pyynnöt onnistuvat, kun sama kehote lähetetään uudelleen hetkeä myöhemmin, mutta automaatio (cron-työt, agentit ja komentosarjat) keskeytyy ensimmäiseen virheeseen.
 
-**Perussyy**: Kolme toisistaan riippumatonta virhetilannetta kasaantuu:
+**Perimmäinen syy**: Kolme toisistaan riippumatonta vikatilaa kasautuu:
 
-1. **Palveluntarjoajan pyyntötiheyden rajoitus (`429`)**: Maksuttomissa tasoissa voidaan käyttää aikajaksoihin perustuvaa kiintiötä. Rinnakkaisten kutsujen ryöppy kuluttaa sen loppuun, joten seuraava pyyntö hylätään, kunnes aikajakso nollautuu.
-2. **Rikkinäinen malli suoravälityksessä (`400`/`401`)**: `auto/*`-poolit voivat sisältää `opencode`-palvelun suoravälitysmalleja, jotka on rekisteröity luetteloon mutta joilla ei ole toimivia tunnistetietoja (esim. `oc/north-mini-code-free` → `401`). Automaattinen reititin kokeilee yhtä niistä, epäonnistuu ja välittää virheen eteenpäin ennen kuin varajärjestelmä ehtii aktivoitua.
-3. **Samanaikaisuuden vahvistava vaikutus (`429` kuormituksen aikana)**: Kun useat agentti- tai cron-istunnot käyttävät `auto`-asetusta samanaikaisesti, pyyntöjen kokonaismäärä ylittää maksuttomien palveluntarjoajien sietokyvyn, jolloin kelvolliset kutsut tulkitaan väärinkäytöksiksi.
+1. **Palveluntarjoajan nopeusrajoitus (`429`)**: Ilmaisissa palvelutasoissa voidaan käyttää aikavälikohtaista kiintiötä. Rinnakkaisten kutsujen ryöppy kuluttaa sen loppuun, joten seuraava pyyntö hylätään, kunnes aikaväli nollautuu.
+2. **Viallinen malli läpiviennissä (`400`/`401`)**: `auto/*`-poolit voivat sisältää `opencode`-palvelun läpivientimalleja, jotka on rekisteröity luetteloon mutta joilla ei ole toimivia tunnistetietoja (esim. `oc/north-mini-code-free` → `401`). Automaattinen reititin kokeilee tällaista mallia, epäonnistuu, ja virhe välittyy eteenpäin ennen varajärjestelyn käynnistymistä.
+3. **Rinnakkaisuuden vahvistama kuormitus (`429` kuormituksessa)**: Kun useat agentti- tai cron-istunnot käyttävät `auto`-reititystä samanaikaisesti, pyyntöjen kokonaisnopeus ylittää ilmaispalveluntarjoajien sietokyvyn, jolloin hyväksyttävätkin kutsut merkitään väärinkäytöksiksi.
 
-**Vahvistettu korjaus (yhteisön ilmoittama, 2026-08-10)**: säädä kolmea ympäristömuuttujaa siten, että kierrätys, samanaikaisuuden hallinta ja varajärjestelmä käsittelevät maksuttoman tason vaihtelun sen sijaan, että prosessi keskeytyisi siihen:
+**Vahvistettu korjaus (yhteisön raportoima, 2026-08-10)**: säädä kolmea ympäristömuuttujaa niin, että kierrätys, rinnakkaisuus ja varajärjestely käsittelevät ilmaistason vaihtelut sen sijaan, että prosessi keskeytyisi niihin:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # siirry toiseen malliin/palveluntarjoajaan virheen 400/401 yhteydessä (ohittaa rikkinäiset suoravälitysmallit)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # eksplisiittinen raja raskaiden pyyntöjen hyväksymiselle (oletuksena asettamatta: pyyntömäärälle ei ole ylärajaa, katso huomautus alta)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # pidempi rajattu odotus raskaille pyynnöille varatun kapasiteetin vapautumista varten välittömän, uudelleenyrityksen sallivan 503-virheen sijaan
+export OMNIROUTE_ROTATE_ON_400=true           # siirry toiseen malliin tai palveluntarjoajaan virheellä 400/401 (ohittaa vialliset läpivientimallit)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # raskaille pyynnöille asetettava eksplisiittinen sisäänpääsyraja (oletuksena asettamaton: pyyntömäärälle ei ole ylärajaa, katso huomautus alta)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # pidennä rajattu odotusaika hitaiden ylävirran palvelujen RATE_LIMIT_MAX_WAIT_MS-oletusarvoa pidemmäksi
 ```
 
-Aseta nämä OmniRoute-prosessin ympäristöön (taustaprosessiin, esimerkiksi LaunchAgent plist -tiedoston tai komennon `systemctl edit` kautta) ja käynnistä sitten OmniRoute uudelleen. Kierrätysasetus on yksittäisistä asetuksista vaikutuksiltaan merkittävin: se muuntaa lopullisen virheen läpinäkyväksi uudelleenyritykseksi poolissa olevan toimivan palveluntarjoajan kautta.
+Aseta nämä OmniRoute-prosessin ympäristöön (daemonille, esimerkiksi LaunchAgent-plist-tiedoston tai komennon `systemctl edit` kautta) ja käynnistä OmniRoute uudelleen. Kierrätyslippu on yksittäisistä asetuksista vaikutukseltaan merkittävin: se muuttaa pysäyttävän virheen läpinäkyväksi uudelleenyritykseksi poolissa olevan toimintakuntoisen palveluntarjoajan kautta.
 
-**Huomautus**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` rajoittaa samanaikaisesti suoritettavien raskaiden eli pitkän kontekstin pyyntöjen määrää; raja toimii hyväksyntäporttina, ei palveluntarjoajan pyyntötiheyden rajoittimena. **#503-fanout-päivitys:** tätä muuttujaa ei enää aseteta oletuksena (se vaikuttaa nyt vain, kun se on määritetty eksplisiittisesti yllä esitetyllä tavalla) — sen sijaan raskaiden pyyntöjen hyväksyntää rajoittaa automaattisesti johdettu tavubudjetti (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), joka skaalautuu isäntäkoneen todellisen muistirajan mukaan. Siksi uuden käyttöönoton pitäisi tuottaa huomattavasti vähemmän `503 chat_admission_busy` -hylkäyksiä ilman, että tätä muuttujaa asetetaan lainkaan; sen eksplisiittinen asettaminen tässä toimii edelleen täsmälleen dokumentoidulla tavalla. Eksplisiittiset tavubudjetin ohitukset rajataan välille 8 MiB–2 GiB. `413 body_exceeds_budget` ei ole tilapäinen virhe: kasvata tavubudjettia, pienennä arvoa `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` tai kasvata prosessin muistirajaa. `inflight_bytes_budget`-rajoitus johtuu tilapäisestä resurssikilpailusta, ja pyyntö voidaan yrittää uudelleen. Palveluntarjoajakohtaista pyyntötiheyden rajoitusta (`open-sse/services/rateLimitManager.ts`) hallitaan erikseen muuttujilla `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ja `RATE_LIMIT_AUTO_ENABLE` — katso `.env.example`.
+**Huomautus**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` rajoittaa samanaikaisesti suoritettavien raskaiden eli pitkän kontekstin pyyntöjen määrää. Raja toimii sisäänpääsyporttina, ei palveluntarjoajan nopeusrajoittimena. **#503-fanout-päivitys:** tätä muuttujaa ei enää aseteta oletusarvoisesti (se vaikuttaa nyt vain eksplisiittisesti määritettynä, kuten yllä) — raskaiden pyyntöjen sisäänpääsyä rajoittaa sen sijaan automaattisesti johdettu tavubudjetti (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), joka skaalautuu isäntäkoneen todellisen muistirajan mukaan. Siksi uudessa käyttöönotossa pitäisi esiintyä huomattavasti vähemmän `503 chat_admission_busy` -hylkäyksiä ilman tämän muuttujan asettamista lainkaan. Sen eksplisiittinen asettaminen tässä kuvatulla tavalla toimii edelleen täsmälleen dokumentoidusti. Tavubudjetin eksplisiittiset ohitukset rajataan välille 8 MiB–2 GiB. `413 body_exceeds_budget` ei ole tilapäinen virhe: kasvata tavubudjettia, pienennä arvoa `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` tai kasvata prosessin muistirajaa. `inflight_bytes_budget`-perusteinen kuormanpudotus johtuu tilapäisestä resurssikilpailusta, joten pyyntö voidaan edelleen yrittää uudelleen. Palveluntarjoajakohtaista nopeusrajoitusta (`open-sse/services/rateLimitManager.ts`) hallitaan erikseen muuttujilla `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ja `RATE_LIMIT_AUTO_ENABLE` — katso `.env.example`.
 
-**Näin varmistat, että korjaus toimii**: suorita agentti/cron kahdesti nopeasti peräkkäin ja varmista, että molemmat suoritukset onnistuvat. Ennen korjausta toinen suoritus aiheuttaa yleensä `429`/`401`-virheen. Korjauksen jälkeen virheitä (jos niitä ilmenee) yritetään automaattisesti uudelleen ja kutsu suoritetaan loppuun. Voit myös suorittaa komennon `curl /monitoring/health` ja seurata palveluntarjoajayhteyksien `rateLimitedUntil`-kenttää sekä kyseisten palveluntarjoajien `circuitBreakers.providerBreakers[].state`-kenttää — tila on jokin seuraavista: `CLOSED`, `DEGRADED`, `OPEN` tai `HALF_OPEN` (katso `src/shared/utils/circuitBreaker.ts`). Jatkuvasti epäonnistuvan palveluntarjoajan tila vaihtuu `CLOSED → DEGRADED → OPEN`, kunnes palautusikkuna sallii koekutsun (`HALF_OPEN`).
+**Korjauksen toimivuuden varmistaminen**: suorita agentti tai cron-työ kahdesti nopeasti peräkkäin ja varmista, että molemmat suoritukset onnistuvat. Ennen korjausta toinen suoritus aiheuttaa tavallisesti virheen `429`/`401`. Korjauksen jälkeen virheitä (jos niitä ilmenee) yritetään läpinäkyvästi uudelleen, ja kutsu suoritetaan loppuun. Voit myös suorittaa komennon `curl /monitoring/health` ja seurata palveluntarjoajayhteyksien `rateLimitedUntil`-kenttää sekä asianomaisten palveluntarjoajien kohtaa `circuitBreakers.providerBreakers[].state` — tila on jokin arvoista `CLOSED`, `DEGRADED`, `OPEN` tai `HALF_OPEN` (katso `src/shared/utils/circuitBreaker.ts`), ja jatkuvasti epäonnistuvan palveluntarjoajan tila vaihtuu järjestyksessä `CLOSED → DEGRADED → OPEN`, ennen kuin nollausikkuna päästää testipyynnön läpi (`HALF_OPEN`).
 
-**Jos näet edelleen 429-virheen**: kyseisen palveluntarjoajan aktiivisen tilin _kiintiö_ on todella käytetty loppuun (kyse ei siis ole vain kutsunopeuden rajoituksesta). Lisää toinen saman palveluntarjoajan tili OmniRoute-hallintapaneelissa kohdassa Providers → Accounts tai ota käyttöön jokin toinen maksuton palveluntarjoaja (esim. `routeway`, `auggie`). Kierrätys auttaa vain tilapäisiin kutsunopeusrajoituksiin sekä 400- ja 401-virheisiin; kiintiön täydellinen loppuminen edellyttää toisia tunnistetietoja tai toista palveluntarjoajaa.
+**Jos näet edelleen virheen 429**: kyseisen palveluntarjoajan aktiivisen tilin _kiintiö_ on todella käytetty loppuun (kyse ei ole pelkästä nopeusrajoituksesta). Lisää samalle palveluntarjoajalle toinen tili OmniRoute-hallintapaneelissa kohdassa Providers → Accounts tai ota käyttöön myös toinen ilmainen palveluntarjoaja (esim. `routeway`, `auggie`). Kierrätys auttaa vain tilapäisiin nopeusrajoitus- sekä 400/401-virheisiin. Kiintiön täydellinen loppuminen edellyttää toisia tunnistetietoja tai eri palveluntarjoajaa.
 
-**Jos näet 403-virheen konenäkömalleissa (`auto/vision`, `bazaarlink/*`)**: yhdistettyyn tiliin ei kuulu maksullista sopimusta, joka sisältää konenäön, tai API-avaimen käyttöoikeudet eivät riitä. Varmista palveluntarjoajan hallintapaneelista, että avaimen käyttöoikeusalue sisältää konenäön tai multimodaalisuuden, tai yhdistä maksullisen tason tili ja pidä se konenäön kohteena.
+**Jos näet konemalleissa virheen 403 (`auto/vision`, `bazaarlink/*`)**: yhdistetty tili ei sisällä konenäön kattavaa maksullista palvelutasoa tai API-avaimen käyttöoikeudet ovat riittämättömät. Varmista palveluntarjoajan hallintapaneelissa, että avaimen käyttöalueeseen sisältyy konenäkö tai multimodaalisuus, tai yhdistä maksullisen palvelutason tili ja säilytä se konenäön kohteena.
 
 ---
 
@@ -550,17 +550,17 @@ Käytä kohtaa **Hallintapaneeli → Kääntäjä** muotomuunnosten ongelmien vi
 - Varmista, että kohdassa **Asetukset → Vikasietoisuus → Palveluntarjoajaprofiilit** automaattinen nopeusrajoitus on käytössä
 - Tarkista, palauttaako palveluntarjoaja `429`-tilakoodeja tai `Retry-After`-otsakkeita
 
-### Eksponentiaalisen viiveen säätäminen
+### Eksponentiaalisen perääntymisen säätäminen
 
 Palveluntarjoajaprofiilit tukevat seuraavia asetuksia:
 
-- **Perusviive** — Ensimmäisen virheen jälkeinen alkuodotusaika (oletus: 1s)
+- **Perusviive** — Ensimmäistä virhettä seuraava alkuodotusaika (oletus: 1s)
 - **Enimmäisviive** — Odotusajan enimmäisraja (oletus: 30s)
 - **Kerroin** — Kuinka paljon viivettä kasvatetaan kutakin peräkkäistä virhettä kohden (oletus: 2x)
 
-### Pyyntöryntäyksen esto
+### Samanaikaisten uudelleenyritysten ruuhkan esto
 
-Kun useat samanaikaiset pyynnöt kohdistuvat nopeusrajoitettuun palveluntarjoajaan, OmniRoute käyttää mutex-lukitusta ja automaattista nopeusrajoitusta pyyntöjen sarjoittamiseen ja ketjureaktioina syntyvien virheiden estämiseen. Tämä tapahtuu automaattisesti API-avainpalveluntarjoajilla.
+Kun useat samanaikaiset pyynnöt kohdistuvat nopeusrajoitettuun palveluntarjoajaan, OmniRoute käyttää mutexia ja automaattista nopeusrajoitusta pyyntöjen sarjallistamiseen ja ketjureaktiona syntyvien virheiden estämiseen. Tämä tapahtuu automaattisesti API-avainpalveluntarjoajille.
 
 ### Keskustelupyynnöt epäonnistuvat virheellä 503 / chat_admission_busy
 
@@ -569,14 +569,13 @@ Kun useat samanaikaiset pyynnöt kohdistuvat nopeusrajoitettuun palveluntarjoaja
 - Keskustelutäydennysten päätepiste palauttaa uudelleenyrityksen sallivan `503`-vastauksen, jonka virhekoodi on
   `chat_admission_busy`.
 - Vastaus sisältää `Retry-After`-otsakkeen. Muutoksesta #12135 lähtien arvo johdetaan havaitusta
-  kuormituksesta — arvoksi valitaan suurempi ajasta, jonka pyyntö on jo odottanut
-  `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-ikkunassa, ja ajasta, jonka nykyiset raskaat varaukset ovat olleet voimassa —
-  pyöristettynä ylöspäin kokonaisiin sekunteihin ja rajoitettuna enintään 60 sekuntiin. Kun portti on
-  käyttämättömänä, käytetään aiempia vähimmäisarvoja: 2 sekuntia tavumäärään perustuvalla polulla ja
-  1 sekunti rakenteeseen perustuvalla polulla (joka sisältää myös arvon
+  kuormituksesta — se on suurempi pyynnön jo odottamasta `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-aikaikkunasta
+  ja ajasta, jonka nykyiset raskaat varaukset ovat olleet voimassa — pyöristettynä ylöspäin kokonaisiin
+  sekunteihin ja rajattuna 60 sekuntiin. Kun pääsynhallinta on vapaa, käytössä säilyvät aiemmat vähimmäisarvot: 2 sekuntia
+  tavumäärään perustuvalla polulla ja 1 sekunti rakenteeseen perustuvalla polulla (joka sisältää myös arvon
   `reason: "structure_limit"`).
-- Näin voi tapahtua, kun toinen raskas keskustelu tai pitkäkestoinen suoratoistovastaus on yhä
-  käsiteltävänä.
+- Näin voi tapahtua, kun toinen raskas keskustelu tai pitkään jatkuva suoratoistovastaus on edelleen
+  kesken.
 
 Tavumäärään perustuvan vastauksen runko on:
 
@@ -595,49 +594,47 @@ Rakenteeseen perustuva vastaus käyttää samaa tyyppiä ja koodia sekä viesti�
 ja arvoa `reason: "structure_limit"`.
 Oletuskynnysarvoilla pyyntö on rakenteellisesti raskas, jos siinä on vähintään `200` viestiä,
 vähintään `64` työkalua tai vähintään `32,000` arvioitua tokenia tai jos rajattu rakenteen arviointi
-saavuttaa rajansa, jotka ovat `10,000` vierailtua solmua tai syvyys `12`.
+saavuttaa rajansa, jotka ovat `10,000` läpikäytyä solmua tai syvyys `12`.
 
-**Syy:** Tämä on OmniRouten sisäistä tarkoituksellista kuormanpudotusta, ei palveluntarjoajan virhe.
-Jokainen prosessi käyttää prosessikohtaista suojausta rajallisen raskaan käsittelykapasiteetin varaamiseen ennen
-suuren pyyntörungon säilyttämistä ja jäsentämistä. Raskas varaus pysyy voimassa SSE-vastauksen
+**Syy:** Tämä on OmniRouten sisäistä tarkoituksellista kuormanpudotusta, ei ylemmän tason palveluntarjoajan virhe.
+Kukin prosessi käyttää prosessikohtaista suojausta rajallisen raskaiden pyyntöjen kapasiteetin varaamiseen ennen suuren
+pyyntörungon säilyttämistä ja jäsentämistä. Raskaan pyynnön varaus pysyy voimassa SSE-vastauksen
 koko elinkaaren ajan.
 
-**#503-fanout:** ennen tätä korjausta suojaus rajoitti samanaikaisuuden kiinteään pyyntöMÄÄRÄÄN
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, oletus `1`) palvelimen muistimäärästä riippumatta, joten koodausagenttien
-rinnakkaishajautus (useita aliagentteja/CLI-asiakasohjelmia, pyyntörungot säännöllisesti > 256 KB) romahdutti
-tehollisen samanaikaisuuden noin yhteen ja aiheutti 503-virheitä täysin normaalillakin kuormalla. Suojaus
-mukautuu nyt automaattisesti: sitä ohjaa automaattisesti johdettu vastaanoton TAVUbudjetti
-(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), joka mitoitetaan prosessin todellisen muistirajan perusteella, ja se
-hyödyntää myös reaaliaikaista resurssipainesignaalia — joten se pudottaa kuormaa vain, kun palvelimeen
-kohdistuu todellista muistipainetta, eikä vain siksi, että useampi kuin yksi raskas pyyntö saapui
-samanaikaisesti. Vanhaa määrärajaa (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) noudatetaan
-edelleen, mutta vain, jos asetat sen erikseen.
+**#503-viuhkaantuminen:** ennen tätä korjausta suojaus rajoitti samanaikaisuutta kiinteällä pyyntömäärällä
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, oletus `1`) isäntäkoneen muistista riippumatta, joten koodausagenttien
+viuhkaantuminen (useita aliagentteja/CLI-työkaluja, pyynnön rungot tavallisesti > 256 KB) romahdutti tosiasiallisen
+samanaikaisuuden noin yhteen ja aiheutti 503-virheitä täysin normaalilla kuormituksella. Suojaus säätyy nyt
+automaattisesti: sitä ohjaa automaattisesti johdettu vastaanoton TAVUbudjetti (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`), joka mitoitetaan
+prosessin todellisen muistirajan perusteella, ja se ottaa huomioon myös reaaliaikaisen resurssipaineen signaalin — joten se
+pudottaa kuormaa vain, kun isäntäkoneella on todellista muistipainetta, ei vain siksi, että useampi kuin yksi
+raskas pyyntö saapui samanaikaisesti. Vanhaa määrärajaa (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`)
+noudatetaan edelleen, mutta vain, jos asetat sen erikseen.
 
 Kun kapasiteetti on varattu, raskas pyyntö odottaa ensin enintään
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`-ajan (oletus `2000`, arvo `0` poistaa odotuksen käytöstä), että paikka vapautuu,
-ennen kuin se palauttaa uudelleenyrityksen sallivan `503`-vastauksen. Rajattu odotus on käytössä, jotta
-agenttityyliset asiakasohjelmat (OpenCode, Claude Code, Cursor), jotka hajauttavat raskaita alipyyntöjä
-samanaikaisesti, sarjoittavat pyyntöryntäyksen sen sijaan, että käyttäisivät koko uudelleenyritysbudjettinsa
-välittömiin hylkäyksiin ja keskeytyisivät kesken tehtävän.
-Raskaiden varausten nykyinen käyttöaste, määritetty tavubudjetti ja reaaliaikaisen paineen vakavuus
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (oletusarvo on `RATE_LIMIT_MAX_WAIT_MS`; `0` poistaa odotuksen käytöstä), että paikka vapautuu,
+ennen uudelleenyrityksen sallivan `503`-vastauksen palauttamista. Rajattu odotus on käytössä, jotta agenttityyliset asiakasohjelmat
+(OpenCode, Claude Code, Cursor), jotka lähettävät raskaita alipyyntöjä samanaikaisesti, sarjallistavat purskeen
+sen sijaan, että käyttäisivät koko uudelleenyritysbudjettinsa välittömiin hylkäyksiin ja keskeytyisivät kesken tehtävän.
+Nykyisten raskaiden varausten käyttöaste, määritetty tavubudjetti ja reaaliaikaisen paineen vakavuus
 näytetään kohdassa `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
 `budgetSource`, `pressureSeverity`, `countCapEnabled`) — tarkista nämä ennen minkään ympäristömuuttujan muuttamista.
 Asetukset → Vikasietoisuus → Pyyntöjono → Samanaikaiset pyynnöt ei hallitse tätä; kyseinen asetus
-hallitsee erillistä palveluntarjoajapyyntöjen jonotusmekanismia.
+ohjaa erillistä palveluntarjoajan pyyntöjonomekanismia.
 
 **Korjaus:**
 
-1. Yritä ensin uudelleen. Asiakasohjelmien tulee noudattaa `Retry-After`-otsaketta ja käyttää viivettä sen sijaan, että
-   pyyntö toistettaisiin välittömästi.
-2. Tarkista `/api/monitoring/health` → `chatAdmission` ennen minkään säätämistä. `countCapEnabled:
-false` ja riittävän suuri `maxInflightBytes` tarkoittavat, että automaattisesti johdettu budjetti toimii jo
-   oikein; `pressureSeverity`-arvo `high`/`critical` tarkoittaa, että palvelimen muisti on aidosti vähissä —
-   tätä ei voi korjata käsittelyynpääsyn ympäristömuuttujalla, vaan tarvitaan lisää RAM-muistia tai pienempi työkuorma.
+1. Yritä ensin uudelleen. Asiakasohjelmien tulee noudattaa `Retry-After`-otsaketta ja käyttää perääntymistä sen sijaan, että ne
+   toistaisivat pyynnön välittömästi.
+2. Tarkista `/api/monitoring/health` → `chatAdmission` ennen minkään asetuksen säätämistä. `countCapEnabled:
+false` ja suuri `maxInflightBytes` tarkoittavat, että automaattisesti johdettu budjetti tekee jo
+   tehtävänsä; `pressureSeverity`-arvo `high`/`critical` tarkoittaa, että isäntäkoneen muisti on todella vähissä —
+   tätä ei voi korjata pääsynhallinnan ympäristömuuttujalla, vaan tarvitaan enemmän RAM-muistia tai pienempi työkuorma.
 3. Vain jos `/api/monitoring/health` osoittaa, että automaattisesti johdettu budjetti on aidosti liian pieni
-   palvelimellesi (harvinaista — se skaalautuu jo konteista fyysisiin palvelimiin), ohita se suoraan muuttujalla
+   isäntäkoneellesi (harvinaista — se skaalautuu jo konteista fyysisiin palvelimiin), ohita se suoraan muuttujalla
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` sen sijaan, että palaisit vanhaan pyyntömäärään perustuvaan rajaan.
 
-Katso viralliset käsittelyynpääsyn asetukset [ympäristömuuttujien viitteestä](../reference/ENVIRONMENT.md#4-security--authentication).
+Viralliset pääsynhallinta-asetukset ovat [ympäristömuuttujien viitteessä](../reference/ENVIRONMENT.md#4-security--authentication).
 
 ---
 

@@ -61,12 +61,12 @@ export default function CloudflareRelayModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="cloudflare-relay-title"
     >
-      <div className="bg-surface rounded-lg shadow-xl p-6 w-full max-w-md space-y-4">
+      <div className="bg-surface rounded-lg shadow-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4">
         <div className="flex items-center justify-between">
           <h2
             id="cloudflare-relay-title"

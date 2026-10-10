@@ -4,8 +4,12 @@ import { type OpenAIToolCall } from "../translator/webTools.ts";
 import {
   serializeDeepSeekToolPrompt,
   parseDeepSeekToolCalls,
+  hasMalformedDeepSeekToolIntent,
+  hasMalformedDeepSeekToolMarkup,
   buildToolConversationPrompt,
 } from "../translator/deepseekWebTools.ts";
+import { requestDeepSeekPowChallenge, type PowChallenge } from "./deepseek-web/pow.ts";
+import { DeepSeekImageError, uploadDeepSeekImages } from "./deepseek-web/image-upload.ts";
 import { sanitizeErrorMessage } from "../utils/error.ts";
 import {
   isThinkingModel,
@@ -48,17 +52,6 @@ const FAKE_HEADERS: Record<string, string> = {
 
 // ── Types ────────────────────────────────────────────────────────────────
 
-interface PowChallenge {
-  algorithm: string;
-  challenge: string;
-  salt: string;
-  signature: string;
-  difficulty: number;
-  expire_at: number;
-  expire_after: number;
-  target_path: string;
-}
-
 interface TokenInfo {
   accessToken: string;
   expiresAt: number;
@@ -96,7 +89,11 @@ export function extractUserToken(credentials: Record<string, unknown>): string |
 function errorResponse(status: number, message: string, dsCode?: number): Response {
   return new Response(
     JSON.stringify({
-      error: { message, type: "upstream_error", code: dsCode ?? `HTTP_${status}` },
+      error: {
+        message: sanitizeErrorMessage(message),
+        type: "upstream_error",
+        code: dsCode ?? `HTTP_${status}`,
+      },
     }),
     { status, headers: { "Content-Type": "application/json" } }
   );
@@ -738,23 +735,10 @@ function wrapStreamWithCleanup(
 
 async function getPowChallenge(
   accessToken: string,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
+  targetPath = "/api/v0/chat/completion"
 ): Promise<PowChallenge> {
-  const resp = await fetch(`${DEEPSEEK_API_BASE}/v0/chat/create_pow_challenge`, {
-    method: "POST",
-    headers: {
-      ...FAKE_HEADERS,
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({ target_path: "/api/v0/chat/completion" }),
-    signal: signal ?? undefined,
-  });
-  if (!resp.ok) throw new Error(`create_pow_challenge HTTP ${resp.status}`);
-  const json = await resp.json();
-  const bizData = json?.data?.biz_data || json?.biz_data;
-  if (!bizData?.challenge?.challenge) throw new Error(`No PoW challenge: code=${json?.code}`);
-  return bizData.challenge as PowChallenge;
+  return requestDeepSeekPowChallenge({ accessToken, headers: FAKE_HEADERS, signal, targetPath });
 }
 
 // ── Tool-call response builder (#2820) ──────────────────────────────────
@@ -908,8 +892,8 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       return {
         response: errorResponse(
           400,
-          "Invalid credentials: paste your userToken from DeepSeek localStorage " +
-            "(DevTools → Application → Local Storage → chat.deepseek.com → userToken)"
+          "Missing userToken \u2014 paste it from DeepSeek localStorage " +
+            "(DevTools \u2192 Application \u2192 Local Storage \u2192 chat.deepseek.com \u2192 userToken)"
         ),
         url: COMPLETION_URL,
         headers: {},
@@ -940,14 +924,26 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       const prompt = hasTools
         ? buildToolConversationPrompt(messages, toolSystemPrompt)
         : messagesToPrompt(promptMessages, historyWindow);
-      const refFileIds = Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : [];
+      const uploadedFileIds = await uploadDeepSeekImages({
+        messages,
+        headers: { ...FAKE_HEADERS, Authorization: `Bearer ${accessToken}` },
+        signal,
+        createPowHeader: async (targetPath, uploadSignal) =>
+          solvePow(await getPowChallenge(accessToken, uploadSignal, targetPath), uploadSignal),
+      });
+      const refFileIds = [
+        ...new Set([
+          ...(Array.isArray(bodyObj.ref_file_ids) ? bodyObj.ref_file_ids : []),
+          ...uploadedFileIds,
+        ]),
+      ];
       log?.info?.(
         "DEEPSEEK-WEB",
         `model_type=${modelType}, thinking=${thinkingEnabled}, search=${searchEnabled}, files=${refFileIds.length}, stream=${stream !== false}, persist=${persistSession}, window=${historyWindow}`
       );
 
       // One completion attempt against a given session id (fresh PoW per attempt).
-      const performCompletion = async (sid: string) => {
+      const performCompletion = async (sid: string, completionPrompt = prompt) => {
         const powChallenge = await getPowChallenge(accessToken, signal);
         const powAnswer = await solvePow(powChallenge, signal);
         const reqHeaders: Record<string, string> = {
@@ -962,7 +958,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
           chat_session_id: sid,
           parent_message_id: null,
           model_type: modelType,
-          prompt,
+          prompt: completionPrompt,
           ref_file_ids: refFileIds,
           thinking_enabled: thinkingEnabled,
           search_enabled: searchEnabled,
@@ -1099,55 +1095,53 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       // OpenAI tool_calls. Buffering (even for stream clients) is acceptable because
       // tool invocations are short and need the complete block to parse. (#2820)
       if (hasTools) {
-        // The scraped web session occasionally returns a malformed reply where DeepSeek
-        // clearly attempted a tool call (a literal <tool...> tag is present) but the block
-        // could not be parsed even with salvageLeadingJsonObject's recovery (genuinely
-        // truncated JSON, garbled beyond repair, etc). Unlike a real API, this upstream is
-        // non-deterministic enough that simply asking again with a fresh session usually
-        // succeeds — so retry a bounded number of times before giving up and surfacing the
-        // raw (still-tagged) text to the caller.
-        const MAX_TOOL_PARSE_ATTEMPTS = 2;
-        let content = "";
-        let reasoningContent = "";
-        let cleanedContent = "";
-        let toolCalls: ReturnType<typeof parseDeepSeekToolCalls>["toolCalls"] = null;
+        let { content, reasoningContent } = await collectSSEContent(resp.body!, clientModel);
+        let parsed = parseDeepSeekToolCalls(content, `call-${Date.now()}`, requestedTools);
 
-        for (let attempt = 1; attempt <= MAX_TOOL_PARSE_ATTEMPTS; attempt += 1) {
-          ({ content, reasoningContent } = await collectSSEContent(resp.body!, clientModel));
-          ({ content: cleanedContent, toolCalls } = parseDeepSeekToolCalls(
-            content,
-            `call-${Date.now()}`,
-            requestedTools
-          ));
-
-          const unparsedToolTagRemains =
-            !toolCalls && /<tool(?:_call)?[\s:>]/i.test(cleanedContent);
-          if (!unparsedToolTagRemains || attempt === MAX_TOOL_PARSE_ATTEMPTS) break;
-
-          log?.warn?.(
-            "DEEPSEEK-WEB",
-            `Malformed tool-call reply on attempt ${attempt}/${MAX_TOOL_PARSE_ATTEMPTS} — retrying with a fresh session`
-          );
-          if (persistSession) sessionCache.delete(userToken);
+        // DSML / malformed envelopes are explicit tool intent, not plain answers: retry once in a
+        // fresh session. The reply goes through the same parser (fork DSML dialects stay nonce-
+        // and schema-bound; the canonical <tool> envelope keeps the shared #9343 policy).
+        const repairFailed = async (message: string) => {
+          await cleanupFn();
+          const response = errorResponse(502, message);
+          return {
+            response,
+            url: COMPLETION_URL,
+            headers: reqHeaders,
+            transformedBody: requestPayload,
+          };
+        };
+        if (hasMalformedDeepSeekToolIntent(parsed.content, requestedTools)) {
+          log?.warn?.("DEEPSEEK-WEB", "Malformed tool envelope — retrying once with nonce binding");
+          sessionCache.delete(userToken);
+          await deleteSessionOnDeepSeek(accessToken, sessionId).catch(() => {});
           sessionId = await createSession(accessToken, signal);
           if (persistSession) {
             evictOldest(sessionCache);
             sessionCache.set(userToken, { sessionId, createdAt: Date.now() });
           }
-          const retried = await performCompletion(sessionId);
-          resp = retried.resp;
-          reqHeaders = retried.reqHeaders;
-          requestPayload = retried.requestPayload;
-          if (!resp.ok) break; // fall through — final content/toolCalls stay from the last successful attempt
+          const repairPrompt = [
+            prompt,
+            "Your previous response used an invalid tool envelope and was rejected.",
+            "Retry the requested next action from scratch. Follow the client tool contract exactly, " +
+              "including its _nonce binding and argument schema. Do not emit bare JSON or unbound DSML.",
+          ].join("\n\n");
+          ({ resp, reqHeaders, requestPayload } = await performCompletion(sessionId, repairPrompt));
+          if (!resp.ok) return repairFailed("DeepSeek tool-call repair request failed.");
+          ({ content, reasoningContent } = await collectSSEContent(resp.body!, clientModel));
+          parsed = parseDeepSeekToolCalls(content, `call-${Date.now()}`, requestedTools);
+          if (hasMalformedDeepSeekToolMarkup(parsed.content)) {
+            return repairFailed("DeepSeek emitted an invalid tool call after repair.");
+          }
         }
 
         await cleanupFn();
         return buildToolAwareResult({
           stream: stream !== false,
           clientModel,
-          content: cleanedContent,
+          content: parsed.content,
           reasoningContent,
-          toolCalls,
+          toolCalls: parsed.toolCalls,
           reqHeaders,
           requestPayload,
         });
@@ -1196,7 +1190,7 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      log?.error?.("DEEPSEEK-WEB", `Execute failed: ${msg}`);
+      log?.error?.("DEEPSEEK-WEB", `Execute failed: ${sanitizeErrorMessage(msg)}`);
 
       if (err instanceof Error && err.name === "AbortError") {
         return {
@@ -1208,7 +1202,10 @@ export class DeepSeekWebExecutor extends BaseExecutor {
       }
 
       return {
-        response: errorResponse(502, `DeepSeek error: ${sanitizeErrorMessage(msg)}`),
+        response: errorResponse(
+          err instanceof DeepSeekImageError ? err.status : 502,
+          `DeepSeek error: ${sanitizeErrorMessage(msg)}`
+        ),
         url: COMPLETION_URL,
         headers: {},
         transformedBody: body,

@@ -9,6 +9,7 @@ import {
   cleanupPidFile,
   waitForServer,
   findListeningPids,
+  probePortFree,
   resolveReadyTimeoutMs,
 } from "../utils/pid.mjs";
 import {
@@ -38,6 +39,9 @@ const _pkg = JSON.parse(readFileSync(join(__dirname, "..", "..", "..", "package.
 // URL scheme for the "OmniRoute is running" banner — flipped to https when
 // opt-in TLS (#5242) is active. Process-scoped: one `serve` run = one scheme.
 let urlScheme = "http";
+// Headless mode (R0.1): one `serve` run = one mode. Drives the ready banner and
+// suppresses the automatic browser open (the dashboard answers 404 headless).
+let serveHeadless = false;
 const ROOT = join(__dirname, "..", "..", "..");
 // The standalone bundle ships in `dist/` (since the build-output-isolation
 // refactor). Fall back to the legacy `app/` location so an upgrade over a
@@ -46,6 +50,29 @@ const ROOT = join(__dirname, "..", "..", "..");
 const APP_DIR = existsSync(join(ROOT, "dist", "server.js"))
   ? join(ROOT, "dist")
   : join(ROOT, "app");
+
+/**
+ * Headless mode (R0.1, rail 3.8.53): `--headless` hands the server process
+ * `OMNIROUTE_HEADLESS=1` through the same child env that carries `--port`.
+ * Returns a new object; the input env is never mutated. Exported for tests.
+ *
+ * @param {Record<string, string|undefined>} env
+ * @param {{ headless?: boolean }} [opts]
+ */
+export function applyHeadlessServeEnv(env, opts = {}) {
+  if (opts.headless !== true) return env;
+  return { ...env, OMNIROUTE_HEADLESS: "1" };
+}
+
+/**
+ * True when this `serve` run is headless: the `--headless` flag or a truthy
+ * `OMNIROUTE_HEADLESS` (1/true/yes/on — same values as src/lib/system/headless.ts).
+ * Exported for tests.
+ */
+export function resolveServeHeadless(opts = {}, env = process.env) {
+  if (opts.headless === true) return true;
+  return /^(1|true|yes|on)$/i.test(String(env.OMNIROUTE_HEADLESS ?? "").trim());
+}
 
 function parsePort(value, fallback) {
   const parsed = parseInt(String(value), 10);
@@ -62,6 +89,7 @@ export function registerServe(program) {
     .option("--log", t("serve.log"))
     .option("--no-recovery", t("serve.no_recovery"))
     .option("--max-restarts <n>", t("serve.max_restarts"), parseInt, 2)
+    .option("--headless", t("serve.headless"))
     .option("--tray", t("serve.tray") || "Start in the system tray (desktop only)")
     .option("--no-tray", t("serve.no_tray") || "Disable system tray icon")
     .option(
@@ -152,7 +180,8 @@ export async function runServe(opts = {}) {
   const port = parsePort(opts.port ?? process.env.PORT ?? "20128", 20128);
   const apiPort = parsePort(process.env.API_PORT ?? String(port), port);
   const dashboardPort = parsePort(process.env.DASHBOARD_PORT ?? String(port), port);
-  const noOpen = opts.open === false;
+  serveHeadless = resolveServeHeadless(opts);
+  const noOpen = opts.open === false || serveHeadless;
 
   console.log(`
 \x1b[36m   ____                  _ ____              _
@@ -245,7 +274,8 @@ export async function runServe(opts = {}) {
   // BEFORE any pid file is written or any child is spawned. Otherwise the
   // doomed child's EADDRINUSE arrives only after this process has rewritten
   // the pid files of the healthy instance that actually owns the port.
-  const busyPids = await findListeningPids(dashboardPort);
+  const serverHost = resolveServerHost();
+  const busyPids = await resolveServeBusyPids(dashboardPort, { host: serverHost });
   if (busyPids.length > 0) {
     reportPortInUse(dashboardPort, busyPids);
     process.exit(1);
@@ -266,24 +296,27 @@ export async function runServe(opts = {}) {
   const tlsCert = opts.tlsCert ?? process.env.OMNIROUTE_TLS_CERT;
   const tlsKey = opts.tlsKey ?? process.env.OMNIROUTE_TLS_KEY;
 
-  const env = {
-    ...process.env,
-    OMNIROUTE_PORT: String(port),
-    PORT: String(dashboardPort),
-    DASHBOARD_PORT: String(dashboardPort),
-    API_PORT: String(apiPort),
-    // #10492: HOSTNAME is standard shell state on Unix-like systems, not an
-    // OmniRoute bind setting. The resolver only keeps its legacy meaning on
-    // Windows; OMNIROUTE_SERVER_HOST is the cross-platform explicit setting.
-    HOSTNAME: resolveServerHost(),
-    NODE_ENV: "production",
-    // #5238: preserve a user-set NODE_OPTIONS (incl. their own
-    // `--max-old-space-size=…`) instead of clobbering it with the calibrated
-    // default — mirror the Electron/standalone launchers.
-    NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
-    ...(tlsCert ? { OMNIROUTE_TLS_CERT: tlsCert } : {}),
-    ...(tlsKey ? { OMNIROUTE_TLS_KEY: tlsKey } : {}),
-  };
+  const env = applyHeadlessServeEnv(
+    {
+      ...process.env,
+      OMNIROUTE_PORT: String(port),
+      PORT: String(dashboardPort),
+      DASHBOARD_PORT: String(dashboardPort),
+      API_PORT: String(apiPort),
+      // #10492: HOSTNAME is standard shell state on Unix-like systems, not an
+      // OmniRoute bind setting. The resolver only keeps its legacy meaning on
+      // Windows; OMNIROUTE_SERVER_HOST is the cross-platform explicit setting.
+      HOSTNAME: serverHost,
+      NODE_ENV: "production",
+      // #5238: preserve a user-set NODE_OPTIONS (incl. their own
+      // `--max-old-space-size=…`) instead of clobbering it with the calibrated
+      // default — mirror the Electron/standalone launchers.
+      NODE_OPTIONS: buildServerNodeOptions(process.env, memoryLimit),
+      ...(tlsCert ? { OMNIROUTE_TLS_CERT: tlsCert } : {}),
+      ...(tlsKey ? { OMNIROUTE_TLS_KEY: tlsKey } : {}),
+    },
+    opts
+  );
 
   // Validate the TLS pair up front so the operator sees a clear warning in the
   // CLI (the child re-validates authoritatively). Drives the banner scheme;
@@ -330,11 +363,47 @@ export async function runServe(opts = {}) {
 }
 
 /**
+ * Listeners blocking `serve` on `port`. Discovery returning null means the
+ * tool is missing (#14518); the bind probe then decides. A free port is an
+ * empty list — leaving null throws on the caller's `.length` (#14800).
+ *
+ * @param {number} port
+ * @param {object} [deps]
+ * @param {typeof findListeningPids} [deps.findListeningPids]
+ * @param {typeof probePortFree} [deps.probePortFree]
+ * @returns {Promise<Array<number|null>>}
+ */
+export async function resolveServeBusyPids(port, deps = {}) {
+  const discover = deps.findListeningPids ?? findListeningPids;
+  const probe = deps.probePortFree ?? probePortFree;
+  // findListeningPids() returning null means the discovery tool itself is
+  // missing or unusable (Termux, slim containers, #14518) — fall back to a
+  // bind probe so the guard still answers before spawning the doomed child.
+  let busyPids = await discover(port, { host: deps.host });
+  if (busyPids === null) {
+    // Discovery tool missing/unusable (#14518): the bind probe is the guard.
+    if (!(await probe(port, { host: deps.host }))) busyPids = [null];
+    else busyPids = [];
+  } else if (busyPids.length === 0) {
+    // Discovery ran and saw nothing, but that window can race a starting
+    // instance; a bind probe costs nothing and doubles as confirmation.
+    if (!(await probe(port, { host: deps.host }))) busyPids = [null];
+  }
+  return busyPids;
+}
+
+/**
  * Explain a port conflict in terms the operator can act on: who owns the port,
  * and the two ways out. Exported for unit tests.
  */
 export function reportPortInUse(port, pids = []) {
-  const owner = pids.length === 1 ? `PID ${pids[0]}` : `PIDs ${pids.join(", ")}`;
+  const known = pids.filter((pid) => Number.isFinite(pid) && pid > 0);
+  const owner =
+    known.length === 0
+      ? "an unknown process"
+      : known.length === 1
+        ? `PID ${known[0]}`
+        : `PIDs ${known.join(", ")}`;
   console.error(`\n\x1b[31m✖ Port ${port} is already in use by ${owner}.\x1b[0m`);
   console.error(
     `  Another OmniRoute is most likely already serving there, so open` +
@@ -348,7 +417,7 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]
@@ -365,7 +434,9 @@ function runDaemon(serverJs, env, memoryLimit, dashboardPort, apiPort) {
   writePidFile("server", server.pid);
   server.unref();
   console.log(`\x1b[32m✔ OmniRoute started in background (PID: ${server.pid})\x1b[0m`);
-  console.log(`  \x1b[1mDashboard:\x1b[0m  ${urlScheme}://localhost:${dashboardPort}`);
+  console.log(
+    `  \x1b[1mDashboard:\x1b[0m  ${serveHeadless ? "disabled (headless)" : `${urlScheme}://localhost:${dashboardPort}`}`
+  );
   console.log(`  \x1b[1mAPI Base:\x1b[0m   ${urlScheme}://localhost:${apiPort}/v1`);
 }
 
@@ -373,7 +444,7 @@ function runWithoutRecovery(serverJs, env, memoryLimit, dashboardPort, apiPort, 
   // #5238: skip the explicit CLI --max-old-space-size when the user pinned the
   // heap via NODE_OPTIONS (a CLI arg would shadow/override their value).
   const server = spawn(
-    process.versions.bun ? process.execPath : "node",
+    process.execPath,
     [
       ...(process.versions.bun
         ? ["--preload", BUN_PRELOAD_PATH]
@@ -624,7 +695,7 @@ async function onReady(dashboardPort, apiPort, noOpen, startedAt) {
   console.log(`
   \x1b[32m✔ OmniRoute is running!\x1b[0m \x1b[2m(started in ${elapsed}s)\x1b[0m
 
-  \x1b[1m  Dashboard:\x1b[0m  ${dashboardUrl}
+  \x1b[1m  Dashboard:\x1b[0m  ${serveHeadless ? "disabled (headless)" : dashboardUrl}
   \x1b[1m  API Base:\x1b[0m   ${apiUrl}/v1
 
   \x1b[2m  Point your CLI tool (Cursor, Cline, Codex) to:\x1b[0m

@@ -74,21 +74,28 @@ Porijekla se podudaraju bez obzira na velika/mala slova, a završna kosa crta (t
 - **Bearer / `x-api-key` (površina za zaključivanje `/v1/*`):** pretraživači ih nikada ne prilažu automatski. CORS ovdje nije značajna barijera — API ključ je barijera — zbog čega je ta površina namjerno permisivna kako bi pretraživači i Electron klijenti mogli čitati odgovore na koje već imaju pravo.
 - **Sesija kolačića (kontrolna tabla):** zaštićena je podrazumijevanim "fail-closed" ponašanjem **i** odsustvom `Access-Control-Allow-Credentials` na dijeljenoj putanji. Držite porijekla za upravljanje/kontrolnu tablu izvan bilo kakve permisivne konfiguracije; ona moraju ostati strogo "fail-closed".
 
-## Primjer: reverzni proxy ispred OmniRoute-a
+## Primjer: obrnuti proxy ispred OmniRoutea
 
-CORS provodi sam OmniRoute, tako da proxy generalno **ne** bi trebao dodavati ili prepisivati `Access-Control-*` zaglavlja (dvostruka zaglavlja uzrokuju greške u pretraživačima). Terminirajte TLS i proslijedite dalje — pustite OmniRoute da odgovori na preflight zahtjev:
+CORS provodi sam OmniRoute, pa proxy uglavnom **ne bi trebao** dodavati ili
+prepisivati `Access-Control-*` zaglavlja (dvostruka zaglavlja uzrokuju probleme u preglednicima). Završite TLS
+i proslijedite zahtjev — prepustite OmniRouteu da odgovori na preflight zahtjev:
 
 ```nginx
-# nginx — proslijedi na OmniRoute; NE ubacuj Access-Control-* ovdje
+# nginx — proslijedi u OmniRoute; ovdje NE umeći Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NE postavljaj X-Forwarded-For na 127.0.0.1 — to onemogućava loopback route guard.
+    # Zadrži zaglavlja za prosljeđivanje: proxy na istom hostu povezuje se putem povratne petlje i ona
+    # obavještavaju OmniRoute da pozivatelj nije lokalni operater. Proxy koji ne dodaje nijedno od njih
+    # čini da svaki udaljeni pozivatelj izgleda kao lokalni. Također, nikada ne postavljaj X-Forwarded-For na 127.0.0.1.
 }
 ```
 
-Postavite dozvoljena porijekla pretraživača u OmniRoute-u (`CORS_ALLOWED_ORIGINS` ili kartica Security), a ne u proxyju.
+Postavite dozvoljena porijekla za preglednike u OmniRouteu (`CORS_ALLOWED_ORIGINS` ili na
+kartici Sigurnost), a ne u proxyju.
 
 ## Izvorni fajlovi
 

@@ -25,6 +25,7 @@ const TEST_TOKEN = `e30.${Buffer.from(JSON.stringify({ id: "user-123" })).toStri
 describe("issue #13232 — Z.ai browser transport classifies a missing Chromium install", () => {
   let emptyBrowsersDir: string;
   let originalBrowsersPath: string | undefined;
+  let originalDisplay: string | undefined;
 
   before(() => {
     emptyBrowsersDir = fs.mkdtempSync(path.join(os.tmpdir(), "playwright-empty-"));
@@ -33,6 +34,13 @@ describe("issue #13232 — Z.ai browser transport classifies a missing Chromium 
     // ("Executable doesn't exist at ..."), without touching any real ~/.cache/ms-playwright
     // install.
     process.env.PLAYWRIGHT_BROWSERS_PATH = emptyBrowsersDir;
+    // contract changed by #15851 (#15300): a headed launch on a display-less Linux host now
+    // starts Xvfb first and fails with the missing-display 503 when Xvfb is absent, before
+    // Playwright ever resolves the Chromium binary. Pin a DISPLAY so this test keeps exercising
+    // the missing-executable branch on any host (Playwright checks the binary before it touches
+    // the display, so the fake value is never used).
+    originalDisplay = process.env.DISPLAY;
+    process.env.DISPLAY = ":99";
   });
 
   after(() => {
@@ -40,6 +48,11 @@ describe("issue #13232 — Z.ai browser transport classifies a missing Chromium 
       delete process.env.PLAYWRIGHT_BROWSERS_PATH;
     } else {
       process.env.PLAYWRIGHT_BROWSERS_PATH = originalBrowsersPath;
+    }
+    if (originalDisplay === undefined) {
+      delete process.env.DISPLAY;
+    } else {
+      process.env.DISPLAY = originalDisplay;
     }
     fs.rmSync(emptyBrowsersDir, { recursive: true, force: true });
   });

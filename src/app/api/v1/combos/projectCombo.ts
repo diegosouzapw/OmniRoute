@@ -14,13 +14,18 @@
  * capabilities (multimodal / reasoning / caching) so importing clients enable
  * those features instead of requiring manual config after import.
  */
-import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
-  resolveNestedComboTargets,
-  type ComboCollectionLike,
-  type ComboLike,
-  type ResolvedComboTarget,
-} from "@omniroute/open-sse/services/combo/comboStructure.ts";
+  createModelCapabilityResolutionSnapshot,
+  getResolvedModelCapabilities,
+} from "@/lib/modelCapabilities";
+import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo/comboStructure.ts";
+// The shapes live in the combo type module; comboStructure.ts only re-uses them
+// internally, so importing them from there is a TS2459/TS2724 at build time.
+import type {
+  ComboCollectionLike,
+  ComboLike,
+  ResolvedComboTarget,
+} from "@omniroute/open-sse/services/combo/types.ts";
 
 export interface PublicComboStep {
   kind: "model" | "combo-ref";
@@ -40,6 +45,14 @@ export interface PublicComboStep {
    * another combo and has no account of its own.
    */
   accountPinned?: boolean;
+  /**
+   * #14587: whether the resolved capability sources prove this member accepts
+   * images (`null` = no source knows). Only set on `model` steps when the
+   * projection includes capabilities. A combo's `multimodal` is true exactly
+   * when every member reports `true`, so a `false`/`null` here identifies the
+   * member blocking it.
+   */
+  supportsVision?: boolean | null;
 }
 
 /**
@@ -169,6 +182,17 @@ export function computeComboCapabilities(
   return { multimodal, reasoning, caching };
 }
 
+/** #14587: attach the per-member vision verdict to each direct model step. */
+function annotateMemberVision(
+  steps: PublicComboStep[],
+  resolve: ComboCapabilityResolver = defaultCapabilityResolver
+): void {
+  for (const step of steps) {
+    if (step.kind !== "model" || typeof step.model !== "string") continue;
+    step.supportsVision = resolve(step.model).supportsVision;
+  }
+}
+
 export function projectCombo(
   combo: Record<string, unknown>,
   options?: ProjectComboOptions
@@ -192,6 +216,7 @@ export function projectCombo(
   }
 
   if (options?.includeCapabilities) {
+    annotateMemberVision(out.models, options.resolveCapabilities);
     out.capabilities = computeComboCapabilities(
       combo,
       options.resolveCapabilities,
@@ -200,4 +225,26 @@ export function projectCombo(
   }
 
   return out;
+}
+
+/** Project one request's combo collection with a single bulk capability snapshot. */
+export function projectComboCollectionWithCapabilities(combos: readonly unknown[]): PublicCombo[] {
+  const allCombos = combos.filter(
+    (combo): combo is Record<string, unknown> => Boolean(combo) && typeof combo === "object"
+  );
+  const snapshot = createModelCapabilityResolutionSnapshot();
+  const resolveCapabilities: ComboCapabilityResolver = (model) => {
+    const caps = getResolvedModelCapabilities(model, undefined, snapshot);
+    return { supportsVision: caps.supportsVision, reasoning: caps.reasoning };
+  };
+
+  return allCombos
+    .map((combo) =>
+      projectCombo(combo, {
+        includeCapabilities: true,
+        resolveCapabilities,
+        allCombos,
+      })
+    )
+    .filter((combo): combo is PublicCombo => combo !== null);
 }

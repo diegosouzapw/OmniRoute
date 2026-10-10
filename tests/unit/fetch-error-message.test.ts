@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { readFetchErrorMessage } from "../../src/shared/utils/fetchError.ts";
+import { errorMessageFromBody, readFetchErrorMessage } from "../../src/shared/utils/fetchError.ts";
+import { throwIfResilienceSaveFailed } from "../../src/app/(dashboard)/dashboard/settings/components/resilienceSaveError.ts";
 
 const FALLBACK = "An error occurred";
 
@@ -17,7 +18,9 @@ function jsonResponse(body: unknown, status = 500) {
 // sanitized server-side) message instead.
 
 test("reads the OpenAI-style { error: { message } } shape from buildErrorBody", async () => {
-  const res = jsonResponse({ error: { message: "Failed to compute analytics", type: "api_error" } });
+  const res = jsonResponse({
+    error: { message: "Failed to compute analytics", type: "api_error" },
+  });
   assert.equal(await readFetchErrorMessage(res, FALLBACK), "Failed to compute analytics");
 });
 
@@ -44,4 +47,122 @@ test("falls back when there is no error field", async () => {
 test("falls back on a non-JSON body without throwing", async () => {
   const res = new Response("<html>500 Internal Server Error</html>", { status: 500 });
   assert.equal(await readFetchErrorMessage(res, FALLBACK), FALLBACK);
+});
+
+// #13939: a 400 from `validateBody` carries the generic message "Invalid request"
+// and the real reason in `details`. The Add / Edit compatible-provider modals only
+// read `error.message`, so a reserved-prefix rejection surfaced as "Invalid request"
+// and the operator never saw which prefix collided or why.
+test("surfaces the first validation detail instead of the generic 'Invalid request'", async () => {
+  const res = jsonResponse(
+    {
+      error: {
+        message: "Invalid request",
+        details: [
+          {
+            field: "prefix",
+            message: '"openai" is a reserved provider prefix — choose a different prefix',
+          },
+        ],
+      },
+    },
+    400
+  );
+  assert.equal(
+    await readFetchErrorMessage(res, FALLBACK),
+    'prefix: "openai" is a reserved provider prefix — choose a different prefix'
+  );
+});
+
+test("uses a detail without a field name verbatim", async () => {
+  const res = jsonResponse(
+    {
+      error: { message: "Invalid request", details: [{ field: "", message: "Name is required" }] },
+    },
+    400
+  );
+  assert.equal(await readFetchErrorMessage(res, FALLBACK), "Name is required");
+});
+
+test("keeps error.message when details are empty or malformed", async () => {
+  const empty = jsonResponse({ error: { message: "Invalid request", details: [] } }, 400);
+  assert.equal(await readFetchErrorMessage(empty, FALLBACK), "Invalid request");
+  const junk = jsonResponse(
+    { error: { message: "Invalid request", details: [{ field: 1 }] } },
+    400
+  );
+  assert.equal(await readFetchErrorMessage(junk, FALLBACK), "Invalid request");
+});
+
+// The resilience settings PATCH is rejected by validateBody when the dashboard
+// sends a field the schema does not accept (e.g. globalConcurrentRequests on
+// builds where it is not in requestQueueSettingsSchema). The toast must name
+// the offending field instead of the generic "Invalid request".
+test("surfaces the offending field for a resilience requestQueue rejection", async () => {
+  const res = jsonResponse(
+    {
+      error: {
+        message: "Invalid request",
+        details: [
+          {
+            field: "requestQueue",
+            message: 'Unrecognized key: "globalConcurrentRequests"',
+            keys: ["globalConcurrentRequests"],
+          },
+        ],
+      },
+    },
+    400
+  );
+  assert.equal(
+    await readFetchErrorMessage(res, FALLBACK),
+    'requestQueue: Unrecognized key: "globalConcurrentRequests"'
+  );
+});
+
+// ResilienceTab parses the PATCH body once, then used to call
+// readFetchErrorMessage on the same Response. The helper's one-read contract
+// throws on a consumed body and returns the fallback, so the toast lost the
+// validation detail. The already-parsed object must go through errorMessageFromBody.
+test("consumed response falls back; parsed body still names the requestQueue field", async () => {
+  const res = jsonResponse(
+    {
+      error: {
+        message: "Invalid request",
+        details: [
+          {
+            field: "requestQueue",
+            message: 'Unrecognized key: "globalConcurrentRequests"',
+          },
+        ],
+      },
+    },
+    400
+  );
+  const json = await res.json();
+  assert.equal(await readFetchErrorMessage(res, FALLBACK), FALLBACK);
+  assert.equal(
+    errorMessageFromBody(json, FALLBACK),
+    'requestQueue: Unrecognized key: "globalConcurrentRequests"'
+  );
+});
+
+test("throwIfResilienceSaveFailed throws the parsed body only when the save is not ok", () => {
+  const json = {
+    error: {
+      message: "Invalid request",
+      details: [
+        {
+          field: "requestQueue",
+          message: 'Unrecognized key: "globalConcurrentRequests"',
+        },
+      ],
+    },
+  };
+  const expected = errorMessageFromBody(json, FALLBACK);
+  assert.throws(() => throwIfResilienceSaveFailed(false, json, FALLBACK), {
+    name: "Error",
+    message: expected,
+  });
+  assert.doesNotThrow(() => throwIfResilienceSaveFailed(true, json, FALLBACK));
 });

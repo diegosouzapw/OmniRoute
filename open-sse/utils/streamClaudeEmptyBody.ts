@@ -21,13 +21,23 @@ type ClaudeEmptyLifecycleLike = {
   hasMessageStart: boolean;
   hasMessageDelta: boolean;
   hasMessageStop: boolean;
+  stopReason?: string | null;
 };
+
+const CLEAN_EMPTY_STOP_REASONS = new Set(["end_turn", "stop_sequence"]);
 
 export function shouldAbortEmptyClaudeStream(
   lifecycle: ClaudeEmptyLifecycleLike,
   sawAnyUpstreamPayload: boolean
 ): boolean {
   if (lifecycle.hasError || lifecycle.hasContentBlock) return false;
+  if (
+    sawAnyUpstreamPayload &&
+    lifecycle.hasMessageStop &&
+    CLEAN_EMPTY_STOP_REASONS.has(lifecycle.stopReason || "")
+  ) {
+    return false;
+  }
   const hasPartialLifecycle =
     lifecycle.hasMessageStart || lifecycle.hasMessageDelta || lifecycle.hasMessageStop;
   return hasPartialLifecycle || !sawAnyUpstreamPayload;

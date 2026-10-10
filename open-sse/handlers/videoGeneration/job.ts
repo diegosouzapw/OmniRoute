@@ -16,6 +16,12 @@ import {
 } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 import { sleep } from "../../utils/sleep.ts";
+import {
+  MAX_CONSECUTIVE_POLL_RETRIES,
+  computePollRetryDelayMs,
+  isRetryablePollStatus,
+  parseRetryAfterMs,
+} from "./pollRetry.ts";
 
 interface LogLike {
   info?: (tag: string, msg: string, meta?: unknown) => void;
@@ -61,8 +67,13 @@ function isDoneStatus(
   failed: string[]
 ): "done" | "failed" | "pending" {
   if (typeof status !== "string") return "pending";
-  if (failed.includes(status)) return "failed";
-  if (done.includes(status)) return "done";
+  const normalized = status.trim().toLowerCase();
+  const failedNormalized = failed.map((s) => s.trim().toLowerCase());
+  const doneNormalized = done.map((s) => s.trim().toLowerCase());
+  if (failedNormalized.includes(normalized)) return "failed";
+  if (doneNormalized.includes(normalized)) return "done";
+  if (["failed", "error", "cancelled", "canceled"].includes(normalized)) return "failed";
+  if (["completed", "succeeded", "success", "done"].includes(normalized)) return "done";
   return "pending";
 }
 
@@ -293,7 +304,15 @@ export async function handleVideoJobGeneration({
     return { success: false, status: submitResult.status, error: submitResult.error };
   }
 
-  const taskId = readStringPath(submitResult.data, preset.taskIdPath);
+  // preset.taskIdPath comes first; the rest only run when a provider omits the
+  // documented field. task_id outranks the generic id because this chain is
+  // shared by every preset, and elsewhere id is often a correlation handle.
+  const taskId =
+    readStringPath(submitResult.data, preset.taskIdPath) ||
+    readStringPath(submitResult.data, "video_id") ||
+    readStringPath(submitResult.data, "task_id") ||
+    readStringPath(submitResult.data, "id") ||
+    readStringPath(submitResult.data, "request_id");
   if (!taskId) {
     return {
       success: false,
@@ -306,8 +325,11 @@ export async function handleVideoJobGeneration({
   const maxPolls = maxPollsOverride ?? preset.maxPolls;
   const pollInterval = pollIntervalOverride ?? preset.pollIntervalMs;
 
+  let consecutiveRetries = 0;
+  let nextDelay = pollInterval;
   for (let attempt = 1; attempt <= maxPolls; attempt += 1) {
-    await sleep(pollInterval);
+    await sleep(nextDelay);
+    nextDelay = pollInterval;
     const pollUrl = `${baseUrl}${preset.poll.pathTemplate
       .replace("{taskId}", encodeURIComponent(taskId))
       .replace("{model}", encodeURIComponent(model))}`;
@@ -317,10 +339,29 @@ export async function handleVideoJobGeneration({
       log,
     });
     if (pollResult.ok === false) {
+      // #15536: 429/503 on a status query is transient - back off and keep polling.
+      if (
+        isRetryablePollStatus(pollResult.status) &&
+        consecutiveRetries < MAX_CONSECUTIVE_POLL_RETRIES
+      ) {
+        consecutiveRetries += 1;
+        nextDelay = computePollRetryDelayMs(
+          pollInterval,
+          consecutiveRetries,
+          pollResult.retryAfterMs
+        );
+        attempt -= 1; // transient waits do not consume the poll budget
+        continue;
+      }
       return { success: false, status: pollResult.status, error: pollResult.error };
     }
+    consecutiveRetries = 0;
 
-    const status = readPath(pollResult.data, preset.statusPath);
+    const status =
+      readPath(pollResult.data, preset.statusPath) ??
+      readPath(pollResult.data, "status") ??
+      readPath(pollResult.data, "task_status") ??
+      readPath(pollResult.data, "state");
     const jobState = isDoneStatus(status, preset.statusDone, preset.statusFailed);
     if (jobState === "done") {
       const url = readResultUrl(pollResult.data, preset.resultPath);
@@ -406,7 +447,9 @@ async function fetchJson(
     body?: string;
     log?: LogLike;
   }
-): Promise<{ ok: true; data: unknown } | { ok: false; status: number; error: string }> {
+): Promise<
+  { ok: true; data: unknown } | { ok: false; status: number; error: string; retryAfterMs?: number }
+> {
   try {
     const response = await fetchWithTimeout(url, {
       method,
@@ -417,7 +460,12 @@ async function fetchJson(
     if (!response.ok) {
       const errorText = await response.text();
       log?.error?.("VIDEO", `Upstream ${response.status} for ${url}: ${errorText.slice(0, 200)}`);
-      return { ok: false, status: response.status, error: errorText };
+      return {
+        ok: false,
+        status: response.status,
+        error: errorText,
+        retryAfterMs: parseRetryAfterMs(response.headers.get("retry-after")),
+      };
     }
     const data = await response.json();
     return { ok: true, data };
@@ -437,19 +485,89 @@ async function fetchJson(
   }
 }
 
-function readResultUrl(data: unknown, resultPath: string): string | null {
-  const found = readPath(data, resultPath);
+const NON_VIDEO_EXTENSION = /\.(png|jpe?g|gif|webp|bmp|svg|ico)$/i;
+
+function extractUrl(value: unknown): string | null {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (
+      (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+      (trimmed.startsWith("[") && trimmed.endsWith("]"))
+    ) {
+      try {
+        const parsed = JSON.parse(trimmed) as unknown;
+        const fromParsed = extractUrl(parsed);
+        if (fromParsed) return fromParsed;
+      } catch {
+        // Not valid JSON, fall through
+      }
+    }
+    if (/^(https?:\/\/|data:video\/|\/)/i.test(trimmed)) {
+      // Reject images inside the scan, not at the call site: the walk returns
+      // its first hit, so a post-filter would drop the whole payload instead of
+      // letting the search move on to the real video.
+      return NON_VIDEO_EXTENSION.test(trimmed.split(/[?#]/)[0] ?? "") ? null : trimmed;
+    }
+    return null;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const url = extractUrl(item);
+      if (url) return url;
+    }
+    return null;
+  }
+  if (value && typeof value === "object") {
+    const rec = value as Record<string, unknown>;
+    for (const key of [
+      "url",
+      "video_url",
+      "videoUrl",
+      "download_url",
+      "downloadUrl",
+      "output_url",
+      "outputUrl",
+      "file_url",
+      "fileUrl",
+    ]) {
+      if (typeof rec[key] === "string" && (rec[key] as string).trim()) {
+        const extracted = extractUrl(rec[key]);
+        if (extracted) return extracted;
+      }
+    }
+    for (const key of ["metadata", "data", "outputs", "output", "result", "video"]) {
+      if (rec[key] !== undefined && rec[key] !== null) {
+        const extracted = extractUrl(rec[key]);
+        if (extracted) return extracted;
+      }
+    }
+  }
+  return null;
+}
+
+// Pre-#13726 behavior, kept as the last resort: whatever non-empty string sits
+// at the preset's documented path (or its first array entry / entry.url) is the
+// result, even a relative path without a leading slash. The strict walk above
+// only runs first so a real video url elsewhere can win over an odd value here.
+function readDocumentedResult(found: unknown): string | null {
   if (typeof found === "string" && found.trim()) return found.trim();
   if (Array.isArray(found)) {
     const first = found[0];
-    // muapi-style: resultPath "outputs" resolves to ["https://…"].
     if (typeof first === "string" && first.trim()) return first.trim();
-    // sora-style: resultPath "data" resolves to [{ url: "https://…" }].
     if (first && typeof first === "object" && !Array.isArray(first)) {
       const urlEntry = (first as Record<string, unknown>).url;
       if (typeof urlEntry === "string" && urlEntry.trim()) return urlEntry.trim();
     }
-    return null;
   }
   return null;
+}
+
+function readResultUrl(data: unknown, resultPath: string): string | null {
+  const documented = readPath(data, resultPath);
+  const direct = extractUrl(documented);
+  if (direct) return direct;
+
+  // The preset path missed, so scan the rest of the payload for a video url.
+  return extractUrl(data) ?? readDocumentedResult(documented);
 }

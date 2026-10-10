@@ -3,6 +3,11 @@ import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { countProxyLogsSince, iterateProxyLogsSince } from "@/lib/db/proxyLogs";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { logger } from "@/shared/utils/logger";
+import {
+  LOG_EXPORT_DEFAULT_ROWS,
+  LOG_EXPORT_MAX_ROWS,
+  buildLogExportHeaders,
+} from "@/shared/utils/logExport";
 
 const log = logger.child({ module: "logs-export" });
 
@@ -29,20 +34,21 @@ const log = logger.child({ module: "logs-export" });
  *  - Pretty-printing stays removed (callers that need formatting can
  *    pretty-print client-side).
  *  - BREAKING (documented in changelog): `limit` still defaults to 10,000 —
- *    exports that previously returned every row are silently truncated
+ *    exports that previously returned every row are truncated with cap metadata
  *    unless the caller passes a larger `limit`.
  */
-const MAX_ROWS = 50_000;
-const DEFAULT_ROWS = 10_000;
+const MAX_ROWS = LOG_EXPORT_MAX_ROWS;
+const DEFAULT_ROWS = LOG_EXPORT_DEFAULT_ROWS;
 
 /**
  * Build the streamed JSON body for a log export.
  *
  * Streams one row at a time — the row source (`rows`) is a cursor/generator
- * bounded by SQL LIMIT, so peak memory is bounded by one hydrated row, not the
- * full matching set (#13123). `capped`/`limit`/`totalAvailable` travel in the
+ * bounded by SQL LIMIT. `capped`/`limit`/`totalAvailable` travel in the
  * HEADER (not a trailer, as before) so a client consuming the stream
  * incrementally learns about truncation before it has processed every row.
+ * `estimatedCount` is known before iteration; the authoritative `count` is
+ * appended after the rows, including when hydration fails partway through.
  */
 function buildLogExportStream({
   rows,
@@ -86,15 +92,15 @@ function buildLogExportStream({
         );
       }
       controller.enqueue(encoder.encode("]"));
-      controller.enqueue(encoder.encode(streamError ? errorTail(index, streamError) : "}\n"));
+      if (streamError) controller.enqueue(encoder.encode(errorTail(index, streamError)));
+      controller.enqueue(encoder.encode(`,"count":${index}}\n`));
       controller.close();
     },
   });
 }
 
 /**
- * `,"emitted":N,"error":"..."}` — the sibling fields that close a truncated
- * export out as well-formed JSON (#13999).
+ * `,"emitted":N,"error":"..."` — the failure fields before the final count.
  */
 function errorTail(emitted: number, streamError: unknown): string {
   const tail = JSON.stringify({
@@ -103,7 +109,7 @@ function errorTail(emitted: number, streamError: unknown): string {
       streamError instanceof Error ? streamError.message : String(streamError)
     ),
   });
-  return "," + tail.slice(1, -1) + "}\n";
+  return "," + tail.slice(1, -1);
 }
 
 export async function GET(request: Request) {
@@ -147,7 +153,7 @@ export async function GET(request: Request) {
     const stream = buildLogExportStream({
       rows,
       header: {
-        count,
+        estimatedCount: count,
         hours,
         type: logType,
         ...(capped ? { capped: true, limit, totalAvailable } : {}),
@@ -161,6 +167,10 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
         "Content-Disposition": `attachment; filename="${filename}"`,
+        // #13999: mirror the cap metadata in headers so a client that saves the body as a
+        // Blob (the dashboard Export button) can warn without parsing the full document.
+        // Headers precede hydration: their count is explicitly an estimate.
+        ...buildLogExportHeaders({ count, limit, totalAvailable }),
       },
     });
   } catch (error) {

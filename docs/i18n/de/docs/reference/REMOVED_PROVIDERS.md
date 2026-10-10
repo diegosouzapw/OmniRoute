@@ -41,12 +41,13 @@ zurückkehren, und diese Genehmigung muss im Eintrag verlinkt werden.
    den Quellen der Anbieter-Registry auftaucht. Fügen Sie die neuen Kennungen im selben PR zu diesem Test hinzu, mit dem
    Sie hier eine Zeile hinzufügen.
 
-## Verzeichnis
+## Register
 
-| Entfernt am | Anbieter-ID | Alias  | Domains                                 | Angefordert von                       | Entfernungs-PR                                                 | Hinweise                                                                                                                           |
-| ----------- | ----------- | ------ | --------------------------------------- | ------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-12  | `puter`     | `pu`   | `puter.com`                             | Eigentümer von Puter (Nariman Jelveh) | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API-Schlüssel-Anbieter. Die Migration `152_remove_puter_provider.sql` bereinigt gespeicherte Konfigurationen.                      |
-| 2026-09-02  | `theoldllm` | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | Der Dienstbetreiber (Support-E-Mail)  | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Anbieter ohne Schlüssel. Schriftliche Anfrage am 2026-08-30 eingegangen. Zugehörige Issues und Diskussion gelöscht, PRs umbenannt. |
+| Entfernt am | Anbieter-ID | Alias | Domains | Angefordert von | Entfernungs-PR | Hinweise  
+| 2026-08-12 | `puter` | `pu` | `puter.com` | Puter's owner (Nariman Jelveh) | [#10210](https://github.com/diegosouzapw/OmniRoute/pull/10210) | API-Schlüssel-Anbieter. Migration `152_remove_puter_provider.sql` bereinigt gespeicherte Konfiguration. |
+| 2026-09-02 | `theoldllm` | `tllm` | `theoldllm.com`, `theoldllm.vercel.app` | Der Dienstbetreiber (Support-E-Mail) | [#12440](https://github.com/diegosouzapw/OmniRoute/pull/12440) | Schlüsselloser Anbieter. Schriftliche Anfrage erhalten am 30.08.2026. Dedizierte Issues und Diskussion gelöscht, PRs umbenannt. |
+| 2026-09-21 | `gemini-business` | `gembiz` | `business.gemini.google` | Entscheidung des Projektinhabers (Issue [#14217](https://github.com/diegosouzapw/OmniRoute/issues/14217)) | [#14467](https://github.com/diegosouzapw/OmniRoute/pull/14467) | Cookie-basierter Web-Anbieter. Google hat den `BardFrontendService/StreamGenerate`-Endpunkt, auf den der Executor abzielte, eingestellt; der Ersatz (`biz-discoveryengine.googleapis.com` `widgetStreamAssist`, Bearer JWT, das von `__Secure-C_SES`/`csesidx` gebootstrappt wird) kann ohne ein aktives Gemini Enterprise/Workspace-Konto, das das Projekt nicht besitzt, nicht erstellt oder validiert werden. Eingestellt statt unbestätigt neu geschrieben. |
+| 2026-09-21 | `suno` | `suno` | `studio-api.suno.ai`, `studio-api-prod.suno.com` | Entscheidung des Projektinhabers (`#14224`) | [#14468](https://github.com/diegosouzapw/OmniRoute/pull/14468) | Cookie-Authentifizierungsanbieter, keine Betreiberabschaltung. `studio-api.suno.ai` wurde ausgesetzt (503); der Live-Host erfordert einen Clerk JWT-Austausch plus eine kostenpflichtige hCaptcha-Lösungsabhängigkeit, die OmniRoute für einen Musik-Anbieter nicht hinzufügen wollte. `kie/suno-v4.0` und `kie/suno-v3.5` (kie.ai-gehostet) sind davon unberührt und werden weiterhin unterstützt. |
 
 ## Einen Eintrag hinzufügen
 

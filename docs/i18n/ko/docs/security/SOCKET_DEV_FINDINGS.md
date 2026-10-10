@@ -185,14 +185,13 @@ rawBody)`)를 확인합니다. 비밀 값이 설정되어 있으면 서명이
 
 ## 빌드 프로필: `minimal`
 
-Socket 친화적인 아티팩트가 필요한 사용자는 다음과 같이 빌드하십시오.
+Socket 친화적인 아티팩트가 필요한 사용자는 다음과 같이 빌드하세요.
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-webpack `NormalModuleReplacementPlugin`은 네 개의 모듈을 스텁에
-별칭으로 연결합니다.
+webpack `NormalModuleReplacementPlugin`은 네 개의 모듈을 스텁으로 별칭 지정합니다.
 
 | 모듈                                        | 스텁                                             |
 | ------------------------------------------- | ------------------------------------------------ |
@@ -202,12 +201,11 @@ webpack `NormalModuleReplacementPlugin`은 네 개의 모듈을 스텁에
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
 각 스텁은 동일한 인터페이스를 내보내지만, 모든 함수는 런타임에
-`featureDisabledError(name)`를 발생시킵니다. 비활성화된 모듈에 의존하는
-라우트는 민감한 코드 경로를 활성화하는 대신 명확한 메시지와 함께 HTTP
-503을 반환합니다.
+`featureDisabledError(name)`을 발생시킵니다. 비활성화된 모듈에 의존하는
+라우트는 민감한 코드 경로를 활성화하는 대신 명확한 메시지와 함께 HTTP 503을
+반환합니다.
 
-생성된 번들은 `omniroute-secure`로 게시하기 위한 것입니다. 게시 절차는
-`docs/ops/PUBLISHING_SECURE.md`를 참조하십시오.
+결과 번들은 `omniroute-secure`로 게시하기 위한 것입니다.
 
 ---
 

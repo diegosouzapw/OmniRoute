@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Prišlo je do napake",
+      "description": "Prišlo je do nepričakovane napake. Dogodek je bil zabeležen in naša ekipa ga bo raziskala.",
+      "detailsAriaLabel": "Podrobnosti napake",
+      "retryAriaLabel": "Znova naloži stran",
+      "tryAgain": "Poskusi znova",
+      "statusAriaLabel": "Odpri stanje sistema",
+      "systemStatus": "Stanje sistema"
+    }
+  }
+}

@@ -3,7 +3,14 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { chromium, type BrowserContextOptions } from "playwright-core";
+import {
+  chromium,
+  type Browser,
+  type BrowserContext,
+  type BrowserContextOptions,
+  type Page,
+} from "playwright-core";
+import { cdpConnectOptions } from "./cdp-auth";
 import type { AppConfig } from "./config";
 import { atomicWriteFile } from "./config";
 import {
@@ -39,6 +46,27 @@ interface LoginVerificationMarker {
   cookieFingerprint?: string;
   storageStateFingerprint?: string;
   pendingBrowserVerification?: boolean;
+}
+
+/**
+ * CDP is explicitly used to attach to an already-running persistent Chrome profile.
+ * Creating a new incognito context after attaching discards that profile's cookies,
+ * local storage, cache, and Cloudflare browser trust — exactly the state CDP is meant
+ * to preserve for this provider.
+ */
+export async function browserContextForStoredState(
+  browser: Browser,
+  storageState: NonNullable<BrowserContextOptions["storageState"]>,
+  reusePersistentCdpContext: boolean
+): Promise<{ context: BrowserContext; owned: boolean }> {
+  if (!reusePersistentCdpContext) {
+    return { context: await browser.newContext({ storageState }), owned: true };
+  }
+  const context = browser.contexts()[0];
+  if (!context) {
+    throw new Error("The CDP Chrome instance did not expose its persistent browser context");
+  }
+  return { context, owned: false };
 }
 
 export function loginVerificationMarkerPath(storageStatePath: string): string {
@@ -84,7 +112,7 @@ async function inspectStoredState(
     throw new Error("ChatGPT browser verification requires Chrome or a CDP endpoint");
   }
   const verifierBrowser = config.cdpEndpoint
-    ? await chromium.connectOverCDP(config.cdpEndpoint)
+    ? await chromium.connectOverCDP(config.cdpEndpoint, cdpConnectOptions())
     : await chromium.launch({
         executablePath: config.chromeExecutablePath,
         headless: false,
@@ -92,9 +120,15 @@ async function inspectStoredState(
         args: ["--no-first-run", "--no-default-browser-check"],
       });
   try {
-    const verifierContext = await verifierBrowser.newContext({ storageState });
+    const { context: verifierContext, owned: ownsVerifierContext } =
+      await browserContextForStoredState(
+        verifierBrowser,
+        storageState,
+        Boolean(config.cdpEndpoint)
+      );
+    let verifierPage: Page | undefined;
     try {
-      const verifierPage = await verifierContext.newPage();
+      verifierPage = await verifierContext.newPage();
       await verifierPage.goto(CHATGPT_TEMPORARY_CHAT_URL, {
         waitUntil: "domcontentloaded",
         timeout: 60_000,
@@ -107,7 +141,8 @@ async function inspectStoredState(
       await assertTemporaryChatPage(verifierPage);
       return { ...(await detectChatGptAccountCapabilities(verifierPage)), url: verifierPage.url() };
     } finally {
-      await verifierContext.close();
+      if (ownsVerifierContext) await verifierContext.close();
+      else await verifierPage?.close().catch(() => {});
     }
   } finally {
     await verifierBrowser.close();

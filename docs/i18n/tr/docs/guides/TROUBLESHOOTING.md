@@ -39,31 +39,31 @@ OmniRoute için yaygın sorunlar ve çözümleri.
 
 ### Ücretsiz Sağlayıcılarda Hız Sınırlaması (429 / 400 / 401)
 
-**Belirti**: Ücretsiz/kimlik doğrulamasız sağlayıcılarla (opencode, auggie vb.) `model: "auto"` kullanırken yanıtlar yerine aralıklı olarak `HTTP 429`, `400` veya `401` hataları alırsınız. Aynı istem kısa süre sonra yeniden denendiğinde istekler başarılı olur, ancak otomasyon (cron işleri, aracılar, betikler) ilk hatada kesintiye uğrar.
+**Belirti**: Ücretsiz/kimlik doğrulamasız sağlayıcılarla (opencode, auggie vb.) `model: "auto"` kullanırken yanıtlar yerine aralıklı olarak `HTTP 429`, `400` veya `401` hataları alırsınız. Aynı istem kısa bir süre sonra yeniden denendiğinde istekler başarılı olur, ancak otomasyon (cron görevleri, aracılar, betikler) ilk hatada kesintiye uğrar.
 
-**Temel neden**: Üç bağımsız hata modu üst üste gelir:
+**Temel neden**: Birbirinden bağımsız üç hata modu üst üste gelir:
 
-1. **Sağlayıcı hız sınırı (`429`)**: Ücretsiz katmanlar, belirli bir zaman aralığı için kota uygulayabilir. Ani bir paralel çağrı yoğunluğu bu kotayı tüketir ve pencere sıfırlanana kadar sonraki istek reddedilir.
-2. **Doğrudan geçişte bozuk model (`400`/`401`)**: `auto/*` havuzları, katalogda kayıtlı ancak etkin kimlik bilgileri bulunmayan `opencode` doğrudan geçiş modellerini içerebilir (ör. `oc/north-mini-code-free` → `401`). Otomatik yönlendirici bunlardan birini dener, başarısız olur ve yedek sağlayıcıya geçiş devreye girmeden önce hata yayılır.
-3. **Eşzamanlılık artışı (yük altında `429`)**: Birden fazla aracı/cron oturumu aynı anda `auto` kullandığında toplam istek hızı, ücretsiz sağlayıcıların kaldırabileceği düzeyi aşar; bunun sonucunda geçerli çağrılar kötüye kullanım olarak işaretlenir.
+1. **Sağlayıcı hız sınırı (`429`)**: Ücretsiz katmanlar, zaman aralığı başına kota uygulayabilir. Ani bir paralel çağrı yoğunluğu bu kotayı tüketir; bu nedenle zaman aralığı sıfırlanana kadar sonraki istek reddedilir.
+2. **Doğrudan geçişte bozuk model (`400`/`401`)**: `auto/*` havuzları, `opencode` üzerindeki katalogda kayıtlı ancak geçerli kimlik bilgileri bulunmayan doğrudan geçişli modelleri içerebilir (ör. `oc/north-mini-code-free` → `401`). Otomatik yönlendirici bunlardan birini dener, başarısız olur ve geri dönüş devreye girmeden önce hata yayılır.
+3. **Eşzamanlılık kaynaklı artış (yük altında `429`)**: Birden fazla aracı/cron oturumu aynı anda `auto` hedefine istek gönderdiğinde toplam istek hızı, ücretsiz sağlayıcıların tolere edebileceği düzeyi aşar; bu nedenle geçerli çağrılar kötüye kullanım olarak işaretlenir.
 
-**Doğrulanmış çözüm (topluluk tarafından bildirildi, 2026-08-10)**: Döndürme, eşzamanlılık ve yedek sağlayıcıya geçiş mekanizmalarının ücretsiz katmandaki dalgalanmaları hata vererek durmak yerine absorbe etmesi için üç ortam değişkenini ayarlayın:
+**Doğrulanmış çözüm (topluluk tarafından bildirildi, 2026-08-10)**: Döndürme, eşzamanlılık ve geri dönüşün ücretsiz katmandaki dalgalanmaları hata vererek sonlanmak yerine karşılaması için üç ortam değişkenini ayarlayın:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # 400/401 durumunda başka bir modele/sağlayıcıya geçer (bozuk doğrudan geçiş modellerini atlar)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # ağır istekler için açık kabul üst sınırı (varsayılan olarak ayarlanmamıştır: istek sayısı sınırı yoktur, aşağıdaki nota bakın)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # anında yeniden denenebilir bir 503 yerine ağır istek kapasitesi için daha uzun, sınırlı bekleme
+export OMNIROUTE_ROTATE_ON_400=true           # 400/401 durumunda başka bir modele/sağlayıcıya geçer (bozuk doğrudan geçişli modelleri atlar)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # ağır iş yükleri için açık kabul üst sınırı (varsayılan olarak ayarlanmamıştır: istek sayısı sınırı yoktur, aşağıdaki nota bakın)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # yavaş üst akışlar için sınırlı bekleme süresini RATE_LIMIT_MAX_WAIT_MS varsayılanının üzerine çıkarır
 ```
 
-Bunları OmniRoute işleminin ortamında (arka plan programında, ör. LaunchAgent plist veya `systemctl edit` aracılığıyla) ayarlayın, ardından OmniRoute'u yeniden başlatın. Döndürme bayrağı tek başına en yüksek etkiye sahip ayardır: Kesin bir hatayı, havuzdaki sağlıklı bir sağlayıcı üzerinden şeffaf bir yeniden denemeye dönüştürür.
+Bunları OmniRoute işlem ortamında (arka plan programında, ör. LaunchAgent plist veya `systemctl edit` aracılığıyla) ayarlayın ve ardından OmniRoute'u yeniden başlatın. Döndürme bayrağı, tek başına en yüksek etkiye sahip ayardır: Kesin bir hatayı, havuzdaki sağlıklı bir sağlayıcıya karşı şeffaf biçimde yeniden denemeye dönüştürür.
 
-**Not**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, aynı anda kaç ağır — uzun bağlamlı — isteğin çalışacağını sınırlar; bu sınır bir kabul geçididir, sağlayıcı hız sınırlayıcısı değildir. **#503-dağılım güncellemesi:** Bu değişken artık varsayılan olarak ayarlanmamaktadır (artık yalnızca yukarıdaki gibi açıkça yapılandırıldığında bağlayıcı olur) — bunun yerine ağır isteklerin kabulü, ana makinenin gerçek bellek sınırına göre kendini ölçeklendiren ve otomatik olarak türetilen bir bayt bütçesi (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) tarafından denetlenir. Bu nedenle yeni bir dağıtımda, bu değişken hiç ayarlanmadan çok daha az `503 chat_admission_busy` reddi görülmelidir; değişkenin burada açıkça ayarlanması hâlâ tam olarak belgelendiği şekilde çalışır. Açık bayt bütçesi geçersiz kılmaları 8 MiB–2 GiB aralığıyla sınırlandırılır. `413 body_exceeds_budget` geçici bir durum değildir: Bu bayt bütçesini artırın, `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` değerini düşürün veya işlemin bellek sınırını artırın. Bir `inflight_bytes_budget` yük azaltması geçici bir çekişmedir ve yeniden denenebilir olmaya devam eder. Sağlayıcı başına hız sınırlaması (`open-sse/services/rateLimitManager.ts`) ayrı olarak `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ve `RATE_LIMIT_AUTO_ENABLE` tarafından yönetilir — `.env.example` dosyasına bakın.
+**Not**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, aynı anda kaç ağır — uzun bağlamlı — isteğin çalışacağını sınırlar; bu sınır bir kabul kapısıdır, sağlayıcı hız sınırlayıcısı değildir. **#503-fanout güncellemesi:** Bu değişken artık varsayılan olarak ayarlanmamaktadır (artık yalnızca yukarıdaki gibi açıkça yapılandırıldığında sınır uygular) — bunun yerine ağır iş yüklerinin kabulü, ana makinenin gerçek bellek sınırına göre kendini ölçeklendiren, otomatik türetilmiş bir bayt bütçesi (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) tarafından denetlenir. Bu nedenle yeni bir dağıtımda, bu değişken hiç ayarlanmadan çok daha az `503 chat_admission_busy` reddi görülmelidir; burada açıkça ayarlanması ise tam olarak belgelendiği şekilde çalışmaya devam eder. Açık bayt bütçesi geçersiz kılmaları 8 MiB–2 GiB aralığıyla sınırlandırılır. `413 body_exceeds_budget` geçici değildir: Bu bayt bütçesini artırın, `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES` değerini düşürün veya işlemin bellek sınırını artırın. `inflight_bytes_budget` nedeniyle yük azaltma, geçici çekişme durumudur ve yeniden denenebilir olmaya devam eder. Sağlayıcı başına hız sınırlaması (`open-sse/services/rateLimitManager.ts`) ayrı olarak `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH` ve `RATE_LIMIT_AUTO_ENABLE` tarafından yönetilir — `.env.example` dosyasına bakın.
 
-**Çalıştığını doğrulama**: agent/cron işleminizi hızlı bir şekilde art arda iki kez çalıştırın ve her ikisinin de başarılı olduğunu doğrulayın. Düzeltmeden önce ikinci çalıştırma genellikle `429`/`401` hatası verir. Düzeltmeden sonra hatalar (varsa) şeffaf bir şekilde yeniden denenir ve çağrı tamamlanır. Ayrıca `curl /monitoring/health` komutunu çalıştırabilir ve sağlayıcı bağlantılarındaki `rateLimitedUntil` alanını ve etkilenen sağlayıcılar için `circuitBreakers.providerBreakers[].state` değerini izleyebilirsiniz — durum `CLOSED`, `DEGRADED`, `OPEN` veya `HALF_OPEN` değerlerinden biridir (bkz. `src/shared/utils/circuitBreaker.ts`) ve hata vermeye devam eden bir sağlayıcı, sıfırlama penceresi bir yoklama isteğine izin vermeden (`HALF_OPEN`) önce `CLOSED → DEGRADED → OPEN` durumlarına geçer.
+**Çalıştığı nasıl doğrulanır**: Aracınızı/cron görevinizi hızlıca art arda iki kez çalıştırın ve her ikisinin de başarılı olduğunu doğrulayın. Düzeltmeden önce ikinci çalıştırma genellikle `429`/`401` hatası verir. Düzeltmeden sonra hatalar (varsa) şeffaf biçimde yeniden denenir ve çağrı tamamlanır. Ayrıca `curl /monitoring/health` çalıştırarak sağlayıcı bağlantılarındaki `rateLimitedUntil` alanını ve etkilenen sağlayıcılar için `circuitBreakers.providerBreakers[].state` değerini izleyebilirsiniz — durum `CLOSED`, `DEGRADED`, `OPEN` veya `HALF_OPEN` değerlerinden biridir (`src/shared/utils/circuitBreaker.ts` dosyasına bakın) ve sürekli başarısız olan bir sağlayıcı, sıfırlama zaman aralığı bir yoklama isteğine izin vermeden (`HALF_OPEN`) önce `CLOSED → DEGRADED → OPEN` durumlarına geçer.
 
-**Hâlâ 429 görüyorsanız**: söz konusu sağlayıcının etkin hesabı, yalnızca hız sınırını değil, gerçekten _kotasını_ tüketmiştir. OmniRoute kontrol panelinde Providers → Accounts bölümünden aynı sağlayıcı için ikinci bir hesap ekleyin veya başka bir ücretsiz sağlayıcıyı (ör. `routeway`, `auggie`) kullanıma dahil edin. Rotasyon yalnızca geçici hız sınırı/400/401 hatalarında yardımcı olur; kotanın tamamen tükenmesi ikinci bir kimlik bilgisi veya farklı bir sağlayıcı gerektirir.
+**Hâlâ 429 görüyorsanız**: Bu sağlayıcının etkin hesabı gerçekten _kotasını_ tüketmiştir (yalnızca hız sınırı değildir). OmniRoute panosu → Providers → Accounts bölümünde aynı sağlayıcı için ikinci bir hesap ekleyin veya başka bir ücretsiz sağlayıcıyı (ör. `routeway`, `auggie`) kullanıma dahil edin. Döndürme yalnızca geçici hız sınırı/400/401 durumlarında yardımcı olur; kotanın tamamen tükenmesi ikinci bir kimlik bilgisi veya farklı bir sağlayıcı gerektirir.
 
-**Görsel modellerde (`auto/vision`, `bazaarlink/*`) 403 görüyorsanız**: bağlı hesap, görsel özelliklerini içeren ücretli bir plana sahip değildir veya API anahtarının izinleri yetersizdir. Sağlayıcı kontrol panelinde anahtar kapsamının görsel/çok modlu özellikleri içerdiğini doğrulayın veya ücretli katmandaki bir hesabı bağlayıp görsel hedefi olarak kullanmaya devam edin.
+**Görüntü modellerinde (`auto/vision`, `bazaarlink/*`) 403 görüyorsanız**: Bağlı hesap, görüntü desteğini içeren ücretli bir plana sahip değildir veya API anahtarının izinleri yetersizdir. Sağlayıcı panosunda anahtar kapsamının görüntü/çok modlu erişimi içerdiğini doğrulayın ya da ücretli katmanda bir hesap bağlayıp bunu görüntü hedefi olarak tutun.
 
 ---
 
@@ -528,35 +528,35 @@ Biçim dönüştürme sorunlarını ayıklamak için **Dashboard → Translator*
 ### Otomatik hız sınırlama tetiklenmiyor
 
 - Otomatik hız sınırlama yalnızca API anahtarı sağlayıcıları için geçerlidir (OAuth/abonelik için geçerli değildir)
-- **Settings → Resilience → Provider Profiles** bölümünde otomatik hız sınırlamanın etkinleştirildiğini doğrulayın
-- Sağlayıcının `429` durum kodları veya `Retry-After` üst bilgileri döndürüp döndürmediğini kontrol edin
+- **Ayarlar → Dayanıklılık → Sağlayıcı Profilleri** bölümünde otomatik hız sınırlamanın etkinleştirildiğini doğrulayın
+- Sağlayıcının `429` durum kodları veya `Retry-After` üstbilgileri döndürüp döndürmediğini kontrol edin
 
 ### Üstel geri çekilmeyi ayarlama
 
 Sağlayıcı profilleri şu ayarları destekler:
 
-- **Base delay** — İlk hatadan sonraki başlangıç bekleme süresi (varsayılan: 1s)
-- **Max delay** — Maksimum bekleme süresi sınırı (varsayılan: 30s)
-- **Multiplier** — Art arda her hata için gecikmenin ne kadar artırılacağı (varsayılan: 2x)
+- **Temel gecikme** — İlk hatadan sonraki başlangıç bekleme süresi (varsayılan: 1s)
+- **Maksimum gecikme** — Maksimum bekleme süresi sınırı (varsayılan: 30s)
+- **Çarpan** — Ardışık her hatada gecikmenin ne kadar artırılacağı (varsayılan: 2x)
 
-### Ani istek yığılmasını önleme
+### Thundering herd önleme
 
-Çok sayıda eşzamanlı istek, hız sınırlamasına tabi bir sağlayıcıya ulaştığında OmniRoute, istekleri sıraya koymak ve zincirleme hataları önlemek için mutex + otomatik hız sınırlama kullanır. Bu, API anahtarı sağlayıcıları için otomatik olarak gerçekleşir.
+Çok sayıda eşzamanlı istek, hız sınırına ulaşmış bir sağlayıcıya gönderildiğinde OmniRoute, istekleri sıralı hâle getirmek ve zincirleme hataları önlemek için mutex + otomatik hız sınırlama kullanır. Bu, API anahtarı sağlayıcıları için otomatik olarak gerçekleşir.
 
 ### Sohbet istekleri 503 / chat_admission_busy hatasıyla başarısız oluyor
 
 **Belirtiler:**
 
-- Sohbet tamamlamaları uç noktası, hata kodu
+- Sohbet tamamlama uç noktası, hata kodu
   `chat_admission_busy` olan yeniden denenebilir bir `503` yanıtı döndürür.
-- Yanıt `Retry-After` içerir. #12135 itibarıyla değer, gözlemlenen
-  doluluk durumundan türetilir — isteğin hâlihazırda beklediği `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` penceresi
-  ile mevcut ağır iş yükü kiralarının elde tutulduğu süreden büyük olanı alınır — tam
-  saniyeye yukarı yuvarlanır ve 60 ile sınırlandırılır. Boş bir geçitte geçmişteki alt sınırlar korunur:
-  bayt tabanlı yol için 2 saniye, yapı tabanlı yol için 1 saniye (bu yol ayrıca
-  `reason: "structure_limit"` içerir).
-- Bu durum, başka bir ağır iş yüküne sahip sohbet veya uzun süreli akış yanıtı hâlâ
-  devam ederken ortaya çıkabilir.
+- Yanıt `Retry-After` içerir. #12135 sürümünden itibaren değer, gözlemlenen
+  doluluk oranından türetilir — isteğin hâlihazırda beklediği `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`
+  penceresi ile mevcut ağır iş yükü kiralamalarının tutulduğu süreden büyük olanı alınır — tam
+  saniyeye yukarı yuvarlanır ve 60 ile sınırlandırılır. Boş bir geçitte geçmiş alt sınırlar korunur:
+  bayt tabanlı yolda 2 saniye, yapı tabanlı yolda 1 saniye (bu yol ayrıca
+  `reason: "structure_limit"` değerini içerir).
+- Bu durum, başka bir ağır iş yüküne sahip sohbet veya uzun süre çalışan akış yanıtı hâlâ
+  devam ederken oluşabilir.
 
 Bayt tabanlı yanıt gövdesi şöyledir:
 
@@ -574,48 +574,54 @@ Yapı tabanlı yanıt, aynı türü ve kodu kullanır; mesajı
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 ve nedeni `reason: "structure_limit"` şeklindedir.
 Varsayılan eşiklerde bir istek; en az `200` mesaj, en az `64` araç veya en az `32,000`
-tahmini token içerdiğinde ya da sınırlı yapı tahmini `10,000` ziyaret edilen düğüm veya `12`
-derinlik sınırlarını tükettiğinde yapısal olarak ağır kabul edilir.
+tahmini token içeriyorsa ya da sınırlı yapı tahmini, ziyaret edilen `10,000` düğüm veya `12`
+derinlik sınırlarını tüketirse yapısal olarak ağır kabul edilir.
 
-**Neden:** Bu, yukarı akış sağlayıcısındaki bir hata değil, OmniRoute içindeki kasıtlı yük azaltma işlemidir.
-Her işlem, büyük bir istek gövdesini bellekte tutup ayrıştırmadan önce sınırlı ağır iş yükü kapasitesini ayırmak
-için işleme özel bir koruma kullanır. Ağır iş yükü kirası, bir SSE
-yanıtının ömrü boyunca elde tutulur.
+**Neden:** Bu, üst sağlayıcı kaynaklı bir hata değil, OmniRoute içindeki kasıtlı yük azaltma
+mekanizmasıdır. Her işlem, büyük bir istek gövdesini tutup ayrıştırmadan önce sınırlı ağır iş yükü
+kapasitesi ayırmak için işlem düzeyinde yerel bir koruma kullanır. Bir ağır iş yükü kiralaması,
+bir SSE yanıtının kullanım ömrü boyunca tutulmaya devam eder.
 
-**#503-yayılımı:** bu düzeltmeden önce koruma, ana makine belleğinden bağımsız olarak eşzamanlılığı sabit bir istek SAYISI
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, varsayılan `1`) ile sınırlıyordu; bu nedenle kodlama ajanlarının
-yayılımı (birden fazla alt ajan/CLI, düzenli olarak > 256 KB boyutunda gövdeler) etkin
-eşzamanlılığı yaklaşık 1'e düşürüyor ve tamamen normal yük altında 503 hatalarına yol açıyordu. Koruma artık kendini
-otomatik olarak ayarlar: işlemin gerçek bellek sınırına göre boyutlandırılan, otomatik türetilmiş bir veri alımı BAYT
-bütçesi (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) tarafından yönetilir ve ayrıca canlı bir kaynak baskısı sinyalini
-dikkate alır — böylece yalnızca ana makine gerçekten bellek baskısı altındayken yük azaltır,
-birden fazla ağır istek aynı anda geldiği için değil. Eski sayı sınırı (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`)
-hâlâ uygulanır, ancak yalnızca bunu açıkça ayarlarsanız.
+**#503-fanout:** bu düzeltmeden önce koruma, ana makine belleğinden bağımsız olarak eşzamanlılığı
+sabit bir istek SAYISIYLA (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, varsayılan `1`)
+sınırlandırıyordu; bu nedenle kodlama aracısı fan-out işlemi (birden fazla alt aracı/CLI, rutin
+olarak > 256 KB gövdeler) etkin eşzamanlılığı yaklaşık 1'e düşürüyor ve tamamen normal yük
+altında 503 hatalarına neden oluyordu. Koruma artık kendini otomatik olarak ayarlıyor: işlemin
+gerçek bellek üst sınırına göre boyutlandırılan, otomatik türetilmiş bir alım BAYT bütçesi
+(`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) tarafından denetleniyor ve ayrıca canlı bir kaynak baskısı
+sinyalini dikkate alıyor — böylece yalnızca aynı anda birden fazla ağır istek geldiği için değil,
+ana makine gerçekten bellek baskısı altındayken yük azaltıyor. Eski sayı sınırı
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) hâlâ uygulanır, ancak yalnızca açıkça ayarlarsanız.
 
-Kapasite dolu olduğunda ağır iş yüküne sahip bir istek, yeniden denenebilir `503` yanıtını vermeden önce
-bir yerin boşalması için `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` süresine kadar (varsayılan `2000`, `0` beklemeyi devre dışı bırakır)
-bekler. Bu sınırlı bekleme, ağır alt istekleri eşzamanlı olarak yayan ajan tarzı istemcilerin
-(OpenCode, Claude Code, Cursor), anında reddedilmeler nedeniyle tüm yeniden deneme bütçelerini tüketip görevin
-ortasında başarısız olmak yerine istek yığınını sıraya koymasını sağlar.
-Mevcut ağır iş yükü kirası doluluğu, belirlenen bayt bütçesi ve canlı baskı önem derecesi
+Kapasite dolu olduğunda ağır iş yüküne sahip bir istek, yeniden denenebilir `503` yanıtını
+vermeden önce bir yuvanın boşalması için en fazla `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS`
+(varsayılan olarak `RATE_LIMIT_MAX_WAIT_MS`; `0` beklemeyi devre dışı bırakır) kadar bekler.
+Bu sınırlı bekleme, ağır alt istekleri eşzamanlı olarak yayan aracı tarzı istemcilerin
+(OpenCode, Claude Code, Cursor), tüm yeniden deneme bütçelerini anında reddedilmelerle tüketip
+görevin ortasında durmak yerine ani yükü sıralı hâle getirmelerini sağlar.
+Mevcut ağır iş yükü kiralama doluluğu, belirlenen bayt bütçesi ve canlı baskı önem derecesi
 `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) üzerinden gösterilir — herhangi bir ortam değişkenine dokunmadan önce bunları kontrol edin.
-Settings → Resilience → Request Queue → Concurrent Requests bunu kontrol etmez; bu ayar
-ayrı bir sağlayıcı istek kuyruğu mekanizmasını yönetir.
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) altında gösterilir — herhangi bir ortam
+değişkenini değiştirmeden önce bunları kontrol edin.
+Ayarlar → Dayanıklılık → İstek Kuyruğu → Eşzamanlı İstekler bunu kontrol etmez; bu ayar ayrı bir
+sağlayıcı istek kuyruğu mekanizmasını yönetir.
 
-**Düzeltme:**
+**Çözüm:**
 
-1. Önce yeniden deneyin. İstemciler, isteği hemen
-   tekrarlamak yerine `Retry-After` değerine uymalı ve geri çekilme kullanmalıdır.
-2. Herhangi bir ayarlama yapmadan önce `/api/monitoring/health` → `chatAdmission` bölümünü kontrol edin. `countCapEnabled:
-false` ve yüksek bir `maxInflightBytes`, otomatik türetilen bütçenin zaten görevini
-   yerine getirdiği anlamına gelir; `high`/`critical` değerindeki bir `pressureSeverity`, ana makinede gerçekten bellek yetersizliği olduğu anlamına gelir —
-   bu durum bir kabul ortam değişkeniyle düzeltilemez; daha fazla RAM veya daha küçük bir iş yükü gerekir.
-3. Yalnızca `/api/monitoring/health`, otomatik türetilen bütçenin ana makineniz için gerçekten çok küçük olduğunu
-   gösteriyorsa (nadiren görülür — zaten konteynerden fiziksel sunucuya kadar ölçeklenir), eski istek sayısı sınırına geri dönmek yerine
-   doğrudan `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ile geçersiz kılın.
+1. Önce yeniden deneyin. İstemciler, isteği hemen tekrarlamak yerine `Retry-After` değerine
+   uymalı ve geri çekilme kullanmalıdır.
+2. Herhangi bir ayarlama yapmadan önce `/api/monitoring/health` → `chatAdmission` bölümünü
+   kontrol edin. `countCapEnabled:
+false` ve yeterli bir `maxInflightBytes`, otomatik türetilmiş bütçenin zaten işini yaptığı
+   anlamına gelir; `high`/`critical` değerine sahip bir `pressureSeverity`, ana makinenin
+   gerçekten bellek sıkıntısı çektiği anlamına gelir — bu durum bir kabul ortam değişkeniyle
+   düzeltilemez, daha fazla RAM veya daha küçük bir iş yükü gerekir.
+3. Yalnızca `/api/monitoring/health`, otomatik türetilmiş bütçenin ana makineniz için gerçekten
+   çok küçük olduğunu gösteriyorsa (nadiren görülür — zaten konteynerden fiziksel sunucuya kadar
+   ölçeklenir), eski istek sayısı sınırına geri dönmek yerine doğrudan
+   `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` ile geçersiz kılın.
 
-Geçerli kabul ayarları için [ortam değişkeni referansına](../reference/ENVIRONMENT.md#4-security--authentication)
+Yetkili kabul ayarları için [ortam değişkeni referansına](../reference/ENVIRONMENT.md#4-security--authentication)
 bakın.
 
 ---

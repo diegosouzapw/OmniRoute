@@ -27,25 +27,16 @@ function ensureV1(url) {
   return s.endsWith("/v1") ? s : `${s}/v1`;
 }
 
-function defaultConfigPath() {
+// Mirrors src/lib/cli-helper/config-generator/whycodesHome.ts: WHYCODES_HOME, else
+// ~/.whycodes ($HOME, then %USERPROFILE%) — the layout since WhyCodes 0.6.5.
+export function defaultConfigPath() {
   const homeOverride = String(process.env.WHYCODES_HOME || "").trim();
   if (homeOverride) return join(homeOverride, "config.toml");
-  if (process.platform === "win32") {
-    const appData =
-      String(process.env.APPDATA || "").trim() || join(os.homedir(), "AppData", "Roaming");
-    return join(appData, "whycorporation", "whycodes", "config.toml");
-  }
-  if (process.platform === "darwin") {
-    return join(
-      os.homedir(),
-      "Library",
-      "Application Support",
-      "com.whycorporation.whycodes",
-      "config.toml"
-    );
-  }
-  const xdg = String(process.env.XDG_CONFIG_HOME || "").trim();
-  return join(xdg || join(os.homedir(), ".config"), "com.whycorporation.whycodes", "config.toml");
+  const userHome =
+    String(process.env.HOME || "").trim() ||
+    String(process.env.USERPROFILE || "").trim() ||
+    os.homedir();
+  return join(userHome, ".whycodes", "config.toml");
 }
 
 /** Resolve base_url (WITH /v1) + apiKey from flags → active context → localhost. */
@@ -203,7 +194,7 @@ export function registerSetupWhyCodes(program) {
     .option("--remote <url>", "Remote OmniRoute URL, e.g. http://192.168.0.15:20128")
     .option("--api-key <key>", "OmniRoute API key (defaults to OMNIROUTE_API_KEY env var)")
     .option("--model <id>", "Model id for WhyCodes (required unless picked interactively)")
-    .option("--config-path <path>", "config.toml path (default: WhyCodes platform config dir)")
+    .option("--config-path <path>", "config.toml path (default: $WHYCODES_HOME or ~/.whycodes)")
     .option("--yes", "Non-interactive: do not prompt (requires --model)")
     .option("--dry-run", "Print what would be written without touching the filesystem")
     .option(

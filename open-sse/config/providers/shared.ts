@@ -168,6 +168,15 @@ export interface RegistryEntry {
   requestDefaults?: ProviderRequestDefaults;
   oauth?: RegistryOAuth;
   models: RegistryModel[];
+  /**
+   * Opt-in for unionRegistryDispatchModels: targetFormat-tagged models join
+   * authoritative live catalogs (dispatch AND listing) when this provider's
+   * discovery surface is known to under-report — z.ai's Anthropic-compat
+   * /models omitting the coding-plan glm-5.3-flash family is the motivating
+   * case. Providers whose discovery omissions instead mean per-account
+   * entitlement must NOT opt in: their #12137-style gating would be bypassed.
+   */
+  registryDispatchUnion?: boolean;
   /** Provider-native reasoning vocabulary for reasoning-capable passthrough models
    * that do not have an explicit per-model declaration. */
   defaultSupportedThinkingEfforts?: readonly string[];
@@ -239,11 +248,45 @@ export interface RegistryEntry {
    */
   requiresPlainStringContent?: boolean;
   /**
+   * True for upstreams that accept a single-turn request but reject the
+   * replayed history an agent client sends from turn two on. Set this when the
+   * upstream reports a broken tool-call sequence or a missing reasoning
+   * passthrough for a history that is structurally valid Chat Completions.
+   *
+   * The repair, in `utils/strictChatHistory.ts`, coalesces a split assistant
+   * turn, keeps one result per tool call in call order, merges neighbouring
+   * user turns (upstreams that collapse them keep only the text, which silently
+   * drops a lifted image), and folds a trailing assistant message back onto the
+   * turn's tool results. Every step is a no-op on a body that already satisfies
+   * the shape, so this is safe to enable for any provider that needs one of them.
+   *
+   * WorkBuddy is the reference case: `11148 tool_call_sequence_broken` and
+   * `11155 reasoning content from the previous turn must be passed back`.
+   */
+  strictChatHistory?: boolean;
+  /**
+   * Literal string replacements applied to every string value in the outgoing
+   * request body, for upstreams that reject a request naming a competing client
+   * rather than rejecting a specific field. Keys, numbers, and structure are
+   * never touched.
+   *
+   * Order matters: list longer needles first so a shorter one cannot match
+   * inside them. WorkBuddy answers `11128 Illegal API invocation from an
+   * unapproved channel` for a body naming another agent client.
+   */
+  bodyStringReplacements?: ReadonlyArray<readonly [string, string]>;
+  /**
    * Anthropic-compatible providers that omit the required `signature` field
    * from streamed thinking block starts. The passthrough stream adds only an
    * empty placeholder; later provider `signature_delta` events remain intact.
    */
   ensureThinkingSignature?: boolean;
+  /**
+   * Timezone offset to assume for zone-less (naive) reset timestamps in 429 error bodies
+   * (e.g. "+08:00" for Z.AI/GLM which outputs local Asia/Shanghai time).
+   * Defaults to "Z" (UTC).
+   */
+  naiveResetTimezone?: string;
   /**
    * Protocolos alternativos que este provedor aceita (ex.: um endpoint
    * Anthropic-compatible alem do OpenAI-compatible padrao). A conexao escolhe
@@ -317,6 +360,7 @@ export const GPT_5_6_API_CAPABILITIES = {
   supportsReasoning: true,
   supportsVision: true,
   supportsXHighEffort: true,
+  supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
   contextLength: 1050000,
   maxInputTokens: 922000,
   maxOutputTokens: 128000,
@@ -484,6 +528,13 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
   ],
   "xiaomi-mimo-token-plan": [
+    { id: "mimo-v2.6-pro", name: "MiMo-V2.6-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
+    {
+      id: "mimo-v2.6-flash",
+      name: "MiMo-V2.6-Flash",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
     { id: "mimo-v2.5-pro", name: "MiMo-V2.5-Pro", contextLength: 1048576, maxOutputTokens: 131072 },
     { id: "mimo-v2.5", name: "MiMo-V2.5", contextLength: 1048576, maxOutputTokens: 131072 },
   ],
@@ -713,6 +764,56 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "Qwen/Qwen2.5-72B-Instruct",
   ]),
   nanogpt: buildModels(["chatgpt-4o-latest", "claude-3.5-sonnet", "gpt-4o-mini"]),
+  // Seed catalog mirrors apmix.ai/models (2026-09-25). The catalog is
+  // plan-scoped per key — live discovery via GET https://api.apmix.ai/v1/models
+  // serves what the key can actually reach; this list is the union fallback.
+  apmix: [
+    ...buildModels([
+      "claude-haiku-4-5",
+      "claude-sonnet-5",
+      "claude-opus-5",
+      "claude-opus-4-8",
+      "claude-opus-4-7",
+      "claude-opus-4-6",
+      "claude-fable-5",
+      "claude-sonnet-4-6",
+      "gpt-5.6-terra",
+      "gpt-5.6-sol",
+      "gpt-5.6-luna",
+      "gpt-5.5",
+      "gpt-6-astra",
+      "gpt-6-sol",
+      "gpt-6-luna",
+      "gpt-6-luna-free",
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.1-pro",
+      "grok-4.5",
+      "grok-4.6",
+      "grok-4.7",
+      "deepseek-v4-pro",
+      "deepseek-v4-flash",
+      "deepseek-v4.1-flash",
+      "deepseek-v4-flash-free",
+      "qwen3.8-flash",
+      "qwen3.8-max",
+      "glm-5.3-flash",
+      "glm-5.3",
+      "glm-5.2",
+      "glm-5-turbo",
+      "kimi-k2.7-code",
+      "kimi-k3",
+      "mimo-v2.5-pro",
+      "mimo-v2.5",
+      "hy4-preview",
+      "composer-2.5-fast",
+    ]),
+    // MiniMax M3 is multimodal (bazaarlink entry shape) — LEDGER-4 requires
+    // every seeded minimax-m3 outside promptql to carry supportsVision: true.
+    { id: "minimax-m3", name: "MiniMax M3", contextLength: 1048576, supportsVision: true },
+    ...buildModels(["muse-spark-1.3"]),
+  ],
   predibase: buildModels(["llama-3.3-70b"]),
   bytez: buildModels([
     "meta-llama/Llama-3.3-70B-Instruct",

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { buildErrorBody } from "../../utils/error.ts";
-import { isModelLocked, hasPerModelQuota } from "../accountFallback.ts";
+import { isModelLocked, hasPerModelQuota, getModelLockoutInfo } from "../accountFallback.ts";
+import { shouldWaitForComboCooldown } from "./comboCooldownRetry.ts";
 import { isProviderInCooldown } from "../providerCooldownTracker.ts";
 import { getCircuitBreaker } from "../../../src/shared/utils/circuitBreaker.ts";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
@@ -176,39 +177,48 @@ export function pinNativeCodexTurn(args: {
  */
 export function applyNativeCodexTurnPin(
   targets: ResolvedComboTarget[],
-  pin: NativeTurnPin
+  pin: NativeTurnPin,
+  activeConnectionIds?: string[]
 ): ResolvedComboTarget[] {
-  const compatible = targets.filter(
-    (candidate) => candidate.modelStr === pin.modelStr && candidate.provider === pin.provider
-  );
+  const compatible = targets
+    .filter(
+      (candidate) => candidate.modelStr === pin.modelStr && candidate.provider === pin.provider
+    )
+    .flatMap((target) => {
+      if (target.connectionId || !activeConnectionIds?.length) return [target];
+      const eligible = activeConnectionIds.filter(
+        (id) => !target.allowedConnectionIds?.length || target.allowedConnectionIds.includes(id)
+      );
+      return eligible.length
+        ? eligible.map((connectionId) => ({
+            ...target,
+            connectionId,
+            executionKey: `${target.executionKey}@${connectionId}`,
+          }))
+        : [target];
+    });
   if (compatible.length === 0) return [];
 
-  let pinnedIndex = compatible.findIndex((t) => t.connectionId === pin.connectionId);
-  // No candidate already carries the pinned connectionId (e.g. the caller
-  // resolved the target before a connection was assigned) — assign the pin
-  // onto the first compatible candidate so dispatch targets it directly.
-  if (pinnedIndex < 0) pinnedIndex = 0;
-
-  // Resolve the pinned slot's connectionId in ORIGINAL order first, so
-  // allowedConnectionIds reflects the same set/order regardless of which
-  // candidate ends up first in the returned (pinned-first) array.
-  const resolved = compatible.map((t, i) =>
-    i === pinnedIndex ? { ...t, connectionId: pin.connectionId } : t
-  );
-  const allowedConnectionIds = resolved
+  // Affinity only reorders the CURRENT eligible pool. Replacing its first
+  // candidate with a missing pin resurrects a disabled/removed account and
+  // discards a healthy sibling. Dynamic targets expand from the current active
+  // pool so per-account model locks and same-model fallback remain visible.
+  const pinnedIndex = compatible.findIndex((t) => t.connectionId === pin.connectionId);
+  const allowedConnectionIds = compatible
     .map((t) => t.connectionId)
     .filter((id): id is string => id !== null);
 
   // Pinned connection first, then same-provider/model siblings as fallback
-  const pinned = resolved[pinnedIndex];
-  const siblings = resolved.filter((_, i) => i !== pinnedIndex);
-  const ordered = [pinned, ...siblings];
+  const ordered =
+    pinnedIndex < 0
+      ? compatible
+      : [compatible[pinnedIndex], ...compatible.filter((_, i) => i !== pinnedIndex)];
 
-  return ordered.map((target) => ({
-    ...target,
-    // Allow only connections for the pinned provider+model
-    allowedConnectionIds,
-  }));
+  return ordered.map((target) =>
+    target.connectionId && !target.allowedConnectionIds?.length
+      ? { ...target, allowedConnectionIds }
+      : target
+  );
 }
 
 export function revokeNativeCodexTurnPinsForConnection(connectionId: string): number {
@@ -242,6 +252,56 @@ export function createPinnedModelUnavailableResponse(): Response {
   });
 }
 
+/** A timed capacity failure does not invalidate the client's continuation. */
+export function createPinnedModelRetryResponse(targets: ResolvedComboTarget[]): Response | null {
+  const retryableReasons = new Set([
+    "quota_exhausted",
+    "rate_limit",
+    "rate_limited",
+    "rate_limit_exceeded",
+    "server_error",
+    "overloaded",
+    "transient",
+    "circuit_open",
+  ]);
+  const locks = targets
+    .flatMap((target) => {
+      const info = getModelLockoutInfo(
+        target.provider,
+        target.connectionId || "",
+        parseModel(target.modelStr).model || target.modelStr
+      );
+      return info &&
+        Number.isFinite(info.remainingMs) &&
+        info.remainingMs > 0 &&
+        retryableReasons.has(info.reason)
+        ? [info]
+        : [];
+    })
+    .sort((a, b) => a.remainingMs - b.remainingMs);
+  const next = locks[0];
+  if (!next) return null;
+  const quota = ["quota_exhausted", "rate_limit", "rate_limited", "rate_limit_exceeded"].includes(
+    next.reason
+  );
+  const status = quota ? 429 : 503;
+  const seconds = Math.max(1, Math.ceil(next.remainingMs / 1000));
+  return new Response(
+    JSON.stringify(
+      buildErrorBody(
+        status,
+        "The model serving this turn is temporarily unavailable. Retry this same request after the cooldown; the turn binding is preserved.",
+        undefined,
+        {
+          code: "model_cooldown",
+          type: quota ? "rate_limit_error" : "server_error",
+        }
+      )
+    ),
+    { status, headers: { "Content-Type": "application/json", "Retry-After": String(seconds) } }
+  );
+}
+
 export interface CheckPinnedTargetsModelScopedUnusableOptions {
   pinnedTargets: ResolvedComboTarget[];
   resilienceSettings?: ResilienceSettings | null;
@@ -252,6 +312,114 @@ export interface CheckPinnedTargetsModelScopedUnusableOptions {
   isModelAvailable?: IsModelAvailable;
 }
 
+/**
+ * Remaining time (ms) of a model lock on this target that is short and transient
+ * enough to wait out — same predicate as the combo cooldown-wait (a retryable
+ * reason such as server_error/rate_limit, within maxWaitMs). 0 when the target
+ * is not locked, the lock is not waitable, or cooldown-wait is disabled.
+ */
+function waitableTransientModelLockMs(
+  provider: string,
+  connectionId: string,
+  rawModel: string,
+  resilienceSettings?: ResilienceSettings | null
+): number {
+  const waitSettings = resilienceSettings?.comboCooldownWait;
+  if (!waitSettings?.enabled) return 0;
+  const info = getModelLockoutInfo(provider, connectionId, rawModel);
+  if (!info) return 0;
+  const decision = shouldWaitForComboCooldown({
+    reason: info.reason,
+    waitMs: info.remainingMs,
+    attempt: 0,
+    budgetLeftMs: waitSettings.budgetMs,
+    settings: waitSettings,
+  });
+  return decision.wait ? decision.waitMs : 0;
+}
+
+function isWaitableTransientModelLock(
+  provider: string,
+  connectionId: string,
+  rawModel: string,
+  resilienceSettings?: ResilienceSettings | null
+): boolean {
+  return waitableTransientModelLockMs(provider, connectionId, rawModel, resilienceSettings) > 0;
+}
+
+/**
+ * Log fragment naming the model lock on each pinned target ("server_error 4s
+ * failureCount=1" / "none"), so a terminated turn tells WHY the pinned model was
+ * judged unusable: a lock too long or of a non-waitable reason, or no lock at all
+ * (quota cutoff, availability check).
+ */
+export function describePinnedTargetsLock(pinnedTargets: ResolvedComboTarget[]): string {
+  return pinnedTargets
+    .map((target) => {
+      const rawModel = parseModel(target.modelStr).model || target.modelStr;
+      const info = target.provider
+        ? getModelLockoutInfo(target.provider, target.connectionId || "", rawModel)
+        : null;
+      const conn = (target.connectionId || "any").slice(0, 8);
+      if (!info || info.remainingMs <= 0) return `${conn}: none`;
+      return `${conn}: ${info.reason} ${Math.ceil(info.remainingMs / 1000)}s failureCount=${info.failureCount}`;
+    })
+    .join(", ");
+}
+
+/**
+ * How long to wait before dispatching the pinned targets: 0 when any pinned
+ * target is dispatchable now (or none is waitable), otherwise the shortest
+ * remaining waitable lock. The pre-dispatch gate skips locked targets without
+ * recording a retry-after, so the attempt loop's own cooldown-wait never engages
+ * for them — the pinned path has to wait before handing them to the loop.
+ */
+export function resolvePinnedTargetsLockWaitMs(
+  pinnedTargets: ResolvedComboTarget[],
+  resilienceSettings?: ResilienceSettings | null
+): number {
+  let shortest = 0;
+  for (const target of pinnedTargets) {
+    const provider = target.provider;
+    const connectionId = target.connectionId || "";
+    const rawModel = parseModel(target.modelStr).model || target.modelStr;
+    if (!provider || !rawModel || !isModelLocked(provider, connectionId, rawModel)) return 0;
+    const waitMs = waitableTransientModelLockMs(
+      provider,
+      connectionId,
+      rawModel,
+      resilienceSettings
+    );
+    if (waitMs > 0 && (shortest === 0 || waitMs < shortest)) shortest = waitMs;
+  }
+  return shortest;
+}
+
+/**
+ * Whether the target's model is locked, and whether that lock is one the pinned
+ * path may wait out. A short transient lock (e.g. a 5s server_error set by ANOTHER
+ * client's failed request) is waited out before dispatch
+ * (resolvePinnedTargetsLockWaitMs), so it must not terminate the turn or force an
+ * auto-resume onto another model.
+ */
+function evaluatePinnedModelLock(
+  target: ResolvedComboTarget,
+  resilienceSettings: ResilienceSettings | null | undefined,
+  allowWaitableLock = false
+): { modelLocked: boolean; lockWaitable: boolean } {
+  const provider = target.provider;
+  const connectionId = target.connectionId || "";
+  const rawModel = parseModel(target.modelStr).model || target.modelStr;
+  const modelLocked = Boolean(
+    provider && rawModel && isModelLocked(provider, connectionId, rawModel)
+  );
+  const lockWaitable =
+    allowWaitableLock &&
+    modelLocked &&
+    isWaitableTransientModelLock(provider, connectionId, rawModel, resilienceSettings);
+  return { modelLocked, lockWaitable };
+}
+
 export async function isPinnedTargetModelScopedUnusable(args: {
   target: ResolvedComboTarget;
   resilienceSettings?: ResilienceSettings | null;
@@ -260,6 +428,14 @@ export async function isPinnedTargetModelScopedUnusable(args: {
   body: Record<string, unknown>;
   log?: ComboLogger;
   isModelAvailable?: IsModelAvailable;
+  /**
+   * Treat a short transient lock as usable. Only for the pinned targets, which the
+   * pinned path waits out before dispatch; an auto-resume alternate is dispatched
+   * without that wait, so for it a lock still means unusable.
+   */
+  allowWaitableLock?: boolean;
+  /** Pin failure requires model-specific evidence, not account availability. */
+  modelScopedOnly?: boolean;
 }): Promise<boolean> {
   const {
     target,
@@ -293,7 +469,16 @@ export async function isPinnedTargetModelScopedUnusable(args: {
     return false;
   }
 
-  if (provider && rawModel && isModelLocked(provider, connectionId, rawModel)) return true;
+  const lock = evaluatePinnedModelLock(target, resilienceSettings, args.allowWaitableLock);
+  if (lock.modelLocked && !lock.lockWaitable) return true;
+
+  // Account quota, cooldown, capacity, and policy failures do not prove that
+  // the model itself is unusable. Keep the pin and let the normal dispatch
+  // gates return their retryable unavailability response. In particular, a
+  // boolean availability miss must not terminate opaque continuation state or
+  // switch a healthy model just because its accounts are temporarily blocked.
+  // Alternate selection still performs all availability checks below.
+  if (args.modelScopedOnly) return false;
 
   if (
     process.env.OMNIROUTE_QUOTA_AWARE_ROUTING === "1" &&
@@ -325,6 +510,7 @@ export async function isPinnedTargetModelScopedUnusable(args: {
       available !== true &&
       provider &&
       rawModel &&
+      !lock.lockWaitable &&
       (isModelLocked(provider, connectionId, rawModel) || hasPerModelQuota(provider, rawModel))
     ) {
       return true;
@@ -339,11 +525,51 @@ export async function areAllPinnedTargetsModelScopedUnusable(
 ): Promise<boolean> {
   if (!options.pinnedTargets?.length) return false;
   for (const target of options.pinnedTargets) {
-    if (!(await isPinnedTargetModelScopedUnusable({ target, ...options }))) {
+    if (
+      !(await isPinnedTargetModelScopedUnusable({
+        target,
+        ...options,
+        allowWaitableLock: true,
+        modelScopedOnly: true,
+      }))
+    ) {
       return false;
     }
   }
   return true;
+}
+
+/**
+ * Pinned-turn unusability with the account-availability carve-out (#15486).
+ *
+ * Model-scoped evidence (a non-waitable model lock) always makes the pin unusable.
+ * Account-level unavailability alone — quota policy, a persisted account cooldown, a
+ * boolean `isModelAvailable` miss — keeps the pin so a turn carrying opaque state or a
+ * pending tool call gets a retryable 429/503 instead of being terminated or handed to
+ * another model. A plain turn that can safely auto-resume on a healthy alternate still
+ * does (#13180/#13564): an account block has no known end, so it is not waited out.
+ * `decision` is the eligible auto-resume decision when the carve-out decided it.
+ */
+export async function resolvePinnedTurnUnusable(
+  options: CheckPinnedTargetsModelScopedUnusableOptions,
+  evaluateAutoResume: () => Promise<AutoResumeDecision>
+): Promise<{ unusable: boolean; decision: AutoResumeDecision | null }> {
+  if (await areAllPinnedTargetsModelScopedUnusable(options)) {
+    return { unusable: true, decision: null };
+  }
+  if (!options.pinnedTargets?.length) return { unusable: false, decision: null };
+  for (const target of options.pinnedTargets) {
+    const accountOrModelUnusable = await isPinnedTargetModelScopedUnusable({
+      target,
+      ...options,
+      allowWaitableLock: true,
+    });
+    if (!accountOrModelUnusable) return { unusable: false, decision: null };
+  }
+  const decision = await evaluateAutoResume();
+  return decision.eligible === true
+    ? { unusable: true, decision }
+    : { unusable: false, decision: null };
 }
 
 export function releaseNativeCodexTurnPin(body: Record<string, unknown>, comboName: string): void {

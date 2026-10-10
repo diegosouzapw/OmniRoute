@@ -4,28 +4,29 @@
 
 ---
 
-OmniRoute 在 `free_proxies` 資料表中提供精選的免費代理伺服器集區，
-並與外部提供者（1proxy、proxifly、iplocate、webshare）同步。儀表板會在
-**設定 → 免費代理伺服器** 下顯示這些代理伺服器。本文說明清單路由所提供的
-伺服器端篩選、排序、計數及同步錯誤回報功能。
+OmniRoute 在 `free_proxies` 資料表中提供一組精選的免費代理伺服器，
+並從外部提供者（1proxy、proxifly、iplocate、webshare）同步資料。
+儀表板會在 **設定 → 免費代理伺服器** 下顯示這些代理伺服器。本文說明
+清單路由所提供的伺服器端篩選、排序、計數及同步錯誤回報功能。
 
 ## 清單路由 — `GET /api/settings/free-proxies`
 
-傳回經篩選、排序及分頁的資料片段與總數。篩選與計數會在 SQL 中執行，
-因此 UI 不必將每一列載入記憶體，即可顯示實際總數（例如 `總計：0`）。
+傳回經過篩選、排序及分頁的資料切片，以及總筆數。篩選與
+計數均在 SQL 中執行，因此 UI 無須將所有資料列載入記憶體，
+即可顯示實際總數（例如 `總計：0`）。
 
 ### 查詢參數
 
-| 參數              | 類型                               | 預設值    | 說明                                                                                       |
-| ----------------- | ---------------------------------- | --------- | ------------------------------------------------------------------------------------------ |
-| `search`          | 字串                               | `""`      | 對主機（以及來源）欄位執行區分大小寫的 `LIKE`。                                            |
-| `protocol`        | 字串                               | `""`      | `type` 篩選條件：`http` / `https` / `socks4` / `socks5`。空值 = 全部。                     |
-| `country`         | 字串                               | `""`      | `countryCode` 篩選條件（ISO-2）。空值 = 全部。                                             |
-| `minQuality`      | 數字                               | `0`       | 僅包含 `qualityScore >= minQuality` 的資料列。`0` = 無最低限制。                           |
-| `disabledSources` | 字串                               | `""`      | 要排除的來源 ID，以逗號分隔（例如 `proxifly,webshare`）。                                  |
-| `sortBy`          | `quality` \| `latency` \| `recent` | `quality` | `quality` = 分數降冪；`latency` = 延遲升冪（null 最後）；`recent` = `lastValidated` 降冪。 |
-| `offset`          | 數字                               | `0`       | 分頁起始位置。                                                                             |
-| `limit`           | 數字                               | `50`      | 頁面大小（伺服器端設有上限）。                                                             |
+| 參數              | 類型                               | 預設值    | 說明                                                                                           |
+| ----------------- | ---------------------------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| `search`          | 字串                               | `""`      | 對主機（以及來源）欄位執行區分大小寫的 `LIKE` 查詢。                                           |
+| `protocol`        | 字串                               | `""`      | `type` 篩選條件：`http` / `https` / `socks4` / `socks5`。空值 = 全部。                         |
+| `country`         | 字串                               | `""`      | `countryCode` 篩選條件（ISO-2）。空值 = 全部。                                                 |
+| `minQuality`      | 數字                               | `0`       | 僅包含 `qualityScore >= minQuality` 的資料列。`0` = 不設下限。                                 |
+| `disabledSources` | 字串                               | `""`      | 要排除的來源 ID，以逗號分隔（例如 `proxifly,webshare`）。                                      |
+| `sortBy`          | `quality` \| `latency` \| `recent` | `quality` | `quality` = 分數遞減；`latency` = 延遲遞增（null 排在最後）；`recent` = `lastValidated` 遞減。 |
+| `offset`          | 數字                               | `0`       | 分頁起始位置。                                                                                 |
+| `limit`           | 數字                               | `50`      | 頁面大小（伺服器端設有上限）。                                                                 |
 
 ### 回應
 
@@ -51,22 +52,22 @@ OmniRoute 在 `free_proxies` 資料表中提供精選的免費代理伺服器集
 }
 ```
 
-`total` 反映分頁**之前**經篩選的總數，因此 UI 可以分別呈現
-`總計：N` 與 `hasMore`。`syncErrors` 以來源 ID 作為鍵，且只會填入上次同步失敗的來源——
-即使結果為 `總計：0`，也絕不會在沒有說明的情況下保持沉默。
+`total` 代表分頁**之前**經過篩選的總筆數，因此 UI 可分別呈現
+`總計：N` 與 `hasMore`。`syncErrors` 以來源 ID 作為鍵，且僅包含
+上次同步失敗的來源，因此 `總計：0` 的結果絕不會沒有任何說明。
 
-## 新增至集區 — `POST /api/settings/free-proxies/[id]/add-to-pool`
+## 加入集區 — `POST /api/settings/free-proxies/[id]/add-to-pool`
 
-將免費代理伺服器提升至受管理的 `proxy_registry` 集區。系統會先驗證上游；
-成功時會傳回新的集區代理伺服器 ID 與測得的延遲。
+將免費代理伺服器提升至受管理的 `proxy_registry` 集區。系統會先驗證
+上游；成功時會傳回新的集區代理伺服器 ID，以及測得的延遲。
 
 ## 同步 — `POST /api/settings/free-proxies/sync`
 
-重新擷取所有已啟用的來源（或 `{ "sources": [...] }` 中指定的子集）。每個來源會
-獨立同步；失敗的來源會記錄在 `syncErrors` 中，而其他來源仍會完成，
-因此部分同步絕不會清除先前的有效資料。
+重新擷取所有已啟用的來源（或 `{ "sources": [...] }` 中指定的子集）。
+每個來源會獨立同步；失敗的來源會記錄於 `syncErrors`，其他來源仍會
+繼續完成同步，因此部分同步絕不會清除先前的有效資料。
 
 ## 統計資料 — `GET /api/settings/free-proxies/stats`
 
 傳回 `total / inPool / avgQuality / bySource / lastSyncAt` 彙總資料，
-但不包含資料列內容——供儀表板標頭小工具使用。
+但不包含資料列承載內容——供儀表板標頭小工具使用。

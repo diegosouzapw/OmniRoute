@@ -4,17 +4,20 @@
 
 ---
 
-OmniRoute pretražuje odgovore o pogreškama uzvodnih pružatelja radi signala koji upućuju na to da je **račun pružatelja trajno neaktivan** (suspendiran / deaktiviran / zabranjen zbog kršenja Uvjeta pružanja usluge) i, kada pronađe podudaranje, premješta tu vezu u **terminalno stanje `banned`** kako se više ne bi odabirala za zahtjeve. To se konfigurira na kartici postavki **Sigurnost → Zabranjene ključne riječi** ("Dodatne ključne riječi koje pokreću otkrivanje trajne zabrane računa. Ugrađene ključne riječi uvijek se primjenjuju.").
+OmniRoute pretražuje odgovore s pogreškama nadređenih pružatelja usluga radi signala koji upućuju na to da je **račun trajno neaktivan** (obustavljen / deaktiviran / blokiran zbog kršenja Uvjeta pružanja usluge) i, kada pronađe podudaranje, premješta tu vezu u **terminalno stanje `banned`** kako se više ne bi odabirala za zahtjeve. To se konfigurira na kartici postavki **Sigurnost → Zabranjene ključne riječi** („Dodatne ključne riječi koje pokreću otkrivanje trajne zabrane računa. Ugrađene ključne riječi uvijek se primjenjuju.”).
 
-Ova stranica dokumentira ugrađeni popis, tijek otkrivanja, njegov opseg, sigurno dodavanje prilagođenih ključnih riječi i način oporavka označene veze. Samo terminalno stanje dio je modela otpornosti — pogledajte
-[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) ("Terminalna stanja").
+Ova stranica dokumentira ugrađeni popis, tijek otkrivanja, njegov opseg, siguran način dodavanja prilagođenih ključnih riječi te način oporavka označene veze. Samo terminalno stanje dio je modela otpornosti — pogledajte
+[RESILIENCE_GUIDE](../architecture/RESILIENCE_GUIDE.md) („Terminalna stanja”).
 
-**Izvor istine:** `open-sse/services/accountFallback.ts`
-(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`).
+**Mjerodavni izvor:** `open-sse/services/accountFallback.ts`
+(`ACCOUNT_DEACTIVATED_SIGNALS`, `getMergedBannedSignals()`, `isAccountDeactivated()`),
+kao i `open-sse/services/errorClassifier.ts` za neterminalnu klasu provjere
+(`ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` / `isAccountVerificationRequired()`) i za
+granu 403 koja je koristi.
 
 ## Ugrađene ključne riječi
 
-Ovih 8 podnizova uvijek se primjenjuje (bez obzira na velika i mala slova), neovisno o bilo kojem prilagođenom popisu:
+Ovih 7 podnizova uvijek se primjenjuje (bez obzira na velika i mala slova), neovisno o bilo kojem prilagođenom popisu:
 
 ```
 account_deactivated
@@ -22,22 +25,46 @@ account has been deactivated
 account has been disabled
 your account has been suspended
 this account is deactivated
-verify your account to continue                                 (Antigravity / Google Cloud Code)
 this service has been disabled in this account for violation    (Antigravity)
 this service has been disabled in this account                  (Antigravity)
 ```
 
-> Ovaj se popis razvija kako pružatelji mijenjaju formulacije svojih zabrana. Mjerodavna
-> kopija je `ACCOUNT_DEACTIVATED_SIGNALS` u `open-sse/services/accountFallback.ts`;
-> blok iznad smatrajte snimkom trenutačnog stanja.
+> Ovaj se popis mijenja kako pružatelji usluga mijenjaju formulacije zabrana. Mjerodavna
+> kopija jest `ACCOUNT_DEACTIVATED_SIGNALS` u `open-sse/services/accountFallback.ts`;
+> gornji blok smatrajte trenutačnim presjekom.
 
-Dvije susjedne, **odvojene** tablice signala nalaze se u istoj datoteci i _nisu_ dio otkrivanja zabranjenih ključnih riječi:
+### Nije zabrana: zahtjevi za provjeru koje operater može razriješiti
+
+`verify your account to continue` **prije je bio** na gornjem popisu. To nije signal
+zabrane i sada se nalazi u `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS`, koji ga klasificira kao
+oporavljivi `PROJECT_ROUTE_ERROR` umjesto da trajno prekine vezu.
+
+Google Cloud Code / Antigravity vraćaju ga kao `403 VALIDATION_REQUIRED`. On je
+**prolazan i pojavljuje se na ispravnim računima s punom kvotom** — izmjereno u aktivnoj
+implementaciji (2026-09-25, `proxy_logs`): jedna veza Antigravity vratila je 33 takva
+odgovora 403 unutar 10 minuta i ostala `active`, dok je druga veza s 100 % preostale
+kvote u svih 17 vremenskih prozora bila trajno zabranjena nakon **samo jednog** takvog
+odgovora. Jedina je razlika bila u tome koji je pokušaj slučajno bio poslužen.
+
+Razlika je važna jer terminalno podudaranje ima `permanent: true` (razdoblje čekanja od
+1 godine, bez automatskog oporavka), dok operater zahtjev za provjeru rješava u
+pregledniku. Zadržavanje fraze na popisu zabrana također je činilo oporavljivu granu za
+cloud-code 403 u `classifyProviderError` nedostupnom za ovu formulaciju jer se
+`accountDeactivated` provjerava prvi — stoga se oporavak projektne rute dodan za Gemini
+Code Assist u [#868](https://github.com/diegosouzapw/OmniRoute/pull/868) i
+[#6452](https://github.com/diegosouzapw/OmniRoute/pull/6452) nikada nije mogao izvršiti.
+
+Tri susjedne, **zasebne** tablice signala _nisu_ dio otkrivanja zabranjenih ključnih riječi:
 
 - `CREDITS_EXHAUSTED_SIGNALS` — potrošena sredstva/kvota (`insufficient_quota`,
-  `credit_balance_too_low`, `payment required`, …) → terminalno stanje `credits_exhausted`.
+  `credit_balance_too_low`, `payment required`, …) → terminalni `credits_exhausted`.
 - `OAUTH_INVALID_TOKEN_SIGNALS` — **nije terminalno**; osvježavanje tokena može omogućiti oporavak.
+- `ACCOUNT_VERIFICATION_REQUIRED_SIGNALS` — **nije terminalno**; operater mora
+  ponovno potvrditi račun kod izvornog pružatelja. Nalazi se u `open-sse/services/errorClassifier.ts`
+  (druga dva nalaze se u `accountFallback.ts`). Pogledajte prethodni odjeljak.
 
-Napomena: uobičajene prolazne fraze poput **`rate limit`** / `429` obrađuju se putem mehanizma ograničenja brzine / razdoblja čekanja veze i **nisu** signali zabrane.
+Napomena: uobičajene prolazne fraze poput **`rate limit`** / `429` obrađuju se putem
+mehanizma ograničenja brzine / razdoblja čekanja veze i **nisu** signali zabrane.
 
 ## Tijek otkrivanja
 

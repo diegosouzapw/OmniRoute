@@ -265,6 +265,30 @@ test("config/i18n.json ships in the tarball: allowed, required, and in package.j
   assert.ok(files.includes(configPath), `package.json "files" must list ${configPath}`);
 });
 
+test("CLI runtime manifest ships without allowing arbitrary config files", () => {
+  const manifestPath = "config/cli-tools-manifest.json";
+  const unrelatedConfigPaths = ["config/private.json", "config/cli-tools-manifest.json.bak"];
+  assert.deepEqual(
+    findUnexpectedArtifactPaths([manifestPath, ...unrelatedConfigPaths], {
+      exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+      prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+    }),
+    unrelatedConfigPaths.toSorted()
+  );
+  assert.ok(PACK_ARTIFACT_REQUIRED_PATHS.includes(manifestPath));
+  assert.deepEqual(
+    findMissingArtifactPaths(
+      PACK_ARTIFACT_REQUIRED_PATHS.filter((entry) => entry !== manifestPath),
+      PACK_ARTIFACT_REQUIRED_PATHS
+    ),
+    [manifestPath]
+  );
+  const files: string[] = JSON.parse(
+    readFileSync(new URL("../../package.json", import.meta.url), "utf8")
+  ).files;
+  assert.ok(files.includes(manifestPath));
+});
+
 test("findMissingArtifactPaths flags missing root runtime files in the tarball", () => {
   const missingPaths = findMissingArtifactPaths(
     [
@@ -284,6 +308,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "bin/aliasResolver.mjs",
     "bin/aliasResolverHook.mjs",
     "bin/cli/data-dir.mjs",
+    "bin/cli/privateDataDir.mjs",
     "bin/cli/program.mjs",
     "bin/cli/utils/ensureAndroidCacheDir.mjs",
     "bin/cli/utils/parseEnvValue.mjs",
@@ -293,6 +318,7 @@ test("findMissingArtifactPaths flags missing root runtime files in the tarball",
     "bin/mcp-server.mjs",
     "bin/mcpStdioConsoleGuard.mjs",
     "bin/nodeRuntimeSupport.mjs",
+    "config/cli-tools-manifest.json",
     "config/i18n.json",
     "config/release/wreq-js-native-manifest.json",
     "config/release/wreq-js-rust-license-inventory.json",

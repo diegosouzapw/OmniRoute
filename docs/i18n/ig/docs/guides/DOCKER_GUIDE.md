@@ -235,16 +235,16 @@ docker compose -f docker-compose.prod.yml down
 
 Stack prod na-arụ ọrụ n'otu oge na compose dev (aha container, port, na volume ha dị iche), ya mere ị nwere ike ịga n'ihu na mmepe n'igwe mpaghara ebe production ka na-arụ ọrụ.
 
-## Nkeji Dockerfile
+## Ọkwa Dockerfile
 
-Ebe nchekwa a na-ebunye Dockerfile nwere ọtụtụ nkeji (`Dockerfile`). E kpughere nkeji anọ; họrọ `target` kwesịrị ekwesị maka ojiji gị.
+Repository a na-eweta Dockerfile nwere ọtụtụ ọkwa (`Dockerfile`). E gosipụtara ọkwa anọ; họrọ `target` ziri ezi maka ojiji gị.
 
-| Nkeji         | Onyonyo ntọala        | Ebumnuche                                                                                                                                                                                                                                                                                                             |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | Na-etinye ndabere (`npm ci --legacy-peer-deps`) ma na-agba `npm run build` (Turbopack na ndabara — lee Akụrụngwa oge owuwu n'okpuru)                                                                                                                                                                                  |
-| `runner-base` | `node:26-trixie-slim` | Gburugburụ oge ọrụ mmepụta nwere nsonaazụ Next.js kwụụrụ onwe ya. **Ọ dịghị CLI nke ndị na-eweta ọrụ agbakwunyere.**                                                                                                                                                                                                  |
-| `runner-cli`  | `runner-base`         | Na-agbakwụnye `git`, `docker.io`, `docker-compose` na CLI zuru ụwa ọnụ: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Họrọ nke a maka usoro ọrụ ndị agent na-arụ.**                                                                                                                            |
-| `runner-web`  | `runner-base`         | Na-agbakwụnye Playwright + ihe nchọgharị Chromium (`--with-deps`) maka ndị na-eweta nnọkọ webụ: `gemini-web`, `claude-web`, `claude-turnstile`. **Họrọ nke a mgbe ị na-eji ndị na-eweta ọrụ ndị ahụ** — onyonyo nkịtị ahụ na-ada n'oge arịrịọ ma ọ bụrụ na ọ naghị etinye ya (lee ndetu `-web` n'okpuru Ọwa Mwepụta). |
+| Ọkwa          | Ihe oyiyi ntọala      | Ebumnuche                                                                                                                                                                                                                                                                                                  |
+| ------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Na-etinye dependencies (`npm ci --legacy-peer-deps`) ma na-agba `npm run build` (Turbopack na ndabara — lee Akụrụngwa oge build n'okpuru)                                                                                                                                                                  |
+| `runner-base` | `node:26-trixie-slim` | Runtime production nwere standalone output nke Next.js. **Enweghị CLI nke provider ọ bụla etinyere.**                                                                                                                                                                                                      |
+| `runner-cli`  | `runner-base`         | Na-agbakwunye `git`, `docker.io`, `docker-compose` na CLI zuru ụwa ọnụ: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Họrọ nke a maka usoro ọrụ agentic.**                                                                                                                          |
+| `runner-web`  | `runner-base`         | Na-agbakwunye Playwright + ihe nchọgharị Chromium (`--with-deps`) maka providers nke web-session: `gemini-web`, `claude-web`, `claude-turnstile`. **Họrọ nke a mgbe ị na-eji providers ndị ahụ** — ihe oyiyi nkịtị ga-ada n'oge request ma ọ bụrụ na nke a adịghị (lee nkọwa `-web` n'okpuru Ọwa Mwepụta). |
 
 Jiri aka wuo otu target kpọmkwem:
 
@@ -254,80 +254,86 @@ docker build --target runner-cli  -t omniroute:cli  .
 docker build --target runner-web  -t omniroute:web  .
 ```
 
-### Akụrụngwa oge owuwu
+### Akụrụngwa oge build
 
-Arụmụka owuwu atọ na-achịkwa ihe nkeji `builder` na-eri. Ha bụ naanị maka oge owuwu —
-`OMNIROUTE_MEMORY_MB` (n'okpuru) bụ njikwa dị iche maka oge ọrụ.
+Build args atọ na-achịkwa ihe ọkwa `builder` na-eri. Ha bụ naanị maka oge build —
+`OMNIROUTE_MEMORY_MB` (n'okpuru) bụ njikwa runtime dị iche.
 
-| Arụmụka owuwu               | Ndabara | Mmetụta                                                                                  |
-| --------------------------- | ------- | ---------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`     | `0` na-eji webpack wuo kama. Oriri ebe nchekwa kacha elu dị ala, mana ọ na-eji nwayọọ.   |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`  | Oke heap V8 (`--max-old-space-size`) maka `next build` ewepụtara.                        |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`     | Na-enye `CIRCLE_NODE_TOTAL`; Next na-ewepụta `workers = N - 1` maka nchịkọta data peeji. |
+| Build arg                   | Ndabara | Mmetụta                                                                                                       |
+| --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`     | `0` na-eji webpack arụ build: ebe nchekwa kacha elu dị ala, mana ọ na-eji nwayọọ. `1` na-ahọrọ iji Turbopack. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`  | Oke heap V8 (`--max-old-space-size`) maka `next build` e bidoro.                                              |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`     | Na-enye `CIRCLE_NODE_TOTAL`; Next na-esite na ya nweta `workers = N - 1` maka nchịkọta data peeji.            |
 
-`OMNIROUTE_BUILD_WORKERS` bụ nke a ga-ebuli na builder buru ibu, bụrụkwa nke a ga-enyo enyo
-mgbe owuwu nwere oke akụrụngwa nwụrụ **mgbe** `✓ Compiled successfully` gasịrị. Worker
-data peeji ọ bụla bụ process nke ya, otu ahụ ka process nne na nna `next build` n'onwe ya;
-nnwale nrụpụtaghachi na VPS dị ndụ (okwu #7518) tụrụ RSS kacha elu nke process ọ bụla ka
-~4.5 GB n'agbanyeghị ọkọlọtọ heap `NODE_OPTIONS` (Turbopack na-achịkọta na
-ebe nchekwa native/Rust dị na mpụga heap V8). Ndabara nke `2` (→ 1 worker, process 2
-n'ozuzu) ka ahaziri maka runner GitHub nwere 16 GB / 4 vCPU nke pipeline mbipụta
-na-eji. Na `8` (→ 7 workers), ebe nchekwa gwụrụ na runner ahụ,
-buildkit wee jiri `ResourceExhausted: ... cannot allocate memory` mee ka nzọụkwụ ahụ daa;
-`3` (→ 2 workers) ka dabaghị mgbe a tụrụ RSS nke process ọ bụla
-ozugbo kama ịkọpụta ya site n'ihe ndị ọzọ. `tests/unit/docker-build-memory-budget.test.ts`
-na-eme mgbakọ ahụ site na ọnụ ọgụgụ a tụrụ ma na-ada ma ọ bụrụ na nke ọ bụla n'ime njikwa abụọ ahụ
-eto karịa ikike runner.
+`OMNIROUTE_BUILD_WORKERS` bụ nke a ga-ebuli na builder buru ibu, bụrụkwa nke a ga-enyo
+anya mgbe build nwere oke akụrụngwa nwụrụ **mgbe** `✓ Compiled successfully` gachara. Worker
+data peeji ọ bụla bụ process nke ya, otu ahụkwa ka parent `next build` n'onwe ya dị;
+nnwale kpọmkwem na VPS (issue #7518) tụrụ peak RSS nke process ọ bụla dịka
+~4.5 GB n'agbanyeghị flag heap `NODE_OPTIONS` (Turbopack na-eme compilation n'ime
+ebe nchekwa native/Rust dị n'èzí heap V8). Ndabara `2` (→ 1 worker, process 2
+n'ozuzu) ka ahaziri maka runners GitHub-hosted nwere 16 GB / 4 vCPU nke
+pipeline mbipụta na-eji. Na `8` (→ 7 workers), ebe nchekwa runner ahụ gwụrụ,
+buildkit wee jiri `ResourceExhausted: ... cannot allocate memory` kwụsị nzọụkwụ ahụ;
+`3` (→ 2 workers) ka na-adabaghị mgbe a tụrụ RSS nke process ọ bụla
+ozugbo kama ịkọpụta ya site na nghọta. `tests/unit/docker-build-memory-budget.test.ts`
+na-eme mgbakọ ahụ site n'iji ọnụọgụ a tụrụ, ọ ga-adakwa ma ọ bụrụ na otu n'ime njikwa ndị ahụ
+akarị ikike runner ahụ.
 
-Turbopack na-achịkọta na ebe nchekwa Rust native nke dị **na mpụga** heap V8, ya mere
-`OMNIROUTE_BUILD_MEMORY_MB` anaghị etinye ya oke. N'elu host nwere oke ebe nchekwa,
-OOM killer ga-eji SIGKILL kwụsị owuwu ahụ n'enweghị ederede njehie ọ bụla — ọ na-akwụsị
-naanị n'etiti `Creating an optimized production build`, nke na-adị ka ọ kwụsịrị ịga n'ihu
-kama ịbụ nsogbu ebe nchekwa gwụrụ. Ọ bụrụ na host owuwu nwere oke akụrụngwa, gbanwee bundler:
+Turbopack na-eme compilation n'ime ebe nchekwa native Rust nke dị **n'èzí** heap V8, ya mere
+`OMNIROUTE_BUILD_MEMORY_MB` anaghị amachibido ya. N'elu host nwere oke ebe nchekwa,
+OOM killer ga-eji SIGKILL kwụsị build ahụ n'enweghị ozi njehie ọ bụla — ọ ga-akwụsị
+naanị n'etiti `Creating an optimized production build`, nke na-adị ka ọ kwụgidere kama
+ịbụ nsogbu ebe nchekwa gwụrụ. Ọ bụ ya mere `Dockerfile` ji eji webpack na ndabara
+(`OMNIROUTE_USE_TURBOPACK=0`), n'adịghị ka `npm run dev` / `npm run build`, ebe
+Turbopack bụ ndabara dị na koodu: `docker build .` nkịtị na-enweghị build args (nke
+Railway na hosts ndị ọzọ eji otu click arụ ọrụ na-agba) agaghị anwụ n'enweghị ozi na builder
+nwere oke ebe nchekwa. Ihe oyiyi ndị e bipụtara enyefela `OMNIROUTE_USE_TURBOPACK=0`
+n'ụzọ doro anya n'ime `docker-publish.yml`. N'elu builder nwere RAM buru ibu, họrọ iji
+Turbopack maka build dị ngwa:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-A gbanyere `webpackBuildWorker`, ya mere `next build` na-agba process nne na nna **na**
-process worker, nke ọ bụla na-asọpụrụ `OMNIROUTE_BUILD_MEMORY_MB` n'ụzọ dị iche. Hazie oke
-container ka ọ dị ihe dịka okpukpu abụọ nke uru ahụ, ọ bụghị naanị otu okpukpu.
+E nyeere `webpackBuildWorker` aka, ya mere `next build` na-agba parent **na** process
+worker, nke ọ bụla na-asọpụrụ `OMNIROUTE_BUILD_MEMORY_MB` iche iche. Hazie oke
+container ka ọ dị ihe dịka okpukpu abụọ nke uru ahụ, ọ bụghị naanị otu ugboro.
 
-Ihe a tụrụ n'osisi a (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Ihe a tụrụ na tree a (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Oke container  | Nsonaazụ                                    |
-| --------- | -------------- | ------------------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | OOM gburu ya na ha abụọ, n'enweghị ozi      |
-| webpack   | 8 GiB          | SIGKILL gburu worker owuwu ahụ              |
-| webpack   | 12 GiB         | ọ gara nke ọma, ruru elu kacha nke 11.1 GiB |
+| Bundler   | Oke container  | Nsonaazụ                               |
+| --------- | -------------- | -------------------------------------- |
+| Turbopack | 8 GiB / 16 GiB | OOM gburu ya na ha abụọ, n'enweghị ozi |
+| webpack   | 8 GiB          | SIGKILL gburu build worker             |
+| webpack   | 12 GiB         | gara nke ọma, peak ya ruru 11.1 GiB    |
 
-### Ndabara oge ọrụ
+### Ndabara runtime
 
-Ndabara `runner-base` na-ebupụ: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Ndabara ndị `runner-base` na-ebupụ: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
 Omume ebe nchekwa n'ime Docker:
 
-- Ihe oyiyi ahụ na-edobe `OMNIROUTE_MEMORY_MB=1024` ma na-ewepụta `NODE_OPTIONS=--max-old-space-size=1024` site na ya.
-- Onye mbido standalone na-amalite usoro sava ahụ n’onwe ya; ọ na-agụ `OMNIROUTE_MEMORY_MB` ma tinye `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
-- Node na-eji uru ikpeazụ n’ime `--max-old-space-size` e kwughachiri, ya mere idobe `OMNIROUTE_MEMORY_MB` na-achịkwa oke heap Docker nke na-arụ ọrụ.
-- Ebe ọ bụ na ihe oyiyi ahụ na-edobe ya mgbe niile, fallback nke onye mbido ahụ nke RAM haziri anaghị arụ ọrụ n’okpuru Docker. Bulie ya n'ụzọ doro anya maka ibu ọrụ ahụ (lee tebụl dị n’okpuru). `2048` ka dị obere maka coding-agent `/v1/responses`.
+- Ihe oyiyi ahụ na-edobe `OMNIROUTE_MEMORY_MB=1024` ma na-esite na ya nweta `NODE_OPTIONS=--max-old-space-size=1024`.
+- Onye mbido standalone na-amalite usoro sava ahụ n'ezie; ọ na-agụ `OMNIROUTE_MEMORY_MB` ma tinye `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Node na-eji uru `--max-old-space-size` ikpeazụ e kwughachiri, ya mere idebe `OMNIROUTE_MEMORY_MB` na-achịkwa oke heap Docker nke na-arụ ọrụ n'ezie.
+- Ebe ọ bụ na ihe oyiyi ahụ na-edobe ya mgbe niile, nhọrọ ndabere nke onye mbido ahụ nke a haziri dabere na RAM anaghị arụ ọrụ n'okpuru Docker. Bulie ya kpọmkwem maka ibu ọrụ ahụ (lee tebụl dị n'okpuru). `2048` ka dị obere maka `/v1/responses` nke coding-agent.
 
-### RAM oge ọrụ maka ndị coding agent
+### RAM oge nrụọrụ maka ndị nnọchi anya coding
 
-Ntọala ndabara Docker nke 1 GiB bụ oke kacha nta maka dashboard/mkparịta ụka dị mfe, ọ bụghị nha maka production. Ahụ ogologo nke `POST /v1/responses` (ọtụtụ narị ozi, ọtụtụ iri ngwaọrụ) na-edowe ọtụtụ graph n'ime ebe nchekwa n'oge compression. Arịrịọ abụọ na-adakọ ibe ha, nke ọ bụla dị ihe dị ka ~3 MiB / ~750k-token, emeela ka V8 kwụsị na old-space nke **12 GiB** (`FATAL ERROR: Reached heap limit`) ma kpatakwa cgroup OOM nke 16 GiB. Lee [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Ntọala ndabere Docker nke 1 GiB bụ opekempe maka dashboard/nkwarịta ụka dị mfe, ọ bụghị nha maka mmepụta. Ahụ ogologo nke `POST /v1/responses` (ọtụtụ narị ozi, ọtụtụ iri ngwaọrụ) na-edobe ọtụtụ graph n'ime ebe nchekwa n'oge mkpakọ. Arịrịọ abụọ na-adakọta nke ihe dịka ~3 MiB / ~750k-token emeela ka V8 kwụsị na old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) ma rutekwa cgroup OOM nke 16 GiB. Lee [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Debe nha **cgroup `--memory` ka ọ dị elu karịa heap** — native buffers, SQLite, na compression intermediates dị n'èzí V8.
+Debe nha **cgroup `--memory` ka ọ dị elu karịa heap** — native buffers, SQLite, na data etiti nke mkpakọ na-anọ n'èzí V8.
 
-| Ibu ọrụ                                            | `OMNIROUTE_MEMORY_MB`      | Container / cgroup                         | Nkọwa                                                                                               |
-| -------------------------------------------------- | -------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| Dashboard, otu mkparịta ụka dị mfe                 | `1024` (ndabara ihe oyiyi) | ≥2 GiB                                     |                                                                                                     |
-| Otu coding agent (Claude/Codex/Grok)               | `8192`                     | ≥10 GiB                                    | Otu session `/v1/responses` a na-ahụkarị                                                            |
-| `/v1/responses` abụọ ogologo na-arụ n'otu oge      | `10240`–`12288`            | ≥12–16 GiB                                 | A tụrụ nkwụsị V8 na heap dị ihe dị ka ~12 GiB                                                       |
-| Context ogologo atọ ma ọ bụ karịa na-arụ n'otu oge | emela ya n'otu process     | hazie ha ka ha soro ibe ha / tinyekwuo RAM | Nnabata heavyweight ndabara bụ 1 na-arụ ọrụ; ibuli ya n'etinyeghị RAM na-eme ka nkwụsị ahụ lọghachi |
+| Ibu ọrụ                                            | `OMNIROUTE_MEMORY_MB`      | Container / cgroup                         | Nkọwa                                                                                              |
+| -------------------------------------------------- | -------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| Dashboard, otu nkwarịta ụka dị mfe                 | `1024` (ndabere ihe oyiyi) | ≥2 GiB                                     |                                                                                                    |
+| Otu onye nnọchi anya coding (Claude/Codex/Grok)    | `8192`                     | ≥10 GiB                                    | Otu nnọkọ `/v1/responses` a na-ahụkarị                                                             |
+| `/v1/responses` abụọ ogologo na-arụ n'otu oge      | `10240`–`12288`            | ≥12–16 GiB                                 | A tụrụ nkwụsị V8 na heap ihe dịka ~12 GiB                                                          |
+| Context ogologo atọ ma ọ bụ karịa na-arụ n'otu oge | emela ya n'otu usoro       | hazie ha ka ha soro ibe ha / tinyekwuo RAM | Ndabere nnabata ibu ọrụ dị arọ bụ 1 na-arụ ọrụ; ibuli ya na-enweghị RAM na-akpataghachi nkwụsị ahụ |
 
-`omniroute serve` na bare metal na-ahazi ihe dị ka ~35% nke RAM (e kpachiri ya na `[512, 4096]`) mgbe a **na-edobeghị** `OMNIROUTE_MEMORY_MB`. Docker na-edobe `1024` mgbe niile, ya mere nhazi ahụ anaghị arụ ọrụ n'ime ihe oyiyi gọọmentị.
+`omniroute serve` na bare metal na-ahazi ihe dịka 35% nke RAM (a kpara ya n'etiti `[512, 4096]`) mgbe `OMNIROUTE_MEMORY_MB` bụ **unset**. Docker na-edobe `1024` mgbe niile, ya mere nhazi ahụ anaghị arụ ọrụ n'ime ihe oyiyi gọọmentị.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

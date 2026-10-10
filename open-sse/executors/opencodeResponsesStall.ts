@@ -7,25 +7,218 @@
  * stalled, not thinking. Chat Completions streams are left alone: gateways may
  * legitimately hold them until the answer is ready.
  *
+ * Worst case on the stall arm: at most 2 first-byte waits per request (one
+ * rotation), each bounded by the window; the guarded final direct call can add
+ * one more wait without a rotation, so at most 3 waits mixed, all window-bounded.
+ *
  * Gated by OPENCODE_RESPONSES_STALL_ROTATION (default off). With the flag off
  * the window is 0 and every guard call hands back the very same result object,
  * so the stream readiness timeout stays the only bound, as before.
  */
 
 import { isOpencodeResponsesStallRotationEnabled } from "@/shared/utils/featureFlags";
-import { getResponsesFirstByteTimeoutMs } from "@/shared/utils/runtimeTimeouts";
-import { guardResponsesStreamFirstByte } from "../utils/firstByteWatchdog.ts";
+import {
+  DEFAULT_STREAM_READINESS_TIMEOUT_MS,
+  getResponsesFirstByteTimeoutMs,
+  getUpstreamTimeoutConfig,
+} from "@/shared/utils/runtimeTimeouts";
+import {
+  guardResponsesStreamFirstByte,
+  isResponsesFirstByteTimeout,
+} from "../utils/firstByteWatchdog.ts";
 
-export { isResponsesFirstByteTimeout } from "../utils/firstByteWatchdog.ts";
+export { isResponsesFirstByteTimeout };
 
-/** First-byte window (ms) for this request, or 0 when the guard does not apply. */
+export type StallGuardSetup = {
+  windowMs: number;
+  capped: boolean;
+};
+
+/**
+ * Reads the readiness bound, resolves the window, and reports whether the
+ * configured value was capped — so the call site stays a one-line wiring hunk
+ * on the frozen executor file. `readBound` / `readConfigured` default to the
+ * live getters; tests inject fakes. The cap notice is logged here (never in
+ * the pure `resolve` below) through the optional `log` sink, in generic
+ * English with no internal IDs beyond the caller's own prefix.
+ */
+export function setupStallGuard(
+  stream: boolean | undefined,
+  requestFormat: string | null,
+  log?: { warn?: (tag: string, message: string) => void } | null,
+  cid = "",
+  readBound: () => number = () => getUpstreamTimeoutConfig().streamReadinessTimeoutMs,
+  readConfigured: () => number = getResponsesFirstByteTimeoutMs
+): StallGuardSetup {
+  const capMs = readBound();
+  const windowMs = resolveResponsesStallWindowMs(stream, requestFormat, capMs);
+  const capped = capMs > 0 && windowMs > 0 && readConfigured() > capMs;
+  if (capped) log?.warn?.("OPENCODE", `${cid}stalled stream first-byte wait capped`);
+  return { windowMs, capped };
+}
+
+/**
+ * First-byte window (ms) for this request, or 0 when the guard does not apply.
+ *
+ * The configured window is capped by the stream readiness bound (`capMs`).
+ * Equal to the bound is enough — no need to stay strictly below it: the guard
+ * consumes the first byte BEFORE the executor returns, and the readiness check
+ * in chatCore only starts on the response the executor hands back (which then
+ * replays that byte at once), so the two waits never race. A guard firing at
+ * exactly the bound costs the same wall time the readiness check would have,
+ * but buys the rotation. A non-positive bound means readiness is disabled
+ * (`STREAM_READINESS_TIMEOUT_MS=0`): there is no ceiling, and the configured
+ * window is used as is, since the guard is then the only first-byte bound left.
+ */
 export function resolveResponsesStallWindowMs(
   stream: boolean | undefined,
-  requestFormat: string | null
+  requestFormat: string | null,
+  capMs?: number
 ): number {
   if (!stream || requestFormat !== "openai-responses") return 0;
   if (!isOpencodeResponsesStallRotationEnabled()) return 0;
-  return getResponsesFirstByteTimeoutMs();
+  const configured = getResponsesFirstByteTimeoutMs();
+  if (configured === 0) return 0;
+  const cap = capMs ?? DEFAULT_STREAM_READINESS_TIMEOUT_MS;
+  if (!(cap > 0)) return configured;
+  return configured > cap ? cap : configured;
+}
+
+/**
+ * Shadow first-byte counters: occurrences and cumulative silent time measured
+ * while the guard stays off, plus shadow-only failures (clone or watch
+ * errors, counted silently and read back through the next hit warn line).
+ * Three module scalars, constant size by construction — nothing grows per
+ * request.
+ */
+let shadowOccurrences = 0;
+let shadowTotalMs = 0;
+let shadowFailures = 0;
+
+export type StallShadowOptions = {
+  stream: boolean | undefined;
+  requestFormat: string | null;
+  windowMs: number;
+  signal?: AbortSignal | null;
+  log?: {
+    warn?: (tag: string, message: string) => void;
+    debug?: (tag: string, message: string) => void;
+  } | null;
+  cid?: string;
+  readBound?: () => number;
+  readConfigured?: () => number;
+};
+
+function shadowApplies<T>(
+  result: T,
+  stream: boolean | undefined,
+  requestFormat: string | null,
+  windowMs: number
+): result is T & { response: Response } {
+  if (!stream || requestFormat !== "openai-responses" || windowMs !== 0) return false;
+  if (!result || typeof result !== "object" || !("response" in result)) return false;
+  const response = (result as { response: Response }).response;
+  return !!response?.ok && !!response.body;
+}
+
+function shadowWindowMs(readBound: () => number, readConfigured: () => number): number | null {
+  const configured = readConfigured();
+  if (configured === 0) return null;
+  const cap = readBound();
+  return cap > 0 ? Math.min(configured, cap) : configured;
+}
+
+function reportShadowHit(
+  log: StallShadowOptions["log"],
+  cid: string,
+  windowMs: number,
+  elapsedMs: number
+): void {
+  shadowOccurrences += 1;
+  shadowTotalMs += elapsedMs;
+  log?.warn?.(
+    "OPENCODE",
+    `${cid}silent streamed reply past ${windowMs}ms ` +
+      `(shadow count ${shadowOccurrences}, total ${shadowTotalMs}ms, ` +
+      `watch failures ${shadowFailures})`
+  );
+}
+
+function reportShadowMiss(_log: StallShadowOptions["log"], _cid: string): void {
+  // A miss is counted silently: the count is read back through the next hit
+  // warn line. At most one clone floats per shadowed request; once the watch
+  // settles the watchdog has cleared its timer and abort listener, so nothing
+  // module-held grows per request and the clone is garbage collected.
+  shadowFailures += 1;
+}
+
+/**
+ * Passive shadow of the stall guard: when the guard does not apply
+ * (`windowMs` 0) but the request is a streamed Responses reply with a 2xx
+ * body, watches a clone of the body for the configured window and counts how
+ * often it would have fired. Never rotates, never cools down, never rejects
+ * toward the caller: the input result is handed back untouched and every
+ * shadow failure lands in `shadowFailures` instead.
+ */
+export function noteStallShadow<T>(result: T, options: StallShadowOptions): T {
+  const {
+    stream,
+    requestFormat,
+    windowMs,
+    signal,
+    log,
+    cid = "",
+    readBound = () => getUpstreamTimeoutConfig().streamReadinessTimeoutMs,
+    readConfigured = getResponsesFirstByteTimeoutMs,
+  } = options;
+  if (!shadowApplies(result, stream, requestFormat, windowMs)) return result;
+  const window = shadowWindowMs(readBound, readConfigured);
+  if (window === null) return result;
+  let clone: Response;
+  try {
+    clone = result.response.clone();
+  } catch {
+    shadowFailures += 1;
+    return result;
+  }
+  const startedAt = Date.now();
+  void guardResponsesStreamFirstByte(clone, window, signal).then(
+    () => {
+      void clone.body?.cancel().catch(() => {
+        shadowFailures += 1;
+      });
+    },
+    (error: unknown) => {
+      if (isResponsesFirstByteTimeout(error)) {
+        reportShadowHit(log, cid, window, Date.now() - startedAt);
+        return;
+      }
+      reportShadowMiss(log, cid);
+    }
+  );
+  return result;
+}
+
+/**
+ * Builds the request-scoped stall wrapper: counts silent streamed replies
+ * that would have fired past the configured window while the guard stays
+ * off, then applies the guard itself. Keeps the executor call site a one-line
+ * wiring hunk; the shadow runs inside `noteStallShadow` next to the guard it
+ * mirrors and never rotates, cools down, or rejects toward the caller.
+ */
+export function makeStallGuardedCall(
+  stream: boolean | undefined,
+  requestFormat: string | null,
+  windowMs: number,
+  signal?: AbortSignal | null,
+  log?: { warn?: (tag: string, message: string) => void } | null,
+  cid = ""
+): <T>(result: T | Promise<T>) => Promise<T> {
+  return <T>(result: T | Promise<T>): Promise<T> =>
+    Promise.resolve(result).then((resolved) => {
+      noteStallShadow(resolved, { stream, requestFormat, windowMs, signal, log, cid });
+      return guardResponsesStall(resolved, windowMs, signal);
+    });
 }
 
 /**

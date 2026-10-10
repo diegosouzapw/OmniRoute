@@ -13,19 +13,19 @@ OmniRoute ina bomba la uidhinishaji linalozingatia njia ambalo huzuia kila ombi 
 
 > Chanzo: [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## Njia Mbili za Uthibitishaji
+## Mbinu Mbili za Uthibitishaji
 
-### 1. Ufunguo wa API (Bearer)
+### 1. API Key (Bearer)
 
-Hutumika kwa API za wateja zinazooana na OpenAI/Anthropic/Gemini na kwa njia chache za usimamizi wakati ufunguo una upeo wa `manage`.
+Hutumika kwa API za mteja zinazooana na OpenAI/Anthropic/Gemini na baadhi ya njia za usimamizi wakati ufunguo una upeo wa `manage`.
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-Huthibitishwa na `isValidApiKey()` / `extractApiKey()` katika `src/sse/services/auth.ts` na kusafirishwa tena kupitia `src/shared/utils/apiAuth.ts`. Kithibitishaji pia hukubali vigeu vya mazingira vya `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kama funguo endelevu za kupitishia (suala #1350).
+Huthibitishwa na `isValidApiKey()` / `extractApiKey()` katika `src/sse/services/auth.ts` na husafirishwa tena kupitia `src/shared/utils/apiAuth.ts`. Kithibitishaji pia hukubali vibadilika vya mazingira vya `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` kama funguo endelevu za kupitisha moja kwa moja (suala #1350).
 
-### 2. Kipindi cha Dashibodi (kidakuzi cha auth_token)
+### 2. Kikao cha Dashibodi (kidakuzi cha auth_token)
 
 Kwa kurasa za dashibodi na shughuli za msimamizi.
 
@@ -33,43 +33,44 @@ Kwa kurasa za dashibodi na shughuli za msimamizi.
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-Kidakuzi ni kipindi ikiwa tu JWT imethibitishwa **na** ina `authenticated: true`
+Kidakuzi ni kikao tu wakati JWT imethibitishwa **na** ina `authenticated: true`
 (`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`). Kila
-mtumiaji wa kidakuzi hicho (kilinzi cha njia, uonyeshaji upya wa mtiririko wa authz, makubaliano ya awali ya WebSocket, seva
-ya moja kwa moja, `/api/settings/require-login`, `/api/auth/status`) hupitia kisaidizi hicho.
-JWT nyingine zilizotiwa saini kwa `JWT_SECRET` zipo — upitishaji wa Cursor CLI hutengeneza
-tokeni za `iss "omniroute" / aud "cursor-cli"` kwa wamiliki wa funguo — na kamwe si vipindi
+mtumiaji wa kidakuzi hicho (kilinzi cha njia ya dashibodi (`isDashboardSessionAuthenticated()`), uonyeshaji upya wa mchakato wa authz, makubaliano ya awali ya WebSocket, seva ya moja kwa moja, `/api/settings/require-login`, `/api/auth/status`) hupitia kisaidizi hicho.
+Kuna JWT nyingine zilizosainiwa kwa `JWT_SECRET` — upitishaji wa Cursor CLI hutengeneza
+tokeni za `iss "omniroute" / aud "cursor-cli"` kwa wamiliki wa funguo — na tokeni hizo kamwe si vikao
 (#13298).
 
-Huthibitishwa na `isDashboardSessionAuthenticated()` katika `src/shared/utils/apiAuth.ts`. Mtiririko huonyesha upya JWT kiotomatiki ikiwa imebakiza chini ya siku 7 katika muda wake wa matumizi wa siku 30.
+Huthibitishwa na `isDashboardSessionAuthenticated()` katika `src/shared/utils/apiAuth.ts`. Mchakato huonyesha upya JWT kiotomatiki wakati imebakiza chini ya siku 7 kati ya muda wake wa uhai wa siku 30.
 
-Baadhi ya njia za usimamizi hukubali **mojawapo** ya njia hizi: kidakuzi AU `Bearer <key>` wakati ufunguo wa API una upeo wa `manage` (au `admin`). Hili ndilo linalowezesha mtiririko wa kazi wa "kusanidi kupitia miito ya API" ulioongezwa katika v3.8.
+Kikao kinaweza pia kuisha kabla ya siku zake 30 kukamilika, kwa sababu kila kitengeneza-tokeni hupitia `mintDashboardSessionToken` (muda wa kutolewa `iat` na kitambulisho `jti`) na kithibitishaji hukagua mipangilio miwili: `sessionsValidAfter`, ambayo huwekwa baada ya nenosiri kubadilishwa ili kila kikao kilichotolewa kabla yake kisiendelee kuthibitishwa (kivinjari kilichobadilisha nenosiri hupata kidakuzi kipya), na `revokedDashboardSessions`, ambamo `POST /api/auth/logout` huongeza `jti` ya kikao kilichoondolewa. Vikao vilivyotengenezwa na toleo la zamani havina dai lolote kati ya hayo na huendelea kuwa halali hadi nenosiri libadilishwe kwa mara ya kwanza. Ikiwa mipangilio haiwezi kusomwa, kikao hakiaminiki.
+
+Baadhi ya njia za usimamizi hukubali **mojawapo** ya mbinu hizi: kidakuzi AU `Bearer <key>` wakati ufunguo wa API una upeo wa `manage` (au `admin`). Hili ndilo linalowezesha mtiririko wa kazi wa "kusanidi kupitia miito ya API" ulioongezwa katika v3.8.
 
 #### Kizuizi cha hiari cha kuingia kwa OIDC (#6973)
 
-Kuingia kwa msimamizi wa dashibodi pia kunaauni mtiririko wa **hiari** wa OIDC (OpenID Connect)
-pamoja na njia chaguomsingi ya kuingia kwa nenosiri — kuingia kwa nenosiri hakuondolewi kamwe,
-bali huongezewa tu:
+Kuingia kwa msimamizi wa dashibodi pia kunatumia mtiririko wa **hiari** wa OIDC (OpenID Connect)
+pamoja na kuingia kwa kutumia nenosiri ambako ni chaguo-msingi — kuingia kwa nenosiri hakuondolewi kamwe, bali
+huongezewa tu:
 
 - Huzimwa isipokuwa `settings.oidcEnabled === true` **na** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` zote zimesanidiwa (Mipangilio → Uthibitishaji).
-  `GET /api/auth/oidc/login` hurejesha `400` vinginevyo.
+  Vinginevyo, `GET /api/auth/oidc/login` hurejesha `400`.
 - `GET /api/auth/oidc/login` hugundua `authorization_endpoint` kutoka kwenye
   `/.well-known/openid-configuration` ya mtoaji (na hutumia
-  `<issuer>/authorize` ikiwa hilo halipatikani), huunda URI ya kuelekeza upya kutoka kwenye ombi linaloingia
-  (kwa kuzingatia `x-forwarded-proto`), na huelekeza upya kwenda kwa IdP ikiwa na `state`
-  ya nasibu iliyohifadhiwa katika kidakuzi cha `oidc_state` cha `httpOnly`.
+  `<issuer>/authorize` kama mbadala), huunda URI ya kuelekeza upya kutokana na ombi linaloingia
+  (kwa kuzingatia `x-forwarded-proto`), na huelekeza kwa IdP ikiwa na `state` ya nasibu
+  iliyohifadhiwa katika kidakuzi cha `oidc_state` chenye `httpOnly`.
 - `GET /api/auth/oidc/callback` huthibitisha `state`, hubadilishana msimbo wa uidhinishaji,
-  na kuthibitisha saini ya tokeni ya ID kupitia JWKS ya mtoaji
+  na huthibitisha saini ya tokeni ya ID kupitia JWKS ya mtoaji
   (`createRemoteJWKSet` ya `jose`, iliyohifadhiwa kwenye akiba kwa kila URI ya JWKS) pamoja na ukaguzi wa `issuer`/`audience`.
-  Orodha ya hiari ya ruhusa ya `oidcAllowedSubjects` hulinganisha dai la `sub`
+  Orodha ya hiari ya wanaoruhusiwa ya `oidcAllowedSubjects` hulinganisha dai la `sub`
   la tokeni au dai lake la `email` — dai la barua pepe hukubaliwa tu wakati
   `email_verified === true`, kwa hivyo barua pepe ambayo haijathibitishwa katika IdP haiwezi kamwe kupita
-  kizuizi.
-- Ikifaulu, hutengeneza JWT **ileile kabisa** ya `auth_token` ya siku 30 inayotolewa na njia ya kuingia
-  kwa nenosiri (`src/app/api/auth/login/route.ts`), kwa hivyo sehemu nyingine ya
-  mtiririko wa kipindi cha dashibodi (uonyeshaji upya kiotomatiki, bendera za vidakuzi) haibadiliki —
-  OIDC hubadilisha tu jinsi kidakuzi kinavyotengenezwa, si ruhusa kinazotoa.
+  kizuizi hicho.
+- Inapofaulu, hutengeneza JWT ya `auth_token` ya siku 30 **ileile kabisa** ambayo utoaji wa kuingia
+  kwa nenosiri hutengeneza (`src/app/api/auth/login/route.ts`), hivyo sehemu iliyobaki ya
+  mchakato wa kikao cha dashibodi (uonyeshaji upya kiotomatiki, alama za kidakuzi) haibadiliki —
+  OIDC hubadilisha tu jinsi kidakuzi kinavyotengenezwa, si ruhusa inazotoa.
 
 ## Aina za Njia
 

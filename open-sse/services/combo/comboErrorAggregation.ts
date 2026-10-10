@@ -18,20 +18,14 @@
  */
 
 export type ComboOutcomeKind =
-  | "quality"
-  | "auth"
-  | "rate_limit"
-  | "model"
-  | "provider"
-  | "timeout"
-  | "skipped"
-  | "upstream";
+  "quality" | "auth" | "rate_limit" | "model" | "provider" | "timeout" | "skipped" | "upstream";
 
 export interface ComboErrorEntry {
   model: string;
   status: number;
   error: string;
   kind: ComboOutcomeKind;
+  code?: string;
 }
 
 const KIND_LABELS: Record<ComboOutcomeKind, string> = {
@@ -95,7 +89,8 @@ export function redactConnectionLabel(modelStr: string | null | undefined): stri
 /** Build the redacted, collision-free `model (status)` summary used by the
  *  global-combo-timeout diagnostics path. */
 export function buildRedactedSummary(
-  entries: Array<{ model: string; status: number }> | ReadonlyArray<{ model: string; status: number }>
+  entries:
+    Array<{ model: string; status: number }> | ReadonlyArray<{ model: string; status: number }>
 ): string {
   const slice = entries.slice(0, 5);
   const parts = slice.map((e) => `${redactConnectionLabel(e.model)} (${e.status})`).join(", ");
@@ -117,7 +112,7 @@ export function formatComboOutcomes(
   const slice = entries.slice(0, 5);
   const parts = slice.map((e) => {
     const label = redact ? redactConnectionLabel(e.model) : e.model;
-    const kind = e.kind ? KIND_LABELS[e.kind] ?? e.kind : null;
+    const kind = e.kind ? (KIND_LABELS[e.kind] ?? e.kind) : null;
     // #10501: the raw upstream error TEXT can itself carry a connection/account
     // identifier (some openai-compatible proxies echo it back in the error body,
     // e.g. "invalid key for connection <uuid>") — redact it here too, not just
@@ -176,4 +171,16 @@ export function resolveComboTerminalStatus(
   }
 
   return entries.some((e) => e.kind === "timeout") ? 504 : 502;
+}
+
+/** Preserve the terminal target's code only when it represents the aggregate verdict. */
+export function resolveComboTerminalCode(
+  entries: ReadonlyArray<ComboErrorEntry>,
+  status: number
+): string | undefined {
+  const terminal = entries.at(-1);
+  if (terminal?.status !== status || entries.some((entry) => entry.kind !== terminal.kind)) {
+    return undefined;
+  }
+  return terminal.code;
 }

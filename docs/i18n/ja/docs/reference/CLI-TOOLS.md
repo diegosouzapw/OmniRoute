@@ -43,27 +43,27 @@ ACPエージェント（逆生成フロー）:
 
 ---
 
-## `setup-*`による自動構成
+## `setup-*`による自動設定
 
-各ツールの設定を手動で書く必要はありません。OmniRouteは、実行中のOmniRoute（ローカルまたはリモート）から**ライブ**モデルカタログを読み取り、ツール自身の設定をあなたのマシンに書き込むための`setup-*`コマンドをサポートするCLIごとに提供します：
+各ツールの設定を手動で記述する必要はありません。OmniRouteは、サポートされているCLIごとに`setup-*`コマンドを提供しており、実行中のOmniRoute（ローカルまたはリモート）から**ライブ**モデルカタログを読み取り、ツールの設定をマシンに書き込みます。
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-各コマンドは`--remote <url> --api-key <key>`（リモートOmniRouteに対してローカルツールを構成）、`--dry-run`（書き込まずにプレビュー）、および`--port`を受け入れます。モデルの自動検出がないツール（Cline、Kilo、Roo、Goose、Aider、Qwen）は`--model <id>`（および非対話型実行のための`--yes`）を受け取ります。適切な環境が注入され、全く設定が書き込まれないCLIを起動するには、一般的な`omniroute run <target>`ランチャー（claude、codex、aider、goose、opencode、qwen、gemini — ターゲットとエイリアスは`bin/cli/cli-manifest.mjs`から取得）を使用します。レガシーな各ツールのランチャー`omniroute launch`（Claude Code）および`omniroute launch-codex`（Codex）は引き続き利用可能です。Gemini CLIは起動専用であり、`omniroute run`ターゲットですが、`setup-*`/`configure`レシピはありません。
+それぞれ、`--remote <url> --api-key <key>`（リモートOmniRouteに対してローカルツールを設定）、`--dry-run`（書き込みなしでプレビュー）、および`--port`を受け入れます。モデルの自動検出機能がないツール（Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive）は、`--model <id>`（および非対話型実行の場合は`--yes`）を受け入れます。`setup-5dive`は、$HOME以下に書き込まない唯一のレシピです。これは、フリートホストにroot所有の認証プロファイルを書き込むことで5diveエージェントフリートを設定するため、`sudo`を介して再実行され、独自のリモートモードはありません。適切な環境が注入され、設定が一切書き込まれないCLIを起動するには、汎用的な`omniroute run <target>`ランチャー（claude, codex, aider, goose, opencode, qwen, gemini — ターゲットとエイリアスは`bin/cli/cli-manifest.mjs`から取得されます）を使用します。レガシーなツールごとのランチャー`omniroute launch`（Claude Code）と`omniroute launch-codex`（Codex）も引き続き利用可能です。Gemini CLIは起動専用です。`omniroute run`のターゲットですが、`setup-*`/`configure`レシピはありません。
 
-> **完全なリファレンス:** マスターテーブル — 各コマンドが書き込む内容、すべてのフラグ、ローカル対リモート、およびどのツールが`/v1`サフィックスを必要とするか — は**[CLI統合](../guides/CLI-INTEGRATIONS.md)**にあります。
+> **完全なリファレンス:** 各コマンドが何を書き込むか、すべてのフラグ、ローカルとリモートの違い、そしてどのツールが`/v1`サフィックスを必要とするかを示すマスターテーブルは、**[CLI Integrations](../guides/CLI-INTEGRATIONS.md)**にあります。
 
 ### コンテナ内での実行
 
-OmniRouteコンテナ内で実行された`setup-*`コマンドは、コンテナ自身のホームに書き込まれ、ホストCLIが読み取ることはなく、コンテナとともに消えます。OmniRouteはそれを検出し、書き込むのではなく、指示とともに`2`で終了します。前進するための2つのサポートされた方法 — ホストにCLIをインストールし、`omniroute connect`でコンテナに接続するか、設定ディレクトリをバインドマウントし、`CLI_CONFIG_HOME`を設定します（composeの`host`プロファイル）。すべての`setup-*`コマンド、さらに`omniroute configure`および`omniroute config set`は、コンテナ自身のCLIを構成することが実際に意味する場合に`--allow-container-write`を受け入れます；`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true`はサーバーに対して同じことを行います。詳細は
-[Dockerガイド → ホストCLIツールの構成](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)を参照してください。
+OmniRouteコンテナ内で実行される`setup-*`コマンドは、コンテナ自身のホームディレクトリに書き込みますが、これはホストCLIからは読み取られず、コンテナとともに消滅します。OmniRouteはこれを検出し、書き込みを行う代わりに指示とともにコード`2`で終了します。サポートされている2つの進め方があります。ホストにCLIをインストールしてコンテナに`omniroute connect`するか、設定ディレクトリをバインドマウントして`CLI_CONFIG_HOME`（composeの`host`プロファイル）を設定します。すべての`setup-*`コマンド、さらに`omniroute configure`と`omniroute config set`は、コンテナ自身のCLIを設定することが意図されている場合に`--allow-container-write`を受け入れます。`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true`はサーバーに対しても同様の動作をします。[Dockerガイド → ホストCLIツールの設定](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker)を参照してください。
 
-ダッシュボードの**適用エンドポイント**（`POST /api/cli-tools/apply`）は同じガードを強制します：コンテナ内では、ホストからバインドマウントされていないターゲットへの書き込みは**`422`**で応答し、`containerEphemeralTarget: true`という安全なエラーテキストと、ホストレシピを持つツール（claude、codex、opencode、cline、kilo、continue）に対しては、代わりにホストで実行するための`hostSetupCommand`（例：`omniroute setup-opencode`）が提供されます；何も書き込まれません。`dryRun: true`はコンテナモードでも機能し、ディスクに触れずに生成されたコンテンツとターゲットパスを返すため、ダッシュボードからプレビューし、ホストで適用できます。この動作は意図的であり、`tests/unit/api/cli-tools/apply-container-guard.test.ts`によって回帰ガードされています — 422を「修正」するためにガードを削除しないでください。
+ダッシュボードの**適用エンドポイント**（`POST /api/cli-tools/apply`）も同じガードを適用します。コンテナ内で、ホストからバインドマウントされていないターゲットへの書き込みは、`containerEphemeralTarget: true`という安全なエラーテキストと、ホストレシピを持つツール（claude, codex, opencode, cline, kilo, continue）の場合には、代わりにホストで実行する`hostSetupCommand`（例: `omniroute setup-opencode`）を伴って**`422`**を返します。何も書き込まれません。`dryRun: true`はコンテナモードでも機能し続け、ディスクに触れることなく編集されたプレビューとターゲットパスを返します。プレビューの内容は、コピーまたはインポートするための資格情報を含む設定ではありません。ホスト上で元のツール/ベースURL/APIキー/モデル入力を使用して適用するか、示されたホスト側のセットアップコマンドを使用してください。プレビューヘッダーとリクエスト契約については、[CLI設定のセキュリティ](../security/CLI-CONFIGURATION.md)を参照してください。この動作は意図的なものであり、`tests/unit/api/cli-tools/apply-container-guard.test.ts`によって回帰テストで保護されています。ガードを削除して422を「修正」しないでください。
 
 ---
 
@@ -97,9 +97,9 @@ OmniRouteコンテナ内で実行された`setup-*`コマンドは、コンテ�
 
 `bin/cli/cli-manifest.mjs` はCLIコマンドの標準実行可能マニフェストであり、`run`、`configure` およびシェル補完ジェネレーターはすべてそのターゲットリスト、エイリアス解決（例えば `kilocode`/`kilo-code`/`kilo_cli` → `kilo`）および `--model` フラグの配線をそこから派生させます。ドリフトガード `tests/unit/cli/cli-manifest-drift.test.ts` は、マニフェスト、ランタイムカタログ、UIカタログ、およびすべてのコンシューマサーフェスが同期していることを確認します — 1つのサーフェスに追加されたターゲットが他のサーフェスにない場合、スイートは静かにドリフトするのではなく失敗します。
 
-## 1. CLI Codeのカタログ（26ツール）
+## 1. CLIコードのカタログ (26ツール)
 
-`/dashboard/cli-code` に表示されるすべてのツールです。`baseUrlSupport: none` のツールは、カスタムベースURLではなく、MITMまたは手動ガイドを通じて接続されます。
+`/dashboard/cli-code`に表示されるすべてのツール。`baseUrlSupport: none`を持つものは、カスタムベースURLではなく、MITMまたは手動ガイドを介して接続されます。
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -130,7 +130,7 @@ OmniRouteコンテナ内で実行された`setup-*`コマンドは、コンテ�
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-`baseUrlSupport: "partial"` のツールでは、ダッシュボードカードに「⚠ 部分的なベースURL」というバッジが表示されます。
+`baseUrlSupport: "partial"`を持つツールは、ダッシュボードカードに「⚠ ベースURL一部対応」というバッジを表示します。
 ---
 
 ## 2. CLIエージェントカタログ（10ツール）

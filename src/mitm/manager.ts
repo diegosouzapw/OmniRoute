@@ -28,7 +28,7 @@ import {
   type RepairPlan,
 } from "./repair.ts";
 import { runPrivilegedMitmStep } from "./privilegedMitmStep.ts";
-import { removeStopDnsEntries } from "./stopDnsTeardown.ts";
+import { removeDnsEntriesAfterFailedStart, removeStopDnsEntries } from "./stopDnsTeardown.ts";
 
 export { buildRepairPlan, collectManagedHosts, type RepairPlan };
 
@@ -705,6 +705,20 @@ async function startMitmInternal(
   });
 
   if (!started) {
+    // Step 3 above already wrote the /etc/hosts entries. Leaving them behind
+    // points every AgentBridge target hostname at 127.0.0.1:<port>, where the
+    // service that actually owns the port answers with a TLS alert — so the
+    // hostnames fail machine-wide with the bridge down and no way to recover
+    // from the UI. Revert them before surfacing the startup error.
+    await runPrivilegedMitmStep(
+      sudoPassword,
+      "Skipping DNS rollback after a failed start — no sudo password available",
+      () =>
+        removeDnsEntriesAfterFailedStart(
+          { removeDNSEntry, removeDNSEntries, collectManagedHosts },
+          sudoPassword
+        )
+    );
     throw new Error(interpretMitmStartupError(stderrBuffer, port));
   }
 

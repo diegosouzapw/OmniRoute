@@ -1,9 +1,44 @@
+import { resolveCursorGrok47Variant } from "../../config/providers/registry/cursor/grok47.ts";
+
 export const CURSOR_EFFORT_SUFFIXES = ["low", "medium", "high", "xhigh", "max"] as const;
 
 type CursorRequestedModel = {
   modelId: string;
   parameters: Array<{ id: string; value: string }>;
 };
+
+/** Add explicit client effort only where the model family has a verified parameter id. */
+export function applyCursorReasoningEffort(
+  requested: CursorRequestedModel,
+  effort: string | undefined
+): CursorRequestedModel {
+  if (!effort || requested.parameters.some((p) => p.id === "effort" || p.id === "reasoning")) {
+    return requested;
+  }
+  const id = requested.modelId;
+  const isGrok = id.startsWith("grok-") || id.startsWith("cursor-grok-");
+  const isClaude = ["claude-opus-", "claude-sonnet-", "claude-fable-"].some((prefix) =>
+    id.startsWith(prefix)
+  );
+  const isGpt = id.startsWith("gpt-5.");
+  if (!(isGpt ? CURSOR_GPT_REASONING_LEVELS : CURSOR_EFFORT_SUFFIXES).some((v) => v === effort)) {
+    return requested;
+  }
+  if (!isGrok && !isClaude && !isGpt) return requested;
+  // A live-catalog id can itself be a flattened tier: don't contradict it
+  // with the SDK's default top-level reasoning_effort.
+  if (
+    [...CURSOR_GPT_REASONING_LEVELS].some(
+      (tier) => id.endsWith(`-${tier}`) || id.endsWith(`-${tier}-fast`)
+    )
+  ) {
+    return requested;
+  }
+  return {
+    ...requested,
+    parameters: [...requested.parameters, { id: isGpt ? "reasoning" : "effort", value: effort }],
+  };
+}
 
 const CURSOR_ONE_MILLION_SUFFIX = "-1m";
 const CURSOR_GPT_REASONING_LEVELS = ["none", ...CURSOR_EFFORT_SUFFIXES] as const;
@@ -110,4 +145,8 @@ export function resolveOneMillionContextModel(normalized: string): CursorRequest
   return (
     resolveGptOneMillionContextModel(legacyId) ?? resolveClaudeOneMillionContextModel(legacyId)
   );
+}
+
+export function resolveCursorContextModel(normalized: string): CursorRequestedModel | null {
+  return resolveCursorGrok47Variant(normalized) ?? resolveOneMillionContextModel(normalized);
 }

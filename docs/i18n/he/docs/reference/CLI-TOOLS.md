@@ -43,42 +43,27 @@ Claude / Codex / OpenCode / Cline / KiloCode / Continue / Hermes Agent / Goose /
 
 ---
 
-## קונפיגורציה אוטומטית עם `setup-*`
+## הגדרה אוטומטית עם `setup-*`
 
-אינך צריך לכתוב את הקונפיגורציה של כל כלי ביד. OmniRoute מספקת פקודת `setup-*`
-לכל CLI נתמך שקוראת את קטלוג המודלים **החי** מ-OmniRoute פועל (מקומי או מרוחק) וכותבת את הקונפיגורציה של הכלי שלך במחשב שלך:
+אינך צריך לכתוב את קובץ התצורה של כל כלי באופן ידני. OmniRoute מספק פקודת `setup-*` לכל CLI נתמך, אשר קוראת את קטלוג המודלים ה**חי** מ-OmniRoute פועל (מקומי או מרוחק) וכותבת את קובץ התצורה של הכלי במחשב שלך:
 
 ```bash
 omniroute setup-codex        omniroute setup-claude       omniroute setup-opencode
 omniroute setup-cline        omniroute setup-kilo         omniroute setup-continue
 omniroute setup-cursor       omniroute setup-roo          omniroute setup-crush
 omniroute setup-goose        omniroute setup-qwen         omniroute setup-aider
+omniroute setup-5dive
 ```
 
-כל אחת מקבלת `--remote <url> --api-key <key>` (להגדיר כלי מקומי מול OmniRoute מרוחק), `--dry-run` (תצוגה מקדימה ללא כתיבה), ו-`--port`. כלים ללא גילוי אוטומטי של מודלים (Cline, Kilo, Roo, Goose, Aider, Qwen) לוקחים
-`--model <id>` (ו-`--yes` להרצות לא אינטראקטיביות). כדי להפעיל CLI עם הסביבה הנכונה מוזרקת וללא קונפיגורציה שנכתבה כלל, השתמש במפעיל הכללי
-`omniroute run <target>` (claude, codex, aider, goose, opencode, qwen,
-gemini — מטרות וכינויים מגיעים מ-`bin/cli/cli-manifest.mjs`); המפעילים הישנים לכל כלי `omniroute launch` (Claude Code) ו-`omniroute launch-codex`
-(Codex) נשארים זמינים. CLI של Gemini הוא רק להפעלה: הוא יעד של `omniroute run`
-אבל אין לו מתכון `setup-*`/`configure`.
+כל אחת מהן מקבלת את האפשרויות `--remote <url> --api-key <key>` (להגדיר כלי מקומי מול OmniRoute מרוחק), `--dry-run` (תצוגה מקדימה ללא כתיבה), ו-`--port`. כלים ללא גילוי מודלים אוטומטי (Cline, Kilo, Roo, Goose, Aider, Qwen, 5dive) מקבלים את האפשרות `--model <id>` (ו-`--yes` להרצות לא אינטראקטיביות). `setup-5dive` הוא המתכון היחיד שאינו כותב תחת `$HOME`: הוא מגדיר צי סוכני 5dive על ידי כתיבת פרופיל אימות בבעלות root במארח הצי, ולכן הוא מופעל מחדש באמצעות `sudo` ואין לו מצב מרוחק משלו. כדי להפעיל CLI עם הסביבה הנכונה מוזרקת וללא כתיבת קובץ תצורה כלל, השתמש במפעיל הגנרי `omniroute run <target>` (claude, codex, aider, goose, opencode, qwen, gemini — יעדים וכינויים מגיעים מ-`bin/cli/cli-manifest.mjs`); מפעילים מדור קודם לכל כלי, `omniroute launch` (Claude Code) ו-`omniroute launch-codex` (Codex), נשארים זמינים. Gemini CLI הוא להפעלה בלבד: הוא יעד של `omniroute run` אך אין לו מתכון `setup-*`/`configure`.
 
-> **הפניה מלאה:** הטבלה הראשית — מה כל פקודה כותבת, כל דגל,
-> מקומי מול מרוחק, ואילו כלים רוצים סיומת `/v1` — נמצאת ב
-> **[אינטגרציות CLI](../guides/CLI-INTEGRATIONS.md)**.
+> **הפניה מלאה:** טבלת המאסטר — מה כל פקודה כותבת, כל דגל, מקומי לעומת מרוחק, ואילו כלים דורשים סיומת `/v1` — נמצאת ב-**[שילובי CLI](../guides/CLI-INTEGRATIONS.md)**.
 
-### הרצת אלה בתוך מיכל
+### הרצת אלה בתוך קונטיינר
 
-פקודת `setup-*` המבוצעת בתוך מיכל OmniRoute כותבת לתוך הבית של המיכל עצמו, שאף CLI מארח לא קורא אליו ונעלמת עם המיכל. OmniRoute מזהה זאת ויוצאת `2` עם הוראות במקום לכתוב. שתי דרכים נתמכות קדימה — התקן את ה-CLI על המחשב המארח ו
-`omniroute connect` למיכל, או חיבור-הרכבה של תיקי הקונפיגורציה והגדרת
-`CLI_CONFIG_HOME` (פרופיל המארח של ההרכבה). כל פקודת `setup-*`, בנוסף ל-`omniroute configure` ו-`omniroute config set`, מקבלת
-`--allow-container-write` כאשר הכוונה שלך היא להגדיר את ה-CLIs של המיכל; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` עושה את אותו הדבר עבור השרת. ראה
-[מדריך Docker → קונפיגורציה של כלי CLI מארח](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
+פקודת `setup-*` המבוצעת בתוך קונטיינר OmniRoute כותבת לתיקיית הבית של הקונטיינר עצמו, שאף CLI מארח אינו קורא ושנעלמת עם הקונטיינר. OmniRoute מזהה זאת ויוצא עם קוד `2` והוראות במקום לכתוב. שתי דרכים נתמכות קדימה — התקן את ה-CLI במארח והתחבר ל-`omniroute connect` לקונטיינר, או בצע bind-mount לתיקיות התצורה והגדר את `CLI_CONFIG_HOME` (פרופיל ה-`host` של ה-compose). כל פקודת `setup-*`, בתוספת `omniroute configure` ו-`omniroute config set`, מקבלת את האפשרות `--allow-container-write` כאשר התכוונת באמת להגדיר את ה-CLIs של הקונטיינר עצמו; `OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` עושה את אותו הדבר עבור השרת. ראה [מדריך Docker ← הגדרת כלי CLI מארחים](../guides/DOCKER_GUIDE.md#configuring-host-cli-tools-when-omniroute-runs-in-docker).
 
-נקודת היישום של לוח המחוונים **(`POST /api/cli-tools/apply`)** אוכפת את
-אותו שומר: במיכל, כתיבה שהמטרה שלה אינה מחוברת מהמארח עונה **`422`** עם `containerEphemeralTarget: true`, טקסט השגיאה הבטוח ו — עבור הכלים עם מתכון מארח (claude, codex, opencode, cline,
-kilo, continue) — פקודת `hostSetupCommand` (למשל `omniroute setup-opencode`) להרצה על המארח במקום; שום דבר לא נכתב. `dryRun: true` ממשיך לעבוד במצב מיכל
-ומחזיר את התוכן שנוצר + נתיב היעד מבלי לגעת בדיסק, כך שתוכל להציג מלוח המחוונים וליישם על המארח. התנהגות זו היא מכוונת ומוגנת רגרסיה על ידי
-`tests/unit/api/cli-tools/apply-container-guard.test.ts` — אל תנסה "לתקן" 422 על ידי הסרת השומר.
+**נקודת הקצה apply** של לוח המחוונים (`POST /api/cli-tools/apply`) אוכפת את אותה הגנה: בקונטיינר, כתיבה שיעדה אינו מחובר באמצעות bind-mount מהמארח מחזירה **`422`** עם `containerEphemeralTarget: true`, טקסט השגיאה הבטוח ו — עבור הכלים עם מתכון מארח (claude, codex, opencode, cline, kilo, continue) — פקודת `hostSetupCommand` (לדוגמה `omniroute setup-opencode`) להרצה במארח במקום; שום דבר לא נכתב. `dryRun: true` ממשיך לעבוד במצב קונטיינר ומחזיר תצוגה מקדימה מצונזרת + נתיב יעד מבלי לגעת בדיסק. תוכן התצוגה המקדימה אינו תצורת אישורים שניתן להעתיק או לייבא. החל עם הכלי המקורי/כתובת ה-URL הבסיסית/מפתח ה-API/קלט המודל במארח, או השתמש בפקודת ההגדרה בצד המארח המצוינת. ראה [אבטחת תצורת CLI](../security/CLI-CONFIGURATION.md) עבור כותרת התצוגה המקדימה וחוזה הבקשה. התנהגות זו מכוונת ומוגנת מפני רגרסיה על ידי `tests/unit/api/cli-tools/apply-container-guard.test.ts` — לעולם אל "תתקן" שגיאת `422` על ידי הסרת ההגנה.
 
 ---
 

@@ -7,10 +7,46 @@
  * advertises correctly in /v1/models and routes through combo.ts → handleChaosChat.
  */
 
-import { describe, it, expect } from "vitest";
-import { createVirtualAutoCombo } from "../virtualFactory";
-import { AUTO_TEMPLATE_VARIANTS } from "../builtinCatalog";
-import { parseAutoPrefix } from "../autoPrefix";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { afterAll, beforeAll, describe, it, expect } from "vitest";
+
+const testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-chaos-virtual-"));
+const originalDataDir = process.env.DATA_DIR;
+const originalPluginsDir = process.env.OMNIROUTE_PLUGINS_DIR;
+process.env.DATA_DIR = testDataDir;
+process.env.OMNIROUTE_PLUGINS_DIR = path.join(testDataDir, "plugins");
+
+const { resetDbInstance } = await import("../../../../src/lib/db/core");
+const { createProviderConnection } = await import("../../../../src/lib/db/providers");
+const { createVirtualAutoCombo } = await import("../virtualFactory");
+const { AUTO_TEMPLATE_VARIANTS } = await import("../builtinCatalog");
+const { parseAutoPrefix } = await import("../autoPrefix");
+
+beforeAll(async () => {
+  // A nonempty chaos panel requires eligible connected providers. Anonymous
+  // catalog models can be excluded by the default provider-wide ToS policy.
+  for (const provider of ["openai", "anthropic"]) {
+    await createProviderConnection({
+      provider,
+      authType: "apikey",
+      name: `Chaos fixture ${provider}`,
+      apiKey: `synthetic-chaos-${provider}-key`,
+      isActive: true,
+      testStatus: "active",
+    });
+  }
+});
+
+afterAll(() => {
+  resetDbInstance();
+  fs.rmSync(testDataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  if (originalDataDir === undefined) delete process.env.DATA_DIR;
+  else process.env.DATA_DIR = originalDataDir;
+  if (originalPluginsDir === undefined) delete process.env.OMNIROUTE_PLUGINS_DIR;
+  else process.env.OMNIROUTE_PLUGINS_DIR = originalPluginsDir;
+});
 
 describe("auto/chaos virtual combo", () => {
   it("is registered in the built-in catalog", () => {

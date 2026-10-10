@@ -1,11 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import { createTempDataDir } from "../_setup/tempDataDir.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-compression-"));
-process.env.DATA_DIR = TEST_DATA_DIR;
+const { dir: TEST_DATA_DIR, cleanup } = createTempDataDir("omniroute-compression-");
 process.env.REQUIRE_API_KEY = "false";
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "test-compression-secret";
 
@@ -19,14 +17,19 @@ const compressionAnalyticsDb = await import("../../src/lib/db/compressionAnalyti
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
 const { estimateTokens, getTokenLimit } = await import("../../open-sse/services/contextManager.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
+const { waitForCallLogSaves, closeCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 
 const originalFetch = globalThis.fetch;
+const { OUTPUT_STYLE_MARKER } =
+  await import("../../open-sse/services/compression/outputStyles/apply.ts");
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
   resetAllCircuitBreakers();
   readCacheDb.invalidateDbCache();
   await new Promise((resolve) => setTimeout(resolve, 20));
+  // The previous test's call log is saved in the background; it must land before the reset.
+  assert.ok(await waitForCallLogSaves(30_000), "the previous test's call-log saves should finish");
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
@@ -38,10 +41,111 @@ test.beforeEach(async () => {
 
 test.after(async () => {
   globalThis.fetch = originalFetch;
-  core.closeDbInstance();
-  try {
-    fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  } catch {}
+  // Drain the last test's in-flight save, then stop the writer before the database closes.
+  assert.ok(await waitForCallLogSaves(30_000), "the last test's call-log save should finish");
+  await closeCallLogSaves(2_000);
+  await cleanup();
+});
+
+// Complement the full handleChat pipeline suite with direct chatCore contracts. These
+// checks catch a regression in the core even if a route wrapper compensates for it.
+async function coreStyleReachesUpstream(options: {
+  enabled: boolean;
+  autoClarity: boolean;
+  panel: boolean;
+}) {
+  const userContent = "Explain this security vulnerability in detail.";
+  await compressionDb.updateCompressionSettings({
+    enabled: options.enabled,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+    outputStyles: options.panel ? [{ id: "terse-prose", level: "full" }] : [],
+    cavemanOutputMode: {
+      enabled: !options.panel,
+      intensity: "full",
+      autoClarity: options.autoClarity,
+    },
+  });
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    apiKey: "test-key",
+    isActive: true,
+  });
+  const upstreamBodies: Array<{ messages?: Array<{ role?: string; content?: string }> }> = [];
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.body) upstreamBodies.push(JSON.parse(String(init.body)));
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "ok" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+  const result = await handleChatCore({
+    body: {
+      model: "gpt-4",
+      stream: false,
+      messages: [{ role: "user", content: userContent }],
+    },
+    modelInfo: { provider: "openai", model: "gpt-4" },
+    credentials: { apiKey: "test-key" },
+    log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+    clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+    connectionId: connection.id,
+    onCredentialsRefreshed: () => {},
+    onRequestSuccess: () => {},
+    onStreamFailure: () => {},
+    onDisconnect: () => {},
+    userAgent: "test-agent",
+    comboName: null,
+  });
+  assert.ok(result.success, "the core request succeeds");
+  assert.equal(upstreamBodies.length, 1, "exactly one upstream request");
+  assert.ok(upstreamBodies[0].messages, "the upstream request has messages");
+  assert.equal(upstreamBodies[0].messages[0]?.role, "user");
+  assert.equal(upstreamBodies[0].messages[0]?.content, userContent);
+  const response = result.response as Response;
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).choices[0].message.content, "ok");
+  return upstreamBodies[0].messages.some(
+    (message) => message.role === "system" && (message.content ?? "").includes(OUTPUT_STYLE_MARKER)
+  );
+}
+
+test("chatCore direct: Auto-Clarity off keeps legacy styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: false, panel: false }),
+    true
+  );
+});
+
+test("chatCore direct: Auto-Clarity on suppresses legacy styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: true, panel: false }),
+    false
+  );
+});
+
+test("chatCore direct: Auto-Clarity off keeps panel styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: false, panel: true }),
+    true
+  );
+});
+
+test("chatCore direct: Auto-Clarity on suppresses panel styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: true, panel: true }),
+    false
+  );
+});
+
+test("chatCore direct: global compression disable suppresses styles with Auto-Clarity off", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: false, autoClarity: false, panel: false }),
+    false
+  );
 });
 
 test("chatCore integration: compressContext called proactively when context exceeds 85% threshold", async () => {
@@ -612,11 +716,11 @@ test("chatCore integration: assigned compression combo applies language packs an
     },
     languageConfig: {
       enabled: true,
-      // autoDetect would read the (English) user turn and resolve back to "en",
-      // so the pack under test has to be pinned explicitly.
+      // autoDetect is disabled here, so the detector never runs. With the global default
+      // language "en", pt-BR output can only come from the combo's language packs.
       autoDetect: false,
-      defaultLanguage: "pt-BR",
-      enabledPacks: ["pt-BR"],
+      defaultLanguage: "en",
+      enabledPacks: ["en"],
     },
   });
 
@@ -724,11 +828,11 @@ test("chatCore integration: default stacked compression combo applies for unassi
     },
     languageConfig: {
       enabled: true,
-      // autoDetect would read the (English) user turn and resolve back to "en",
-      // so the pack under test has to be pinned explicitly.
+      // autoDetect is disabled here, so the detector never runs. With the global default
+      // language "en", pt-BR output can only come from the combo's language packs.
       autoDetect: false,
-      defaultLanguage: "pt-BR",
-      enabledPacks: ["pt-BR"],
+      defaultLanguage: "en",
+      enabledPacks: ["en"],
     },
   });
 
@@ -811,99 +915,6 @@ test("chatCore integration: default stacked compression combo applies for unassi
   }
 });
 
-test.skip("chatCore integration: seeded default combo runs RTK before Caveman", async () => {
-  const provider = "openai";
-  const model = "gpt-4";
-
-  await compressionDb.updateCompressionSettings({
-    enabled: true,
-    defaultMode: "stacked",
-    autoTriggerTokens: 0,
-    cavemanOutputMode: {
-      enabled: false,
-      intensity: "full",
-      autoClarity: true,
-    },
-    languageConfig: {
-      enabled: false,
-      defaultLanguage: "en",
-      autoDetect: true,
-      enabledPacks: ["en"],
-    },
-  });
-
-  const connection = await providersDb.createProviderConnection({
-    provider,
-    apiKey: "test-key",
-    isActive: true,
-  });
-
-  let capturedBody: { messages?: Array<{ role?: string; content?: string }> } | null = null;
-  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
-    if (init?.body) {
-      capturedBody = JSON.parse(init.body as string) as typeof capturedBody;
-    }
-    return new Response(
-      JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "ok" } }],
-        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
-      }),
-      {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }
-    );
-  };
-
-  try {
-    const result = await handleChatCore({
-      body: {
-        model,
-        stream: false,
-        messages: [
-          {
-            role: "tool",
-            content: Array.from({ length: 8 }, () => "same noisy line").join("\n"),
-          },
-        ],
-      },
-      modelInfo: { provider, model },
-      credentials: { apiKey: "test-key" },
-      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
-      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
-      connectionId: connection.id,
-      onCredentialsRefreshed: () => {},
-      onRequestSuccess: () => {},
-      onStreamFailure: () => {},
-      onDisconnect: () => {},
-      userAgent: "test-agent",
-      comboName: null,
-    });
-
-    assert.ok(result.success, "Request should succeed");
-    assert.ok(capturedBody, "Fetch should receive the request body");
-    const toolContent = capturedBody.messages?.[0]?.content ?? "";
-    assert.match(toolContent, /rtk:dropped 7 repeated lines/);
-
-    let summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
-    for (
-      let attempt = 0;
-      attempt < 100 &&
-      (summary.byCompressionCombo["default-caveman"]?.count !== 1 ||
-        summary.realUsage.requestsWithReceipts === 0);
-      attempt += 1
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 20));
-      summary = compressionAnalyticsDb.getCompressionAnalyticsSummary();
-    }
-
-    assert.equal(summary.totalRequests, 1);
-    assert.equal(summary.byCompressionCombo["default-caveman"].count, 1);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
 test("chatCore integration: modular compression records analytics row best-effort", async () => {
   const provider = "openai";
   const model = "gpt-4";
@@ -978,76 +989,6 @@ test("chatCore integration: modular compression records analytics row best-effor
     assert.equal(summary.byProvider.openai.count, 1);
     assert.equal(summary.realUsage.requestsWithReceipts, 1);
     assert.equal(summary.realUsage.totalTokens, 15);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test("chatCore integration: caveman output mode skipped when compression is globally disabled", async () => {
-  const provider = "openai";
-  const model = "gpt-4";
-
-  await compressionDb.updateCompressionSettings({
-    enabled: false,
-    defaultMode: "off",
-    autoTriggerTokens: 0,
-    cavemanOutputMode: {
-      enabled: true,
-      intensity: "full",
-      autoClarity: true,
-    },
-  });
-
-  const connection = await providersDb.createProviderConnection({
-    provider,
-    apiKey: "test-key",
-    isActive: true,
-  });
-
-  let capturedBody: any = null;
-  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
-    if (init?.body) {
-      capturedBody = JSON.parse(init.body as string);
-    }
-    return new Response(
-      JSON.stringify({
-        choices: [{ message: { role: "assistant", content: "ok" } }],
-        usage: { prompt_tokens: 20, completion_tokens: 4, total_tokens: 24 },
-      }),
-      {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }
-    );
-  };
-
-  try {
-    const result = await handleChatCore({
-      body: {
-        model,
-        stream: false,
-        messages: [{ role: "user", content: "Summarize this implementation." }],
-      },
-      modelInfo: { provider, model },
-      credentials: { apiKey: "test-key" },
-      log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
-      clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
-      connectionId: connection.id,
-      onCredentialsRefreshed: () => {},
-      onRequestSuccess: () => {},
-      onStreamFailure: () => {},
-      onDisconnect: () => {},
-      userAgent: "test-agent",
-      comboName: null,
-    });
-
-    assert.ok(result.success, "Request should succeed");
-    assert.equal(
-      capturedBody.messages[0].role,
-      "user",
-      "No system message should be injected when compression is disabled"
-    );
-    assert.doesNotMatch(capturedBody.messages[0].content ?? "", /Output Styles/);
   } finally {
     globalThis.fetch = originalFetch;
   }

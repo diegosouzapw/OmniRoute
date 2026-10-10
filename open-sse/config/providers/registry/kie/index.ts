@@ -12,7 +12,12 @@ export const kieProvider: RegistryEntry = {
   models: [
     // Sweep 2026-06-19: + current flagships the kie proxy surfaces. gemini-3-pro was
     // skipped (registry already carries the newer gemini-3-1-pro).
-    { id: "claude-fable-5", name: "Claude 5 Fable" },
+    {
+      id: "claude-fable-5",
+      name: "Claude 5 Fable",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+    },
     { id: "claude-opus-5", name: "Claude 5 Opus" },
     { id: "claude-sonnet-5", name: "Claude 5 Sonnet" },
     { id: "claude-haiku-4-5", name: "Claude 4.5 Haiku" },

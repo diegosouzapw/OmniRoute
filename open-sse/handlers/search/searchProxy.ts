@@ -15,8 +15,14 @@ import { HTTP_STATUS } from "../../config/constants.ts";
 import { isSubscriptionQuotaText } from "../../services/quotaTextCooldowns.ts";
 import type { SearchProviderConfig } from "../../config/searchRegistry.ts";
 import type { SearchResult } from "../search.ts";
+import {
+  isReportedCostTrusted,
+  recordReportedErrorCost,
+  resolveSearchUsage,
+  type SearchUsage,
+} from "./reportedCost.ts";
 
-const SEARCH_COOLDOWN_STATUSES = new Set([
+export const SEARCH_COOLDOWN_STATUSES = new Set([
   HTTP_STATUS.PAYMENT_REQUIRED,
   HTTP_STATUS.REQUEST_TIMEOUT,
   HTTP_STATUS.RATE_LIMITED,
@@ -27,9 +33,15 @@ const SEARCH_COOLDOWN_STATUSES = new Set([
   HTTP_STATUS.GATEWAY_TIMEOUT,
 ]);
 
+// Search-only credit-exhaustion wording (e.g. Exa answers 400 "Insufficient credits").
+// Kept out of the shared isSubscriptionQuotaText() so LLM chat fallback is unaffected.
+const SEARCH_CREDIT_EXHAUSTION_PHRASES = ["insufficient credits", "out of credits"];
+
 export function shouldCoolDownSearchConnection(status: number, errorText: string): boolean {
   if (SEARCH_COOLDOWN_STATUSES.has(status)) return true;
-  return isSubscriptionQuotaText(errorText.toLowerCase());
+  const lower = errorText.toLowerCase();
+  if (SEARCH_CREDIT_EXHAUSTION_PHRASES.some((phrase) => lower.includes(phrase))) return true;
+  return isSubscriptionQuotaText(lower);
 }
 
 /** Resolved proxy binding for a single provider attempt. */
@@ -145,7 +157,7 @@ export interface ProviderFetchResult {
     query: string;
     results: SearchResult[];
     answer: null;
-    usage: { queries_used: number; search_cost_usd: number };
+    usage: SearchUsage;
     metrics: {
       response_time_ms: number;
       upstream_latency_ms: number;
@@ -176,6 +188,11 @@ export interface ExecuteProviderFetchParams {
   proxy: unknown;
   proxyLevel: string;
   log?: SearchLog;
+  /**
+   * Operator connection data + API key for provider-reported cost (see
+   * ./reportedCost.ts). Absent or not opted in: usage is `costPerQuery`.
+   */
+  costContext?: { apiKeyId?: string; providerSpecificData?: Record<string, unknown> };
   normalize: (
     providerId: string,
     data: unknown,
@@ -195,7 +212,8 @@ export async function executeProviderFetch(
   p: ExecuteProviderFetchParams
 ): Promise<ProviderFetchResult> {
   const { config, url, init, controller, timer, query, searchType, maxResults, startTime } = p;
-  const { connectionId, proxy, proxyLevel, log, normalize } = p;
+  const { connectionId, proxy, proxyLevel, log, normalize, costContext } = p;
+  const costTrusted = isReportedCostTrusted(config, costContext?.providerSpecificData, url);
   const emitEvent = (status: string, upstreamStatus: number | null = null) =>
     emitSearchProxyEvent(
       config.id,
@@ -240,6 +258,9 @@ export async function executeProviderFetch(
           /* non-critical - background cooldown mark must not break search response */
         }
       }
+      if (costTrusted) {
+        recordReportedErrorCost(costContext?.apiKeyId, config.id, errorText, log);
+      }
       logCall({
         status: response.status,
         duration: Date.now() - startTime,
@@ -266,6 +287,23 @@ export async function executeProviderFetch(
     });
     await emitEvent("success", response.status);
 
+    // Mirror of the markAccountUnavailable() call above: a real success clears
+    // any recorded error (stale failed test, elapsed cooldown) so the dashboard
+    // stops painting a serving connection red. clearAccountError() is a no-op
+    // when the row is already clean.
+    if (connectionId) {
+      try {
+        const { getProviderConnectionById } = await import("@/lib/db/providers");
+        const current = await getProviderConnectionById(connectionId);
+        if (current) {
+          const { clearAccountError } = await import("@/sse/services/auth.ts");
+          await clearAccountError(connectionId, current as never);
+        }
+      } catch {
+        /* non-critical - clearing stale error state must not break the search response */
+      }
+    }
+
     return {
       success: true,
       data: {
@@ -273,7 +311,7 @@ export async function executeProviderFetch(
         query,
         results,
         answer: null,
-        usage: { queries_used: 1, search_cost_usd: config.costPerQuery },
+        usage: resolveSearchUsage(config, data, costTrusted, log),
         metrics: {
           response_time_ms: duration,
           upstream_latency_ms: duration,

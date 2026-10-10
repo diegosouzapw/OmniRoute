@@ -1,6 +1,18 @@
 /** Exact Codex model ids retired after discovery merge. */
 export const CODEX_DISCOVERY_EXCLUDED_IDS: ReadonlySet<string> = new Set([
-  // Reserved for one-off retired ids that do not share a clean prefix family.
+  // Retired upstream: absent from every openai/codex models manifest
+  // (0.153.4 / 0.155.0 / 0.157.1 / main) and rejected at inference by the
+  // ChatGPT-account Codex backend with `400 The 'gpt-5.3-codex-spark' model is
+  // not supported when using Codex with a ChatGPT account.` The live OAuth
+  // catalog can keep returning it, so it needs an explicit retired entry
+  // instead of a prefix family.
+  "gpt-5.3-codex-spark",
+  // Retired upstream: every manifest marks it `visibility: hide` (internal
+  // auto-approval reviewer), so discovery never activates it. Advertising it
+  // from the static side is what breaks: every request 400s with "Model
+  // 'codex-auto-review' is not available in the active live catalog for
+  // provider 'codex'."
+  "codex-auto-review",
 ]);
 
 /**
@@ -39,7 +51,7 @@ export function isCodexDiscoveryModelExcluded(model: CodexDiscoveryModelIdentity
   });
 }
 
-function compareVersions(left: string, right: string): number | null {
+export function compareCodexDiscoveryVersions(left: string, right: string): number | null {
   const parse = (version: string) => {
     const parts = version.trim().split(".").map(Number);
     return parts.length > 0 && parts.every((part) => Number.isInteger(part) && part >= 0)
@@ -78,7 +90,10 @@ export function classifyCodexDiscoveryModel(
     return { status: "incompatible", reason: "api-not-supported" };
 
   if (typeof model.minimalClientVersion === "string") {
-    const versionComparison = compareVersions(model.minimalClientVersion, implementedClientVersion);
+    const versionComparison = compareCodexDiscoveryVersions(
+      model.minimalClientVersion,
+      implementedClientVersion
+    );
     if (versionComparison === null)
       return { status: "candidate", reason: "invalid-minimal-client-version" };
     if (versionComparison > 0) return { status: "candidate", reason: "requires-newer-client" };

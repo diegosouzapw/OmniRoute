@@ -36,9 +36,30 @@ export const opencode_zenProvider: RegistryEntry = {
     // opencode.ai/zen/v1 with the same key on both endpoints). #12196 made the
     // same declaration for gpt-5.6-luna on opencode-go; the zen entries here
     // never got it.
-    { id: "gpt-5.6-sol", name: "GPT 5.6 Sol", targetFormat: "openai-responses" },
-    { id: "gpt-5.6-terra", name: "GPT 5.6 Terra", targetFormat: "openai-responses" },
-    { id: "gpt-5.6-luna", name: "GPT 5.6 Luna", targetFormat: "openai-responses" },
+    {
+      id: "gpt-5.6-sol",
+      name: "GPT 5.6 Sol",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-terra",
+      name: "GPT 5.6 Terra",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
+    {
+      id: "gpt-5.6-luna",
+      name: "GPT 5.6 Luna",
+      supportsReasoning: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
+      targetFormat: "openai-responses",
+      maxOutputTokens: 128000,
+    },
     { id: "gpt-5.4", name: "GPT 5.4" },
     { id: "gpt-5.4-mini", name: "GPT 5.4 Mini" },
     { id: "gpt-5.4-nano", name: "GPT 5.4 Nano" },
@@ -158,7 +179,16 @@ export const opencode_zenProvider: RegistryEntry = {
     // 2026-08-17 sync: north-mini-code-free delisted; nemotron-3.5-lightning-free
     // and laguna-s-2.1-free added.
     { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
-    { id: "mimo-v2.5-free", name: "MiMo V2.5 Free", contextLength: 200000 },
+    { id: "mimo-v2.5-free", name: "MiMo V2.5 Free", contextLength: 1048576 },
+    // MiMo V2.6 Flash Free ships a 1M window upstream (same as V2.5); without
+    // this row it falls through to the 200000 provider default and clients
+    // compact far too early.
+    {
+      id: "mimo-v2.6-flash-free",
+      name: "MiMo V2.6 Flash Free",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
     { id: "hy3-free", name: "HY3 Free", contextLength: 200000 },
     { id: "nemotron-3-ultra-free", name: "Nemotron 3 Ultra Free", contextLength: 1000000 },
     { id: "nemotron-3.5-lightning-free", name: "Nemotron 3.5 Lightning Free" },

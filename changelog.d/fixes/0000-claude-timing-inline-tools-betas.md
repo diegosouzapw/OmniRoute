@@ -1,0 +1,1 @@
+- **fix(sse):** forward the client-negotiated `timing-2026-09-09` and `inline-tools-2026-09-15` betas (Claude Code wire tokens, captured from cc@2.1.284), so requests with message-level `tool_addition` blocks no longer get `400 ... tool_addition blocks require anthropic-beta` from Anthropic

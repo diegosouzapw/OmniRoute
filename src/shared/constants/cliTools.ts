@@ -778,7 +778,7 @@ OPENAI_API_KEY: "{{apiKey}}"`,
     configType: "custom",
     category: "agent",
     vendor: "OSS",
-    acpSpawnable: true,
+    acpSpawnable: false,
     baseUrlSupport: "full",
     defaultCommand: "omp",
     notes: [
@@ -930,7 +930,7 @@ OPENAI_API_KEY: "{{apiKey}}"`,
       {
         step: 1,
         title: "Install WhyCodes",
-        desc: "Install WhyCodes following the vendor's official instructions: https://github.com/whycorporation/whycodes (we do not pipe third-party install scripts to a shell)",
+        desc: "Install WhyCodes with Homebrew (brew tap whycorporation/whycodes https://github.com/whycorporation/whycodes && brew install whycorporation/whycodes/whycodes), a release binary, or cargo — see https://github.com/whycorporation/whycodes#installation",
       },
       { step: 2, title: "API Key", type: "apiKeySelector" },
       { step: 3, title: "Base URL", value: "{{baseUrl}}", copyable: true },
@@ -956,7 +956,7 @@ supports_tools = true`,
     notes: [
       {
         type: "info",
-        text: "WhyCodes talks Chat Completions at /v1/chat/completions. Config lives at $WHYCODES_HOME/config.toml, or the platform project dir (whycodes debug --json prints the path; env names only, never values).",
+        text: "WhyCodes talks Chat Completions at /v1/chat/completions. Config lives at $WHYCODES_HOME/config.toml, or ~/.whycodes/config.toml (%USERPROFILE%\\.whycodes on Windows); `whycodes config path` prints it.",
       },
       {
         type: "warning",

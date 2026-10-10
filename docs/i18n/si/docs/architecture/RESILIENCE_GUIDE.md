@@ -95,6 +95,8 @@ OmniRoute සතුව එකිනෙකට වෙනස් නමුත් ස
 
 **Anti-thundering-herd ආරක්ෂණය:** සමගාමී අසාර්ථකවීම් cooldown එක අධික ලෙස දිගු කිරීම හෝ `backoffLevel` දෙවරක් වැඩි කිරීම වළක්වයි.
 
+හිස් නොවන අත්සනක් සහිත Kiro හි ද්විමය `reasoningContentEvent` රාමු, ක්‍රියාත්මකකරු හරහා හිස් `reasoning_content` ඩෙල්ටාවක් ලෙස තර්කන ක්‍රියාකාරිත්වය රඳවා ගනී. අත්සන ඉදිරියට යවන්නේ නැත. පාරදත්ත, අසම්පූර්ණ රාමු සහ හිස් අත්සන් අන්තර්ගතය සඳහා කාල සීමාව නැවත ආරම්භ නොකරයි; සක්‍රිය ප්‍රවාහයේ ස්වාධීන කාල සීමාව සහ සේවාලාභියාගේ අවලංගු කිරීම තවමත් අදාළ වේ. (`open-sse/executors/kiro/reasoning.ts`).
+
 **අවසන් තත්ත්ව (cooldown නොවේ):**
 
 - `banned` — තහනම්-keyword / account-ban හඳුනාගැනීම මඟින් සකසනු ලැබේ ([BAN_DETECTION](../security/BAN_DETECTION.md) බලන්න), එසේම අඛණ්ඩ upstream එක්-request ප්රතික්ෂේප කිරීම් තුනක් (`request_rejected`, උදා. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`) මඟින්ද සකසනු ලැබේ; එක් ප්රතික්ෂේප කිරීමක් පමණක් සම්බන්ධතාව cooldown කරයි

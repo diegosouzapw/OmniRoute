@@ -19,8 +19,11 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import os from "node:os";
-import { printHeading, printInfo, printSuccess, printError } from "../io.mjs";
+import { printHeading, printInfo, printSuccess, printError, printWarning } from "../io.mjs";
 import { guardHostConfigTarget } from "../utils/config-home-guard.mjs";
+import { detectLocalCliProvider } from "../utils/localCliAvailability.mjs";
+import { loadAvailableProviders } from "../provider-catalog.mjs";
+import { isLoopbackUrl } from "../api.mjs";
 import {
   categoriseModel,
   isCodexCompatibleTextModel,
@@ -45,6 +48,59 @@ export function fallbackClaudeProfile(modelId, model) {
   return { name: profileNameFromModelId(modelId) };
 }
 
+/**
+ * Manual-launch hint for one profile, in the syntax of the host shell.
+ *
+ * Claude Code resolves `CLAUDE_CONFIG_DIR` verbatim — its config root is
+ * `process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude")`, with **no
+ * tilde expansion**. So the `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name>`
+ * one-liner this command used to print only works on a shell that expands `~`
+ * itself (bash/zsh). On PowerShell or cmd.exe it either fails to parse or
+ * resolves to a literal `./~/.claude/...` that does not exist — Claude Code
+ * then starts with NO `ANTHROPIC_BASE_URL`, and its `firstParty` provider
+ * falls back to `api.anthropic.com`, which rejects an OmniRoute key with a real
+ * Anthropic `401 {"type":"error","error":{"type":"authentication_error",…}}`
+ * (#11525).
+ *
+ * Always emit the ABSOLUTE profile directory so the hint is copy-pasteable on
+ * every platform.
+ *
+ * @param {string} profileDir  absolute path to `<claudeHome>/profiles/<name>`
+ * @param {NodeJS.Platform|string} [platform]
+ * @returns {string}
+ */
+export function formatManualLaunchHint(profileDir, platform = process.platform) {
+  if (platform === "win32") {
+    return (
+      `$env:CLAUDE_CONFIG_DIR="${profileDir}"; ` +
+      `$env:ANTHROPIC_AUTH_TOKEN="<your OmniRoute key>"; claude`
+    );
+  }
+  return `CLAUDE_CONFIG_DIR="${profileDir}" ANTHROPIC_AUTH_TOKEN="<your OmniRoute key>" claude`;
+}
+
+/**
+ * `ANTHROPIC_API_KEY` inherited from the operator's shell is the other half of
+ * the #11525 dead end: Claude Code sends it as `x-api-key` and shows the
+ * "Detected a custom API key in your environment" consent screen, so a session
+ * that never picked up `ANTHROPIC_BASE_URL` looks configured right up until
+ * Anthropic itself answers 401. Warn once, at generation time.
+ *
+ * @param {Record<string,string|undefined>} env
+ * @returns {string|null} the warning line, or null when the shell is clean
+ */
+export function inheritedAnthropicKeyWarning(env = process.env) {
+  const key = env?.ANTHROPIC_API_KEY;
+  if (!key || !String(key).trim()) return null;
+  return (
+    "ANTHROPIC_API_KEY is set in this shell. Claude Code sends it as x-api-key and asks " +
+    "\"Detected a custom API key in your environment\" — if ANTHROPIC_BASE_URL is not " +
+    "picked up, that key goes to api.anthropic.com and you get a real Anthropic 401. " +
+    "Unset it, or use `omniroute launch --profile <name>` (it strips every inherited " +
+    "ANTHROPIC_* var before spawning claude)."
+  );
+}
+
 /** Build the settings.json content for one Claude Code profile. */
 export function buildProfileSettings(modelId, baseUrl, cfg) {
   const env = {
@@ -67,13 +123,33 @@ export function buildProfileSettings(modelId, baseUrl, cfg) {
 }
 
 /**
+ * Map every registry id and alias of an `isLocalCli` provider to its id, so a
+ * catalog model id (`zc/glm-5.2`, `auggie/...`) resolves by its prefix.
+ * @param {Array<{id:string, alias?:string|null, isLocalCli?:boolean}>} providers
+ * @returns {Map<string,string>}
+ */
+export function buildLocalCliPrefixMap(providers) {
+  const map = new Map();
+  for (const p of providers) {
+    if (!p?.isLocalCli) continue;
+    map.set(p.id, p.id);
+    if (p.alias) map.set(p.alias, p.id);
+  }
+  return map;
+}
+
+/**
  * Generate Claude Code profile files for a live model catalog. Shared by the
  * `setup-claude` CLI command and the post-model-sync auto-sync so both stay
  * behaviorally identical. Writes `<claudeHome>/profiles/<name>/settings.json`
  * (directory-per-profile); never touches the active/default Claude config.
+ *
+ * Models of `isLocalCli` providers are skipped unless the provider is usable on
+ * this host (#14363); `includeLocal: true` restores the write-everything
+ * behaviour. `providers` and `detectLocalProvider` are injectable for tests.
  * @param {Array} models
- * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string, log?:(line:string)=>void}} opts
- * @returns {Promise<{written:number, skipped:number, profiles:Array<{name:string, model:string, filePath:string}>}>}
+ * @param {{claudeHome?:string, baseUrl:string, dryRun?:boolean, only?:string, includeLocal?:boolean, providers?:Array, detectLocalProvider?:(providerId:string)=>{available:boolean, reason?:string}, log?:(line:string)=>void}} opts
+ * @returns {Promise<{written:number, skipped:number, profiles:Array<{name:string, model:string, filePath:string}>, unavailable:Array<{provider:string, reason:string, models:string[]}>}>}
  */
 export async function syncClaudeProfilesFromModels(models, opts = {}) {
   const claudeHome = opts.claudeHome || join(os.homedir(), ".claude");
@@ -87,6 +163,13 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
   // version"). Tests inject a collector; the CLI default stays console.log.
   const log = opts.log ?? console.log;
   const onlyFilter = opts.only ? opts.only.split(",").map((s) => s.trim()) : null;
+  const includeLocal = Boolean(opts.includeLocal);
+  const localCliPrefixes = includeLocal
+    ? new Map()
+    : buildLocalCliPrefixMap(opts.providers ?? loadAvailableProviders());
+  const detectLocalProvider = opts.detectLocalProvider ?? ((id) => detectLocalCliProvider(id));
+  const localVerdicts = new Map();
+  const unavailable = new Map();
 
   if (!dryRun && !existsSync(profilesRoot)) {
     mkdirSync(profilesRoot, { recursive: true });
@@ -105,6 +188,25 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
     if (onlyFilter && !onlyFilter.some((f) => id.includes(f))) {
       skipped++;
       continue;
+    }
+
+    const localProvider = localCliPrefixes.get(id.split("/")[0]);
+    if (localProvider) {
+      if (!localVerdicts.has(localProvider)) {
+        localVerdicts.set(localProvider, detectLocalProvider(localProvider));
+      }
+      const verdict = localVerdicts.get(localProvider);
+      if (!verdict.available) {
+        const entry = unavailable.get(localProvider) ?? {
+          provider: localProvider,
+          reason: verdict.reason || "not available on this host",
+          models: [],
+        };
+        entry.models.push(id);
+        unavailable.set(localProvider, entry);
+        skipped++;
+        continue;
+      }
     }
 
     const cfg = categoriseModel(id) ?? fallbackClaudeProfile(id, m);
@@ -128,11 +230,18 @@ export async function syncClaudeProfilesFromModels(models, opts = {}) {
     written++;
   }
 
-  return { written, skipped, profiles };
+  return { written, skipped, profiles, unavailable: [...unavailable.values()] };
+}
+
+/** One-line summary of the local-CLI providers the host gate skipped. */
+export function formatUnavailableSummary(unavailable) {
+  return unavailable
+    .map((u) => `${u.provider}: ${u.reason} (${u.models.length} model(s))`)
+    .join("; ");
 }
 
 /**
- * @param {{remote?:string, port?:string, apiKey?:string, claudeHome?:string, dryRun?:boolean, only?:string}} opts
+ * @param {{remote?:string, port?:string, apiKey?:string, claudeHome?:string, dryRun?:boolean, only?:string, includeLocal?:boolean, all?:boolean}} opts
  * @returns {Promise<number>}
  */
 export async function runSetupClaudeCommand(opts = {}) {
@@ -169,8 +278,7 @@ export async function runSetupClaudeCommand(opts = {}) {
       let detail = `HTTP ${res.status}`;
       try {
         const errorBody = await res.json();
-        const serverMsg =
-          errorBody?.error?.message || errorBody?.error || errorBody?.message || "";
+        const serverMsg = errorBody?.error?.message || errorBody?.error || errorBody?.message || "";
         if (serverMsg) detail += ` — ${serverMsg}`;
       } catch {}
       throw new Error(detail);
@@ -188,12 +296,23 @@ export async function runSetupClaudeCommand(opts = {}) {
 
   printInfo(`Received ${models.length} models from ${baseUrl}`);
 
-  const { written, skipped, profiles } = await syncClaudeProfilesFromModels(models, {
+  // The local-CLI gate probes THIS machine, so it only answers for a server on
+  // this machine. Against a remote OmniRoute the binaries live on the server,
+  // and a local probe would drop profiles that work there (#14363).
+  const includeLocalFlag = Boolean(opts.includeLocal ?? opts["include-local"] ?? opts.all);
+  const remoteTarget = !isLoopbackUrl(baseUrl);
+  if (remoteTarget && !includeLocalFlag) {
+    printInfo("Remote target: local-CLI provider availability is not checked on this host");
+  }
+
+  const { written, skipped, profiles, unavailable } = await syncClaudeProfilesFromModels(models, {
     claudeHome,
     baseUrl,
     dryRun,
     only: opts.only,
+    includeLocal: includeLocalFlag || remoteTarget,
   });
+  const unavailableCount = unavailable.reduce((n, u) => n + u.models.length, 0);
 
   if (!dryRun) {
     for (const profile of profiles) {
@@ -201,14 +320,29 @@ export async function runSetupClaudeCommand(opts = {}) {
     }
     console.log("");
     printSuccess(`${written} Claude Code profiles written to ${profilesRoot}`);
-    if (skipped > 0) printInfo(`${skipped} models skipped (no matching profile pattern)`);
+    const unmatched = skipped - unavailableCount;
+    if (unmatched > 0) printInfo(`${unmatched} models skipped (no matching profile pattern)`);
     console.log("\nTo use a profile:");
     console.log("  omniroute launch --profile <name>     # e.g. omniroute launch --profile glm52");
-    console.log(
-      "  # or: CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude  (export ANTHROPIC_AUTH_TOKEN first)"
-    );
+    // Absolute path, host-shell syntax: Claude Code does not expand `~` in
+    // CLAUDE_CONFIG_DIR, and a config dir that does not resolve silently drops
+    // ANTHROPIC_BASE_URL — the request then goes to api.anthropic.com (#11525).
+    const sample = join(profilesRoot, profiles[0]?.name ?? "<name>");
+    console.log("  # or, without the launcher:");
+    console.log(`  ${formatManualLaunchHint(sample)}`);
+    const keyWarning = inheritedAnthropicKeyWarning();
+    if (keyWarning) {
+      console.log("");
+      printWarning(keyWarning);
+    }
   } else {
     console.log(`\n[dry-run] ${written} profiles would be written (${skipped} skipped)`);
+  }
+  if (unavailableCount > 0) {
+    printInfo(
+      `${unavailableCount} models skipped, provider not usable on this host ` +
+        `(${formatUnavailableSummary(unavailable)}). Pass --include-local to write them anyway.`
+    );
   }
 
   return 0;
@@ -229,6 +363,11 @@ export function registerSetupClaude(program) {
       "--only <patterns>",
       "Comma-separated substrings — only matching model IDs (e.g. glm,kimi)"
     )
+    .option(
+      "--include-local",
+      "Also write profiles for local-CLI providers (zcode, auggie, ...) not detected on this host"
+    )
+    .option("--all", "Alias of --include-local")
     .option("--dry-run", "Print what would be written without touching the filesystem")
     .option(
       "--allow-container-write",

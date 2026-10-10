@@ -96,6 +96,8 @@ Test di regressione: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Protezione anti-thundering-herd:** impedisce che errori simultanei prolunghino eccessivamente il cooldown o incrementino due volte `backoffLevel`.
 
+I frame binari `reasoningContentEvent` di Kiro con una firma non vuota preservano l’attività di ragionamento attraverso l’esecutore come delta `reasoning_content` vuoto. La firma non viene inoltrata. Metadati, frame incompleti e firme vuote non riavviano il tempo concesso per il contenuto; il limite indipendente di durata del flusso attivo e l’annullamento del client restano validi. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Stati terminali (NON cooldown):**
 
 - `banned` — impostato dal rilevamento di parole chiave associate al ban o del ban dell'account (vedere [BAN_DETECTION](../security/BAN_DETECTION.md)) e da tre rifiuti consecutivi per richiesta da parte del servizio upstream (`request_rejected`, ad es. OAuth Anthropic 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); un singolo rifiuto si limita ad applicare il cooldown alla connessione

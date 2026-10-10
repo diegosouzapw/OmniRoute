@@ -237,14 +237,14 @@ Stack produksi berjalan secara paralel dengan compose pengembangan (nama kontain
 
 ## Tahapan Dockerfile
 
-Repositori ini menyertakan Dockerfile multi-tahap (`Dockerfile`). Tersedia empat tahapan; pilih `target` yang tepat untuk kasus penggunaan Anda.
+Repositori ini menyediakan Dockerfile multi-tahap (`Dockerfile`). Empat tahapan tersedia; pilih `target` yang tepat untuk kasus penggunaan Anda.
 
 | Tahap         | Image dasar           | Tujuan                                                                                                                                                                                                                                                                                       |
 | ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `builder`     | `node:26-trixie-slim` | Menginstal dependensi (`npm ci --legacy-peer-deps`) dan menjalankan `npm run build` (secara default menggunakan Turbopack — lihat Sumber daya waktu build di bawah)                                                                                                                          |
 | `runner-base` | `node:26-trixie-slim` | Runtime produksi dengan output standalone Next.js. **Tidak menyertakan CLI penyedia.**                                                                                                                                                                                                       |
-| `runner-cli`  | `runner-base`         | Menambahkan `git`, `docker.io`, `docker-compose`, dan CLI global: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Pilih ini untuk alur kerja berbasis agen.**                                                                                                           |
-| `runner-web`  | `runner-base`         | Menambahkan Playwright + browser Chromium (`--with-deps`) untuk penyedia sesi web: `gemini-web`, `claude-web`, `claude-turnstile`. **Pilih ini saat Anda menggunakan penyedia tersebut** — image biasa akan gagal saat permintaan diproses tanpanya (lihat catatan `-web` pada Kanal Rilis). |
+| `runner-cli`  | `runner-base`         | Menambahkan `git`, `docker.io`, `docker-compose`, dan CLI global: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Pilih ini untuk alur kerja agentik.**                                                                                                                 |
+| `runner-web`  | `runner-base`         | Menambahkan Playwright + browser Chromium (`--with-deps`) untuk penyedia sesi web: `gemini-web`, `claude-web`, `claude-turnstile`. **Pilih ini saat Anda menggunakan penyedia tersebut** — image biasa akan gagal saat permintaan dijalankan tanpanya (lihat catatan `-web` di Kanal Rilis). |
 
 Build target tertentu secara manual:
 
@@ -256,52 +256,58 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Sumber daya waktu build
 
-Tiga argumen build mengendalikan biaya sumber daya tahap `builder`. Argumen tersebut hanya berlaku saat build —
+Tiga argumen build mengontrol biaya sumber daya tahap `builder`. Semuanya hanya berlaku pada waktu build —
 `OMNIROUTE_MEMORY_MB` (di bawah) adalah pengaturan runtime yang terpisah.
 
-| Argumen build               | Default | Efek                                                                                                    |
-| --------------------------- | ------- | ------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`     | Nilai `0` melakukan build dengan webpack. Memori puncak lebih rendah, tetapi lebih lambat.              |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`  | Batas heap V8 (`--max-old-space-size`) untuk `next build` yang dijalankan.                              |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`     | Memasok nilai ke `CIRCLE_NODE_TOTAL`; Next menetapkan `workers = N - 1` untuk pengumpulan data halaman. |
+| Argumen build               | Default | Efek                                                                                                      |
+| --------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`     | `0` melakukan build dengan webpack: memori puncak lebih rendah, lebih lambat. `1` mengaktifkan Turbopack. |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`  | Batas heap V8 (`--max-old-space-size`) untuk `next build` yang dijalankan.                                |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`     | Mengisi `CIRCLE_NODE_TOTAL`; Next menentukan `workers = N - 1` untuk pengumpulan data halaman.            |
 
-`OMNIROUTE_BUILD_WORKERS` adalah nilai yang perlu dinaikkan pada builder berkapasitas besar dan yang perlu
+`OMNIROUTE_BUILD_WORKERS` adalah nilai yang perlu dinaikkan pada builder besar dan yang perlu
 dicurigai ketika build dengan sumber daya terbatas berhenti **setelah** `✓ Compiled successfully`. Setiap
 worker data halaman merupakan proses tersendiri, demikian pula proses induk `next build`;
-reproduksi langsung pada VPS (issue #7518) mengukur RSS puncak setiap proses pada
-~4,5 GB, terlepas dari flag heap `NODE_OPTIONS` (Turbopack melakukan kompilasi dalam
+reproduksi pada VPS aktif (masalah #7518) mengukur RSS puncak setiap proses sebesar
+~4.5 GB secara independen dari flag heap `NODE_OPTIONS` (Turbopack melakukan kompilasi dalam
 memori native/Rust di luar heap V8). Nilai default `2` (→ 1 worker, total 2
 proses) disesuaikan untuk runner yang di-host GitHub dengan 16 GB / 4 vCPU yang
 digunakan pipeline publikasi. Pada `8` (→ 7 worker), runner tersebut kehabisan memori dan
 buildkit menggagalkan langkah dengan `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ 2 worker) masih tidak mencukupi setelah RSS per proses diukur
-secara langsung alih-alih disimpulkan. `tests/unit/docker-build-memory-budget.test.ts`
-melakukan perhitungan berdasarkan angka hasil pengukuran dan akan gagal jika salah satu pengaturan
+`3` (→ 2 worker) tetap tidak mencukupi setelah RSS per proses diukur
+secara langsung, alih-alih diperkirakan. `tests/unit/docker-build-memory-budget.test.ts`
+melakukan perhitungan berdasarkan angka hasil pengukuran dan gagal jika salah satu pengaturan
 melampaui kapasitas runner.
 
 Turbopack melakukan kompilasi dalam memori native Rust yang berada **di luar** heap V8, sehingga
 `OMNIROUTE_BUILD_MEMORY_MB` tidak membatasinya. Pada host dengan batas memori,
-build kemudian dihentikan secara paksa dengan SIGKILL oleh OOM killer tanpa teks kesalahan sama sekali — proses hanya
-berhenti di tengah `Creating an optimized production build`, yang tampak seperti macet, bukan
-kehabisan memori. Jika host build memiliki sumber daya terbatas, ganti bundler:
+build kemudian dihentikan dengan SIGKILL oleh OOM killer tanpa teks kesalahan sama sekali — proses hanya
+berhenti di tengah `Creating an optimized production build`, yang tampak seperti hang, bukan
+kehabisan memori. Itulah sebabnya `Dockerfile` menggunakan webpack secara default
+(`OMNIROUTE_USE_TURBOPACK=0`), tidak seperti `npm run dev` / `npm run build`, yang
+menggunakan Turbopack sebagai default dalam kode: perintah `docker build .` tanpa argumen build (yang
+dijalankan Railway dan host sekali klik lainnya) tidak boleh berhenti diam-diam pada
+builder dengan memori terbatas. Image yang dipublikasikan sudah meneruskan `OMNIROUTE_USE_TURBOPACK=0`
+secara eksplisit di `docker-publish.yml`. Pada builder dengan RAM yang memadai, aktifkan
+Turbopack untuk build yang lebih cepat:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
 `webpackBuildWorker` diaktifkan, sehingga `next build` menjalankan proses induk **dan** proses worker,
-dan masing-masing mematuhi `OMNIROUTE_BUILD_MEMORY_MB` secara terpisah. Tetapkan batas
-container kira-kira di atas dua kali nilai tersebut, bukan hanya satu kali.
+dan masing-masing mengikuti `OMNIROUTE_BUILD_MEMORY_MB` secara terpisah. Tetapkan batas container
+di atas kira-kira dua kali nilai tersebut, bukan satu kali.
 
-Diukur pada tree ini (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Diukur pada struktur ini (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
 | Bundler   | Batas container | Hasil                                     |
 | --------- | --------------- | ----------------------------------------- |
 | Turbopack | 8 GiB / 16 GiB  | Dihentikan OOM pada keduanya, tanpa pesan |
 | webpack   | 8 GiB           | Worker build dihentikan dengan SIGKILL    |
-| webpack   | 12 GiB          | Berhasil, mencapai puncak 11,1 GiB        |
+| webpack   | 12 GiB          | Berhasil, mencapai puncak 11.1 GiB        |
 
 ### Default runtime
 
@@ -310,24 +316,24 @@ Default yang diekspor oleh `runner-base`: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMN
 Perilaku memori di Docker:
 
 - Image menetapkan `OMNIROUTE_MEMORY_MB=1024` dan memperoleh `NODE_OPTIONS=--max-old-space-size=1024` darinya.
-- Proses server sebenarnya dimulai oleh launcher mandiri, yang membaca `OMNIROUTE_MEMORY_MB` dan menambahkan `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
+- Proses server yang sebenarnya dimulai oleh peluncur mandiri, yang membaca `OMNIROUTE_MEMORY_MB` dan menambahkan `--max-old-space-size=<OMNIROUTE_MEMORY_MB>`.
 - Node menggunakan nilai `--max-old-space-size` terakhir yang diulang, sehingga pengaturan `OMNIROUTE_MEMORY_MB` mengontrol batas heap Docker yang efektif.
-- Karena image selalu menetapkannya, fallback launcher yang dikalibrasi berdasarkan RAM tidak pernah diterapkan di Docker. Naikkan secara eksplisit sesuai beban kerja (tabel di bawah). `2048` masih terlalu kecil untuk `/v1/responses` agen coding.
+- Karena image selalu menetapkannya, fallback peluncur yang dikalibrasi berdasarkan RAM tidak pernah diterapkan di Docker. Naikkan nilainya secara eksplisit sesuai beban kerja (tabel di bawah). `2048` masih terlalu kecil untuk `/v1/responses` agen pemrograman.
 
-### RAM runtime untuk agen coding
+### RAM runtime untuk agen pemrograman
 
-Nilai default Docker sebesar 1 GiB adalah batas minimum untuk dasbor/percakapan ringan, bukan ukuran untuk produksi. Body `POST /v1/responses` yang panjang (ratusan pesan, puluhan alat) mempertahankan beberapa graf di dalam memori selama kompresi. Dua permintaan yang saling tumpang tindih sebesar ~3 MiB / ~750k token telah menyebabkan V8 berhenti pada old-space sebesar **12 GiB** (`FATAL ERROR: Reached heap limit`) dan juga mengalami OOM cgroup 16 GiB. Lihat [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Default Docker 1 GiB adalah batas minimum untuk dasbor/percakapan ringan, bukan ukuran untuk produksi. Body `POST /v1/responses` yang panjang (ratusan pesan, puluhan alat) mempertahankan beberapa graf dalam memori selama kompresi. Dua permintaan tumpang tindih berukuran ~3 MiB / ~750 ribu token telah menyebabkan V8 berhenti pada old-space **12 GiB** (`FATAL ERROR: Reached heap limit`) dan juga terkena OOM cgroup 16 GiB. Lihat [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Tetapkan ukuran **cgroup `--memory` lebih besar daripada heap** — buffer native, SQLite, dan data perantara kompresi berada di luar V8.
+Tetapkan ukuran **cgroup `--memory` di atas heap** — buffer native, SQLite, dan data perantara kompresi berada di luar V8.
 
-| Beban kerja                           | `OMNIROUTE_MEMORY_MB`   | Container / cgroup     | Catatan                                                                                                                 |
-| ------------------------------------- | ----------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Dasbor, satu percakapan ringan        | `1024` (default image)  | ≥2 GiB                 |                                                                                                                         |
-| Satu agen coding (Claude/Codex/Grok)  | `8192`                  | ≥10 GiB                | `/v1/responses` satu sesi pada umumnya                                                                                  |
-| Dua `/v1/responses` panjang bersamaan | `10240`–`12288`         | ≥12–16 GiB             | V8 terukur berhenti pada heap ~12 GiB                                                                                   |
-| Tiga+ konteks panjang bersamaan       | jangan pada satu proses | serialkan / tambah RAM | Batas penerimaan beban berat default adalah 1 proses aktif; menaikkannya tanpa RAM akan kembali menyebabkan penghentian |
+| Beban kerja                                  | `OMNIROUTE_MEMORY_MB`   | Kontainer / cgroup     | Catatan                                                                                                                                 |
+| -------------------------------------------- | ----------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Dasbor, satu percakapan ringan               | `1024` (default image)  | ≥2 GiB                 |                                                                                                                                         |
+| Satu agen pemrograman (Claude/Codex/Grok)    | `8192`                  | ≥10 GiB                | `/v1/responses` satu sesi pada umumnya                                                                                                  |
+| Dua `/v1/responses` panjang secara bersamaan | `10240`–`12288`         | ≥12–16 GiB             | V8 terukur berhenti pada heap ~12 GiB                                                                                                   |
+| Tiga+ konteks panjang secara bersamaan       | jangan pada satu proses | serialkan / tambah RAM | Penerimaan beban berat secara default adalah 1 yang sedang berlangsung; menaikkannya tanpa RAM akan memicu kembali penghentian tersebut |
 
-`omniroute serve` pada bare metal mengalibrasi ~35% RAM (dibatasi ke `[512, 4096]`) ketika `OMNIROUTE_MEMORY_MB` **tidak ditetapkan**. Docker selalu menetapkan `1024`, sehingga kalibrasi tersebut tidak pernah dijalankan pada image resmi.
+`omniroute serve` pada bare metal mengalibrasi ~35% RAM (dibatasi pada `[512, 4096]`) ketika `OMNIROUTE_MEMORY_MB` **tidak ditetapkan**. Docker selalu menetapkan `1024`, sehingga kalibrasi tersebut tidak pernah dijalankan pada image resmi.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

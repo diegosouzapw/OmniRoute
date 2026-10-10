@@ -18,7 +18,8 @@ import {
 } from "@/sse/services/auth";
 import { getCachedProviderNodes } from "@/lib/db/readCache";
 import { getComboByName, getCombos } from "@/lib/db/combos";
-import { getDatabaseSettings } from "@/lib/db/databaseSettings";
+import { getProviderConnections } from "@/lib/db/providers";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
@@ -34,6 +35,29 @@ import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { generateRequestId } from "@/shared/utils/requestId";
 import { resolveLocalSyncedEndpointRoute } from "@/lib/providerModels/syncedEndpointRouting";
 import { resolveAlibabaProviderEmbeddingUrl } from "@/shared/constants/alibabaProviderRegions";
+
+/**
+ * A local server (llama.cpp, LM Studio, …) embeds with whatever model it loaded and
+ * ignores the request's `model`, so two connections of the same local provider are
+ * NOT interchangeable accounts. Never pick a connection whose configured default model
+ * names a different model: returns the ids of the remaining active connections, or
+ * null (no restriction) when no connection declares a conflicting default model.
+ */
+async function localConnectionsServingModel(
+  provider: string,
+  model: string | null
+): Promise<string[] | null> {
+  if (!model) return null;
+  const connections = await getProviderConnections({ provider, isActive: true });
+  const normalize = (value: string) => value.replace(/^\/+/, "");
+  const eligible = connections.filter((connection) => {
+    const defaultModel = connection.defaultModel;
+    return typeof defaultModel !== "string" || !defaultModel
+      ? true
+      : normalize(defaultModel) === normalize(model);
+  });
+  return eligible.length === connections.length ? null : eligible.map((c) => String(c.id));
+}
 
 type ValidatedEmbeddingBody = Record<string, unknown> & { model: string };
 type ProviderCredentialsResult = Awaited<ReturnType<typeof getProviderCredentials>>;
@@ -95,7 +119,7 @@ export async function createEmbeddingResponse(
 
         let settings = {};
         try {
-          settings = getDatabaseSettings();
+          settings = getUserDatabaseSettings();
         } catch {}
 
         // Inject the combo's configured dimensions into the request body so that
@@ -228,12 +252,17 @@ export async function createEmbeddingResponse(
     }
     let baseUrl = configuredBaseUrl.trim();
     while (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    // Keep the registry provider's structured-input capabilities (e.g. llama.cpp
+    // multimodal content parts); only the endpoint and auth come from the connection.
+    const registryConfig = getEmbeddingProvider(provider);
     providerConfig = {
       id: provider,
       baseUrl: baseUrl.endsWith("/embeddings") ? baseUrl : `${baseUrl}/embeddings`,
       authType: "apikey",
       authHeader: "bearer",
       models: [],
+      structuredInputProtocol: registryConfig?.structuredInputProtocol,
+      passthroughModalities: registryConfig?.passthroughModalities,
     };
   }
 
@@ -364,13 +393,44 @@ export async function createEmbeddingResponse(
     // a custom host or API key (e.g. Lemonade bearer auth). Hydrate that optional
     // connection without imposing an authentication requirement, then keep the
     // static localhost default when no connection exists.
-    const localCredentials = await getProviderCredentials(credentialsProviderId);
+    // An empty allowlist means "no filter" to getProviderCredentials, so a request
+    // that no connection serves must skip connection selection entirely.
+    const servingIds = await localConnectionsServingModel(credentialsProviderId, resolvedModel);
+    const localCredentials =
+      servingIds && servingIds.length === 0
+        ? null
+        : await getProviderCredentials(credentialsProviderId, null, servingIds);
     if (
       localCredentials &&
       !("allRateLimited" in localCredentials) &&
       !("allExpired" in localCredentials)
     ) {
       credentials = localCredentials;
+    }
+  } else if (!credentials && providerConfig.authType === "none") {
+    // #13234: private-host nodes are classified no-auth so a keyless
+    // LAN Ollama still works (#6925). A stored API key on that same
+    // node must still ride outbound, matching dashboard Check.
+    const keyedCredentials = await getProviderCredentials(credentialsProviderId);
+    if (
+      keyedCredentials &&
+      !("allRateLimited" in keyedCredentials) &&
+      !("allExpired" in keyedCredentials)
+    ) {
+      const token =
+        (typeof (keyedCredentials as { apiKey?: unknown }).apiKey === "string" &&
+          (keyedCredentials as { apiKey?: string }).apiKey) ||
+        (typeof (keyedCredentials as { accessToken?: unknown }).accessToken === "string" &&
+          (keyedCredentials as { accessToken?: string }).accessToken) ||
+        "";
+      if (token) {
+        credentials = keyedCredentials;
+        providerConfig = {
+          ...providerConfig,
+          authType: "apikey",
+          authHeader: "bearer",
+        };
+      }
     }
   }
 

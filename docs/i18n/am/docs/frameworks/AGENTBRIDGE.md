@@ -187,68 +187,68 @@ AGENTBRIDGE_UPSTREAM_CA_CERT=/path/to/corporate-ca.pem
 
 ### 3.1 የMITM አገልጋዩን ማስጀመር/ማቆም
 
-በ`/dashboard/tools/agent-bridge` የሚገኘውን AgentBridge Server Card ይጠቀሙ፦
+በ`/dashboard/tools/agent-bridge` ላይ ያለውን AgentBridge አገልጋይ ካርድ ይጠቀሙ፦
 
-| ድርጊት               | መግለጫ                                                      |
-| ------------------ | --------------------------------------------------------- |
-| አገልጋይ አስጀምር        | `src/mitm/server.cjs`ን በport 443 ላይ ያስነሳል                 |
-| አገልጋይ አቁም          | የልጅ ሂደቱን በሥርዓት ያቋርጣል                                      |
-| አገልጋይ ዳግም አስጀምር    | ማቆም + ማስጀመር (የዒላማ ለውጦችን ተግባራዊ ያደርጋል)                      |
-| የምስክር ወረቀትን እመን    | `DATA_DIR/mitm/ca.crt`ን በOS የታመኑ ምስክር ወረቀቶች ማከማቻ ውስጥ ይጭናል |
-| የምስክር ወረቀት አውርድ    | በእጅ ለመጫን `ca.crt`ን ያወርዳል                                  |
-| የምስክር ወረቀት ዳግም ፍጠር | አዲስ የCA ቁልፍ ጥንድ ይፈጥራል (ሁሉም ነባር የወኪል ምስክር ወረቀቶች ዋጋ ያጣሉ)    |
+| ድርጊት              | መግለጫ                                                   |
+| ----------------- | ------------------------------------------------------ |
+| አገልጋዩን አስጀምር      | `src/mitm/server.cjs`ን በወደብ 443 ላይ ያስነሳል               |
+| አገልጋዩን አቁም        | የልጅ ሂደቱን በአግባቡ ያቋርጣል                                   |
+| አገልጋዩን ዳግም አስጀምር  | ማቆም + ማስጀመር (የዒላማ ለውጦችን ተግባራዊ ያደርጋል)                   |
+| ሰርተፊኬቱን እመን       | `DATA_DIR/mitm/ca.crt`ን በOS የታመኑ ሰርተፊኬቶች ማከማቻ ውስጥ ይጭናል |
+| ሰርተፊኬቱን አውርድ      | በእጅ ለመጫን `ca.crt`ን ያወርዳል                               |
+| ሰርተፊኬቱን እንደገና ፍጠር | አዲስ የCA ቁልፍ ጥንድ ይፈጥራል (ሁሉም ነባር የየወኪሉ ሰርተፊኬቶች ውድቅ ይሆናሉ) |
 
-### 3.2 የምስክር ወረቀቱን ማመን
+### 3.2 ሰርተፊኬቱን ማመን
 
-IDEs የMITM ግንኙነቱን ከመቀበላቸው በፊት የAgentBridge CA ምስክር ወረቀት በOS የታመነ መሆን አለበት።
+IDEs የMITM ግንኙነቱን ከመቀበላቸው በፊት የAgentBridge CA ሰርተፊኬት በOS የታመነ መሆን አለበት።
 
-**Linux (NSS — Chrome/Firefox):**
+**Linux (NSS — Chrome/Firefox)፦**
 
 ```bash
 certutil -A -d sql:$HOME/.pki/nssdb -n "OmniRoute AgentBridge" -t CT,, -i ~/.omniroute/mitm/ca.crt
 ```
 
-**macOS (Keychain):**
+**macOS (Keychain)፦**
 
 ```bash
 sudo security add-trusted-cert -d -r trustRoot \
   -k /Library/Keychains/System.keychain ~/.omniroute/mitm/ca.crt
 ```
 
-**Windows (certmgr):**
+**Windows (certmgr)፦**
 
 ```powershell
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-ወይም በዳሽቦርዱ ውስጥ ያለውን "Trust Cert" አዝራር ይጠቀሙ (ለOSዎ ተገቢውን ትዕዛዝ ያስኬዳል፤ ካስፈለገም የsudo ጥያቄ ያሳያል)።
+ወይም በዳሽቦርዱ ውስጥ ያለውን "ሰርተፊኬቱን እመን" አዝራር ይጠቀሙ (ለOSዎ ተገቢውን ትዕዛዝ ያስኬዳል፤ አስፈላጊ ከሆነም የsudo ጥያቄ ያሳያል)።
 
-#### በElectron ላይ የተመሠረቱ IDEs የOS የታመኑ ምስክር ወረቀቶች ማከማቻን ችላ ይላሉ (`NODE_EXTRA_CA_CERTS`)
+#### በElectron ላይ የተመሠረቱ IDEs የOS የታመኑ ሰርተፊኬቶች ማከማቻን ችላ ይላሉ (`NODE_EXTRA_CA_CERTS`)
 
-አንዳንድ IDEs — በተለይም **Antigravity IDE** እና ሌሎች ከElectron / VS Code የተወረሱ መተግበሪያዎች —
-ለወጪ `fetch`/HTTPS የOS የታመኑ ምስክር ወረቀቶች ማከማቻን **የማይመለከት**
-የራሳቸውን Node.js runtime አብረው ይይዛሉ። CAውን በOS/NSS ደረጃ ማመን ለIDEው ቤተኛ **backend**
-(ለምሳሌ፣ የOS CA bundleን የሚጠቀም Go language server) በቂ ነው፤ ነገር ግን **Electron frontend** አሁንም
-TLSን ማስኬድ ይሳነዋል — ይህም መተግበሪያው _ከመለያ እንደወጣ_ ወይም _"connection error"_
-እንደሚያሳይ ሆኖ ይገለጣል፤ የMITM ምዝግብ ማስታወሻው የbackend bootstrap ጥሪዎች `200` እየመለሱ መሆኑን
-ቢያሳይም። ሁለት ደረጃዎች ያስፈልጋሉ፣ ሁለቱም አስፈላጊ ናቸው፦
+አንዳንድ IDEs — በተለይ **Antigravity IDE** እና ሌሎች ከElectron / VS Code የተወረሱ መተግበሪያዎች —
+ለወጪ `fetch`/HTTPS **የOS የታመኑ ሰርተፊኬቶች ማከማቻን የማያማክር** የራሳቸውን Node.js runtime
+ያካትታሉ። CAውን በOS/NSS ደረጃ ማመን ለIDEው ቤተኛ **backend**
+(ለምሳሌ፣ የOS CA bundleን የሚጠቀም Go language server) በቂ ነው፤ ነገር ግን **Electron frontend** ላይ
+TLS አሁንም ይከሽፋል — ይህም MITM log የbackend bootstrap ጥሪዎች `200` እየመለሱ መሆኑን ቢያሳይም፣
+መተግበሪያው _ከመለያ እንደወጣ_ ወይም _"የግንኙነት ስህተት"_ እንደሚያሳይ
+ሆኖ ይታያል። ሁለት ደረጃዎች ያስፈልጋሉ፣ ሁለቱም አስፈላጊ ናቸው፦
 
 1. runtimeን በቀጥታ ወደ CAው ያመልክቱ፦
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
-2. **IDEውን ከዚያ shell ውስጥ ያስጀምሩ።** ከዴስክቶፕ አዶ / Dock / Start menu ማስጀመር
-   የshell exportsን **አይወርስም**፤ እንዲሁም `~/.config/environment.d/*.conf` ተግባራዊ የሚሆነው
-   ከአዲስ ግራፊካዊ መግቢያ በኋላ ብቻ ነው። መጀመሪያ IDEውን ሙሉ በሙሉ ይዝጉ — የElectron singleton lock ማለት ሁለተኛ
-   ማስጀመር ነባሩን ሂደት ብቻ ትኩረት ያደርግበታል፣ አዲሱም environment ችላ ይባላል።
+2. **IDEውን ከዚያ shell ያስጀምሩ።** ከdesktop icon / Dock / Start menu ማስጀመር
+   የshell exportsን **አይወርስም**፣ እና `~/.config/environment.d/*.conf` ተግባራዊ የሚሆነው
+   አዲስ ግራፊክ መግቢያ ከተደረገ በኋላ ብቻ ነው። በመጀመሪያ IDEውን ሙሉ በሙሉ ዝጉ — የElectron singleton lock ማለት ሁለተኛ
+   ማስጀመር ነባሩን ሂደት ብቻ ትኩረት እንዲያገኝ ያደርጋል፣ አዲሱ environmentም ችላ ይባላል።
 
-ከላይ ያለው የOS እምነት + NSS ደረጃ አሁንም አስፈላጊ ነው (በአንዳንድ የማረጋገጫ ፍሰቶች የሚጠቀሙበት
-የChromium አውታረ መረብ stack የእያንዳንዱን ተጠቃሚ NSS store ያነባል፤ እንዲሁም በአካባቢው
-የታመነ CA የሚሽራቸው ለ`*.googleapis.com` የራሱ static pins አሉት)። `NODE_EXTRA_CA_CERTS` በተጨማሪ የNode `fetch` መንገድን ይሸፍናል።
+ከላይ ያለው የOS እምነት + NSS ደረጃ አሁንም አስፈላጊ ነው (በአንዳንድ የማረጋገጫ
+ፍሰቶች የሚጠቀመው የChromium አውታረ መረብ stack የየተጠቃሚውን NSS store ያነባል፣ እንዲሁም
+በአካባቢው የታመነ CA የሚሽራቸው ለ`*.googleapis.com` የራሱ static pins አሉት)። `NODE_EXTRA_CA_CERTS` በተጨማሪ የNode `fetch` መንገድን ይሸፍናል።
 
 ### 3.3 የDNS ማዘዋወር
 
-ለመጥለፍ ለሚፈልጉት ለእያንዳንዱ ወኪል፣ የAPI host(ዎቹ) ወደ `127.0.0.1` resolve መሆን አለባቸው። በSetup Wizard ውስጥ ለአንድ ወኪል DNSን ሲቀያይሩ AgentBridge የ`/etc/hosts` ግቤቶችን በራስ-ሰር ያስተዳድራል።
+ለመጥለፍ ለሚፈልጉት ለእያንዳንዱ ወኪል፣ የAPI host(ዎቹ) ወደ `127.0.0.1` መፈታት አለባቸው። በSetup Wizard ውስጥ ለአንድ ወኪል DNSን ሲቀያይሩ AgentBridge የ`/etc/hosts` ግቤቶችን በራስ-ሰር ያስተዳድራል።
 
 ለGitHub Copilot የ`/etc/hosts` ግቤቶች ምሳሌ፦
 
@@ -259,65 +259,74 @@ TLSን ማስኬድ ይሳነዋል — ይህም መተግበሪያው _ከመ�
 
 ### 3.4 የሞዴል ማዛመድ
 
-የምንጭ → ዒላማ ማዛመጃዎችን ለመወሰን በእያንዳንዱ የወኪል ካርድ ውስጥ ያለውን Model Mapping Table ይጠቀሙ፦
+የምንጭ → ዒላማ ማዛመጃዎችን ለመወሰን በእያንዳንዱ የወኪል ካርድ ውስጥ ያለውን የሞዴል ማዛመጃ ሰንጠረዥ ይጠቀሙ፦
 
 | የምንጭ ሞዴል (የወኪሉ ቤተኛ) | የዒላማ ሞዴል (OmniRoute) |
 | ------------------- | -------------------- |
 | `gpt-4o`            | `claude-sonnet-4.7`  |
-| `*` (wildcard)      | `claude-haiku-4.7`   |
+| `*` (ሁሉን አቀፍ)       | `claude-haiku-4.7`   |
 
-Wildcard `*` ማንኛውንም ያልታወቀ ሞዴል ወደተገለጸው ዒላማ ያዛምዳል። በ`agent_bridge_mappings` ሰንጠረዥ ውስጥ ይቀመጣል።
+ሁሉን አቀፍ `*` ማንኛውንም ያልታወቀ ሞዴል ወደተገለጸው ዒላማ ያዛምዳል። በ`agent_bridge_mappings` ሰንጠረዥ ውስጥ በቋሚነት ይቀመጣል።
 
-> **ጠቃሚ ምክር — የወኪሉን እውነተኛ የሞዴል IDs ያግኙ።** አንድ IDE ከUI መለያዎቹ የሚለዩ እና
-> በዋና ስሪቶች መካከል የሚለወጡ የሞዴል ስሞችን ሊልክ ይችላል። ለምሳሌ፣ **Antigravity 2**
-> `gemini-3.1-pro-low`፣ `gemini-pro-agent` እና `gemini-3.1-flash-lite`ን በኔትወርኩ ላይ ይልካል — በአሮጌ ሰነዶች
-> የሚታየውን `gemini-2.5-pro` አይደለም። ተዛማጅ ማዛመጃ ሳይኖር አንድ chat ይላኩ፦ MITM
-> ትክክለኛውን ገቢ `model:` በምዝግብ ማስታወሻ ይመዘግባል እና ጥያቄውን እንዲያልፍ ያደርጋል። ያንን ቀጥተኛ እሴት ያዛምዱ፤ ከዚያም
+> **ጠቃሚ ምክር — የወኪሉን እውነተኛ የሞዴል IDዎች ያግኙ።** IDE ከUI መለያዎቹ የሚለዩ እና
+> በዋና ስሪቶች መካከል የሚለወጡ የሞዴል ስሞችን ሊልክ ይችላል። ለምሳሌ **Antigravity 2** በግንኙነት ላይ
+> `gemini-3.1-pro-low`፣ `gemini-pro-agent` እና `gemini-3.1-flash-lite` ይልካል — በቆዩ
+> ሰነዶች ውስጥ የሚታየውን `gemini-2.5-pro` አይደለም። ምንም ተዛማጅ ማዛመጃ ሳይኖር አንድ chat ይላኩ፦ MITM
+> ትክክለኛውን ገቢ `model:` log ያደርጋል፣ ጥያቄውንም እንዳለ ያሳልፋል። ያንን ቃል በቃል እሴት ያዛምዱ፤ ከዚያ
 > ቀጣዩ ጥያቄ ተጠልፎ ወደ ዒላማዎ ይዘዋወራል።
 
 ### 3.5 የአደጋ ማስታወቂያ
 
-AgentBridge፣ IDEው ከዋና አቅራቢዎች ጋር ራሱን ለማረጋገጥ የሚጠቀምባቸውን ማረጋገጫዎች (OAuth tokens፣ API keys) ይጠልፋል። እነዚህ **በምዝግብ ማስታወሻ ከመመዝገባቸው በፊት ይሸፈናሉ** (§2.7ን ይመልከቱ)፤ ነገር ግን ለOmniRoute MITM layer ይታያሉ። የእያንዳንዱ ወኪል የመጀመሪያ ማግበር ሊዘጋ የሚችል የአደጋ ማስታወቂያ modal ያሳያል።
+AgentBridge IDEው ከupstream providers ጋር ለማረጋገጥ የሚጠቀምባቸውን ማረጋገጫዎች (OAuth tokens፣ API keys) ይጠልፋል። እነዚህ **log ከመደረጋቸው በፊት ይሸፈናሉ** (§2.7ን ይመልከቱ)፣ ነገር ግን ለOmniRoute MITM layer የሚታዩ ናቸው። እያንዳንዱ ወኪል ለመጀመሪያ ጊዜ ሲነቃ ሊዘጋ የሚችል የአደጋ ማስታወቂያ modal ያሳያል።
 
-### 3.6 ጥገና እና ምርመራዎች
+### 3.6 ጥገና እና ምርመራ
 
-ዳሽቦርዱ ከዚህ በፊት UI ያልነበራቸውን የMITM ክዋኔ መንገዶች የሚያሳይ **Maintenance & Diagnostics** ካርድ (`AgentBridgeMaintenanceCard`፣ በ`src/app/(dashboard)/dashboard/tools/agent-bridge/components/` ውስጥ) ያቀርባል። ንዑስ ርዕሱ፦ _"የመያዝ ሂደቱን በራስ-ሰር ይፈትሹ፣ የቀረውን የስርዓት ሁኔታ ይቀልብሱ፣ እና ማዋቀርዎን በማሽኖች መካከል ያንቀሳቅሱ።"_ የካርዱ የclient helpers በ`src/lib/inspector/agentBridgeMaintenanceApi.ts` ውስጥ ይገኛሉ።
+ዳሽቦርዱ ቀደም ሲል UI ያልነበራቸውን የክወና MITM routes የሚያቀርብ **ጥገና እና ምርመራ** ካርድ (`AgentBridgeMaintenanceCard`፣ በ`src/app/(dashboard)/dashboard/tools/agent-bridge/components/` ውስጥ) ያቀርባል። ንዑስ ርዕሱ፦ _"የcapture pipelineን በራስ-ሙከራ ይፈትሹ፣ የቀረውን የsystem state ይቀልብሱ፣ እና setupዎን በማሽኖች መካከል ያንቀሳቅሱ።"_ የካርዱ client helpers በ`src/lib/inspector/agentBridgeMaintenanceApi.ts` ውስጥ ይገኛሉ።
 
-| አዝራር          | መስመር                                   | የሚያከናውነው                                                                                                                                                              |
-| ------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ምርመራ**      | `GET /api/tools/agent-bridge/diagnose` | የመቅረጽ ሂደቱን ራስ-ሙከራ ያካሂዳል፣ እንዲሁም ለእያንዳንዱ ፍተሻ ሪፖርት ያሳያል (✓/✗ + የማስተካከያ ፍንጭ)።                                                                                             |
-| **ጥገና**       | `POST /api/tools/agent-bridge/repair`  | በብልሽት ወይም በSIGKILL ምክንያት የተረፈውን ባለቤት-አልባ የMITM ስርዓት ሁኔታ (የDNS ማጭበርበሪያ ግቤቶች፣ root CA፣ የስርዓት proxy) ይቀለብሳል። Idempotent ነው — ሁኔታው ንጹሕ ሲሆን "የሚጠገን ነገር የለም" ብሎ ሪፖርት ያደርጋል። |
-| **CAን አስወግድ** | `DELETE /api/tools/agent-bridge/cert`  | የMITM root CAን ከOS የእምነት ማከማቻ ያስወግዳል፣ እምነቱንም ይሰርዛል (ግልጽ፣ idempotent)። CAው በአሁኑ ጊዜ የታመነ ሲሆን ብቻ ይታያል፤ በቦታው ላይ "CAን አስወግድ?" የሚል ማረጋገጫ ያስፈልገዋል።                           |
-| **ውቅር ላክ**    | `GET /api/tools/agent-bridge/config`   | ተንቀሳቃሹን የውቅር JSON ያወርዳል (§3.7ን ይመልከቱ)።                                                                                                                                |
-| **ውቅር አስገባ**  | `POST /api/tools/agent-bridge/config`  | ከዚህ በፊት ወደ ውጭ የተላከ የውቅር JSON ይሰቅላል (§3.7ን ይመልከቱ)።                                                                                                                     |
+| አዝራር          | መስመር                                   | የሚያደርገው                                                                                                                                                        |
+| ------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ምርመራ**      | `GET /api/tools/agent-bridge/diagnose` | የመያዣ ሂደቱን ራስ-ሙከራ ያስኬዳል፣ እንዲሁም ለእያንዳንዱ ፍተሻ ሪፖርት ያሳያል (✓/✗ + የማስተካከያ ፍንጭ)።                                                                                       |
+| **ጥገና**       | `POST /api/tools/agent-bridge/repair`  | በብልሽት ወይም SIGKILL ምክንያት የቀረውን ባለቤት-አልባ የMITM ስርዓት ሁኔታ (የDNS ማስመሰል ግቤቶች፣ root CA፣ የስርዓት proxy) ይቀለብሳል። ኢድምፖተንት ነው — ሁኔታው ንጹሕ ሲሆን "የሚጠገን ነገር የለም" ብሎ ሪፖርት ያደርጋል። |
+| **CAን አስወግድ** | `DELETE /api/tools/agent-bridge/cert`  | የMITM root CAን ከOS የታመኑ ማከማቻ ያላምነዋል እና ያስወግደዋል (ግልጽ፣ ኢድምፖተንት)። CAው በአሁኑ ጊዜ የታመነ ሲሆን ብቻ ይታያል፤ በቦታው ላይ "CAን ያስወግድ?" የሚል ማረጋገጫ ይፈልጋል።                             |
+| **ውቅር ላክ**    | `GET /api/tools/agent-bridge/config`   | ተንቀሳቃሽ የውቅር JSONን ያወርዳል (§3.7ን ይመልከቱ)።                                                                                                                         |
+| **ውቅር አስገባ**  | `POST /api/tools/agent-bridge/config`  | ከዚህ በፊት ወደ ውጭ የተላከ የውቅር JSONን ይሰቅላል (§3.7ን ይመልከቱ)።                                                                                                             |
 
-**የምርመራ ፍተሻዎች** (`summarizeDiagnostics()` በ`src/mitm/inspector/diagnostics.ts` ውስጥ)። መስመሩ ለእያንዳንዱ ፍተሻ ውጤት ያለውን probe ያስኬዳል፣ እና booleansን ወደ pure summarizer ያስገባል፤ አንድ `healthy` ውሳኔ ከእያንዳንዱ ውድቀት ፍንጭ ጋር ይመለሳል፦
+እያንዳንዱ የኤጀንት ካርድ የራሱ **ነባሪውን መልስ** አዝራርም አለው (`POST
+/api/tools/agent-bridge/agents/{id}/reset`) — በአንድ ጠቅታ ለእያንዳንዱ ኤጀንት ብቻ የሚሰራ መቀልበሻ ሲሆን የዚያን
+ኤጀንት hosts ብቻ ማስመሰላቸውን ያቆማል፣ የተቀመጡ የሞዴል ማዛመጃዎቹን ያጸዳል፣ እንዲሁም የ`dns_enabled`/`setup_completed`
+ሁኔታውን ዳግም ያስጀምራል፤ በዚህም IDEው ሙሉ በሙሉ እንደገና ከተጀመረ በኋላ ከእውነተኛው upstream ጋር እንደገና ይገናኛል። የጋራውን
+MITM server ወይም root CA **አይነካም** (ሌሎች ኤጀንቶች አሁንም በእነሱ ላይ ጥገኛ ሊሆኑ ይችላሉ) — እነዚህ በServer Card እና ከላይ ባለው **CAን አስወግድ** ድርጊት
+በኩል ተደራሽ ሆነው ይቆያሉ። በWindows ላይ በተጨማሪ `ipconfig /flushdns`ን
+ለማስኬድ የተቻለውን ሁሉ ይሞክራል፤ ምክንያቱም የWindows DNS Client የhosts-file ግቤቶችን በመሸጎጫ ስለሚያከማች እና አለበለዚያ አሁን የተወገደውን
+የማስመሰል ግቤት አይጥልም።
 
-| የፍተሻ ስም            | የሚያረጋግጠው                                         | በውድቀት ጊዜ የሚሰጥ ፍንጭ                                                                                               |
-| ------------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | የMITM server ሂደት ንቁ ነው                           | "የMITM server እየሰራ አይደለም። ከAgentBridge ትር ያስጀምሩት።"                                                              |
-| `server-reachable` | የMITM server በportው ላይ ግንኙነቶችን ይቀበላል (TCP probe) | "የMITM server በportው ላይ ግንኙነቶችን እየተቀበለ አይደለም። portው ነጻ መሆኑንና ከእሱ ጋር bind ለማድረግ ፈቃድ እንዳለዎት ያረጋግጡ።"               |
-| `cert-exists`      | የMITM certificate በዲስክ ላይ ተፈጥሯል                  | "እስካሁን ምንም የMITM certificate አልተፈጠረም። ከAgentBridge ትር አንድ ይፍጠሩ።"                                                |
-| `cert-trusted`     | የMITM root CA በOS የእምነት ማከማቻ ውስጥ አለ              | "የMITM root CA በOS ማከማቻ አልታመነም፣ ስለዚህ የTLS ጣልቃ ገብነት አይሳካም። certificateን ከAgentBridge ትር ያመኑት።"                   |
-| `dns-configured`   | የታለሙ hostnameዎች በ`/etc/hosts` ውስጥ ተጭበርብረዋል       | "የታለሙ hostnameዎች በ/etc/hosts ውስጥ አልተጭበረበሩም፣ ስለዚህ traffic ወደ proxyው ፈጽሞ አይደርስም። መቅረጽ ለሚፈልጉት agent(ዎች) DNSን ያንቁ።" |
+**የምርመራ ፍተሻዎች** (`summarizeDiagnostics()` በ`src/mitm/inspector/diagnostics.ts` ውስጥ)። መስመሩ ለእያንዳንዱ ተጽዕኖ ያለውን መመርመሪያ ያስኬዳል፣ ከዚያም የቡሊያን እሴቶቹን ወደ ንጹሕ ማጠቃለያ ሰጪው ያስገባል፤ አንድ `healthy` ፍርድ ከእያንዳንዱ ውድቀት ፍንጭ ጋር ይመለሳል፦
 
-**የባለቤት-አልባ ሁኔታ ሰንደቅ፦** ገጹ በብልሽት ምክንያት የቀረ ሁኔታን (DNS spoof / CA / system proxy) ሲያገኝ፣ ካርዱ የአምበር ቀለም ሰንደቅ ያሳያል — _"አንድ ቀዳሚ session የስርዓት ሁኔታን (DNS spoof፣ CA ወይም system proxy) ትቶ ሄዷል። ለማጽዳት ጥገናን ያስኪዱ።"_ — እና **ጥገና** አዝራሩን አጉልቶ ያሳያል። `Repair` የProxyBridge `--cleanup` flag የመተግበሪያ-ንብርብር አቻ ነው (`repairMitm()`ን በ`src/mitm/manager.ts` ውስጥ ይወክላል)።
+| የፍተሻ ስም            | የሚያረጋግጠው                                          | በውድቀት ጊዜ የሚሰጥ ፍንጭ                                                                                          |
+| ------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `server-running`   | የMITM server ሂደት ንቁ መሆኑን                          | "MITM server እየሰራ አይደለም። ከAgentBridge ትር ያስጀምሩት።"                                                          |
+| `server-reachable` | MITM server በportው ላይ ግንኙነቶችን መቀበሉን (የTCP መመርመሪያ) | "MITM server በportው ላይ ግንኙነቶችን እየተቀበለ አይደለም። portው ነጻ መሆኑን እና እሱን bind ለማድረግ መብት እንዳለዎት ያረጋግጡ።"            |
+| `cert-exists`      | የMITM ሰርተፊኬት በዲስክ ላይ መፈጠሩን                        | "እስካሁን ምንም የMITM ሰርተፊኬት አልተፈጠረም። ከAgentBridge ትር አንድ ይፍጠሩ።"                                                |
+| `cert-trusted`     | የMITM root CA በOS የታመኑ ማከማቻ ውስጥ መኖሩን              | "የMITM root CA በOS ማከማቻ የታመነ አይደለም፣ ስለዚህ የTLS መጥለፍ ይከሽፋል። ሰርተፊኬቱን ከAgentBridge ትር ያመኑት።"                   |
+| `dns-configured`   | የታለሙ hostnames በ`/etc/hosts` ውስጥ የተመሰሉ መሆናቸውን     | "የታለሙ hostnames በ/etc/hosts ውስጥ አልተመሰሉም፣ ስለዚህ ትራፊኩ ወደ proxyው በፍጹም አይደርስም። ለመያዝ ለሚፈልጓቸው ኤጀንት(ዎች) DNSን ያንቁ።" |
 
-> ተደጋጋሚ የsudo ጥያቄዎችን ለማስወገድ የMITM root CA በማቆም/ማስጀመር መካከል እንደተጫነ
-> ይቆያል (ከmitmproxy/Charles ጋር ተመሳሳይ ባህሪ)፣ ስለዚህ ማስወገዱ በማቆም ጊዜ በራስ-ሰር
-> ከሚከሰት ነገር ይልቅ ግልጽ የ**CAን አስወግድ** እርምጃ ነው።
+**የባለቤት-አልባ ሁኔታ ባነር፦** ገጹ በብልሽት ምክንያት የቀረ ሁኔታን (የDNS ማስመሰል / CA / የስርዓት proxy) ሲያገኝ፣ ካርዱ አምበር ቀለም ያለው ባነር ያሳያል — _"ከዚህ በፊት የነበረ ክፍለ ጊዜ የስርዓት ሁኔታን ትቶ ሄዷል (የDNS ማስመሰል፣ CA፣ ወይም የስርዓት proxy)። ለማጽዳት ጥገናን ያስኪዱ።"_ — እንዲሁም **ጥገና** አዝራሩን ጎላ አድርጎ ያሳያል። `Repair` በመተግበሪያ ንብርብር የProxyBridge `--cleanup` flag አቻ ነው (ስራውን በ`src/mitm/manager.ts` ውስጥ ላለው `repairMitm()` ይሰጣል)።
 
-### 3.7 ተንቀሳቃሽ ውቅር ማስገባት/መላክ
+> ተደጋጋሚ የsudo ጥያቄዎችን ለማስቀረት የMITM root CA በማቆም/በማስጀመር መካከል እንደተጫነ
+> ይቆያል (ከmitmproxy/Charles ጋር ተመሳሳይ ባህሪ)፤ ስለዚህ እሱን ማስወገድ ሲቆም በራስ-ሰር
+> የሚከናወን ነገር ሳይሆን ግልጽ **CAን አስወግድ** ድርጊት ነው።
 
-AgentBridge **በኦፕሬተሩ ሊስተካከል የሚችለውን** ሁኔታ ስሪት ወዳለው JSON blob serialize ማድረግ ይችላል፣ በዚህም አንድ setup በተለያዩ ማሽኖች ላይ እንዲደገም ያስችላል። serializerው `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) ሲሆን፣ በ`AgentBridgeConfigSchema` ይረጋገጣል።
+### 3.7 ተንቀሳቃሽ የውቅር ማስገባት/መላክ
 
-ወደ ውጭ የሚላከው በትክክል ሦስት ክፍሎችን ያካትታል (አብሮገነብ ነባሪዎች ሆን ተብለው **አይላኩም**፣ ስለዚህ ማስገባት በፍጹም እነሱን አያባዛም ወይም ከእነሱ ጋር አይጋጭም)፦
+AgentBridge አንድ ቅንብር በተለያዩ ማሽኖች ላይ መድገም እንዲቻል **በኦፕሬተር ሊስተካከል የሚችለውን** ሁኔታ ወደ ስሪት ያለው JSON blob ሊቀይር ይችላል። serializerው `src/lib/inspector/configPortability.ts` (`exportConfig()` / `importConfig()`) ነው፣ እና በ`AgentBridgeConfigSchema` ይረጋገጣል።
 
-| መስክ              | ምንጭ                                                         | ማስታወሻዎች                                                         |
-| ---------------- | ----------------------------------------------------------- | --------------------------------------------------------------- |
-| `bypassPatterns` | በተጠቃሚ የተገለጹ bypass patternዎች (`agent_bridge_bypass`)        | ነባሪ bank/gov/okta patternዎች አይካተቱም                              |
-| `customHosts`    | የTraffic Inspector custom hostዎች (`inspector_custom_hosts`) | እያንዳንዱ፦ `{ host, kind: "llm"\|"app"\|"custom", label? }`        |
-| `agentMappings`  | ለእያንዳንዱ agent የmodel mappingዎች (`agent_bridge_mappings`)    | mappingዎች ላሉት ሁሉም agentዎች `{ [agentId]: [{ source, target }] }` |
+ወደ ውጭ የሚላከው በትክክል ሦስት ክፍሎችን ያካትታል (አብሮገነብ ነባሪዎች ሆን ተብለው **ወደ ውጭ አይላኩም**፤ ስለዚህ ማስገባት በፍጹም አያባዛቸውም ወይም ከእነሱ ጋር አይጋጭም)፦
+
+| መስክ              | ምንጭ                                                      | ማስታወሻዎች                                                      |
+| ---------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
+| `bypassPatterns` | በተጠቃሚ የተወሰኑ የማለፊያ ቅጦች (`agent_bridge_bypass`)            | ነባሪ የባንክ/gov/okta ቅጦች አይካተቱም                                 |
+| `customHosts`    | የTraffic Inspector ብጁ አስተናጋጆች (`inspector_custom_hosts`) | እያንዳንዱ፦ `{ host, kind: "llm"\|"app"\|"custom", label? }`     |
+| `agentMappings`  | የእያንዳንዱ ወኪል ሞዴል ማዛመጃዎች (`agent_bridge_mappings`)         | ማዛመጃዎች ላሉት ለእያንዳንዱ ወኪል `{ [agentId]: [{ source, target }] }` |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +340,13 @@ AgentBridge **በኦፕሬተሩ ሊስተካከል የሚችለውን** ሁኔ�
 }
 ```
 
-**የማስገባት ባህሪ** (`POST /api/tools/agent-bridge/config`)፦ bypass patternዎች እና የእያንዳንዱ agent mappingዎች **ሙሉ በሙሉ ይተካሉ**፤ custom hostዎች **በidempotent መንገድ** ይጨመራሉ (`INSERT OR IGNORE`)። ምላሹ ከእያንዳንዱ ስንት እንደተተገበሩ ሪፖርት ያደርጋል፦
+**የማስመጣት ባህሪ** (`POST /api/tools/agent-bridge/config`)፦ የማለፊያ ቅጦች እና የእያንዳንዱ ወኪል ማዛመጃዎች **ሙሉ በሙሉ ይተካሉ**፤ ብጁ አስተናጋጆች **በኢድምፖተንት ሁኔታ** (`INSERT OR IGNORE`) ይታከላሉ። ምላሹ ከእያንዳንዱ ምን ያህሉ እንደተተገበሩ ያሳያል፦
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-በውቅሩ ውስጥ **የማይካተቱት**፦ የሰርቨሩ የመስራት ሁኔታ፣ የምስክር ወረቀት ዱካዎች፣ የእያንዳንዱ ወኪል DNS ሁኔታ፣ የላይኛው CA ዱካ እና የTPROXY ቅንብሮች ናቸው—እነዚህ ተንቀሳቃሽ ምርጫዎች ሳይሆኑ የአስተናጋጅ/የአሂድ-ጊዜ ሁኔታዎች ናቸው።
+በውቅሩ ውስጥ **የማይካተቱት**፦ የአገልጋይ አሂድ ሁኔታ፣ የምስክር ወረቀት ዱካዎች፣ የእያንዳንዱ ወኪል DNS ሁኔታ፣ የወደላይ CA ዱካ እና የTPROXY ቅንብሮች — እነዚህ ተንቀሳቃሽ ምርጫዎች ሳይሆኑ የአስተናጋጅ/የአሂድ ጊዜ ሁኔታዎች ናቸው።
 
 ---
 
@@ -497,39 +506,40 @@ AgentBridge ጥያቄዎቹን ቢያቋርጥም ሁሉም ጥያቄዎች ካ�
 
 ## §7 የAPI ማጣቀሻ
 
-ሁሉም መስመሮች `LOCAL_ONLY` (ለloopback ብቻ፣ ከማረጋገጫ በፊት የሚያስገድድ) እና `SPAWN_CAPABLE` ናቸው። `src/server/authz/routeGuard.ts`ን ይመልከቱ።
+ሁሉም መንገዶች `LOCAL_ONLY` (ለloopback ብቻ፣ ከማረጋገጫ በፊት የሚተገበር) እና `SPAWN_CAPABLE` ናቸው። `src/server/authz/routeGuard.ts`ን ይመልከቱ።
 
 መሠረታዊ ዱካ፦ `/api/tools/agent-bridge/`
 
-| ዘዴ                  | መንገድ                                           | መግለጫ                                                                                                 |
+| ዘዴ                  | ዱካ                                             | መግለጫ                                                                                                 |
 | ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | የአገልጋዩ አጠቃላይ ሁኔታ + የእያንዳንዱ agent ማወቂያ/ሁኔታ                                                            |
-| GET                 | `/api/tools/agent-bridge/agents`               | የተመዘገቡ agents ዝርዝር (id፣ ስም፣ hosts፣ አዋጭነት፣ ሁኔታ)                                                       |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | የአንድ agent ሁኔታ (የዒላማ ውቅር + ማወቂያ + የተከማቸ ሁኔታ)                                                         |
+| GET                 | `/api/tools/agent-bridge/state`                | የአገልጋዩ አጠቃላይ ሁኔታ + የእያንዳንዱ agent ማግኘት/ሁኔታ                                                            |
+| GET                 | `/api/tools/agent-bridge/agents`               | የተመዘገቡ agents ዝርዝር (id፣ ስም፣ hosts፣ ብቁነት፣ ሁኔታ)                                                        |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | የአንድ agent ሁኔታ (የዒላማ ውቅር + ማግኘት + የተከማቸ ሁኔታ)                                                         |
 | PATCH               | `/api/tools/agent-bridge/agents/{id}`          | ለagent `setup_completed`ን ያዘምኑ                                                                       |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | ለagent የማወቂያ ምርመራ ያከናውኑ (`installed`፣ `version?`፣ `path?`)                                           |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | ለagent የማግኘት ምርመራን ያሂዱ (`installed`፣ `version?`፣ `path?`)                                            |
 | POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | ለagent DNSን ያንቁ/ያሰናክሉ (`{enabled: boolean}`)                                                         |
 | GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | የagent ሞዴል ማዛመጃዎች                                                                                    |
 | PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | የሞዴል ማዛመጃዎችን ይተኩ                                                                                     |
-| POST                | `/api/tools/agent-bridge/server`               | አገልጋዩን ያስጀምሩ/ያቁሙ/እንደገና ያስጀምሩ (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`) |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | ነባሪውን ይመልሱ፦ የዚህን agent DNS ማስመሰል ይሻሩ፣ ማዛመጃዎቹን ያጽዱ፣ ሁኔታውን ዳግም ያስጀምሩ (§3.6ን ይመልከቱ)                     |
+| POST                | `/api/tools/agent-bridge/server`               | አገልጋዩን ያስጀምሩ/ያቁሙ/ዳግም ያስጀምሩ (`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)   |
 | GET                 | `/api/tools/agent-bridge/cert`                 | የምስክር ወረቀት ሁኔታ (`exists`፣ `trusted`፣ `path`)                                                         |
-| POST                | `/api/tools/agent-bridge/cert`                 | የMITM root CAን እምነት ይስጡ (ይጫኑ)                                                                        |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | ከMITM root CA እምነት ያንሱ (ያስወግዱ) — ተደጋግሞ ሲፈጸም ውጤቱ አይለወጥም (§3.6ን ይመልከቱ)                                 |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | በራስ የተፈረመውን MITM ምስክር ወረቀት እንደገና ያመንጩ                                                                |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | የPEM ምስክር ወረቀቱን ለማውረድ በዥረት ይላኩ                                                                       |
-| GET                 | `/api/tools/agent-bridge/bypass`               | የማለፊያ ስርዓተ-ጥለቶችን ይዘርዝሩ (`default` + `user`)                                                          |
-| POST                | `/api/tools/agent-bridge/bypass`               | በተጠቃሚ የተገለጹ የማለፊያ ስርዓተ-ጥለቶችን ሙሉ በሙሉ ይተኩ                                                              |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | በተጠቃሚ የተገለጸ አንድ የማለፊያ ስርዓተ-ጥለት ያስወግዱ                                                                 |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | የመያዣ ፓይፕላይን ራስ-ምርመራ (§3.6ን ይመልከቱ)                                                                    |
-| POST                | `/api/tools/agent-bridge/repair`               | ባለቤት አልባ የMITM ስርዓት ሁኔታን ይቀልብሱ (§3.6ን ይመልከቱ)                                                         |
+| POST                | `/api/tools/agent-bridge/cert`                 | የMITM root CAን ያመኑ (ይጫኑ)                                                                             |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | የMITM root CAን ከታማኝነት ያስወግዱ (ያስወግዱት) — idempotent (§3.6ን ይመልከቱ)                                      |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | በራሱ የተፈረመውን MITM ምስክር ወረቀት ዳግም ያመንጩ                                                                  |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | የPEM ምስክር ወረቀትን ለማውረድ በዥረት ይላኩ                                                                       |
+| GET                 | `/api/tools/agent-bridge/bypass`               | የማለፊያ ጥለቶችን ይዘርዝሩ (`default` + `user`)                                                               |
+| POST                | `/api/tools/agent-bridge/bypass`               | በተጠቃሚ የተወሰኑ የማለፊያ ጥለቶችን በሙሉ ይተኩ                                                                      |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | አንድ በተጠቃሚ የተወሰነ የማለፊያ ጥለትን ያስወግዱ                                                                     |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | የcapture-pipeline ራስ-ሙከራ (§3.6ን ይመልከቱ)                                                               |
+| POST                | `/api/tools/agent-bridge/repair`               | ወላጅ አልባ የMITM ስርዓት ሁኔታን ይቀልብሱ (§3.6ን ይመልከቱ)                                                          |
 | GET                 | `/api/tools/agent-bridge/config`               | ተንቀሳቃሽ የውቅር JSONን ወደ ውጭ ይላኩ (§3.7ን ይመልከቱ)                                                            |
-| POST                | `/api/tools/agent-bridge/config`               | ተንቀሳቃሽ የውቅር JSONን ወደ ውስጥ ያስገቡ (§3.7ን ይመልከቱ)                                                          |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | የተዋቀረውን የupstream CA መንገድ ያግኙ                                                                        |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | የupstream CA መንገድን ያረጋግጡ + በቋሚነት ያስቀምጡ                                                               |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | የupstream CA መንገድን ብቻ ያረጋግጡ (dry-run) — በቋሚነት አያስቀምጥም                                                |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY ግልጽ-ዲክሪፕት የመያዣ ሁነታ — `docs/security/MITM-TPROXY-DECRYPT.md`ን ይመልከቱ (git፤ ወደ `/docs` አልተካተተም)  |
+| POST                | `/api/tools/agent-bridge/config`               | ተንቀሳቃሽ የውቅር JSONን ያስመጡ (§3.7ን ይመልከቱ)                                                                 |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | የተዋቀረውን upstream CA ዱካ ያግኙ                                                                           |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | የupstream CA ዱካን ያረጋግጡ + በቋሚነት ያስቀምጡ                                                                 |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | የupstream CA ዱካን ማረጋገጥ ብቻ (dry-run) — በቋሚነት አያስቀምጥም                                                  |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | የTPROXY ግልጽ-ዲክሪፕት ቀረጻ ሁነታ — `docs/security/MITM-TPROXY-DECRYPT.md`ን ይመልከቱ (git፤ ወደ `/docs` አልተጠናቀረም) |
 
-ሙሉ የOpenAPI schemas፦ `docs/openapi.yaml` → መለያ `AgentBridge`።
+ሙሉ የOpenAPI መርሐግብሮች፦ `docs/openapi.yaml` → tag `AgentBridge`።
 
 ---
 

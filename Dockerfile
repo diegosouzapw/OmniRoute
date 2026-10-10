@@ -2,6 +2,26 @@
 FROM node:26-trixie-slim AS base
 WORKDIR /app
 
+# Mirrors for builders whose network cannot reach the default sources
+# (deb.debian.org / registry.npmjs.org / nodejs.org). Defaults keep upstream
+# behavior byte-identical; override at build time, e.g.:
+#   podman build \
+#     --build-arg APT_MIRROR=http://mirrors.tuna.tsinghua.edu.cn \
+#     --build-arg NPM_REGISTRY=https://registry.npmmirror.com \
+#     --build-arg NODE_DIST_URL=https://npmmirror.com/mirrors/node ...
+# APT_MIRROR replaces the whole scheme-plus-host. The default matches the base
+# image, whose single /etc/apt/sources.list.d/debian.sources lists both
+# /debian and /debian-security under http://deb.debian.org, so the default
+# substitution changes nothing. A mirror must serve both paths and include its
+# own scheme (e.g. http://mirrors.example.cn).
+# NODE_DIST_URL, when set, is exported as NODEJS_ORG_MIRROR only for the
+# node-gyp rebuild in the builder stage (lib/process-release.js). Left empty,
+# the variable is never set and node-gyp uses nodejs.org. The npm config write
+# persists in ~/.npmrc for every stage derived from base.
+ARG APT_MIRROR=http://deb.debian.org
+ARG NPM_REGISTRY=
+ARG NODE_DIST_URL=
+
 # `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
 # base-image packages at build time — clears the subset of container-scan CVEs
 # (perl / util-linux / systemd / ncurses / zlib / tar / sqlite / shadow / pam …)
@@ -10,7 +30,9 @@ WORKDIR /app
 # is rebuilt; none are reachable from the proxy's request surface at runtime.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
-  apt-get update \
+  sed -i -E "s|https?://deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+  && if [ -n "${NPM_REGISTRY}" ]; then npm config set registry "${NPM_REGISTRY}"; fi \
+  && apt-get update \
   && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
@@ -22,7 +44,8 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #
 # Refreshing npm does NOT fix them. Measured on npm@12.0.2 (2026-08-12, latest):
 #   brace-expansion 5.0.7  (needs >= 5.0.9)   CVE-2026-69152, CVE-2026-14257
-#   ip-address      10.2.0 (needs >= 10.3.1)  CVE-2026-69192/-69198/-54272
+#   ip-address      10.2.0 (needs >= 10.5.1)  CVE-2026-69192/-69198/-54272 + the
+#                   isLinkLocal / NAT64 local-use SSRF advisories fixed in 10.5.1
 #   tar             7.5.19 (needs >= 7.5.21)  GHSA-r292-9mhp-454m
 #   undici          6.27.0 (needs >= 6.28.0)  CVE-2026-16729/-16728/-15157
 # No published npm release carries patched copies, so `npm install -g npm@latest`
@@ -44,20 +67,21 @@ RUN set -eux; \
   npm install -g npm@latest; \
   npm install --prefix /tmp/npm-cve-patch --no-audit --no-fund --ignore-scripts \
     --install-strategy=nested \
-    brace-expansion@5.0.9 ip-address@10.5.0 tar@7.5.22 undici@6.28.0; \
-  for pkg in brace-expansion ip-address tar undici; do \
+    brace-expansion@5.0.12 ip-address@10.7.3 postcss-selector-parser@7.1.6 tar@7.5.22 undici@6.29.0; \
+  for pkg in brace-expansion ip-address postcss-selector-parser tar undici; do \
     test -d "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
     rm -rf "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
     cp -R "/tmp/npm-cve-patch/node_modules/$pkg" \
       "/usr/local/lib/node_modules/npm/node_modules/$pkg"; \
   done; \
   rm -rf /tmp/npm-cve-patch; \
-  node -e "for (const p of ['brace-expansion','ip-address','tar','undici']) console.log(p, require('/usr/local/lib/node_modules/npm/node_modules/'+p+'/package.json').version);"; \
+  node -e "for (const p of ['brace-expansion','ip-address','postcss-selector-parser','tar','undici']) console.log(p, require('/usr/local/lib/node_modules/npm/node_modules/'+p+'/package.json').version);"; \
   npm --version; \
   npm cache clean --force
 
 # ── Builder ────────────────────────────────────────────────────────────────
 FROM base AS builder
+ARG NODE_DIST_URL=
 
 # No telemetry, anywhere. Disable Next.js's anonymous build-time telemetry
 # (it otherwise pings Vercel during `next build`). Set on the builder stage so
@@ -106,27 +130,36 @@ RUN test -f package-lock.json \
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm ci --include=optional --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
+      && if [ -n "${NODE_DIST_URL}" ]; then export NODEJS_ORG_MIRROR="${NODE_DIST_URL}"; fi \
       && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
   && test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node \
   && node -e "require('better-sqlite3')(':memory:').close()" \
   && node -e "const wreq=require('wreq-js'); if(typeof wreq.createTransport!=='function') process.exit(1)"
 
-# Build with Turbopack (stable in Next 16, the repo default). The v3.8.27-era
-# TurbopackInternalError panic ("entered unreachable code: there must be a path to a
-# root" in ImportTracer::get_traces) no longer reproduces on Next 16.2.9 — validated
-# 2026-07-05 with clean amd64 (12min14s, image smoke-tested: /api/monitoring/health
-# 200) and arm64 (qemu, exit 0, zero panic strings) builds. Turbopack cut the bare
-# build from 17min to 9min on the same 32-core box. Webpack stays available as the
-# escape hatch: `--build-arg`/-e OMNIROUTE_USE_TURBOPACK=0.
-# See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
+# Bundler for the image build. The DOCKERFILE default is webpack
+# (OMNIROUTE_USE_TURBOPACK=0), deliberately different from the repo's code
+# default for local dev and non-Docker builds (Turbopack, =1 — read by
+# scripts/dev/run-next.mjs and scripts/build/build-next-isolated.mjs). A bare
+# `docker build .` with no build args is what one-click hosts (Railway and
+# similar) and ad-hoc self-hosters run, usually on memory-capped builders, and
+# Turbopack is the bundler that gets OOM-killed silently there (see the ARG+ENV
+# note below). The official images are unaffected: docker-publish.yml already
+# pins OMNIROUTE_USE_TURBOPACK=0 explicitly. On a big builder, opt back into
+# Turbopack with `--build-arg OMNIROUTE_USE_TURBOPACK=1`: the v3.8.27-era
+# TurbopackInternalError panic ("entered unreachable code: there must be a path
+# to a root" in ImportTracer::get_traces) no longer reproduces on Next 16.2.9 —
+# validated 2026-07-05 with clean amd64 (12min14s, image smoke-tested:
+# /api/monitoring/health 200) and arm64 (qemu, exit 0, zero panic strings)
+# builds, and Turbopack cut the bare build from 17min to 9min on the same
+# 32-core box. See docs/ops/QUALITY_GATE_PLAYBOOK.md Parte 6.
 #
 # Declared as ARG+ENV, not a bare ENV: a bare ENV shadows any same-named ARG for
 # the rest of the stage, so `--build-arg OMNIROUTE_USE_TURBOPACK=0` was silently
-# ignored and the escape hatch above only ever worked via `-e` at runtime, never
-# at build time. Turbopack compiles in native Rust memory that lives outside the
+# ignored and the webpack escape hatch only ever worked via `-e` at runtime,
+# never at build time. Turbopack compiles in native Rust memory that lives outside the
 # V8 heap, so OMNIROUTE_BUILD_MEMORY_MB cannot bound it and a memory-constrained
 # build host gets SIGKILLed by the cgroup OOM killer with no error message.
-ARG OMNIROUTE_USE_TURBOPACK=1
+ARG OMNIROUTE_USE_TURBOPACK=0
 ENV OMNIROUTE_USE_TURBOPACK="${OMNIROUTE_USE_TURBOPACK}"
 
 # Next.js basePath is fixed at build time; pass OMNIROUTE_BASE_PATH here when the
@@ -309,6 +342,8 @@ USER root
 COPY --from=builder /app/node_modules/playwright-core ./node_modules/playwright-core
 COPY --from=builder /app/node_modules/playwright ./node_modules/playwright
 
+# xvfb is installed explicitly (#15300): zai-web needs a headed Chromium and the browser pool
+# starts a private Xvfb when the container has no DISPLAY.
 # Install Playwright browser binaries + OS dependencies under root, then hand
 # ownership of the browsers cache to the node user.
 # PLAYWRIGHT_BROWSERS_PATH overrides the default ~/.cache/ms-playwright so the
@@ -319,6 +354,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
   apt-get update \
   && node node_modules/playwright/cli.js install chromium --with-deps \
+  && apt-get install -y --no-install-recommends xvfb \
   && chown -R node:node /home/node/.cache \
   && rm -rf /var/lib/apt/lists/*
 
@@ -354,7 +390,7 @@ RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,targe
 #      build, not the floating `@latest`.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm install -g --no-audit --no-fund \
-    @openai/codex@0.155.0 \
+    @openai/codex@0.159.2 \
     @anthropic-ai/claude-code@2.1.260 \
     droid@0.212.0 \
     openclaw@2026.9.1

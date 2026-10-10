@@ -1,1 +1,0 @@
-- fix(auth): non-chat callers now treat credential diagnostic sentinels (allExpired/allRateLimited/blockedByKeyPolicy/leaseConnectionMismatch) as unusable instead of falling through as real credentials (#13945)

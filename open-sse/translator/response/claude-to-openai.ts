@@ -10,6 +10,8 @@ type OpenAIUsage = {
   prompt_tokens_details?: {
     cached_tokens?: number;
     cache_creation_tokens?: number;
+    // false: cache_creation_tokens is not included in prompt_tokens (#2215).
+    cache_creation_in_prompt?: boolean;
   };
   completion_tokens_details?: {
     reasoning_tokens?: number;
@@ -348,6 +350,7 @@ export function claudeToOpenAIResponse(chunk, state) {
             }
             if (cacheCreationTokens > 0) {
               finalChunk.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
+              finalChunk.usage.prompt_tokens_details.cache_creation_in_prompt = false;
             }
           }
         }
@@ -384,7 +387,10 @@ export function claudeToOpenAIResponse(chunk, state) {
                         prompt_tokens_details: {
                           ...(cachedTokens > 0 ? { cached_tokens: cachedTokens } : {}),
                           ...(cacheCreationTokens > 0
-                            ? { cache_creation_tokens: cacheCreationTokens }
+                            ? {
+                                cache_creation_tokens: cacheCreationTokens,
+                                cache_creation_in_prompt: false,
+                              }
                             : {}),
                         },
                       }

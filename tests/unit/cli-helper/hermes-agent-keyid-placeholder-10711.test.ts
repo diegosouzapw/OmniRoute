@@ -2,25 +2,28 @@
  * Regression test for #10711.
  *
  * The Hermes Agent dashboard "Apply" flow (HermesAgentToolCard.tsx) only
- * ever sends `keyId` (never a raw `apiKey`). generateHermesAgentConfig()
- * used to never resolve `keyId` at all, so `providers.omniroute.api_key`,
- * `delegation.api_key`, and every `auxiliary.*.api_key` were written with
- * the hardcoded placeholder "YOUR_OMNIROUTE_API_KEY_HERE", yielding 401s
- * against OmniRoute for every real user.
+ * ever sends `keyId` (never a raw `apiKey`). Credentials belong in Hermes'
+ * `.env`, while config.yaml references `OMNIROUTE_API_KEY` through the
+ * canonical `custom_providers` schema. The generator must never serialize a
+ * key or placeholder into config.yaml.
  */
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as yaml from "js-yaml";
-import { generateHermesAgentConfig } from "../../../src/lib/cli-helper/config-generator/hermes-agent.ts";
+import {
+  generateHermesAgentConfig,
+  sanitizeOmniRouteRoleCredentials,
+} from "../../../src/lib/cli-helper/config-generator/hermes-agent.ts";
 
 interface HermesAgentParsedConfig {
-  providers: { omniroute: { api_key: string } };
-  delegation: { api_key: string };
-  auxiliary: Record<string, { api_key: string }>;
+  providers?: Record<string, unknown>;
+  custom_providers: Array<{ name: string; key_env: string; api_key?: string }>;
+  delegation: { api_key?: string };
+  auxiliary: Record<string, { api_key?: string }>;
 }
 
-test("#10711: generateHermesAgentConfig writes placeholder api_key when only keyId is supplied (no apiKey)", async () => {
+test("Hermes Agent config references OMNIROUTE_API_KEY when only keyId is supplied", async () => {
   const result = await generateHermesAgentConfig({
     baseUrl: "http://localhost:20128",
     keyId: "some-stored-key-id", // what the real dashboard flow actually sends
@@ -35,14 +38,16 @@ test("#10711: generateHermesAgentConfig writes placeholder api_key when only key
   assert.equal(result.error, undefined);
   const parsed = yaml.load(result.yaml) as HermesAgentParsedConfig;
 
-  // generateHermesAgentConfig() itself never resolves keyId (that now happens
-  // in the route handler before calling it) -- confirms the fallthrough this
-  // bug depends on still exists at this layer, and that an explicit apiKey
-  // (as the resolved route now passes) overrides the placeholder.
-  assert.equal(parsed.providers.omniroute.api_key, "YOUR_OMNIROUTE_API_KEY_HERE");
+  assert.equal(parsed.providers?.omniroute, undefined);
+  const provider = parsed.custom_providers.find((entry) => entry.name === "omniroute");
+  assert.equal(provider?.key_env, "OMNIROUTE_API_KEY");
+  assert.equal(provider?.api_key, undefined);
+  assert.equal(parsed.delegation.api_key, undefined);
+  assert.equal(parsed.auxiliary.vision.api_key, undefined);
+  assert.ok(!result.yaml.includes("YOUR_OMNIROUTE_API_KEY_HERE"));
 });
 
-test("#10711: an explicit apiKey (as resolved server-side from keyId) is written everywhere, never the placeholder", async () => {
+test("Hermes Agent config never serializes an explicitly resolved API key", async () => {
   const result = await generateHermesAgentConfig({
     baseUrl: "http://localhost:20128",
     keyId: "some-stored-key-id",
@@ -57,7 +62,32 @@ test("#10711: an explicit apiKey (as resolved server-side from keyId) is written
   assert.equal(result.error, undefined);
   const parsed = yaml.load(result.yaml) as HermesAgentParsedConfig;
 
-  assert.equal(parsed.providers.omniroute.api_key, "sk-resolved-real-key-value");
-  assert.equal(parsed.delegation.api_key, "sk-resolved-real-key-value");
-  assert.equal(parsed.auxiliary.vision.api_key, "sk-resolved-real-key-value");
+  assert.ok(!result.yaml.includes("sk-resolved-real-key-value"));
+  assert.equal(parsed.delegation.api_key, undefined);
+  assert.equal(parsed.auxiliary.vision.api_key, undefined);
+});
+
+test("Hermes Agent config strips stale inline credentials from every OmniRoute role", () => {
+  const config = {
+    model: { provider: "omniroute", default: "main", base_url: "http://old", api_key: "main-key" },
+    delegation: { provider: "omniroute", model: "delegate", api_key: "delegate-key" },
+    auxiliary: {
+      vision: {
+        provider: "omniroute",
+        model: "vision",
+        base_url: "http://old",
+        api_key: "vision-key",
+      },
+      other: { provider: "anthropic", model: "claude", api_key: "must-stay" },
+    },
+  };
+
+  sanitizeOmniRouteRoleCredentials(config);
+
+  assert.equal(config.model.api_key, undefined);
+  assert.equal(config.model.base_url, undefined);
+  assert.equal(config.delegation.api_key, undefined);
+  assert.equal(config.auxiliary.vision.api_key, undefined);
+  assert.equal(config.auxiliary.vision.base_url, undefined);
+  assert.equal(config.auxiliary.other.api_key, "must-stay");
 });

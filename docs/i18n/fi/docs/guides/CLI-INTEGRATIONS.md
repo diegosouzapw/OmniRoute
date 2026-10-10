@@ -4,27 +4,30 @@
 
 ---
 
-OmniRoute sisältää joukon `setup-*`-komentoja, jotka määrittävät ohjelmoinnin
-CLI-työkalun (Codex, Claude Code, OpenCode, Cline, …) käyttämään OmniRoutea taustajärjestelmänään — näin
-työkalu kommunikoi **yhden** päätepisteen kanssa, ja OmniRoute reitittää pyynnöt oikealle palveluntarjoajalle
-automaattista varajärjestelmää käyttäen. Jokainen komento lukee **reaaliaikaisen** malliluettelon käynnissä olevasta
-OmniRoute-instanssista (paikallisesta tai etäpalvelimella olevasta) ja kirjoittaa työkalun oman määritystiedoston **sinun**
-koneellesi. API-avaimeen viitataan ympäristömuuttujalla aina, kun työkalu
-tukee sitä. Komennot, jotka tallentavat työkalukohtaisen ympäristötiedoston, on mainittu alla.
+Jaetun suoritettavan manifestin, rajoitettujen aliprosessiympäristöjen ja pysyvän
+Gemini-määrityksen tiedot ovat kohdassa [CLI-käynnistyssopimukset](./CLI-LAUNCH-CONTRACTS.md).
 
-Käytettävissä on myös yleiskäyttöinen käynnistin — `omniroute run <target>` — joka käynnistää
-työkalun `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tai `gemini`
-oikeilla ympäristömuuttujilla kirjoittamatta lainkaan määritystiedostoja. Kohteet ja niiden
-aliakset tulevat ensisijaisesta manifestista `bin/cli/cli-manifest.mjs`
+OmniRoute sisältää joukon `setup-*`-komentoja, jotka määrittävät ohjelmointiin
+tarkoitetun CLI:n (Codex, Claude Code, OpenCode, Cline, …) käyttämään OmniRoutea taustajärjestelmänään — näin
+työkalu käyttää **yhtä** päätepistettä, ja OmniRoute reitittää pyynnöt oikealle palveluntarjoajalle
+automaattisella varajärjestelmään siirtymisellä. Jokainen komento lukee **ajantasaisen** malliluettelon käynnissä olevasta
+OmniRoute-instanssista (paikallisesta tai etäinstanssista) ja kirjoittaa työkalun oman määritystiedoston **sinun**
+koneellesi. API-avaimeen viitataan ympäristömuuttujalla aina, kun työkalu
+tukee sitä. Komennot, jotka tallentavat työkalukohtaisen ympäristötiedoston pysyvästi, on mainittu jäljempänä.
+
+Käytettävissä on myös yleinen käynnistin — `omniroute run <target>` — joka käynnistää
+ohjelman `claude`, `codex`, `aider`, `goose`, `opencode`, `qwen` tai `gemini` oikeat
+ympäristömuuttujat asetettuina kirjoittamatta lainkaan määrityksiä. Kohteet ja niiden
+aliakset tulevat kanonisesta manifestista `bin/cli/cli-manifest.mjs`
 (`claude-code|cc|anthropic`, `codex-cli|openai-codex|openai`, `goose-cli`,
 `open-code`, `qwen-code`, `gemini-cli`), ja `omniroute completion` tarjoaa samat
 manifestista johdetut kohdesanat. Vanhat työkalukohtaiset käynnistimet —
 `omniroute launch` (Claude Code) ja `omniroute launch-codex` (Codex) — ovat edelleen
 käytettävissä.
 
-Palveluntarjoajien käyttöönotto on mahdollista samasta paikallisesta tai etäympäristöstä.
-Alla olevat API-ensisijaiset komennot pitävät hallinnan todennuksen erillään palveluntarjoajien
-tunnistetiedoista eivätkä koskaan tulosta tunnistetietoja rakenteisessa tulosteessa:
+Palveluntarjoajien käyttöönotto on mahdollista samasta paikallisesta tai etäkontekstista.
+Alla olevat API-ensisijaiset komennot pitävät hallinnan todennuksen erillään palveluntarjoajan
+tunnistetiedoista eivätkä koskaan tulosta tunnistetietoa jäsennellyssä tulosteessa:
 
 ```bash
 omniroute providers add glm --credential-env GLM_API_KEY --name work
@@ -34,18 +37,24 @@ omniroute providers edit <connection-id> --default-model glm/glm-5.2
 omniroute providers remove <connection-id> --yes
 ```
 
-Käytä skripteissä ensisijaisesti valintaa `--credential-stdin` tai `--credential-env`;
-`--credential` on säilytetty hallittua paikallista käyttöä varten. `providers remove` edellyttää
-valintaa `--yes` ei-interaktiivisessa päätteessä, ja kaikki viisi komentoa noudattavat aktiivista
-kontekstia tai yleisiä `--base-url`/`--api-key`-valintoja.
+Käytä komentosarjoissa mieluiten valintaa `--credential-stdin` tai `--credential-env`; `--credential`
+on säilytetty hallittua paikallista käyttöä varten. `providers remove` edellyttää valintaa `--yes`
+ei-interaktiivisessa päätteessä, ja kaikki viisi komentoa noudattavat aktiivista kontekstia tai
+yleisiä `--base-url`/`--api-key`-valintoja.
 
-Katso kahden kattavimman integraation kertaluonteiset, käsin kirjoitettavat perusmääritykset
-työkalukohtaisista syventävistä ohjeista:
+Palveluntarjoajavalitsimet hylkäävät monitulkintaiset ID-etuliitteet, nimet tai palveluntarjoajien nimet; käytä
+täydellistä yhteystunnusta, kun useita yhteyksiä täsmää. Luonti- ja muokkauskomennot lukevat
+tallennetun yhteyden takaisin, ja poistaminen varmistaa, ettei sitä voi enää lukea.
+Tuonti ohittaa olemassa olevan palveluntarjoajan ja nimen yhdistelmän. Tuodut merkinnät eivät voi ohittaa
+CLI:lle annettua hallinnan päätepistettä, kontekstia tai hallinnan tunnistetietoja.
 
-- [Claude Coden määritys](./CLAUDE-CODE-CONFIGURATION.md)
-- [Codex CLI:n määritys](./CODEX-CLI-CONFIGURATION.md)
-- [Etätila](./REMOTE-MODE.md) — ohjaa etäpalvelimella olevaa OmniRoutea (VPS / Tailnet) kannettavaltasi
-- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot-laajennus; se voi myös suorittaa nämä
+Kahden monipuolisimman integraation kertaluonteiset, käsin kirjoitettavat perusmääritykset on kuvattu
+työkalukohtaisissa syventävissä ohjeissa:
+
+- [Claude Coden määritykset](./CLAUDE-CODE-CONFIGURATION.md)
+- [Codex CLI:n määritykset](./CODEX-CLI-CONFIGURATION.md)
+- [Etätila](./REMOTE-MODE.md) — ohjaa OmniRoute-etäinstanssia (VPS / Tailnet) kannettavaltasi
+- [VS Code Copilot Chat](./VSCODE-COPILOT.md) — OmniCopilot-laajennus; se voi suorittaa myös nämä
   `setup-*`-komennot puolestasi editorin sisältä
 
 ---

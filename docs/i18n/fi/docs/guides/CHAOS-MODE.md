@@ -5,21 +5,44 @@
 ---
 
 > **Hallintapaneeli:** **Chaos Mode** (sivupalkki) → `/dashboard/chaos`  
-> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (hallintapaneelin istunto) · `POST /api/skills/collect/chaos` (API-avain)  
+> **API:** `GET` / `PUT` `/api/chaos/config` · `POST /api/chaos/run` (hallintapaneeli-istunto) · `POST /api/skills/collect/chaos` (API-avain)  
 > **Lähdekoodi:** `src/lib/chaos/chaosExecutor.ts`, `src/lib/chaos/chaosConfig.ts`
 
 Chaos Mode lähettää **yhden tehtävän useille palveluntarjoajille samanaikaisesti** — jokainen osallistuva palveluntarjoaja
-tarjoaa yhden malli-instanssin, ja saat kaikki vastaukset rinnakkain (tai ketjutettuina). Se on
+tarjoaa yhden malliesiintymän, ja saat kaikki vastaukset rinnakkain (tai ketjutettuina). Se on
 usean mallin suoritusympäristö, ei reititysstrategia: se ei koskaan vaikuta tavalliseen
 `/v1/chat/completions`-liikenteeseesi.
 
 **Selvennys — kolme eri asiaa toimitetaan nimellä "chaos":**
 
-| Asia                       | Mikä se on                                                                                                                                      | Dokumentaation sijainti                      |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
-| **Chaos Mode**             | Tässä kuvattu hallintapaneelin sivu ja API: yhden tehtävän jakaminen useille palveluntarjoajille (rinnakkain tai yhteistyössä).                 | Tämä opas                                    |
-| `auto/chaos`               | Vikasietoisuuden testaamiseen tarkoitettu Auto-Combo-mallitunnus, jossa on vikojen injektointiin perustuvat pisteytyspainot. Ei määritettävää.  | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
-| Chaos-yhdistelmän määritys | Pysyvästi tallennettu yhdistelmä, jossa `config.chaos.enabled` jakaa tehtävän paneelille, jolla voi olla valinnainen arviointimalli (vain API). | `open-sse/services/autoCombo/chaosEngine.ts` |
+| Asia                       | Mikä se on                                                                                                                                                                                      | Dokumentaation sijainti                      |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| **Chaos Mode**             | Tässä kuvattu hallintapaneelin sivu ja API: yhden tehtävän hajautus useille palveluntarjoajille (rinnakkain tai yhteistyössä).                                                                  | Tämä opas                                    |
+| `auto/chaos`               | Auto-Combo-mallitunnus: rinnakkainen hajautus, yksi malli palveluntarjoajaa kohti ja yksi kutsu kuhunkin taustapalveluun. Ei vikojen injektointia ([lisätietoja](#autochaos-parallel-fan-out)). | [AUTO-COMBO.md](../routing/AUTO-COMBO.md)    |
+| Chaos-yhdistelmän määritys | Tallennettu yhdistelmä, jossa `config.chaos.enabled` hajauttaa pyynnön samalla tavalla (vain API); `judgeModel` valitsee vain lopullisen vastauksen, eikä synteesikutsua tehdä.                 | `open-sse/services/autoCombo/chaosEngine.ts` |
+
+### `auto/chaos`: rinnakkainen hajautus
+
+`auto/chaos` **ei ole** vikojen injektointiin tai vikasietoisuuden testaamiseen tarkoitettu asetus. Kun
+`model: "auto/chaos"` pyydetään `/v1/chat/completions`-rajapinnassa:
+
+1. Muodostetaan paneeli, jossa on **yksi malli palveluntarjoajaa kohti**: kunkin
+   yhdistetyn palveluntarjoajan ensimmäinen ehdokas ehdokasjoukon järjestyksessä, enintään 5 jäsentä
+   (`OMNIROUTE_CHAOS_MAX_PANEL`, yläraja 10)
+   (`open-sse/services/autoCombo/virtualFactory.ts`). `chaos-mode`-painopaketti
+   asettaa vain kunkin jäsenen `weight`-arvon; hajautus ei lue sitä.
+2. Sama pyyntö lähetetään jokaiselle paneelin jäsenelle **rinnakkain**, joten yksi pyyntö
+   maksaa yhden taustapalvelukutsun kutakin paneelin jäsentä kohti
+   (`open-sse/services/autoCombo/chaosEngine.ts`, lähetys tiedostosta
+   `open-sse/services/combo.ts`).
+3. Kustakin paneelin jäsenestä suoratoistetaan yksi tilarivi sen valmistuessa: oletuksena
+   SSE-kommentti (`: chaos <index> ok|fail <model>`) sekä `omni-chaos-part`-tapahtuma
+   (`model`, `index`, `ok`, `error`), kun pyynnössä on asetettu
+   `stream_options.include_chaos_parts: true`. Nämä eivät sisällä vastaustekstiä.
+4. **Yksi** paneelin vastaus lähetetään lopullisena OpenAI-tyylisenä osana: ensimmäisen paneelin
+   jäsenen vastaus (`auto/chaos` asettaa sen `judgeModel`-arvoksi), jos kutsu onnistuu, muussa tapauksessa
+   viimeisen onnistuneen jäsenen vastaus. Muiden paneelin jäsenten vastauksia ei palauteta, joten
+   maksat N kutsusta ja saat yhden vastauksen.
 
 ## Määritys
 

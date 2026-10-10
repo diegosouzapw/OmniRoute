@@ -1,0 +1,1 @@
+- **fix(combo):** the auto combo pool check types the custom-model row so `typecheck:noimplicit:core` passes ([#15461](https://github.com/diegosouzapw/OmniRoute/pull/15461) — thanks @HouMinXi)

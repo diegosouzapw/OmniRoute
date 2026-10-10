@@ -10,6 +10,7 @@ import { BaseExecutor } from "./base.ts";
 import { PROVIDERS } from "../config/constants.ts";
 import { buildBedrockNativeConverseUrl, resolveBedrockRegion } from "../config/bedrock.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
+import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
 
 const encoder = new TextEncoder();
 
@@ -167,21 +168,39 @@ function getToolResultIdFromBlock(block) {
   return normalizeToolUseId(block?.toolResult?.toolUseId);
 }
 
-function isToolResultOnlyMessage(message) {
+function isEmptyTurnFiller(block) {
+  return block?.text === " " && Object.keys(block).length === 1;
+}
+
+function messageHasToolResult(message) {
   return (
-    message?.role === "user" &&
-    Array.isArray(message.content) &&
-    message.content.length > 0 &&
-    message.content.every((block) => Boolean(getToolResultIdFromBlock(block)))
+    Array.isArray(message?.content) &&
+    message.content.some((block) => Boolean(getToolResultIdFromBlock(block)))
   );
 }
 
-function mergeConsecutiveToolResultMessages(messages) {
+// Same-role turns collapse, except a plain user turn must not absorb a later
+// tool-result turn — that would make a non-adjacent result look immediate.
+// The other direction (tool result, then plain user text) still merges.
+function mergeConsecutiveMessagesByRole(messages) {
   const merged = [];
   for (const message of messages) {
     const previous = merged[merged.length - 1];
-    if (isToolResultOnlyMessage(previous) && isToolResultOnlyMessage(message)) {
-      previous.content.push(...message.content);
+    const sameRole =
+      previous?.role === message?.role &&
+      Array.isArray(previous.content) &&
+      Array.isArray(message.content);
+    const plainUserBeforeToolResult =
+      sameRole &&
+      previous.role === "user" &&
+      messageHasToolResult(message) &&
+      !messageHasToolResult(previous);
+    if (sameRole && !plainUserBeforeToolResult) {
+      const content = [...previous.content, ...message.content];
+      const hasContent = content.some((block) => !isEmptyTurnFiller(block));
+      previous.content = hasContent
+        ? content.filter((block) => !isEmptyTurnFiller(block))
+        : content.slice(0, 1);
       continue;
     }
     merged.push(message);
@@ -196,7 +215,7 @@ function ensureNonEmptyContent(message) {
 }
 
 function sanitizeBedrockToolPairs(messages) {
-  const normalized = mergeConsecutiveToolResultMessages(messages);
+  const normalized = mergeConsecutiveMessagesByRole(messages);
   const validResultCounts = new Map();
 
   for (let i = 0; i < normalized.length; i++) {
@@ -389,12 +408,18 @@ function convertStopReason(reason) {
 function usageFromBedrock(usage) {
   const input = Number(usage?.inputTokens || 0);
   const output = Number(usage?.outputTokens || 0);
+  // Converse reports cache usage as `cacheReadInputTokens` / `cacheWriteInputTokens`, and
+  // `inputTokens` then counts only the NON-cached input. OpenAI-style `prompt_tokens` is the
+  // whole prompt (cached tokens included), which is also what the cost calculator expects.
+  const cacheRead = Number(usage?.cacheReadInputTokens || 0);
+  const cacheWrite = Number(usage?.cacheWriteInputTokens || 0);
+  const promptTokens = input + cacheRead + cacheWrite;
   return {
-    prompt_tokens: input,
+    prompt_tokens: promptTokens,
     completion_tokens: output,
-    total_tokens: Number(usage?.totalTokens || input + output),
-    cache_read_input_tokens: Number(usage?.cacheReadInputTokenCount || 0),
-    cache_creation_input_tokens: Number(usage?.cacheWriteInputTokenCount || 0),
+    total_tokens: Number(usage?.totalTokens || promptTokens + output),
+    cache_read_input_tokens: cacheRead,
+    cache_creation_input_tokens: cacheWrite,
   };
 }
 
@@ -510,73 +535,120 @@ function statusFromStreamException(exception) {
   return 502;
 }
 
+function createBedrockToolStreamState() {
+  return { byBlock: new Map(), nextToolIndex: 0 };
+}
+
+function bedrockToolForBlock(state, blockIndex) {
+  const key = blockIndex ?? 0;
+  let tool = state.byBlock.get(key);
+  if (!tool) {
+    tool = {
+      index: state.nextToolIndex++,
+      id: undefined,
+      name: undefined,
+      args: "",
+      emitted: false,
+    };
+    state.byBlock.set(key, tool);
+  }
+  return tool;
+}
+
+function bedrockToolArgumentFragment(current, incoming) {
+  const existing = typeof current === "string" ? current : "";
+  const next = appendToolCallArgumentDelta(existing, incoming);
+  const fragment = next.startsWith(existing) ? next.slice(existing.length) : next;
+  return { next, fragment };
+}
+
+function emitBedrockToolHeader(model, tool, enqueue) {
+  if (tool.emitted) return;
+  tool.emitted = true;
+  enqueue(
+    openAIChunk(model, {
+      tool_calls: [
+        {
+          index: tool.index,
+          id: tool.id,
+          type: "function",
+          function: { name: tool.name, arguments: "" },
+        },
+      ],
+    })
+  );
+}
+
+function enqueueBedrockToolArgument(model, tool, incoming, enqueue) {
+  if (incoming == null) return;
+  const { next, fragment } = bedrockToolArgumentFragment(tool.args, incoming);
+  tool.args = next;
+  if (!fragment) return;
+
+  // A delta can arrive without contentBlockStart. Still surface the call.
+  emitBedrockToolHeader(model, tool, enqueue);
+
+  enqueue(
+    openAIChunk(model, {
+      tool_calls: [{ index: tool.index, function: { arguments: fragment } }],
+    })
+  );
+}
+
 function createOpenAIStreamFromBedrock(stream, model) {
-  const blockToolIndexes = new Map();
-  let nextToolIndex = 0;
+  const toolState = createBedrockToolStreamState();
   let finishReason = "stop";
   let finalUsage = null;
 
   return new ReadableStream({
     async start(controller) {
+      const enqueue = (chunk) => controller.enqueue(sse(chunk));
       try {
-        controller.enqueue(sse(openAIChunk(model, { role: "assistant" })));
+        enqueue(openAIChunk(model, { role: "assistant" }));
         for await (const event of stream || []) {
           const exception = streamExceptionPayload(event);
           if (exception) {
             const status = statusFromStreamException(exception);
-            controller.enqueue(
-              sse({
-                error: {
-                  message: exception.message || "Bedrock stream failed",
-                  type: status === 429 ? "rate_limit_error" : "upstream_error",
-                  code: exception.name || "bedrock_stream_error",
-                  status,
-                },
-              })
-            );
+            enqueue({
+              error: {
+                message: exception.message || "Bedrock stream failed",
+                type: status === 429 ? "rate_limit_error" : "upstream_error",
+                code: exception.name || "bedrock_stream_error",
+                status,
+              },
+            });
             break;
           }
 
-          if (event.contentBlockStart?.start?.toolUse) {
-            const tool = event.contentBlockStart.start.toolUse;
-            const index = nextToolIndex++;
-            blockToolIndexes.set(event.contentBlockStart.contentBlockIndex, index);
-            controller.enqueue(
-              sse(
-                openAIChunk(model, {
-                  tool_calls: [
-                    {
-                      index,
-                      id: tool.toolUseId,
-                      type: "function",
-                      function: { name: tool.name, arguments: "" },
-                    },
-                  ],
-                })
-              )
-            );
+          const blockStart = event.contentBlockStart;
+          if (blockStart?.start?.toolUse) {
+            const tool = bedrockToolForBlock(toolState, blockStart.contentBlockIndex);
+            tool.id = blockStart.start.toolUse.toolUseId;
+            tool.name = blockStart.start.toolUse.name;
+            // Zero-parameter tools send "" or no input delta. Emit the header
+            // on contentBlockStart, as the release tip does, so a blank call
+            // is kept instead of dropped or failed as an empty-arguments 502.
+            emitBedrockToolHeader(model, tool, enqueue);
+            if (blockStart.start.toolUse.input != null) {
+              enqueueBedrockToolArgument(model, tool, blockStart.start.toolUse.input, enqueue);
+            }
             continue;
           }
 
           if (event.contentBlockDelta?.delta) {
             const delta = event.contentBlockDelta.delta;
             if (typeof delta.text === "string" && delta.text.length > 0) {
-              controller.enqueue(sse(openAIChunk(model, { content: delta.text })));
+              enqueue(openAIChunk(model, { content: delta.text }));
             }
             if (typeof delta.reasoningContent?.text === "string" && delta.reasoningContent.text) {
-              controller.enqueue(
-                sse(openAIChunk(model, { reasoning_content: delta.reasoningContent.text }))
-              );
+              enqueue(openAIChunk(model, { reasoning_content: delta.reasoningContent.text }));
             }
-            if (typeof delta.toolUse?.input === "string") {
-              const index = blockToolIndexes.get(event.contentBlockDelta.contentBlockIndex) ?? 0;
-              controller.enqueue(
-                sse(
-                  openAIChunk(model, {
-                    tool_calls: [{ index, function: { arguments: delta.toolUse.input } }],
-                  })
-                )
+            if (delta.toolUse && "input" in delta.toolUse) {
+              const tool = bedrockToolForBlock(
+                toolState,
+                event.contentBlockDelta.contentBlockIndex
               );
+              enqueueBedrockToolArgument(model, tool, delta.toolUse.input, enqueue);
             }
             continue;
           }
@@ -591,7 +663,7 @@ function createOpenAIStreamFromBedrock(stream, model) {
           }
         }
 
-        controller.enqueue(sse(openAIChunk(model, {}, finishReason, finalUsage || undefined)));
+        enqueue(openAIChunk(model, {}, finishReason, finalUsage || undefined));
         controller.enqueue(done());
         controller.close();
       } catch (error) {

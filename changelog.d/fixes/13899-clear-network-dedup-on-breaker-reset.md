@@ -1,0 +1,1 @@
+- **sse:** `clearProviderFailure()` now also clears the network-error and per-connection failure dedup windows, so a fresh network blip right after a provider breaker reset is counted instead of swallowed (#13887, #13899 — thanks @onexer88-blip).

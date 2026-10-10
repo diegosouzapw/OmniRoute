@@ -130,22 +130,26 @@ ponovnog pokretanja.
 
 ## Primjer: obrnuti proxy ispred OmniRoutea
 
-CORS provodi sam OmniRoute, stoga proxy u pravilu **ne bi trebao** dodavati ni
+CORS provodi sam OmniRoute, pa proxy u pravilu **ne bi trebao** dodavati ni
 prepisivati zaglavlja `Access-Control-*` (dvostruka zaglavlja uzrokuju probleme u preglednicima). Završite TLS
-i proslijedite zahtjev — prepustite OmniRouteu da odgovori na predprovjeru:
+i proslijedite promet — prepustite OmniRouteu da odgovori na predzahtjev:
 
 ```nginx
-# nginx — proslijedi na OmniRoute; ovdje NEMOJ umetati Access-Control-*
+# nginx — proslijedi u OmniRoute; ovdje NEMOJ umetati Access-Control-*
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # NEMOJ postaviti X-Forwarded-For na 127.0.0.1 — time se zaobilazi zaštita ruta za povratnu petlju.
+    # Zadržite zaglavlja za prosljeđivanje: proxy na istom računalu povezuje se s adrese povratne petlje, a upravo
+    # ona govore OmniRouteu da pozivatelj nije lokalni operater. Proxy koji ne dodaje nijedno od njih
+    # čini da svaki udaljeni pozivatelj izgleda kao lokalni. Također nikada ne postavljajte X-Forwarded-For na 127.0.0.1.
 }
 ```
 
-Postavite dopuštene izvore preglednika u OmniRouteu (`CORS_ALLOWED_ORIGINS` ili na
-kartici Sigurnost), a ne u proxyju.
+Dopuštena izvorišta preglednika postavite u OmniRouteu (`CORS_ALLOWED_ORIGINS` ili na
+kartici Security), a ne u proxyju.
 
 ## Izvorne datoteke
 

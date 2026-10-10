@@ -387,22 +387,22 @@ Escribe pruebas unitarias en `tests/unit/` que cubran, como mínimo:
 
 ---
 
-## Lista de verificación de la solicitud de incorporación de cambios
+## Lista de comprobación del Pull Request
 
 - [ ] Las pruebas pasan (`npm test`)
 - [ ] El linting pasa (`npm run lint`)
 - [ ] La compilación se completa correctamente (`npm run build`)
 - [ ] Se añadieron tipos de TypeScript para las nuevas funciones e interfaces públicas
-- [ ] No hay secretos ni valores de respaldo codificados de forma fija
+- [ ] No hay secretos ni valores de respaldo codificados directamente
 - [ ] Las credenciales públicas de upstream están integradas mediante `resolvePublicCred()` (consulta [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), nunca como literales
-- [ ] Las respuestas de error pasan por `buildErrorBody()` / `sanitizeErrorMessage()`; no hay trazas de pila sin procesar en los cuerpos de las respuestas (consulta [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Los comandos de shell (`exec` / `spawn`) pasan los valores en tiempo de ejecución mediante `env`, no mediante interpolación de cadenas
+- [ ] Las respuestas de error se procesan mediante `buildErrorBody()` / `sanitizeErrorMessage()` — no hay trazas de pila sin procesar en los cuerpos de las respuestas (consulta [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Los comandos de shell (`exec` / `spawn`) pasan los valores de tiempo de ejecución mediante `env`, no mediante interpolación de cadenas
 - [ ] Todas las entradas se validan con esquemas de Zod
-- [ ] Se añadió un **fragmento** del registro de cambios en `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` para los cambios visibles para el usuario (consulta [`changelog.d/README.md`](./changelog.d/README.md)); **no** edites `CHANGELOG.md` directamente; los fragmentos se agregan en el momento de la publicación y nunca generan conflictos entre solicitudes de incorporación de cambios
+- [ ] Se añadió un **fragmento** del registro de cambios en `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` para los cambios visibles para el usuario (consulta [`changelog.d/README.md`](./changelog.d/README.md)) — **no** edites `CHANGELOG.md` directamente; los fragmentos se agregan en el momento del lanzamiento y nunca generan conflictos entre Pull Requests
 - [ ] Se actualizó la documentación (si corresponde)
-- [ ] No se abrieron nuevas alertas de CodeQL / Secret-Scanning, o cada una se descartó con una justificación técnica que hace referencia al documento pertinente de `docs/security/`
-- [ ] Las rutas que generan procesos secundarios (`/api/mcp/`, `/api/cli-tools/runtime/`) están clasificadas como `isLocalOnlyPath()` en `src/server/authz/routeGuard.ts`; consulta la [Regla estricta n.º 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] No hay pies `Co-Authored-By` en los mensajes de commit; los commits deben aparecer únicamente bajo la identidad de Git del propietario del repositorio (Regla estricta n.º 16)
+- [ ] No se generaron nuevas alertas de CodeQL / Secret-Scanning, o cada una se descartó con una justificación técnica que hace referencia al documento pertinente de `docs/security/`
+- [ ] Las rutas que generan procesos secundarios (`/api/mcp/`, `/api/cli-tools/runtime/`) están clasificadas como `isLocalOnlyPath()` en `src/server/authz/routeGuard.ts` — consulta la [Regla estricta n.º 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] No hay líneas finales `Co-authored-by` de IA/bots en los mensajes de commit (Regla estricta n.º 16) — se reconoce a los colaboradores humanos cuyo trabajo se reutiliza mediante líneas finales estándar `Co-authored-by: Name <email>`
 
 ---
 
@@ -412,11 +412,10 @@ Releases are managed via the `/generate-release` workflow. When a new GitHub Rel
 
 ---
 
-## Obtener ayuda
+## Cómo obtener ayuda
 
 - **Arquitectura**: Consulta [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)
 - **Referencia de la API**: Consulta [`docs/reference/API_REFERENCE.md`](docs/reference/API_REFERENCE.md)
 - **Documentación de seguridad**: [`docs/security/CLI_TOKEN.md`](docs/security/CLI_TOKEN.md), [`docs/security/ROUTE_GUARD_TIERS.md`](docs/security/ROUTE_GUARD_TIERS.md), [`docs/security/ERROR_SANITIZATION.md`](docs/security/ERROR_SANITIZATION.md), [`docs/security/PUBLIC_CREDS.md`](docs/security/PUBLIC_CREDS.md)
 - **Documentación de operaciones**: [`docs/ops/SQLITE_RUNTIME.md`](docs/ops/SQLITE_RUNTIME.md)
 - **Incidencias**: [github.com/diegosouzapw/OmniRoute/issues](https://github.com/diegosouzapw/OmniRoute/issues)
-- **ADR**: Consulta `docs/adr/` para ver los registros de decisiones arquitectónicas

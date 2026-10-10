@@ -238,14 +238,14 @@ docker compose -f docker-compose.prod.yml down
 
 このリポジトリには、マルチステージ Dockerfile（`Dockerfile`）が含まれています。4 つのステージが公開されているため、用途に適した `target` を選択してください。
 
-| ステージ      | ベースイメージ        | 用途                                                                                                                                                                                                                                                                                                                              |
-| ------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `builder`     | `node:26-trixie-slim` | 依存関係をインストールし（`npm ci --legacy-peer-deps`）、`npm run build` を実行します（デフォルトでは Turbopack — 下記の「ビルド時のリソース」を参照）                                                                                                                                                                            |
-| `runner-base` | `node:26-trixie-slim` | Next.js の standalone 出力を使用する本番ランタイムです。**プロバイダー CLI は含まれていません。**                                                                                                                                                                                                                                 |
-| `runner-cli`  | `runner-base`         | `git`、`docker.io`、`docker-compose` と、グローバル CLI の `@openai/codex`、`@anthropic-ai/claude-code`、`droid`、`openclaw` を追加します。**エージェント型ワークフローにはこれを選択してください。**                                                                                                                             |
-| `runner-web`  | `runner-base`         | Web セッションプロバイダーの `gemini-web`、`claude-web`、`claude-turnstile` 用に、Playwright と Chromium ブラウザー（`--with-deps`）を追加します。**これらのプロバイダーを使用する場合はこれを選択してください** — 通常のイメージでは、これがないとリクエスト時に失敗します（「リリースチャネル」の `-web` に関する注記を参照）。 |
+| ステージ      | ベースイメージ        | 用途                                                                                                                                                                                                                                                                                                                            |
+| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | 依存関係をインストール（`npm ci --legacy-peer-deps`）し、`npm run build` を実行します（デフォルトでは Turbopack — 以下の「ビルド時のリソース」を参照）                                                                                                                                                                          |
+| `runner-base` | `node:26-trixie-slim` | Next.js の standalone 出力を使用する本番ランタイムです。**プロバイダーの CLI は含まれていません。**                                                                                                                                                                                                                             |
+| `runner-cli`  | `runner-base`         | `git`、`docker.io`、`docker-compose` と、グローバル CLI の `@openai/codex`、`@anthropic-ai/claude-code`、`droid`、`openclaw` を追加します。**エージェント型ワークフローにはこれを選択してください。**                                                                                                                           |
+| `runner-web`  | `runner-base`         | Web セッションプロバイダー `gemini-web`、`claude-web`、`claude-turnstile` 用に、Playwright と Chromium ブラウザー（`--with-deps`）を追加します。**これらのプロバイダーを使用する場合はこれを選択してください** — 通常のイメージでは、これがないとリクエスト時に失敗します（「リリースチャネル」の `-web` に関する注記を参照）。 |
 
-特定のターゲットを手動でビルドするには、次を実行します。
+特定のターゲットを手動でビルドするには、以下を実行します。
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -255,60 +255,60 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### ビルド時のリソース
 
-`builder` ステージのリソース消費は、3 つのビルド引数で制御します。これらはビルド時にのみ使用されます —
-`OMNIROUTE_MEMORY_MB`（後述）は、これらとは別のランタイム設定です。
+3 つのビルド引数によって、`builder` ステージで消費されるリソースが決まります。これらはビルド時にのみ使用されます —
+`OMNIROUTE_MEMORY_MB`（以下を参照）は別のランタイム設定です。
 
-| ビルド引数                  | デフォルト | 効果                                                                                             |
-| --------------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`        | `0` の場合は、代わりに webpack でビルドします。ピークメモリは少なくなりますが、低速です。        |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`     | 起動される `next build` の V8 ヒープ上限（`--max-old-space-size`）です。                         |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`        | `CIRCLE_NODE_TOTAL` に値を渡します。Next はページデータ収集用に `workers = N - 1` を導出します。 |
+| ビルド引数                  | デフォルト | 効果                                                                                                                 |
+| --------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`        | `0` では webpack でビルドします。ピークメモリは少なくなりますが、速度は低下します。`1` では Turbopack を使用します。 |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`     | 起動された `next build` に対する V8 ヒープ上限（`--max-old-space-size`）です。                                       |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`        | `CIRCLE_NODE_TOTAL` に渡されます。Next はページデータ収集用に `workers = N - 1` を算出します。                       |
 
-大規模なビルダーで増やすべきなのは `OMNIROUTE_BUILD_WORKERS` であり、リソースが制限された環境で `✓ Compiled successfully` の**後に**ビルドが停止する場合に疑うべきなのもこの設定です。各ページデータワーカーはそれぞれ独立したプロセスであり、親の `next build` 自体も独立したプロセスです。実際の VPS での再現（issue #7518）では、各プロセスのピーク RSS が `NODE_OPTIONS` のヒープフラグとは無関係に約 4.5 GB であることが測定されました（Turbopack は V8 ヒープ外のネイティブ/Rust メモリでコンパイルします）。デフォルトの `2`（→ 1 ワーカー、合計 2 プロセス）は、公開パイプラインで使用する 16 GB / 4 vCPU の GitHub ホステッドランナー向けに設定されています。`8`（→ 7 ワーカー）では、そのランナーがメモリ不足になり、buildkit は `ResourceExhausted: ... cannot allocate memory` でステップに失敗しました。プロセスごとの RSS を推測ではなく直接測定すると、`3`（→ 2 ワーカー）でもメモリに収まりませんでした。`tests/unit/docker-build-memory-budget.test.ts` は測定値に基づいて計算を行い、いずれかの設定値がランナーの容量を超える場合は失敗します。
+`OMNIROUTE_BUILD_WORKERS` は、大規模なビルダーでは増やすべき設定であり、リソースが制限されたビルドが **`✓ Compiled successfully` の後に** 異常終了した場合に疑うべき設定でもあります。各ページデータワーカーはそれぞれ独立したプロセスであり、親の `next build` 自体も独立したプロセスです。実際の VPS での再現（issue #7518）では、`NODE_OPTIONS` のヒープフラグとは無関係に、各プロセスのピーク RSS が約 4.5 GB と測定されました（Turbopack は V8 ヒープ外のネイティブ/Rust メモリでコンパイルします）。デフォルト値の `2`（→ ワーカー 1 個、合計 2 プロセス）は、公開パイプラインで使用される 16 GB / 4 vCPU の GitHub-hosted runner に合わせて設定されています。`8`（→ ワーカー 7 個）では、この runner はメモリ不足になり、buildkit は `ResourceExhausted: ... cannot allocate memory` でステップに失敗しました。プロセスごとの RSS を推測ではなく直接測定したところ、`3`（→ ワーカー 2 個）でも収まりませんでした。`tests/unit/docker-build-memory-budget.test.ts` は、測定値に基づいて計算を行い、いずれかの設定が runner の容量を超える場合は失敗します。
 
-Turbopack は V8 ヒープの**外部**にあるネイティブ Rust メモリでコンパイルするため、`OMNIROUTE_BUILD_MEMORY_MB` ではその使用量を制限できません。メモリ上限のあるホストでは、ビルドが OOM killer によってエラーテキストなしで SIGKILL されます。つまり、`Creating an optimized production build` の途中で単に停止するため、メモリ不足ではなくハングしたように見えます。ビルドホストのリソースが制限されている場合は、バンドラーを切り替えてください。
+Turbopack は V8 ヒープの **外部** に存在するネイティブ Rust メモリでコンパイルするため、`OMNIROUTE_BUILD_MEMORY_MB` ではその使用量を制限できません。そのため、メモリ上限のあるホストでは、ビルドはエラーテキストを一切出さずに OOM killer によって SIGKILL されます。単に `Creating an optimized production build` の途中で停止するため、メモリ不足ではなくハングしているように見えます。このため、Turbopack がコード上のデフォルトである `npm run dev` / `npm run build` とは異なり、`Dockerfile` はデフォルトで webpack（`OMNIROUTE_USE_TURBOPACK=0`）を使用します。Railway やその他のワンクリックホストが実行するような、ビルド引数なしの単純な `docker build .` が、メモリ制限付きのビルダー上で何の表示もなく異常終了してはならないためです。公開イメージでは、すでに `docker-publish.yml` で `OMNIROUTE_USE_TURBOPACK=0` を明示的に渡しています。RAM に十分な余裕があるビルダーでは、より高速にビルドするために Turbopack を有効にしてください。
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
-`webpackBuildWorker` が有効になっているため、`next build` は親プロセス**と**ワーカープロセスを実行し、それぞれが個別に `OMNIROUTE_BUILD_MEMORY_MB` に従います。コンテナの上限は、その値の約 1 倍ではなく、2 倍を上回るように設定してください。
+`webpackBuildWorker` は有効になっているため、`next build` は親プロセス **と** ワーカープロセスを実行し、それぞれが個別に `OMNIROUTE_BUILD_MEMORY_MB` を適用します。コンテナの上限は、その値の 1 倍ではなく、およそ 2 倍を上回るように設定してください。
 
 このツリーでの測定結果（`--target runner-base`、`OMNIROUTE_BUILD_MEMORY_MB=6144`）：
 
-| バンドラー | コンテナ上限   | 結果                                |
-| ---------- | -------------- | ----------------------------------- |
-| Turbopack  | 8 GiB / 16 GiB | どちらでも無言で OOM により強制終了 |
-| webpack    | 8 GiB          | ビルドワーカーが SIGKILL された     |
-| webpack    | 12 GiB         | 成功、ピークは 11.1 GiB             |
+| バンドラー | コンテナ上限   | 結果                            |
+| ---------- | -------------- | ------------------------------- |
+| Turbopack  | 8 GiB / 16 GiB | どちらでも通知なく OOM kill     |
+| webpack    | 8 GiB          | ビルドワーカーが SIGKILL された |
+| webpack    | 12 GiB         | 成功、ピークは 11.1 GiB         |
 
-### ランタイムのデフォルト設定
+### ランタイムのデフォルト
 
 `runner-base` によってエクスポートされるデフォルト値：`PORT=20128`、`HOSTNAME=0.0.0.0`、`OMNIROUTE_MEMORY_MB=1024`、`NODE_OPTIONS=--max-old-space-size=1024`、`DATA_DIR=/app/data`、`OMNIROUTE_MIGRATIONS_DIR=/app/migrations`。
 
 Docker でのメモリ動作：
 
-- イメージでは `OMNIROUTE_MEMORY_MB=1024` を設定し、そこから `NODE_OPTIONS=--max-old-space-size=1024` を導出します。
-- 実際のサーバープロセスはスタンドアロンランチャーによって起動されます。ランチャーは `OMNIROUTE_MEMORY_MB` を読み取り、`--max-old-space-size=<OMNIROUTE_MEMORY_MB>` を追加します。
-- Node は繰り返し指定された最後の `--max-old-space-size` の値を使用するため、`OMNIROUTE_MEMORY_MB` を設定することで、Docker における実効ヒープ上限を制御できます。
-- イメージでは常にこの値が設定されるため、Docker ではランチャー独自の RAM に応じたフォールバックは適用されません。ワークロードに合わせて明示的に増やしてください（下表を参照）。コーディングエージェントの `/v1/responses` には、`2048` でもまだ小さすぎます。
+- イメージでは `OMNIROUTE_MEMORY_MB=1024` を設定し、そこから `NODE_OPTIONS=--max-old-space-size=1024` を生成します。
+- 実際のサーバープロセスはスタンドアロンランチャーによって起動されます。このランチャーは `OMNIROUTE_MEMORY_MB` を読み取り、`--max-old-space-size=<OMNIROUTE_MEMORY_MB>` を追加します。
+- Node は繰り返し指定された最後の `--max-old-space-size` の値を使用するため、`OMNIROUTE_MEMORY_MB` を設定することで、Docker の実効ヒープ上限を制御できます。
+- イメージでは常にこの値が設定されるため、Docker 環境ではランチャー独自の RAM 容量に応じたフォールバックは適用されません。ワークロードに合わせて明示的に引き上げてください（下表を参照）。コーディングエージェントの `/v1/responses` には `2048` でも小さすぎます。
 
 ### コーディングエージェント向けの実行時 RAM
 
-Docker のデフォルトである 1 GiB は、ダッシュボードや軽量チャット向けの最低ラインであり、本番環境向けのサイズではありません。長大な `POST /v1/responses` の本文（数百件のメッセージ、数十個のツール）では、圧縮中に複数のインメモリグラフが保持されます。約 3 MiB／約 750k トークンのリクエストが 2 件重なると、old-space が **12 GiB** でも V8 が異常終了し（`FATAL ERROR: Reached heap limit`）、16 GiB の cgroup OOM にも達した事例があります。[#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) を参照してください。
+Docker のデフォルトである 1 GiB は、ダッシュボードや軽量チャット向けの最低ラインであり、本番環境向けのサイズではありません。長大な `POST /v1/responses` ボディ（数百件のメッセージ、数十個のツール）は、圧縮中に複数のインメモリグラフを保持します。約 3 MiB / 約 750k トークンのリクエストが 2 件重複した場合、**12 GiB** の old-space でも V8 が異常終了し（`FATAL ERROR: Reached heap limit`）、16 GiB の cgroup OOM にも達しました。[#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849) を参照してください。
 
-**cgroup の `--memory` はヒープより大きく設定してください** — ネイティブバッファ、SQLite、および圧縮処理の中間データは V8 の外部に存在します。
+**cgroup の `--memory` はヒープより大きく設定してください**。ネイティブバッファ、SQLite、圧縮処理の中間データは V8 の外部に配置されます。
 
-| ワークロード                                       | `OMNIROUTE_MEMORY_MB`          | コンテナ／cgroup   | 備考                                                                                                                    |
-| -------------------------------------------------- | ------------------------------ | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| ダッシュボード、軽量チャット 1 件                  | `1024`（イメージのデフォルト） | ≥2 GiB             |                                                                                                                         |
-| コーディングエージェント 1 件（Claude/Codex/Grok） | `8192`                         | ≥10 GiB            | 一般的な単一セッションの `/v1/responses`                                                                                |
-| 長大な `/v1/responses` を 2 件同時実行             | `10240`–`12288`                | ≥12–16 GiB         | 約 12 GiB のヒープで V8 の異常終了を計測                                                                                |
-| 長いコンテキストを 3 件以上同時実行                | 1 プロセスでは実行しない       | 直列化／RAM の増設 | デフォルトでは高負荷リクエストの実行中上限は 1 件です。RAM を増設せずにこの上限を引き上げると、再び異常終了が発生します |
+| ワークロード                                       | `OMNIROUTE_MEMORY_MB`          | コンテナ / cgroup   | 備考                                                                                                                    |
+| -------------------------------------------------- | ------------------------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| ダッシュボード、軽量チャット 1 件                  | `1024`（イメージのデフォルト） | ≥2 GiB              |                                                                                                                         |
+| コーディングエージェント 1 件（Claude/Codex/Grok） | `8192`                         | ≥10 GiB             | 一般的な単一セッションの `/v1/responses`                                                                                |
+| 同時実行される長大な `/v1/responses` 2 件          | `10240`–`12288`                | ≥12–16 GiB          | 約 12 GiB のヒープで V8 の異常終了を確認                                                                                |
+| 長大なコンテキストを 3 件以上同時実行              | 単一プロセスでは実行しない     | 直列化 / RAM を増量 | デフォルトでは負荷の高いリクエストの実行中上限は 1 件です。RAM を増やさずにこの上限を引き上げると、異常終了が再発します |
 
-ベアメタル上の `omniroute serve` は、`OMNIROUTE_MEMORY_MB` が**未設定**の場合、RAM の約 35%（`[512, 4096]` の範囲に制限）に調整します。Docker では常に `1024` が設定されるため、公式イメージではこの調整は実行されません。
+ベアメタル上の `omniroute serve` は、`OMNIROUTE_MEMORY_MB` が**未設定**の場合、RAM の約 35%（`[512, 4096]` の範囲に制限）に調整します。Docker では常に `1024` が設定されるため、公式イメージではこの調整処理は実行されません。
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \

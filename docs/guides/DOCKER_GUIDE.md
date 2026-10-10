@@ -23,6 +23,7 @@ lastUpdated: 2026-09-18
 - [Cloudflare Quick Tunnel](#cloudflare-quick-tunnel)
 - [Image Tags](#image-tags)
 - [Availability: default SQLite is single-replica](#availability-default-sqlite-is-single-replica)
+- [Gemini regional errors inside Docker](#gemini-regional-errors-inside-docker)
 - [Important Notes](#important-notes)
 
 ---
@@ -263,7 +264,7 @@ Three build args control what the `builder` stage costs. They are build-time onl
 
 | Build arg                   | Default | Effect                                                                              |
 | --------------------------- | ------- | ----------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `1`     | `0` builds with webpack instead. Lower peak memory, slower.                         |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`     | `0` builds with webpack: lower peak memory, slower. `1` opts into Turbopack.        |
 | `OMNIROUTE_BUILD_MEMORY_MB` | `6144`  | V8 heap ceiling (`--max-old-space-size`) for the spawned `next build`.              |
 | `OMNIROUTE_BUILD_WORKERS`   | `2`     | Feeds `CIRCLE_NODE_TOTAL`; Next derives `workers = N - 1` for page-data collection. |
 
@@ -285,11 +286,17 @@ Turbopack compiles in native Rust memory that lives **outside** the V8 heap, so
 `OMNIROUTE_BUILD_MEMORY_MB` does not bound it. On a host with a memory ceiling the
 build is then SIGKILLed by the OOM killer with no error text at all — it simply
 stops mid-`Creating an optimized production build`, which reads like a hang rather
-than an out-of-memory. If the build host is constrained, switch bundlers:
+than an out-of-memory. That is why the `Dockerfile` defaults to webpack
+(`OMNIROUTE_USE_TURBOPACK=0`), unlike `npm run dev` / `npm run build`, where
+Turbopack is the code default: a bare `docker build .` with no build args (what
+Railway and other one-click hosts run) must not die silently on a memory-capped
+builder. The published images already pass `OMNIROUTE_USE_TURBOPACK=0`
+explicitly in `docker-publish.yml`. On a builder with plenty of RAM, opt into
+Turbopack for a faster build:
 
 ```bash
 docker build --target runner-base \
-  --build-arg OMNIROUTE_USE_TURBOPACK=0 \
+  --build-arg OMNIROUTE_USE_TURBOPACK=1 \
   -t omniroute:base .
 ```
 
@@ -667,6 +674,85 @@ volumes:
 ```
 
 In-process density (compression off the HTTP isolate) is [#11023](https://github.com/diegosouzapw/OmniRoute/issues/11023). One logical cluster on shared durable state is [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075).
+
+## Gemini regional errors inside Docker
+
+Google AI Studio / Gemini API can return HTTP 400 with FAILED_PRECONDITION and
+`User location is not supported for the API use.` A successful request on the host
+does not prove that the container uses the same outbound route. DNS ordering,
+IPv4/IPv6 connectivity, VPN routing and configured proxies can differ. Check
+[Google's supported regions](https://ai.google.dev/gemini-api/docs/available-regions)
+as well as the actual connection route; this error alone does not identify a bad API key.
+
+### Prefer a connection-specific proxy
+
+Use OmniRoute's [per-connection proxy configuration](../ops/PROXY_GUIDE.md#4-level-proxy-system)
+for the affected Gemini connection, then repeat **Test Connection** and a small request
+with the same model. This keeps the routing change scoped to that connection. Verify
+that the proxy is reachable from the container, and that the connection really selects
+it. Changing the route does not guarantee upstream regional eligibility.
+
+### Compare host and container networking
+
+Keep the key, model and request identical when comparing authenticated results; never
+paste credentials, proxy passwords or complete authorization headers into an issue.
+First inspect which address families the OS resolver offers, using the same command
+on the host and inside the container:
+
+```bash
+node -e 'require("node:dns").lookup("generativelanguage.googleapis.com", {all: true}, (error, addresses) => { if (error) { console.error(error.code); process.exitCode = 1; return; } console.log(addresses.map(({family}) => family)); })'
+docker compose exec omniroute node -e 'require("node:dns").lookup("generativelanguage.googleapis.com", {all: true}, (error, addresses) => { if (error) { console.error(error.code); process.exitCode = 1; return; } console.log(addresses.map(({family}) => family)); })'
+```
+
+Replace `omniroute` with the service you run (for example, `omniroute-web`). These
+commands print address families without credentials or IP addresses. A returned `6`
+only shows an IPv6 DNS result: it does **not** prove a usable IPv6 route or API access.
+Where `curl` is installed, compare `curl -4 -I https://generativelanguage.googleapis.com`
+with `curl -6 -I https://generativelanguage.googleapis.com` in both environments.
+An HTTP response proves connectivity for that probe, even if it is an unauthenticated
+error; only the authenticated model request tests Gemini eligibility.
+
+### Host-level alternative: working IPv6 and resolver policy
+
+The reporter of [#12762](https://github.com/diegosouzapw/OmniRoute/issues/12762) restored
+access in their environment by enabling container IPv6 and changing glibc address
+selection. Treat this as an environment-specific alternative. Confirm working host
+IPv6, container egress/routing and firewall rules before adjusting resolver preferences.
+A private ULA address by itself does not establish public IPv6 connectivity.
+
+For services already attached to Compose's default network, this fragment enables
+IPv6 on that network; retain the rest of your service, ports, volumes and configuration:
+
+```yaml
+networks:
+  default:
+    enable_ipv6: true
+```
+
+For a named network, enable it on the network the service actually joins. Docker can
+allocate a ULA subnet; select an explicit, non-overlapping subnet only when your network
+requires it. See [Docker IPv6 networking](https://docs.docker.com/engine/daemon/ipv6/)
+and [Compose network options](https://docs.docker.com/reference/compose-file/networks/#enable_ipv6).
+
+On a **glibc-based image**, `/etc/gai.conf` can change address selection. The current
+repository Dockerfile uses Debian; custom musl-based images do not share this mechanism.
+The reported adjustment changes the ULA label from `label fc00::/7 6` to
+`label fc00::/7 1`. Start from the image's complete policy table and preserve its other
+entries: adding a `label` or `precedence` entry replaces that default table, so a file
+containing only the changed line is insufficient. The
+[glibc configuration reference](https://github.com/bminor/glibc/blob/master/posix/gai.conf)
+documents those semantics. Bind-mount the reviewed file read-only at `/etc/gai.conf`
+and recreate the service to apply it.
+
+This changes OS address selection for **all outbound traffic in that container**.
+It does not force every application to choose IPv6: Node's DNS order and connection
+selection also matter. In particular, `--dns-result-order=ipv4first` prefers IPv4 and
+is not a remedy for an IPv4-only failure. See [Node DNS ordering](https://nodejs.org/api/dns.html#dnssetdefaultresultorderorder).
+
+Re-test Gemini and your other providers after any host-level change. To roll back,
+remove the custom `gai.conf` mount, restore the previous network configuration and
+recreate the affected service/network during a maintenance window. Recreating a network
+can interrupt other containers attached to it; do not delete the persistent data volume.
 
 ## Important Notes
 

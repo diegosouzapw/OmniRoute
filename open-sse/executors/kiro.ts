@@ -20,6 +20,7 @@ import {
   type KiroThinkingState,
 } from "./kiroThinking.ts";
 import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
+import { readKiroReasoningText } from "./kiro/reasoning.ts";
 import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 import {
   KIRO_TOOL_CALL_WRAPPER,
@@ -252,6 +253,54 @@ export { kiroRuntimeHost };
 const KIRO_ENDPOINT_FALLBACK_STATUSES = new Set([401, 403, 404]);
 
 /**
+ * The branded `runtime.*.kiro.dev` gateway (tried first for any auth method
+ * other than api_key/idc/external_idp — see `isCodeWhispererOnly` below)
+ * enforces a `profileArn` even for connections that legitimately have none —
+ * Builder ID and other no-entitlement Kiro accounts, which the raw
+ * CodeWhisperer/Amazon Q host serves normally.
+ *
+ * Verified live (2026-09-10): the identical access token + request body gets
+ *   400 {"message":"profileArn is required for this request.","reason":null}
+ * from `runtime.us-east-1.kiro.dev`, and a normal streaming
+ * `generateAssistantResponse` from `codewhisperer.us-east-1.amazonaws.com` —
+ * confirmed both against a live Builder ID kiro-cli session and against the
+ * production accounts that were surfacing this 400 to end users.
+ *
+ * A plain 400 is deliberately excluded from KIRO_ENDPOINT_FALLBACK_STATUSES
+ * above (a malformed request body cannot be fixed by resending it to another
+ * host), so this exact, narrowly-matched message gets its own fallback
+ * trigger instead of widening 400 fallback in general.
+ */
+const KIRO_PROFILE_ARN_REQUIRED_MESSAGE = "profileArn is required for this request";
+
+/**
+ * The branded gateway's path-style GenerateAssistantResponse is deprecated: it now answers
+ * valid payloads with 400 {"message":"Improperly formed request.","reason":"REQUEST_BODY_INVALID"}
+ * (#15621). The same body is accepted by the CodeWhisperer host, so this shape also falls back
+ * (only while a next candidate exists; the final host's 400 is returned untouched).
+ */
+const KIRO_IMPROPERLY_FORMED_MESSAGE = "Improperly formed request";
+
+/**
+ * Whether `response` is the branded gateway's profileArn-required rejection
+ * described above. Reads a clone of the body so the original response stream
+ * is left untouched for the caller (the success path, and the final
+ * not-ok-and-no-more-candidates path, both still need an unconsumed body).
+ */
+async function isBrandedGatewayProfileArnRejection(response: Response): Promise<boolean> {
+  if (response.status !== 400) return false;
+  try {
+    const text = await response.clone().text();
+    return (
+      text.includes(KIRO_PROFILE_ARN_REQUIRED_MESSAGE) ||
+      text.includes(KIRO_IMPROPERLY_FORMED_MESSAGE)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * KiroExecutor - Executor for Kiro AI (AWS CodeWhisperer)
  * Uses AWS CodeWhisperer streaming API with AWS EventStream binary format
  */
@@ -379,9 +428,11 @@ export class KiroExecutor extends BaseExecutor {
         signal,
       });
       const hasFallback = i + 1 < candidateUrls.length;
-      if (response.ok || !hasFallback || !KIRO_ENDPOINT_FALLBACK_STATUSES.has(response.status)) {
-        break;
-      }
+      if (response.ok || !hasFallback) break;
+      const shouldFallback =
+        KIRO_ENDPOINT_FALLBACK_STATUSES.has(response.status) ||
+        (await isBrandedGatewayProfileArnRejection(response));
+      if (!shouldFallback) break;
     }
 
     if (!response.ok) {
@@ -631,22 +682,9 @@ export class KiroExecutor extends BaseExecutor {
               const rp = event.payload as Record<string, unknown> | undefined;
               const rt = rp?.reasoningText;
               if (eventType === "reasoningContentEvent" || rt !== undefined) {
-                let nativeReasoning = "";
-                if (rt && typeof rt === "object") {
-                  const rto = rt as { text?: unknown; Text?: unknown };
-                  nativeReasoning =
-                    typeof rto.text === "string"
-                      ? rto.text
-                      : typeof rto.Text === "string"
-                        ? rto.Text
-                        : "";
-                } else if (typeof rt === "string") {
-                  nativeReasoning = rt;
-                } else if (typeof rp?.text === "string") {
-                  nativeReasoning = rp.text as string;
-                }
-                if (nativeReasoning) {
-                  state.hasReasoningContent = true;
+                const nativeReasoning = readKiroReasoningText(eventType, rp);
+                if (nativeReasoning !== undefined) {
+                  if (nativeReasoning) state.hasReasoningContent = true;
                   const reasoningDelta: JsonRecord =
                     (state.reasoningChunkCount ?? 0) === 0 && chunkIndex === 0
                       ? { role: "assistant", reasoning_content: nativeReasoning }

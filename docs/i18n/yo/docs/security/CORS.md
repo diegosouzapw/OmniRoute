@@ -127,24 +127,28 @@ fo slash tó wà ní ìparí, nítorí náà `http://localhost:3000` àti
   management/dashboard sínú config permissive èyíkéyìí; wọ́n gbọ́dọ̀ dúró gẹ́gẹ́ bí
   fail-closed pátápátá.
 
-## Àpẹẹrẹ: reverse proxy níwájú OmniRoute
+## Àpẹẹrẹ: reverse proxy ní iwájú OmniRoute
 
-OmniRoute fúnra rẹ̀ ló ń mú CORS ṣiṣẹ́, nítorí náà proxy kò yẹ kí ó ṣàfikún tàbí
-tún àwọn header `Access-Control-*` kọ ní gbogbogbòò (àwọn header méjì máa ń da browser rú). Parí TLS
+OmniRoute fúnra rẹ̀ ló ń fipá mú CORS ṣiṣẹ́, nítorí náà, ní gbogbogbòò, proxy náà kò yẹ kí ó **ṣàfikún** tàbí
+tún àwọn header `Access-Control-*` kọ (àwọn header oníbejì máa ń fa ìṣòro fún àwọn browser). Parí TLS
 kí o sì forward — jẹ́ kí OmniRoute dá preflight lóhùn:
 
 ```nginx
-# nginx — forward sí OmniRoute; MÁ ṢE fi Access-Control-* sínú rẹ̀ níbí
+# nginx — forward sí OmniRoute; MÁ ṢE fi Access-Control-* síbí
 location / {
     proxy_pass http://127.0.0.1:20128;
     proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # MÁ ṢE ṣètò X-Forwarded-For sí 127.0.0.1 — ó ń sọ olùṣọ́ route loopback di aláìṣiṣẹ́.
+    # Pa àwọn header forwarding náà mọ́: proxy kan lórí host kan náà máa ń sopọ̀ láti loopback, àwọn náà sì ni
+    # ó ń sọ fún OmniRoute pé olùpè náà kì í ṣe local operator. Proxy tí kò ṣàfikún èyíkéyìí nínú wọn
+    # máa ń jẹ́ kí gbogbo olùpè jíjìn dà bí ẹni pé wọ́n jẹ́ local. Má ṣe ṣètò X-Forwarded-For sí 127.0.0.1 pẹ̀lú.
 }
 ```
 
 Ṣètò àwọn origin browser tí a gbà láàyè nínú OmniRoute (`CORS_ALLOWED_ORIGINS` tàbí
-Security tab), kì í ṣe nínú proxy.
+taabu Security), kì í ṣe nínú proxy.
 
 ## Àwọn fáìlì orísun
 

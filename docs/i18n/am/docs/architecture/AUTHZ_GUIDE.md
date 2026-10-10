@@ -13,63 +13,63 @@ OmniRoute እያንዳንዱን የAPI ጥያቄ የሚቆጣጠር፣ መንገ
 
 > ምንጭ፦ [diagrams/authz-pipeline.mmd](../diagrams/authz-pipeline.mmd)
 
-## ሁለት የማረጋገጫ ሁነታዎች
+## ሁለት የማረጋገጫ ሁነቶች
 
 ### 1. API ቁልፍ (Bearer)
 
-ከOpenAI/Anthropic/Gemini ጋር ተኳዃኝ ለሆኑ የደንበኛ APIዎች፣ እንዲሁም ቁልፉ `manage` ወሰን ሲኖረው ለጥቂት የአስተዳደር መስመሮች ይጠቅማል።
+ለOpenAI/Anthropic/Gemini-ተኳሃኝ የደንበኛ APIዎች እና ቁልፉ `manage` ወሰን ሲኖረው ለጥቂት የአስተዳደር መስመሮች ጥቅም ላይ ይውላል።
 
 ```
 Authorization: Bearer <api-key>
 ```
 
-በ`src/sse/services/auth.ts` ውስጥ ባሉት `isValidApiKey()` / `extractApiKey()` የሚረጋገጥ ሲሆን፣ በ`src/shared/utils/apiAuth.ts` በኩል እንደገና ወደ ውጭ ይላካል። አረጋጋጩ `OMNIROUTE_API_KEY` / `ROUTER_API_KEY` የአካባቢ ተለዋዋጮችንም እንደ ቋሚ የማሳለፊያ ቁልፎች ይቀበላል (ጉዳይ #1350)።
+በ`src/sse/services/auth.ts` ውስጥ ባሉት `isValidApiKey()` / `extractApiKey()` የሚረጋገጥ ሲሆን፣ በ`src/shared/utils/apiAuth.ts` በኩል እንደገና ወደ ውጭ ይላካል። አረጋጋጩ የ`OMNIROUTE_API_KEY` / `ROUTER_API_KEY` የአካባቢ ተለዋዋጮችንም እንደ ቋሚ የማሳለፊያ ቁልፎች ይቀበላል (ጉዳይ #1350)።
 
-### 2. የዳሽቦርድ ክፍለ-ጊዜ (auth_token ኩኪ)
+### 2. የዳሽቦርድ ክፍለ ጊዜ (auth_token cookie)
 
-ለዳሽቦርድ ገጾች እና ለአስተዳዳሪ ክዋኔዎች።
+ለዳሽቦርድ ገጾች እና ለአስተዳዳሪ ክንውኖች።
 
 ```
 Cookie: auth_token=<JWT signed with JWT_SECRET>
 ```
 
-JWTው ሲረጋገጥ **እና** `authenticated: true` ሲይዝ ብቻ ኩኪው ክፍለ-ጊዜ ይሆናል
-(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)። ኩኪውን
-የሚጠቀም እያንዳንዱ አካል (የመስመር ጠባቂ፣ የauthz ቧንቧ መስመር ማደስ፣ የWebSocket መጨባበጥ፣ ቀጥታ
-አገልጋይ፣ `/api/settings/require-login`፣ `/api/auth/status`) በዚያ አጋዥ በኩል ያልፋል።
-በ`JWT_SECRET` የተፈረሙ ሌሎች JWTዎች አሉ — የCursor CLI ማሳለፊያው ለቁልፍ ባለቤቶች
-`iss "omniroute" / aud "cursor-cli"` ቶከኖችን ይፈጥራል — እና እነዚህ በፍጹም ክፍለ-ጊዜዎች አይደሉም
+JWTው ሲረጋገጥ **እና** `authenticated: true` ሲይዝ ብቻ cookieው ክፍለ ጊዜ ይሆናል
+(`src/shared/utils/dashboardSessionToken.ts` → `verifyDashboardSessionToken`)። እያንዳንዱ
+የcookieው ተጠቃሚ (የዳሽቦርድ መስመር ጠባቂ (`isDashboardSessionAuthenticated()`)፣ የauthz pipeline እድሳት፣ WebSocket handshake፣ live
+server፣ `/api/settings/require-login`፣ `/api/auth/status`) በዚያ helper በኩል ያልፋል።
+በ`JWT_SECRET` የተፈረሙ ሌሎች JWTዎችም አሉ — የCursor CLI passthrough ለቁልፍ ባለቤቶች
+`iss "omniroute" / aud "cursor-cli"` tokens ይፈጥራል — እነዚህም በፍጹም ክፍለ ጊዜዎች አይደሉም
 (#13298)።
 
-በ`src/shared/utils/apiAuth.ts` ውስጥ ባለው `isDashboardSessionAuthenticated()` ይረጋገጣል። ቧንቧ መስመሩ JWTው ከ30 ቀናት የዕድሜ ገደቡ ውስጥ ከ7 ቀናት ያነሰ ጊዜ ሲቀረው በራስ-ሰር ያድሰዋል።
+በ`src/shared/utils/apiAuth.ts` ውስጥ ባለው `isDashboardSessionAuthenticated()` ይረጋገጣል። በ30 ቀን የሕይወት ጊዜው ውስጥ ከ7 ቀናት ያነሰ ጊዜ ሲቀረው pipelineው JWTውን በራስ-ሰር ያድሳል።
 
-አንዳንድ የአስተዳደር መስመሮች **ከሁለቱ አንዱን** ሁነታ ይቀበላሉ፦ ኩኪ ወይም የAPI ቁልፉ `manage` (ወይም `admin`) ወሰን ሲኖረው `Bearer <key>`። በv3.8 የታከለውን «በAPI ጥሪዎች ሊዋቀር የሚችል» የስራ ፍሰት የሚያስችለው ይህ ነው።
+እያንዳንዱ አመንጪ በ`mintDashboardSessionToken` (የተሰጠበት ጊዜ `iat` እና መለያ `jti`) በኩል ስለሚያልፍ እና አረጋጋጩ ሁለት ቅንብሮችን ስለሚፈትሽ፣ አንድ ክፍለ ጊዜ 30 ቀናቱ ከማለቃቸው በፊትም ሊያበቃ ይችላል፦ `sessionsValidAfter`፣ የይለፍ ቃል ሲቀየር የሚዘጋጅ ሲሆን ከዚያ በፊት የተሰጡ ክፍለ ጊዜዎች በሙሉ እንዳይረጋገጡ ያደርጋል (የይለፍ ቃሉን የቀየረው browser አዲስ cookie ያገኛል)፤ እና `revokedDashboardSessions`፣ `POST /api/auth/logout` ዘግቶ የወጣውን ክፍለ ጊዜ `jti` የሚጨምርበት። በቀድሞ ልቀት የተፈጠሩ ክፍለ ጊዜዎች ከእነዚህ አቤቱታዎች አንዱንም አይይዙም፣ እና የመጀመሪያው የይለፍ ቃል ለውጥ እስኪከሰት ድረስ የሚሰሩ ሆነው ይቆያሉ። ቅንብሮቹ ሊነበቡ ካልቻሉ፣ ክፍለ ጊዜው አይታመንም።
+
+አንዳንድ የአስተዳደር መስመሮች **ከሁለቱ አንዱን** ሁነት ይቀበላሉ፦ cookie ወይም የAPI ቁልፉ `manage` (ወይም `admin`) ወሰን ሲኖረው `Bearer <key>`። ይህም በv3.8 የታከለውን "በAPI ጥሪዎች በኩል ሊዋቀር የሚችል" የሥራ ፍሰት ያስችላል።
 
 #### አማራጭ የOIDC መግቢያ በር (#6973)
 
-የዳሽቦርድ አስተዳዳሪ መግቢያው ከነባሪው የይለፍ ቃል መግቢያ ጎን ለጎን **በምርጫ የሚነቃ** የOIDC (OpenID Connect) ፍሰትንም
-ይደግፋል — የይለፍ ቃል መግቢያው በፍጹም አይወገድም፣ የሚደረገው መጨመር ብቻ
-ነው፦
+የዳሽቦርድ አስተዳዳሪ መግቢያው ከነባሪው የይለፍ ቃል መግቢያ ጎን ለጎን **በፈቃድ የሚነቃ** OIDC (OpenID Connect) ፍሰትንም ይደግፋል — የይለፍ ቃል መግቢያው ፈጽሞ አይወገድም፣ የሚደረገው መደገፍ ብቻ ነው፦
 
-- `settings.oidcEnabled === true` ካልሆነ **እና** `oidcIssuer` /
+- `settings.oidcEnabled === true` **እና** `oidcIssuer` /
   `oidcClientId` / `oidcClientSecret` ሁሉም ካልተዋቀሩ በስተቀር የተሰናከለ ነው (Settings → Auth)።
   ካልሆነ `GET /api/auth/oidc/login` `400` ይመልሳል።
 - `GET /api/auth/oidc/login` `authorization_endpoint`ን ከአውጪው
-  `/.well-known/openid-configuration` ይፈልጋል (`<issuer>/authorize`ን
-  እንደ አማራጭ ይጠቀማል)፣ የመልሶ ማዞሪያ URIውን ከገቢው ጥያቄ
-  (`x-forwarded-proto`ን የሚያውቅ) ይገነባል፣ እና በ`httpOnly` `oidc_state` ኩኪ ውስጥ
-  በተከማቸ የዘፈቀደ `state` ወደ IdPው መልሶ ያዞራል።
+  `/.well-known/openid-configuration` ያገኛል (`<issuer>/authorize`ን
+  እንደ አማራጭ ይጠቀማል)፣ የማዞሪያ URIውን ከገቢው ጥያቄ
+  (`x-forwarded-proto`-aware) ይገነባል፣ እና በ`httpOnly` `oidc_state` cookie ውስጥ
+  የተከማቸ የዘፈቀደ `state` ይዞ ወደ IdP ያዞራል።
 - `GET /api/auth/oidc/callback` `state`ን ያረጋግጣል፣ የፈቃድ
-  ኮዱን ይለዋወጣል፣ እና የID ቶከኑን ፊርማ በአውጪው JWKS
-  (የ`jose` `createRemoteJWKSet`፣ በእያንዳንዱ JWKS URI የሚሸጎጥ) ከ`issuer`/`audience`
-  ማረጋገጫዎች ጋር ያረጋግጣል። አማራጭ የ`oidcAllowedSubjects` የተፈቀዱ ዝርዝር ከቶከኑ
-  `sub` ይገባኛል ወይም ከ`email` ይገባኛል ጋር ያዛምዳል — የኢሜይል ይገባኛል የሚከበረው
-  `email_verified === true` ሲሆን ብቻ ነው፤ ስለዚህ በIdPው ላይ ያልተረጋገጠ ኢሜይል በፍጹም
-  በበሩ ማለፍ አይችልም።
-- ሲሳካ፣ የይለፍ ቃል መግቢያው የሚያወጣውን **በትክክል ተመሳሳይ** የ30 ቀናት `auth_token` JWT
-  (`src/app/api/auth/login/route.ts`) ይፈጥራል፤ በመሆኑም የተቀረው
-  የዳሽቦርድ ክፍለ-ጊዜ ቧንቧ መስመር (ራስ-ሰር ማደስ፣ የኩኪ ጠቋሚዎች) ሳይለወጥ ይቆያል —
-  OIDC የሚተካው ኩኪው የሚፈጠርበትን መንገድ ብቻ ነው፣ ኩኪው የሚሰጠውን ፈቃድ አይደለም።
+  codeውን ይለዋውጣል፣ እና የID tokenውን ፊርማ በአውጪው JWKS
+  (`jose` የ`createRemoteJWKSet`፣ በእያንዳንዱ JWKS URI የሚሸጎጥ) አማካኝነት ከ`issuer`/`audience`
+  ፍተሻዎች ጋር ያረጋግጣል። አማራጭ የ`oidcAllowedSubjects` የተፈቀዱ ዝርዝር ከtokenው
+  `sub` አቤቱታ ወይም ከ`email` አቤቱታው ጋር ያዛምዳል — የemail አቤቱታው የሚከበረው
+  `email_verified === true` ሲሆን ብቻ ነው፤ ስለዚህ በIdP ያልተረጋገጠ email
+  በሩን ፈጽሞ ማለፍ አይችልም።
+- ሲሳካ፣ የይለፍ ቃል መግቢያው የሚሰጠውን **ትክክለኛውን ተመሳሳይ** የ30 ቀን `auth_token` JWT
+  (`src/app/api/auth/login/route.ts`) ይፈጥራል፤ ስለዚህ የተቀረው
+  የዳሽቦርድ ክፍለ ጊዜ pipeline (ራስ-ሰር እድሳት፣ የcookie ምልክቶች) ሳይለወጥ ይቆያል —
+  OIDC የሚተካው cookieው የሚፈጠርበትን መንገድ ብቻ ነው፣ የሚሰጠውን ፈቃድ አይደለም።
 
 ## የRoute ክፍሎች
 

@@ -111,13 +111,16 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     // sandbox container spawn transitively.
     "/api/skills/install",
     "/api/skills/executions",
+    // The CLIProxyAPI binary lifecycle under /api/version-manager/, same work as /api/services/.
+    "/api/version-manager/",
   ]) {
     assert.ok(
       SPAWN_CAPABLE_PREFIXES.includes(prefix),
       `SPAWN_CAPABLE_PREFIXES lost the spawn-capable prefix "${prefix}" during extraction`
     );
   }
-  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89) + 1 (whycodes-settings, #14107).
+  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89) + 1 (version-manager)
+  // + 1 (whycodes-settings, #14107).
   // qwen-settings is the one pre-existing entry not enumerated above.
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 37);
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 38);
 });

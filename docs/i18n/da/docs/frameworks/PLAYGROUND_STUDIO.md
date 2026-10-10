@@ -190,14 +190,14 @@ Godkendelse: valgfri (`REQUIRE_API_KEY`). Fejl via `buildErrorBody()` (Hård reg
 
 ## Fejlfinding
 
-| Symptom                                   | Årsag                                   | Løsning                                                                                      |
-| ----------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Monaco-editoren vises ikke på API-fanen   | SSR indlæste Monaco                     | Kontrollér, at `ApiTab` bruger `dynamic(..., { ssr: false })`                                |
-| Sammenligningsstreams starter sekventielt | Forkert brug af `Promise.all`           | Alle streams skal startes i ét enkelt `Promise.all`-kald                                     |
-| Målinger viser `null` for TTFT            | Første chunk-handler er ikke tilsluttet | Kontrollér, at `useStreamMetrics.onFirstChunk()` kaldes i SSE-læserløkken                    |
-| Forudindstilling gemmes ikke permanent    | DB-migrering er ikke kørt               | Kør `npm run db:migrate`, eller genstart serveren (migreringen køres automatisk ved opstart) |
-| Forbedring af prompt returnerer 502       | Model er ikke angivet i Konfiguration   | Brugeren skal indtaste et modelnavn i ruden Konfiguration før forbedring                     |
-| Eksporteret kode viser `MISSING_API_KEY`  | Pladsholder er ikke indsat              | `codeExport.ts` bruger altid `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"`                    |
+| Symptom                                   | Årsag                                         | Løsning                                                                   |
+| ----------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------- |
+| Monaco-editoren vises ikke på API-fanen   | SSR indlæste Monaco                           | Kontrollér, at `ApiTab` bruger `dynamic(..., { ssr: false })`             |
+| Sammenligningsstreams starter sekventielt | Forkert brug af `Promise.all`                 | Alle streams skal startes i ét enkelt `Promise.all`-kald                  |
+| Målinger viser `null` for TTFT            | Handleren for første chunk er ikke tilsluttet | Kontrollér, at `useStreamMetrics.onFirstChunk()` kaldes i SSE-læserløkken |
+| Forudindstillingen gemmes ikke permanent  | DB-migreringen er ikke kørt                   | Genstart serveren: migreringer køres automatisk ved opstart               |
+| Forbedring af prompten returnerer 502     | Modellen er ikke angivet i konfigurationen    | Brugeren skal indtaste et modelnavn i konfigurationsruden før forbedring  |
+| Eksporteret kode viser `MISSING_API_KEY`  | Pladsholderen er ikke indsat                  | `codeExport.ts` bruger altid `API_KEY_PLACEHOLDER = "$OMNIROUTE_API_KEY"` |
 
 ---
 

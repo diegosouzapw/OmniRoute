@@ -33,6 +33,13 @@ import { translateRequest } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { createSSETransformStreamWithLogger } from "../utils/stream.ts";
 import { ensureStreamReadiness } from "../utils/streamReadiness.ts";
+import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
+import { applyFieldDowngradeRecovery } from "./base/fieldDowngradeRecovery.ts";
+import { readBodyReasoningEffort, writeBodyReasoningEffort } from "./base/reasoningEffort.ts";
+import {
+  clampToLearned,
+  getLearnedReasoningEffort,
+} from "../services/learnedReasoningEffortCaps.ts";
 import { STREAM_READINESS_TIMEOUT_MS } from "../config/constants.ts";
 import { resolveSuppressThinkClose, THINKING_MARKER_HEADER } from "../utils/thinkCloseMarker.ts";
 
@@ -162,19 +169,6 @@ function cloneHeaders(headers: Headers): Headers {
 
 function isJsonResponse(response: Response): boolean {
   return (response.headers.get("content-type") || "").toLowerCase().includes("application/json");
-}
-
-async function translateJsonResponse(response: Response): Promise<Response> {
-  const parsed = await response.json().catch(() => null);
-  const translated = translateNonStreamingResponse(parsed, FORMATS.CLAUDE, FORMATS.OPENAI);
-  const headers = cloneHeaders(response.headers);
-  headers.set("content-type", "application/json");
-  headers.delete("content-length");
-  return new Response(JSON.stringify(translated), {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
 }
 
 async function translateAnthropicJsonResponse(response: Response): Promise<Response> {
@@ -450,13 +444,27 @@ export class GlmExecutor extends DefaultExecutor {
     applyConfiguredUserAgent(headers, credentials.providerSpecificData);
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders);
 
-    const transformedBody = this.transformForTransport(
+    let transformedBody = this.transformForTransport(
       input.model,
       input.body,
       input.stream,
       credentials,
       transport
     );
+
+    // Reuse only observed OpenAI capabilities; leave unknown first attempts and
+    // Anthropic's translated thinking/effort contract untouched.
+    if (transport === "openai") {
+      const learnedEfforts = getLearnedReasoningEffort(this.provider, input.model);
+      const requestedEffort = readBodyReasoningEffort(transformedBody);
+      const learnedEffort =
+        learnedEfforts && requestedEffort
+          ? clampToLearned(requestedEffort.toLowerCase(), learnedEfforts)
+          : null;
+      if (learnedEffort) {
+        transformedBody = writeBodyReasoningEffort(transformedBody, learnedEffort);
+      }
+    }
 
     const fetchStartTimeoutMs = this.getTimeoutMs();
     const timeoutController = fetchStartTimeoutMs > 0 ? new AbortController() : null;
@@ -486,6 +494,35 @@ export class GlmExecutor extends DefaultExecutor {
       });
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
+    }
+
+    // #14629: this override never calls super.execute(). Only the OpenAI
+    // transport carries reasoning_effort; the Anthropic transport does not.
+    if (transport === "openai") {
+      const recovery = await applyReasoningEffortRecovery({
+        response,
+        url,
+        provider: this.provider,
+        model: input.model,
+        body: transformedBody,
+        fetchOptions: { method: "POST", headers, signal: combinedSignal || undefined },
+        fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+        log: input.log,
+      });
+      response = recovery.response;
+      transformedBody = recovery.body;
+      response = await applyFieldDowngradeRecovery({
+        response,
+        url,
+        provider: this.provider,
+        model: input.model,
+        body: transformedBody,
+        fetchOptions: { method: "POST", headers, signal: combinedSignal || undefined },
+        fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+        serializeBody: (value) => JSON.stringify(value),
+        strippedFields: new Set<string>(),
+        log: input.log,
+      });
     }
 
     if (input.stream && response.ok) {

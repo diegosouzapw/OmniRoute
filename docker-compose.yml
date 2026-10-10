@@ -5,8 +5,8 @@
 #  Profiles:
 #    base  → minimal image, no CLI tools
 #    web   → runner-web (+Chromium/Playwright) for web-cookie providers
-#    cli   → CLIs installed inside the container (portable)
-#    host  → runner-base + host-mounted CLI binaries (Linux-first)
+#    cli   → bundled CLIs installed inside the container (portable)
+#    host  → runner-base + host-mounted CLI binaries (Linux-first; Linux only)
 #    cliproxyapi → CLIProxyAPI sidecar on port 8317
 #    memory  → Qdrant sidecar on port 6333 (semantic memory offload)
 #    bifrost → Bifrost Go sidecar on port 8080 (Tier-1 LLM router)
@@ -15,11 +15,17 @@
 #    docker compose --profile base up -d
 #    docker compose --profile web up -d   # gemini-web / claude-web / claude-turnstile
 #    docker compose --profile cli up -d
+#    # Windows Docker Desktop: use the bundled CLI image and rebuild it
+#    docker compose --profile cli up -d --build
 #    docker compose --profile host up -d
 #    docker compose --profile cliproxyapi up -d
 #    docker compose --profile cli --profile cliproxyapi up -d
 #    docker compose --profile base --profile memory up -d   # adds Qdrant sidecar
 #    docker compose --profile base --profile bifrost up -d  # adds Bifrost sidecar
+#
+#  Docker Compose uses `--profile <name> <command>`; `load profile` is not a
+#  valid command. The `base` profile has no CLI tools, and `host` is Linux-only.
+#  Windows Docker Desktop users who need the four bundled CLI packages should use `cli`.
 #
 #  See docs/architecture/cluster-decisions.md for the per-component rationale
 #  (Qdrant=opt-in, Bifrost=opt-in, Caddy=upstream LB, no Dragonfly/NATS/PG/Neo4j/MinIO).
@@ -138,6 +144,10 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - OMNIROUTE_BASE_PATH=${OMNIROUTE_BASE_PATH:-}
       - CHATGPT_WEB_CODEX_CDP_URL=http://chatgpt-web-codex-browser:9223
+      - CDP_PROXY_TOKEN=${CDP_PROXY_TOKEN:-}
+      - CDP_PROXY_TOKEN_FILE=/cdp-token/token
+    volumes:
+      - chatgpt-web-codex-cdp-token:/cdp-token:ro
     ports:
       - "${APP_BIND_HOST:-127.0.0.1}:${DASHBOARD_PORT:-20128}:${DASHBOARD_PORT:-20128}"
       - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
@@ -168,9 +178,13 @@ services:
     restart: unless-stopped
     shm_size: "2gb"
     environment:
+      # #14486: fail-closed. Empty CDP_PROXY_TOKEN => the proxy generates a
+      # secret into the shared cdp-token volume that omniroute-web reads.
       - CDP_PROXY_TOKEN=${CDP_PROXY_TOKEN:-}
+      - CDP_PROXY_TOKEN_FILE=/cdp-token/token
     volumes:
       - chatgpt-web-codex-browser-data:/browser-profile
+      - chatgpt-web-codex-cdp-token:/cdp-token
     networks:
       - chatgpt-web-codex-net
     profiles:
@@ -408,6 +422,8 @@ networks:
   chatgpt-web-codex-net: {}
 
 volumes:
+  chatgpt-web-codex-cdp-token:
+    name: omniroute-chatgpt-web-codex-cdp-token
   chatgpt-web-codex-browser-data:
     name: omniroute-chatgpt-web-codex-browser-data
   cliproxyapi-data:

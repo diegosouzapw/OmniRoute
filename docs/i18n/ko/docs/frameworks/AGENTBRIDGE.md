@@ -187,70 +187,70 @@ AGENTBRIDGE_UPSTREAM_CA_CERT=/path/to/corporate-ca.pem
 
 ### 3.1 MITM 서버 시작/중지
 
-`/dashboard/tools/agent-bridge`에서 AgentBridge 서버 카드를 사용합니다.
+`/dashboard/tools/agent-bridge`의 AgentBridge 서버 카드를 사용합니다.
 
-| 작업            | 설명                                                               |
-| --------------- | ------------------------------------------------------------------ |
-| 서버 시작       | 포트 443에서 `src/mitm/server.cjs`를 실행합니다                    |
-| 서버 중지       | 자식 프로세스를 정상적으로 종료합니다                              |
-| 서버 재시작     | 중지 후 시작합니다(대상 변경 사항이 적용됨)                        |
-| 인증서 신뢰     | `DATA_DIR/mitm/ca.crt`를 OS 신뢰 저장소에 설치합니다               |
-| 인증서 다운로드 | 수동 설치를 위해 `ca.crt`를 다운로드합니다                         |
-| 인증서 재생성   | 새 CA 키 쌍을 생성합니다(기존의 모든 에이전트별 인증서가 무효화됨) |
+| 작업            | 설명                                                       |
+| --------------- | ---------------------------------------------------------- |
+| 서버 시작       | 포트 443에서 `src/mitm/server.cjs`를 실행                  |
+| 서버 중지       | 자식 프로세스를 정상적으로 종료                            |
+| 서버 재시작     | 중지 후 시작(대상 변경 사항 적용)                          |
+| 인증서 신뢰     | `DATA_DIR/mitm/ca.crt`를 OS 신뢰 저장소에 설치             |
+| 인증서 다운로드 | 수동 설치를 위해 `ca.crt` 다운로드                         |
+| 인증서 재생성   | 새 CA 키 쌍 생성(기존의 모든 에이전트별 인증서가 무효화됨) |
 
 ### 3.2 인증서 신뢰 설정
 
-IDE가 MITM 연결을 허용하려면 먼저 OS에서 AgentBridge CA 인증서를 신뢰해야 합니다.
+IDE가 MITM 연결을 허용하려면 먼저 OS에서 AgentBridge CA 인증서를 신뢰하도록 설정해야 합니다.
 
-**Linux (NSS — Chrome/Firefox):**
+**Linux(NSS — Chrome/Firefox):**
 
 ```bash
 certutil -A -d sql:$HOME/.pki/nssdb -n "OmniRoute AgentBridge" -t CT,, -i ~/.omniroute/mitm/ca.crt
 ```
 
-**macOS (키체인):**
+**macOS(Keychain):**
 
 ```bash
 sudo security add-trusted-cert -d -r trustRoot \
   -k /Library/Keychains/System.keychain ~/.omniroute/mitm/ca.crt
 ```
 
-**Windows (certmgr):**
+**Windows(certmgr):**
 
 ```powershell
 certutil -addstore -f Root $env:USERPROFILE\.omniroute\mitm\ca.crt
 ```
 
-또는 대시보드의 "인증서 신뢰" 버튼을 사용합니다(OS에 적합한 명령을 실행하며, 필요한 경우 sudo를 요청함).
+또는 대시보드의 "인증서 신뢰" 버튼을 사용합니다(OS에 적합한 명령을 실행하며, 필요한 경우 sudo 프롬프트가 표시됨).
 
 #### Electron 기반 IDE는 OS 신뢰 저장소를 무시함(`NODE_EXTRA_CA_CERTS`)
 
-일부 IDE, 특히 **Antigravity IDE**와 기타 Electron / VS Code 파생 앱은 아웃바운드
-`fetch`/HTTPS에 대해 **OS 신뢰 저장소를 참조하지 않는** 자체 Node.js 런타임을 포함합니다.
-OS/NSS 수준에서 CA를 신뢰하도록 설정하면 IDE의 네이티브 **백엔드**(예: OS CA 번들을 사용하는
-Go 언어 서버)에는 충분하지만, **Electron 프런트엔드**에서는 여전히 TLS가 실패합니다. MITM
-로그에 백엔드의 부트스트랩 호출이 `200`을 반환하는 것으로 표시되더라도 앱에서는 _로그아웃된_
-상태이거나 _"연결 오류"_가 표시됩니다. 다음 두 단계가 필요하며, 둘 다 중요합니다.
+일부 IDE, 특히 **Antigravity IDE**와 기타 Electron / VS Code 파생 앱은 자체
+Node.js 런타임을 번들로 제공하며, 이 런타임은 외부 `fetch`/HTTPS 연결에
+**OS 신뢰 저장소를 사용하지 않습니다**. OS/NSS 수준에서 CA를 신뢰하도록 설정하면 IDE의 네이티브 **백엔드**
+(예: OS CA 번들을 사용하는 Go 언어 서버)에는 충분하지만, **Electron 프런트엔드**에서는
+여전히 TLS가 실패합니다. MITM 로그에는 백엔드의 부트스트랩 호출이 `200`을 반환한다고 표시되더라도,
+앱에서는 _로그아웃된_ 상태로 나타나거나 _"연결 오류"_가 표시됩니다.
+다음 두 단계가 필요하며, 둘 다 중요합니다.
 
 1. 런타임에서 CA를 명시적으로 지정합니다.
    ```bash
    export NODE_EXTRA_CA_CERTS=/path/to/omniroute-agentbridge-ca.crt
    ```
 2. **해당 셸에서 IDE를 실행합니다.** 데스크톱 아이콘 / Dock / 시작 메뉴에서 실행하면
-   셸의 export 설정을 **상속하지 않으며**, `~/.config/environment.d/*.conf`는 새로운
-   그래픽 로그인 이후에만 적용됩니다. 먼저 IDE를 완전히 종료해야 합니다. Electron의
-   싱글턴 잠금으로 인해 두 번째 실행은 기존 프로세스에 포커스만 주며 새 환경은 무시됩니다.
+   셸의 내보낸 환경 변수가 상속되지 않으며, `~/.config/environment.d/*.conf`는 새로
+   그래픽 로그인을 한 후에만 적용됩니다. 먼저 IDE를 완전히 종료해야 합니다. Electron의 싱글턴 잠금 때문에 두 번째로
+   실행하면 기존 프로세스에 포커스만 이동하고 새 환경은 무시됩니다.
 
-위의 OS 신뢰 + NSS 단계도 여전히 필요합니다. 일부 인증 흐름에서 사용하는 Chromium 네트워크
-스택은 사용자별 NSS 저장소를 읽으며, `*.googleapis.com`에 자체 정적 핀을 적용하지만 로컬에서
-신뢰하는 CA가 이를 재정의합니다. `NODE_EXTRA_CA_CERTS`는 여기에 더해 Node `fetch` 경로를
-처리합니다.
+위의 OS 신뢰 + NSS 단계도 계속 필요합니다(일부 인증 흐름에서 사용하는 Chromium 네트워크
+스택은 사용자별 NSS 저장소를 읽으며, 로컬에서 신뢰하는 CA로 재정의되는 `*.googleapis.com`용
+정적 핀도 자체적으로 보유함). `NODE_EXTRA_CA_CERTS`는 이에 더해 Node `fetch` 경로를 처리합니다.
 
 ### 3.3 DNS 라우팅
 
-가로채려는 각 에이전트의 API 호스트가 `127.0.0.1`로 확인되어야 합니다. 설정 마법사에서 에이전트의 DNS를 전환하면 AgentBridge가 `/etc/hosts` 항목을 자동으로 관리합니다.
+가로채려는 각 에이전트의 API 호스트는 `127.0.0.1`로 해석되어야 합니다. 설정 마법사에서 에이전트의 DNS를 전환하면 AgentBridge가 `/etc/hosts` 항목을 자동으로 관리합니다.
 
-GitHub Copilot의 `/etc/hosts` 항목 예시:
+GitHub Copilot용 `/etc/hosts` 항목 예시:
 
 ```
 127.0.0.1 api.githubcopilot.com
@@ -264,60 +264,68 @@ GitHub Copilot의 `/etc/hosts` 항목 예시:
 | 소스 모델(에이전트 네이티브) | 대상 모델(OmniRoute) |
 | ---------------------------- | -------------------- |
 | `gpt-4o`                     | `claude-sonnet-4.7`  |
-| `*` (와일드카드)             | `claude-haiku-4.7`   |
+| `*`(와일드카드)              | `claude-haiku-4.7`   |
 
-와일드카드 `*`는 인식되지 않는 모든 모델을 지정된 대상으로 매핑합니다. 매핑은 `agent_bridge_mappings` 테이블에 영구 저장됩니다.
+와일드카드 `*`는 인식되지 않는 모든 모델을 지정된 대상으로 매핑합니다. 매핑은 `agent_bridge_mappings` 테이블에 저장됩니다.
 
-> **팁 — 에이전트의 실제 모델 ID 확인하기.** IDE는 UI 레이블과 다른 모델 이름을 전송할 수
-> 있으며, 이러한 이름은 메이저 버전 간에 변경될 수 있습니다. 예를 들어 **Antigravity 2**는
-> 이전 문서에 표시된 `gemini-2.5-pro`가 아니라 `gemini-3.1-pro-low`,
-> `gemini-pro-agent`, `gemini-3.1-flash-lite`를 실제 통신에서 전송합니다. 일치하는 매핑이
-> 없는 상태에서 채팅을 한 번 보내면 MITM이 정확한 수신 `model:`을 기록하고 요청을 그대로
-> 전달합니다. 해당 리터럴 값을 매핑하면 다음 요청부터 가로채 대상 모델로 라우팅합니다.
+> **팁 — 에이전트의 실제 모델 ID를 확인하세요.** IDE는 UI 레이블과 다른 모델 이름을
+> 전송할 수 있으며, 이 이름은 메이저 버전이 바뀔 때 변경될 수 있습니다. 예를 들어 **Antigravity 2**는
+> 이전 문서에 표시된 `gemini-2.5-pro`가 아니라 `gemini-3.1-pro-low`, `gemini-pro-agent`,
+> `gemini-3.1-flash-lite`를 네트워크를 통해 전송합니다. 일치하는 매핑이 없는 상태에서 채팅을 한 번 보내면 MITM이
+> 정확한 수신 `model:` 값을 로그에 기록하고 요청을 그대로 전달합니다. 해당 리터럴 값을 매핑하면
+> 다음 요청부터 가로채 대상 모델로 라우팅합니다.
 
 ### 3.5 위험 고지
 
-AgentBridge는 IDE가 업스트림 공급자 인증에 사용하는 자격 증명(OAuth 토큰, API 키)을 가로챕니다. 이러한 정보는 **로깅 전에 마스킹되지만**(§2.7 참조) OmniRoute의 MITM 계층에서는 볼 수 있습니다. 각 에이전트를 처음 활성화하면 닫을 수 있는 위험 고지 모달이 표시됩니다.
+AgentBridge는 IDE가 업스트림 공급자 인증에 사용하는 자격 증명(OAuth 토큰, API 키)을 가로챕니다. 이러한 정보는 **로깅 전에 마스킹**되지만(§2.7 참조), OmniRoute의 MITM 계층에는 노출됩니다. 각 에이전트를 처음 활성화하면 닫을 수 있는 위험 고지 모달이 표시됩니다.
 
-### 3.6 유지보수 및 진단
+### 3.6 유지 관리 및 진단
 
-대시보드는 이전에는 UI가 없었던 운영용 MITM 경로를 제공하는 **유지보수 및 진단** 카드(`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`에 위치)를 제공합니다. 부제는 _"캡처 파이프라인을 자체 테스트하고, 남아 있는 시스템 상태를 되돌리며, 머신 간에 설정을 이전하세요."_입니다. 카드 클라이언트 헬퍼는 `src/lib/inspector/agentBridgeMaintenanceApi.ts`에 있습니다.
+대시보드는 이전에는 UI가 없었던 운영용 MITM 경로를 표시하는 **유지 관리 및 진단** 카드(`AgentBridgeMaintenanceCard`, `src/app/(dashboard)/dashboard/tools/agent-bridge/components/`에 위치)를 제공합니다. 부제는 _"캡처 파이프라인을 자체 테스트하고, 남아 있는 시스템 상태를 되돌리고, 설정을 다른 머신으로 이전하세요."_입니다. 카드의 클라이언트 헬퍼는 `src/lib/inspector/agentBridgeMaintenanceApi.ts`에 있습니다.
 
-| 버튼              | 경로                                   | 기능                                                                                                                                                                                        |
-| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **진단**          | `GET /api/tools/agent-bridge/diagnose` | 캡처 파이프라인 자체 테스트를 실행하고 검사별 보고서(✓/✗ + 해결 방법 힌트)를 표시합니다.                                                                                                    |
-| **복구**          | `POST /api/tools/agent-bridge/repair`  | 충돌 또는 SIGKILL로 인해 남겨진 고립된 MITM 시스템 상태(DNS 스푸핑 항목, 루트 CA, 시스템 프록시)를 되돌립니다. 멱등성을 가지며, 상태가 정상인 경우 "복구할 항목이 없습니다"라고 보고합니다. |
-| **CA 제거**       | `DELETE /api/tools/agent-bridge/cert`  | OS 신뢰 저장소에서 MITM 루트 CA의 신뢰를 해제하고 제거합니다(명시적이며 멱등성을 가짐). 현재 CA가 신뢰된 경우에만 표시되며, 인라인 "CA를 제거하시겠습니까?" 확인이 필요합니다.              |
-| **구성 내보내기** | `GET /api/tools/agent-bridge/config`   | 이식 가능한 구성 JSON을 다운로드합니다(§3.7 참조).                                                                                                                                          |
-| **구성 가져오기** | `POST /api/tools/agent-bridge/config`  | 이전에 내보낸 구성 JSON을 업로드합니다(§3.7 참조).                                                                                                                                          |
+| 버튼              | 경로                                   | 기능                                                                                                                                                                              |
+| ----------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **진단**          | `GET /api/tools/agent-bridge/diagnose` | 캡처 파이프라인 자체 테스트를 실행하고 검사별 보고서(✓/✗ + 해결 방법 힌트)를 표시합니다.                                                                                          |
+| **복구**          | `POST /api/tools/agent-bridge/repair`  | 충돌이나 SIGKILL로 인해 남겨진 고립된 MITM 시스템 상태(DNS 스푸핑 항목, 루트 CA, 시스템 프록시)를 되돌립니다. 멱등성을 보장하며, 상태가 깨끗하면 "복구할 항목 없음"을 보고합니다. |
+| **CA 제거**       | `DELETE /api/tools/agent-bridge/cert`  | OS 신뢰 저장소에서 MITM 루트 CA의 신뢰를 해제하고 제거합니다(명시적이고 멱등적인 작업). CA가 현재 신뢰된 경우에만 표시되며, 인라인 "CA를 제거하시겠습니까?" 확인이 필요합니다.    |
+| **구성 내보내기** | `GET /api/tools/agent-bridge/config`   | 이식 가능한 구성 JSON을 다운로드합니다(§3.7 참조).                                                                                                                                |
+| **구성 가져오기** | `POST /api/tools/agent-bridge/config`  | 이전에 내보낸 구성 JSON을 업로드합니다(§3.7 참조).                                                                                                                                |
 
-**진단 검사**(`src/mitm/inspector/diagnostics.ts`의 `summarizeDiagnostics()`). 경로는 각 항목에 대해 부수 효과가 있는 프로브를 실행하고, 불리언 값을 순수 요약 함수에 전달합니다. 단일 `healthy` 판정과 실패 항목별 힌트가 반환됩니다.
+각 에이전트 카드에는 자체 **기본값 복원** 버튼(`POST
+/api/tools/agent-bridge/agents/{id}/reset`)도 있습니다. 이는 클릭 한 번으로 에이전트별 변경 사항을 되돌리는 기능으로, 해당
+에이전트의 호스트에 대해서만 스푸핑을 해제하고, 저장된 모델 매핑을 지우며, `dns_enabled`/`setup_completed`
+상태를 재설정합니다. 따라서 IDE를 완전히 다시 시작하면 실제 업스트림과 다시 통신합니다. 이 작업은 공유
+MITM 서버나 루트 CA에는 영향을 주지 않습니다(다른 에이전트가 여전히 이에 의존할 수 있음). 해당 항목에는
+서버 카드와 위의 **CA 제거** 작업을 통해 계속 접근할 수 있습니다. Windows에서는 Windows DNS Client가 hosts 파일 항목을 캐시하여
+방금 제거한 스푸핑을 그대로 유지하기 때문에, 최선형 방식으로 `ipconfig /flushdns`도 실행합니다.
 
-| 검사 이름          | 확인하는 내용                                                | 실패 시 힌트                                                                                                                       |
-| ------------------ | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `server-running`   | MITM 서버 프로세스가 실행 중인지 확인                        | "MITM 서버가 실행 중이 아닙니다. AgentBridge 탭에서 시작하세요."                                                                   |
-| `server-reachable` | MITM 서버가 해당 포트에서 연결을 수락하는지 확인(TCP 프로브) | "MITM 서버가 해당 포트에서 연결을 수락하지 않습니다. 포트를 사용할 수 있는지, 그리고 포트에 바인딩할 권한이 있는지 확인하세요."    |
-| `cert-exists`      | MITM 인증서가 디스크에 생성되었는지 확인                     | "아직 MITM 인증서가 생성되지 않았습니다. AgentBridge 탭에서 인증서를 생성하세요."                                                  |
-| `cert-trusted`     | MITM 루트 CA가 OS 신뢰 저장소에 있는지 확인                  | "MITM 루트 CA가 OS 저장소에서 신뢰되지 않으므로 TLS 가로채기가 실패합니다. AgentBridge 탭에서 인증서를 신뢰하도록 설정하세요."     |
-| `dns-configured`   | 대상 호스트 이름이 `/etc/hosts`에서 스푸핑되는지 확인        | "대상 호스트 이름이 /etc/hosts에서 스푸핑되지 않아 트래픽이 프록시에 도달하지 않습니다. 캡처하려는 에이전트의 DNS를 활성화하세요." |
+**진단 검사**(`src/mitm/inspector/diagnostics.ts`의 `summarizeDiagnostics()`). 이 경로는 각 항목에 대해 부수 효과가 있는 프로브를 실행하고 불리언 값을 순수 요약 함수에 전달합니다. 단일 `healthy` 판정과 실패별 힌트가 반환됩니다.
 
-**고립된 상태 배너:** 페이지가 충돌로 인해 남겨진 상태(DNS 스푸핑 / CA / 시스템 프록시)를 감지하면 카드에 황색 배너—_"이전 세션에서 시스템 상태(DNS 스푸핑, CA 또는 시스템 프록시)가 남았습니다. 복구를 실행하여 정리하세요."_—가 표시되고 **복구** 버튼이 강조됩니다. `Repair`는 애플리케이션 계층에서 ProxyBridge의 `--cleanup` 플래그에 대응하는 기능입니다(`src/mitm/manager.ts`의 `repairMitm()`에 위임).
+| 검사 이름          | 확인하는 내용                                                | 실패 시 힌트                                                                                                                        |
+| ------------------ | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `server-running`   | MITM 서버 프로세스가 활성 상태인지 확인                      | "MITM 서버가 실행되고 있지 않습니다. AgentBridge 탭에서 시작하세요."                                                                |
+| `server-reachable` | MITM 서버가 해당 포트에서 연결을 수락하는지 확인(TCP 프로브) | "MITM 서버가 해당 포트에서 연결을 수락하지 않습니다. 포트를 사용할 수 있는지, 그리고 포트에 바인딩할 권한이 있는지 확인하세요."     |
+| `cert-exists`      | MITM 인증서가 디스크에 생성되었는지 확인                     | "아직 MITM 인증서가 생성되지 않았습니다. AgentBridge 탭에서 생성하세요."                                                            |
+| `cert-trusted`     | MITM 루트 CA가 OS 신뢰 저장소에 있는지 확인                  | "MITM 루트 CA가 OS 저장소에서 신뢰되지 않으므로 TLS 가로채기가 실패합니다. AgentBridge 탭에서 인증서를 신뢰하도록 설정하세요."      |
+| `dns-configured`   | 대상 호스트 이름이 `/etc/hosts`에서 스푸핑되었는지 확인      | "대상 호스트 이름이 /etc/hosts에서 스푸핑되지 않아 트래픽이 프록시에 도달하지 않습니다. 캡처할 에이전트에 대해 DNS를 활성화하세요." |
 
-> MITM 루트 CA는 sudo 프롬프트가 반복해서 표시되는 것을 방지하기 위해 중지/시작 후에도
-> 설치된 상태로 유지됩니다(mitmproxy/Charles와 동일한 동작). 따라서 중지 시 자동으로
-> 제거되는 대신 명시적인 **CA 제거** 작업을 통해 제거해야 합니다.
+**고립 상태 배너:** 페이지에서 충돌로 인해 남겨진 상태(DNS 스푸핑/CA/시스템 프록시)를 감지하면 카드에 황색 배너가 표시됩니다. _"이전 세션에서 시스템 상태(DNS 스푸핑, CA 또는 시스템 프록시)가 남았습니다. 복구를 실행하여 정리하세요."_라는 메시지와 함께 **복구** 버튼이 강조 표시됩니다. `Repair`는 애플리케이션 계층에서 ProxyBridge의 `--cleanup` 플래그에 대응하는 기능입니다(`src/mitm/manager.ts`의 `repairMitm()`에 위임).
+
+> MITM 루트 CA는 반복적인 sudo 프롬프트를 방지하기 위해 중지/시작 후에도 설치된 상태로
+> 유지됩니다(mitmproxy/Charles와 동일한 동작). 따라서 CA 제거는 중지 시 자동으로
+> 수행되는 작업이 아니라 명시적인 **CA 제거** 작업입니다.
 
 ### 3.7 이식 가능한 구성 가져오기/내보내기
 
-AgentBridge는 **운영자가 조정할 수 있는** 상태를 버전이 지정된 JSON 블롭으로 직렬화하여 여러 머신에서 설정을 복제할 수 있습니다. 직렬화 도구는 `src/lib/inspector/configPortability.ts`의 `exportConfig()` / `importConfig()`이며, `AgentBridgeConfigSchema`로 검증됩니다.
+AgentBridge는 **운영자가 조정할 수 있는** 상태를 버전이 지정된 JSON 블롭으로 직렬화하여 여러 시스템에서 설정을 복제할 수 있습니다. 직렬화기는 `src/lib/inspector/configPortability.ts`의 `exportConfig()` / `importConfig()`이며, `AgentBridgeConfigSchema`로 유효성을 검사합니다.
 
-내보내기에는 정확히 세 가지 항목이 포함됩니다(기본 제공 기본값은 의도적으로 **내보내지 않으므로**, 가져올 때 기본값이 중복되거나 충돌하지 않습니다).
+내보내기에는 정확히 세 가지 항목이 포함됩니다(가져올 때 기본 제공 기본값이 중복되거나 충돌하지 않도록 의도적으로 내보내지 **않습니다**).
 
 | 필드             | 소스                                                           | 참고                                                                   |
 | ---------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | `bypassPatterns` | 사용자 정의 우회 패턴(`agent_bridge_bypass`)                   | 기본 bank/gov/okta 패턴은 제외됨                                       |
 | `customHosts`    | Traffic Inspector 사용자 정의 호스트(`inspector_custom_hosts`) | 각 항목: `{ host, kind: "llm"\|"app"\|"custom", label? }`              |
-| `agentMappings`  | 에이전트별 모델 매핑(`agent_bridge_mappings`)                  | 매핑이 있는 모든 에이전트에 대한 `{ [agentId]: [{ source, target }] }` |
+| `agentMappings`  | 에이전트별 모델 매핑(`agent_bridge_mappings`)                  | 매핑이 있는 모든 에이전트에 대해 `{ [agentId]: [{ source, target }] }` |
 
 ```jsonc
 // GET /api/tools/agent-bridge/config
@@ -331,13 +339,13 @@ AgentBridge는 **운영자가 조정할 수 있는** 상태를 버전이 지정�
 }
 ```
 
-**가져오기 동작**(`POST /api/tools/agent-bridge/config`): 우회 패턴과 에이전트별 매핑은 **전체가 대체**되며, 사용자 정의 호스트는 **멱등적으로** 추가됩니다(`INSERT OR IGNORE`). 응답에는 각 항목이 몇 개씩 적용되었는지가 보고됩니다.
+**가져오기 동작**(`POST /api/tools/agent-bridge/config`): 우회 패턴과 에이전트별 매핑은 **전체가 교체**되며, 사용자 정의 호스트는 **멱등적으로** 추가됩니다(`INSERT OR IGNORE`). 응답에는 각 항목이 몇 개씩 적용되었는지 표시됩니다.
 
 ```jsonc
 { "ok": true, "bypassPatterns": 1, "customHosts": 1, "agents": 1 }
 ```
 
-구성에 **포함되지 않는** 항목: 서버 실행 상태, 인증서 경로, 에이전트별 DNS 상태, 업스트림 CA 경로, TPROXY 설정 — 이러한 항목은 이식 가능한 기본 설정이 아니라 호스트/런타임 상태입니다.
+설정에 **포함되지 않는 항목**: 서버 실행 상태, 인증서 경로, 에이전트별 DNS 상태, 업스트림 CA 경로 및 TPROXY 설정 — 이러한 항목은 이식 가능한 기본 설정이 아니라 호스트/런타임 상태입니다.
 
 ---
 
@@ -489,37 +497,38 @@ AgentBridge가 요청을 가로채지만 모든 요청이 실패하는 경우:
 
 ## §7 API 참조
 
-모든 라우트는 `LOCAL_ONLY`(루프백 전용이며 인증 전에 적용됨)이자 `SPAWN_CAPABLE`입니다. `src/server/authz/routeGuard.ts`를 참조하세요.
+모든 라우트는 `LOCAL_ONLY`(루프백 전용, 인증 전에 적용됨)이자 `SPAWN_CAPABLE`입니다. `src/server/authz/routeGuard.ts`를 참조하세요.
 
 기본 경로: `/api/tools/agent-bridge/`
 
-| 메서드              | 경로                                           | 설명                                                                                                                   |
-| ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| GET                 | `/api/tools/agent-bridge/state`                | 전역 서버 상태 + 에이전트별 감지/상태                                                                                  |
-| GET                 | `/api/tools/agent-bridge/agents`               | 등록된 에이전트 목록(id, 이름, 호스트, 사용 가능 여부, 상태)                                                           |
-| GET                 | `/api/tools/agent-bridge/agents/{id}`          | 단일 에이전트의 상태(대상 구성 + 감지 + 저장된 상태)                                                                   |
-| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | 에이전트의 `setup_completed` 업데이트                                                                                  |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | 에이전트 감지 프로브 실행(`installed`, `version?`, `path?`)                                                            |
-| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | 에이전트의 DNS 활성화/비활성화(`{enabled: boolean}`)                                                                   |
-| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 에이전트의 모델 매핑                                                                                                   |
-| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 모델 매핑 교체                                                                                                         |
-| POST                | `/api/tools/agent-bridge/server`               | 서버 시작/중지/재시작(`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                           |
-| GET                 | `/api/tools/agent-bridge/cert`                 | 인증서 상태(`exists`, `trusted`, `path`)                                                                               |
-| POST                | `/api/tools/agent-bridge/cert`                 | MITM 루트 CA 신뢰 설정(설치)                                                                                           |
-| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM 루트 CA 신뢰 해제(제거) — 멱등성 보장(§3.6 참조)                                                                  |
-| POST                | `/api/tools/agent-bridge/cert/regenerate`      | 자체 서명 MITM 인증서 재생성                                                                                           |
-| GET                 | `/api/tools/agent-bridge/cert/download`        | 다운로드용 PEM 인증서 스트리밍                                                                                         |
-| GET                 | `/api/tools/agent-bridge/bypass`               | 우회 패턴 목록(`default` + `user`)                                                                                     |
-| POST                | `/api/tools/agent-bridge/bypass`               | 사용자 정의 우회 패턴 전체 교체                                                                                        |
-| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | 단일 사용자 정의 우회 패턴 제거                                                                                        |
-| GET                 | `/api/tools/agent-bridge/diagnose`             | 캡처 파이프라인 자체 테스트(§3.6 참조)                                                                                 |
-| POST                | `/api/tools/agent-bridge/repair`               | 고립된 MITM 시스템 상태 되돌리기(§3.6 참조)                                                                            |
-| GET                 | `/api/tools/agent-bridge/config`               | 이식 가능한 구성 JSON 내보내기(§3.7 참조)                                                                              |
-| POST                | `/api/tools/agent-bridge/config`               | 이식 가능한 구성 JSON 가져오기(§3.7 참조)                                                                              |
-| GET                 | `/api/tools/agent-bridge/upstream-ca`          | 구성된 업스트림 CA 경로 가져오기                                                                                       |
-| POST                | `/api/tools/agent-bridge/upstream-ca`          | 업스트림 CA 경로 검증 + 저장                                                                                           |
-| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | 업스트림 CA 경로 검증만 수행(드라이런) — 저장하지 않음                                                                 |
-| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY 투명 복호화 캡처 모드 — `docs/security/MITM-TPROXY-DECRYPT.md` 참조(git에 포함되며 `/docs`에는 컴파일되지 않음) |
+| 메서드              | 경로                                           | 설명                                                                                                                 |
+| ------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| GET                 | `/api/tools/agent-bridge/state`                | 전역 서버 상태 + 에이전트별 감지/상태                                                                                |
+| GET                 | `/api/tools/agent-bridge/agents`               | 등록된 에이전트 목록(id, name, hosts, viability, state)                                                              |
+| GET                 | `/api/tools/agent-bridge/agents/{id}`          | 단일 에이전트의 상태(대상 구성 + 감지 + 저장된 상태)                                                                 |
+| PATCH               | `/api/tools/agent-bridge/agents/{id}`          | 에이전트의 `setup_completed` 업데이트                                                                                |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/detect`   | 에이전트 감지 프로브 실행(`installed`, `version?`, `path?`)                                                          |
+| POST                | `/api/tools/agent-bridge/agents/{id}/dns`      | 에이전트의 DNS 활성화/비활성화(`{enabled: boolean}`)                                                                 |
+| GET                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 에이전트의 모델 매핑                                                                                                 |
+| PUT                 | `/api/tools/agent-bridge/agents/{id}/mappings` | 모델 매핑 교체                                                                                                       |
+| POST                | `/api/tools/agent-bridge/agents/{id}/reset`    | 기본값 복원: 이 에이전트의 DNS 스푸핑을 해제하고, 매핑을 지우며, 상태를 재설정(§3.6 참조)                            |
+| POST                | `/api/tools/agent-bridge/server`               | 서버 시작/중지/재시작(`action: "start"\|"stop"\|"restart"\|"trust-cert"\|"regenerate-cert"`)                         |
+| GET                 | `/api/tools/agent-bridge/cert`                 | 인증서 상태(`exists`, `trusted`, `path`)                                                                             |
+| POST                | `/api/tools/agent-bridge/cert`                 | MITM 루트 CA 신뢰(설치)                                                                                              |
+| DELETE              | `/api/tools/agent-bridge/cert`                 | MITM 루트 CA 신뢰 해제(제거) — 멱등성 보장(§3.6 참조)                                                                |
+| POST                | `/api/tools/agent-bridge/cert/regenerate`      | 자체 서명 MITM 인증서 재생성                                                                                         |
+| GET                 | `/api/tools/agent-bridge/cert/download`        | 다운로드용 PEM 인증서 스트리밍                                                                                       |
+| GET                 | `/api/tools/agent-bridge/bypass`               | 우회 패턴 목록(`default` + `user`)                                                                                   |
+| POST                | `/api/tools/agent-bridge/bypass`               | 사용자 정의 우회 패턴 전체 교체                                                                                      |
+| DELETE              | `/api/tools/agent-bridge/bypass?pattern=...`   | 단일 사용자 정의 우회 패턴 제거                                                                                      |
+| GET                 | `/api/tools/agent-bridge/diagnose`             | 캡처 파이프라인 자체 테스트(§3.6 참조)                                                                               |
+| POST                | `/api/tools/agent-bridge/repair`               | 고립된 MITM 시스템 상태 되돌리기(§3.6 참조)                                                                          |
+| GET                 | `/api/tools/agent-bridge/config`               | 이식 가능한 구성 JSON 내보내기(§3.7 참조)                                                                            |
+| POST                | `/api/tools/agent-bridge/config`               | 이식 가능한 구성 JSON 가져오기(§3.7 참조)                                                                            |
+| GET                 | `/api/tools/agent-bridge/upstream-ca`          | 구성된 업스트림 CA 경로 가져오기                                                                                     |
+| POST                | `/api/tools/agent-bridge/upstream-ca`          | 업스트림 CA 경로 검증 + 영구 저장                                                                                    |
+| POST                | `/api/tools/agent-bridge/upstream-ca/test`     | 업스트림 CA 경로의 검증만 수행(드라이런) — 영구 저장하지 않음                                                        |
+| GET / POST / DELETE | `/api/tools/agent-bridge/tproxy`               | TPROXY 투명 복호화 캡처 모드 — `docs/security/MITM-TPROXY-DECRYPT.md` 참조(git에 있으며 `/docs`에는 컴파일되지 않음) |
 
 전체 OpenAPI 스키마: `docs/openapi.yaml` → 태그 `AgentBridge`.
 

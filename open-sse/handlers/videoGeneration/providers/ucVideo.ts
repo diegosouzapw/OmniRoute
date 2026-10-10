@@ -49,8 +49,10 @@
 // Residential egress / TLS (if any) is applied transparently at the infra layer;
 // nothing egress-specific lives here. The handler is pure and testable: fetch and
 // sleep are injectable so unit tests drive the upload -> generate -> poll sequence
-// with no live network.
+// with no live network. The exception is downloading an http(s) input image, which goes
+// through the guarded remote-image fetch (its own test seam is setPinnedFetchTestOverride).
 
+import { fetchUntrustedRemoteImage } from "@/shared/network/remoteImageFetch";
 import { resolveUcCredential } from "../../../executors/uc/credentials.ts";
 import { mintUcSessionToken } from "../../../executors/uc/clerkAuth.ts";
 import { UC_ORIGIN } from "../../../executors/uc/constants.ts";
@@ -274,8 +276,8 @@ function isDirectFailed(status: string | undefined): boolean {
 /** Decode an input image reference into raw bytes for the signed-URL PUT. */
 async function resolveImageBytes(
   ref: string,
-  fetchImpl: typeof fetch,
-  signal: AbortSignal | undefined
+  signal: AbortSignal | undefined,
+  log?: UcVideoLog | null
 ): Promise<Uint8Array | null> {
   // data URL: data:image/png;base64,<payload>
   const dataMatch = /^data:[^;]*;base64,(.*)$/.exec(ref);
@@ -286,14 +288,19 @@ async function resolveImageBytes(
       return null;
     }
   }
-  // http(s) URL: fetch the bytes.
+  // http(s) URL from the request body: public addresses only, DNS pinned, size capped.
   if (/^https?:\/\//i.test(ref)) {
     try {
-      const resp = await fetchImpl(ref, { method: "GET", signal });
-      if (!resp.ok) return null;
-      const buf = await resp.arrayBuffer();
-      return new Uint8Array(buf);
-    } catch {
+      const remote = await fetchUntrustedRemoteImage(ref, { signal });
+      return remote.buffer;
+    } catch (error) {
+      // The caller only reports that the image could not be decoded; the reason stays here.
+      log?.error?.(
+        "VIDEO",
+        `uc-video input image download failed: ${sanitizeErrorMessage(
+          error instanceof Error ? error.message : String(error)
+        )}`
+      );
       return null;
     }
   }
@@ -415,7 +422,7 @@ async function handleUcPersonaVideo(ctx: PersonaContext): Promise<UcVideoResult>
 
   if (inputImage) {
     // Image-to-video: (1) signed URL, (2) PUT bytes, (3) generate.
-    const bytes = await resolveImageBytes(inputImage, fetchImpl, signal);
+    const bytes = await resolveImageBytes(inputImage, signal, log);
     if (!bytes) {
       return {
         success: false,

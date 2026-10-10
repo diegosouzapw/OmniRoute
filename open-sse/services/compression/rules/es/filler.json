@@ -4,19 +4,21 @@
   "rules": [
     {
       "name": "es_polite_framing",
-      "pattern": "\\b(?:por favor|podrias|podrías|puedes|me gustaria que|me gustaría que|necesito que)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:por favor|podrias|podrías|puedes|me gustaria que|me gustaría que|necesito que)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_pleasantries",
-      "pattern": "\\b(?:hola|buenos dias|buenos días|buenas tardes|gracias|muchas gracias)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:hola|buenos dias|buenos días|buenas tardes|gracias|muchas gracias)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_hedging",
@@ -28,51 +30,57 @@
     },
     {
       "name": "es_filler_adverbs",
-      "pattern": "\\b(?:basicamente|básicamente|esencialmente|en realidad|literalmente|simplemente)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:basicamente|básicamente|esencialmente|en realidad|literalmente|simplemente)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_self_reference",
-      "pattern": "^(?:estoy intentando|quiero|necesito|me gustaria|me gustaría)\\b\\s*",
+      "pattern": "^(?:estoy intentando|quiero|necesito|me gustaria|me gustaría)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "user",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_verbose_request",
-      "pattern": "\\b(?:podrias explicarme|podrías explicarme|puedes explicar|podrias detallar|podrías detallar)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:podrias explicarme|podrías explicarme|puedes explicar|podrias detallar|podrías detallar)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Explica ",
       "context": "user",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_qualifiers",
-      "pattern": "\\b(?:un poco|algo asi|algo así|mas o menos|más o menos|de alguna manera)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:un poco|algo asi|algo así|mas o menos|más o menos|de alguna manera)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_softeners",
-      "pattern": "\\b(?:si es posible|cuando puedas|sin prisa|solo queria|sólo quería)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:si es posible|cuando puedas|sin prisa|solo queria|sólo quería)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_verbose_instructions",
-      "pattern": "\\b(?:proporciona una explicacion detallada de|proporciona una explicación detallada de|dame una explicacion completa de|dame una explicación completa de|escribe una explicacion en profundidad de|escribe una explicación en profundidad de|crea una explicacion exhaustiva de|crea una explicación exhaustiva de|explica en detalle)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:proporciona una explicacion detallada de|proporciona una explicación detallada de|dame una explicacion completa de|dame una explicación completa de|escribe una explicacion en profundidad de|escribe una explicación en profundidad de|crea una explicacion exhaustiva de|crea una explicación exhaustiva de|explica en detalle)(?![\\p{L}\\p{N}_])",
       "replacement": "explica ",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_redundant_openers",
@@ -84,19 +92,21 @@
     },
     {
       "name": "es_excessive_gratitude",
-      "pattern": "\\b(?:muchisimas gracias|muchísimas gracias|gracias de antemano|te lo agradezco mucho|lo agradezco mucho)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:muchisimas gracias|muchísimas gracias|gracias de antemano|te lo agradezco mucho|lo agradezco mucho)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_uncertainty_fillers",
-      "pattern": "\\b(?:supongo que|imagino que|me da la impresion de que|me da la impresión de que|quizas|quizás)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:supongo que|imagino que|me da la impresion de que|me da la impresión de que|quizas|quizás)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_assistant_fillers",

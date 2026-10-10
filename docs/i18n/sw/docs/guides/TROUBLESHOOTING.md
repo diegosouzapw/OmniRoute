@@ -37,33 +37,33 @@ Matatizo ya kawaida na suluhisho za OmniRoute.
 
 ---
 
-### Uwekaji Kikomo cha Kasi kwa Watoa Huduma wa Bure (429 / 400 / 401)
+### Ukomo wa Kasi kwa Watoa Huduma wa Bure (429 / 400 / 401)
 
-**Dalili**: Unapotumia `model: "auto"` pamoja na watoa huduma wa bure/wasiotumia uthibitishaji (opencode, auggie, n.k.), mara kwa mara unapata `HTTP 429`, `400`, au `401` badala ya majibu. Maombi hufaulu unapojaribu tena kidokezo kilekile muda mfupi baadaye, lakini uendeshaji kiotomatiki (kazi za cron, mawakala, hati) hukatika baada ya hitilafu ya kwanza.
+**Dalili**: Unapotumia `model: "auto"` pamoja na watoa huduma wa bure/wasiohitaji uthibitishaji (opencode, auggie, n.k.), mara kwa mara unapata `HTTP 429`, `400`, au `401` badala ya majibu. Maombi hufaulu unapojaribu tena ombi lilelile muda mfupi baadaye, lakini uendeshaji otomatiki (kazi za cron, maajenti, hati) hukatizwa hitilafu ya kwanza inapotokea.
 
-**Chanzo kikuu**: Njia tatu tofauti za hitilafu hujikusanya:
+**Chanzo kikuu**: Aina tatu huru za hitilafu hujikusanya:
 
-1. **Kikomo cha kasi cha mtoa huduma (`429`)**: Viwango vya bure vinaweza kutekeleza kiwango maalum kwa kila kipindi. Mfululizo wa ghafla wa miito sambamba hukimaliza, kwa hivyo ombi linalofuata hukataliwa hadi kipindi kiwekwe upya.
-2. **Muundo wenye hitilafu katika upitishaji (`400`/`401`)**: Makundi ya `auto/*` yanaweza kujumuisha miundo ya upitishaji kutoka `opencode` ambayo imesajiliwa kwenye katalogi lakini haina vitambulisho vinavyofanya kazi (k.m. `oc/north-mini-code-free` → `401`). Kipanga-njia kiotomatiki hujaribu mmoja, hushindwa, na hitilafu husambazwa kabla ya urejeaji wa nyuma kuanza.
-3. **Uongezaji wa ushindani (`429` chini ya mzigo)**: Vipindi vingi vya wakala/cron vinapofikia `auto` kwa wakati mmoja, jumla ya kasi ya maombi huzidi kiwango ambacho watoa huduma wa bure wanaweza kuvumilia, kwa hivyo miito halali huainishwa kama matumizi mabaya.
+1. **Ukomo wa kasi wa mtoa huduma (`429`)**: Viwango vya bure vinaweza kuweka kikomo cha matumizi kwa kila kipindi. Mfululizo wa maombi sambamba humaliza kiwango hicho, hivyo ombi linalofuata hukataliwa hadi kipindi kiwekwe upya.
+2. **Muundo wenye hitilafu katika upitishaji wa moja kwa moja (`400`/`401`)**: Makundi ya `auto/*` yanaweza kujumuisha miundo ya upitishaji wa moja kwa moja kutoka `opencode` ambayo imesajiliwa katika katalogi lakini haina vitambulisho vinavyotumika (k.m. `oc/north-mini-code-free` → `401`). Kipanga-njia kiotomatiki hujaribu mmoja, hushindwa, na hitilafu huenezwa kabla ya mbinu mbadala kuanza.
+3. **Ukuzaji wa urudufishaji (`429` chini ya mzigo)**: Vipindi vingi vya maajenti/cron vinapotumia `auto` kwa wakati mmoja, kasi ya jumla ya maombi huzidi kiwango kinachovumiliwa na watoa huduma wa bure, hivyo maombi halali hutiwa alama kuwa ya matumizi mabaya.
 
-**Suluhisho lililothibitishwa (limeripotiwa na jumuiya, 2026-08-10)**: rekebisha vigezo vitatu vya mazingira ili uzungushaji, ushindani, na urejeaji wa nyuma vidhibiti mabadiliko ya kiwango cha bure badala ya kusababisha mfumo kukatika:
+**Suluhisho lililothibitishwa (limeripotiwa na jumuiya, 2026-08-10)**: rekebisha vigezo vitatu vya mazingira ili mzunguko, urudufishaji, na mbinu mbadala zikabiliane na misukosuko ya kiwango cha bure badala ya kusitishwa nayo:
 
 ```bash
-export OMNIROUTE_ROTATE_ON_400=true           # hamia kwenye muundo/mtoa huduma mwingine kwa 400/401 (huruka miundo ya upitishaji yenye hitilafu)
-export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # kiwango cha juu cha wazi cha upokeaji wa kazi nzito (hakijawekwa kwa chaguo-msingi: hakuna kikomo cha idadi ya maombi, tazama dokezo hapa chini)
-export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=5000 # muda mrefu zaidi wa kusubiri wenye kikomo kwa uwezo wa kazi nzito badala ya 503 inayoweza kujaribiwa tena mara moja
+export OMNIROUTE_ROTATE_ON_400=true           # hamia kwenye muundo/mtoa huduma mwingine baada ya 400/401 (huruka miundo ya upitishaji wa moja kwa moja yenye hitilafu)
+export OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT=4   # kiwango cha juu bayana cha kuruhusu maombi mazito (hakijawekwa kwa chaguo-msingi: hakuna kikomo cha idadi ya maombi, tazama dokezo hapa chini)
+export OMNIROUTE_CHAT_ADMISSION_QUEUE_MS=20000 # ongeza muda wenye kikomo wa kusubiri uzidi chaguo-msingi la RATE_LIMIT_MAX_WAIT_MS kwa huduma za juu zenye mwitikio wa polepole
 ```
 
-Weka hivi katika mazingira ya mchakato wa OmniRoute (daemoni, k.m. kupitia plist ya LaunchAgent au `systemctl edit`), kisha uanzishe upya OmniRoute. Alama ya uzungushaji ndiyo nyenzo moja yenye athari kubwa zaidi: hubadilisha hitilafu kamili kuwa jaribio la pili lisiloonekana dhidi ya mtoa huduma anayefanya kazi vizuri katika kundi.
+Weka hivi katika mazingira ya mchakato wa OmniRoute (daemon, k.m. kupitia LaunchAgent plist au `systemctl edit`), kisha uwashe upya OmniRoute. Alama ya mzunguko ndiyo njia moja yenye matokeo makubwa zaidi: hubadilisha hitilafu kamili kuwa jaribio la upya lisiloonekana dhidi ya mtoa huduma anayefanya kazi vizuri katika kundi.
 
-**Dokezo**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` huweka kikomo cha idadi ya maombi mazito — yenye muktadha mrefu — yanayotekelezwa kwa wakati mmoja; mpaka huo ni lango la upokeaji, si kikomo cha kasi cha mtoa huduma. **Sasisho la #503-fanout:** kigezo hiki hakiwekwi tena kwa chaguo-msingi (sasa hutumika tu kinapowekwa wazi, kama hapo juu) — badala yake, upokeaji wa kazi nzito hudhibitiwa na bajeti ya baiti inayokokotolewa kiotomatiki (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ambayo hujirekebisha kulingana na kiwango halisi cha juu cha kumbukumbu ya seva, kwa hivyo usakinishaji mpya unapaswa kupata makatalio machache zaidi ya `503 chat_admission_busy` bila kuweka kigezo hiki kabisa; kukiweka wazi hapa bado hufanya kazi sawasawa na ilivyoandikwa. Ubatilishaji wa wazi wa bajeti ya baiti hubanwa kati ya 8 MiB–2 GiB. `413 body_exceeds_budget` si ya muda mfupi: ongeza bajeti hiyo ya baiti, punguza `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, au ongeza kiwango cha juu cha kumbukumbu ya mchakato. Upunguzaji wa `inflight_bytes_budget` ni msongamano wa muda mfupi na bado unaweza kujaribiwa tena. Uwekaji kikomo cha kasi kwa kila mtoa huduma (`open-sse/services/rateLimitManager.ts`) unasimamiwa kando na `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, na `RATE_LIMIT_AUTO_ENABLE` — tazama `.env.example`.
+**Dokezo**: `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT` huweka kikomo cha idadi ya maombi mazito — yenye muktadha mrefu — yanayotekelezwa kwa wakati mmoja; kikomo hicho ni lango la kuruhusu maombi, si kikomo cha kasi cha mtoa huduma. **Sasisho la #503-fanout:** kigezo hiki hakiwekwi tena kwa chaguo-msingi (sasa hutumika tu kinaposanidiwa bayana, kama ilivyo hapo juu) — badala yake, kuruhusiwa kwa maombi mazito kunadhibitiwa na bajeti ya baiti inayokokotolewa kiotomatiki (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) ambayo hujirekebisha kulingana na kikomo halisi cha kumbukumbu cha seva, hivyo usakinishaji mpya unapaswa kupata makataa machache sana ya `503 chat_admission_busy` bila kuweka kigezo hiki kabisa; kukiweka bayana hapa bado hufanya kazi kama ilivyoandikwa. Ubatilishaji bayana wa bajeti ya baiti hubanwa hadi 8 MiB–2 GiB. `413 body_exceeds_budget` si ya muda mfupi: ongeza bajeti hiyo ya baiti, punguza `OMNIROUTE_CHAT_HARD_MAX_BODY_BYTES`, au ongeza kikomo cha kumbukumbu cha mchakato. Upunguzaji wa `inflight_bytes_budget` ni ushindani wa muda mfupi na bado unaweza kujaribiwa tena. Ukomo wa kasi kwa kila mtoa huduma (`open-sse/services/rateLimitManager.ts`) unadhibitiwa kando na `RATE_LIMIT_MAX_WAIT_MS`, `RATE_LIMIT_MAX_QUEUE_DEPTH`, na `RATE_LIMIT_AUTO_ENABLE` — tazama `.env.example`.
 
-**Jinsi ya kuthibitisha kuwa ilifanya kazi**: endesha agent/cron yako mara mbili kwa mfululizo wa haraka na uthibitishe kuwa zote zinafanikiwa. Kabla ya marekebisho, uendeshaji wa pili kwa kawaida hutoa `429`/`401`. Baada ya marekebisho, hitilafu (ikiwa zipo) hujaribiwa tena bila kuonekana na ombi hukamilika. Unaweza pia kutumia `curl /monitoring/health` na kufuatilia sehemu ya `rateLimitedUntil` kwenye miunganisho ya watoa huduma na `circuitBreakers.providerBreakers[].state` kwa watoa huduma walioathirika — hali huwa mojawapo ya `CLOSED`, `DEGRADED`, `OPEN`, au `HALF_OPEN` (tazama `src/shared/utils/circuitBreaker.ts`), na mtoa huduma anayeendelea kushindwa atabadilika kutoka `CLOSED → DEGRADED → OPEN` kabla ya kipindi cha kuweka upya kuruhusu jaribio kupitia (`HALF_OPEN`).
+**Jinsi ya kuthibitisha kuwa suluhisho limefanya kazi**: endesha ajenti/cron yako mara mbili kwa mfululizo wa haraka na uthibitishe kuwa zote zimefaulu. Kabla ya suluhisho, utekelezaji wa pili kwa kawaida hutoa `429`/`401`. Baada ya suluhisho, hitilafu (ikiwa zipo) hujaribiwa tena bila kuonekana na ombi hukamilika. Unaweza pia kutumia `curl /monitoring/health` na kufuatilia sehemu ya `rateLimitedUntil` kwenye miunganisho ya watoa huduma na `circuitBreakers.providerBreakers[].state` kwa watoa huduma walioathiriwa — hali ni mojawapo ya `CLOSED`, `DEGRADED`, `OPEN`, au `HALF_OPEN` (tazama `src/shared/utils/circuitBreaker.ts`), na mtoa huduma anayeendelea kushindwa atabadilika kutoka `CLOSED → DEGRADED → OPEN` kabla ya kipindi cha kuweka upya kuruhusu jaribio kupita (`HALF_OPEN`).
 
-**Ikiwa bado unaona 429**: akaunti inayotumika ya mtoa huduma huyo kwa kweli imemaliza _kiasi chake kinachoruhusiwa_ (si kikomo cha kasi tu). Ongeza akaunti ya pili ya mtoa huduma huyo huyo katika dashibodi ya OmniRoute → Providers → Accounts, au tumia pia mtoa huduma mwingine wa bila malipo (k.m. `routeway`, `auggie`). Mzunguko wa akaunti husaidia tu kwa hitilafu za muda za kasi/400/401; kumalizika kabisa kwa kiasi kinachoruhusiwa kunahitaji kitambulisho cha pili au mtoa huduma tofauti.
+**Ikiwa bado unaona 429**: akaunti inayotumika ya mtoa huduma huyo kwa hakika imemaliza _kiasi chake cha matumizi_ (si kasi tu). Ongeza akaunti ya pili ya mtoa huduma huyo huyo katika dashibodi ya OmniRoute → Providers → Accounts, au jumuisha mtoa huduma mwingine wa bure (k.m. `routeway`, `auggie`). Mzunguko husaidia tu kwa ukomo wa muda mfupi wa kasi/400/401; kuisha kabisa kwa kiasi cha matumizi kunahitaji kitambulisho cha pili au mtoa huduma tofauti.
 
-**Ikiwa unaona 403 kwenye modeli za maono (`auto/vision`, `bazaarlink/*`)**: akaunti iliyounganishwa haina mpango unaolipiwa unaojumuisha maono, au ufunguo wa API hauna ruhusa za kutosha. Thibitisha kwenye dashibodi ya mtoa huduma kuwa wigo wa ufunguo unajumuisha maono/modali nyingi, au unganisha akaunti ya kiwango kinacholipiwa na uiweke kama lengwa la maono.
+**Ukiona 403 kwenye miundo ya uwezo wa kuona (`auto/vision`, `bazaarlink/*`)**: akaunti iliyounganishwa haina mpango wa kulipia unaojumuisha uwezo wa kuona, au ufunguo wa API hauna ruhusa za kutosha. Thibitisha katika dashibodi ya mtoa huduma kuwa wigo wa ufunguo unajumuisha uwezo wa kuona/mifumo yenye njia nyingi za mawasiliano, au unganisha akaunti ya kiwango cha kulipia na uiweke kama lengo la uwezo wa kuona.
 
 ---
 
@@ -528,38 +528,38 @@ Tumia **Dashibodi → Kitafsiri** kutatua matatizo ya tafsiri ya miundo:
 
 ## Mipangilio ya Ustahimilivu
 
-### Uwekaji wa kiotomatiki wa kikomo cha kasi haufanyi kazi
+### Uwekaji kikomo cha kasi kiotomatiki hauanzishwi
 
-- Uwekaji wa kiotomatiki wa kikomo cha kasi unatumika tu kwa watoa huduma wa funguo za API (si OAuth/usajili)
-- Thibitisha kuwa **Settings → Resilience → Provider Profiles** imewasha uwekaji wa kiotomatiki wa kikomo cha kasi
-- Angalia ikiwa mtoa huduma anarudisha misimbo ya hali ya `429` au vichwa vya `Retry-After`
+- Uwekaji kikomo cha kasi kiotomatiki hutumika tu kwa watoa huduma wa funguo za API (si OAuth/usajili)
+- Thibitisha kuwa **Settings → Resilience → Provider Profiles** imewasha uwekaji kikomo cha kasi kiotomatiki
+- Angalia ikiwa mtoa huduma anarejesha misimbo ya hali ya `429` au vichwa vya `Retry-After`
 
-### Kurekebisha ucheleweshaji unaoongezeka kwa kasi
+### Kurekebisha usubiri unaoongezeka kipeo
 
 Wasifu wa watoa huduma unaauni mipangilio hii:
 
-- **Ucheleweshaji wa msingi** — Muda wa awali wa kusubiri baada ya hitilafu ya kwanza (chaguo-msingi: 1s)
-- **Ucheleweshaji wa juu zaidi** — Kikomo cha juu zaidi cha muda wa kusubiri (chaguo-msingi: 30s)
-- **Kizidishi** — Kiasi cha kuongeza ucheleweshaji kwa kila hitilafu mfululizo (chaguo-msingi: 2x)
+- **Ucheleweshaji wa msingi** — Muda wa awali wa kusubiri baada ya hitilafu ya kwanza (chaguo-msingi: sekunde 1)
+- **Ucheleweshaji wa juu zaidi** — Kikomo cha juu zaidi cha muda wa kusubiri (chaguo-msingi: sekunde 30)
+- **Kizidishi** — Kiasi cha kuongeza ucheleweshaji kwa kila hitilafu inayofuatana (chaguo-msingi: mara 2)
 
-### Kuzuia msongamano wa maombi ya wakati mmoja
+### Kuzuia msongamano wa maombi ya pamoja
 
-Maombi mengi yanayotekelezwa kwa wakati mmoja yanapomfikia mtoa huduma aliyewekewa kikomo cha kasi, OmniRoute hutumia mutex + uwekaji wa kiotomatiki wa kikomo cha kasi ili kupanga maombi kwa mfuatano na kuzuia hitilafu zinazoambukizana. Hili hutokea kiotomatiki kwa watoa huduma wa funguo za API.
+Wakati maombi mengi ya wakati mmoja yanapofikia mtoa huduma aliyewekewa kikomo cha kasi, OmniRoute hutumia mutex + uwekaji kikomo cha kasi kiotomatiki ili kupanga maombi kwa mfuatano na kuzuia hitilafu zinazoenea. Hili hufanyika kiotomatiki kwa watoa huduma wa funguo za API.
 
-### Maombi ya gumzo hushindwa kwa 503 / chat_admission_busy
+### Maombi ya gumzo yanashindwa kwa 503 / chat_admission_busy
 
 **Dalili:**
 
 - Endpoint ya ukamilishaji wa gumzo hurejesha jibu la `503` linaloweza kujaribiwa tena ambalo msimbo wake wa hitilafu ni
   `chat_admission_busy`.
-- Jibu linajumuisha `Retry-After`. Tangu #12135 thamani hutokana na kiwango cha matumizi kilichozingatiwa
-  — thamani kubwa kati ya dirisha la `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` ambalo tayari ombi
-  lilisubiri na muda ambao leseni nzito za sasa zimeshikiliwa — ikizungushwa kwenda juu hadi
-  sekunde kamili na kuwekwa kikomo cha 60. Katika lango lisilo na shughuli, huhifadhi viwango vya chini vya kihistoria: sekunde 2 kwenye
+- Jibu linajumuisha `Retry-After`. Tangu #12135, thamani hiyo hutokana na kiwango cha matumizi kilichobainika
+  — thamani kubwa zaidi kati ya dirisha la `OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` ambalo ombi tayari
+  limesubiri na muda ambao ruhusa za sasa za kazi nzito zimeshikiliwa — ikikadiriwa juu hadi sekunde
+  kamili na kuwekewa kikomo cha 60. Kwenye lango lisilo na shughuli, huweka viwango vya chini vya kihistoria: sekunde 2 kwenye
   njia inayotegemea baiti, sekunde 1 kwenye njia inayotegemea muundo (ambayo pia inajumuisha
   `reason: "structure_limit"`).
-- Hili linaweza kutokea wakati gumzo jingine zito au jibu la utiririshaji linalochukua muda mrefu bado
-  linaendelea kutekelezwa.
+- Hili linaweza kutokea wakati gumzo jingine zito au jibu la utiririshaji la muda mrefu bado
+  linaendelea kushughulikiwa.
 
 Mwili wa jibu unaotegemea baiti ni:
 
@@ -573,52 +573,52 @@ Mwili wa jibu unaotegemea baiti ni:
 }
 ```
 
-Jibu linalotegemea muundo hutumia aina na msimbo uleule, likiwa na ujumbe
+Jibu linalotegemea muundo hutumia aina na msimbo sawa, likiwa na ujumbe
 `Local chat admission capacity is busy for this structurally heavy request; upstream provider routing was not attempted. Retry shortly.`
 na `reason: "structure_limit"`.
-Katika viwango vya chaguo-msingi, ombi huchukuliwa kuwa zito kimfumo linapokuwa na angalau ujumbe `200`,
-zana zisizopungua `64`, au tokeni zinazokadiriwa zisizopungua `32,000`, au wakati ukadiriaji wa muundo wenye mipaka
-unapotumia mipaka yake yote ya nodi `10,000` zilizotembelewa au kina cha `12`.
+Katika viwango vya chaguo-msingi, ombi huhesabiwa kuwa zito kimuundo ikiwa lina angalau jumbe `200`,
+zana angalau `64`, au angalau tokeni zinazokadiriwa kuwa `32,000`, au wakati ukadiriaji wa muundo wenye mipaka
+unafikia kikomo chake cha vifundo `10,000` vilivyotembelewa au kina cha `12`.
 
-**Sababu:** Huu ni upunguzaji wa mzigo wa kimakusudi ndani ya OmniRoute, si hitilafu ya mtoa huduma wa juu.
-Kila mchakato hutumia ulinzi wa ndani wa mchakato kuhifadhi uwezo mdogo wa kushughulikia maombi mazito kabla ya kuhifadhi
-na kuchanganua mwili mkubwa wa ombi. Leseni nzito huendelea kushikiliwa kwa muda wote wa jibu la SSE.
+**Sababu:** Huu ni upunguzaji wa mzigo wa makusudi ndani ya OmniRoute, si hitilafu ya mtoa huduma wa upstream.
+Kila mchakato hutumia kinga ya ndani ya mchakato kuhifadhi uwezo mdogo wa kushughulikia kazi nzito kabla ya kuhifadhi
+na kuchanganua mwili mkubwa wa ombi. Ruhusa ya kazi nzito huendelea kushikiliwa katika muda wote wa jibu la SSE.
 
-**#503-fanout:** kabla ya marekebisho haya, ulinzi uliwekea kiwango cha utekelezaji sambamba kikomo cha IDADI isiyobadilika ya maombi
-(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, chaguo-msingi `1`) bila kuzingatia kumbukumbu ya mwenyeji, kwa hivyo
-usambazaji wa maombi wa wakala wa uandishi wa msimbo (mawakala wasaidizi/CLI nyingi, miili mara nyingi > 256 KB) ulipunguza
-kiwango halisi cha utekelezaji sambamba hadi takriban 1 na kusababisha hitilafu za 503 chini ya mzigo wa kawaida kabisa. Sasa ulinzi
-hujirekebisha wenyewe: unadhibitiwa na bajeti ya BAITI za uingizaji inayotolewa kiotomatiki (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) iliyopimwa kulingana na
-kikomo halisi cha kumbukumbu cha mchakato, na pia hukagua ishara ya moja kwa moja ya shinikizo la rasilimali — kwa hivyo
-hupunguza mzigo tu wakati mwenyeji yuko chini ya shinikizo halisi la kumbukumbu, si kwa sababu tu zaidi ya ombi moja
+**Mtawanyiko wa #503:** kabla ya marekebisho haya, kinga iliweka kikomo cha uendeshaji wa wakati mmoja kwa IDADI isiyobadilika ya maombi
+(`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`, chaguo-msingi `1`) bila kujali kumbukumbu ya seva, kwa hivyo mtawanyiko wa mawakala wa
+uandishi wa msimbo (mawakala wadogo/CLI nyingi, miili ikiwa mara kwa mara > KB 256) ulipunguza uwezo halisi wa
+uendeshaji wa wakati mmoja hadi ~1 na kusababisha 503 chini ya mzigo wa kawaida kabisa. Sasa kinga hujirekebisha yenyewe: inadhibitiwa
+na bajeti inayotokana kiotomatiki ya BAITI za uingizaji (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`) iliyowekwa kulingana na
+kikomo halisi cha kumbukumbu cha mchakato, na pia huzingatia ishara ya moja kwa moja ya shinikizo la rasilimali — kwa hivyo
+hupunguza mzigo tu wakati seva iko chini ya shinikizo halisi la kumbukumbu, si kwa sababu tu zaidi ya ombi moja
 zito liliwasili kwa wakati mmoja. Kikomo cha zamani cha idadi (`OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) bado
-kinazingatiwa, lakini tu ukiweka wazi thamani yake.
+kinaheshimiwa, lakini tu ikiwa utakiweka waziwazi.
 
-Uwezo unapokuwa na shughuli nyingi, ombi zito husubiri kwanza hadi
-`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (chaguo-msingi `2000`, `0` huzima usubiri) ili nafasi ipatikane
-kabla ya kujibu kwa `503` inayoweza kujaribiwa tena. Usubiri wenye kikomo upo ili viteja vya mtindo wa wakala
-(OpenCode, Claude Code, Cursor) vinavyosambaza maombi madogo mazito kwa wakati mmoja vipange mlipuko huo kwa mfuatano
-badala ya kutumia bajeti yao yote ya majaribio kwa kukataliwa mara moja na kusitishwa katikati ya kazi.
-Matumizi ya sasa ya leseni nzito, bajeti ya baiti iliyobainishwa, na ukali wa moja kwa moja wa shinikizo
+Wakati uwezo una shughuli nyingi, ombi zito husubiri kwanza hadi
+`OMNIROUTE_CHAT_ADMISSION_QUEUE_MS` (chaguo-msingi ni `RATE_LIMIT_MAX_WAIT_MS`; `0` huzima usubiri) ili nafasi ipatikane
+kabla ya kujibu kwa `503` inayoweza kujaribiwa tena. Usubiri wenye kikomo upo ili wateja wa mtindo wa wakala
+(OpenCode, Claude Code, Cursor) wanaotawanya maombi madogo mazito kwa wakati mmoja wapange msongamano huo kwa mfuatano
+badala ya kutumia bajeti yao yote ya kujaribu tena kwa kukataliwa papo hapo na kushindwa katikati ya jukumu.
+Kiwango cha sasa cha matumizi ya ruhusa za kazi nzito, bajeti ya baiti iliyobainishwa, na ukali wa moja kwa moja wa shinikizo
 huonyeshwa katika `GET /api/monitoring/health` → `chatAdmission` (`inflightBytes`, `maxInflightBytes`,
-`budgetSource`, `pressureSeverity`, `countCapEnabled`) — angalia hivi kabla ya kubadilisha kigezo chochote cha mazingira.
+`budgetSource`, `pressureSeverity`, `countCapEnabled`) — vikague kabla ya kubadilisha env var yoyote.
 Settings → Resilience → Request Queue → Concurrent Requests haidhibiti hili; mpangilio huo
-hudhibiti utaratibu tofauti wa foleni ya maombi ya mtoa huduma.
+unadhibiti utaratibu tofauti wa foleni ya maombi ya mtoa huduma.
 
 **Suluhisho:**
 
-1. Jaribu tena kwanza. Viteja vinapaswa kuzingatia `Retry-After` na kutumia ucheleweshaji badala ya
+1. Jaribu tena kwanza. Wateja wanapaswa kuheshimu `Retry-After` na kutumia usubiri unaoongezeka badala ya
    kurudia ombi mara moja.
 2. Angalia `/api/monitoring/health` → `chatAdmission` kabla ya kurekebisha chochote. `countCapEnabled:
-false` na `maxInflightBytes` kubwa humaanisha kuwa bajeti inayotolewa kiotomatiki tayari inafanya
-   kazi yake; `pressureSeverity` ya `high`/`critical` humaanisha kuwa mwenyeji kwa kweli ana kumbukumbu kidogo —
-   hilo haliwezi kurekebishwa kwa kigezo cha mazingira cha udhibiti wa uingizaji, linahitaji RAM zaidi au mzigo mdogo wa kazi.
-3. Ikiwa tu `/api/monitoring/health` inaonyesha kuwa bajeti inayotolewa kiotomatiki ni ndogo sana kwa
-   mwenyeji wako (hali adimu — tayari hujirekebisha kutoka kontena hadi bare-metal), ibatilishe moja kwa moja kwa kutumia
+false` na `maxInflightBytes` kubwa humaanisha bajeti inayotokana kiotomatiki tayari inafanya
+   kazi yake; `pressureSeverity` ya `high`/`critical` humaanisha seva kwa kweli ina kumbukumbu ndogo —
+   hilo haliwezi kurekebishwa kwa env var ya udahili, linahitaji RAM zaidi au mzigo mdogo wa kazi.
+3. Ikiwa tu `/api/monitoring/health` inaonyesha kuwa bajeti inayotokana kiotomatiki kwa kweli ni ndogo mno kwa
+   seva yako (hali adimu — tayari hujirekebisha kutoka kwenye kontena hadi bare-metal), ibatilishe moja kwa moja kwa
    `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` badala ya kurudi kwenye kikomo cha zamani cha idadi ya maombi.
 
 Tazama [marejeleo ya vigezo vya mazingira](../reference/ENVIRONMENT.md#4-security--authentication)
-kwa mipangilio rasmi ya udhibiti wa uingizaji.
+kwa mipangilio rasmi ya udahili.
 
 ---
 

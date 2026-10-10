@@ -56,8 +56,11 @@ export function socksConnectorWithFamily(
   // Sequential budget: both phases bounded by the same connectTimeout → wall-time up to 60s for https
   // (vs 30s direct). Shared-deadline alternative rejected as unjustified complexity.
   const build = _buildConnectorForTest ?? buildConnector;
+  // This custom connector bypasses Agent.allowH2, and buildConnector defaults allowH2 to true,
+  // so ALPN still negotiated h2 over SOCKS. Pin the TLS hop to HTTP/1.1 as well.
+  const h1Opts = { ...tlsOpts, allowH2: false };
   const undiciConnect = build(
-    tlsTimeout !== undefined ? { ...tlsOpts, timeout: tlsTimeout } : tlsOpts
+    tlsTimeout !== undefined ? { ...h1Opts, timeout: tlsTimeout } : h1Opts
   );
   const socketOptions = buildSocksFamilySocketOptions(family);
   return async (options, callback) => {
@@ -99,6 +102,9 @@ export function createSocksDispatcherWithFamily(
   };
   return new Agent({
     ...rest,
+    // Undici 8 negotiates HTTP/2 by default; its h2 client over SOCKS reset streams
+    // (ERR_HTTP2_STREAM_ERROR) and emitted listener-less stream errors that crashed the process.
+    allowH2: false,
     connect: socksConnectorWithFamily(proxy, family, connect, connectTimeout),
   });
 }

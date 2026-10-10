@@ -209,30 +209,29 @@ centralizował credentials zespołu. Poprawka czyni model zagrożeń uczciwym:
 
 ---
 
-## Profil builda: `minimal`
+## Profil kompilacji: `minimal`
 
-Dla użytkowników potrzebujących artefaktu przyjaznego Socket, buduj z:
+Dla użytkowników, którzy potrzebują artefaktu zgodnego z Socket, należy skompilować projekt za pomocą:
 
 ```bash
 OMNIROUTE_BUILD_PROFILE=minimal npm run build
 ```
 
-Webpackowy `NormalModuleReplacementPlugin` aliasuje cztery moduły do stubów:
+Wtyczka webpacka `NormalModuleReplacementPlugin` przekierowuje cztery moduły na atrapy:
 
-| Module                                      | Stub                                             |
+| Moduł                                       | Atrapa                                           |
 | ------------------------------------------- | ------------------------------------------------ |
 | `src/mitm/cert/install.ts`                  | `src/mitm/cert/install.stub.ts`                  |
 | `src/lib/zed-oauth/keychain-reader.ts`      | `src/lib/zed-oauth/keychain-reader.stub.ts`      |
 | `src/lib/cloudSync.ts`                      | `src/lib/cloudSync.stub.ts`                      |
 | `src/lib/services/installers/ninerouter.ts` | `src/lib/services/installers/ninerouter.stub.ts` |
 
-Każdy stub eksportuje tę samą powierzchnię, ale każda funkcja rzuca
-`featureDisabledError(name)` w runtime. Trasy zależne od wyłączonego
-modułu zwracają HTTP 503 z jasnym komunikatem zamiast aktywować
-wrażliwą ścieżkę kodu.
+Każda atrapa eksportuje ten sam interfejs, ale każda funkcja podczas działania zgłasza błąd
+`featureDisabledError(name)`. Trasy zależne od wyłączonego modułu
+zwracają odpowiedź HTTP 503 z jasnym komunikatem zamiast aktywować
+ścieżkę kodu wrażliwego.
 
-Wynikowy bundle ma być publikowany jako `omniroute-secure`. Zob.
-`docs/ops/PUBLISHING_SECURE.md` po receptę publikacji.
+Wynikowy pakiet jest przeznaczony do opublikowania jako `omniroute-secure`.
 
 ---
 

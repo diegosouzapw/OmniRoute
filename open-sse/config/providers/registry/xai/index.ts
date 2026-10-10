@@ -15,6 +15,7 @@ export const xaiProvider: RegistryEntry = {
   reasoningTransport: "opaque",
   authType: "apikey",
   authHeader: "bearer",
+  passthroughModels: true,
   models: [
     {
       id: "grok-4.6",

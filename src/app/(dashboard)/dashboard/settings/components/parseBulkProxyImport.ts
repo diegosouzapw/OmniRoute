@@ -20,6 +20,8 @@
  * Lines starting with # and blank lines are skipped.
  */
 
+import { PROXY_REGISTRY_STATUS_VALUES } from "@/shared/constants/proxyRegistryStatus";
+
 export type ParsedProxyEntry = {
   name: string;
   host: string;
@@ -39,7 +41,13 @@ export type ParseError = {
 };
 
 export const VALID_PROXY_TYPES: Record<string, true> = { http: true, https: true, socks5: true };
-export const VALID_PROXY_STATUSES: Record<string, true> = { active: true, inactive: true };
+// Importable statuses derive from the registry values minus dead: dead is a
+// terminal health marker that validation preserves, and error is absent from
+// the registry by construction (only pool validation sets it). The only direct
+// consumer is the pipe-path lookup below; shorthand lines carry no status.
+export const VALID_PROXY_STATUSES: Record<string, true> = Object.fromEntries<true>(
+  PROXY_REGISTRY_STATUS_VALUES.filter((s) => s !== "dead").map((s) => [s, true] as const)
+);
 
 /**
  * True if a string looks like an IPv4 address or a DNS hostname.
