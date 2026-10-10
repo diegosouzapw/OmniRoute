@@ -135,6 +135,8 @@ export type ProviderProfile = {
 type JsonRecord = Record<string, unknown>;
 type RateLimitReasonValue = (typeof RateLimitReason)[keyof typeof RateLimitReason];
 export type ModelLockoutEntry = {
+  /** Independent bounded rejection; a longer quota cooldown must not erase it. */
+  modelUnsupportedUntil?: number;
   reason: string;
   until: number;
   lockedAt: number;
@@ -776,7 +778,12 @@ export function lockModel(
   // Safe without a mutex: no await between get/set, so this runs atomically
   // within Node.js's single-threaded event loop.
   const existing = modelLockouts.get(key);
+  const modelUnsupportedUntil = Math.max(
+    metadata.modelUnsupportedUntil ?? 0,
+    existing?.modelUnsupportedUntil ?? 0
+  );
   if (existing && existing.until > newUntil) {
+    if (modelUnsupportedUntil > 0) existing.modelUnsupportedUntil = modelUnsupportedUntil;
     if (metadata.failureCount && metadata.failureCount > existing.failureCount) {
       existing.failureCount = metadata.failureCount;
       existing.lastFailureAt = metadata.lastFailureAt ?? existing.lastFailureAt;
@@ -787,6 +794,7 @@ export function lockModel(
   }
   const now = Date.now();
   modelLockouts.set(key, {
+    ...(modelUnsupportedUntil > 0 ? { modelUnsupportedUntil } : {}),
     reason,
     until: newUntil,
     lockedAt: now,
@@ -1084,6 +1092,7 @@ export function getModelLockoutInfo(
 }
 
 export type ModelLockoutInfo = {
+  modelUnsupportedUntil?: number;
   provider: string;
   connectionId: string;
   model: string;
@@ -1106,6 +1115,9 @@ export function getAllModelLockouts(): ModelLockoutInfo[] {
   for (const [key, entry] of modelLockouts) {
     const { provider, connectionId, model } = exactModelLock.parseModelLockKey(key);
     active.push({
+      ...(entry.modelUnsupportedUntil
+        ? { modelUnsupportedUntil: entry.modelUnsupportedUntil }
+        : {}),
       provider,
       connectionId,
       model,

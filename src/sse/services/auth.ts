@@ -91,6 +91,7 @@ import {
   retryHintBypassesMaxCooldownMs,
   isProviderModelUnsupported400,
 } from "@omniroute/open-sse/services/accountFallback.ts";
+import { areCopilotConnectionsRejected } from "@omniroute/open-sse/services/copilotModelRejections.ts";
 import { lockCopilotModelNotSupported } from "./copilotModelNotSupportedLock";
 import { isSharedWalletCredits402 } from "@omniroute/open-sse/services/accountFallback/sharedWalletCredits.ts";
 import { postOutputFailureReachesLockout } from "@omniroute/open-sse/services/accountFallback/postOutputFailureStreak.ts";
@@ -1645,6 +1646,16 @@ export async function getProviderCredentials(
           lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
           cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
+          modelNotSupported: areCopilotConnectionsRejected(
+            provider,
+            requestedModel,
+            connections.filter(
+              (connection) =>
+                !["excluded", "modelExcluded", "modelNotAdvertised", "terminalStatus"].includes(
+                  connectionFilterStatus.get(connection.id) ?? ""
+                )
+            )
+          ),
           connectionsCount: connections.length,
         };
       }
