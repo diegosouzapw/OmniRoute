@@ -278,13 +278,13 @@ codex -p chat     # cx/gpt-5.5, vaativuustasoa ei asetettu (palvelimen oletus)
 
 ## Profiilien automaattinen luominen komennolla `omniroute setup-codex`
 
-Jos käytät OmniRoutea VPS-palvelimella, voit luoda profiilitiedostot automaattisesti reaaliaikaisesta malliluettelosta:
+Jos käytät OmniRoutea VPS-palvelimella, voit luoda profiilitiedostot automaattisesti käytössä olevan malliluettelon perusteella:
 
 ```bash
 # VPS-palvelimelta (käyttää paikallista OmniRoutea portissa 20128)
 omniroute setup-codex
 
-# Miltä tahansa koneelta — osoita komento VPS-palvelimeesi
+# Miltä tahansa koneelta — osoita VPS-palvelimeesi
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Esikatsele kirjoittamatta tiedostoja
@@ -297,9 +297,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Komento noutaa `/v1/models`-luettelon, käyttää tunnetuille malleille optimoituja profiileja, käyttää muiden yhteensopivien tekstimallien osalta varavaihtoehtona luettelon metatietoja ja kirjoittaa kullekin tiedoston `~/.codex/<name>.config.toml`. Komento on idempotentti, joten sen suorittaminen uudelleen on turvallista.
+Komento hakee `/v1/models`-resurssin, käyttää tunnetuille malleille optimoituja profiileja, käyttää muiden yhteensopivien tekstimallien osalta varavaihtoehtona luettelon metatietoja ja kirjoittaa kullekin mallille tiedoston `~/.codex/<name>.config.toml`. Komento on idempotentti, joten sen suorittaminen uudelleen on turvallista.
 
-OmniRoute voi myös **synkronoida automaattisesti** samat profiilitiedostot sen jälkeen, kun onnistunut palveluntarjoajan mallien haku tai tuonti muuttaa reaaliaikaista luetteloa. Tämä on **valinnainen toiminto ja oletusarvoisesti poissa käytöstä**: ota se käyttöön **CLI Code -hallintapaneelista** ("CLI-profiilien automaattinen synkronointi" → Codex) tai aseta `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (se huomioi myös asetuksen `CLI_ALLOW_CONFIG_WRITES`, joka on oletusarvoisesti käytössä). Kun toiminto on käytössä, se kirjoittaa vain erillisiä `~/.codex/*.config.toml`-profiilitiedostoja. Se ei koskaan muuta aktiivista/oletusarvoista `~/.codex/config.toml`-tiedostoa, Codex-lb-asetuksia, todennusta tai palveluntarjoajan valintaa.
+Jos `config.toml`-perustiedostossa ei ole `model_providers.omniroute`-määritystä, eksplisiittinen
+`setup-codex` sisällyttää kyseisen määrityksen jokaiseen luotuun päällystiedostoon käyttäen valittua
+paikallista tai etäpäätepistettä. Perustiedosto säilyy muuttumattomana. Olemassa oleva palveluntarjoajan
+määritys periytyy päätepiste- ja todennusasetuksineen. Virheellinen
+perustiedoston TOML estää luonnin ennen profiilien kirjoittamista.
+
+Kun annat `--api-key`-valitsimen tai `OMNIROUTE_API_KEY`-ympäristömuuttujan, uusi palveluntarjoajan määritys viittaa
+asetukseen `env_key = "OMNIROUTE_API_KEY"`; itse avainta ei koskaan tallenneta eikä tulosteta
+esikatselussa. Aseta kyseinen muuttuja ympäristöön, jossa käynnistät Codexin. Jos avainta ei
+anneta, uusi määritys ei edellytä avainta, jolloin se sopii OmniRoute-instanssille,
+joka on määritetty hyväksymään todentamattomat pyynnöt.
+
+Alla kuvattu erikseen käyttöön otettava luettelon automaattinen synkronointi säilyttää päällystiedostossa jo olevat
+palveluntarjoajamääritykset, mutta ei alusta uusia palveluntarjoaja-asetuksia. Määritä palveluntarjoaja
+ensin eksplisiittisellä asetuksella tai hallintapaneelin kautta. Olemassa olevat palveluntarjoaja-asetukset jätetään pois
+kuivien ajojen esikatseluista, koska ne saattavat sisältää ylläpitäjän hallinnoimia tunnistetietoja.
+
+OmniRoute voi myös **synkronoida automaattisesti** nämä samat profiilitiedostot, kun onnistunut palveluntarjoajan mallien etsintä tai tuonti muuttaa käytössä olevaa luetteloa. Tämä on **erikseen käyttöön otettava ominaisuus, joka on oletusarvoisesti poissa käytöstä**: ota se käyttöön **CLI Code -hallintapaneelissa** ("CLI-profiilien automaattinen synkronointi" → Codex) tai aseta `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (se huomioi myös `CLI_ALLOW_CONFIG_WRITES`-asetuksen, joka on oletusarvoisesti käytössä). Kun toiminto on käytössä, se kirjoittaa vain erillisiä `~/.codex/*.config.toml`-profiilitiedostoja. Se ei koskaan muuta aktiivista tai oletusarvoista `~/.codex/config.toml`-tiedostoa, Codex-lb-asetuksia, todennusta tai palveluntarjoajan valintaa.
 
 ---
 

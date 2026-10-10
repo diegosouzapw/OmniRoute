@@ -293,9 +293,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Perintah tersebut mendapatkan `/v1/models`, menggunakan profil yang ditala untuk model yang diketahui, beralih kepada metadata katalog untuk model teks serasi yang lain, dan menulis `~/.codex/<name>.config.toml` bagi setiap model. Idempoten — selamat untuk dijalankan semula.
+Perintah tersebut mendapatkan `/v1/models`, menggunakan profil yang ditala untuk model yang diketahui, menggunakan metadata katalog sebagai pilihan sandaran untuk model teks serasi yang lain, dan menulis `~/.codex/<name>.config.toml` bagi setiap model. Idempoten — selamat untuk dijalankan semula.
 
-OmniRoute juga boleh **menyegerakkan secara automatik** fail profil yang sama selepas penemuan/import model penyedia yang berjaya mengubah katalog langsung. Ciri ini **perlu diaktifkan dan dimatikan secara lalai**: togolkannya daripada **papan pemuka CLI Code** ("Penyegerakan automatik profil CLI" → Codex), atau tetapkan `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (ia turut mematuhi `CLI_ALLOW_CONFIG_WRITES`, yang diaktifkan secara lalai). Apabila diaktifkan, ia hanya menulis fail profil `~/.codex/*.config.toml` yang berasingan; ia tidak pernah mengubah `~/.codex/config.toml` aktif/lalai, tetapan Codex-lb, pengesahan atau pemilihan penyedia.
+Jika `config.toml` asas tidak mempunyai takrif `model_providers.omniroute`, arahan eksplisit
+`setup-codex` menyertakan takrif tersebut dalam setiap tindanan yang dijana, menggunakan
+titik akhir setempat atau jauh yang dipilih. Fail asas dibiarkan tanpa perubahan. Takrif penyedia
+sedia ada diwarisi, termasuk tetapan titik akhir dan pengesahannya. TOML asas yang tidak sah
+akan menghentikan penjanaan sebelum profil ditulis.
+
+Apabila anda memberikan `--api-key` atau `OMNIROUTE_API_KEY`, penyedia yang baru ditakrifkan merujuk kepada
+`env_key = "OMNIROUTE_API_KEY"`; kunci itu sendiri tidak pernah disimpan atau dicetak dalam
+pratonton. Tetapkan pemboleh ubah tersebut dalam persekitaran tempat anda melancarkan Codex. Tanpa
+kunci yang diberikan, takrif baharu tidak mempunyai keperluan kunci, untuk tika OmniRoute
+yang dikonfigurasikan agar menerima permintaan tanpa pengesahan.
+
+Penyegerakan automatik katalog atas pilihan yang diterangkan di bawah mengekalkan takrif penyedia yang sudah
+ada dalam tindanan tetapi tidak memulakan tetapan penyedia baharu; konfigurasikan penyedia
+terlebih dahulu melalui persediaan eksplisit atau papan pemuka. Tetapan penyedia sedia ada tidak disertakan
+dalam pratonton percubaan kering kerana tetapan tersebut mungkin mengandungi kelayakan yang diuruskan oleh pengendali.
+
+OmniRoute juga boleh **menyegerakkan secara automatik** fail profil yang sama ini selepas penemuan/import model penyedia yang berjaya mengubah katalog langsung. Ciri ini **atas pilihan dan dimatikan secara lalai**: aktifkannya daripada **papan pemuka Kod CLI** ("Penyegerakan automatik profil CLI" → Codex), atau tetapkan `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (ia turut mematuhi `CLI_ALLOW_CONFIG_WRITES`, yang diaktifkan secara lalai). Apabila didayakan, ia hanya menulis fail profil `~/.codex/*.config.toml` yang berasingan; ia tidak sekali-kali mengubah `~/.codex/config.toml` aktif/lalai, tetapan Codex-lb, pengesahan atau pemilihan penyedia.
 
 ---
 
@@ -392,7 +409,7 @@ region  = "us-east-1"
 
 ---
 
-## Berbilang pelayan
+## Pelbagai pelayan
 
 ```toml
 [model_providers.omniroute-main]

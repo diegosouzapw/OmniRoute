@@ -277,10 +277,10 @@ codex -p chat     # cx/gpt-5.5, səy təyin edilməyib (server standartı)
 OmniRoute-u VPS-də işlədirsinizsə, aktiv model kataloqundan profil fayllarını avtomatik yarada bilərsiniz:
 
 ```bash
-# VPS-dən (20128 portundakı lokal OmniRoute-dan istifadə edir)
+# VPS-dən (20128 portunda lokal OmniRoute istifadə edir)
 omniroute setup-codex
 
-# İstənilən maşından — VPS ünvanınızı göstərin
+# İstənilən cihazdan — VPS ünvanınızı göstərin
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Faylları yazmadan önizləyin
@@ -289,13 +289,30 @@ omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 # Yalnız GLM və Kimi profillərini yaradın
 omniroute setup-codex --only glm,kimi
 
-# Xüsusi qovluğa yazın
+# Fərdi qovluğa yazın
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Komanda `/v1/models` resursunu əldə edir, məlum modellər üçün optimallaşdırılmış profillərdən istifadə edir, digər uyğun mətn modelləri üçün kataloq metadatasına keçir və hər biri üçün `~/.codex/<name>.config.toml` faylını yazır. İdempotentdir — təkrar icra etmək təhlükəsizdir.
+Əmr `/v1/models` ünvanından məlumatları əldə edir, məlum modellər üçün optimallaşdırılmış profillərdən istifadə edir, digər uyğun mətn modelləri üçün kataloq metadatasına müraciət edir və hər biri üçün `~/.codex/<name>.config.toml` faylını yazır. İdempotentdir — təkrar icra etmək təhlükəsizdir.
 
-OmniRoute həmçinin uğurlu provayder model aşkarlaması/idxalı aktiv kataloqu dəyişdirdikdən sonra həmin profil fayllarını **avtomatik sinxronlaşdıra** bilər. Bu funksiya **seçimlidir və standart olaraq deaktivdir**: onu **CLI Code idarəetmə panelindən** ("CLI profilinin avtomatik sinxronlaşdırılması" → Codex) aktivləşdirin və ya `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` təyin edin (standart olaraq aktiv olan `CLI_ALLOW_CONFIG_WRITES` parametrini də nəzərə alır). Aktivləşdirildikdə yalnız ayrıca `~/.codex/*.config.toml` profil faylları yazılır; aktiv/standart `~/.codex/config.toml`, Codex-lb parametrləri, autentifikasiya və ya provayder seçimi heç vaxt dəyişdirilmir.
+Əsas `config.toml` faylında `model_providers.omniroute` tərifi yoxdursa, açıq şəkildə icra edilən
+`setup-codex` seçilmiş lokal və ya uzaq son nöqtədən istifadə edərək həmin tərifi yaradılan hər bir üst qat faylına daxil edir.
+Əsas fayl dəyişdirilmir. Mövcud provayder tərifi, onun son nöqtəsi və autentifikasiya
+parametrləri də daxil olmaqla, miras alınır. Etibarsız əsas TOML profillər yazılmadan əvvəl
+yaradılma prosesini dayandırır.
+
+`--api-key` və ya `OMNIROUTE_API_KEY` təqdim etdikdə, yeni təyin edilmiş provayder
+`env_key = "OMNIROUTE_API_KEY"`-ə istinad edir; açarın özü heç vaxt saxlanılmır və ya
+önizləmədə göstərilmir. Həmin dəyişəni Codex-i işə saldığınız mühitdə təyin edin. Açar
+təqdim edilmədikdə, autentifikasiya olunmamış sorğuları qəbul etmək üçün konfiqurasiya edilmiş
+OmniRoute instansiyasına uyğun olaraq yeni tərifdə açar tələbi olmur.
+
+Aşağıda təsvir edilən, ayrıca aktivləşdirilən kataloq avtomatik sinxronizasiyası üst qat faylında artıq mövcud olan
+provayder təriflərini qoruyur, lakin yeni provayder parametrlərini ilkin olaraq yaratmır; əvvəlcə provayderi
+açıq quraşdırma və ya idarəetmə paneli vasitəsilə konfiqurasiya edin. Mövcud provayder parametrləri
+operator tərəfindən idarə olunan giriş məlumatlarını ehtiva edə biləcəyinə görə sınaq icrası önizləmələrində göstərilmir.
+
+OmniRoute həmçinin provayder modelinin uğurlu aşkarlanması/idxalından sonra aktiv kataloq dəyişdikdə eyni profil fayllarını **avtomatik sinxronlaşdıra** bilər. Bu funksiya **ayrıca aktivləşdirilməlidir və standart olaraq deaktivdir**: onu **CLI Code idarəetmə panelindən** ("CLI profile auto-sync" → Codex) aktivləşdirin və ya `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` təyin edin (standart olaraq aktiv olan `CLI_ALLOW_CONFIG_WRITES` dəyişənini də nəzərə alır). Aktivləşdirildikdə yalnız ayrıca `~/.codex/*.config.toml` profil fayllarını yazır; aktiv/standart `~/.codex/config.toml` faylını, Codex-lb parametrlərini, autentifikasiyanı və ya provayder seçimini heç vaxt dəyişdirmir.
 
 ---
 
@@ -392,7 +409,7 @@ region  = "us-east-1"
 
 ---
 
-## Bir neçə server
+## Birdən çox server
 
 ```toml
 [model_providers.omniroute-main]

@@ -277,10 +277,10 @@ codex -p chat     # cx/gpt-5.5, walang nakatakdang effort (default ng server)
 Kung pinapatakbo mo ang OmniRoute sa isang VPS, maaari kang awtomatikong bumuo ng mga profile file mula sa live na katalogo ng modelo:
 
 ```bash
-# Mula sa isang VPS (ginagamit ang lokal na OmniRoute sa port 20128)
+# Mula sa isang VPS (gumagamit ng lokal na OmniRoute sa port 20128)
 omniroute setup-codex
 
-# Mula sa anumang machine — ituro sa iyong VPS
+# Mula sa anumang makina — ituro sa iyong VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # I-preview nang hindi nagsusulat ng mga file
@@ -289,13 +289,30 @@ omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 # Bumuo lamang ng mga GLM at Kimi profile
 omniroute setup-codex --only glm,kimi
 
-# Isulat sa isang custom na directory
+# Isulat sa isang custom na direktoryo
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Kinukuha ng command ang `/v1/models`, gumagamit ng mga naka-tune na profile para sa mga kilalang modelo, bumabalik sa metadata ng katalogo para sa iba pang compatible na text model, at nagsusulat ng `~/.codex/<name>.config.toml` para sa bawat isa. Idempotent — ligtas itong patakbuhin muli.
+Kinukuha ng command ang `/v1/models`, gumagamit ng mga naka-tune na profile para sa mga kilalang modelo, bumabalik sa metadata ng katalogo para sa iba pang katugmang text model, at nagsusulat ng `~/.codex/<name>.config.toml` para sa bawat isa. Idempotent — ligtas na patakbuhing muli.
 
-Maaari ring **awtomatikong i-sync** ng OmniRoute ang parehong mga profile file na ito pagkatapos matagumpay na makatuklas/mag-import ng mga provider model na nagpapabago sa live na katalogo. Ito ay **kailangang tahasang i-enable at naka-off bilang default**: i-toggle ito mula sa **CLI Code dashboard** ("CLI profile auto-sync" → Codex), o itakda ang `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (iginagalang din nito ang `CLI_ALLOW_CONFIG_WRITES`, na naka-on bilang default). Kapag naka-enable, hiwalay na `~/.codex/*.config.toml` profile file lamang ang isinusulat nito; hindi nito kailanman binabago ang aktibo/default na `~/.codex/config.toml`, mga setting ng Codex-lb, auth, o pagpili ng provider.
+Kung walang depinisyon ng `model_providers.omniroute` ang batayang `config.toml`, isinasama ng tahasang
+`setup-codex` ang depinisyong iyon sa bawat nabuong overlay, gamit ang napiling
+lokal o remote na endpoint. Hindi nito binabago ang batayang file. Ang umiiral na depinisyon ng provider
+ay minamana, kabilang ang endpoint at mga setting ng pagpapatotoo nito. Pinatitigil ng di-wastong
+batayang TOML ang pagbuo bago magsulat ng mga profile.
+
+Kapag ibinigay mo ang `--api-key` o `OMNIROUTE_API_KEY`, tumutukoy ang bagong itinakdang provider sa
+`env_key = "OMNIROUTE_API_KEY"`; ang mismong key ay hindi kailanman sine-save o ipinapakita sa
+preview. Itakda ang variable na iyon sa environment kung saan mo inilulunsad ang Codex. Kung walang
+ibinigay na key, walang kinakailangang key ang bagong depinisyon, para sa isang instance ng OmniRoute
+na naka-configure upang tumanggap ng mga kahilingang walang pagpapatotoo.
+
+Pinananatili ng opsyonal na awtomatikong pag-sync ng katalogo na inilalarawan sa ibaba ang mga depinisyon ng provider na nasa
+isang overlay na, ngunit hindi ito nagse-set up ng mga bagong setting ng provider; i-configure muna ang provider
+sa pamamagitan ng tahasang pag-setup o ng dashboard. Hindi isinasama ang mga kasalukuyang setting ng provider
+sa mga dry-run preview dahil maaaring naglalaman ang mga ito ng mga kredensyal na pinamamahalaan ng operator.
+
+Maaari ring **awtomatikong i-sync** ng OmniRoute ang parehong mga profile file na ito pagkatapos mabago ng matagumpay na pagtuklas/pag-import ng modelo ng provider ang live na katalogo. Ito ay **opsyonal at naka-off bilang default**: i-toggle ito mula sa **CLI Code dashboard** ("CLI profile auto-sync" → Codex), o itakda ang `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (sinusunod din nito ang `CLI_ALLOW_CONFIG_WRITES`, na naka-on bilang default). Kapag naka-enable, nagsusulat lamang ito ng magkakahiwalay na `~/.codex/*.config.toml` na mga profile file; hindi nito kailanman binabago ang aktibo/default na `~/.codex/config.toml`, mga setting ng Codex-lb, pagpapatotoo, o pagpili ng provider.
 
 ---
 

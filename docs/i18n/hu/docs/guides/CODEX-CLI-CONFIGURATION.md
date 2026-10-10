@@ -286,9 +286,9 @@ codex -p chat     # cx/gpt-5.5, nincs beállított ráfordítás (kiszolgálói 
 
 ---
 
-## Profilok automatikus generálása az `omniroute setup-codex` használatával
+## Profilok automatikus létrehozása az `omniroute setup-codex` használatával
 
-Ha az OmniRoute-ot VPS-en futtatja, automatikusan generálhat profilfájlokat az aktuális modellkatalógusból:
+Ha az OmniRoute-ot VPS-en futtatja, automatikusan létrehozhat profilfájlokat az aktuális modellkatalógusból:
 
 ```bash
 # VPS-ről (a helyi OmniRoute-ot használja a 20128-as porton)
@@ -300,16 +300,33 @@ omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 # Előnézet fájlok írása nélkül
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
-# Csak GLM- és Kimi-profilok generálása
+# Csak GLM- és Kimi-profilok létrehozása
 omniroute setup-codex --only glm,kimi
 
-# Írás egyéni könyvtárba
+# Írás egy egyéni könyvtárba
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-A parancs lekéri a `/v1/models` végpontot, a ismert modellekhez finomhangolt profilokat használ, más kompatibilis szövegmodellek esetén pedig a katalógus metaadatait alkalmazza tartalék megoldásként, majd mindegyikhez létrehozza a `~/.codex/<name>.config.toml` fájlt. Idempotens — biztonságosan újrafuttatható.
+A parancs lekéri a `/v1/models` végpontot, az ismert modellekhez finomhangolt profilokat használ, a többi kompatibilis szöveges modellnél pedig a katalógus metaadataira támaszkodik, majd mindegyikhez létrehozza a `~/.codex/<name>.config.toml` fájlt. A művelet idempotens — biztonságosan újrafuttatható.
 
-Az OmniRoute ugyanezeket a profilfájlokat **automatikusan szinkronizálhatja** azt követően is, hogy a szolgáltatói modellek sikeres felderítése/importálása módosítja az aktuális katalógust. Ez **külön engedélyezendő, és alapértelmezés szerint ki van kapcsolva**: kapcsolja be a **CLI Code irányítópulton** („CLI-profilok automatikus szinkronizálása” → Codex), vagy állítsa be az `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` értéket (figyelembe veszi a `CLI_ALLOW_CONFIG_WRITES` beállítást is, amely alapértelmezés szerint be van kapcsolva). Engedélyezése esetén kizárólag különálló `~/.codex/*.config.toml` profilfájlokat ír; soha nem módosítja az aktív/alapértelmezett `~/.codex/config.toml` fájlt, a Codex-lb beállításait, a hitelesítést vagy a szolgáltató kiválasztását.
+Ha az alapul szolgáló `config.toml` nem tartalmaz `model_providers.omniroute`-definíciót, az explicit
+`setup-codex` ezt a definíciót minden létrehozott felüldefiniáló fájlba belefoglalja a kiválasztott
+helyi vagy távoli végpont használatával. Az alapfájlt változatlanul hagyja. A meglévő szolgáltatói
+definíció öröklődik, beleértve annak végpont- és hitelesítési beállításait is. Érvénytelen
+alap-TOML esetén a létrehozás még a profilok írása előtt leáll.
+
+Ha megadja az `--api-key` kapcsolót vagy az `OMNIROUTE_API_KEY` változót, az újonnan definiált szolgáltató az
+`env_key = "OMNIROUTE_API_KEY"` beállításra hivatkozik; maga a kulcs soha nem kerül mentésre vagy megjelenítésre az
+előnézetben. Állítsa be ezt a változót abban a környezetben, ahol a Codexet elindítja. Megadott
+kulcs nélkül az új definíció nem követel meg kulcsot, így olyan OmniRoute-példányhoz használható,
+amely hitelesítés nélküli kérések fogadására van beállítva.
+
+Az alább ismertetett, külön engedélyezhető automatikus katalógusszinkronizálás megőrzi a felüldefiniáló fájlban már
+meglévő szolgáltatói definíciókat, de nem hoz létre új szolgáltatói beállításokat; először konfigurálja a szolgáltatót
+explicit beállítással vagy az irányítópulton. A meglévő szolgáltatói beállítások nem jelennek meg
+a próbaüzem előnézetében, mert üzemeltető által kezelt hitelesítő adatokat tartalmazhatnak.
+
+Az OmniRoute ezeket a profilfájlokat **automatikusan is szinkronizálhatja**, miután egy sikeres szolgáltatói modellfelderítés vagy -importálás módosítja az aktuális katalógust. Ez a funkció **külön engedélyezendő, és alapértelmezés szerint ki van kapcsolva**: kapcsolja be a **CLI Code irányítópulton** („CLI-profilok automatikus szinkronizálása” → Codex), vagy állítsa be az `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` értéket (figyelembe veszi az alapértelmezés szerint bekapcsolt `CLI_ALLOW_CONFIG_WRITES` beállítást is). Ha engedélyezve van, kizárólag különálló `~/.codex/*.config.toml` profilfájlokat ír; soha nem módosítja az aktív/alapértelmezett `~/.codex/config.toml` fájlt, a Codex-lb beállításait, a hitelesítést vagy a szolgáltató kiválasztását.
 
 ---
 

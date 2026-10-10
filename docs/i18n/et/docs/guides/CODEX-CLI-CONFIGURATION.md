@@ -281,7 +281,7 @@ Kui käitate OmniRoute'i VPS-is, saate reaalajas mudelikataloogi põhjal profiil
 # VPS-ist (kasutab kohalikku OmniRoute'i pordil 20128)
 omniroute setup-codex
 
-# Mis tahes masinast — suunake päring oma VPS-ile
+# Mis tahes masinast — suunake oma VPS-ile
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Eelvaade ilma faile kirjutamata
@@ -294,9 +294,15 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Käsk hangib `/v1/models`, kasutab tuntud mudelite jaoks häälestatud profiile, muude ühilduvate tekstimudelite puhul kasutab varuvariandina kataloogi metaandmeid ning kirjutab iga mudeli jaoks faili `~/.codex/<name>.config.toml`. Idempotentne — seda on turvaline uuesti käitada.
+Käsk hangib `/v1/models`, kasutab tuntud mudelite jaoks optimeeritud profiile, teiste ühilduvate tekstimudelite puhul kasutab varuvariandina kataloogi metaandmeid ning kirjutab iga mudeli jaoks faili `~/.codex/<name>.config.toml`. Idempotentne — seda võib turvaliselt uuesti käivitada.
 
-OmniRoute saab neid samu profiilifaile ka **automaatselt sünkroonida**, kui teenusepakkuja mudelite edukas tuvastamine/importimine muudab reaalajas kataloogi. See on **vabatahtlik ja vaikimisi välja lülitatud**: lülitage see sisse **CLI Code'i töölaual** ("CLI profile auto-sync" → Codex) või määrake `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (arvestatakse ka muutujaga `CLI_ALLOW_CONFIG_WRITES`, mis on vaikimisi sisse lülitatud). Kui see on lubatud, kirjutatakse ainult eraldiseisvad profiilifailid `~/.codex/*.config.toml`; aktiivset/vaikimisi faili `~/.codex/config.toml`, Codex-lb sätteid, autentimist ega teenusepakkuja valikut ei muudeta kunagi.
+Kui põhifailis `config.toml` puudub `model_providers.omniroute` definitsioon, lisab otsene käsk `setup-codex` selle definitsiooni igasse genereeritud ülekihifaili, kasutades valitud kohalikku või kaugpöörduspunkti. Põhifail jääb muutmata. Olemasolev teenusepakkuja definitsioon päritakse koos selle pöörduspunkti ja autentimisseadetega. Vigane TOML-i põhifail peatab genereerimise enne profiilide kirjutamist.
+
+Kui määrate `--api-key` või `OMNIROUTE_API_KEY`, viitab äsja määratletud teenusepakkuja seadele `env_key = "OMNIROUTE_API_KEY"`; võtit ennast ei salvestata ega kuvata eelvaates. Määrake see muutuja keskkonnas, kus käivitate Codexi. Kui võtit ei ole määratud, pole uuel definitsioonil võtmenõuet, mis sobib OmniRoute'i eksemplarile, mis on seadistatud autentimata päringuid vastu võtma.
+
+Allpool kirjeldatud vabatahtlik kataloogi automaatne sünkroonimine säilitab ülekihifailis juba olevad teenusepakkuja definitsioonid, kuid ei algväärtusta uusi teenusepakkuja seadeid; seadistage teenusepakkuja esmalt otsese seadistamise või juhtpaneeli kaudu. Olemasolevad teenusepakkuja seaded jäetakse kuivkäivituse eelvaadetest välja, sest need võivad sisaldada operaatori hallatavaid identimisteavet.
+
+OmniRoute saab neid samu profiilifaile ka **automaatselt sünkroonida**, kui teenusepakkuja mudelite edukas avastamine või importimine muudab reaalajas kataloogi. See on **vabatahtlik ja vaikimisi välja lülitatud**: lülitage see sisse **CLI Code'i juhtpaneelil** („CLI profile auto-sync” → Codex) või määrake `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (arvestatakse ka muutujat `CLI_ALLOW_CONFIG_WRITES`, mis on vaikimisi sisse lülitatud). Kui see on lubatud, kirjutatakse ainult eraldi `~/.codex/*.config.toml` profiilifailid; aktiivset/vaikimisi faili `~/.codex/config.toml`, Codex-lb seadeid, autentimist ega teenusepakkuja valikut ei muudeta kunagi.
 
 ---
 

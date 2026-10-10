@@ -278,10 +278,10 @@ codex -p chat     # cx/gpt-5.5，未设置 effort（服务器默认值）
 # 从 VPS 运行（使用端口 20128 上的本地 OmniRoute）
 omniroute setup-codex
 
-# 从任意计算机运行——指向你的 VPS
+# 从任意机器运行——指向你的 VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# 预览但不写入文件
+# 预览而不写入文件
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
 # 仅生成 GLM 和 Kimi 配置文件
@@ -291,9 +291,15 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-该命令会获取 `/v1/models`，对已知模型使用经过调优的配置，对其他兼容的文本模型则回退使用目录元数据，并为每个模型写入 `~/.codex/<name>.config.toml`。该操作具有幂等性，可安全地重复运行。
+该命令会获取 `/v1/models`，对已知模型使用经过调优的配置，对其他兼容的文本模型则回退使用目录元数据，并为每个模型写入 `~/.codex/<name>.config.toml`。此操作具有幂等性，可以安全地重复运行。
 
-当成功发现/导入提供者模型并导致实时目录发生变化后，OmniRoute 还可以**自动同步**这些配置文件。此功能**需要主动启用，默认关闭**：可在 **CLI Code 仪表板**中切换（“CLI 配置文件自动同步”→ Codex），或设置 `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true`（它也会遵循 `CLI_ALLOW_CONFIG_WRITES`，该选项默认启用）。启用后，它只会写入独立的 `~/.codex/*.config.toml` 配置文件；绝不会更改当前/默认的 `~/.codex/config.toml`、Codex-lb 设置、身份验证或提供者选择。
+如果基础 `config.toml` 中没有 `model_providers.omniroute` 定义，显式运行 `setup-codex` 时，会使用所选的本地或远程端点，在每个生成的覆盖配置中包含该定义。基础文件不会被修改。现有的提供者定义会被继承，包括其端点和身份验证设置。如果基础 TOML 无效，系统将在写入配置文件之前停止生成。
+
+当你提供 `--api-key` 或 `OMNIROUTE_API_KEY` 时，新定义的提供者会引用 `env_key = "OMNIROUTE_API_KEY"`；密钥本身绝不会被保存，也不会显示在预览中。请在启动 Codex 的环境中设置该变量。如果未提供密钥，则新定义不会要求密钥，适用于配置为接受未经身份验证请求的 OmniRoute 实例。
+
+下文所述的可选目录自动同步功能会保留覆盖配置中已有的提供者定义，但不会引导创建新的提供者设置；请先通过显式设置或仪表板配置提供者。试运行预览中会省略现有的提供者设置，因为其中可能包含由运维人员管理的凭据。
+
+成功发现或导入提供者模型并更改实时目录后，OmniRoute 还可以**自动同步**这些相同的配置文件。此功能**需要主动启用，默认关闭**：可在 **CLI Code 仪表板**中切换该功能（“CLI 配置文件自动同步”→ Codex），或设置 `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true`（它也遵循 `CLI_ALLOW_CONFIG_WRITES`，该设置默认启用）。启用后，它只会写入单独的 `~/.codex/*.config.toml` 配置文件；绝不会更改当前使用的/默认的 `~/.codex/config.toml`、Codex-lb 设置、身份验证或提供者选择。
 
 ---
 
@@ -390,7 +396,7 @@ region  = "us-east-1"
 
 ---
 
-## 多台服务器
+## 多个服务器
 
 ```toml
 [model_providers.omniroute-main]

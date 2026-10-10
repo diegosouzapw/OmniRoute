@@ -272,12 +272,12 @@ codex -p chat     # cx/gpt-5.5, hakuna kiwango kilichowekwa (chaguo-msingi la se
 
 ---
 
-## Kuzalisha wasifu kiotomatiki kwa `omniroute setup-codex`
+## Kutengeneza profaili kiotomatiki kwa `omniroute setup-codex`
 
-Ikiwa unaendesha OmniRoute kwenye VPS, unaweza kuzalisha kiotomatiki faili za wasifu kutoka kwenye katalogi ya modeli inayotumika:
+Ukiendesha OmniRoute kwenye VPS, unaweza kutengeneza faili za profaili kiotomatiki kutoka kwenye katalogi ya sasa ya modeli:
 
 ```bash
-# Kutoka kwenye VPS (hutumia OmniRoute ya ndani kwenye port 20128)
+# Kutoka kwenye VPS (hutumia OmniRoute ya ndani kwenye porti 20128)
 omniroute setup-codex
 
 # Kutoka kwenye mashine yoyote — elekeza kwenye VPS yako
@@ -286,16 +286,33 @@ omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 # Hakiki bila kuandika faili
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
-# Zalisha wasifu wa GLM na Kimi pekee
+# Tengeneza profaili za GLM na Kimi pekee
 omniroute setup-codex --only glm,kimi
 
 # Andika kwenye saraka maalum
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Amri hii hupakua `/v1/models`, hutumia wasifu ulioboreshwa kwa modeli zinazojulikana, hutumia metadata ya katalogi kama mbadala kwa modeli nyingine sambamba za maandishi, na huandika `~/.codex/<name>.config.toml` kwa kila moja. Ni idempotent — ni salama kuiendesha tena.
+Amri hiyo huchukua `/v1/models`, hutumia profaili zilizoboreshwa kwa modeli zinazojulikana, hutumia metadata ya katalogi kama mbadala kwa modeli nyingine za maandishi zinazooana, na huandika `~/.codex/<name>.config.toml` kwa kila moja. Ni idempotenti — ni salama kuiendesha tena.
 
-OmniRoute pia inaweza **kusawazisha kiotomatiki** faili hizi hizi za wasifu baada ya ugunduzi/uletaji uliofanikiwa wa modeli za mtoa huduma kubadilisha katalogi inayotumika. Kipengele hiki **kinahitaji kuwezeshwa na kimezimwa kwa chaguo-msingi**: kiwashe kutoka kwenye **dashibodi ya CLI Code** ("Usawazishaji kiotomatiki wa wasifu wa CLI" → Codex), au weka `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (pia huheshimu `CLI_ALLOW_CONFIG_WRITES`, ambayo imewashwa kwa chaguo-msingi). Kikiwashwa, huandika tu faili tofauti za wasifu za `~/.codex/*.config.toml`; hakibadilishi kamwe `~/.codex/config.toml` inayotumika/chaguo-msingi, mipangilio ya Codex-lb, uthibitishaji, au uteuzi wa mtoa huduma.
+Ikiwa `config.toml` ya msingi haina ufafanuzi wa `model_providers.omniroute`, matumizi ya moja kwa moja ya
+`setup-codex` hujumuisha ufafanuzi huo katika kila faili saidizi inayotengenezwa, kwa kutumia endpointi ya
+ndani au ya mbali iliyochaguliwa. Huacha faili ya msingi bila kubadilishwa. Ufafanuzi uliopo wa mtoa huduma
+hurithiwa, ikiwa ni pamoja na endpointi na mipangilio yake ya uthibitishaji. TOML batili ya msingi
+husimamisha utengenezaji kabla ya profaili kuandikwa.
+
+Unapotoa `--api-key` au `OMNIROUTE_API_KEY`, mtoa huduma anayefafanuliwa upya hurejelea
+`env_key = "OMNIROUTE_API_KEY"`; ufunguo wenyewe kamwe hauhifadhiwi wala kuchapishwa katika
+hakikisho. Weka kigezo hicho katika mazingira ambako unaanzisha Codex. Bila ufunguo
+uliotolewa, ufafanuzi mpya hauna sharti la ufunguo, kwa ajili ya instansi ya OmniRoute
+iliyosanidiwa kukubali maombi yasiyo na uthibitishaji.
+
+Usawazishaji otomatiki wa katalogi wa hiari uliofafanuliwa hapa chini huhifadhi ufafanuzi wa watoa huduma ambao tayari
+upo katika faili saidizi lakini hauanzishi mipangilio mipya ya watoa huduma; sanidi mtoa huduma
+kwanza kwa usanidi wa moja kwa moja au dashibodi. Mipangilio iliyopo ya mtoa huduma huondolewa
+kwenye hakikisho za `--dry-run` kwa sababu inaweza kuwa na vitambulisho vinavyosimamiwa na mwendeshaji.
+
+OmniRoute pia inaweza **kusawazisha kiotomatiki** faili hizi hizi za profaili baada ya ugunduzi/uletaji uliofanikiwa wa modeli za mtoa huduma kubadilisha katalogi ya sasa. Kipengele hiki ni **cha hiari na kimezimwa kwa chaguo-msingi**: kiwashe kutoka kwenye **dashibodi ya CLI Code** ("CLI profile auto-sync" → Codex), au weka `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (pia huzingatia `CLI_ALLOW_CONFIG_WRITES`, ambacho kimewashwa kwa chaguo-msingi). Kikiwashwa, huandika tu faili tofauti za profaili za `~/.codex/*.config.toml`; kamwe hakibadilishi `~/.codex/config.toml` inayotumika/ya chaguo-msingi, mipangilio ya Codex-lb, uthibitishaji, au uteuzi wa mtoa huduma.
 
 ---
 

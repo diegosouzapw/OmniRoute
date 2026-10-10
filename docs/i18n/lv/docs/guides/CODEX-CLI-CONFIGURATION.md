@@ -273,18 +273,18 @@ codex -p chat     # cx/gpt-5.5, intensitāte nav iestatīta (servera noklusējum
 
 ---
 
-## Profilu automātiska ģenerēšana ar `omniroute setup-codex`
+## Automātiska profilu ģenerēšana ar `omniroute setup-codex`
 
-Ja palaižat OmniRoute VPS serverī, varat automātiski ģenerēt profilu failus no aktuālā modeļu kataloga:
+Ja OmniRoute darbināt VPS serverī, varat automātiski ģenerēt profilu failus no aktuālā modeļu kataloga:
 
 ```bash
-# No VPS (izmanto lokālo OmniRoute portā 20128)
+# No VPS servera (izmanto lokālo OmniRoute portā 20128)
 omniroute setup-codex
 
-# No jebkuras ierīces — norādiet savu VPS
+# No jebkuras ierīces — norādiet savu VPS serveri
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# Priekšskatījums, neierakstot failus
+# Priekšskatījums bez failu ierakstīšanas
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
 # Ģenerēt tikai GLM un Kimi profilus
@@ -294,9 +294,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Komanda izgūst `/v1/models`, zināmajiem modeļiem izmanto optimizētus profilus, citiem saderīgiem teksta modeļiem izmanto kataloga metadatus un katram izveido `~/.codex/<name>.config.toml`. Komanda ir idempotenta — to var droši palaist atkārtoti.
+Komanda iegūst `/v1/models`, zināmajiem modeļiem izmanto optimizētus profilus, citiem saderīgiem teksta modeļiem izmanto kataloga metadatus un katram izveido `~/.codex/<name>.config.toml`. Tā ir idempotenta — to var droši palaist atkārtoti.
 
-OmniRoute var arī **automātiski sinhronizēt** šos pašus profilu failus pēc tam, kad veiksmīga nodrošinātāja modeļu atklāšana/importēšana maina aktuālo katalogu. Šī funkcija ir **jāiespējo, un pēc noklusējuma tā ir izslēgta**: ieslēdziet to **CLI Code informācijas panelī** ("CLI profile auto-sync" → Codex) vai iestatiet `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (tiek ņemts vērā arī `CLI_ALLOW_CONFIG_WRITES`, kas pēc noklusējuma ir ieslēgts). Kad funkcija ir iespējota, tā ieraksta tikai atsevišķus `~/.codex/*.config.toml` profilu failus; tā nekad nemaina aktīvo/noklusējuma `~/.codex/config.toml`, Codex-lb iestatījumus, autentifikāciju vai nodrošinātāja izvēli.
+Ja pamata failā `config.toml` nav `model_providers.omniroute` definīcijas, tieša
+`setup-codex` palaišana iekļauj šo definīciju katrā ģenerētajā pārklājumā, izmantojot atlasīto
+lokālo vai attālo galapunktu. Pamata fails netiek mainīts. Esošā nodrošinātāja
+definīcija tiek mantota kopā ar tās galapunkta un autentifikācijas iestatījumiem. Nederīgs
+pamata TOML aptur ģenerēšanu pirms profilu ierakstīšanas.
+
+Ja norādāt `--api-key` vai `OMNIROUTE_API_KEY`, jaunizveidotā nodrošinātāja definīcija atsaucas uz
+`env_key = "OMNIROUTE_API_KEY"`; pati atslēga nekad netiek saglabāta vai izdrukāta
+priekšskatījumā. Iestatiet šo mainīgo vidē, kurā palaižat Codex. Ja atslēga
+nav norādīta, jaunā definīcija nepieprasa atslēgu, lai tā būtu piemērota OmniRoute instancei,
+kas konfigurēta neautentificētu pieprasījumu pieņemšanai.
+
+Tālāk aprakstītā kataloga automātiskā sinhronizācija, kas jāiespējo atsevišķi, saglabā pārklājumā jau esošās
+nodrošinātāju definīcijas, bet neveido jaunus nodrošinātāja iestatījumus; vispirms konfigurējiet nodrošinātāju,
+tieši palaižot iestatīšanu vai izmantojot informācijas paneli. Esošie nodrošinātāja iestatījumi netiek iekļauti
+izmēģinājuma priekšskatījumos, jo tie var saturēt operatora pārvaldītus akreditācijas datus.
+
+OmniRoute var arī **automātiski sinhronizēt** šos pašus profilu failus pēc tam, kad veiksmīga nodrošinātāja modeļu atrašana/importēšana maina aktuālo katalogu. Šī funkcija ir **jāiespējo atsevišķi, un pēc noklusējuma tā ir izslēgta**: pārslēdziet to **CLI Code informācijas panelī** („CLI profilu automātiskā sinhronizācija” → Codex) vai iestatiet `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (tiek ņemts vērā arī `CLI_ALLOW_CONFIG_WRITES`, kas pēc noklusējuma ir ieslēgts). Kad šī funkcija ir iespējota, tā ieraksta tikai atsevišķus `~/.codex/*.config.toml` profilu failus; tā nekad nemaina aktīvo/noklusējuma `~/.codex/config.toml`, Codex-lb iestatījumus, autentifikāciju vai nodrošinātāja atlasi.
 
 ---
 

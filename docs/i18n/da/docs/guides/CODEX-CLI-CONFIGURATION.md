@@ -281,7 +281,7 @@ codex -p chat     # cx/gpt-5.5, ingen indsats angivet (serverstandard)
 
 ---
 
-## Generering af profiler automatisk med `omniroute setup-codex`
+## Automatisk generering af profiler med `omniroute setup-codex`
 
 Hvis du kører OmniRoute på en VPS, kan du automatisk generere profilfiler fra det aktive modelkatalog:
 
@@ -292,7 +292,7 @@ omniroute setup-codex
 # Fra enhver maskine — peg på din VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# Forhåndsvis uden at skrive filer
+# Forhåndsvisning uden at skrive filer
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
 # Generér kun GLM- og Kimi-profiler
@@ -302,9 +302,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Kommandoen henter `/v1/models`, bruger finjusterede profiler til kendte modeller, falder tilbage til katalogmetadata for andre kompatible tekstmodeller og skriver `~/.codex/<name>.config.toml` for hver af dem. Idempotent — kan trygt køres igen.
+Kommandoen henter `/v1/models`, bruger finjusterede profiler til kendte modeller, falder tilbage til katalogmetadata for andre kompatible tekstmodeller og skriver `~/.codex/<name>.config.toml` for hver af dem. Den er idempotent — det er sikkert at køre den igen.
 
-OmniRoute kan også **automatisk synkronisere** de samme profilfiler, efter at en vellykket registrering/import af udbydermodeller ændrer det aktive katalog. Dette er **fravalgt og deaktiveret som standard**: Aktivér det fra **CLI Code-kontrolpanelet** ("Automatisk synkronisering af CLI-profiler" → Codex), eller angiv `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (det respekterer også `CLI_ALLOW_CONFIG_WRITES`, som er aktiveret som standard). Når funktionen er aktiveret, skriver den kun separate `~/.codex/*.config.toml`-profilfiler; den ændrer aldrig den aktive/standardmæssige `~/.codex/config.toml`, Codex-lb-indstillinger, godkendelse eller valg af udbyder.
+Hvis den grundlæggende `config.toml` ikke har en `model_providers.omniroute`-definition, inkluderer en eksplicit kørsel af
+`setup-codex` denne definition i hvert genereret overlay ved hjælp af det valgte
+lokale eller eksterne slutpunkt. Grundfilen forbliver uændret. En eksisterende udbyderdefinition
+nedarves, inklusive dens slutpunkt og godkendelsesindstillinger. Ugyldig
+TOML i grundfilen stopper genereringen, før profilerne skrives.
+
+Når du angiver `--api-key` eller `OMNIROUTE_API_KEY`, henviser en nydefineret udbyder til
+`env_key = "OMNIROUTE_API_KEY"`; selve nøglen gemmes eller vises aldrig i
+forhåndsvisningen. Indstil denne variabel i det miljø, hvor du starter Codex. Uden en
+angivet nøgle har den nye definition intet krav om en nøgle og er beregnet til en OmniRoute-instans,
+der er konfigureret til at acceptere ikke-godkendte anmodninger.
+
+Den tilvalgte automatiske katalogsynkronisering, der er beskrevet nedenfor, bevarer udbyderdefinitioner, som allerede findes
+i et overlay, men opretter ikke nye udbyderindstillinger; konfigurer først udbyderen
+med en eksplicit opsætning eller via kontrolpanelet. Eksisterende udbyderindstillinger udelades
+fra forhåndsvisninger med `--dry-run`, fordi de kan indeholde legitimationsoplysninger, som administreres af operatøren.
+
+OmniRoute kan også **automatisk synkronisere** de samme profilfiler, når en vellykket registrering/import af udbydermodeller ændrer det aktive katalog. Dette er **et tilvalg og er som standard slået fra**: slå det til via **CLI Code-kontrolpanelet** ("CLI profile auto-sync" → Codex), eller indstil `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (det respekterer også `CLI_ALLOW_CONFIG_WRITES`, som er slået til som standard). Når funktionen er aktiveret, skriver den kun separate `~/.codex/*.config.toml`-profilfiler; den ændrer aldrig den aktive/standardmæssige `~/.codex/config.toml`, Codex-lb-indstillinger, godkendelse eller valg af udbyder.
 
 ---
 

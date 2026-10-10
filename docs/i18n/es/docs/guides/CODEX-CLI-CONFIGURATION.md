@@ -280,7 +280,7 @@ Si ejecutas OmniRoute en un VPS, puedes generar automáticamente archivos de per
 # Desde un VPS (usa OmniRoute local en el puerto 20128)
 omniroute setup-codex
 
-# Desde cualquier equipo: apunta a tu VPS
+# Desde cualquier máquina: apunta a tu VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
 # Vista previa sin escribir archivos
@@ -293,9 +293,26 @@ omniroute setup-codex --only glm,kimi
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-El comando obtiene `/v1/models`, utiliza perfiles optimizados para los modelos conocidos, recurre a los metadatos del catálogo para otros modelos de texto compatibles y escribe `~/.codex/<name>.config.toml` para cada uno. Es idempotente, por lo que puede volver a ejecutarse de forma segura.
+El comando obtiene `/v1/models`, utiliza perfiles ajustados para los modelos conocidos, recurre a los metadatos del catálogo para otros modelos de texto compatibles y escribe `~/.codex/<name>.config.toml` para cada uno. Es idempotente, por lo que se puede volver a ejecutar de forma segura.
 
-OmniRoute también puede **sincronizar automáticamente** estos mismos archivos de perfil después de que un descubrimiento o una importación correctos de modelos de proveedores modifiquen el catálogo activo. Esta función es **opcional y está desactivada de forma predeterminada**: actívala desde el **panel de CLI Code** ("Sincronización automática de perfiles de CLI" → Codex), o establece `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (también respeta `CLI_ALLOW_CONFIG_WRITES`, activado de forma predeterminada). Cuando está activada, solo escribe archivos de perfil `~/.codex/*.config.toml` independientes; nunca modifica el archivo activo o predeterminado `~/.codex/config.toml`, la configuración de Codex-lb, la autenticación ni la selección del proveedor.
+Si el archivo `config.toml` base no tiene una definición `model_providers.omniroute`, la ejecución explícita de
+`setup-codex` incluye esa definición en cada configuración superpuesta generada, utilizando el endpoint
+local o remoto seleccionado. El archivo base no se modifica. Si ya existe una definición del proveedor,
+se hereda, incluidos su endpoint y sus ajustes de autenticación. Si el TOML base no es válido,
+la generación se detiene antes de escribir los perfiles.
+
+Cuando proporcionas `--api-key` o `OMNIROUTE_API_KEY`, un proveedor recién definido hace referencia a
+`env_key = "OMNIROUTE_API_KEY"`; la clave nunca se guarda ni se muestra en la
+vista previa. Define esa variable en el entorno desde el que inicias Codex. Si no se
+proporciona ninguna clave, la nueva definición no exige una clave, para una instancia de OmniRoute
+configurada para aceptar solicitudes no autenticadas.
+
+La sincronización automática opcional del catálogo descrita a continuación conserva las definiciones de proveedores que ya
+existan en una configuración superpuesta, pero no inicializa nuevos ajustes del proveedor; configura primero el proveedor
+mediante la configuración explícita o el panel de control. Los ajustes de proveedores existentes se omiten
+en las vistas previas de ejecución en seco porque pueden contener credenciales administradas por el operador.
+
+OmniRoute también puede **sincronizar automáticamente** estos mismos archivos de perfil después de que una detección/importación correcta de modelos del proveedor modifique el catálogo activo. Esta función es **opcional y está desactivada de forma predeterminada**: actívala desde el **panel de CLI Code** ("Sincronización automática de perfiles de CLI" → Codex), o define `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (también respeta `CLI_ALLOW_CONFIG_WRITES`, activado de forma predeterminada). Cuando está habilitada, solo escribe archivos de perfil `~/.codex/*.config.toml` independientes; nunca modifica el archivo activo/predeterminado `~/.codex/config.toml`, los ajustes de Codex-lb, la autenticación ni la selección del proveedor.
 
 ---
 

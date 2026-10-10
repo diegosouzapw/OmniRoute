@@ -276,9 +276,9 @@ codex -p chat     # cx/gpt-5.5, không thiết lập mức độ (mặc định 
 
 ---
 
-## Tự động tạo hồ sơ bằng `omniroute setup-codex`
+## Tự động tạo profile bằng `omniroute setup-codex`
 
-Nếu chạy OmniRoute trên VPS, bạn có thể tự động tạo các tệp hồ sơ từ danh mục mô hình đang hoạt động:
+Nếu chạy OmniRoute trên VPS, bạn có thể tự động tạo các tệp profile từ danh mục model đang hoạt động:
 
 ```bash
 # Từ VPS (sử dụng OmniRoute cục bộ trên cổng 20128)
@@ -290,16 +290,33 @@ omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 # Xem trước mà không ghi tệp
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
-# Chỉ tạo hồ sơ GLM và Kimi
+# Chỉ tạo profile GLM và Kimi
 omniroute setup-codex --only glm,kimi
 
 # Ghi vào thư mục tùy chỉnh
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Lệnh này tải `/v1/models`, sử dụng các hồ sơ đã được tinh chỉnh cho những mô hình đã biết, dùng siêu dữ liệu danh mục làm phương án dự phòng cho các mô hình văn bản tương thích khác, rồi ghi `~/.codex/<name>.config.toml` cho từng mô hình. Lệnh có tính lũy đẳng — có thể chạy lại an toàn.
+Lệnh này truy xuất `/v1/models`, sử dụng các profile đã được tinh chỉnh cho những model đã biết, dùng siêu dữ liệu danh mục làm phương án dự phòng cho các model văn bản tương thích khác và ghi `~/.codex/<name>.config.toml` cho từng model. Có tính lũy đẳng — có thể chạy lại một cách an toàn.
 
-OmniRoute cũng có thể **tự động đồng bộ** chính các tệp hồ sơ này sau khi quá trình khám phá/nhập mô hình của nhà cung cấp hoàn tất và làm thay đổi danh mục đang hoạt động. Tính năng này **cần chủ động bật và bị tắt theo mặc định**: bật từ **bảng điều khiển CLI Code** ("Tự động đồng bộ hồ sơ CLI" → Codex), hoặc đặt `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (tính năng cũng tuân theo `CLI_ALLOW_CONFIG_WRITES`, được bật theo mặc định). Khi được bật, tính năng chỉ ghi các tệp hồ sơ `~/.codex/*.config.toml` riêng biệt; tính năng này không bao giờ thay đổi `~/.codex/config.toml` đang hoạt động/mặc định, cài đặt Codex-lb, thông tin xác thực hoặc lựa chọn nhà cung cấp.
+Nếu `config.toml` cơ sở không có định nghĩa `model_providers.omniroute`, thì thao tác
+`setup-codex` tường minh sẽ thêm định nghĩa đó vào từng overlay được tạo, sử dụng
+endpoint cục bộ hoặc từ xa đã chọn. Tệp cơ sở vẫn được giữ nguyên. Nếu đã có định nghĩa
+provider, định nghĩa đó sẽ được kế thừa, bao gồm endpoint và các cài đặt xác thực. TOML
+cơ sở không hợp lệ sẽ dừng quá trình tạo trước khi ghi các profile.
+
+Khi bạn cung cấp `--api-key` hoặc `OMNIROUTE_API_KEY`, provider mới được định nghĩa sẽ tham chiếu đến
+`env_key = "OMNIROUTE_API_KEY"`; bản thân khóa sẽ không bao giờ được lưu hoặc in trong
+bản xem trước. Hãy đặt biến đó trong môi trường nơi bạn khởi chạy Codex. Nếu không
+cung cấp khóa, định nghĩa mới sẽ không yêu cầu khóa, dành cho phiên bản OmniRoute
+được cấu hình để chấp nhận các yêu cầu không xác thực.
+
+Tính năng tự động đồng bộ danh mục theo cơ chế chọn tham gia được mô tả bên dưới sẽ giữ nguyên các định nghĩa provider đã có
+trong overlay nhưng không tự khởi tạo cài đặt provider mới; trước tiên hãy cấu hình provider
+bằng quy trình thiết lập tường minh hoặc dashboard. Các cài đặt provider hiện có sẽ bị lược bỏ
+khỏi bản xem trước chạy thử vì chúng có thể chứa thông tin xác thực do người vận hành quản lý.
+
+OmniRoute cũng có thể **tự động đồng bộ** các tệp profile này sau khi quá trình khám phá/nhập model của provider thành công làm thay đổi danh mục đang hoạt động. Đây là tính năng **chỉ hoạt động khi được bật và mặc định bị tắt**: bật tính năng này từ **dashboard CLI Code** ("CLI profile auto-sync" → Codex), hoặc đặt `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (tính năng này cũng tuân theo `CLI_ALLOW_CONFIG_WRITES`, mặc định được bật). Khi được bật, tính năng này chỉ ghi các tệp profile `~/.codex/*.config.toml` riêng biệt; nó không bao giờ thay đổi `~/.codex/config.toml` đang hoạt động/mặc định, các cài đặt Codex-lb, thông tin xác thực hoặc lựa chọn provider.
 
 ---
 

@@ -264,28 +264,45 @@ codex -p chat     # cx/gpt-5.5, napor nije postavljen (podrazumevano na serveru)
 
 ## Automatsko generisanje profila pomoću `omniroute setup-codex`
 
-Ako pokrećete OmniRoute na VPS-u, možete automatski generisati datoteke profila iz kataloga modela uživo:
+Ako pokrećete OmniRoute na VPS-u, možete automatski generisati datoteke profila iz aktivnog kataloga modela:
 
 ```bash
 # Sa VPS-a (koristi lokalni OmniRoute na portu 20128)
 omniroute setup-codex
 
-# Sa bilo koje mašine — usmjerite na svoj VPS
+# Sa bilo kojeg računara — usmjerite na svoj VPS
 omniroute setup-codex --remote http://100.x.x.x:20128 --api-key sk-xxx
 
-# Pregled bez upisivanja datoteka
+# Pregled bez zapisivanja datoteka
 omniroute setup-codex --remote http://100.x.x.x:20128 --dry-run
 
-# Generiši samo GLM i Kimi profile
+# Generišite samo GLM i Kimi profile
 omniroute setup-codex --only glm,kimi
 
-# Upisivanje u prilagođeni direktorijum
+# Zapišite u prilagođeni direktorij
 omniroute setup-codex --codex-home /path/to/.codex
 ```
 
-Komanda preuzima `/v1/models`, koristi podešene profile za poznate modele, vraća se na metapodatke kataloga za druge kompatibilne tekstualne modele i upisuje `~/.codex/<name>.config.toml` za svaki. Idempotentna — sigurna za ponovno pokretanje.
+Naredba dohvaća `/v1/models`, koristi podešene profile za poznate modele, oslanja se na metapodatke kataloga za druge kompatibilne tekstualne modele te za svaki od njih zapisuje `~/.codex/<name>.config.toml`. Idempotentna je — može se sigurno ponovo pokrenuti.
 
-OmniRoute takođe može **automatski sinhronizovati** ove iste datoteke profila nakon što uspješno otkrivanje/uvoz modela provajdera promijeni katalog uživo. Ovo je **opciona funkcija i podrazumijevano je isključena**: uključite je sa **CLI Code kontrolne table** ("CLI profile auto-sync" → Codex), ili postavite `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (takođe poštuje `CLI_ALLOW_CONFIG_WRITES`, što je podrazumijevano uključeno). Kada je omogućeno, samo upisuje zasebne `~/.codex/*.config.toml` datoteke profila; nikada ne mijenja aktivni/podrazumijevani `~/.codex/config.toml`, Codex-lb postavke, autentifikaciju ili izbor provajdera.
+Ako osnovni `config.toml` nema definiciju `model_providers.omniroute`, eksplicitni
+`setup-codex` uključuje tu definiciju u svaku generisanu datoteku preklapanja, koristeći odabranu
+lokalnu ili udaljenu krajnju tačku. Osnovna datoteka ostaje nepromijenjena. Postojeća definicija
+pružaoca se nasljeđuje, uključujući njenu krajnju tačku i postavke autentifikacije. Nevažeći
+osnovni TOML zaustavlja generisanje prije zapisivanja profila.
+
+Kada navedete `--api-key` ili `OMNIROUTE_API_KEY`, novodefinisani pružalac upućuje na
+`env_key = "OMNIROUTE_API_KEY"`; sam ključ se nikada ne čuva niti prikazuje u
+pregledu. Postavite tu varijablu u okruženju iz kojeg pokrećete Codex. Bez
+navedenog ključa, nova definicija ne zahtijeva ključ, što je namijenjeno OmniRoute instanci
+konfigurisanoj da prihvata neautentifikovane zahtjeve.
+
+Opcionalna automatska sinhronizacija kataloga opisana u nastavku zadržava definicije pružaoca koje već
+postoje u datoteci preklapanja, ali ne postavlja nove postavke pružaoca; prvo konfigurišite pružaoca
+eksplicitnim postavljanjem ili putem kontrolne ploče. Postojeće postavke pružaoca izostavljaju se
+iz pregleda probnog pokretanja jer mogu sadržavati vjerodajnice kojima upravlja operater.
+
+OmniRoute također može **automatski sinhronizovati** iste datoteke profila nakon što uspješno otkrivanje/uvoz modela pružaoca promijeni aktivni katalog. Ova funkcija je **opcionalna i prema zadanim postavkama isključena**: uključite je na **CLI Code kontrolnoj ploči** ("CLI profile auto-sync" → Codex) ili postavite `OMNIROUTE_AUTO_SYNC_CODEX_PROFILES=true` (također uvažava `CLI_ALLOW_CONFIG_WRITES`, što je prema zadanim postavkama uključeno). Kada je omogućena, zapisuje samo zasebne datoteke profila `~/.codex/*.config.toml`; nikada ne mijenja aktivni/zadani `~/.codex/config.toml`, Codex-lb postavke, autentifikaciju niti odabir pružaoca.
 
 ---
 
