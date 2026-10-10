@@ -1,1 +1,0 @@
-- **test(providers):** align the Gemini Web validation success fixture with the authenticated-page contract and cover rejection of a signed-out HTTP 200 page through the public validator, without changing production authentication checks.
