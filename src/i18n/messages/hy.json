@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Լռելյայն (ավտոմատ)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Ելքային թոքենների առավելագույն քանակ",
+    "maxOutputTokenOverrideHint": "Մուտքագրեք թոքենների դրական ամբողջ թիվ։ Լռելյայն արժեքի համար թողեք դատարկ։",
     "contextWindowOverrideLabel": "Կոնտեքստային պատուհանի վերասահմանում",
     "contextWindowOverridePlaceholder": "օրինակ՝ 131072",
     "contextWindowOverrideHint": "Ձեռքով սահմանեք այս մոդելի իրական կոնտեքստային պատուհանը (թոքեններով), երբ մատակարարը սխալ արժեք է հաղորդում։ Այն գերակայում է ավտոմատ հայտնաբերված/կատալոգային արժեքներին և թույլ չի տալիս, որ համակցված երթուղավորումը հեռացնի մոդելը։",

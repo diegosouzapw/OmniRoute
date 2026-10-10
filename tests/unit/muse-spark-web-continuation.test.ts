@@ -4,8 +4,22 @@ import {
   MuseSparkWebExecutor,
   __resetMuseSparkConversationCacheForTesting,
   __setMuseSparkWebSocketForTesting,
+  __setMuseSparkFreshTokenFetcherForTesting,
 } from "../../open-sse/executors/muse-spark-web.ts";
 import { WebSocket } from "ws";
+
+// #12914: execute() now asks the browserPool for a fresh WS token before every
+// turn. Without this stub each test below launches (or tries to launch) a real
+// Chromium and hits meta.ai — 15–70 s per test and non-hermetic. Failing the
+// fetch makes the executor fall back to the static token the tests pass in; the
+// fresh-token path itself is covered in muse-spark-fresh-token-12914.test.ts.
+__setMuseSparkFreshTokenFetcherForTesting(async () => ({
+  ok: false as const,
+  error: "browser disabled in unit tests",
+}));
+test.after(() => {
+  __setMuseSparkFreshTokenFetcherForTesting(undefined);
+});
 
 // ─── Mock WebSocket ──────────────────────────────────────────────────────────
 
@@ -384,7 +398,9 @@ test("muse-spark-web: parallel chats with identical assistant replies don't coll
     // answers "pong", so both threads' cached prefixes end in identical
     // assistant text — only the differing question text keeps them apart.
     await executor.execute(
-      withConnection("conn-parallel", { body: { messages: [{ role: "user", content: "tell me a joke" }] } })
+      withConnection("conn-parallel", {
+        body: { messages: [{ role: "user", content: "tell me a joke" }] },
+      })
     );
     const convX1 = decodeIntroConversationId(MockWebSocket.instances.at(-1) as MockWebSocket);
 

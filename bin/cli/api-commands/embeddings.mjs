@@ -5,7 +5,8 @@ import { readFileSync } from "node:fs";
 
 export function register_embeddings(parent) {
   const tag = parent.command("embeddings").description("Embeddings endpoints");
-  tag.command("post-api-v1-embeddings")
+  tag
+    .command("post-api-v1-embeddings")
     .description("Create embeddings")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
@@ -17,25 +18,36 @@ export function register_embeddings(parent) {
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      const res = await apiFetch(url, {
+        method: "POST",
+        body,
+        baseUrl: gOpts.baseUrl,
+        apiKey: gOpts.apiKey,
+      });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });
-  tag.command("post-api-v1-providers-provider-embeddings")
+  tag
+    .command("post-api-v1-providers-provider-embeddings")
     .description("Create embeddings (provider-specific)")
     .requiredOption("--provider <provider>", "")
     .option("--body <jsonOrPath>", "JSON body or @path/to/file.json")
     .action(async (opts, cmd) => {
       const gOpts = cmd.optsWithGlobals();
       let url = "/api/v1/providers/{provider}/embeddings";
-      url = url.replace("{provider}", encodeURIComponent(opts.provider ?? ""));
+      url = url.replaceAll("{provider}", encodeURIComponent(opts.provider ?? ""));
       let body;
       if (opts.body) {
         body = opts.body.startsWith("@")
           ? JSON.parse(readFileSync(opts.body.slice(1), "utf8"))
           : JSON.parse(opts.body);
       }
-      const res = await apiFetch(url, { method: "POST", body, baseUrl: gOpts.baseUrl, apiKey: gOpts.apiKey });
+      const res = await apiFetch(url, {
+        method: "POST",
+        body,
+        baseUrl: gOpts.baseUrl,
+        apiKey: gOpts.apiKey,
+      });
       const data = res.ok ? await res.json() : await res.text();
       emit(data, gOpts);
     });

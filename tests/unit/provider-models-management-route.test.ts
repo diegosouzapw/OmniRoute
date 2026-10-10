@@ -178,6 +178,23 @@ test("provider-models GET keeps the original models and modelCompatOverrides con
   });
 });
 
+test("provider-models GET exposes chat-scoped visibility for legacy dashboard clients", async () => {
+  const modelId = "gemini-3.1-pro-high";
+  const url = `http://localhost/api/provider-models?provider=agy&modelId=${modelId}`;
+
+  await providerModelsRoute.PATCH(buildPatchRequest(url, { isHidden: true, modality: "chat" }));
+  let body = await getBody(
+    await providerModelsRoute.GET(buildGetRequest("http://localhost/api/provider-models?provider=agy"))
+  );
+  assert.equal(body.modelCompatOverrides?.find((row) => row.id === modelId)?.isHidden, true);
+
+  await providerModelsRoute.PATCH(buildPatchRequest(url, { isHidden: false, modality: "chat" }));
+  body = await getBody(
+    await providerModelsRoute.GET(buildGetRequest("http://localhost/api/provider-models?provider=agy"))
+  );
+  assert.equal(body.modelCompatOverrides?.find((row) => row.id === modelId)?.isHidden, false);
+});
+
 test("provider-models PATCH updates hidden flag for custom models", async () => {
   await modelsDb.addCustomModel("openai", "gpt-test", "GPT Test", "manual", "chat-completions", [
     "chat",

@@ -1,0 +1,1 @@
+- **fix(dashboard):** the resilience settings page surfaces the server's validation detail (offending field and reason) instead of the generic "Invalid request" toast when a PATCH is rejected, reusing the shared `readFetchErrorMessage` helper introduced for compatible-node prefix errors ([#16085](https://github.com/diegosouzapw/OmniRoute/pull/16085)) — thanks @farshadasadpour

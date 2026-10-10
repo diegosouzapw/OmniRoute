@@ -47,6 +47,7 @@ export function supportsApiKeyOnFreeProvider(providerId: unknown): boolean {
 const DUAL_AUTH_PROVIDER_IDS = new Set([
   "clinepass",
   "codebuddy-cn",
+  "codebuddy-intl",
   "xai",
   "muse-code",
   "cline",

@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Ihe adịghị mma mere",
+      "description": "Njehie a na-atụghị anya ya mere. Edekọla nke a, ndị otu anyị ga-enyochakwa ya.",
+      "detailsAriaLabel": "Nkọwa njehie",
+      "retryAriaLabel": "Nwaa ibulite ibe ahụ ọzọ",
+      "tryAgain": "Nwaa Ọzọ",
+      "statusAriaLabel": "Mepee ọnọdụ sistemụ",
+      "systemStatus": "Ọnọdụ Sistemụ"
+    }
+  }
+}
