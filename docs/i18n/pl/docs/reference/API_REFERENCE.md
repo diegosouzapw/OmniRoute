@@ -377,6 +377,12 @@ Lustro w trybie `dual` może być również rozpoznane bez parametru zapytania: 
 
 Klienci, którzy renderują selektor modeli, powinni żądać `?prefix=alias` — tak właśnie robi [rozszerzenie OmniCopilot VS Code](../guides/VSCODE-COPILOT.md).
 
+### Indywidualnie ukryte modele czatu
+
+Model oznaczony jako **Ukryty** na stronie swojego dostawcy jest wykluczany z katalogu, a jawne żądanie tego modelu jest odrzucane z HTTP `404` / `model_not_found`. Kontrola używa ustalonego dostawcy i modelu, uwzględniając aliasy dostawcy, prefiksy węzłów zgodnych dostawców oraz domyślne wartości połączenia. Combo pomija ukryte cele i może użyć innego widocznego celu; jeśli nie pozostanie żaden cel możliwy do wykonania, zwraca ten sam kod błędu. Ponowne pokazanie modelu działa od następnego żądania. Nadpisania widoczności dotyczące tylko obrazów nie ukrywają modelu czatu o tym samym ID.
+
+To ustawienie pojedynczego modelu jest niezależne od [list dozwolonej i zablokowanej ekspozycji modeli](../routing/MODEL_EXPOSURE_LIST.md), które filtrują ofertę katalogu i kandydatów automatycznego routingu, zachowując jawne kierowanie żądań. Uprawnienia do modeli przypisane do klucza API nadal obowiązują niezależnie. Domyślny tryb prefiksów katalogu pozostaje `dual`.
+
 ### Warianty modeli bez myślenia
 
 Dla modeli Claude zdolnych do myślenia, `/v1/models` reklamuje również wariant **bez myślenia**, którego identyfikator jest poprzedzony prefiksem `claude-3-omniroute-no-thinking/`:
