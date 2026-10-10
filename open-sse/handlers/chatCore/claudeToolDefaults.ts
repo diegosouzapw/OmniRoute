@@ -53,13 +53,24 @@ export function stripClaudeCustomToolType(tools: unknown): unknown {
 }
 
 /**
- * Per-provider dispatch decision for Claude-format tool normalization. AgentRouter
- * rejects `type: "custom"` (see stripClaudeCustomToolType) while strict gateways like
+ * Providers whose Anthropic-compatible endpoint rejects the `type: "custom"` tool
+ * discriminator with HTTP 400 "unknown variant `custom`":
+ * - agentrouter: New-API upstream (Rust serde), versioned tool types only.
+ * - deepseek: api.deepseek.com/anthropic, same rejection (port from 9router#3905 / #3952).
+ */
+const CLAUDE_CUSTOM_TOOL_TYPE_REJECTING_PROVIDERS: ReadonlySet<string> = new Set([
+  "agentrouter",
+  "deepseek",
+]);
+
+/**
+ * Per-provider dispatch decision for Claude-format tool normalization. Some providers
+ * reject `type: "custom"` (see stripClaudeCustomToolType) while strict gateways like
  * MiniMax REQUIRE the explicit discriminator (#2195) — the two quirks are mutually
  * exclusive, so the normalization is provider-scoped, never global.
  */
 export function normalizeClaudeToolsForDispatch(tools: unknown, provider: string): unknown {
-  return provider === "agentrouter"
+  return CLAUDE_CUSTOM_TOOL_TYPE_REJECTING_PROVIDERS.has(provider)
     ? stripClaudeCustomToolType(tools)
     : defaultClaudeToolType(tools);
 }
