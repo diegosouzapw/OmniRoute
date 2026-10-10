@@ -381,12 +381,12 @@ test("transferTokens: validation errors and insufficient balance", async () => {
   assert.deepEqual(await sharing.getHistory("a"), []);
 });
 
-test("characterization: transferTokens(NaN) currently passes validation and surfaces the raw SQLite error", async () => {
+test("transferTokens: NaN is rejected before reaching the SQLite ledger", async () => {
   const result = await sharing.transferTokens("a", "b", Number.NaN, undefined, "idem-nan");
   assert.deepEqual(result, {
     success: false,
-    idempotencyKey: "idem-nan",
-    error: "NOT NULL constraint failed: token_ledger.amount",
+    idempotencyKey: "",
+    error: "Amount must be positive",
   });
 });
 
