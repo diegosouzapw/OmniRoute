@@ -128,11 +128,11 @@ export default function ConnectionQuotaPanel({
   }, [cache, providerKey]);
 
   const messageRow = rows.length === 1 && rows[0].message ? rows[0] : null;
-  // Failed fetches keep the previous cache but leave `message` set; show it
-  // whenever there is nothing else to render (claude folds it into an error
-  // row, other providers keep it next to stale/empty quotas).
-  const messageText =
-    messageRow?.message ?? (rows.length === 0 && cache?.message ? cache.message : null);
+  // Failed fetches keep the previous cache but leave `message` set; surface it
+  // whenever it exists, not only when no rows parsed (claude folds it into an
+  // error row, others — e.g. xiaomi-mimo's self-tracked fallback — keep it
+  // beside real quota rows, where hiding it makes local counters look live).
+  const messageText = messageRow?.message ?? (cache?.message ? cache.message : null);
   const creditRows = rows.filter((r) => r.isCredits || r.isResetCredits);
   const windowRows = rows.filter(
     (r) => !r.isCredits && !r.isResetCredits && quotaWindowRank(r.name) !== null && !r.message

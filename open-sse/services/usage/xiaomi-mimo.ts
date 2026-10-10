@@ -45,10 +45,13 @@ const PLAN_LABEL_TRACKED = "Xiaomi MiMo Token Plan (OmniRoute-tracked)";
 const PLAN_LABEL_LIVE = "Xiaomi MiMo Token Plan";
 
 const CONSOLE_COOKIE_HINT =
-  "MiMo console cookie missing or expired — set the connection's 'Xiaomi MiMo console cookie' " +
-  "field (the Xiaomi SSO session Cookie from platform.xiaomimimo.com containing " +
-  "api-platform_serviceToken and userId), or set XIAOMI_MIMO_CONSOLE_COOKIE. The tp-/mk- " +
-  "inference key cannot read Token Plan usage.";
+  "MiMo Token Plan quota needs a console session cookie — the tp-/mk- inference key " +
+  "cannot read it. Get it at platform.xiaomimimo.com (logged in): F12 › Network, reload, " +
+  "filter by api.json/tokenPlan, open a request to platform.xiaomimimo.com and copy the " +
+  "whole Cookie value from Request Headers (it contains api-platform_serviceToken and " +
+  "userId). Paste it into the connection's 'Xiaomi MiMo console cookie' field, or set " +
+  "XIAOMI_MIMO_CONSOLE_COOKIE. The cookie expires with the browser session — re-paste it " +
+  "when this message returns.";
 
 // ─── Config helpers ─────────────────────────────────────────────────────────
 
