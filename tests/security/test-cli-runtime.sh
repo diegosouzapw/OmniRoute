@@ -83,6 +83,12 @@ for tool in codex claude droid openclaw; do
   assert_equals "runner-base ${tool} runnable" "false" "${RUNNABLE}"
 done
 
+# qodercli (#9292) has no *-settings route; its runtime probe lives under /runtime/.
+QODER_INSTALLED_BASE="$(read_json_field "${BASE_PORT}" "/api/cli-tools/runtime/qoder" '.installed')"
+QODER_RUNNABLE_BASE="$(read_json_field "${BASE_PORT}" "/api/cli-tools/runtime/qoder" '.runnable')"
+assert_equals "runner-base qoder installed" "false" "${QODER_INSTALLED_BASE}"
+assert_equals "runner-base qoder runnable" "false" "${QODER_RUNNABLE_BASE}"
+
 # Cover guide/runtime-only tools too (cursor, cline, roo, continue)
 CURSOR_INSTALLED_BASE="$(read_json_field "${BASE_PORT}" "/api/cli-tools/runtime/cursor" '.installed')"
 CURSOR_RUNNABLE_BASE="$(read_json_field "${BASE_PORT}" "/api/cli-tools/runtime/cursor" '.runnable')"
@@ -98,7 +104,7 @@ for tool in cline roo continue; do
   assert_equals "runner-base ${tool} reason" "not_required" "${REASON}"
 done
 
-echo "[3/8] Validating runner-cli (codex/claude/droid/openclaw preinstalled)"
+echo "[3/8] Validating runner-cli (codex/claude/droid/openclaw/qodercli preinstalled)"
 docker rm -f "${CLI_CONTAINER}" >/dev/null 2>&1 || true
 docker run -d --name "${CLI_CONTAINER}" -p "${CLI_PORT}:20128" --env-file "${ENV_FILE}" "${CLI_IMAGE}" >/tmp/omniroute_cli_runtime_cli.cid
 wait_ready "${CLI_PORT}" || { echo "      FAIL: cli container did not become ready"; exit 1; }
@@ -113,6 +119,18 @@ OPENCLAW_INSTALLED="$(read_json_field "${CLI_PORT}" "/api/cli-tools/openclaw-set
 OPENCLAW_RUNNABLE="$(read_json_field "${CLI_PORT}" "/api/cli-tools/openclaw-settings" '.runnable')"
 assert_equals "runner-cli openclaw installed" "true" "${OPENCLAW_INSTALLED}"
 assert_equals "runner-cli openclaw runnable" "true" "${OPENCLAW_RUNNABLE}"
+
+# qodercli (#9292): detected by the app AND actually executable inside the image.
+QODER_INSTALLED_CLI="$(read_json_field "${CLI_PORT}" "/api/cli-tools/runtime/qoder" '.installed')"
+QODER_RUNNABLE_CLI="$(read_json_field "${CLI_PORT}" "/api/cli-tools/runtime/qoder" '.runnable')"
+assert_equals "runner-cli qoder installed" "true" "${QODER_INSTALLED_CLI}"
+assert_equals "runner-cli qoder runnable" "true" "${QODER_RUNNABLE_CLI}"
+if docker exec "${CLI_CONTAINER}" qodercli --version >/dev/null 2>&1; then
+  echo "      PASS: runner-cli qodercli --version exits 0"
+else
+  echo "      FAIL: runner-cli qodercli --version did not exit 0"
+  FAILURES=$((FAILURES + 1))
+fi
 
 CURSOR_INSTALLED_CLI="$(read_json_field "${CLI_PORT}" "/api/cli-tools/runtime/cursor" '.installed')"
 CURSOR_RUNNABLE_CLI="$(read_json_field "${CLI_PORT}" "/api/cli-tools/runtime/cursor" '.runnable')"
