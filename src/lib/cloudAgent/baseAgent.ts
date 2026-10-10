@@ -72,6 +72,9 @@ export abstract class CloudAgentBase {
     ) {
       return "running";
     }
+    if (statusLower.includes("approval") || statusLower.includes("plan")) {
+      return "awaiting_approval";
+    }
     if (
       statusLower.includes("pending") ||
       statusLower.includes("queued") ||
@@ -79,10 +82,6 @@ export abstract class CloudAgentBase {
     ) {
       return "queued";
     }
-    if (statusLower.includes("approval") || statusLower.includes("plan")) {
-      return "awaiting_approval";
-    }
-
     return "queued";
   }
 

@@ -1,0 +1,1 @@
+- Classify Cloud Agent statuses such as `pending approval` and `waiting_for_plan_approval` as `awaiting_approval`, preserving terminal and running precedence without adding provider plan-approval capabilities (#16196).
