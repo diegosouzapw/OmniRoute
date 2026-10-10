@@ -291,66 +291,82 @@ Kedua-dua pengangkutan SSE dan HTTP Boleh Distrim disekat sehingga pelayan MCP d
 
 ## Pengesahan & Skop
 
-Alat MCP membaca rentetan skop daripada pemanggil. Semakan itu adalah salah satu daripada tiga ruang nama bebas. Lulus daripada satu penyemak bukan lulus daripada yang lain. Peraturannya adalah [Tiga ruang nama skop](#three-scope-namespaces). Katalog alat adalah [Skop alat MCP](#mcp-tool-scopes).
+Panggilan alat MCP membaca rentetan skop daripada pemanggil. Semakan itu merupakan salah satu daripada tiga ruang nama bebas. Kelulusan daripada satu pemeriksa bukan kelulusan daripada pemeriksa yang lain. Peraturannya terdapat dalam [Tiga ruang nama skop](#three-scope-namespaces).
+Katalog alat terdapat dalam [Skop alat MCP](#mcp-tool-scopes).
 
 ### Tiga ruang nama skop
 
-`manage` pada kunci API, `read:compression` pada alat MCP, dan `read` pada token akses `oma_live_…` adalah tiga pemberian yang berbeza. Pemanggil yang menghantar token akses `read` ke laluan pengurusan yang mengubah akan mendapat HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Pangkat itu adalah `scopeSatisfies`. Ia tidak merujuk jadual MCP, dan pencocok MCP tidak merujuknya.
+`manage` pada kunci API, `read:compression` pada alat MCP dan `read` pada token akses `oma_live_…` ialah tiga pemberian yang berbeza. Pemanggil yang menghantar token akses `read` ke laluan pengurusan yang mengubah suai akan menerima HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Kedudukan itu ialah `scopeSatisfies`. Ia tidak merujuk jadual MCP dan pemadan MCP juga tidak merujuknya.
 
-| Ruang Nama           | Kredensial                                                               | Penyemak                         | Lulus membenarkan                                                  |
-| :------------------- | :----------------------------------------------------------------------- | :------------------------------- | :----------------------------------------------------------------- |
-| Pengurusan kunci API | `api_keys.scopes`                                                        | `hasManageScope`                 | REST Pengurusan untuk kunci Bearer itu                             |
-| Tambahan kunci API   | tatasusunan yang sama, satu rentetan tepat                               | pembantu yang dinamakan di bawah | Hanya satu keupayaan itu                                           |
-| Skop alat MCP        | tatasusunan yang sama, selain MCP `_meta`, selain `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                   | Alat itu, setelah penguatkuasaan dihidupkan                        |
-| Token akses          | `oma_live_…`                                                             | `scopeSatisfies`                 | Laluan pengurusan yang kaedah dan laluannya memerlukan pangkat itu |
+| Ruang nama           | Bukti kelayakan                                                                  | Pemeriksa                        | Kelulusan membenarkan                                                     |
+| :------------------- | :------------------------------------------------------------------------------- | :------------------------------- | :------------------------------------------------------------------------ |
+| Pengurusan kunci API | `api_keys.scopes`                                                                | `hasManageScope`                 | REST pengurusan untuk kunci Bearer tersebut                               |
+| Tambahan kunci API   | tatasusunan yang sama, satu rentetan tepat                                       | pembantu yang dinamakan di bawah | Hanya satu keupayaan tersebut                                             |
+| Skop alat MCP        | tatasusunan yang sama, jika tiada MCP `_meta`, jika tiada `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                   | Alat tersebut, setelah penguatkuasaan diaktifkan                          |
+| Token akses          | `oma_live_…`                                                                     | `scopeSatisfies`                 | Laluan pengurusan yang kaedah dan laluannya memerlukan kedudukan tersebut |
 
-Mencipta setiap kredensial diliputi dalam [Pengesahan Pengurusan](../guides/MANAGEMENT-AUTH.md).
+Pengeluaran setiap bukti kelayakan diterangkan dalam
+[Pengesahan Pengurusan](../guides/MANAGEMENT-AUTH.md).
 
 #### Skop kunci API
 
-Satu tatasusunan `api_keys.scopes` menyalurkan dua tugas. Mereka menggunakan fungsi yang berbeza.
+Satu tatasusunan `api_keys.scopes` digunakan untuk dua tugas. Kedua-duanya menggunakan fungsi yang berbeza.
 
-**REST Pengurusan.** `manage` dan `admin` adalah ahli `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` adalah apa yang membenarkan laluan pengurusan untuk kunci itu. `admin` berkemampuan pengurusan pada laluan tersebut. Perkataan `admin` di sini bukan pangkat token akses dan ia tidak berkembang menjadi skop alat MCP.
+**REST pengurusan.** `manage` dan `admin` ialah ahli
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` memberikan kebenaran kepada laluan pengurusan untuk kunci tersebut. `admin` berkeupayaan mengurus pada laluan tersebut. Perkataan `admin` di sini bukan kedudukan token akses dan tidak dikembangkan menjadi skop alat MCP.
 
-**Rentetan tambahan.** Setiap satu adalah ujian keahlian yang tepat, dan setiap satu kekal di luar `MANAGEMENT_API_KEY_SCOPES`.
+**Rentetan tambahan.** Setiap satu ialah ujian keahlian tepat dan setiap satu kekal di luar `MANAGEMENT_API_KEY_SCOPES`.
 
-| Skop                           | Lulus membenarkan                                                                                                                                                          |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp:connect`                  | Hanya `/api/mcp/` LOCAL_ONLY yang bukan gelung balik (`hasMcpConnectOrManageScope`). Kunci dengan `manage` atau `admin` masih lulus pengecualian itu.                      |
-| `self:usage`                   | `GET /api/v1/me/status` untuk kunci ini (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` menambah skop ini pada penciptaan (`normalizeSelfServiceScopesForCreate`). |
-| `self:account-quota`           | Kuota akaun huluan dalam muatan status itu (`src/lib/usage/apiKeySelfService.ts`). Laluan status masih memerlukan `self:usage`.                                            |
-| `policy:bypass-provider-quota` | Panggilan inferens kunci ini melangkau dasar kuota penyedia (`hasProviderQuotaBypassScope` dalam `src/sse/handlers/chat.ts`).                                              |
+| Skop                           | Kelulusan membenarkan                                                                                                                                                           |
+| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mcp:connect`                  | Pengecualian LOCAL_ONLY `/api/mcp/` bukan gelung balik sahaja (`hasMcpConnectOrManageScope`). Kunci dengan `manage` atau `admin` masih melepasi pengecualian tersebut.          |
+| `self:usage`                   | `GET /api/v1/me/status` untuk kunci ini (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` menambahkan skop ini semasa penciptaan (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Kuota akaun huluan dalam muatan status tersebut (`src/lib/usage/apiKeySelfService.ts`). Laluan status masih memerlukan `self:usage`.                                            |
+| `policy:bypass-provider-quota` | Panggilan inferens kunci ini melangkau dasar kuota penyedia (`hasProviderQuotaBypassScope` dalam `src/sse/handlers/chat.ts`).                                                   |
 
-#### Padanan
+#### Pemadanan
 
-Katalog adalah jadual di bawah [Skop alat MCP](#mcp-tool-scopes). Jangan anggap `MCP_SCOPE_LIST` dalam `src/shared/constants/mcpScopes.ts` sebagai katalog itu: ia adalah subset bertaip asal. Alat-alat kemudian mengisytiharkan skop selanjutnya di sampingnya (`read:notion`, `read:skills`, `read:local-corpus`, dan selebihnya jadual).
+Katalog ialah jadual di bawah [Skop alat MCP](#mcp-tool-scopes). Jangan anggap `MCP_SCOPE_LIST` dalam `src/shared/constants/mcpScopes.ts` sebagai katalog tersebut:
+ia merupakan subset berjenis yang asal. Alat yang ditambahkan kemudian mengisytiharkan skop lanjutan di sampingnya
+(`read:notion`, `read:skills`, `read:local-corpus` dan skop lain dalam jadual).
 
-`evaluateToolScopes` dalam `open-sse/mcp-server/scopeEnforcement.ts` membenarkan panggilan apabila setiap skop yang diperlukan sepadan dengan beberapa skop yang diberikan:
+`evaluateToolScopes` dalam `open-sse/mcp-server/scopeEnforcement.ts` membenarkan panggilan apabila setiap skop yang diperlukan sepadan dengan suatu skop yang diberikan:
 
 - `*` sepadan dengan setiap skop yang diperlukan.
-- Skop yang diberikan yang berakhir dengan `*` sepadan dengan skop yang diperlukan yang bermula dengan awalan sebelum bintang. `read:*` sepadan dengan `read:compression`.
-- Setiap skop lain yang diberikan hanya sepadan dengan rentetan yang diperlukan yang sama.
+- Skop yang diberikan dan berakhir dengan `*` sepadan dengan skop diperlukan yang bermula dengan awalan sebelum tanda bintang. `read:*` sepadan dengan `read:compression`.
+- Setiap skop lain yang diberikan hanya sepadan dengan rentetan diperlukan yang sama tepat.
 
-Kunci yang skopnya adalah `["manage"]` gagal `scopeMatches` untuk `read:compression`. Panggilan yang sama gagal untuk `admin`, `mcp:connect`, `read`, dan `write` apabila itu adalah satu-satunya rentetan yang diberikan. Tiada hierarki di antara skop alat MCP selain daripada `*` yang mengekor.
+Kunci yang skopnya ialah `["manage"]` gagal dalam `scopeMatches` untuk `read:compression`.
+Panggilan yang sama gagal untuk `admin`, `mcp:connect`, `read` dan `write` apabila rentetan tersebut merupakan satu-satunya rentetan yang diberikan. Tiada hierarki dalam kalangan skop alat MCP selain `*` di hujung.
 
-Penguatkuasaan dimatikan melainkan `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (lalai `false`). Semasa ia dimatikan, `evaluateToolScopes` membenarkan panggilan dan melangkau katalog. Semasa ia dihidupkan, HTTP menggunakan `api_keys.scopes` kunci Bearer sebagai `authInfo` (lihat [Pengikatan skop HTTP setiap kunci](#per-key-http-scope-binding-7895)). Apabila tiada skop kunci diselesaikan, set yang diberikan jatuh melalui ke MCP `_meta`, kemudian `OMNIROUTE_MCP_SCOPES`.
+Penguatkuasaan dimatikan melainkan `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (lalai
+`false`). Semasa dimatikan, `evaluateToolScopes` membenarkan panggilan dan melangkau katalog. Semasa dihidupkan, HTTP menggunakan `api_keys.scopes` milik kunci Bearer sebagai `authInfo` (lihat [Pengikatan skop HTTP setiap kunci](#per-key-http-scope-binding-7895)).
+Apabila tiada skop kunci dapat diselesaikan, set yang diberikan beralih kepada MCP `_meta`, kemudian `OMNIROUTE_MCP_SCOPES`.
 
 #### Skop token akses
 
-Token `oma_live_…` (`src/lib/accessTokens/scopes.ts`) membawa `read`, `write`, atau `admin`. `scopeSatisfies` adalah pangkat: `admin` meliputi `write` dan `read`, dan `write` meliputi `read`. Skop yang tidak diketahui tidak meliputi apa-apa.
+Token `oma_live_…` (`src/lib/accessTokens/scopes.ts`) membawa `read`, `write` atau `admin`. `scopeSatisfies` ialah suatu kedudukan: `admin` merangkumi `write` dan `read`, manakala `write` merangkumi `read`. Skop yang tidak diketahui tidak merangkumi apa-apa.
 
-`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) membandingkan pangkat itu dengan `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) membandingkan kedudukan tersebut dengan `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
 
-- `GET`, `HEAD`, dan `OPTIONS` memerlukan `read`.
+- `GET`, `HEAD` dan `OPTIONS` memerlukan `read`.
 - Setiap kaedah lain memerlukan `write`.
-- Laluan dalam `ADMIN_SCOPE_PREFIXES` memerlukan `admin` untuk setiap kaedah. `/api/mcp` ada dalam senarai itu, jadi token akses `write` masih tidak boleh memanggil permukaan HTTP MCP.
+- Laluan dalam `ADMIN_SCOPE_PREFIXES` memerlukan `admin` untuk setiap kaedah. `/api/mcp` terdapat dalam senarai itu, jadi token akses `write` masih tidak boleh memanggil permukaan HTTP MCP.
 - Laluan dalam `ADMIN_MUTATION_PREFIXES` memerlukan `admin` hanya untuk mutasi.
 
-`PATCH /api/keys/{id}` ialah mutasi dan tiada dalam senarai pentadbir tersebut, jadi token `read` menerima 403
+`PATCH /api/keys/{id}` ialah mutasi dan tidak terdapat dalam senarai pentadbir tersebut, maka token
+`read` menerima 403
 `Access token scope 'read' is insufficient; 'write' required.`
-Token akses `write` atau `admin` memenuhi laluan tersebut. JWT papan pemuka, token ID mesin CLI loopback, dan kunci API dengan `manage` atau `admin` mengambil cabang lain dan tidak disempitkan oleh pangkat ini.
+Token akses `write` atau `admin` memenuhi keperluan laluan tersebut. JWT papan pemuka, token
+machine-id CLI loopback dan kunci API dengan `manage` atau `admin` menggunakan
+cabang lain dan tidak dihadkan oleh taraf ini.
 
-Token akses yang melepasi `scopeSatisfies` untuk `/api/mcp` hanya telah melepasi gerbang pengurusan. Panggilan alat masih menjalankan `scopeMatches` terhadap skop kunci API. Pangkat token akses bukan input kepada `scopeMatches`.
+Token akses yang melepasi `scopeSatisfies` untuk `/api/mcp` hanya telah melepasi
+pintu pengurusan. Panggilan alat masih menjalankan `scopeMatches` terhadap skop
+kunci API. Taraf token akses bukan input kepada `scopeMatches`.
 
 ### Skop alat MCP
 
@@ -395,51 +411,63 @@ Setiap alat memerlukan skop tertentu:
 
 Skop kad bebas disokong: `read:*` memberikan semua skop baca, `*` memberikan akses penuh.
 
-### `mcp:connect` — keupayaan laluan sempit (#7895)
+### `mcp:connect` — keupayaan laluan terhad (#7895)
 
-Mencapai pengangkutan HTTP/SSE MCP (`/api/mcp/*`) dari bukan gelung balik memerlukan
-ukiran `/api/mcp/` LOCAL_ONLY (lihat `docs/security/ROUTE_GUARD_TIERS.md`). Secara sejarah
-ukiran itu hanya menerima kunci API `manage`/`admin`-skop penuh — terlalu luas untuk
-pemanggil yang hanya perlu bercakap dengan MCP. `src/shared/constants/managementScopes.ts` kini
-mengeksport `MCP_CONNECT_SCOPE = "mcp:connect"`: skop tambahan yang sempit (preseden yang sama seperti
-`SELF_USAGE_SCOPE`) yang hanya membenarkan pintasan `/api/mcp/` dalam
-`src/server/authz/policies/management.ts` — ia tidak memberikan akses laluan pengurusan lain
-dan sengaja dikekalkan DI LUAR `MANAGEMENT_API_KEY_SCOPES`. Kunci yang memegang `manage`/`admin`
-masih melepasi ukiran tanpa perubahan; `mcp:connect` adalah alternatif keistimewaan yang lebih rendah untuk
-pemanggil MCP-sahaja jauh, diperiksa melalui `hasMcpConnectOrManageScope()`.
+Mengakses pengangkutan HTTP/SSE MCP (`/api/mcp/*`) daripada alamat bukan gelung balik memerlukan
+pengecualian LOCAL_ONLY `/api/mcp/` (lihat `docs/security/ROUTE_GUARD_TIERS.md`). Dari segi sejarah,
+pengecualian tersebut hanya menerima kunci API dengan skop penuh `manage`/`admin` — terlalu luas untuk
+pemanggil yang hanya perlu berkomunikasi dengan MCP. `src/shared/constants/managementScopes.ts` kini
+mengeksport `MCP_CONNECT_SCOPE = "mcp:connect"`: skop tambahan yang terhad (mengikuti duluan yang sama seperti
+`SELF_USAGE_SCOPE`) yang membenarkan HANYA pintasan `/api/mcp/` dalam
+`src/server/authz/policies/management.ts` — ia tidak memberikan akses kepada mana-mana laluan pengurusan lain
+dan sengaja TIDAK disertakan dalam `MANAGEMENT_API_KEY_SCOPES`. Kunci yang mempunyai `manage`/`admin`
+masih melepasi pengecualian tersebut tanpa perubahan; `mcp:connect` ialah alternatif berkeistimewaan lebih rendah untuk
+pemanggil MCP jarak jauh sahaja, yang diperiksa melalui `hasMcpConnectOrManageScope()`.
 
-### Pengikatan skop HTTP setiap kunci (#7895)
+### Pengikatan skop HTTP bagi setiap kunci (#7895)
 
 Melalui HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` kini menyelesaikan
 `api_keys.scopes` sebenar pemanggil melalui `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
-dan menyerahkannya kepada `transport.handleRequest(req, { authInfo })` SDK MCP, jadi
-`extra.authInfo.scopes` yang mencapai setiap panggilan alat mencerminkan skop kunci Bearer itu sendiri.
-`scopeEnforcement.ts`'s `resolveCallerScopeContext()` sudah mengutamakan `authInfo` berbanding
-`_meta` dan `OMNIROUTE_MCP_SCOPES` fallback env — ini hanya mengisi sumber pertama,
-keutamaan tertinggi itu, yang sebelum ini tidak diberi makan melalui HTTP. Apabila tiada kunci API diselesaikan
-(tiada pengepala, kunci tidak sah), `authInfo` kekal `undefined` dan penyelesaian jatuh melalui
-rantai `meta`/env sedia ada tanpa perubahan. Ini TIDAK membalikkan lalai `OMNIROUTE_MCP_ENFORCE_SCOPES` —
-penguatkuasaan masih perlu diaktifkan secara eksplisit; perubahan ini hanya menjadikan
-laluan setiap kunci diutamakan setelah ia diaktifkan. stdio tidak mempunyai identiti setiap pemanggil (lihat
-`mcpCallerIdentity.ts`) dan tidak terjejas — ia kekal pada rantai fallback `_meta`/env.
+dan meneruskannya kepada `transport.handleRequest(req, { authInfo })` milik SDK MCP, supaya
+`extra.authInfo.scopes` yang sampai kepada setiap panggilan alat mencerminkan skop kunci Bearer itu sendiri.
+`resolveCallerScopeContext()` dalam `scopeEnforcement.ts` sememangnya telah mengutamakan `authInfo` berbanding
+sandaran `_meta` dan pemboleh ubah persekitaran `OMNIROUTE_MCP_SCOPES` — perubahan ini hanya mengisi sumber pertama
+dengan keutamaan tertinggi itu, yang sebelum ini tidak dibekalkan melalui HTTP. Apabila tiada kunci API berjaya diselesaikan
+(tiada pengepala, kunci tidak sah), `authInfo` kekal `undefined` dan penyelesaian beralih kepada rantaian
+`meta`/persekitaran sedia ada tanpa perubahan. stdio tidak mempunyai identiti bagi setiap pemanggil (lihat
+`mcpCallerIdentity.ts`) dan tidak terjejas — ia kekal menggunakan rantaian sandaran `_meta`/persekitaran.
+
+**Penguatkuasaan diwajibkan untuk pemanggil HTTP/SSE dengan skop terhad tanpa mengira
+`OMNIROUTE_MCP_ENFORCE_SCOPES`.** Nilai lalai `false` bagi `OMNIROUTE_MCP_ENFORCE_SCOPES` hanya
+selamat untuk aliran pengendali tunggal setempat/stdio, yang tidak mempunyai identiti bagi setiap pemanggil untuk dikenakan skop.
+`open-sse/mcp-server/server.ts::withScopeEnforcement()` menghidupkan penguatkuasaan skop bagi setiap alat
+tanpa syarat (`shouldForceScopeEnforcement()` dalam `scopeEnforcement.ts`)
+apabila `resolveCallerScopeContext()` menyelesaikan
+`source === "authInfo"` (iaitu pengepala HTTP Authorization sebenar bagi setiap kunci, HTTP/SSE sahaja) DAN kunci tersebut
+tidak mempunyai skop penuh `manage`/`admin`. Ini menutup jurang yang membolehkan kunci yang HANYA mempunyai
+skop pintasan terhad `mcp:connect` — yang didokumenkan di atas sebagai tidak membenarkan apa-apa selain
+pengecualian LOCAL_ONLY `/api/mcp/` — memanggil setiap alat MCP sebaik sahaja pengendali
+mendayakan akses MCP jarak jauh/bukan gelung balik, hanya kerana `OMNIROUTE_MCP_ENFORCE_SCOPES` disertakan
+dengan nilai lalai `false`. Kunci penuh `manage`/`admin` melalui HTTP, serta setiap pemanggil stdio/setempat, mengekalkan
+tingkah laku sedia ada yang dikawal oleh `OMNIROUTE_MCP_ENFORCE_SCOPES` tanpa perubahan.
 
 ---
 
 ## Pemboleh Ubah Persekitaran
 
-| Pemboleh Ubah                           | Lalai                                    | Tujuan                                                                                                                             |
-| :-------------------------------------- | :--------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`                 | URL asas yang digunakan oleh pelayan MCP semasa memanggil API dalaman OmniRoute                                                    |
-| `OMNIROUTE_API_KEY`                     | (kosong)                                 | Kunci API yang dimajukan sebagai `Authorization: Bearer` kepada panggilan API dalaman                                              |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (hanya `"true"` mengaktifkannya) | Apabila diaktifkan, skop yang tiada akan menolak panggilan alat dan merekodkan `scope_denied:<reason>` dalam log audit             |
-| `OMNIROUTE_MCP_SCOPES`                  | (kosong)                                 | Senarai skop dipisahkan koma yang dianggap "tersedia" secara lalai (digunakan apabila pemanggil tidak menyediakan skopnya sendiri) |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (tidak ditetapkan = aktif)               | Apabila ditetapkan kepada `0/false/off/no`, menyahaktifkan pemampatan perihalan MCP semasa pendaftaran                             |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (tidak ditetapkan = aktif)               | Alias alternatif untuk togol yang sama seperti di atas                                                                             |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                                  | Had masa sebelum pembatalan untuk bacaan pengurusan dalaman (kesihatan, daya tahan, gabungan, kuota, penggunaan)                   |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                                  | Had masa sebelum pembatalan untuk lompatan yang menunggu penyedia (`route_request`, `web_search`, `web_fetch`)                     |
-| `MCP_TOOL_DENY`                         | (tidak ditetapkan = tiada penapis)       | Nama alat dipisahkan koma untuk digugurkan daripada `tools/list` (pengurangan kardinaliti alat — lihat di bawah)                   |
-| `MCP_TOOL_ALLOW`                        | (tidak ditetapkan = tiada penapis)       | Nama alat dipisahkan koma untuk dikekalkan secara eksklusif (mod senarai dibenarkan — lihat di bawah)                              |
-| `DATA_DIR`                              | `~/.omniroute`                           | Fail denyutan jantung ditulis ke `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                          |
+| Pemboleh Ubah                           | Lalai                                  | Tujuan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| :-------------------------------------- | :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`               | URL asas yang digunakan oleh pelayan MCP apabila memanggil API dalaman OmniRoute                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `OMNIROUTE_API_KEY`                     | (kosong)                               | Kunci API yang dimajukan sebagai `Authorization: Bearer` kepada panggilan API dalaman                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (hanya `"true"` mendayakannya) | Apabila didayakan, skop yang tiada akan menolak panggilan alat dan merekodkan `scope_denied:<reason>` dalam log audit. Penguatkuasaan JUGA dipaksa aktif tanpa mengira bendera ini bagi mana-mana pemanggil HTTP/SSE yang dikenal pasti daripada pengepala Authorization bagi setiap kunci (`source === "authInfo"`) dan tidak mempunyai skop penuh `manage`/`admin` — contohnya, kunci yang hanya memiliki skop pintasan terhad `mcp:connect` — maka lalai ini selamat hanya untuk aliran operator tunggal setempat/stdio, dan tidak sekali-kali untuk akses jauh bukan gelung balik |
+| `OMNIROUTE_MCP_SCOPES`                  | (kosong)                               | Senarai skop dipisahkan koma yang dianggap "tersedia" secara lalai (digunakan apabila pemanggil tidak menyediakan skopnya sendiri)                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (tidak ditetapkan = aktif)             | Apabila ditetapkan kepada `0/false/off/no`, mematikan pemampatan perihalan MCP semasa pendaftaran                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (tidak ditetapkan = aktif)             | Alias alternatif bagi togol yang sama seperti di atas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                                | Had masa sebelum pembatalan bagi pembacaan pengurusan dalaman (kesihatan, ketahanan, gabungan, kuota, penggunaan)                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                                | Had masa sebelum pembatalan bagi lompatan yang menunggu penyedia (`route_request`, `web_search`, `web_fetch`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `MCP_TOOL_DENY`                         | (tidak ditetapkan = tiada penapis)     | Nama alat dipisahkan koma untuk digugurkan daripada `tools/list` (pengurangan kardinaliti alat — lihat di bawah)                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `MCP_TOOL_ALLOW`                        | (tidak ditetapkan = tiada penapis)     | Nama alat yang dipisahkan dengan koma untuk dikekalkan secara eksklusif (mod senarai dibenarkan — lihat di bawah)                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `DATA_DIR`                              | `~/.omniroute`                         | Fail denyutan jantung ditulis ke `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ---
 

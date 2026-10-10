@@ -288,167 +288,206 @@ It-trasport SSE u HTTP li jista' jiġi sfruttat it-tnejn huma ibblukkati sakemm 
 
 ---
 
-## Awtentikazzjoni u Skopi
+## Awtentikazzjoni u Ambiti
 
-L-għodda MCP issejjaħ kordi tal-iskop tal-qari mill-mittent. Dik il-verifika hija waħda minn tliet
-namespaces indipendenti. Pass minn checker wieħed mhuwiex pass mill-oħrajn.
-Ir-regoli huma [Tliet namespaces tal-iskop](#tliet-namespaces-tal-iskop).
-Il-katalogu tal-għodda huwa [Skopi tal-għodda MCP](#skopi-tal-għodda-mcp).
+Is-sejħiet tal-għodod MCP jaqraw is-strings tal-ambitu mingħand min jagħmel is-sejħa. Dak il-kontroll huwa wieħed minn tliet
+spazji tal-ismijiet indipendenti. Suċċess minn kontrollur wieħed ma jfissirx suċċess mill-oħrajn.
+Ir-regoli jinsabu f’[Tliet spazji tal-ismijiet tal-ambiti](#three-scope-namespaces).
+Il-katalgu tal-għodod jinsab f’[Ambiti tal-għodod MCP](#mcp-tool-scopes).
 
-### Tliet namespaces tal-iskop
+### Tliet spazji tal-ismijiet tal-ambiti
 
 `manage` fuq ċavetta API, `read:compression` fuq għodda MCP, u `read` fuq
-token ta' aċċess `oma_live_…` huma tliet għotjiet differenti. Dawk li jsejħu li jibagħtu token ta' aċċess `read`
-lil rotta ta' ġestjoni li timmodifika jiksbu HTTP 403
+token ta’ aċċess `oma_live_…` huma tliet awtorizzazzjonijiet differenti. Min jagħmel sejħa u jibgħat token ta’ aċċess
+`read` lil rotta ta’ ġestjoni li tagħmel bidliet jirċievi HTTP 403
 `Access token scope 'read' is insufficient; 'write' required.`
-Dak il-grad huwa `scopeSatisfies`. Ma jikkonsultax it-tabella MCP, u l-matcher MCP ma jikkonsultahx.
+Dak il-grad huwa `scopeSatisfies`. Dan ma jikkonsultax it-tabella MCP, u l-mekkaniżmu ta’
+tqabbil MCP ma jikkonsultahx.
 
-| Namespace                | Kredenzjali                                                         | Checker                    | Pass jippermetti                                                       |
-| :----------------------- | :------------------------------------------------------------------ | :------------------------- | :--------------------------------------------------------------------- |
-| Ġestjoni ta' ċavetta API | `api_keys.scopes`                                                   | `hasManageScope`           | REST ta' ġestjoni għal dik iċ-ċavetta Bearer                           |
-| Addittiv ta' ċavetta API | l-istess array, korda eżatta waħda                                  | l-helper imsemmi hawn taħt | Dik il-kapaċità waħda biss                                             |
-| Skopi tal-għodda MCP     | l-istess array, inkella MCP `_meta`, inkella `OMNIROUTE_MCP_SCOPES` | `scopeMatches`             | Dik l-għodda, ladarba l-infurzar ikun mixgħul                          |
-| Token ta' aċċess         | `oma_live_…`                                                        | `scopeSatisfies`           | Ir-rotta ta' ġestjoni li l-metodu u l-path tagħha jeħtieġu dak il-grad |
+| Spazju tal-ismijiet      | Kredenzjali                                                             | Kontrollur                  | Suċċess jippermetti                                                    |
+| :----------------------- | :---------------------------------------------------------------------- | :-------------------------- | :--------------------------------------------------------------------- |
+| Ġestjoni taċ-ċavetta API | `api_keys.scopes`                                                       | `hasManageScope`            | REST ta’ ġestjoni għal dik iċ-ċavetta Bearer                           |
+| Addittiv taċ-ċavetta API | l-istess array, string eżatta waħda                                     | il-helper imsemmi hawn taħt | Dik il-kapaċità waħda biss                                             |
+| Ambiti tal-għodod MCP    | l-istess array, inkella `_meta` ta’ MCP, inkella `OMNIROUTE_MCP_SCOPES` | `scopeMatches`              | Dik l-għodda, ladarba l-infurzar ikun attiv                            |
+| Token ta’ aċċess         | `oma_live_…`                                                            | `scopeSatisfies`            | Ir-rotta ta’ ġestjoni li l-metodu u l-path tagħha jeħtieġu dak il-grad |
 
-Il-ħolqien ta' kull kredenzjali huwa kopert f'
+Il-ħolqien ta’ kull kredenzjali huwa kopert f’
 [Awtentikazzjoni tal-Ġestjoni](../guides/MANAGEMENT-AUTH.md).
 
-#### Skopi ta' ċavetta API
+#### Ambiti taċ-ċwievet API
 
-Array `api_keys.scopes` wieħed jipprovdi żewġ xogħlijiet. Jużaw funzjonijiet differenti.
+Array wieħed `api_keys.scopes` jaqdi żewġ funzjonijiet. Dawn jużaw funzjonijiet differenti.
 
-**REST ta' Ġestjoni.** `manage` u `admin` huma l-membri ta'
+**REST ta’ ġestjoni.** `manage` u `admin` huma l-membri ta’
 `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
-`hasManageScope` huwa dak li jawtorizza rotot ta' ġestjoni għal dik iċ-ċavetta. `admin` huwa
-kapaċi għall-ġestjoni fuq dawk ir-rotot. Il-kelma `admin` hawnhekk mhix il-
-grad tat-token ta' aċċess u ma tespandix fi skopi tal-għodda MCP.
+`hasManageScope` huwa dak li jawtorizza r-rotot ta’ ġestjoni għal dik iċ-ċavetta. `admin` għandu
+kapaċità ta’ ġestjoni fuq dawk ir-rotot. Il-kelma `admin` hawnhekk mhijiex il-
+grad tat-token ta’ aċċess u ma tespandix f’ambiti tal-għodod MCP.
 
-**Kordi addittivi.** Kull waħda hija test ta' sħubija eżatta, u kull waħda tibqa'
-barra `MANAGEMENT_API_KEY_SCOPES`.
+**Strings addittivi.** Kull waħda hija test ta’ sħubija eżatta, u kull waħda tibqa’
+barra minn `MANAGEMENT_API_KEY_SCOPES`.
 
-| Skop                           | Pass jippermetti                                                                                                                                                          |
-| :----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `mcp:connect`                  | Il-carve-out LOCAL_ONLY mhux loopback `/api/mcp/` biss (`hasMcpConnectOrManageScope`). Ċavetta b'`manage` jew `admin` xorta tgħaddi dak il-carve-out.                     |
-| `self:usage`                   | `GET /api/v1/me/status` għal din iċ-ċavetta (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` iżid dan l-iskop mal-ħolqien (`normalizeSelfServiceScopesForCreate`). |
-| `self:account-quota`           | Kwoti tal-kont upstream ġewwa dak il-payload tal-istatus (`src/lib/usage/apiKeySelfService.ts`). Ir-rotta tal-istatus xorta teħtieġ `self:usage`.                         |
-| `policy:bypass-provider-quota` | Is-sejħiet ta' inferenza ta' din iċ-ċavetta jaqbżu l-politika tal-kwota tal-fornitur (`hasProviderQuotaBypassScope` f'`src/sse/handlers/chat.ts`).                        |
+| Ambitu                         | Suċċess jippermetti                                                                                                                                                            |
+| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | L-eċċezzjoni LOCAL_ONLY ta’ `/api/mcp/` mhux loopback biss (`hasMcpConnectOrManageScope`). Ċavetta b’`manage` jew `admin` xorta tgħaddi minn dik l-eċċezzjoni.                 |
+| `self:usage`                   | `GET /api/v1/me/status` għal din iċ-ċavetta (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` iżid dan l-ambitu waqt il-ħolqien (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Kwoti tal-kont upstream fi ħdan dik id-data tal-istatus (`src/lib/usage/apiKeySelfService.ts`). Ir-rotta tal-istatus xorta teħtieġ `self:usage`.                               |
+| `policy:bypass-provider-quota` | Is-sejħiet ta’ inferenza ta’ din iċ-ċavetta jaqbżu l-politika tal-kwota tal-fornitur (`hasProviderQuotaBypassScope` f’`src/sse/handlers/chat.ts`).                             |
 
 #### Tqabbil
 
-Il-katalogu huwa t-tabella taħt [Skopi tal-għodda MCP](#skopi-tal-għodda-mcp). M'għandekx
-tittratta `MCP_SCOPE_LIST` f'`src/shared/constants/mcpScopes.ts` bħala dak il-katalogu:
-huwa s-subsett oriġinali ttajpjat. Għodod aktar tard jiddikjaraw skopi oħra ħdejh
+Il-katalgu huwa t-tabella taħt [Ambiti tal-għodod MCP](#mcp-tool-scopes). Tittrattax
+`MCP_SCOPE_LIST` f’`src/shared/constants/mcpScopes.ts` bħala dak il-katalgu:
+huwa s-subsett oriġinali bit-tipi definiti. Għodod miżjuda aktar tard jiddikjaraw ambiti oħra maġenbu
 (`read:notion`, `read:skills`, `read:local-corpus`, u l-bqija tat-tabella).
 
-`evaluateToolScopes` f'`open-sse/mcp-server/scopeEnforcement.ts` jippermetti sejħa
-meta kull skop meħtieġ jaqbel ma' xi skop mogħti:
+`evaluateToolScopes` f’`open-sse/mcp-server/scopeEnforcement.ts` jippermetti sejħa
+meta kull ambitu meħtieġ jaqbel ma’ xi ambitu mogħti:
 
-- `*` jaqbel ma' kull skop meħtieġ.
-- Skop mogħti li jispiċċa b'`*` jaqbel ma' skop meħtieġ li jibda b'
-  il-prefiss qabel l-istilla. `read:*` jaqbel ma' `read:compression`.
-- Kull skop mogħti ieħor jaqbel biss mal-korda meħtieġa identika.
+- `*` jaqbel ma’ kull ambitu meħtieġ.
+- Ambitu mogħti li jispiċċa b’`*` jaqbel ma’ ambitu meħtieġ li jibda bil-
+  prefiss ta’ qabel l-asterisk. `read:*` jaqbel ma’ `read:compression`.
+- Kull ambitu mogħti ieħor jaqbel biss mal-istess string eżatta meħtieġa.
 
-Ċavetta li l-iskopi tagħha huma `["manage"]` tfalli `scopeMatches` għal `read:compression`.
-L-istess sejħa tfalli għal `admin`, `mcp:connect`, `read`, u `write` meta dawk
-huma l-uniċi kordi mogħtija. M'hemm l-ebda ġerarkija fost l-iskopi tal-għodda MCP
-lil hinn mill-`*` li jispiċċa.
+Ċavetta li l-ambiti tagħha huma `["manage"]` ma tgħaddix minn `scopeMatches` għal `read:compression`.
+L-istess sejħa ma tgħaddix għal `admin`, `mcp:connect`, `read`, u `write` meta dawk
+ikunu l-uniċi strings mogħtija. Ma hemm ebda ġerarkija fost l-ambiti tal-għodod MCP
+lil hinn mill-`*` fit-tarf.
 
-L-infurzar huwa mitfi sakemm `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (default
-`false`). Waqt li jkun mitfi, `evaluateToolScopes` jippermetti s-sejħa u jaqbeż
-il-katalogu. Waqt li jkun mixgħul, HTTP juża `api_keys.scopes` taċ-ċavetta Bearer bħala
-`authInfo` (ara [Rabta tal-iskop HTTP għal kull ċavetta](#rabta-tal-iskop-http-għal-kull-ċavetta-7895)).
-Meta l-iskopi taċ-ċavetta ma jissolvewx, is-sett mogħti jaqa' għal MCP `_meta`, imbagħad
-`OMNIROUTE_MCP_SCOPES`.
+L-infurzar ikun mitfi sakemm `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (il-valur
+default huwa `false`). Waqt li jkun mitfi, `evaluateToolScopes` jippermetti s-sejħa u jaqbeż il-
+katalgu. Waqt li jkun mixgħul, HTTP juża l-`api_keys.scopes` taċ-ċavetta Bearer bħala
+`authInfo` (ara [Rabta tal-ambitu HTTP għal kull ċavetta](#per-key-http-scope-binding-7895)).
+Meta ma jinstab ebda ambitu taċ-ċavetta, is-sett mogħti jaqa’ lura għal `_meta` ta’ MCP, imbagħad
+għal `OMNIROUTE_MCP_SCOPES`.
 
-#### Skopi tat-token ta' aċċess
+#### Ambiti tat-tokens ta’ aċċess
 
-Tokens `oma_live_…` (`src/lib/accessTokens/scopes.ts`) iġorru `read`, `write`,
+It-tokens `oma_live_…` (`src/lib/accessTokens/scopes.ts`) iġorru `read`, `write`,
 jew `admin`. `scopeSatisfies` huwa grad: `admin` ikopri `write` u `read`, u
-`write` ikopri `read`. Skopi mhux magħrufa ma jkopru xejn.
+`write` ikopri `read`. Ambiti mhux magħrufa ma jkopru xejn.
 
-`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) iqabbel dak
-il-grad ma' `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) iqabbel dak il-
+grad ma’ `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
 
 - `GET`, `HEAD`, u `OPTIONS` jeħtieġu `read`.
 - Kull metodu ieħor jeħtieġ `write`.
-- Paths f'`ADMIN_SCOPE_PREFIXES` jeħtieġu `admin` għal kull metodu. `/api/mcp`
-  huwa fuq dik il-lista, għalhekk token ta' aċċess `write` xorta ma jistax isejjaħ
-  is-superfiċje HTTP tal-MCP.
-- Paths f'`ADMIN_MUTATION_PREFIXES` jeħtieġu `admin` biss għall-mutazzjonijiet.
+- Paths f’`ADMIN_SCOPE_PREFIXES` jeħtieġu `admin` għal kull metodu. `/api/mcp`
+  jinsab f’dik il-lista, għalhekk token ta’ aċċess `write` xorta ma jistax isejjaħ is-superfiċje HTTP
+  ta’ MCP.
+- Paths f’`ADMIN_MUTATION_PREFIXES` jeħtieġu `admin` biss għall-mutazzjonijiet.
 
-`PATCH /api/keys/{id}` hija mutazzjoni u mhijiex fuq dawk il-listi tal-amministraturi, għalhekk token `read` jirċievi 403
+`PATCH /api/keys/{id}` hija mutazzjoni u mhijiex f'dawk il-listi tal-amministratur, għalhekk
+token `read` jirċievi 403
 `Access token scope 'read' is insufficient; 'write' required.`
-Token ta' aċċess `write` jew `admin` jissodisfa dik ir-rotta. JWT tad-dashboard, it-token tal-machine-id tal-loopback CLI, u ċavetta tal-API b'`manage` jew `admin` jieħdu fergħat oħra u mhumiex ristretti minn dan il-grad.
+Token ta' aċċess `write` jew `admin` jissodisfa dik ir-rotta. JWT tad-dashboard, it-token
+tal-machine-id tas-CLI loopback, u API key b'`manage` jew `admin` jgħaddu minn
+fergħat oħra u mhumiex limitati minn din il-klassifikazzjoni.
 
-Token ta' aċċess li jgħaddi `scopeSatisfies` għal `/api/mcp` ikun għadda mill-bieb tal-ġestjoni biss. Is-sejħiet tal-għodda xorta jħaddmu `scopeMatches` kontra l-iskopijiet taċ-ċavetta tal-API. Il-grad tat-token tal-aċċess mhuwiex input għal `scopeMatches`.
+Token ta' aċċess li jgħaddi minn `scopeSatisfies` għal `/api/mcp` ikun għadda biss mill-
+kontroll tal-ġestjoni. Is-sejħiet tal-għodod xorta waħda jħaddmu `scopeMatches` kontra l-ambiti
+tal-API key. Il-klassifikazzjoni tat-token ta' aċċess mhijiex input għal `scopeMatches`.
 
-### Skopijiet tal-għodda MCP
+### Ambiti tal-għodod MCP
 
-L-infurzar tal-iskop huwa ċentralizzat f'`open-sse/mcp-server/scopeEnforcement.ts`. Kull għodda teħtieġ skopijiet speċifiċi:
+L-infurzar tal-ambiti huwa ċċentralizzat f'`open-sse/mcp-server/scopeEnforcement.ts`.
+Kull għodda teħtieġ ambiti speċifiċi:
 
-| Ambitu                | Għodod                                                                                                                                                                            |
-| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                 |
-| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                         |
-| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                            |
-| `read:quota`          | `check_quota`                                                                                                                                                                     |
-| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                            |
-| `read:models`         | `list_models_catalog`                                                                                                                                                             |
-| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                     |
-| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                             |
-| `write:budget`        | `set_budget_guard`                                                                                                                                                                |
-| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                       |
-| `pricing:write`       | `sync_pricing`                                                                                                                                                                    |
-| `read:cache`          | `cache_stats`                                                                                                                                                                     |
-| `write:cache`         | `cache_flush`                                                                                                                                                                     |
-| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                        |
-| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                 |
-| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                             |
-| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                  |
-| `write:notion`        | `notion_append_blocks`                                                                                                                                                            |
-| `read:memory`         | `memory_search`                                                                                                                                                                   |
-| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                      |
-| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                |
-| `write:skills`        | `skills_enable`                                                                                                                                                                   |
-| `execute:skills`      | `skills_execute`                                                                                                                                                                  |
-| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                  |
-| `read:tools`          | `omniroute_tool_search`                                                                                                                                                           |
-| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                         |
-| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                  |
-| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                    |
-| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                |
-| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                   |
-| `read:obsidian`       | 13 għodda tal-qari — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | 9 għodda tal-kitba — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …               |
-| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                 |
+| Ambitu                | Għodod                                                                                                                                                                               |
+| :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                    |
+| `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                            |
+| `write:combos`        | `switch_combo`, `set_routing_strategy`                                                                                                                                               |
+| `read:quota`          | `check_quota`                                                                                                                                                                        |
+| `read:usage`          | `cost_report`, `get_session_snapshot`, `explain_route`                                                                                                                               |
+| `read:models`         | `list_models_catalog`                                                                                                                                                                |
+| `execute:completions` | `route_request`, `test_combo`                                                                                                                                                        |
+| `execute:search`      | `web_search`, `x_search`, `web_fetch`                                                                                                                                                |
+| `write:budget`        | `set_budget_guard`                                                                                                                                                                   |
+| `write:resilience`    | `set_resilience_profile`, `db_health_check`                                                                                                                                          |
+| `pricing:write`       | `sync_pricing`                                                                                                                                                                       |
+| `read:cache`          | `cache_stats`                                                                                                                                                                        |
+| `write:cache`         | `cache_flush`                                                                                                                                                                        |
+| `read:compression`    | `compression_status`, `list_compression_combos`, `compression_combo_stats`                                                                                                           |
+| `write:compression`   | `compression_configure`, `set_compression_engine`                                                                                                                                    |
+| `read:proxies`        | `oneproxy_fetch`, `oneproxy_rotate`, `oneproxy_stats`                                                                                                                                |
+| `read:notion`         | `notion_search`, `notion_get_page`, `notion_list_block_children`, `notion_query_database`, `notion_get_database`                                                                     |
+| `write:notion`        | `notion_append_blocks`                                                                                                                                                               |
+| `read:memory`         | `memory_search`                                                                                                                                                                      |
+| `write:memory`        | `memory_add`, `memory_clear`                                                                                                                                                         |
+| `read:skills`         | `skills_list`, `skills_executions`                                                                                                                                                   |
+| `write:skills`        | `skills_enable`                                                                                                                                                                      |
+| `execute:skills`      | `skills_execute`                                                                                                                                                                     |
+| `read:catalog`        | `agent_skills_list`, `agent_skills_get`, `agent_skills_coverage`                                                                                                                     |
+| `read:tools`          | `omniroute_tool_search`                                                                                                                                                              |
+| `read:radar`          | `omniroute_radar_catalog`                                                                                                                                                            |
+| `read:gamification`   | `gamification_profile`, `gamification_rank`, `gamification_leaderboard`, `gamification_badges`, `gamification_servers`, `gamification_anomalies`                                     |
+| `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                       |
+| `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                   |
+| `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                      |
+| `read:obsidian`       | 13-il għodda tal-qari — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | 9 għodod tal-kitba — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                  |
+| `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                    |
 
-L-ambiti tal-wildcard huma appoġġjati: `read:*` jagħti l-ambiti kollha tal-qari, `*` jagħti aċċess sħiħ.
+L-ambiti wildcard huma appoġġjati: `read:*` jagħti l-ambiti kollha tal-qari, filwaqt li `*` jagħti aċċess sħiħ.
 
-### `mcp:connect` — kapaċità ta' rotta dejqa (#7895)
+### `mcp:connect` — kapaċità limitata tar-rotta (#7895)
 
-Biex tilħaq it-trasport HTTP/SSE MCP (`/api/mcp/*`) minn non-loopback teħtieġ il-carve-out `/api/mcp/` LOCAL_ONLY (ara `docs/security/ROUTE_GUARD_TIERS.md`). Storikament dak il-carve-out aċċetta biss ċavetta API `manage`/`admin`-scope sħiħa — wiesgħa wisq għal min iċempel li jeħtieġ biss jitkellem mal-MCP. `src/shared/constants/managementScopes.ts` issa jesporta `MCP_CONNECT_SCOPE = "mcp:connect"`: ambitu addittiv u dejjaq (l-istess preċedent bħal `SELF_USAGE_SCOPE`) li jawtorizza BISS il-bypass `/api/mcp/` f' `src/server/authz/policies/management.ts` — ma jagħti l-ebda aċċess ieħor għar-rotta tal-ġestjoni u huwa deliberatament miżmum BARRA minn `MANAGEMENT_API_KEY_SCOPES`. Ċavetta li żżomm `manage`/`admin` xorta tgħaddi l-carve-out mingħajr tibdil; `mcp:connect` hija alternattiva b'privileġġ aktar baxx għal dawk li jċemplu mill-bogħod li huma biss MCP, iċċekkjata permezz ta' `hasMcpConnectOrManageScope()`.
+L-aċċess għat-trasport HTTP/SSE MCP (`/api/mcp/*`) minn indirizz mhux loopback jeħtieġ
+l-eċċezzjoni LOCAL_ONLY ta’ `/api/mcp/` (ara `docs/security/ROUTE_GUARD_TIERS.md`). Storikament,
+dik l-eċċezzjoni kienet taċċetta biss API key b’ambitu sħiħ `manage`/`admin` — wisq wiesa’
+għal min jagħmel sejħiet u jeħtieġ biss jikkomunika ma’ MCP. `src/shared/constants/managementScopes.ts` issa
+jesporta `MCP_CONNECT_SCOPE = "mcp:connect"`: ambitu addittiv u limitat (fuq l-istess preċedent bħal
+`SELF_USAGE_SCOPE`) li jawtorizza BISS il-bypass ta’ `/api/mcp/` f’
+`src/server/authz/policies/management.ts` — ma jagħti l-ebda aċċess ieħor għar-rotot ta’ ġestjoni
+u intenzjonalment jinżamm BARRA minn `MANAGEMENT_API_KEY_SCOPES`. Key li jkollha `manage`/`admin`
+xorta tgħaddi mill-eċċezzjoni mingħajr tibdil; `mcp:connect` hija alternattiva b’inqas privileġġi għal
+dawk li jagħmlu sejħiet remoti lil MCP biss, ivverifikata permezz ta’ `hasMcpConnectOrManageScope()`.
 
-### Rabta tal-ambitu HTTP għal kull ċavetta (#7895)
+### Rabta tal-ambiti HTTP għal kull key (#7895)
 
-Fuq HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` issa jsolvi l-`api_keys.scopes` reali ta' min iċempel permezz ta' `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) u jgħaddih lill-`transport.handleRequest(req, { authInfo })` tal-MCP SDK, sabiex `extra.authInfo.scopes` li jilħaq kull sejħa tal-għodda jirrifletti l-ambiti taċ-ċavetta Bearer stess. `scopeEnforcement.ts`'s `resolveCallerScopeContext()` diġà pprijoritizza `authInfo` fuq il-`_meta` u l-fallback tal-ambjent `OMNIROUTE_MCP_SCOPES` — dan jimla biss dik l-ewwel sors bl-ogħla prijorità, li qabel ma kienx mitmugħ fuq HTTP. Meta l-ebda ċavetta API ma tissolva (l-ebda header, ċavetta invalida), `authInfo` jibqa' `undefined` u r-riżoluzzjoni taqa' għall-katina `meta`/env eżistenti mingħajr tibdil. Dan MA jaqlebx id-default ta' `OMNIROUTE_MCP_ENFORCE_SCOPES` — l-infurzar xorta jrid jiġi attivat espliċitament; din il-bidla tagħmel biss li l-mogħdija għal kull ċavetta tieħu preċedenza ladarba tkun. stdio m'għandux identità għal kull min iċempel (ara `mcpCallerIdentity.ts`) u ma jiġix affettwat — jibqa' fuq il-katina ta' fallback `_meta`/env.
+Fuq HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` issa jirriżolvi l-
+`api_keys.scopes` reali ta’ min jagħmel is-sejħa permezz ta’ `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+u jgħaddih lill-`transport.handleRequest(req, { authInfo })` tal-MCP SDK, sabiex
+`extra.authInfo.scopes` li jasal f’kull sejħa ta’ għodda jirrifletti l-ambiti tal-Bearer key stess.
+`resolveCallerScopeContext()` ta’ `scopeEnforcement.ts` diġà kien jagħti prijorità lil `authInfo` fuq
+il-fallback ta’ `_meta` u tal-varjabbli tal-ambjent `OMNIROUTE_MCP_SCOPES` — dan sempliċement jimla dak l-ewwel
+sors bl-ogħla prijorità, li qabel ma kienx jiġi pprovdut fuq HTTP. Meta ma tiġi riżolta l-ebda API key
+(ebda header, key invalida), `authInfo` jibqa’ `undefined` u r-riżoluzzjoni tkompli tul il-katina
+eżistenti ta’ fallback `meta`/ambjent mingħajr tibdil. stdio ma għandu l-ebda identità għal kull min jagħmel is-sejħa (ara
+`mcpCallerIdentity.ts`) u mhuwiex affettwat — jibqa’ juża l-katina ta’ fallback `_meta`/ambjent.
+
+**L-infurzar jiġi attivat bilfors għal dawk li jagħmlu sejħiet HTTP/SSE b’ambiti limitati, irrispettivament minn
+`OMNIROUTE_MCP_ENFORCE_SCOPES`.** Il-fatt li `OMNIROUTE_MCP_ENFORCE_SCOPES` għandu valur predefinit ta’ `false` huwa sikur biss
+għall-fluss lokali/stdio b’operatur wieħed, fejn ma hemm l-ebda identità għal kull min jagħmel is-sejħa li magħha jistgħu jintrabtu l-ambiti.
+`open-sse/mcp-server/server.ts::withScopeEnforcement()` jattiva l-infurzar tal-ambiti għal kull għodda
+mingħajr kundizzjonijiet (`shouldForceScopeEnforcement()` f’`scopeEnforcement.ts`)
+kull meta `resolveCallerScopeContext()` ikun irriżolva
+`source === "authInfo"` (jiġifieri header HTTP Authorization reali għal kull key, għal HTTP/SSE biss) U dik
+il-key ma jkollhiex ambitu sħiħ `manage`/`admin`. Dan jagħlaq il-lakuna fejn key li jkollha BISS
+l-ambitu limitat ta’ bypass `mcp:connect` — iddokumentat hawn fuq bħala li ma jawtorizza xejn ħlief
+l-eċċezzjoni LOCAL_ONLY ta’ `/api/mcp/` — setgħet inkella tinvoka kull għodda MCP ladarba operatur
+jattiva aċċess MCP remot/mhux loopback, sempliċement minħabba li `OMNIROUTE_MCP_ENFORCE_SCOPES` jiġi pprovdut
+b’`false` bħala valur predefinit. Key sħiħa `manage`/`admin` fuq HTTP, u kull min jagħmel sejħiet stdio/lokali, iżommu
+mingħajr tibdil l-imġiba eżistenti kkontrollata minn `OMNIROUTE_MCP_ENFORCE_SCOPES`.
 
 ---
 
-## Varaġenti tal-Ambjent
+## Varjabbli tal-Ambjent
 
-| Varaġenti                               | Implemetata b'mod                    | Għan                                                                                                                                                |
-| :-------------------------------------- | :----------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`             | URL bażi li l-MCP server juża meta jsejjaħ għall-APIs interni tal-OmniRoute                                                                         |
-| `OMNIROUTE_API_KEY`                     | (bojda)                              | Ċavetta API li tiġi mibgħuta bħala `Authorization: Bearer` lil sejħiet API interni                                                                  |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (biss `"true"` jiġi attivat) | Meta jkun attivat, is-skopijiet nieqsa jiċħdu l-għodod u jirreġistraw `scope_denied:<reason>` fil-log tal-awditjar                                  |
-| `OMNIROUTE_MCP_SCOPES`                  | (bojda)                              | Lista blt-turija ta' skopijiet separati b'virgola meqjusa "disponibbli" b'mod default (użata meta l-sejjaħ ma jipprovdix l-iskopijiet tiegħu stess) |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (mhux issettjat = mixgħul)           | Meta jkun issettjat għal `0/false/off/no`, jisketta l-kompressjoni tad-deskrizzjoni tal-MCP meta jiġi rreġistrat                                    |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (mhux issettjat = mixgħul)           | Alias alternattiv għall-istess toggle ta' hawn fuq                                                                                                  |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                              | Baġit ta' abboj għal qari maniġerjali interni (saħħa, reżiljenza, kombos, kota, użu)                                                                |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                              | Baġit ta' abboj għal passi li jistennew fornitur (`route_request`, `web_search`, `web_fetch`)                                                       |
-| `MCP_TOOL_DENY`                         | (mhux issettjat = l-ebda filtr)      | Għodod separati b'virgola biex jitneħħew minn `tools/list` (tnaqqis tal-kardinalità tal-għoda — ara t'hawn isfel)                                   |
-| `MCP_TOOL_ALLOW`                        | (mhux issettjat = l-ebda filtr)      | Għodod separati b'virgola biex jinżammu esklużivament (modalità allow-list — ara t'hawn isfel)                                                      |
-| `DATA_DIR`                              | `~/.omniroute`                       | Il-fajl tal-ħjiels tal-qalb jiġi miktub f'`${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                  |
+| Varjabbli                               | Valur Predefinit                 | Għan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| :-------------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`         | Il-URL bażi li juża s-server MCP meta jsejjaħ l-APIs interni ta' OmniRoute                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_API_KEY`                     | (vojt)                           | Ċavetta tal-API mgħoddija bħala `Authorization: Bearer` lis-sejħiet interni tal-API                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (`"true"` biss jattivah) | Meta jkun attivat, scopes neqsin jiċħdu sejħiet tal-għodod u jirreġistraw `scope_denied:<reason>` fir-reġistru tal-awditjar. L-infurzar jiġi WKOLL impost irrispettivament minn dan il-flag għal kwalunkwe min jagħmel sejħa HTTP/SSE identifikat minn header tal-Awtorizzazzjoni għal kull ċavetta (`source === "authInfo"`) li ma jkollux scope sħiħ `manage`/`admin` — eż. ċavetta li jkollha biss l-scope limitat ta' bypass `mcp:connect` — għalhekk dan il-valur predefinit huwa sikur biss għall-fluss lokali/stdio b'operatur wieħed, u qatt għal aċċess remot mhux loopback |
+| `OMNIROUTE_MCP_SCOPES`                  | (vojt)                           | Lista ta' scopes separati b'virgoli li huma permessi u meqjusa bħala "disponibbli" b'mod predefinit (tintuża meta min jagħmel is-sejħa ma jipprovdix l-scopes tiegħu stess)                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (mhux issettjat = mixgħul)       | Meta jiġi ssettjat għal `0/false/off/no`, jiddiżattiva l-kompressjoni tad-deskrizzjonijiet MCP fil-ħin tar-reġistrazzjoni                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (mhux issettjat = mixgħul)       | Alias alternattiv għall-istess toggle bħal dak ta' hawn fuq                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                          | Limitu ta' żmien għall-abort ta' qari intern tal-ġestjoni (saħħa, reżiljenza, kombinazzjonijiet, kwota, użu)                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                          | Limitu ta' żmien għall-abort ta' passi li jistennew fornitur (`route_request`, `web_search`, `web_fetch`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `MCP_TOOL_DENY`                         | (mhux issettjat = ebda filtru)   | Ismijiet tal-għodod separati b'virgoli li għandhom jitneħħew minn `tools/list` (tnaqqis fil-kardinalità tal-għodod — ara hawn taħt)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `MCP_TOOL_ALLOW`                        | (mhux issettjat = l-ebda filtru) | Ismijiet ta’ għodod separati b’virgoli li għandhom jinżammu esklussivament (modalità ta’ lista ta’ permessi — ara hawn taħt)                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `DATA_DIR`                              | `~/.omniroute`                   | Il-fajl tal-heartbeat jinkiteb f’`${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ---
 

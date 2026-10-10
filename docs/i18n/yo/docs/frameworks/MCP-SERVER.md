@@ -289,74 +289,106 @@ A dènà àwọn transport SSE àti Streamable HTTP méjèèjì títí a ó fi m
 
 ---
 
-## Ìfìdímúlẹ̀ & Àwọn Ààyè
+## Ìfàṣẹsí & Àwọn Ààyè
 
-Ohun èlò MCP n pè àwọn okun ààyè kíkà láti ọ̀dọ̀ olùpè. Ìyẹn yẹ̀wò jẹ́ ọ̀kan nínú àwọn ààyè orúkọ mẹ́ta tí ó dá dúró. Ìkọjá láti ọ̀dọ̀ olùyẹ̀wò kan kì í ṣe ìkọjá láti ọ̀dọ̀ àwọn mìíràn. Àwọn òfin náà ni [Àwọn ààyè orúkọ mẹ́ta](#three-scope-namespaces). Àtòjọ ohun èlò náà ni [Àwọn ààyè ohun èlò MCP](#mcp-tool-scopes).
+Àwọn ìpè irinṣẹ́ MCP máa ń ka àwọn ọ̀rọ̀ ààyè láti ọ̀dọ̀ olùpè. Àyẹ̀wò yẹn jẹ́ ọ̀kan nínú àwọn namespace mẹ́ta
+tí kò gbára lé ara wọn. Ìfọwọ́sí láti ọ̀dọ̀ olùṣàyẹ̀wò kan kì í ṣe ìfọwọ́sí láti ọ̀dọ̀ àwọn yòókù.
+Àwọn òfin náà wà ní [Àwọn namespace ààyè mẹ́ta](#three-scope-namespaces).
+Àkójọ irinṣẹ́ náà wà ní [Àwọn ààyè irinṣẹ́ MCP](#mcp-tool-scopes).
 
-### Àwọn ààyè orúkọ mẹ́ta
+### Àwọn namespace ààyè mẹ́ta
 
-`manage` lórí kọ́kọ́rọ́ API kan, `read:compression` lórí ohun èlò MCP kan, àti `read` lórí ààmì ìwọlé `oma_live_…` jẹ́ àwọn ìfúnni mẹ́ta tí ó yàtọ̀. Àwọn olùpè tí ó rán ààmì ìwọlé `read` sí ọ̀nà ìṣàkóso tí ó yí padà yóò gba HTTP 403 `Access token scope 'read' is insufficient; 'write' required.` Ìpele yẹn ni `scopeSatisfies`. Kò wo tábìlì MCP, àti pé olùbámu MCP kò wo ó.
+`manage` lórí kọ́kọ́rọ́ API kan, `read:compression` lórí irinṣẹ́ MCP kan, àti `read` lórí
+tóókìnnì ìráyè `oma_live_…` jẹ́ ìyọ̀ǹda mẹ́ta ọ̀tọ̀ọ̀tọ̀. Àwọn olùpè tí ó fi tóókìnnì ìráyè
+`read` ránṣẹ́ sí route ìṣàkóso tí ń ṣe àtúnṣe máa gba HTTP 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Ipò ìpele yẹn ni `scopeSatisfies`. Kò ṣàyẹ̀wò tábìlì MCP, bẹ́ẹ̀ sì ni matcher MCP
+kò ṣàyẹ̀wò rẹ̀.
 
-| Ààyè Orúkọ             | Ìwé-ẹ̀rí                                                                | Olùyẹ̀wò                         | Ìkọjá kan gba láàyè                           |
-| :--------------------- | :--------------------------------------------------------------------- | :------------------------------ | :-------------------------------------------- |
-| Ìṣàkóso kọ́kọ́rọ́ API     | `api_keys.scopes`                                                      | `hasManageScope`                | Ìṣàkóso REST fún kọ́kọ́rọ́ Bearer yẹn            |
-| Àfikún kọ́kọ́rọ́ API      | àkójọ kan náà, okun kan ṣoṣo tí ó péye                                 | olùrànlọ́wọ́ tí a dárúkọ ní ìsàlẹ̀ | Agbára kan ṣoṣo yẹn                           |
-| Àwọn ààyè ohun èlò MCP | àkójọ kan náà, bí bẹ́ẹ̀ kọ́ MCP `_meta`, bí bẹ́ẹ̀ kọ́ `OMNIROUTE_MCP_SCOPES` | `scopeMatches`                  | Ohun èlò yẹn, nígbà tí ìfìdímúlẹ̀ bá wà lórí   |
-| Ààmì ìwọlé             | `oma_live_…`                                                           | `scopeSatisfies`                | Ọ̀nà ìṣàkóso tí ọ̀nà àti ọ̀nà rẹ̀ béèrè ìpele yẹn |
+| Namespace            | Ẹ̀rí ìdánimọ̀                                                            | Olùṣàyẹ̀wò                   | Ohun tí ìfọwọ́sí ń gbà láàyè                        |
+| :------------------- | :--------------------------------------------------------------------- | :-------------------------- | :------------------------------------------------- |
+| Ìṣàkóso kọ́kọ́rọ́ API   | `api_keys.scopes`                                                      | `hasManageScope`            | REST ìṣàkóso fún kọ́kọ́rọ́ Bearer yẹn                 |
+| Àfikún kọ́kọ́rọ́ API    | array kan náà, ọ̀rọ̀ kan pàtó                                            | helper tí a dárúkọ ní ìsàlẹ̀ | Agbára kan ṣoṣo yẹn                                |
+| Àwọn ààyè irinṣẹ́ MCP | array kan náà, bí bẹ́ẹ̀ kọ́ MCP `_meta`, bí bẹ́ẹ̀ kọ́ `OMNIROUTE_MCP_SCOPES` | `scopeMatches`              | Irinṣẹ́ yẹn, lẹ́yìn tí a bá tan ìfipámúṣẹ            |
+| Tóókìnnì ìráyè       | `oma_live_…`                                                           | `scopeSatisfies`            | Route ìṣàkóso tí method àti path rẹ̀ nílò ìpele yẹn |
 
-Ìṣẹ̀dá ìwé-ẹ̀rí kọ̀ọ̀kan wà nínú [Ìfìdímúlẹ̀ Ìṣàkóso](../guides/MANAGEMENT-AUTH.md).
+Bí a ṣe ń ṣẹ̀dá ẹ̀rí ìdánimọ̀ kọ̀ọ̀kan ni a ṣàlàyé nínú
+[Ìfàṣẹsí Ìṣàkóso](../guides/MANAGEMENT-AUTH.md).
 
 #### Àwọn ààyè kọ́kọ́rọ́ API
 
-Àkójọ `api_keys.scopes` kan n fún iṣẹ́ méjì. Wọ́n lo àwọn iṣẹ́ tí ó yàtọ̀.
+Array `api_keys.scopes` kan ń ṣe iṣẹ́ méjì. Wọ́n ń lo àwọn function ọ̀tọ̀ọ̀tọ̀.
 
-**Ìṣàkóso REST.** `manage` àti `admin` jẹ́ àwọn ọmọ ẹgbẹ́ `MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`). `hasManageScope` ni ohun tí ó fún àṣẹ àwọn ọ̀nà ìṣàkóso fún kọ́kọ́rọ́ yẹn. `admin` jẹ́ agbára ìṣàkóso lórí àwọn ọ̀nà yẹn. Ọ̀rọ̀ `admin` níbí kì í ṣe ìpele ààmì ìwọlé àti pé kò fẹ̀ sí àwọn ààyè ohun èlò MCP.
+**REST Ìṣàkóso.** `manage` àti `admin` ni àwọn ọmọ ẹgbẹ́
+`MANAGEMENT_API_KEY_SCOPES` (`src/shared/constants/managementScopes.ts`).
+`hasManageScope` ni ohun tí ń fún àwọn route ìṣàkóso láṣẹ fún kọ́kọ́rọ́ yẹn. `admin`
+ní agbára ìṣàkóso lórí àwọn route wọ̀nyẹn. Ọ̀rọ̀ `admin` níbí kì í ṣe
+ìpele tóókìnnì ìráyè, kò sì fẹ̀ sí àwọn ààyè irinṣẹ́ MCP.
 
-**Àwọn okun àfikún.** Ìkọ̀ọ̀kan jẹ́ àyẹ̀wò ọmọ ẹgbẹ́ tí ó péye, àti pé ìkọ̀ọ̀kan dúró ní ìta `MANAGEMENT_API_KEY_SCOPES`.
+**Àwọn ọ̀rọ̀ àfikún.** Ọ̀kọ̀ọ̀kan jẹ́ àyẹ̀wò jíjẹ́ ọmọ ẹgbẹ́ pàtó, ọ̀kọ̀ọ̀kan wọn sì wà
+lẹ́yìn òde `MANAGEMENT_API_KEY_SCOPES`.
 
-| Ààyè                           | Ìkọjá kan gba láàyè                                                                                                                                                   |
-| :----------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mcp:connect`                  | Ìyọkúrò `/api/mcp/` LOCAL_ONLY tí kì í ṣe loopback nìkan (`hasMcpConnectOrManageScope`). Kọ́kọ́rọ́ kan pẹ̀lú `manage` tàbí `admin` ṣì kọjá ìyọkúrò yẹn.                   |
-| `self:usage`                   | `GET /api/v1/me/status` fún kọ́kọ́rọ́ yìí (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` n fi ààyè yìí kún nígbà ìṣẹ̀dá (`normalizeSelfServiceScopesForCreate`). |
-| `self:account-quota`           | Àwọn ìpín àkọọlẹ òkè nínu àkójọpọ̀ ipò yẹn (`src/lib/usage/apiKeySelfService.ts`). Ọ̀nà ipò ṣì béèrè `self:usage`.                                                      |
-| `policy:bypass-provider-quota` | Àwọn ìpè ìfọ̀rọ̀wérọ̀ kọ́kọ́rọ́ yìí fò ìlànà ìpín olùpèsè (`hasProviderQuotaBypassScope` nínú `src/sse/handlers/chat.ts`).                                                  |
+| Ààyè                           | Ohun tí ìfọwọ́sí ń gbà láàyè                                                                                                                                                  |
+| :----------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mcp:connect`                  | Ìyọkúrò LOCAL_ONLY fún `/api/mcp/` tí kì í ṣe loopback nìkan (`hasMcpConnectOrManageScope`). Kọ́kọ́rọ́ tí ó ní `manage` tàbí `admin` ṣì máa ń kọjá ìyọkúrò yẹn.                 |
+| `self:usage`                   | `GET /api/v1/me/status` fún kọ́kọ́rọ́ yìí (`src/app/api/v1/me/status/route.ts`). `POST /api/keys` máa ń fi ààyè yìí kún un nígbà ìṣẹ̀dá (`normalizeSelfServiceScopesForCreate`). |
+| `self:account-quota`           | Àwọn quota account upstream nínú payload ipò yẹn (`src/lib/usage/apiKeySelfService.ts`). Route ipò náà ṣì nílò `self:usage`.                                                 |
+| `policy:bypass-provider-quota` | Àwọn ìpè inference kọ́kọ́rọ́ yìí máa foju kọ policy quota provider (`hasProviderQuotaBypassScope` nínú `src/sse/handlers/chat.ts`).                                             |
 
 #### Ìbámu
 
-Àtòjọ náà ni tábìlì lábẹ́ [Àwọn ààyè ohun èlò MCP](#mcp-tool-scopes). Má ṣe tọ́jú `MCP_SCOPE_LIST` nínú `src/shared/constants/mcpScopes.ts` gẹ́gẹ́ bí àtòjọ yẹn: ó jẹ́ àkójọpọ̀ àkọ́kọ́ tí a tẹ. Àwọn ohun èlò tó tẹ̀lé e kéde àwọn ààyè mìíràn lẹ́gbẹ̀ẹ́ rẹ̀ (`read:notion`, `read:skills`, `read:local-corpus`, àti ìyókù tábìlì náà).
+Àkójọ náà ni tábìlì tó wà lábẹ́ [Àwọn ààyè irinṣẹ́ MCP](#mcp-tool-scopes). Má ṣe
+ka `MCP_SCOPE_LIST` nínú `src/shared/constants/mcpScopes.ts` sí àkójọ yẹn:
+ó jẹ́ subset atilẹba tí a ti fún ní type. Àwọn irinṣẹ́ tí a fi kún un lẹ́yìn náà kéde àwọn ààyè míì lẹ́gbẹ̀ẹ́ rẹ̀
+(`read:notion`, `read:skills`, `read:local-corpus`, àti ìyókù tábìlì náà).
 
-`evaluateToolScopes` nínú `open-sse/mcp-server/scopeEnforcement.ts` gba ìpè láàyè nígbà tí gbogbo ààyè tí a béèrè bá bá ààyè tí a fúnni mu:
+`evaluateToolScopes` nínú `open-sse/mcp-server/scopeEnforcement.ts` máa ń gba ìpè kan
+láàyè nígbà tí gbogbo ààyè tí a nílò bá bá ààyè kan tí a ti yọ̀ǹda mu:
 
-- `*` bá gbogbo ààyè tí a béèrè mu.
-- Ààyè tí a fúnni tí ó parí pẹ̀lú `*` bá ààyè tí a béèrè tí ó bẹ̀rẹ̀ pẹ̀lú àlàyé ṣáájú ìràwọ̀ mu. `read:*` bá `read:compression` mu.
-- Gbogbo ààyè tí a fúnni mìíràn bá okun tí ó jọra nìkan mu.
+- `*` bá gbogbo ààyè tí a nílò mu.
+- Ààyè tí a yọ̀ǹda tí ó parí sí `*` bá ààyè tí a nílò tí ó bẹ̀rẹ̀ pẹ̀lú
+  prefix tó wà ṣáájú àmì ìràwọ̀ mu. `read:*` bá `read:compression` mu.
+- Gbogbo ààyè mìíràn tí a yọ̀ǹda bá ọ̀rọ̀ ààyè tó jẹ́ ọ̀kan náà gangan nìkan mu.
 
-Kọ́kọ́rọ́ kan tí àwọn ààyè rẹ̀ jẹ́ `["manage"]` kùnà `scopeMatches` fún `read:compression`. Ìpè kan náà kùnà fún `admin`, `mcp:connect`, `read`, àti `write` nígbà tí àwọn wọ̀nyẹn nìkan ni àwọn okun tí a fúnni. Kò sí ìpele láàrin àwọn ààyè ohun èlò MCP ju `*` tí ó wà lẹ́yìn.
+Kọ́kọ́rọ́ tí àwọn ààyè rẹ̀ jẹ́ `["manage"]` kò kọjá `scopeMatches` fún `read:compression`.
+Ìpè kan náà kò ní kọjá fún `admin`, `mcp:connect`, `read`, àti `write` nígbà tí àwọn wọ̀nyẹn
+bá jẹ́ àwọn ọ̀rọ̀ kan ṣoṣo tí a yọ̀ǹda. Kò sí hierarchy láàárín àwọn ààyè irinṣẹ́ MCP
+yàtọ̀ sí `*` tó wà ní ìparí.
 
-Ìfìdímúlẹ̀ wà ní àìṣiṣẹ́ àyàfi tí `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (ìpilẹ̀ṣẹ̀ `false`). Nígbà tí ó bá wà ní àìṣiṣẹ́, `evaluateToolScopes` gba ìpè láàyè ó sì fò àtòjọ náà. Nígbà tí ó bá wà lórí, HTTP n lo `api_keys.scopes` kọ́kọ́rọ́ Bearer gẹ́gẹ́ bí `authInfo` (wo [Ìsopọ̀ ààyè HTTP fún kọ́kọ́rọ́ kọ̀ọ̀kan](#per-key-http-scope-binding-7895)). Nígbà tí kò sí àwọn ààyè kọ́kọ́rọ́ tí ó yanjú, àkójọ tí a fúnni yóò lọ sí MCP `_meta`, lẹ́yìn náà `OMNIROUTE_MCP_SCOPES`.
+Ìfipámúṣẹ kò ṣiṣẹ́ àfi tí `OMNIROUTE_MCP_ENFORCE_SCOPES=true` (default
+`false`). Nígbà tí kò ṣiṣẹ́, `evaluateToolScopes` máa gba ìpè náà láàyè, yóò sì foju kọ
+àkójọ náà. Nígbà tí ó ṣiṣẹ́, HTTP máa ń lo `api_keys.scopes` ti kọ́kọ́rọ́ Bearer gẹ́gẹ́ bí
+`authInfo` (wo [Ìsopọ̀ ààyè HTTP fún kọ́kọ́rọ́ kọ̀ọ̀kan](#per-key-http-scope-binding-7895)).
+Nígbà tí kò bá sí ààyè kọ́kọ́rọ́ tí a lè pinnu, àkójọpọ̀ àwọn ààyè tí a yọ̀ǹda máa tẹ̀ síwájú sí MCP `_meta`, lẹ́yìn náà
+`OMNIROUTE_MCP_SCOPES`.
 
-#### Àwọn ààyè ààmì ìwọlé
+#### Àwọn ààyè tóókìnnì ìráyè
 
-Àwọn ààmì `oma_live_…` (`src/lib/accessTokens/scopes.ts`) gbé `read`, `write`, tàbí `admin`. `scopeSatisfies` jẹ́ ìpele kan: `admin` bo `write` àti `read`, àti `write` bo `read`. Àwọn ààyè tí a kò mọ̀ kò bo ohunkóhun.
+Àwọn tóókìnnì `oma_live_…` (`src/lib/accessTokens/scopes.ts`) máa ń gbé `read`, `write`,
+tàbí `admin`. `scopeSatisfies` jẹ́ ìpele: `admin` bo `write` àti `read`, àti pé
+`write` bo `read`. Àwọn ààyè tí a kò mọ̀ kò bo ohunkóhun.
 
-`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) fi ìpele yẹn wé `inferRequiredScope` (`src/server/authz/accessScopes.ts`):
+`evaluateAccessTokenAuth` (`src/server/authz/accessTokenAuth.ts`) ń fi ìpele yẹn wé
+`inferRequiredScope` (`src/server/authz/accessScopes.ts`):
 
-- `GET`, `HEAD`, àti `OPTIONS` béèrè `read`.
-- Gbogbo ọ̀nà mìíràn béèrè `write`.
-- Àwọn ọ̀nà nínú `ADMIN_SCOPE_PREFIXES` béèrè `admin` fún gbogbo ọ̀nà. `/api/mcp` wà lórí àtòjọ yẹn, nítorí náà ààmì ìwọlé `write` ṣì kò lè pe ojú-ìwé HTTP MCP.
-- Àwọn ọ̀nà nínú `ADMIN_MUTATION_PREFIXES` béèrè `admin` fún àwọn ìyípadà nìkan.
+- `GET`, `HEAD`, àti `OPTIONS` nílò `read`.
+- Gbogbo method mìíràn nílò `write`.
+- Àwọn path inú `ADMIN_SCOPE_PREFIXES` nílò `admin` fún gbogbo method. `/api/mcp`
+  wà nínú àkójọ yẹn, nítorí náà tóókìnnì ìráyè `write` kan kò ṣì lè pe surface HTTP MCP.
+- Àwọn path inú `ADMIN_MUTATION_PREFIXES` nílò `admin` fún àwọn ìyípadà nìkan.
 
-`PATCH /api/keys/{id}` jẹ́ ìyípadà kò sì sí lórí àwọn àtòjọ alábojútó yẹn, nítorí náà àmì `read` gba 403 `Access token scope 'read' is insufficient; 'write' required.`
-Àmì ìwọlé `write` tàbí `admin` mú ọ̀nà yẹn ṣẹ. JWT dashboard kan, àmì ìdámọ̀ ẹ̀rọ CLI loopback, àti kọ́kọ́rọ́ API kan pẹ̀lú `manage` tàbí `admin` gba àwọn ẹ̀ka mìíràn, ipò yìí kò sì dín wọn kù.
+`PATCH /api/keys/{id}` jẹ́ ìyípadà, kò sì sí nínú àwọn àtòjọ alákóso wọ̀nyẹn, nítorí náà àmì ìwọlé `read` kan máa gba 403
+`Access token scope 'read' is insufficient; 'write' required.`
+Àmì ìwọlé `write` tàbí `admin` máa ń tẹ́ ìbéèrè ipa-ọ̀nà yẹn lọ́rùn. JWT dasibodu kan, àmì machine-id CLI loopback, àti kọ́kọ́rọ́ API kan pẹ̀lú `manage` tàbí `admin` máa ń gba àwọn ẹ̀ka míì, ipò yìí kò sì dín wọn mọ́.
 
-Àmì ìwọlé kan tí ó bá kọjá `scopeSatisfies` fún `/api/mcp` ti kọjá ẹnu-ọ̀nà ìṣàkóso nìkan. Àwọn ìpè irinṣẹ́ ṣì ń ṣiṣẹ́ `scopeMatches` lòdì sí àwọn ìpele kọ́kọ́rọ́ API. Ipò àmì ìwọlé kì í ṣe ìwọlé sí `scopeMatches`.
+Àmì ìwọlé kan tí ó kọjá `scopeSatisfies` fún `/api/mcp` ti kọjá ẹnu-ọ̀nà ìṣàkóso nìkan. Àwọn ìpè irinṣẹ́ ṣì máa ń ṣiṣẹ́ `scopeMatches` lòdì sí àwọn àyè kọ́kọ́rọ́ API. Ipò àmì ìwọlé kì í ṣe àfikún sí `scopeMatches`.
 
-### Àwọn ìpele irinṣẹ́ MCP
+### Àwọn àyè irinṣẹ́ MCP
 
-Ìmúṣẹ ìpele wà ní àárín gbùngbùn nínú `open-sse/mcp-server/scopeEnforcement.ts`.
-Irinṣẹ́ kọ̀ọ̀kan nílò àwọn ìpele pàtó:
+Ìfipámú àyè wà ní àárín gbùngbùn nínú `open-sse/mcp-server/scopeEnforcement.ts`.
+Irinṣẹ́ kọ̀ọ̀kan nílò àwọn àyè pàtó:
 
-| Ìwọ̀n                  | Àwọn Irinṣẹ́                                                                                                                                                                        |
+| Àyè                   | Àwọn irinṣẹ́                                                                                                                                                                        |
 | :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `read:health`         | `get_health`, `get_provider_metrics`, `simulate_route`, `explain_route`, `best_combo_for_task`, `db_health_check`                                                                  |
 | `read:combos`         | `list_combos`, `get_combo_metrics`, `simulate_route`, `best_combo_for_task`, `test_combo`                                                                                          |
@@ -388,37 +420,69 @@ Irinṣẹ́ kọ̀ọ̀kan nílò àwọn ìpele pàtó:
 | `write:gamification`  | `gamification_invite`, `gamification_transfer`                                                                                                                                     |
 | `read:plugins`        | `plugin_list`, `plugin_executions`                                                                                                                                                 |
 | `write:plugins`       | `plugin_scan`, `plugin_install`, `plugin_uninstall`, `plugin_activate`, `plugin_deactivate`, `plugin_configure`                                                                    |
-| `read:obsidian`       | àwọn irinṣẹ́ kika 13 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
-| `write:obsidian`      | àwọn irinṣẹ́ kikọ 9 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
+| `read:obsidian`       | Àwọn irinṣẹ́ kíkà 13 — `obsidian_list_vault`, `obsidian_read_note`, `obsidian_search_simple`, `obsidian_search_structured`, `obsidian_get_periodic_note`, `obsidian_sync_status`, … |
+| `write:obsidian`      | Àwọn irinṣẹ́ kíkọ 9 — `obsidian_write_note`, `obsidian_append_note`, `obsidian_patch_note`, `obsidian_move_note`, `obsidian_delete_note`, `obsidian_sync_trigger`, …                |
 | `read:local-corpus`   | `local_corpus_search`, `local_corpus_read`, `local_corpus_status`                                                                                                                  |
 
-Àwọn àyè àmì-ìdámọ̀ (wildcard scopes) ni a ṣe atilẹyin: `read:*` fún gbogbo àyè kika, `*` fún ìwọlé kíkún.
+Àwọn ààlà wildcard wà ní àtìlẹ́yìn: `read:*` ń fúnni ní gbogbo ààlà kíkà, `*` sì ń fúnni ní ààyè ìwọlé kíkún.
 
-### `mcp:connect` — agbára ọ̀nà tóóró (#7895)
+### `mcp:connect` — agbára ipa-ọ̀nà tó ní ààlà kékeré (#7895)
 
-Láti dé ọ̀nà ìgbéjáde HTTP/SSE MCP (`/api/mcp/*`) láti ibi tí kìí ṣe loopback nílò ìyọkúrò LOCAL_ONLY `/api/mcp/` (wo `docs/security/ROUTE_GUARD_TIERS.md`). Ní ìgbà àtijọ́, ìyọkúrò yẹn gba kọ́kọ́rọ́ API tí ó ní àyè `manage`/`admin` pátápátá nìkan — ó gbòòrò jù fún ẹni tí ó kàn fẹ́ bá MCP sọ̀rọ̀. `src/shared/constants/managementScopes.ts` nísinsìnyí ṣe ìkóńkì `MCP_CONNECT_SCOPE = "mcp:connect"`: àyè tóóró, tí a fi kún (ìṣáájú kan náà bí `SELF_USAGE_SCOPE`) tí ó fún àṣẹ NÌKAN fún ìkọjá `/api/mcp/` nínú `src/server/authz/policies/management.ts` — kò fún ìwọlé sí ọ̀nà ìṣàkóso mìíràn, a sì fi síta láìfọ̀rọ̀wọ́rọ̀ nínú `MANAGEMENT_API_KEY_SCOPES`. Kọ́kọ́rọ́ tí ó ní `manage`/`admin` ṣì ń kọjá ìyọkúrò náà láìyípadà; `mcp:connect` jẹ́ àyè ìwọlé kékeré fún àwọn tí ń pè MCP nìkan láti ọ̀nà jíjìn, tí a yẹ̀ wò nípasẹ̀ `hasMcpConnectOrManageScope()`.
+Láti dé ibi ìgbéka HTTP/SSE MCP (`/api/mcp/*`) láti ibi tí kì í ṣe loopback, a nílò
+ìmúkúrò `LOCAL_ONLY` fún `/api/mcp/` (wo `docs/security/ROUTE_GUARD_TIERS.md`). Ní ìtàn ṣáájú,
+ìmúkúrò yẹn gba kọ́kọ́rọ́ API tó ní ààlà `manage`/`admin` kíkún nìkan — èyí gbòòrò jù fún
+olùpè kan tó nílò láti bá MCP sọ̀rọ̀ nìkan. `src/shared/constants/managementScopes.ts` ti ń
+ṣe àgbéjáde `MCP_CONNECT_SCOPE = "mcp:connect"` báyìí: ààlà àfikún tó ní ààlà kékeré (tó tẹ̀lé àpẹẹrẹ kan náà bí
+`SELF_USAGE_SCOPE`) tí ó fúnni láṣẹ fún ìrékọjá `/api/mcp/` NÌKAN nínú
+`src/server/authz/policies/management.ts` — kò fúnni ní ààyè ìwọlé sí ipa-ọ̀nà ìṣàkóso mìíràn
+kankan, a sì mọ̀ọ́mọ̀ pa á mọ́ SÍTA `MANAGEMENT_API_KEY_SCOPES`. Kọ́kọ́rọ́ tó ní `manage`/`admin`
+ṣì ń kọjá ìmúkúrò náà láìsí àyípadà; `mcp:connect` jẹ́ àṣàyàn tó ní àṣẹ kékeré fún
+àwọn olùpè MCP-nìkan láti ọ̀nà jíjìn, tí a ń ṣàyẹ̀wò nípasẹ̀ `hasMcpConnectOrManageScope()`.
 
-### Ìsopọ̀ àyè HTTP fún kọ́kọ́rọ́ kọ̀ọ̀kan (#7895)
+### Ìsopọ̀ ààlà HTTP fún kọ́kọ́rọ́ kọ̀ọ̀kan (#7895)
 
-Lórí HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` nísinsìnyí yanjú `api_keys.scopes` gidi ti olùpè nípasẹ̀ `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`) ó sì fi ránṣẹ́ sí `transport.handleRequest(req, { authInfo })` ti MCP SDK, nítorí náà `extra.authInfo.scopes` tí ó dé ọ̀kọ̀ọ̀kan ìpè irinṣẹ́ ń fi àwọn àyè kọ́kọ́rọ́ Bearer fúnra rẹ̀ hàn. `resolveCallerScopeContext()` ti `scopeEnforcement.ts` ti fi `authInfo` sí ipò àkọ́kọ́ ju `_meta` àti `OMNIROUTE_MCP_SCOPES` ìpadàbọ̀ àyíká — èyí kàn ń pèsè orísun àkọ́kọ́, tí ó ga jùlọ yẹn, tí kò tíì gba oúnjẹ lórí HTTP tẹ́lẹ̀. Nígbà tí kò sí kọ́kọ́rọ́ API tí ó yanjú (kò sí àkọlé, kọ́kọ́rọ́ tí kò tọ́), `authInfo` dúró bí `undefined` àti ìyànjú sì tẹ̀ síwájú sí `meta`/env àtìlẹ́yìn tí ó wà tẹ́lẹ̀ láìyípadà. Èyí KÒ yí àṣàyàn `OMNIROUTE_MCP_ENFORCE_SCOPES` padà — ìfiagbára mú ṣiṣẹ́ ṣì ní láti jẹ́ kí ó ṣiṣẹ́ ní gbangba; ìyípadà yìí kàn mú kí ọ̀nà kọ́kọ́rọ́ kọ̀ọ̀kan gba ipò àkọ́kọ́ nígbà tí ó bá ti ṣiṣẹ́. stdio kò ní ìdámọ̀ olùpè kọ̀ọ̀kan (wo `mcpCallerIdentity.ts`) kò sì nípa lórí rẹ̀ — ó dúró lórí `_meta`/env àtìlẹ́yìn.
+Lórí HTTP/SSE, `open-sse/mcp-server/httpTransport.ts` ń wá ojúlówó
+`api_keys.scopes` olùpè báyìí nípasẹ̀ `resolveMcpCallerAuthInfo()` (`open-sse/mcp-server/httpAuthContext.ts`)
+ó sì ń fi í ránṣẹ́ sí `transport.handleRequest(req, { authInfo })` ti MCP SDK, kí
+`extra.authInfo.scopes` tó dé ọ̀dọ̀ ìpè irinṣẹ́ kọ̀ọ̀kan lè ṣàfihàn àwọn ààlà ti kọ́kọ́rọ́ Bearer náà fúnra rẹ̀.
+`resolveCallerScopeContext()` inú `scopeEnforcement.ts` ti ń fi `authInfo` sí ipò àkọ́kọ́ ju
+`_meta` àti àṣàyàn ìpadà env `OMNIROUTE_MCP_SCOPES` lọ tẹ́lẹ̀ — èyí kàn ń pèsè ìsọfúnni fún orísun àkọ́kọ́ yẹn,
+tó ní ipò ààyò tó ga jù, èyí tí kò gba ìsọfúnni rí lórí HTTP. Nígbà tí kò sí kọ́kọ́rọ́ API tó bá mu
+(kò sí àkọlé, kọ́kọ́rọ́ kò fẹsẹ̀ múlẹ̀), `authInfo` máa dúró gẹ́gẹ́ bí `undefined`, ìwádìí yóò sì tẹ̀ síwájú lọ sí
+ẹ̀wọ̀n `meta`/env tó ti wà tẹ́lẹ̀ láìsí àyípadà. stdio kò ní ìdánimọ̀ fún olùpè kọ̀ọ̀kan (wo
+`mcpCallerIdentity.ts`), kò sì kan án — ó máa dúró lórí ẹ̀wọ̀n àṣàyàn ìpadà `_meta`/env.
+
+**A máa fipá mú ìmúṣẹ ṣiṣẹ́ fún àwọn olùpè HTTP/SSE tó ní ààlà kékeré láìka
+`OMNIROUTE_MCP_ENFORCE_SCOPES` sí.** Bí `OMNIROUTE_MCP_ENFORCE_SCOPES` ṣe ń lo `false` gẹ́gẹ́ bí àiyípadà jẹ́
+àìléwu fún ìṣàn olùdarí-ẹyọkan local/stdio nìkan, níbi tí kò ti sí ìdánimọ̀ fún olùpè kọ̀ọ̀kan láti fi
+ààlà lé lórí. `open-sse/mcp-server/server.ts::withScopeEnforcement()` máa ń tan ìmúṣẹ ààlà
+fún irinṣẹ́ kọ̀ọ̀kan láìní àṣàyàn (`shouldForceScopeEnforcement()` nínú `scopeEnforcement.ts`)
+ní gbogbo ìgbà tí `resolveCallerScopeContext()` bá yanjú
+`source === "authInfo"` (ìyẹn ni, àkọlé HTTP Authorization ojúlówó fún kọ́kọ́rọ́ kọ̀ọ̀kan, fún HTTP/SSE nìkan) TÍ
+kọ́kọ́rọ́ náà kò sì ní ààlà `manage`/`admin` kíkún. Èyí dí àlàfo tó lè jẹ́ kí kọ́kọ́rọ́ tó ní
+ààlà ìrékọjá tóóró `mcp:connect` NÌKAN — tí a ṣàkọsílẹ̀ rẹ̀ lókè gẹ́gẹ́ bí ohun tó fúnni láṣẹ fún
+ìmúkúrò `LOCAL_ONLY` ti `/api/mcp/` nìkan — lè pe gbogbo irinṣẹ́ MCP bí olùdarí kan bá ti
+mú ààyè ìwọlé MCP jíjìn/tí kì í ṣe loopback ṣiṣẹ́, nítorí pé `OMNIROUTE_MCP_ENFORCE_SCOPES` ń wá pẹ̀lú
+`false` gẹ́gẹ́ bí àiyípadà. Kọ́kọ́rọ́ `manage`/`admin` kíkún lórí HTTP, àti gbogbo olùpè stdio/local, ṣì pa
+ìhùwàsí tó ti wà tẹ́lẹ̀, tí `OMNIROUTE_MCP_ENFORCE_SCOPES` ń ṣàkóso, mọ́ láìsí àyípadà.
 
 ---
 
 ## Àwọn Àyípadà Àyíká
 
-| Àyípadà                                 | Àìyípadà                                 | Ète                                                                                                                             |
-| :-------------------------------------- | :--------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------ |
-| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`                 | URL ìpìlẹ̀ tí olupin MCP ń lò nígbà tó bá ń pe àwọn API inú OmniRoute                                                            |
-| `OMNIROUTE_API_KEY`                     | (òfo)                                    | Kọ́kọ́rọ́ API tí a ń fi ránṣẹ́ gẹ́gẹ́ bí `Authorization: Bearer` sí àwọn ìpè API inú                                                  |
-| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (`"true"` nìkan ló ń mú un ṣiṣẹ́) | Nígbà tí a bá mú un ṣiṣẹ́, àwọn àyè tí kò sí yóò kọ àwọn ìpè irinṣẹ́, yóò sì kọ `scope_denied:<reason>` sínú àkọsílẹ̀ àyẹ̀wò        |
-| `OMNIROUTE_MCP_SCOPES`                  | (òfo)                                    | Àkójọ àwọn àyè tí a yà pẹ̀lú àmì kọ́mà, tí a kà sí “èyí tó wà” ní àìyípadà (a máa ń lò ó nígbà tí olùpè kò bá pèsè àwọn àyè tirẹ̀) |
-| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (a kò ṣètò = ó ṣiṣẹ́)                     | Nígbà tí a bá ṣètò rẹ̀ sí `0/false/off/no`, ó máa pa ìkópọ̀ àpèjúwe MCP ní àsìkò ìforúkọsílẹ̀                                      |
-| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (a kò ṣètò = ó ṣiṣẹ́)                     | Orúkọ àfirọ́pò fún ìṣàkóso kan náà tó wà lókè                                                                                    |
-| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                                  | Àkókò ìdádúró tó pọ̀jù fún àwọn kíkà ìṣàkóso inú (ìlera, ìfaradà, àwọn àkópọ̀, ìwọ̀n, lílò)                                        |
-| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                                  | Àkókò ìdádúró tó pọ̀jù fún àwọn ìpele tó ń dúró de olupèsè (`route_request`, `web_search`, `web_fetch`)                          |
-| `MCP_TOOL_DENY`                         | (a kò ṣètò = kò sí àsẹ̀)                  | Àwọn orúkọ irinṣẹ́ tí a yà pẹ̀lú àmì kọ́mà láti yọ kúrò nínú `tools/list` (dídín iye onírúurú irinṣẹ́ kù — wo ìsàlẹ̀)                |
-| `MCP_TOOL_ALLOW`                        | (a kò ṣètò = kò sí àsẹ̀)                  | Àwọn orúkọ irinṣẹ́ tí a yà pẹ̀lú àmì kọ́mà láti dá dúró ní pàtó (ìpo àkójọ-àṣẹ — wo ìsàlẹ̀)                                         |
-| `DATA_DIR`                              | `~/.omniroute`                           | A kọ fáìlì àmì-ìwàláàyè sí `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                             |
+| Àyípadà                                 | Àiyípadà                                 | Ète                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| :-------------------------------------- | :--------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OMNIROUTE_BASE_URL`                    | `http://localhost:20128`                 | URL ìpìlẹ̀ tí olupin MCP ń lò nígbà tí ó bá ń pe àwọn API abẹ́nú OmniRoute                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `OMNIROUTE_API_KEY`                     | (òfo)                                    | Kọ́kọ́rọ́ API tí a ń fi ránṣẹ́ sí àwọn ìpè API abẹ́nú gẹ́gẹ́ bí `Authorization: Bearer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `OMNIROUTE_MCP_ENFORCE_SCOPES`          | `false` (`"true"` nìkan ló ń mú un ṣiṣẹ́) | Nígbà tí a bá mú un ṣiṣẹ́, àìsí àwọn scope yóò kọ àwọn ìpè irinṣẹ́, yóò sì kọ `scope_denied:<reason>` sínú àkọsílẹ̀ àyẹ̀wò. A tún máa fipá mú ìmúlò yìí ṣiṣẹ́ láìka àmì yìí sí fún olùpè HTTP/SSE èyíkéyìí tí a dá mọ̀ láti inú àkọlé Authorization fún kọ́kọ́rọ́ kọ̀ọ̀kan (`source === "authInfo"`) tí kò ní scope `manage`/`admin` kíkún — fún àpẹẹrẹ, kọ́kọ́rọ́ kan tí ó ní scope ìkọjá `mcp:connect` tóóró nìkan — nítorí náà, àiyípadà yìí kò léwu fún ìṣàn olùṣàkóso kan ṣoṣo ti agbègbè/stdio nìkan, kì í ṣe fún ìráàyèsí jíjìnnà tí kì í ṣe loopback láé |
+| `OMNIROUTE_MCP_SCOPES`                  | (òfo)                                    | Àtòjọ àwọn scope tí a yà pẹ̀lú àmì kọ́má, tí a kà sí “tó wà” nípa àiyípadà (a máa ń lò ó nígbà tí olùpè kò bá pèsè àwọn scope tirẹ̀)                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS`   | (a kò ṣètò = ó ṣiṣẹ́)                     | Nígbà tí a bá ṣètò rẹ̀ sí `0/false/off/no`, ó máa dá fífúnpọ̀ àpèjúwe MCP dúró ní àkókò ìforúkọsílẹ̀                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `OMNIROUTE_MCP_DESCRIPTION_COMPRESSION` | (a kò ṣètò = ó ṣiṣẹ́)                     | Orúkọ àfidípò fún bọ́tìnì kan náà bí èyí tó wà lókè                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `OMNIROUTE_MCP_FETCH_TIMEOUT_MS`        | `10000`                                  | Ìwọ̀n àkókò fífiṣẹ́ dúró fún àwọn ìkà ìṣàkóso abẹ́nú (ìlera, ìfaradà, àwọn àkójọpọ̀, ìpín, ìlò)                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `OMNIROUTE_MCP_UPSTREAM_TIMEOUT_MS`     | `60000`                                  | Ìwọ̀n àkókò fífiṣẹ́ dúró fún àwọn ìgbésẹ̀ tí ń dúró de olùpèsè kan (`route_request`, `web_search`, `web_fetch`)                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `MCP_TOOL_DENY`                         | (a kò ṣètò = kò sí àlẹ́mọ́)                | Àwọn orúkọ irinṣẹ́ tí a yà pẹ̀lú àmì kọ́má láti yọ kúrò nínú `tools/list` (dídín iye àwọn irinṣẹ́ kù — wo ìsàlẹ̀)                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `MCP_TOOL_ALLOW`                        | (kò ṣètò = kò sí àlẹ́mọ́)                  | Àwọn orúkọ irinṣẹ́ tí a fi àmì kọ́má yà sọ́tọ̀ láti pa mọ́ ní àdáṣe (ipò àkójọ-ìyọ̀ǹda — wo ìsàlẹ̀)                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `DATA_DIR`                              | `~/.omniroute`                           | A kọ fáìlì heartbeat sí `${DATA_DIR}/runtime/mcp-heartbeat.json`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 ---
 
