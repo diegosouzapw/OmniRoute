@@ -27,11 +27,13 @@ export function resolveRetryAfterInstant(
     ms = Number.isFinite(parsed) ? parsed : null;
   }
   if (ms === null) return null;
+  const resetAt = new Date(ms);
+  if (!Number.isFinite(resetAt.getTime())) return null;
   const now = Date.now();
   if (ms <= now) return null;
   return {
     retry_after: Math.max(Math.ceil((ms - now) / 1000), 1),
-    reset_at: new Date(ms).toISOString(),
+    reset_at: resetAt.toISOString(),
   };
 }
 
@@ -44,8 +46,10 @@ export function parseRetryAfterHeader(headers: Headers | null | undefined): stri
   const raw = headers?.get?.("retry-after");
   if (!raw) return null;
   const seconds = Number(raw.trim());
-  if (Number.isFinite(seconds) && seconds > 0)
-    return new Date(Date.now() + Math.ceil(seconds) * 1000).toISOString();
+  if (Number.isFinite(seconds) && seconds > 0) {
+    const resetAt = new Date(Date.now() + Math.ceil(seconds) * 1000);
+    return Number.isFinite(resetAt.getTime()) ? resetAt.toISOString() : null;
+  }
   const ms = Date.parse(raw);
   return Number.isFinite(ms) && ms > Date.now() ? new Date(ms).toISOString() : null;
 }
