@@ -67,12 +67,7 @@ import {
   PROVIDER_TAG_SEPARATOR as _PROVIDER_TAG_SEPARATOR,
   shortProviderLabel as _shortProviderLabel,
   normaliseFreeLabel as _normaliseFreeLabel,
-  formatAutoComboName,
-  autoComboModelId,
   formatFreeBudget,
-  type AutoVariant,
-  AUTO_VARIANTS,
-  AUTO_VARIANT_DESCRIPTIONS,
   type FreeModelFreeType,
 } from "./naming.js";
 import { applyOmniRouteInferenceTelemetry } from "./telemetry.js";
@@ -254,10 +249,14 @@ export type OmniRoutePluginOptions = z.infer<typeof optionsSchema>;
  * use the `features.X !== false` convention, default-OFF flags use
  * `features.X === true`). That implicit convention is scattered across the file,
  * so an operator who omits the `features` block cannot tell whether
- * combos / autoCombos / enrichment are enabled — they think features are
+ * combos / enrichment are enabled — they think features are
  * disabled when they are actually on. Centralising the declared defaults here
  * (mirroring the read-site conventions exactly, so runtime behaviour is
  * unchanged) makes the effective flags introspectable and self-documenting.
+ *
+ * `features.autoCombos` is accepted but ignored: it stays in the schema (and
+ * in the defaults below) so existing configurations still validate, but no
+ * read site consults it anymore and it is hidden from startup diagnostics.
  */
 export const OMNIROUTE_FEATURE_DEFAULTS = {
   // default-ON (read sites use `features.X !== false`)
@@ -783,7 +782,6 @@ export async function forceSyncOmniRouteModels(args: {
   readAuthJson?: OmniRouteReadAuthJson;
   fetcher?: OmniRouteModelsFetcher;
   combosFetcher?: OmniRouteCombosFetcher;
-  autoCombosFetcher?: OmniRouteAutoCombosFetcher;
   enrichmentFetcher?: OmniRouteEnrichmentFetcher;
   compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
   providersFetcher?: OmniRouteProvidersFetcher;
@@ -804,7 +802,6 @@ export async function forceSyncOmniRouteModels(args: {
   const now = args.now ?? Date.now;
   const fetcher = args.fetcher ?? defaultOmniRouteModelsFetcher;
   const combosFetcher = args.combosFetcher ?? defaultOmniRouteCombosFetcher;
-  const autoCombosFetcher = args.autoCombosFetcher ?? defaultOmniRouteAutoCombosFetcher;
   const enrichmentFetcher = args.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
   const compressionMetaFetcher =
     args.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
@@ -816,7 +813,6 @@ export async function forceSyncOmniRouteModels(args: {
     );
   const features = resolved.features ?? {};
   const wantCombos = features.combos !== false;
-  const wantAutoCombos = features.autoCombos !== false;
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
@@ -877,19 +873,6 @@ export async function forceSyncOmniRouteModels(args: {
         logger.warn("force sync: combos fetch failed", err);
       }
     }
-    let rawAutoCombos: OmniRouteRawAutoCombo[] = [];
-    if (wantAutoCombos) {
-      try {
-        rawAutoCombos = await autoCombosFetcher(
-          auth.baseURL,
-          auth.managementReadToken,
-          5_000,
-          logger
-        );
-      } catch {
-        /* soft-fail */
-      }
-    }
     let rawEnrichment: OmniRouteEnrichmentMap = new Map();
     if (wantEnrichment) {
       try {
@@ -923,7 +906,6 @@ export async function forceSyncOmniRouteModels(args: {
     const entry = {
       rawModels,
       rawCombos,
-      rawAutoCombos,
       rawEnrichment,
       rawCompressionCombos,
       rawConnections,
@@ -1747,165 +1729,6 @@ export function mapComboToModelV2(
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// AUTO COMBOS — virtual server-side combos exposed via /api/combos/auto
-// ─────────────────────────────────────────────────────────────────────────
-
-/**
- * Raw shape of an auto combo entry as returned by OmniRoute's
- * `/api/combos/auto` endpoint. Auto combos are virtual — they self-manage
- * provider selection via scoring/bandit exploration at runtime.
- */
-export interface OmniRouteRawAutoCombo {
-  /** Stable id (e.g. "auto", "auto/coding"). */
-  id: string;
-  /** Human-readable name (e.g. "Auto", "Auto Coding"). */
-  name: string;
-  /** Variant key or undefined for the default auto. */
-  variant?: AutoVariant;
-  /** Provider names eligible for this auto combo. */
-  candidatePool?: string[];
-  /** Number of candidates resolved at fetch time. */
-  candidateCount?: number;
-  /** MAX of candidates' context windows, served by newer OmniRoute builds.
-   * Absent on older servers — mapper falls back to a safe positive default. */
-  context_length?: number;
-  /** MAX of candidates' max output tokens (same provenance as context_length). */
-  max_output_tokens?: number;
-  /** Whether this auto combo should be hidden from the picker. */
-  isHidden?: boolean;
-  /** Auto-combo configuration. */
-  config?: {
-    auto?: {
-      candidatePool?: string[];
-      explorationRate?: number;
-      routerStrategy?: string;
-    };
-  };
-}
-
-/**
- * Fetcher contract for `/api/combos/auto`. Returns the list of virtual
- * auto combos the server can create. Same DI pattern as other fetchers.
- */
-export type OmniRouteAutoCombosFetcher = (
-  baseURL: string,
-  apiKey: string,
-  timeoutMs?: number,
-  logger?: OmniRouteLoggerSink
-) => Promise<OmniRouteRawAutoCombo[]>;
-
-/**
- * Default auto combos fetcher: `GET <baseURL>/api/combos/auto`.
- *
- * Fault-tolerant: returns empty array on 404 (endpoint doesn't exist yet)
- * or any non-2xx / network error. Logs a warning in those cases.
- */
-export const defaultOmniRouteAutoCombosFetcher: OmniRouteAutoCombosFetcher = async (
-  baseURL,
-  apiKey,
-  timeoutMs = 5_000,
-  logger?: OmniRouteLoggerSink
-) => {
-  if (!apiKey || !baseURL) return [];
-  const log = logger ?? _logger;
-
-  const trimmed = trimTrailingSlashes(baseURL);
-  const root = trimmed.replace(/\/v\d+$/, "");
-  const url = `${root}/api/combos/auto`;
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json",
-      },
-      signal: controller.signal,
-    });
-    // 404 = endpoint not deployed yet — expected during rollout
-    if (res.status === 404) {
-      log.warn(`/api/combos/auto not available (404) — auto combos disabled`);
-      return [];
-    }
-    if (!res.ok) {
-      log.warn(`/api/combos/auto failed: ${res.status} ${res.statusText} — auto combos disabled`);
-      return [];
-    }
-    const body = (await res.json()) as unknown;
-    const rawList: unknown[] = Array.isArray(body)
-      ? body
-      : body && typeof body === "object" && Array.isArray((body as { combos?: unknown }).combos)
-        ? ((body as { combos: unknown[] }).combos as unknown[])
-        : [];
-    const out: OmniRouteRawAutoCombo[] = [];
-    for (const r of rawList) {
-      if (r && typeof r === "object" && typeof (r as { id?: unknown }).id === "string") {
-        out.push(r as OmniRouteRawAutoCombo);
-      }
-    }
-    return out;
-  } catch (err) {
-    // Network error, timeout, abort — all non-fatal
-    log.warn(
-      `/api/combos/auto fetch failed: ${err instanceof Error ? err.message : String(err)} — auto combos disabled`
-    );
-    return [];
-  } finally {
-    clearTimeout(timer);
-  }
-};
-
-/** Fallbacks when the server does not advertise auto-combo limits (older
- * OmniRoute builds). MUST be positive: OpenCode's overflow guard treats
- * `limit.context === 0` as "never overflow" and silently DISABLES smart
- * auto-compaction, letting the session grow until the gateway's destructive
- * history purge kicks in (the "agent keeps forgetting things" bug). */
-const AUTO_COMBO_FALLBACK_CONTEXT = 128_000;
-const AUTO_COMBO_FALLBACK_OUTPUT = 8_192;
-
-/**
- * Convert a raw auto combo into a static model entry for the OpenCode picker.
- * Auto combos have tool_call=true, reasoning=true by default (they route
- * to capable models). Context/output limits come from the server (MAX of
- * the candidate pool's windows — the gateway's context pre-filter routes
- * oversized requests to large-window candidates); a safe positive fallback
- * applies when the server omits them. Never 0.
- */
-export function mapAutoComboToStaticEntry(
-  autoCombo: OmniRouteRawAutoCombo
-): OmniRouteStaticModelEntry {
-  const variant = autoCombo.variant;
-  const name = formatAutoComboName(variant, autoCombo.candidateCount);
-  const context =
-    typeof autoCombo.context_length === "number" && autoCombo.context_length > 0
-      ? autoCombo.context_length
-      : AUTO_COMBO_FALLBACK_CONTEXT;
-  const output =
-    typeof autoCombo.max_output_tokens === "number" && autoCombo.max_output_tokens > 0
-      ? autoCombo.max_output_tokens
-      : AUTO_COMBO_FALLBACK_OUTPUT;
-  // No `providerID` field on static-catalog entries — OC ignores it on the static
-  // path, and stamping it on auto-combos but not on raw/combo entries was an
-  // internal inconsistency. The dynamic-hook path builds its ModelV2 from the
-  // individual fields below and never read this field either.
-  return {
-    name,
-    attachment: false,
-    reasoning: true,
-    temperature: true,
-    tool_call: true,
-    limit: { context, output },
-    modalities: {
-      input: ["text"],
-      output: ["text"],
-    },
-    cost: { input: 0, output: 0, cache_read: 0, cache_write: 0 },
-  };
-}
-
-// ─────────────────────────────────────────────────────────────────────────
 // ENRICHMENT — pull display names + pricing from /api/pricing/models so
 // the UI doesn't have to render raw model ids. Gated by features.enrichment.
 // ─────────────────────────────────────────────────────────────────────────
@@ -2200,22 +2023,11 @@ async function writeStartupDiagnostics(params: {
   modelCount: number;
   comboCount: number;
   enrichmentSize: number;
-  autoComboCount: number;
   enrichment: OmniRouteEnrichmentMap;
-  autoCombos: OmniRouteRawAutoCombo[];
   features?: OmniRoutePluginOptions["features"];
 }): Promise<void> {
-  const {
-    providerId,
-    baseURL,
-    modelCount,
-    comboCount,
-    enrichmentSize,
-    autoComboCount,
-    enrichment,
-    autoCombos,
-    features,
-  } = params;
+  const { providerId, baseURL, modelCount, comboCount, enrichmentSize, enrichment, features } =
+    params;
   const enriched = [...enrichment.entries()];
   const withName = enriched.filter(([, e]) => e.name);
   const withPricing = enriched.filter(([, e]) => e.pricing);
@@ -2224,16 +2036,16 @@ async function writeStartupDiagnostics(params: {
   const lines: string[] = [];
   lines.push(`=== startupDebug ${new Date().toISOString()} ===`);
   lines.push(`providerId=${providerId} baseURL=${baseURL}`);
-  lines.push(
-    `models=${modelCount} combos=${comboCount} enrichment=${enrichmentSize} autoCombos=${autoComboCount}`
-  );
+  lines.push(`models=${modelCount} combos=${comboCount} enrichment=${enrichmentSize}`);
   // #7624: surface the EFFECTIVE feature flags so an operator who omitted the
-  // `features` block can see combos/autoCombos/enrichment are on (the counts
+  // `features` block can see combos/enrichment are on (the counts
   // above can read 0 for reasons unrelated to the flags — e.g. missing auth).
+  // `features.autoCombos` is accepted but ignored, so it is hidden here.
   const effectiveFlags = resolveEffectiveFeatureFlags(features);
   lines.push(
     `features(effective): ` +
       (Object.keys(effectiveFlags) as OmniRouteFeatureFlag[])
+        .filter((k) => k !== "autoCombos")
         .map((k) => `${k}=${effectiveFlags[k] ? "on" : "off"}`)
         .join(" ")
   );
@@ -2262,11 +2074,6 @@ async function writeStartupDiagnostics(params: {
   if (sampleNames.length > 0) {
     lines.push(`sample enriched names:`);
     lines.push(sampleNames.join("\n"));
-  }
-  if (autoCombos.length > 0) {
-    lines.push(
-      `auto combos: ${autoCombos.length} — ${autoCombos.map((ac) => `${ac.id}(${ac.candidateCount ?? "?"}p)`).join(", ")}`
-    );
   }
   lines.push(`=== end startupDebug ===\n`);
 
@@ -3173,7 +2980,6 @@ function modelsCacheKey(baseURL: string, credentialId: string): string {
 export interface OmniRouteFetchCacheEntry {
   rawModels: OmniRouteRawModelEntry[];
   rawCombos: OmniRouteRawCombo[];
-  rawAutoCombos: OmniRouteRawAutoCombo[];
   /** Display-name + pricing overlay from /api/pricing/models. Empty Map when feature is disabled or fetch failed. */
   rawEnrichment: OmniRouteEnrichmentMap;
   /** Compression combos from /api/context/combos. Empty array when feature is disabled or fetch failed. */
@@ -3234,7 +3040,6 @@ export function createOmniRouteProviderHook(
   deps: {
     fetcher?: OmniRouteModelsFetcher;
     combosFetcher?: OmniRouteCombosFetcher;
-    autoCombosFetcher?: OmniRouteAutoCombosFetcher;
     enrichmentFetcher?: OmniRouteEnrichmentFetcher;
     compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
     providersFetcher?: OmniRouteProvidersFetcher;
@@ -3255,7 +3060,6 @@ export function createOmniRouteProviderHook(
   // reference resolves at hook-invocation time, not at hook-construction
   // time, so source-order beyond hoisting rules has no semantic effect.
   const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
-  const autoCombosFetcher = deps.autoCombosFetcher ?? defaultOmniRouteAutoCombosFetcher;
   const enrichmentFetcher = deps.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
   const compressionMetaFetcher =
     deps.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
@@ -3263,7 +3067,6 @@ export function createOmniRouteProviderHook(
   // Features defaults (mirror v0.1.0 behavior when unset).
   const features = resolved.features ?? {};
   const wantCombos = features.combos !== false;
-  const wantAutoCombos = features.autoCombos !== false;
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
@@ -3336,14 +3139,12 @@ export function createOmniRouteProviderHook(
 
       let rawModels: OmniRouteRawModelEntry[];
       let rawCombos: OmniRouteRawCombo[];
-      let rawAutoCombos: OmniRouteRawAutoCombo[];
       let rawEnrichment: OmniRouteEnrichmentMap;
       let rawCompressionCombos: OmniRouteCompressionCombo[];
       let rawConnections: OmniRouteProviderConnection[];
       if (cached && cached.expiresAt > t) {
         rawModels = cached.rawModels;
         rawCombos = cached.rawCombos;
-        rawAutoCombos = cached.rawAutoCombos;
         rawEnrichment = cached.rawEnrichment;
         rawCompressionCombos = cached.rawCompressionCombos;
         rawConnections = cached.rawConnections;
@@ -3365,19 +3166,6 @@ export function createOmniRouteProviderHook(
             rawCombos = await combosFetcher(baseURL, managementReadToken, 10_000);
           } catch (err) {
             logger.warn("combos fetch failed, falling back to models-only catalog", err);
-          }
-        }
-
-        // Auto combos fetch — virtual server-side combos. Best-effort,
-        // gated by features.autoCombos. Soft-fails silently (the endpoint
-        // may not exist yet on older OmniRoute versions).
-        rawAutoCombos = [];
-        if (wantAutoCombos) {
-          try {
-            rawAutoCombos = await autoCombosFetcher(baseURL, managementReadToken, 5_000, logger);
-          } catch {
-            // Already handled inside the default fetcher — this catch
-            // is belt-and-suspenders for injected stubs.
           }
         }
 
@@ -3427,7 +3215,6 @@ export function createOmniRouteProviderHook(
         cache.set(cacheKey, {
           rawModels,
           rawCombos,
-          rawAutoCombos,
           rawEnrichment,
           rawCompressionCombos,
           rawConnections,
@@ -3447,7 +3234,7 @@ export function createOmniRouteProviderHook(
             `(TTL=${resolved.modelCacheTtl}ms)`
         );
 
-        // ── Startup debug: deep-dive into enrichment + auto combos ──────
+        // ── Startup debug: deep-dive into enrichment ────────────────────
         if (resolved.features?.startupDebug === true) {
           await writeStartupDiagnostics({
             providerId: resolved.providerId,
@@ -3455,9 +3242,7 @@ export function createOmniRouteProviderHook(
             modelCount: rawModels.length,
             comboCount: rawCombos.length,
             enrichmentSize: rawEnrichment.size,
-            autoComboCount: rawAutoCombos.length,
             enrichment: rawEnrichment,
-            autoCombos: rawAutoCombos,
             features: resolved.features,
           });
         }
@@ -3740,65 +3525,6 @@ export function createOmniRouteProviderHook(
         logger.warn(
           `${pending.length} combo(s) could not resolve all nested combo-refs after ${MAX_COMBO_PASSES} passes; they will advertise context=0 to avoid over-claiming.`
         );
-      }
-
-      // ── Auto combos in dynamic catalog ────────────────────────────────
-      // Convert virtual auto combos from /api/combos/auto into ModelV2
-      // entries so they appear in the dynamic provider.models() path
-      // (used by OpenCode ≥1.14.49).
-      if (rawAutoCombos.length > 0) {
-        for (const autoCombo of rawAutoCombos) {
-          if (!autoCombo || !autoCombo.id) continue;
-          if (autoCombo.isHidden === true) continue;
-          const entry = mapAutoComboToStaticEntry(autoCombo);
-          const key = autoComboModelId(autoCombo.variant);
-          const mapped: ModelV2 = {
-            id: key,
-            name: entry.name,
-            capabilities: {
-              temperature: entry.temperature ?? true,
-              reasoning: entry.reasoning ?? false,
-              attachment: entry.attachment ?? false,
-              toolcall: entry.tool_call ?? false,
-              input: {
-                text: true,
-                audio: false,
-                image: false,
-                video: false,
-                pdf: false,
-              },
-              output: {
-                text: true,
-                audio: false,
-                image: false,
-                video: false,
-                pdf: false,
-              },
-              interleaved: false,
-            },
-            cost: {
-              input: 0,
-              output: 0,
-              cache: { read: 0, write: 0 },
-            },
-            limit: {
-              context: entry.limit?.context ?? 0,
-              output: entry.limit?.output ?? 0,
-            },
-            api: {
-              id: "openai-compatible",
-              url: ensureV1Suffix(baseURL),
-              npm: "@ai-sdk/openai-compatible",
-            },
-            status: "active",
-            release_date: "",
-            // #6859: server-facing id — NOT the OC-gate-prefixed `resolved.providerId`.
-            providerID: resolved.omnirouteProviderId,
-            options: {},
-            headers: {},
-          };
-          models[key] = mapped;
-        }
       }
 
       return models;
@@ -4384,12 +4110,10 @@ export function buildStaticProviderEntry(
   enrichment?: OmniRouteEnrichmentMap,
   compressionCombos?: OmniRouteCompressionCombo[],
   connections?: OmniRouteProviderConnection[],
-  rawAutoCombos?: OmniRouteRawAutoCombo[],
   logger?: OmniRouteLoggerSink
 ): OmniRouteStaticProviderEntry {
   const log = logger ?? _logger;
   const models: Record<string, OmniRouteStaticModelEntry> = {};
-  const rawModelKeys = new Set<string>();
 
   // usableOnly filter — compute once when feature enabled AND we have
   // connection data to filter against. Soft-fail (empty connections list)
@@ -4548,7 +4272,6 @@ export function buildStaticProviderEntry(
     // keep it because the slash is part of the upstream model id itself.
     const key = raw.id;
     models[key] = entry;
-    rawModelKeys.add(key);
   }
 
   // Combo entries → stripped LCD shape. Each combo is keyed as
@@ -4578,7 +4301,6 @@ export function buildStaticProviderEntry(
 
   // Track combo keys to detect slug collisions across the catalog.
   const usedComboKeys = new Set<string>();
-  const reportedCollisions = new Set<string>();
 
   // ── Combo LCD across nested combo-refs (T-NN mirror) ─────────────────
   // Mirror of the dynamic-catalog fixpoint iteration: combos can nest
@@ -4759,7 +4481,6 @@ export function buildStaticProviderEntry(
       // instead of `omniroute`. See #7976.
       const key = buildComboKey(combo, usedComboKeys, opts.omnirouteProviderId).split("/").pop()!;
       models[key] = entry;
-      rawModelKeys.delete(key);
 
       // Make this combo's resolved entry available to parent combos
       // that reference it via combo-ref. Use the friendly name since
@@ -4780,31 +4501,6 @@ export function buildStaticProviderEntry(
     log.warn(
       `${pendingStatic.length} combo(s) in the static catalog could not resolve all nested combo-refs after ${MAX_STATIC_COMBO_PASSES} passes; they will be omitted.`
     );
-  }
-
-  // ── Auto combos ────────────────────────────────────────────────────────
-  // Virtual server-side combos (auto/coding, auto/fast, etc.) are fetched
-  // from /api/combos/auto and added as model entries. They self-manage
-  // provider selection at runtime via scoring/bandit exploration.
-  if (rawAutoCombos && rawAutoCombos.length > 0) {
-    for (const autoCombo of rawAutoCombos) {
-      if (!autoCombo || !autoCombo.id) continue;
-      if (autoCombo.isHidden === true) continue;
-      const entry = mapAutoComboToStaticEntry(autoCombo);
-      // Use the variant as the key: "auto", "auto/coding", etc.
-      const key = autoComboModelId(autoCombo.variant);
-      if (models[key]) {
-        // `/v1/models` mirrors auto combos under the same stable id. Replacing
-        // that expected raw twin is silent; every other collision still warns.
-        const isExpectedRawTwin = autoCombo.id === key && rawModelKeys.has(key);
-        if (!isExpectedRawTwin && !reportedCollisions.has(key)) {
-          reportedCollisions.add(key);
-          log.warn(`auto combo key "${key}" collides with an existing model; auto combo wins.`);
-        }
-      }
-      models[key] = entry;
-      rawModelKeys.delete(key);
-    }
   }
 
   return {
@@ -4858,7 +4554,6 @@ interface OmniRouteDiskSnapshot {
   identityFingerprint: string;
   rawModels: OmniRouteRawModelEntry[];
   rawCombos: OmniRouteRawCombo[];
-  rawAutoCombos?: OmniRouteRawAutoCombo[];
   /** Serialised as array-of-pairs (Map is not JSON-friendly). */
   rawEnrichment: Array<[string, OmniRouteEnrichmentEntry]>;
   rawCompressionCombos: OmniRouteCompressionCombo[];
@@ -4937,7 +4632,6 @@ export const defaultDiskSnapshotWriter: OmniRouteDiskSnapshotWriter = async (
       identityFingerprint,
       rawModels: entry.rawModels,
       rawCombos: entry.rawCombos,
-      rawAutoCombos: entry.rawAutoCombos,
       rawEnrichment: Array.from(entry.rawEnrichment.entries()),
       rawCompressionCombos: entry.rawCompressionCombos,
       rawConnections: entry.rawConnections,
@@ -4972,7 +4666,6 @@ export const defaultDiskSnapshotReader: OmniRouteDiskSnapshotReader = async (
     return {
       rawModels: Array.isArray(parsed.rawModels) ? parsed.rawModels : [],
       rawCombos: Array.isArray(parsed.rawCombos) ? parsed.rawCombos : [],
-      rawAutoCombos: Array.isArray(parsed.rawAutoCombos) ? parsed.rawAutoCombos : [],
       rawEnrichment: new Map(Array.isArray(parsed.rawEnrichment) ? parsed.rawEnrichment : []),
       rawCompressionCombos: Array.isArray(parsed.rawCompressionCombos)
         ? parsed.rawCompressionCombos
@@ -5393,7 +5086,6 @@ export function createOmniRouteConfigHook(
     readAuthJson?: OmniRouteReadAuthJson;
     fetcher?: OmniRouteModelsFetcher;
     combosFetcher?: OmniRouteCombosFetcher;
-    autoCombosFetcher?: OmniRouteAutoCombosFetcher;
     enrichmentFetcher?: OmniRouteEnrichmentFetcher;
     compressionMetaFetcher?: OmniRouteCompressionMetaFetcher;
     providersFetcher?: OmniRouteProvidersFetcher;
@@ -5412,7 +5104,6 @@ export function createOmniRouteConfigHook(
   const readAuthJson = deps.readAuthJson ?? defaultReadAuthJson;
   const fetcher = deps.fetcher ?? defaultOmniRouteModelsFetcher;
   const combosFetcher = deps.combosFetcher ?? defaultOmniRouteCombosFetcher;
-  const autoCombosFetcher = deps.autoCombosFetcher ?? defaultOmniRouteAutoCombosFetcher;
   const enrichmentFetcher = deps.enrichmentFetcher ?? defaultOmniRouteEnrichmentFetcher;
   const compressionMetaFetcher =
     deps.compressionMetaFetcher ?? defaultOmniRouteCompressionMetaFetcher;
@@ -5428,7 +5119,6 @@ export function createOmniRouteConfigHook(
   };
   const features = resolved.features ?? {};
   const wantCombos = features.combos !== false;
-  const wantAutoCombos = features.autoCombos !== false;
   const wantEnrichment = features.enrichment !== false;
   const wantCompressionMeta = features.compressionMetadata === true;
   const wantUsableOnly = features.usableOnly === true;
@@ -5514,7 +5204,6 @@ export function createOmniRouteConfigHook(
 
     let rawModels: OmniRouteRawModelEntry[] = [];
     let rawCombos: OmniRouteRawCombo[] = [];
-    let rawAutoCombos: OmniRouteRawAutoCombo[] = [];
     let rawEnrichment: OmniRouteEnrichmentMap = new Map();
     let rawCompressionCombos: OmniRouteCompressionCombo[] = [];
     let rawConnections: OmniRouteProviderConnection[] = [];
@@ -5522,7 +5211,6 @@ export function createOmniRouteConfigHook(
     if (cached && cached.expiresAt > t) {
       rawModels = cached.rawModels;
       rawCombos = cached.rawCombos;
-      rawAutoCombos = cached.rawAutoCombos;
       rawEnrichment = cached.rawEnrichment;
       rawCompressionCombos = cached.rawCompressionCombos;
       rawConnections = cached.rawConnections;
@@ -5550,16 +5238,15 @@ export function createOmniRouteConfigHook(
       }
 
       // ─────────────────────────────────────────────────────────────────────
-      // Parallel refresh: all six fetchers run concurrently via
+      // Parallel refresh: all five fetchers run concurrently via
       // Promise.allSettled. Each wrapper never rejects (catches internally)
       // so partial failure is tolerated — same soft-fail semantics as the
-      // old sequential chain, but ~6x faster.
+      // old sequential chain, but ~5x faster.
       // ─────────────────────────────────────────────────────────────────────
       const doRefresh = async (): Promise<void> => {
         let modelsFetchThrew = false;
         let localRawModels: OmniRouteRawModelEntry[] = [];
         let localRawCombos: OmniRouteRawCombo[] = [];
-        let localRawAutoCombos: OmniRouteRawAutoCombo[] = [];
         let localRawEnrichment: OmniRouteEnrichmentMap = new Map();
         let localRawCompressionCombos: OmniRouteCompressionCombo[] = [];
         let localRawConnections: OmniRouteProviderConnection[] = [];
@@ -5588,20 +5275,6 @@ export function createOmniRouteConfigHook(
               "error",
               `config shim: /api/combos fetch failed; publishing models-only static catalog: ${err instanceof Error ? err.message : String(err)}`
             );
-          }
-        };
-
-        const doAutoCombos = async (): Promise<void> => {
-          if (!wantAutoCombos) return;
-          try {
-            localRawAutoCombos = await autoCombosFetcher(
-              baseURL,
-              managementReadToken,
-              5_000,
-              logger
-            );
-          } catch {
-            // Already handled inside the default fetcher
           }
         };
 
@@ -5648,7 +5321,6 @@ export function createOmniRouteConfigHook(
         await Promise.allSettled([
           doModels(),
           doCombos(),
-          doAutoCombos(),
           doEnrichment(),
           doCompression(),
           doConnections(),
@@ -5710,7 +5382,6 @@ export function createOmniRouteConfigHook(
             );
             localRawModels = snapshot.rawModels;
             localRawCombos = snapshot.rawCombos;
-            localRawAutoCombos = snapshot.rawAutoCombos ?? [];
             localRawEnrichment = snapshot.rawEnrichment;
             localRawCompressionCombos = snapshot.rawCompressionCombos;
             localRawConnections = snapshot.rawConnections;
@@ -5722,7 +5393,6 @@ export function createOmniRouteConfigHook(
         cache.set(cacheKey, {
           rawModels: localRawModels,
           rawCombos: localRawCombos,
-          rawAutoCombos: localRawAutoCombos,
           rawEnrichment: localRawEnrichment,
           rawCompressionCombos: localRawCompressionCombos,
           rawConnections: localRawConnections,
@@ -5737,9 +5407,7 @@ export function createOmniRouteConfigHook(
             modelCount: localRawModels.length,
             comboCount: localRawCombos.length,
             enrichmentSize: localRawEnrichment.size,
-            autoComboCount: localRawAutoCombos.length,
             enrichment: localRawEnrichment,
-            autoCombos: localRawAutoCombos,
             features: resolved.features,
           });
         }
@@ -5755,7 +5423,6 @@ export function createOmniRouteConfigHook(
             {
               rawModels: localRawModels,
               rawCombos: localRawCombos,
-              rawAutoCombos: localRawAutoCombos,
               rawEnrichment: localRawEnrichment,
               rawCompressionCombos: localRawCompressionCombos,
               rawConnections: localRawConnections,
@@ -5778,7 +5445,6 @@ export function createOmniRouteConfigHook(
             localRawEnrichment,
             localRawCompressionCombos,
             localRawConnections,
-            localRawAutoCombos,
             logger
           );
           const inputWithProvider2 = input as { provider?: Record<string, unknown> };
@@ -5793,7 +5459,6 @@ export function createOmniRouteConfigHook(
         // the refresh detached (never a floating unhandled rejection).
         rawModels = warmSnapshot.rawModels;
         rawCombos = warmSnapshot.rawCombos;
-        rawAutoCombos = warmSnapshot.rawAutoCombos ?? [];
         rawEnrichment = warmSnapshot.rawEnrichment;
         rawCompressionCombos = warmSnapshot.rawCompressionCombos;
         rawConnections = warmSnapshot.rawConnections;
@@ -5828,7 +5493,6 @@ export function createOmniRouteConfigHook(
           if (fresh) {
             rawModels = fresh.rawModels;
             rawCombos = fresh.rawCombos;
-            rawAutoCombos = fresh.rawAutoCombos;
             rawEnrichment = fresh.rawEnrichment;
             rawCompressionCombos = fresh.rawCompressionCombos;
             rawConnections = fresh.rawConnections;
@@ -5851,7 +5515,6 @@ export function createOmniRouteConfigHook(
           if (fresh) {
             rawModels = fresh.rawModels;
             rawCombos = fresh.rawCombos;
-            rawAutoCombos = fresh.rawAutoCombos;
             rawEnrichment = fresh.rawEnrichment;
             rawCompressionCombos = fresh.rawCompressionCombos;
             rawConnections = fresh.rawConnections;
@@ -5869,7 +5532,6 @@ export function createOmniRouteConfigHook(
       rawEnrichment,
       rawCompressionCombos,
       rawConnections,
-      rawAutoCombos,
       logger
     );
 

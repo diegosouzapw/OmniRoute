@@ -8,7 +8,6 @@ import type { Config } from "@opencode-ai/plugin";
 import {
   createOmniRouteConfigHook,
   createOmniRouteProviderHook,
-  defaultOmniRouteAutoCombosFetcher,
   OmniRoutePlugin,
   type OmniRouteRawModelEntry,
 } from "../src/index.js";
@@ -162,7 +161,6 @@ test("error-level config fetch failures remain visible as concise injected-logge
     {
       baseURL: "https://omniroute.example/v1",
       features: {
-        autoCombos: false,
         diskCache: false,
         enrichment: false,
         logLevel: "error",
@@ -240,7 +238,7 @@ function providerHookWithLevel(level: LogLevel, baseURL?: string) {
   return createOmniRouteProviderHook(
     {
       baseURL,
-      features: { autoCombos: false, enrichment: false, logLevel: level },
+      features: { enrichment: false, logLevel: level },
     },
     {
       fetcher: async () => MINIMAL_MODELS,
@@ -289,38 +287,4 @@ test("no baseURL resolvable stays visible at error level", async () => {
     lines.some((line) => line.includes("no baseURL resolvable")),
     "genuine misconfiguration error remains visible at error level"
   );
-});
-
-test("default auto-combos fetcher 404 warning respects the threaded logger level", async () => {
-  const originalFetch = globalThis.fetch;
-  (globalThis as { fetch: unknown }).fetch = (async () => ({
-    status: 404,
-    ok: false,
-  })) as typeof fetch;
-  try {
-    const silent = await captureConsole(async () => {
-      await defaultOmniRouteAutoCombosFetcher(
-        "https://or.example.com/v1",
-        "sk-x",
-        5_000,
-        createLogger("error")
-      );
-    });
-    assert.equal(rendered(silent).length, 0, "404 warning suppressed at error level");
-
-    const loud = await captureConsole(async () => {
-      await defaultOmniRouteAutoCombosFetcher(
-        "https://or.example.com/v1",
-        "sk-x",
-        5_000,
-        createLogger("warn")
-      );
-    });
-    assert.ok(
-      rendered(loud).some((line) => line.includes("/api/combos/auto not available")),
-      "404 warning emitted at warn level"
-    );
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
 });

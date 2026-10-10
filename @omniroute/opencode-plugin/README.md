@@ -214,7 +214,7 @@ npm install --prefix ~/.config/opencode/plugins/omniroute-opencode-plugin-prepro
 | `managementReadToken` | `string` | falls back to `apiKey`                     | Optional read-only token for management catalog GETs; `/v1` inference stays on the connected `apiKey` |
 | `features`            | `object` | see below                                  | Feature toggles (all opt-in/out, defaults preserve v0.1.0)                                            |
 
-For least-privilege deployments, set top-level `managementReadToken` to a read-only management token. It is sent only to catalog reads (`/api/combos`, `/api/combos/auto`, `/api/pricing/models`, `/api/pricing`, `/api/context/combos`, and `/api/providers`). Inference requests under `/v1`, including chat, continue to use the `apiKey` stored by OpenCode. `features.mcpToken` remains independent. If `managementReadToken` is omitted, catalog reads retain the previous `apiKey` behavior.
+For least-privilege deployments, set top-level `managementReadToken` to a read-only management token. It is sent only to catalog reads (`/api/combos`, `/api/pricing/models`, `/api/pricing`, `/api/context/combos`, and `/api/providers`). Inference requests under `/v1`, including chat, continue to use the `apiKey` stored by OpenCode. `features.mcpToken` remains independent. If `managementReadToken` is omitted, catalog reads retain the previous `apiKey` behavior. `features.autoCombos` is accepted but ignored: the gateway serves the `auto/*` entries through `/v1/models` with server-computed limits and modalities, so no separate fetch is needed.
 
 ### `features` block
 

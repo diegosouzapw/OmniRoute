@@ -77,7 +77,6 @@ test("invalidateOmniRouteFetchCache clears by baseURL prefix", () => {
   cache.set("https://a.example/v1::abc", {
     rawModels: [],
     rawCombos: [],
-    rawAutoCombos: [],
     rawEnrichment: new Map(),
     rawCompressionCombos: [],
     rawConnections: [],
@@ -86,7 +85,6 @@ test("invalidateOmniRouteFetchCache clears by baseURL prefix", () => {
   cache.set("https://b.example/v1::def", {
     rawModels: [],
     rawCombos: [],
-    rawAutoCombos: [],
     rawEnrichment: new Map(),
     rawCompressionCombos: [],
     rawConnections: [],
@@ -106,7 +104,6 @@ test("forceSyncOmniRouteModels: fetches, populates cache, returns count", async 
     autoSyncIntervalMs: 0,
     features: {
       combos: false,
-      autoCombos: false,
       enrichment: false,
       compressionMetadata: false,
       usableOnly: false,
@@ -143,7 +140,6 @@ test("forceSyncOmniRouteModels suppresses successful lifecycle output at error l
     providerId: "omniroute",
     baseURL: "https://omniroute.example/v1",
     features: {
-      autoCombos: false,
       combos: false,
       compressionMetadata: false,
       diskCache: false,
@@ -178,7 +174,6 @@ test("forceSyncOmniRouteModels preserves successful lifecycle output at info lev
     providerId: "omniroute",
     baseURL: "https://omniroute.example/v1",
     features: {
-      autoCombos: false,
       combos: false,
       compressionMetadata: false,
       diskCache: false,
@@ -247,7 +242,6 @@ function diskCacheResolved() {
     autoSyncIntervalMs: 0,
     features: {
       combos: false,
-      autoCombos: false,
       enrichment: false,
       compressionMetadata: false,
       usableOnly: false,
@@ -269,7 +263,6 @@ test("forceSyncOmniRouteModels: models fetch abort keeps memory and disk cache (
     const previousEntry = {
       rawModels: [{ id: "cached-model", object: "model" }],
       rawCombos: [],
-      rawAutoCombos: [],
       rawEnrichment: new Map(),
       rawCompressionCombos: [],
       rawConnections: [],
