@@ -1,0 +1,1 @@
+- **fix(usage):** a usage write blocked by a locked database is retried once after a short delay instead of being dropped; if the server stops during the wait the row is lost as before, on a best-effort basis ([#16276](https://github.com/diegosouzapw/OmniRoute/pull/16276)) — thanks @maxmad64bis (with thanks to @W25X80 for surfacing the SQLite write failures in #16176)
