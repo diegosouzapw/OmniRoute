@@ -507,5 +507,5 @@
       }
     }
   },
-  "domainScope": "Declarative protection domains for existing indivisible job groups. Legacy when/disposition still decide admission; domains do not select or skip jobs yet. Core/workflow full-selection belongs to the future shadow policy."
+  "domainScope": "Protection domains consumed by the shadow selector and eight-group PR pilot. Legacy when/disposition and named admission checks remain authoritative. Shadow selection does not migrate admission; selected required groups outside the pilot remain explicitly incomplete."
 }

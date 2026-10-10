@@ -1,0 +1,1 @@
+- Add a reusable eight-group PR shadow pilot for main and release branches, with immutable candidate plans and private original PR/i18n detail artifacts and diagnostic receipts that preserve advisory failures and mark the remaining groups as unimplemented without changing admission checks (Refs #16075).
