@@ -1,0 +1,1 @@
+- **fix(sse):** Codex tool schemas no longer forward `pattern` values with Unicode property escapes (`\p{...}`), which the Codex backend rejected with HTTP 400 ([#16282](https://github.com/diegosouzapw/OmniRoute/pull/16282)) — thanks @minhtuancn
