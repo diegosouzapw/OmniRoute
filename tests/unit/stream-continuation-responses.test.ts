@@ -244,6 +244,62 @@ test("makeContinuationBody re-sends input unchanged on an empty prefill", () => 
   assert.equal(out.input.length, 1);
 });
 
+test("a Responses stream closed without the final blank line is never resumed", async () => {
+  const sse = textDelta("Hello there") + completed().replace(/\n$/, "");
+  let continuations = 0;
+  const stream = createRecoverableStream(completedStream(sse), async () => null, {
+    finalize: () => {},
+    now: jumpingClock(),
+    continueStream: async () => {
+      continuations += 1;
+      return null;
+    },
+  });
+  const out = await collectText(stream);
+  assert.ok(out.includes("Hello there"));
+  assert.equal(continuations, 0, "a served complete response must not be re-requested");
+});
+
+test("a chat stream closed without the final blank line is never resumed", async () => {
+  const sse = 'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n' + "data: [DONE]\n";
+  let continuations = 0;
+  const stream = createRecoverableStream(completedStream(sse), async () => null, {
+    finalize: () => {},
+    now: jumpingClock(),
+    continueStream: async () => {
+      continuations += 1;
+      return null;
+    },
+  });
+  const out = await collectText(stream);
+  assert.ok(out.includes("hi"));
+  assert.equal(continuations, 0, "a served complete response must not be re-requested");
+});
+
+test("a cut after a closed delta with a truncated tail resumes with the full prefill", async () => {
+  const truncatedTail = completed().slice(0, -8);
+  const initial = streamFrom([textDelta("Hello there world") + truncatedTail]);
+  let prefill = "";
+  let continuations = 0;
+  const stream = createRecoverableStream(initial, async () => null, {
+    finalize: () => {},
+    now: jumpingClock(),
+    continueStream: async (soFar: string) => {
+      continuations += 1;
+      prefill = soFar;
+      return completedStream(textDelta("there world, nice to meet you!") + completed());
+    },
+  });
+  const out = await collectText(stream);
+  assert.equal(prefill, "Hello there world");
+  assert.ok(continuations >= 1, "a truncated tail must still trigger a continuation");
+  const scan = scanOpenAiSseText(out);
+  assert.equal(scan.parsedResponses, true);
+  assert.ok(out.includes("response.output_text.delta"));
+  assert.ok(out.includes("nice to meet you!"));
+  assert.ok(out.includes("response.completed"));
+});
+
 // ── trap 1: a short complete Responses stream is never resumed ────────────────
 
 test("a short complete Responses stream is never resumed after serving", async () => {

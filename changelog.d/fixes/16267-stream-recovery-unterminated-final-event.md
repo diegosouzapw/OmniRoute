@@ -1,0 +1,1 @@
+- **fix(sse):** a finished text turn whose final event arrives without its closing blank line no longer triggers a wasted continuation re-request ([#16267](https://github.com/diegosouzapw/OmniRoute/pull/16267)) — thanks @maxmad64bis
