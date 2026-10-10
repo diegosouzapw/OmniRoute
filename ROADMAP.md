@@ -29,26 +29,26 @@ modular **4.0**.
 Non-breaking structural work that de-risks the modular split. Every version closes with a
 mandatory quality-gate battery before new merges open.
 
-| Version | Focus |
-| --- | --- |
-| 3.8.50 | CI safety net on release branches · dead-code cleanup · community-reported catalog/topology bug fixes · contributor "golden path" guide |
-| 3.8.51 | Executor registry (in-place) · end-to-end provider-journey contract test becomes a CI gate · official scoped-test dev loop · CI lane consolidation (shared install/setup across gate jobs, #8084) |
-| 3.8.52 | `combo.ts` decomposition · routing-strategy registry · unified model-catalog contract for `/v1/models` · one CI policy for PRs to `release/**` and `main` (#8084) |
-| 3.8.53 | `chatCore.ts` decomposition · headless mode (`OMNIROUTE_HEADLESS=1`) · local candidate build/promote loop |
-| 3.8.54 | Release infrastructure (dormant): channels, labels, PR templates, merge queue · full-regression authority moves to the merge queue once TIA shadow evidence clears (#8084) · public feature-freeze announcement |
+| Version | Focus                                                                                                                                                                                                           |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.8.50  | CI safety net on release branches · dead-code cleanup · community-reported catalog/topology bug fixes · contributor "golden path" guide                                                                         |
+| 3.8.51  | Executor registry (in-place) · end-to-end provider-journey contract test becomes a CI gate · official scoped-test dev loop · CI lane consolidation (shared install/setup across gate jobs, #8084)               |
+| 3.8.52  | `combo.ts` decomposition · routing-strategy registry · unified model-catalog contract for `/v1/models` · one CI policy for PRs to `release/**` and `main` (#8084)                                               |
+| 3.8.53  | `chatCore.ts` decomposition · headless mode (`OMNIROUTE_HEADLESS=1`) · local candidate build/promote loop                                                                                                       |
+| 3.8.54  | Release infrastructure (dormant): channels, labels, PR templates, merge queue · full-regression authority moves to the merge queue once TIA shadow evidence clears (#8084) · public feature-freeze announcement |
 
 ## Phase 2 — Validation (3.8.55 → 3.8.59)
 
 **External feature PRs pause here** (they get the `v4-feature` label and are re-targeted to
 the v4 channel when it opens). Fixes, docs, i18n, and provider updates keep flowing.
 
-| Version | Focus |
-| --- | --- |
-| 3.8.55 | Characterization tests for every extraction candidate · coupling re-measurement |
-| 3.8.56 | Extended canary · performance baselines (heap, TTFB, build) |
-| 3.8.57 | Security & compliance sweep · publish provenance (OIDC) rehearsal |
-| 3.8.58 | Full dry-run of the 3.9.0 cut (branches, channels, forward-port) — includes the PR preview-artifact + build-once promotion rehearsal (#8084) |
-| 3.8.59 | Final freeze · full-suite audit · GO/NO-GO |
+| Version | Focus                                                                                                                                        |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.8.55  | Characterization tests for every extraction candidate · coupling re-measurement                                                              |
+| 3.8.56  | Extended canary · performance baselines (heap, TTFB, build)                                                                                  |
+| 3.8.57  | Security & compliance sweep · publish provenance (OIDC) rehearsal                                                                            |
+| 3.8.58  | Full dry-run of the 3.9.0 cut (branches, channels, forward-port) — includes the PR preview-artifact + build-once promotion rehearsal (#8084) |
+| 3.8.59  | Final freeze · full-suite audit · GO/NO-GO                                                                                                   |
 
 ## Phase 3 — v3.9.0 LTS
 
@@ -63,6 +63,8 @@ branch model:
   contributor credit (`Co-authored-by`).
 
 New features land in the v4 channel. The LTS line is stability-first.
+
+See also: [LTS GO/NO-GO checklist](docs/ops/LTS_GO_NO_GO.md) and the [3.9.0 cut runbook](docs/ops/RELEASE_CHECKLIST.md#390-lts-cut-rehearsed-in-3858) (dry-run, fork rehearsal, PR preview artifact).
 
 ## Phase 4 — v4.0: the modular platform
 
@@ -86,11 +88,11 @@ The monolith is intentionally disassembled on `develop`:
 
 ## For contributors
 
-| You are sending... | Target today | From 3.8.55 | After 3.9.0 |
-| --- | --- | --- | --- |
-| Bug fix / security | active `release/v3.8.x` | same | `stable/v3` |
-| Provider update | active `release/v3.8.x` | same | `stable/v3` |
-| Docs / i18n | active `release/v3.8.x` | same | `stable/v3` |
-| New feature | active `release/v3.8.x` | held with `v4-feature` label | `develop` (v4) |
+| You are sending... | Target today            | From 3.8.55                  | After 3.9.0    |
+| ------------------ | ----------------------- | ---------------------------- | -------------- |
+| Bug fix / security | active `release/v3.8.x` | same                         | `stable/v3`    |
+| Provider update    | active `release/v3.8.x` | same                         | `stable/v3`    |
+| Docs / i18n        | active `release/v3.8.x` | same                         | `stable/v3`    |
+| New feature        | active `release/v3.8.x` | held with `v4-feature` label | `develop` (v4) |
 
 See `CONTRIBUTING.md` for the golden path per change type.
