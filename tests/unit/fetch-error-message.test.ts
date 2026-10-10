@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { readFetchErrorMessage } from "../../src/shared/utils/fetchError.ts";
+import { errorMessageFromBody, readFetchErrorMessage } from "../../src/shared/utils/fetchError.ts";
 
 const FALLBACK = "An error occurred";
 
@@ -115,6 +115,33 @@ test("surfaces the offending field for a resilience requestQueue rejection", asy
   );
   assert.equal(
     await readFetchErrorMessage(res, FALLBACK),
+    'requestQueue: Unrecognized key: "globalConcurrentRequests"'
+  );
+});
+
+// ResilienceTab parses the PATCH body once, then used to call
+// readFetchErrorMessage on the same Response. The helper's one-read contract
+// throws on a consumed body and returns the fallback, so the toast lost the
+// validation detail. The already-parsed object must go through errorMessageFromBody.
+test("consumed response falls back; parsed body still names the requestQueue field", async () => {
+  const res = jsonResponse(
+    {
+      error: {
+        message: "Invalid request",
+        details: [
+          {
+            field: "requestQueue",
+            message: 'Unrecognized key: "globalConcurrentRequests"',
+          },
+        ],
+      },
+    },
+    400
+  );
+  const json = await res.json();
+  assert.equal(await readFetchErrorMessage(res, FALLBACK), FALLBACK);
+  assert.equal(
+    errorMessageFromBody(json, FALLBACK),
     'requestQueue: Unrecognized key: "globalConcurrentRequests"'
   );
 });

@@ -8,7 +8,7 @@ import AutoDisableCard from "./AutoDisableCard";
 import ModelLockoutCard from "./ModelLockoutCard";
 import TokenRefreshBreakerCard, { type TokenRefreshBreakerValue } from "./TokenRefreshBreakerCard";
 import { NumberField, BooleanField } from "./ResilienceFields";
-import { readFetchErrorMessage } from "@/shared/utils/fetchError";
+import { errorMessageFromBody } from "@/shared/utils/fetchError";
 
 type RequestQueueSettings = {
   autoEnableApiKeyProviders: boolean;
@@ -1184,7 +1184,7 @@ export default function ResilienceTab() {
       const json = await response.json();
       if (!response.ok) {
         throw new Error(
-          await readFetchErrorMessage(response, tx("saveFailed", "Failed to save resilience settings"))
+          errorMessageFromBody(json, tx("saveFailed", "Failed to save resilience settings"))
         );
       }
       setData(toResilienceResponse(json));
