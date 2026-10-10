@@ -1,0 +1,1 @@
+- **docs:** one-click Deploy to NEXUS AI button in the README (badge vendored at `docs/assets/deploy-to-nexus-ai.svg`) and `docs/ops/NEXUS_AI_DEPLOYMENT_GUIDE.md` ([#14764](https://github.com/diegosouzapw/OmniRoute/pull/14764)) — thanks @saifelyzal
