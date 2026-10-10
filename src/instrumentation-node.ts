@@ -276,8 +276,11 @@ export async function registerQuotaFetchers(): Promise<void> {
   // Explicit call after the import resolves. A module-load side effect invokes
   // registerQuotaFetcher while webpack is still binding that async export and
   // throws "(0 , e.Zd) is not a function", caching an empty HTTP 500 on chat.
-  const { registerQuotaTrackersBatch } =
-    await import("@omniroute/open-sse/services/quotaTrackersBatch.ts");
+  // (Kept multiline: the batch-init test matches this call's shape.)
+  /* prettier-ignore */
+  const { registerQuotaTrackersBatch } = await import(
+    "@omniroute/open-sse/services/quotaTrackersBatch.ts"
+  );
   registerQuotaTrackersBatch();
 
   const [
@@ -515,6 +518,24 @@ export async function registerNodejs(): Promise<void> {
   // Rename the process title so OmniRoute is identifiable in ps/htop instead
   // of the generic "next-server" standalone server name.
   process.title = renameProcessTitle(process.title);
+
+  // Record event-loop stalls (silent multi-minute freezes otherwise leave no
+  // trace): a 1s monotonic timer logs one line at resume past the threshold
+  // with memory + in-flight counts, and the counter/maximum surface on the
+  // monitoring health payload. Threshold via
+  // OMNIROUTE_EVENT_LOOP_STALL_THRESHOLD_MS (default 5000, 0 disables).
+  // Same process as scripts/dev/standalone-server-ws.mjs (it imports
+  // ./server.js, which runs this instrumentation hook), so this covers that
+  // entry point without touching the .mjs. Dynamic import: no new static edge
+  // in the boot graph (requestDedup never imports healthzLag — 0d proof).
+  try {
+    const { startEventLoopStallRecorder } = await import("@/lib/healthzLag");
+    const { getInflightCount } = await import("@omniroute/open-sse/services/requestDedup.ts");
+    startEventLoopStallRecorder({ sampler: () => getInflightCount() });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[STARTUP] Event loop stall recorder failed to start (non-fatal):", msg);
+  }
 
   // #13695: the inference API and `/v1/models` follow DIFFERENT auth settings,
   // so `GET /v1/models` answering 401 does not mean inference is protected.
