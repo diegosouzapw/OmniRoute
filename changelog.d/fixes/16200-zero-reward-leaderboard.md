@@ -1,0 +1,1 @@
+- Fix gamification events with no positive XP reward creating zero-score leaderboard entries or refreshing existing score timestamps. Preserve positive awards, recognition-only Radar badges, and historical ranking rows.

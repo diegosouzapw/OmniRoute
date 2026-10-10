@@ -341,14 +341,14 @@ test("emitGamificationEvent: empty apiKeyId is a silent no-op", async () => {
   assert.equal((await leaderboard.getTopN("global")).length, before);
 });
 
-test("characterization: emitGamificationEvent(unknown action) currently writes a 0-score leaderboard row", async () => {
+test("emitGamificationEvent: unknown action leaves the leaderboard unchanged", async () => {
   await events.emitGamificationEvent({
     apiKeyId: "fx-unknown",
     action: "not-an-action" as "request",
   });
   assert.equal(gamificationDb.getXp("fx-unknown"), null);
   const row = (await leaderboard.getTopN("global")).find((r) => r.apiKeyId === "fx-unknown");
-  assert.equal(row?.score, 0);
+  assert.equal(row, undefined);
 });
 
 test("validateScoreChange: >1000 XP/min is rejected with a reason; small awards allowed", async () => {
