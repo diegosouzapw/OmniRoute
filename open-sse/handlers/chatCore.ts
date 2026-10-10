@@ -2093,14 +2093,25 @@ async function handleChatCoreInner({
   // filtering is advisory and may preserve an all-incompatible pool; this is the
   // hard boundary that prevents a too-large prompt (or a negative token budget)
   // from reaching an OpenAI-compatible upstream such as NVIDIA NIM.
+  // One breakdown per measured body snapshot: the raw tools reserve, the
+  // calibrated guard total, and the last-resort compaction log below all read
+  // the same numbers, so the full-body scan runs once instead of three times.
+  let finalInputBreakdown = estimateFinalInputTokenBreakdown(
+    body as Record<string, unknown> | null | undefined
+  );
   // #14931: scaled by the learned actual/estimated ratio (factor 1.0 cold).
-  let finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(body, provider, effectiveModel);
+  let finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(
+    body,
+    provider,
+    effectiveModel,
+    finalInputBreakdown
+  );
   // Reuse the already-resolved `contextLimit` (may have been narrowed to the
   // per-target combo window above, resolveComboContextLimit) instead of a bare
   // getTokenLimit(provider, effectiveModel) re-fetch, which would silently
   // discard that combo-aware override and re-widen the last-resort budget.
   const finalContextLimit = contextLimit;
-  const toolsReserve = Array.isArray(body?.tools) ? estimateTokens(body.tools) : 0;
+  const toolsReserve = finalInputBreakdown.tools;
 
   // Last-resort compaction against the concrete input budget (not the 70% threshold).
   // Covers cases where the proactive pass was skipped or still left the request oversized (#8560).
@@ -2124,9 +2135,14 @@ async function handleChatCoreInner({
             dropMissingMappedItems: true,
           })
         : lastResortResult.body;
-      finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(body, provider, effectiveModel);
-      const finalInputBreakdown = estimateFinalInputTokenBreakdown(
+      finalInputBreakdown = estimateFinalInputTokenBreakdown(
         body as Record<string, unknown>
+      );
+      finalEstimatedInputTokens = estimateCalibratedFinalInputTokens(
+        body,
+        provider,
+        effectiveModel,
+        finalInputBreakdown
       );
       log?.info?.(
         "CONTEXT",

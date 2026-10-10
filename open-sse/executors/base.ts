@@ -1402,15 +1402,19 @@ export class BaseExecutor {
         }
 
         stripInternalBodyFields(transformedBody);
-        let bodyString = JSON.stringify(transformedBody);
 
         const shouldFingerprint =
           isCliCompatEnabled(fingerprintProvider) ||
           (this.provider === "claude" && (isClaudeCodeClient || hasClaudeOAuthToken));
+        let bodyString: string;
         if (shouldFingerprint) {
+          // Serialize once: applyFingerprint produces the body string itself — an
+          // eager stringify here would be a full multi-MB allocation, read never.
           const fingerprinted = applyFingerprint(fingerprintProvider, headers, transformedBody);
           finalHeaders = fingerprinted.headers;
           bodyString = fingerprinted.bodyString;
+        } else {
+          bodyString = JSON.stringify(transformedBody);
         }
 
         // CCH signing — replaces the cch=00000 placeholder in the billing
