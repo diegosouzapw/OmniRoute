@@ -39,6 +39,7 @@ import {
 import { findDefaultReferral } from "@/lib/radar/referrals";
 import { type ConnectionRowConnection } from "./components/ConnectionRow";
 import { useProviderConnections } from "./hooks/useProviderConnections";
+import { useDevinAgenticAuthStatus } from "../hooks/useDevinAgenticAuthStatus";
 import { useProviderQuota } from "./hooks/useProviderQuota";
 import { useProviderSettings } from "./hooks/useProviderSettings";
 import { useProviderModels } from "./hooks/useProviderModels";
@@ -298,6 +299,9 @@ export default function ProviderDetailPageClient() {
   const supportsDualAuth = supportsDualAuthProvider(providerId);
   const isOAuth = providerSupportsOAuth && !providerSupportsPat;
   const providerAlias = getProviderAlias(providerId);
+  const devinAgenticAuthenticated = useDevinAgenticAuthStatus(providerId === "devin-cli-agentic");
+  const displayConnectionCount =
+    connections.length + (devinAgenticAuthenticated && connections.length === 0 ? 1 : 0);
   const isFreeNoAuth =
     NOAUTH_PROVIDERS[providerId]?.noAuth === true ||
     getProviderById(providerId)?.managedAccount === true;
@@ -568,7 +572,7 @@ export default function ProviderDetailPageClient() {
       <ProviderPageHeader
         providerId={providerId}
         providerInfo={{ ...providerInfo, website: providerHeaderWebsite }}
-        connectionsCount={connections.length}
+        connectionsCount={displayConnectionCount}
         isOpenAICompatible={isOpenAICompatible}
         isAnthropicProtocolCompatible={isAnthropicProtocolCompatible}
         onOpenTutorial={() => setShowTutorialModal(true)}

@@ -13,6 +13,7 @@ describe("ProviderCard — #6936 audio-transcriptions provider badge", () => {
   let container: HTMLDivElement | null = null;
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     if (container) {
       document.body.removeChild(container);
       container = null;
@@ -67,6 +68,34 @@ describe("ProviderCard — #6936 audio-transcriptions provider badge", () => {
     const text = (container.textContent || "").toLowerCase();
     expect(text).not.toContain("chat");
     expect(text).toContain("tts");
+  });
+
+  it("shows the authenticated Devin CLI volume as a connected provider account", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ status: "authenticated" }),
+      })
+    );
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <ProviderCard
+          providerId="devin-cli-agentic"
+          provider={{ id: "devin-cli-agentic", name: "Devin CLI Agentic", serviceKinds: ["llm"] }}
+          stats={{ total: 0, connected: 0, error: 0, warning: 0 }}
+          authType="no-auth"
+          onToggle={() => {}}
+        />
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(container.textContent).toContain("connected");
+    vi.unstubAllGlobals();
   });
 
   it("still labels a plain chat compatible node as Chat", () => {

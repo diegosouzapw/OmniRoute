@@ -49,6 +49,13 @@ Schema, rejects mixed narrative/actions, and permits one bounded repair. Claude 
 executes the resulting Anthropic `tool_use` locally and sends the `tool_result` back through
 OmniRoute.
 
+## Auto-routing
+
+The provider is eligible in OmniRoute's `auto/*` candidate pools when it is not blocked.
+Candidate eligibility does not guarantee selection: the combo's routing strategy (for example,
+last-known-good) may prefer another provider. Use `dva/<model>` or a Devin-first combo when
+you require every request to go through Devin.
+
 ## Isolation and threat model
 
 The host's Claude installation, account, and configuration are out of scope and treated as

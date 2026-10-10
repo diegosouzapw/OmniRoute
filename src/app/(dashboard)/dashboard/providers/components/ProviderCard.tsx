@@ -16,6 +16,7 @@ import {
   isOpenAICompatibleProvider,
 } from "@/shared/constants/providers";
 
+import { useDevinAgenticAuthStatus } from "../hooks/useDevinAgenticAuthStatus";
 import { CategoryDot } from "./CategoryDot";
 import { isCheaperInferenceProviderId, isKimiPartnerProviderId } from "../featuredProviders";
 import { useOpenRouterProviderStat } from "../context/openRouterProviderStatsContext";
@@ -202,13 +203,15 @@ function getStatusDisplay(
   errorCode: string | null | undefined,
   t: ReturnType<typeof useTranslations>,
   afterConnected?: ReactNode,
-  warningDetails?: WarningBadgeDetails
+  warningDetails?: WarningBadgeDetails,
+  runtimeConnected = false
 ) {
   const parts: ReactNode[] = [];
-  if (connected > 0) {
+  const displayedConnected = connected + (runtimeConnected && connected === 0 ? 1 : 0);
+  if (displayedConnected > 0) {
     parts.push(
       <Badge key="connected" variant="success" size="sm" dot>
-        {t("connected", { count: connected })}
+        {t("connected", { count: displayedConnected })}
       </Badge>
     );
     if (afterConnected) parts.push(afterConnected);
@@ -319,6 +322,7 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
     router.push(`/dashboard/providers/${providerId}`);
   }, [router, providerId]);
   const connected = Number(stats.connected || 0);
+  const devinAgenticAuthenticated = useDevinAgenticAuthStatus(providerId === "devin-cli-agentic");
   const error = Number(stats.error || 0);
   const allDisabled = Boolean(stats.allDisabled);
   const isCompatible = isOpenAICompatibleProvider(providerId);
@@ -617,7 +621,8 @@ const ProviderCard = forwardRef<ProviderCardHandle, ProviderCardProps>(function 
                             warningLastFailureRelative: stats.warningLastFailureRelative ?? null,
                             onActivate: handleWarningBadgeActivate,
                           }
-                        : undefined
+                        : undefined,
+                      devinAgenticAuthenticated
                     )}
                     {stats.expiryStatus === "expired" && (
                       <Badge variant="error" size="sm" dot>
