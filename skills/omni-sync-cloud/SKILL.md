@@ -21,7 +21,7 @@ Authenticate with cloud worker
 Authenticates with the OmniRoute cloud worker for remote access.
 
 ```bash
-curl -X POST https://localhost:20128/api/cloud/auth \
+curl -X POST http://localhost:20128/api/cloud/auth \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -32,7 +32,7 @@ curl -X POST https://localhost:20128/api/cloud/auth \
 Update cloud worker credentials
 
 ```bash
-curl -X PUT https://localhost:20128/api/cloud/credentials/update \
+curl -X PUT http://localhost:20128/api/cloud/credentials/update \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -45,7 +45,7 @@ Resolve model via cloud
 Resolves a model request through the cloud worker.
 
 ```bash
-curl -X POST https://localhost:20128/api/cloud/model/resolve \
+curl -X POST http://localhost:20128/api/cloud/model/resolve \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -56,7 +56,7 @@ curl -X POST https://localhost:20128/api/cloud/model/resolve \
 Get cloud model aliases
 
 ```bash
-curl https://localhost:20128/api/cloud/models/alias \
+curl http://localhost:20128/api/cloud/models/alias \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -65,7 +65,7 @@ curl https://localhost:20128/api/cloud/models/alias \
 Update cloud model alias
 
 ```bash
-curl -X PUT https://localhost:20128/api/cloud/models/alias \
+curl -X PUT http://localhost:20128/api/cloud/models/alias \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -76,7 +76,7 @@ curl -X PUT https://localhost:20128/api/cloud/models/alias \
 Sync with cloud
 
 ```bash
-curl -X POST https://localhost:20128/api/sync/cloud \
+curl -X POST http://localhost:20128/api/sync/cloud \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -87,7 +87,7 @@ curl -X POST https://localhost:20128/api/sync/cloud \
 Initialize cloud sync
 
 ```bash
-curl -X POST https://localhost:20128/api/sync/initialize \
+curl -X POST http://localhost:20128/api/sync/initialize \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -98,7 +98,7 @@ curl -X POST https://localhost:20128/api/sync/initialize \
 GET sync › bundle
 
 ```bash
-curl https://localhost:20128/api/sync/bundle \
+curl http://localhost:20128/api/sync/bundle \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -107,7 +107,7 @@ curl https://localhost:20128/api/sync/bundle \
 GET sync › tokens
 
 ```bash
-curl https://localhost:20128/api/sync/tokens \
+curl http://localhost:20128/api/sync/tokens \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -116,7 +116,7 @@ curl https://localhost:20128/api/sync/tokens \
 POST sync › tokens
 
 ```bash
-curl -X POST https://localhost:20128/api/sync/tokens \
+curl -X POST http://localhost:20128/api/sync/tokens \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -127,7 +127,7 @@ curl -X POST https://localhost:20128/api/sync/tokens \
 DELETE sync › tokens › <id>
 
 ```bash
-curl -X DELETE https://localhost:20128/api/sync/tokens/{id} \
+curl -X DELETE http://localhost:20128/api/sync/tokens/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 

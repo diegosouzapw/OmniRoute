@@ -19,7 +19,7 @@ Remote API requests use a Bearer credential. Dashboard login is different: `POST
 Authenticate user
 
 ```bash
-curl -X POST https://localhost:20128/api/auth/login \
+curl -X POST http://localhost:20128/api/auth/login \
   -H "Content-Type: application/json" \
   -c cookie.jar \
   -d '{"password":"<management-password>"}'
@@ -30,8 +30,8 @@ curl -X POST https://localhost:20128/api/auth/login \
 Log out
 
 ```bash
-CSRF_TOKEN=$(curl -s https://localhost:20128/api/auth/csrf -b cookie.jar | jq -r .token)
-curl -X POST https://localhost:20128/api/auth/logout \
+CSRF_TOKEN=$(curl -s http://localhost:20128/api/auth/csrf -b cookie.jar | jq -r .token)
+curl -X POST http://localhost:20128/api/auth/logout \
   -b cookie.jar \
   -H "x-omniroute-csrf: $CSRF_TOKEN" \
   -H "Content-Type: application/json" \
@@ -49,7 +49,7 @@ remains available as a fallback while OIDC is enabled.
 
 
 ```bash
-curl https://localhost:20128/api/auth/oidc/login \
+curl http://localhost:20128/api/auth/oidc/login \
   -b cookie.jar
 ```
 
@@ -58,14 +58,14 @@ curl https://localhost:20128/api/auth/oidc/login \
 Complete OIDC login for the dashboard admin gate
 
 Validates the `state` cookie, exchanges the authorization `code` for tokens,
-verifies the ID token against the issuer's JWKS (audience = client id), and —
-if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
-that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+verifies the ID token against the issuer's JWKS (audience = client id), and
+checks the token's `sub`/`email` against `oidcAllowedSubjects`, which must hold at
+least one entry (an empty list ends in `not_configured`). On success it mints the same 30-day `auth_token` dashboard-session
 JWT used by password login and redirects to `/dashboard`.
 
 
 ```bash
-curl https://localhost:20128/api/auth/oidc/callback \
+curl http://localhost:20128/api/auth/oidc/callback \
   -b cookie.jar
 ```
 
@@ -74,7 +74,7 @@ curl https://localhost:20128/api/auth/oidc/callback \
 GET auth › csrf
 
 ```bash
-curl https://localhost:20128/api/auth/csrf \
+curl http://localhost:20128/api/auth/csrf \
   -b cookie.jar
 ```
 
@@ -83,7 +83,7 @@ curl https://localhost:20128/api/auth/csrf \
 GET auth › status
 
 ```bash
-curl https://localhost:20128/api/auth/status \
+curl http://localhost:20128/api/auth/status \
   -b cookie.jar
 ```
 
