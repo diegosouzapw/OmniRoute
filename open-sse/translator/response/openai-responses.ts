@@ -5,6 +5,7 @@
 import { register } from "../registry.ts";
 import { FORMATS } from "../formats.ts";
 import { appendToolCallArgumentDelta } from "../../utils/toolCallArguments.ts";
+import { translatorToolCallLifecycle } from "./openai-responses/toolCallLifecycle.ts";
 import { projectCompletedStreamError } from "../../utils/streamErrorFormat.ts";
 import { fallbackToolCallId } from "../helpers/toolCallHelper.ts";
 import { finalizeResponsesTerminalStatus } from "../helpers/responsesTerminalStatus.ts";
@@ -26,8 +27,7 @@ import {
 } from "./openai-responses/pureHelpers.ts";
 import { createEventEmitter } from "./openai-responses/eventEmitter.ts";
 import { buildResponsesToolCallItem } from "./responsesToolItem.ts";
-import { resolveRequestToolIdentity } from "./openai-responses/requestToolIdentity.ts";
-import { applyFunctionCallIdentity } from "./openai-responses/functionCallIdentity.ts";
+import { plaintextCollaborationFields } from "./openai-responses/collaborationPlaintextMarker.ts";
 import { resolveLocalToolCallIndex } from "./openai-responses/toolCallLocalIndex.ts";
 import {
   synthesizeCompletedToolItem,
@@ -594,8 +594,40 @@ function toolCallOutputIndexBase(state) {
   return state.msgItemAdded[msgIdx] ? msgIdx + 1 : msgIdx;
 }
 
+function emitToolCallAdded(state, emit, idx, outputIndex, terminal = false) {
+  if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return;
+  const selection = translatorToolCallLifecycle(state).select(
+    idx,
+    state.funcNames[idx] || "",
+    terminal
+  );
+  if (!selection) return;
+  const callId = state.funcCallIds[idx];
+  emit("response.output_item.added", {
+    type: "response.output_item.added",
+    output_index: outputIndex,
+    item: buildResponsesToolCallItem({
+      callId,
+      toolName: selection.name,
+      custom: selection.custom,
+      namespace: selection.namespace,
+    }),
+  });
+  state.funcItemAdded[idx] = true;
+  const bufferedArgs = state.funcArgsBuf[idx] || "";
+  if (bufferedArgs && !selection.custom) {
+    emit("response.function_call_arguments.delta", {
+      type: "response.function_call_arguments.delta",
+      item_id: `fc_${callId}`,
+      output_index: outputIndex,
+      delta: bufferedArgs,
+    });
+  }
+}
+
 function emitToolCall(state, emit, tc) {
   const tcIdx = tc.index ?? 0;
+  const lifecycle = translatorToolCallLifecycle(state);
   const outputIndex = toolCallOutputIndexBase(state) + resolveLocalToolCallIndex(state, tcIdx);
   // Record every allocated tool-call output_index so a post-close text
   // relocation (nextFreeMessageIndex) can never collide with it.
@@ -617,60 +649,14 @@ function emitToolCall(state, emit, tc) {
     delete state.funcItemAdded[tcIdx];
     delete state.funcItemDone[tcIdx];
     delete state.funcArgsEscapeState?.[tcIdx];
+    lifecycle.reset(tcIdx);
   }
 
-  if (funcName) state.funcNames[tcIdx] = funcName;
-
-  // Custom tools are surfaced as custom_tool_call items and stream raw input instead of the
-  // function_call_arguments.* events used for regular function tools. (#1007)
-  //
-  // apply_patch defaults to custom (native Codex CLI convention: the model emits it
-  // without the client ever declaring it as a tool) UNLESS the client's own request
-  // explicitly declared it with a `parameters` JSON schema — i.e. as a plain
-  // `type:"function"` tool (state.toolSchemas, populated from body.tools by
-  // extractToolSchemaMap()). Live incident: a client that registers apply_patch as a
-  // function tool and only implements function_call dispatch never recognized the
-  // custom_tool_call item this produced, so the tool call was silently never executed
-  // and no follow-up request ever carried a result back. PR #7905 already intended this
-  // precedence ("...while preserving explicit function-tool precedence") but its
-  // unconditional `toolName === "apply_patch"` OR never actually implemented the carve-out.
-  const toolName = state.funcNames[tcIdx] || funcName || "";
-  const lowerName = toolName.toLowerCase();
-  const isCustomTool =
-    ((lowerName === "apply_patch" || lowerName === "applypatch") &&
-      !state.toolSchemas?.has?.(toolName)) ||
-    state.customToolNames?.has?.(toolName) === true;
-
+  if (funcName)
+    state.funcNames[tcIdx] = lifecycle.appendName(tcIdx, state.funcNames[tcIdx], funcName);
   if (!state.funcCallIds[tcIdx] && newCallId) state.funcCallIds[tcIdx] = newCallId;
-  const callId = state.funcCallIds[tcIdx];
-
-  if (callId && toolName && !state.funcItemAdded[tcIdx]) {
-    // #7936 — restore the codex-side `{namespace, name}` pair when the bare
-    // leaf on the Chat wire was flattened from a Responses namespace sub-tool.
-    // Codex dispatches from `namespace` independently of `name` (no `__` split).
-    const identity = resolveRequestToolIdentity(state.requestToolIdentityMap, toolName);
-    emit("response.output_item.added", {
-      type: "response.output_item.added",
-      output_index: outputIndex,
-      item: buildResponsesToolCallItem({
-        callId,
-        toolName: identity ? identity.name : toolName,
-        custom: isCustomTool,
-        namespace: identity ? identity.namespace : null,
-      }),
-    });
-    state.funcItemAdded[tcIdx] = true;
-
-    const bufferedArgs = state.funcArgsBuf[tcIdx] || "";
-    if (bufferedArgs && !isCustomTool) {
-      emit("response.function_call_arguments.delta", {
-        type: "response.function_call_arguments.delta",
-        item_id: `fc_${callId}`,
-        output_index: outputIndex,
-        delta: bufferedArgs,
-      });
-    }
-  }
+  emitToolCallAdded(state, emit, tcIdx, outputIndex);
+  const isCustomTool = lifecycle.get(tcIdx)?.custom === true;
 
   if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";
 
@@ -705,14 +691,9 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
   if (callId && !state.funcItemDone[idx]) {
     const normalizedIndex = toolCallOutputIndexBase(state) + resolveLocalToolCallIndex(state, idx);
     const args = state.funcArgsBuf[idx] || "{}";
-    const toolName = state.funcNames[idx] || "";
-    // See emitToolCall()'s isCustomTool comment — must stay in sync (both compute the
-    // same classification independently for their respective add/close call sites).
-    const lowerName = toolName.toLowerCase();
-    const isCustomTool =
-      ((lowerName === "apply_patch" || lowerName === "applypatch") &&
-        !state.toolSchemas?.has?.(toolName)) ||
-      state.customToolNames?.has?.(toolName) === true;
+    emitToolCallAdded(state, emit, idx, normalizedIndex, true);
+    const selection = translatorToolCallLifecycle(state).get(idx)!;
+    const isCustomTool = selection.custom;
 
     let funcItem;
     if (isCustomTool) {
@@ -745,20 +726,10 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         type: "custom_tool_call",
         input: rawInput,
         call_id: callId,
-        name: state.funcNames[idx] || "",
+        name: selection.name,
+        ...(selection.namespace ? { namespace: selection.namespace } : {}),
         status: "completed",
       };
-
-      // #7936 identity closure for custom_tool_call items (apply_patch stays
-      // bare; namespace sub-tools get back their `namespace` + `name`).
-      const customIdentity = resolveRequestToolIdentity(
-        state.requestToolIdentityMap,
-        state.funcNames[idx] || ""
-      );
-      if (customIdentity) {
-        funcItem.namespace = customIdentity.namespace;
-        funcItem.name = customIdentity.name;
-      }
 
       emit("response.output_item.done", {
         type: "response.output_item.done",
@@ -778,12 +749,12 @@ function closeToolCall(state, emit, idx, recordAsCompleted = true) {
         type: "function_call",
         arguments: args,
         call_id: callId,
-        name: state.funcNames[idx] || "",
+        name: selection.name,
+        ...(selection.namespace ? { namespace: selection.namespace } : {}),
         status: "completed",
       };
 
-      // #7936/#14154 identity closure + collaboration plaintext marker.
-      applyFunctionCallIdentity(funcItem, state.requestToolIdentityMap, state.funcNames[idx] || "");
+      Object.assign(funcItem, plaintextCollaborationFields(funcItem.namespace, funcItem.name));
 
       emit("response.output_item.done", {
         type: "response.output_item.done",

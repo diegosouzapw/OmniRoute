@@ -60,6 +60,7 @@ import { createStreamFailureAborter } from "./streamFailureBoundary.ts";
 import { createReasoningStreamObserver } from "./responsesReasoningObservation.ts";
 import { recordToolLatency } from "../services/toolLatencyTracker.ts";
 import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
+import { appendToolCallNameDelta } from "./toolCallName.ts";
 import {
   generateSessionId,
   markToolFinish,
@@ -2132,8 +2133,14 @@ export function createSSEStream(options: StreamOptions = {}) {
                         });
                       } else {
                         if (tc?.id) existing.id = existing.id || String(tc.id);
-                        if (tc?.function?.name && !existing.function.name)
-                          existing.function.name = tc.function.name;
+                        // Accumulate name deltas — a split declared name
+                        // (`functions__` + `exec`) must not be truncated to one
+                        // fragment (arguments already append below).
+                        if (tc?.function?.name)
+                          existing.function.name = appendToolCallNameDelta(
+                            existing.function.name,
+                            tc.function.name
+                          );
                         existing.function.arguments += deltaArgs;
                       }
                     }

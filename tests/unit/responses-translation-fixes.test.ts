@@ -412,11 +412,17 @@ test("Responses->Chat: string tool_choice passes through when tools present, str
     tools: [{ type: "function", name: "f", parameters: {} }],
     tool_choice: "auto",
   };
-  const resWith = openaiResponsesToOpenAIRequest(null, withTools, null, null) as Record<string, unknown>;
+  const resWith = openaiResponsesToOpenAIRequest(null, withTools, null, null) as Record<
+    string,
+    unknown
+  >;
   assert.equal(resWith.tool_choice, "auto");
 
   const noTools = { model: "gpt-4", input: "hello", tool_choice: "auto" };
-  const resWithout = openaiResponsesToOpenAIRequest(null, noTools, null, null) as Record<string, unknown>;
+  const resWithout = openaiResponsesToOpenAIRequest(null, noTools, null, null) as Record<
+    string,
+    unknown
+  >;
   assert.equal(resWithout.tool_choice, undefined);
 });
 
@@ -828,6 +834,10 @@ test("Responses→Chat streaming: flush finalizes stop when no tool call was emi
 
 test("Chat→Responses streaming: reasoning and a following tool call use distinct output indexes", () => {
   const state = initState(FORMATS.OPENAI_RESPONSES);
+  // A declared tool is ready before the terminal marker; unknown names stay buffered.
+  state.toolSchemas = new Map([
+    ["lookup", { type: "object", properties: { query: { type: "string" } } }],
+  ]);
 
   const reasoningEvents = openaiToOpenAIResponsesResponse(
     {

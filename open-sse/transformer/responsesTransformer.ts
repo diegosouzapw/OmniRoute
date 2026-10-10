@@ -1,4 +1,5 @@
 import { appendToolCallArgumentDelta } from "../utils/toolCallArguments.ts";
+import { ToolCallLifecycle } from "../translator/response/openai-responses/toolCallLifecycle.ts";
 import { shouldParseTextualReasoningTags } from "../handlers/responseSanitizer.ts";
 import { getReadableReasoningValue } from "../utils/reasoningFields.ts";
 import {
@@ -7,7 +8,6 @@ import {
 } from "../utils/reasoningPlaceholder.ts";
 import * as fs from "fs";
 import * as path from "path";
-import { resolveRequestToolIdentity } from "../translator/response/openai-responses/requestToolIdentity.ts";
 import { plaintextCollaborationFields } from "../translator/response/openai-responses/collaborationPlaintextMarker.ts";
 import { finalizeResponsesTerminalStatus } from "../translator/helpers/responsesTerminalStatus.ts";
 
@@ -213,16 +213,11 @@ export function createResponsesApiTransformStream(
   keepaliveIntervalMs = 3000,
   options: {
     customToolNames?: Iterable<string>;
+    toolSchemas?: ReadonlyMap<string, unknown> | null;
     requestToolIdentityMap?: ReadonlyMap<string, unknown> | null;
   } = {}
 ) {
-  const customToolNames = new Set(options.customToolNames || []);
-  // #14154 — #7936-style {namespace, name} identity restoration was missing
-  // entirely on this emitter (unlike the streaming translator / non-streaming
-  // client translator). Carried through so function_call/custom_tool_call
-  // items round-trip their namespace, and so the collaboration plaintext
-  // marker below can be gated on the restored namespace.
-  const requestToolIdentityMap = options.requestToolIdentityMap ?? null;
+  const lifecycle = new ToolCallLifecycle(options);
   const state = {
     seq: 0,
     responseId: `resp_${Date.now()}`,
@@ -243,7 +238,6 @@ export function createResponsesApiTransformStream(
     funcNames: {},
     funcCallIds: {},
     funcItemAdded: {},
-    funcItemTypes: {},
     funcArgsDone: {},
     funcItemDone: {},
     // Cached at first computation (see toolCallOutputIndexBase) so every
@@ -471,30 +465,32 @@ export function createResponsesApiTransformStream(
     return state.funcOutputIndex[tcIdx];
   };
 
-  const emitToolCallAdded = (controller, idx) => {
-    if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return false;
-
-    const customTool = customToolNames.has(state.funcNames[idx] || "");
-    const itemType = customTool ? "custom_tool_call" : "function_call";
-    state.funcItemTypes[idx] = itemType;
+  const emitToolCallAdded = (controller, idx, terminal = false) => {
+    if (state.funcItemAdded[idx] || !state.funcCallIds[idx]) return;
+    const selection = lifecycle.select(idx, state.funcNames[idx] || "", terminal);
+    if (!selection) return;
     state.funcItemAdded[idx] = true;
-    const name = state.funcNames[idx] || "";
-    const identity = resolveRequestToolIdentity(requestToolIdentityMap, name);
-
     emit(controller, "response.output_item.added", {
       type: "response.output_item.added",
       output_index: state.funcOutputIndex[idx],
       item: {
         id: `fc_${state.funcCallIds[idx]}`,
-        type: itemType,
-        ...(customTool ? { input: "" } : { arguments: "" }),
+        type: selection.custom ? "custom_tool_call" : "function_call",
+        ...(selection.custom ? { input: "" } : { arguments: "" }),
         call_id: state.funcCallIds[idx],
-        name: identity?.name ?? name,
-        ...(identity ? { namespace: identity.namespace } : {}),
+        name: selection.name,
+        ...(selection.namespace ? { namespace: selection.namespace } : {}),
         status: "in_progress",
       },
     });
-    return true;
+    if (state.funcArgsBuf[idx] && !selection.custom) {
+      emit(controller, "response.function_call_arguments.delta", {
+        type: "response.function_call_arguments.delta",
+        item_id: `fc_${state.funcCallIds[idx]}`,
+        output_index: state.funcOutputIndex[idx],
+        delta: state.funcArgsBuf[idx],
+      });
+    }
   };
 
   const closeToolCall = (controller, idx, recordAsCompleted = true) => {
@@ -502,9 +498,9 @@ export function createResponsesApiTransformStream(
     if (callId && !state.funcItemDone[idx]) {
       const normalizedIndex = state.funcOutputIndex[idx];
       let args = state.funcArgsBuf[idx] || "{}";
-      const toolName = state.funcNames[idx] || "";
-      emitToolCallAdded(controller, idx);
-      const isCustomTool = state.funcItemTypes[idx] === "custom_tool_call";
+      emitToolCallAdded(controller, idx, true);
+      const selection = lifecycle.get(idx)!;
+      const isCustomTool = selection.custom;
 
       // Fix #1674 & #1852: Final cleanup of empty string and empty array placeholders.
       // Custom-tool input is intentionally allowed to be an empty string.
@@ -556,7 +552,8 @@ export function createResponsesApiTransformStream(
           type: "custom_tool_call",
           input: rawInput,
           call_id: callId,
-          name: toolName,
+          name: selection.name,
+          ...(selection.namespace ? { namespace: selection.namespace } : {}),
           status: "completed",
         };
       } else {
@@ -571,20 +568,13 @@ export function createResponsesApiTransformStream(
           type: "function_call",
           arguments: args,
           call_id: callId,
-          name: toolName,
+          name: selection.name,
+          ...(selection.namespace ? { namespace: selection.namespace } : {}),
           status: "completed",
         };
       }
 
-      // #14154 — restore the request-declared {namespace, name} identity (matching
-      // the streaming translator / non-streaming client translator, #7936) and, when
-      // the restored identity is a Codex collaboration call, stamp the
-      // encrypted_function_args:[] plaintext-delivery marker Codex requires.
-      const identity = resolveRequestToolIdentity(requestToolIdentityMap, toolName);
-      if (identity) {
-        funcItem.namespace = identity.namespace;
-        funcItem.name = identity.name;
-      }
+      // Preserve the published identity when adding the collaboration plaintext marker.
       Object.assign(funcItem, plaintextCollaborationFields(funcItem.namespace, funcItem.name));
 
       emit(controller, "response.output_item.done", {
@@ -899,7 +889,7 @@ export function createResponsesApiTransformStream(
                 delete state.funcNames[tcIdx];
                 delete state.funcArgsBuf[tcIdx];
                 delete state.funcItemAdded[tcIdx];
-                delete state.funcItemTypes[tcIdx];
+                lifecycle.reset(tcIdx);
                 delete state.funcArgsDone[tcIdx];
                 delete state.funcItemDone[tcIdx];
                 // Deliberately keep funcOutputIndex[tcIdx]: the replacement call
@@ -908,30 +898,15 @@ export function createResponsesApiTransformStream(
                 // msgItemAdded state shifted mid-turn).
               }
 
-              if (funcName) state.funcNames[tcIdx] = funcName;
-
-              if (!state.funcCallIds[tcIdx] && newCallId) {
-                state.funcCallIds[tcIdx] = newCallId;
+              if (funcName) {
+                state.funcNames[tcIdx] = lifecycle.appendName(
+                  tcIdx,
+                  state.funcNames[tcIdx],
+                  funcName
+                );
               }
-
-              // The provider may send the call id before the function name. Defer the
-              // lifecycle item until the name is available so custom calls are not first
-              // announced as function calls.
-              if (state.funcCallIds[tcIdx] && state.funcNames[tcIdx]) {
-                const itemAdded = emitToolCallAdded(controller, tcIdx);
-                if (
-                  itemAdded &&
-                  state.funcItemTypes[tcIdx] !== "custom_tool_call" &&
-                  state.funcArgsBuf[tcIdx]
-                ) {
-                  emit(controller, "response.function_call_arguments.delta", {
-                    type: "response.function_call_arguments.delta",
-                    item_id: `fc_${state.funcCallIds[tcIdx]}`,
-                    output_index: outputIndex,
-                    delta: state.funcArgsBuf[tcIdx],
-                  });
-                }
-              }
+              if (!state.funcCallIds[tcIdx] && newCallId) state.funcCallIds[tcIdx] = newCallId;
+              emitToolCallAdded(controller, tcIdx);
 
               if (!state.funcArgsBuf[tcIdx]) state.funcArgsBuf[tcIdx] = "";
 
@@ -961,7 +936,7 @@ export function createResponsesApiTransformStream(
                   refCallId &&
                   emittedDelta &&
                   state.funcItemAdded[tcIdx] &&
-                  state.funcItemTypes[tcIdx] !== "custom_tool_call"
+                  lifecycle.get(tcIdx)?.custom !== true
                 ) {
                   emit(controller, "response.function_call_arguments.delta", {
                     type: "response.function_call_arguments.delta",

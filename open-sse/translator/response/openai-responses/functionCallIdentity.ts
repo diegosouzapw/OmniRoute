@@ -21,9 +21,10 @@ interface FunctionCallItemLike {
 export function applyFunctionCallIdentity<T extends FunctionCallItemLike>(
   funcItem: T,
   identityMap: unknown,
-  toolName: string
+  toolName: string,
+  options: { explicitNames?: Iterable<string> | null } = {}
 ): T {
-  const identity = resolveRequestToolIdentity(identityMap, toolName);
+  const identity = resolveRequestToolIdentity(identityMap, toolName, options);
   if (identity) {
     funcItem.namespace = identity.namespace;
     funcItem.name = identity.name;
