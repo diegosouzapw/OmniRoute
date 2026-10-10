@@ -1,5 +1,5 @@
 import type { WebhookEvent } from "../eventDescriptions";
-import { EVENT_DESCRIPTIONS } from "../eventDescriptions";
+import { resolveEventDescription } from "../resolveEventDescription";
 
 export interface DiscordEmbed {
   title: string;
@@ -24,7 +24,7 @@ export function buildDiscordPayload(
   event: WebhookEvent,
   data: Record<string, unknown>
 ): DiscordPayload {
-  const desc = EVENT_DESCRIPTIONS[event];
+  const desc = resolveEventDescription(event);
   const model = typeof data.model === "string" ? data.model : null;
   const error = typeof data.error === "string" ? data.error : null;
 
@@ -38,7 +38,7 @@ export function buildDiscordPayload(
       {
         title: `${desc.emoji} ${desc.label}`,
         description: lines.join("\n"),
-        color: EVENT_COLORS[event] ?? 0x6366f1,
+        color: (Object.hasOwn(EVENT_COLORS, event) ? EVENT_COLORS[event] : undefined) ?? 0x6366f1,
         footer: { text: `OmniRoute · ${new Date().toISOString()}` },
       },
     ],
