@@ -42,6 +42,48 @@ type ActiveRequest = {
   count: number;
 };
 
+type PendingSnapshot = {
+  byModel: Record<string, number>;
+  byAccount: Record<string, Record<string, number>>;
+};
+
+export function buildActiveRequests(
+  pendingByAccount: PendingSnapshot["byAccount"],
+  connectionMap: Record<string, string>,
+  resolveDisplayName: (connectionId: string) => string
+): ActiveRequest[] {
+  const activeRequests: ActiveRequest[] = [];
+  for (const [connectionId, models] of Object.entries(pendingByAccount)) {
+    for (const [modelKey, count] of Object.entries(models)) {
+      if (count > 0) {
+        const accountName = connectionMap[connectionId] || resolveDisplayName(connectionId);
+        const match = modelKey.match(/^(.*) \((.*)\)$/);
+        activeRequests.push({
+          model: match ? match[1] : modelKey,
+          provider: match ? match[2] : "unknown",
+          account: accountName,
+          count,
+        });
+      }
+    }
+  }
+  return activeRequests;
+}
+
+function buildConnectionDisplayMap(
+  connections: Array<Record<string, unknown>>
+): Record<string, string> {
+  const connectionMap: Record<string, string> = {};
+  for (const connRaw of connections) {
+    const conn = asRecord(connRaw);
+    const connectionId = toStringOrEmpty(conn.id);
+    if (!connectionId) continue;
+    connectionMap[connectionId] =
+      toStringOrEmpty(conn.name) || toStringOrEmpty(conn.email) || connectionId;
+  }
+  return connectionMap;
+}
+
 function asRecord(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
 }
@@ -296,14 +338,7 @@ export async function getUsageStats() {
     allConnections = Array.isArray(loadedConnections) ? loadedConnections : [];
   } catch {}
 
-  const connectionMap: Record<string, string> = {};
-  for (const connRaw of allConnections) {
-    const conn = asRecord(connRaw);
-    const connectionId = toStringOrEmpty(conn.id);
-    if (!connectionId) continue;
-    connectionMap[connectionId] =
-      toStringOrEmpty(conn.name) || toStringOrEmpty(conn.email) || connectionId;
-  }
+  const connectionMap = buildConnectionDisplayMap(allConnections as Array<Record<string, unknown>>);
 
   const currentApiKeyNames = new Map<string, string>();
   try {
@@ -350,21 +385,9 @@ export async function getUsageStats() {
   };
 
   // Build active requests
-  for (const [connectionId, models] of Object.entries(pendingRequests.byAccount)) {
-    for (const [modelKey, count] of Object.entries(models)) {
-      if (count > 0) {
-        const accountName =
-          connectionMap[connectionId] || getAccountDisplayName({ id: connectionId });
-        const match = modelKey.match(/^(.*) \((.*)\)$/);
-        stats.activeRequests.push({
-          model: match ? match[1] : modelKey,
-          provider: match ? match[2] : "unknown",
-          account: accountName,
-          count,
-        });
-      }
-    }
-  }
+  stats.activeRequests = buildActiveRequests(pendingRequests.byAccount, connectionMap, (id) =>
+    getAccountDisplayName({ id })
+  );
 
   // 10-minute buckets
   const now = new Date();
