@@ -2088,6 +2088,50 @@ paths:
                     items:
                       $ref: "#/components/schemas/Model"
 
+  /api/v1/models/health:
+    get:
+      tags: [Models]
+      summary: Per-model pause state for the caller's key
+      description: >-
+        Read-only liveness view over the in-memory model lockout store. `ok`
+        means no pause observed by this instance (not a health verdict);
+        connection-level pauses live outside the store read here. Additive:
+        leaves GET /v1/models and its cache untouched. `retry_after` carries
+        the shortest remaining lockout in seconds, rounded up, only when
+        `state` is `cooling`. One documented difference from the dispatch 429
+        `model_cooldown` rule: a model with one lockout-covered connection and
+        one connection-level cooldown still reads `cooling` here, while the
+        429 requires every connection to carry a model cooldown.
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: ids
+          required: false
+          description: >-
+            Optional comma-separated model ids to look up. Ids in this
+            list that resolve to no visible model are returned with
+            `state: unknown` instead of being omitted.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Model health list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  object:
+                    type: string
+                    example: list
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ModelHealth"
+        "401":
+          description: Authentication required
+
   /api/v1/providers/{provider}/models:
     get:
       tags: [Models]
@@ -15463,6 +15507,25 @@ components:
           default: false
         system:
           type: string
+
+    ModelHealth:
+      type: object
+      description: >-
+        Per-model pause state. `ok` means no pause observed by this instance;
+        `unknown` marks ids that resolve to no routable provider model.
+      properties:
+        id:
+          type: string
+        state:
+          type: string
+          enum: [ok, cooling, unknown]
+        retry_after:
+          type: integer
+          description: Shortest remaining lockout in seconds, rounded up; only when cooling.
+          nullable: true
+        observed_at:
+          type: string
+          format: date-time
 
     Model:
       type: object
