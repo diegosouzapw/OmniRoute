@@ -14,7 +14,7 @@ const AGENTS: Record<string, CloudAgentBase> = {
 };
 
 export function getAgent(providerId: string): CloudAgentBase | null {
-  return AGENTS[providerId] || null;
+  return Object.hasOwn(AGENTS, providerId) ? AGENTS[providerId] : null;
 }
 
 export function getAvailableAgents(): string[] {
@@ -22,7 +22,7 @@ export function getAvailableAgents(): string[] {
 }
 
 export function isCloudAgentProvider(providerId: string): boolean {
-  return providerId in AGENTS;
+  return Object.hasOwn(AGENTS, providerId);
 }
 
 export { JulesAgent, DevinAgent, CodexCloudAgent, CursorCloudAgent };
