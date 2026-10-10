@@ -13,6 +13,7 @@
  * existing readiness/error path still runs unchanged). Behaviour is byte-identical to the previous
  * inline block.
  */
+import { inheritEmptyTurnPolicy } from "../../utils/emptyTurnPolicy.ts";
 import { withBodyTimeout as defaultWithBodyTimeout } from "../../utils/stream.ts";
 import { synthesizeOpenAiSseFromJson as defaultSynthesize } from "../../utils/jsonToSse.ts";
 import { prependBufferedChunks } from "../../utils/streamReadiness.ts";
@@ -117,7 +118,7 @@ export async function maybeConvertJsonBodyToSse(
   }
 
   const { sseResponse, jsonBody } = await sniffJsonBodyForSse(providerResponse, ctx, deps);
-  if (sseResponse) return sseResponse;
+  if (sseResponse) return inheritEmptyTurnPolicy(providerResponse, sseResponse);
 
   const jsonText = await deps.withBodyTimeout<string>(jsonBody.text());
   const synthesizedSse = deps.synthesizeOpenAiSseFromJson(jsonText);
@@ -129,17 +130,23 @@ export async function maybeConvertJsonBodyToSse(
       `Upstream returned application/json on a streaming request — converting to SSE (${ctx.provider}/${ctx.model})`
     );
     rebuiltHeaders.set("content-type", "text/event-stream");
-    return new Response(synthesizedSse, {
-      status: providerResponse.status,
-      statusText: providerResponse.statusText,
-      headers: rebuiltHeaders,
-    });
+    return inheritEmptyTurnPolicy(
+      providerResponse,
+      new Response(synthesizedSse, {
+        status: providerResponse.status,
+        statusText: providerResponse.statusText,
+        headers: rebuiltHeaders,
+      })
+    );
   }
   // Not a convertible chat-completion JSON — rebuild the consumed body so the existing
   // readiness/error path still runs unchanged.
-  return new Response(jsonText, {
-    status: providerResponse.status,
-    statusText: providerResponse.statusText,
-    headers: rebuiltHeaders,
-  });
+  return inheritEmptyTurnPolicy(
+    providerResponse,
+    new Response(jsonText, {
+      status: providerResponse.status,
+      statusText: providerResponse.statusText,
+      headers: rebuiltHeaders,
+    })
+  );
 }

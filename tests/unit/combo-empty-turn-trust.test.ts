@@ -1,96 +1,106 @@
-/**
- * #15586 — the combo empty-turn exemption is granted only when the connection that
- * actually served the response is a first-party Anthropic one. Provider IDs alone are
- * not enough: an `anthropic` connection may point at a custom/third-party base URL.
- */
+/** The combo uses internal execution identity, never provider/client headers. */
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import { isTrustedEmptyTurn } from "../../open-sse/services/combo/emptyTurnTrust.ts";
+import {
+  markEmptyTurnExecution,
+  inheritEmptyTurnPolicy,
+} from "../../open-sse/utils/emptyTurnPolicy.ts";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-empty-turn-trust-"));
-const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
-process.env.DATA_DIR = TEST_DATA_DIR;
-
-const { isTrustedEmptyTurn } = await import("../../open-sse/services/combo/emptyTurnTrust.ts");
-const core = await import("../../src/lib/db/core.ts");
-const providersDb = await import("../../src/lib/db/providers.ts");
-
-test.after(() => {
-  core.resetDbInstance();
-  fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
-  process.env.DATA_DIR = ORIGINAL_DATA_DIR;
-});
-
-function responseFrom(connectionId?: string): Response {
-  const headers = new Headers({ "content-type": "text/event-stream" });
-  if (connectionId) headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
-  return new Response("", { status: 200, headers });
+const credentials = { connectionId: "selected", apiKey: "synthetic-key" };
+const claude =
+  'data: {"type":"message_delta","delta":{"stop_reason":"end_turn"}}\n\ndata: {"type":"message_stop"}\n\n';
+const openai = 'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n';
+function executed(
+  url = "https://api.anthropic.com/v1/messages",
+  payload = claude,
+  creds = credentials
+) {
+  return markEmptyTurnExecution(
+    new Response(payload, { headers: { "content-type": "text/event-stream" } }),
+    url,
+    creds
+  );
+}
+async function allowed(response: Response) {
+  const permission = await isTrustedEmptyTurn(null, response);
+  await response.text();
+  return permission();
 }
 
-async function createConnection(provider: string, baseUrl?: string): Promise<string> {
-  const connection = (await providersDb.createProviderConnection({
-    provider,
-    authType: "apikey",
-    name: `${provider}-${baseUrl ?? "default"}`,
-    apiKey: `sk-test-${crypto.randomUUID()}`,
-    ...(baseUrl ? { providerSpecificData: { baseUrl } } : {}),
-  })) as { id: string };
-  return connection.id;
-}
-
-test("official anthropic connection (default base URL) is trusted", async () => {
-  const id = await createConnection("anthropic");
-  assert.equal(await isTrustedEmptyTurn("anthropic", responseFrom(id)), true);
+test("origin alone is not terminal proof; permission observes the native bytes later", async () => {
+  const response = executed();
+  const permission = await isTrustedEmptyTurn("anthropic", response);
+  assert.equal(permission(), false);
+  await response.text();
+  assert.equal(permission(), true);
 });
-
-test("anthropic connection explicitly pointed at api.anthropic.com is trusted", async () => {
-  const id = await createConnection("anthropic", "https://api.anthropic.com/v1");
-  assert.equal(await isTrustedEmptyTurn("anthropic", responseFrom(id)), true);
+test("a rebuilt response inherits the actual attempt, including unresolved aliases", async () => {
+  const response = executed();
+  const rebuilt = inheritEmptyTurnPolicy(response, new Response(response.body));
+  assert.equal(await allowed(rebuilt), true);
 });
-
-test("anthropic connection with a custom third-party base URL is not trusted", async () => {
-  const id = await createConnection("anthropic", "https://gateway.example.com/v1");
-  assert.equal(await isTrustedEmptyTurn("anthropic", responseFrom(id)), false);
+test("a planned/provider header alone cannot grant permission", async () => {
+  const response = new Response(claude, {
+    headers: { "X-OmniRoute-Selected-Connection-Id": "selected" },
+  });
+  const permission = await isTrustedEmptyTurn("anthropic", response, "selected");
+  await response.text();
+  assert.equal(permission(), false);
 });
-
-test("claude connection uses the same selected-connection host check", async () => {
-  const id = await createConnection("claude");
-  assert.equal(await isTrustedEmptyTurn("claude", responseFrom(id)), true);
+test("a custom endpoint does not inherit the official Anthropic policy", async () => {
+  assert.equal(await allowed(executed("https://gateway.example.com/v1/messages")), false);
 });
-
-test("fallback pinned connection ID is used when the header is absent", async () => {
-  const id = await createConnection("anthropic");
-  assert.equal(await isTrustedEmptyTurn("anthropic", responseFrom(), id), true);
+test("missing selected credentials cannot grant permission", async () => {
+  assert.equal(
+    await allowed(executed(undefined, undefined, { connectionId: "", apiKey: "synthetic-key" })),
+    false
+  );
 });
-
-test("unknown selected connection fails closed", async () => {
-  assert.equal(await isTrustedEmptyTurn("anthropic", responseFrom()), false);
-  assert.equal(await isTrustedEmptyTurn("anthropic", responseFrom("missing-connection")), false);
+test("OpenAI ordinary stop is trusted only on the executed native endpoint", async () => {
+  assert.equal(await allowed(executed("https://api.openai.com/v1/chat/completions", openai)), true);
+  assert.equal(
+    await allowed(executed("https://unknown.example/v1/chat/completions", openai)),
+    false
+  );
 });
-
-test("connection belonging to a different provider is not trusted", async () => {
-  const id = await createConnection("anthropic");
-  assert.equal(await isTrustedEmptyTurn("claude", responseFrom(id)), false);
+test("a native error takes priority over a normal stop", async () => {
+  assert.equal(
+    await allowed(
+      executed(undefined, claude + 'data: {"type":"error","error":{"type":"overloaded_error"}}\n\n')
+    ),
+    false
+  );
 });
-
-test("third-party provider IDs are never trusted", async () => {
-  const id = await createConnection("anthropic");
-  assert.equal(await isTrustedEmptyTurn("anthropic-compatible-gateway", responseFrom(id)), false);
+test("native EOF and DONE alone never establish normal termination", async () => {
+  assert.equal(await allowed(executed(undefined, 'data: {"type":"message_start"}\n\n')), false);
+  assert.equal(
+    await allowed(executed("https://api.openai.com/v1/chat/completions", "data: [DONE]\n\n")),
+    false
+  );
 });
-
-test("unresolved alias provider is trusted only via the selected official connection header", async () => {
-  const id = await createConnection("anthropic");
-  assert.equal(await isTrustedEmptyTurn(null, responseFrom(id)), true);
-  // A planned (fallback) connection ID is not proof of what actually served the alias.
-  assert.equal(await isTrustedEmptyTurn(null, responseFrom(), id), false);
+test("Azure hostname, protocol and URL credentials are checked exactly", async () => {
+  const complete =
+    'data: {"type":"response.completed","response":{"status":"completed","output":[]}}\n\n';
+  for (const url of [
+    "http://fixture.openai.azure.com/openai/v1/responses",
+    "https://fixture.openai.azure.com.attacker.invalid/openai/v1/responses",
+    "https://user:secret@fixture.openai.azure.com/openai/v1/responses",
+    "https://fixture.openai.azure.com:444/openai/v1/responses",
+  ]) {
+    assert.equal(await allowed(executed(url, complete)), false);
+  }
 });
-
-test("unresolved alias provider stays untrusted for third-party selected connections", async () => {
-  const custom = await createConnection("anthropic", "https://gateway.example.com/v1");
-  assert.equal(await isTrustedEmptyTurn(null, responseFrom(custom)), false);
-  const other = await createConnection("openai");
-  assert.equal(await isTrustedEmptyTurn(null, responseFrom(other)), false);
-  assert.equal(await isTrustedEmptyTurn(null, responseFrom("missing-connection")), false);
+test("reasoning/tool partial JSON cannot acquire terminal proof from its origin", async () => {
+  for (const message of [
+    { reasoning_content: "partial" },
+    { tool_calls: [{ id: "partial", function: { name: "f", arguments: "{" } }] },
+  ]) {
+    const response = markEmptyTurnExecution(
+      Response.json({ choices: [{ message, finish_reason: null }] }),
+      "https://api.openai.com/v1/chat/completions",
+      credentials
+    );
+    assert.equal(await allowed(response), false);
+  }
 });

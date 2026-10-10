@@ -10,17 +10,16 @@
  * retried to its cap, and the client got 502 — the reporter measured 22
  * upstream attempts / ~5.18M input tokens for one 235K-token turn.
  *
- * Fix (mirrors the philosophy upstream already accepted in #15505 and
- * #14160): a terminal frame the CLIENT actually received that declares a
- * normal stop is the upstream's own verdict — pass the empty turn through.
- * Streams that never delivered a terminal (a drop or an empty shell) keep
- * the #8649 verdict.
+ * A selected native execution and its original terminal jointly permit the
+ * empty turn. A stop synthesized by translation is not sufficient evidence.
  */
 import test from "node:test";
 import assert from "node:assert/strict";
 
 const { createDisconnectAwareStream, createStreamController } =
   await import("../../open-sse/utils/streamHandler.ts");
+const { markEmptyTurnExecution, hasTrustedEmptyTurn } =
+  await import("../../open-sse/utils/emptyTurnPolicy.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 
 function noopAbortWritable(): { getWriter: () => { abort: () => Promise<void> } } {
@@ -63,10 +62,18 @@ async function runClientStream(frames: string[], format: string | null): Promise
     model: "test-model",
     clientResponseFormat: format,
   });
+  const executed = markEmptyTurnExecution(
+    new Response(upstream, { headers: { "content-type": "text/event-stream" } }),
+    format === FORMATS.CLAUDE
+      ? "https://api.anthropic.com/v1/messages"
+      : "https://api.openai.com/v1/chat/completions",
+    { connectionId: "selected-test-connection", apiKey: "synthetic-key" }
+  );
   return drainStream(
     createDisconnectAwareStream(
-      { readable: upstream.pipeThrough(transform), writable: noopAbortWritable() },
-      sc
+      { readable: executed.body!.pipeThrough(transform), writable: noopAbortWritable() },
+      sc,
+      { permitsEmptyTurn: () => hasTrustedEmptyTurn(executed) }
     )
   );
 }

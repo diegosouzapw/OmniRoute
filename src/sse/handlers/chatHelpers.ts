@@ -1,3 +1,4 @@
+import { inheritEmptyTurnPolicy } from "@omniroute/open-sse/utils/emptyTurnPolicy.ts";
 import {
   getModelInfo,
   getComboForModel,
@@ -1279,6 +1280,6 @@ export function withSelectedConnectionHeader(
     });
     cloned.headers.set("X-OmniRoute-Selected-Connection-Id", connectionId);
     const trusted = inheritTrustedLocalRateLimitResponse(response, cloned);
-    return inheritProviderProbeResponse(response, trusted);
+    return inheritEmptyTurnPolicy(response, inheritProviderProbeResponse(response, trusted));
   }
 }

@@ -1,3 +1,4 @@
+import { inheritEmptyTurnPolicy } from "@omniroute/open-sse/utils/emptyTurnPolicy.ts";
 import { intersectAllowedConnectionIds } from "./chat/connectionConstraints.ts";
 import { hasQoderCallerTools } from "@omniroute/open-sse/services/qoderCapabilities";
 import { randomUUID } from "crypto";
@@ -2226,7 +2227,10 @@ async function handleSingleModelChat(
         if (requestBody.stream === true) {
           return inheritProviderProbeResponse(
             successResponse,
-            wrapResponseWithOAuthSessionRelease(successResponse, releaseOAuthSession)
+            inheritEmptyTurnPolicy(
+              successResponse,
+              wrapResponseWithOAuthSessionRelease(successResponse, releaseOAuthSession)
+            )
           );
         }
         releaseOAuthSession();

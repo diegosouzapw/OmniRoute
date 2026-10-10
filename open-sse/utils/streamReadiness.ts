@@ -1,3 +1,4 @@
+import { inheritEmptyTurnPolicy } from "./emptyTurnPolicy.ts";
 import { HTTP_STATUS } from "../config/constants.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "./error.ts";
 
@@ -725,11 +726,14 @@ export async function ensureStreamReadiness(
     const headers = new Headers(response.headers);
     // The parked marker is internal: honor it, never forward it.
     headers.delete(PARKED_STREAM_HEADER);
-    return new Response(prependBufferedChunks(chunks, reader), {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
+    return inheritEmptyTurnPolicy(
+      response,
+      new Response(prependBufferedChunks(chunks, reader), {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      })
+    );
   };
 
   const timeoutReason = () =>

@@ -85,20 +85,15 @@ const chunk = (delta: string, finish: string) =>
   `data: {"id":"chatcmpl-x","object":"chat.completion.chunk","model":"m","choices":[{"index":0,"delta":${delta},"finish_reason":${finish}}]}\n\n`;
 const DONE = "data: [DONE]\n\n";
 
-test("#8649/#16072 a normal stop with no content is a valid empty turn, only a NON-normal empty stream still errors", async () => {
-  // #16072 narrowed this guard: a terminal the client actually received that
-  // declares a normal stop (finish_reason "stop" / stop_reason "end_turn") is
-  // the upstream's own verdict — pass the empty turn through. The #8649 verdict
-  // survives for empty streams that never delivered such a terminal, and for
-  // the carved-out non-normal terminals handled via LEGIT_EMPTY_TERMINAL_REASONS.
+test("#8649/#16072 an unknown execution keeps the empty-stop guard", async () => {
   const normalStop = await runClientStream(
     [chunk('{"role":"assistant"}', "null"), chunk("{}", '"stop"'), DONE],
     null
   );
-  assert.doesNotMatch(
+  assert.match(
     normalStop,
     /"finish_reason":\s*"error"/,
-    "a normal empty stop is a valid answer (#16072), not a failure"
+    "a client-shaped stop without native execution provenance remains guarded"
   );
 
   // An empty stream whose terminal claims something OTHER than a normal stop
