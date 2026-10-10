@@ -90,6 +90,48 @@ test("findCoverageDrift flags covering unit tests absent from tap.testFiles", ()
   assert.equal("_a_comment_entry" in drift, false);
 });
 
+test("fixture strings, comments and type-only imports do not cover runtime mutants", () => {
+  const fragment = "open-sse/utils/error";
+  for (const source of [
+    '// import { x } from "../../open-sse/utils/error.ts";',
+    '/* const x = require("../../open-sse/utils/error.ts"); */',
+    `const fixture = 'import { x } from "../../open-sse/utils/error.ts";';`,
+    'const fixture = `await import("../../open-sse/utils/error.ts")`;',
+    'import type { ErrorBody } from "../../open-sse/utils/error.ts";',
+    'import { type ErrorBody } from "../../open-sse/utils/error.ts";',
+    'const other = require("../../open-sse/utils/error-helper.ts");',
+  ]) {
+    assert.equal(testImportsModule(source, fragment), false, source);
+  }
+});
+
+test("runtime side-effect imports and re-exports still cover mutated modules", () => {
+  const fragment = "open-sse/utils/error";
+  for (const source of [
+    'import "../../open-sse/utils/error.ts";',
+    'export { buildErrorBody } from "../../open-sse/utils/error.ts";',
+    'export * from "../../open-sse/utils/error.ts";',
+    'import { type ErrorBody, buildErrorBody } from "../../open-sse/utils/error.ts";',
+  ])
+    assert.equal(testImportsModule(source, fragment), true, source);
+});
+
+test("the real architecture fixture is not runtime coverage of the error module", () => {
+  const repoRoot = path.resolve(import.meta.dirname, "../../..");
+  const content = fs.readFileSync(
+    path.join(repoRoot, "tests/unit/measure-boundary.test.ts"),
+    "utf8"
+  );
+  assert.deepEqual(
+    findCoverageDrift({
+      mutate: ["open-sse/utils/error.ts"],
+      tapTestFiles: [],
+      unitTests: [{ path: "tests/unit/measure-boundary.test.ts", content }],
+    }),
+    {}
+  );
+});
+
 test("every tap.testFiles entry names a file that still exists", () => {
   // The existing drift check runs one way: a test that covers a mutated module
   // but is missing from tap.testFiles. The other way is silent — an entry left
@@ -106,4 +148,22 @@ test("every tap.testFiles entry names a file that still exists", () => {
     .filter((entry) => !entry.includes("*"))
     .filter((entry) => !fs.existsSync(path.join(repoRoot, entry)));
   assert.deepEqual(missing, [], `tap.testFiles names ${missing.length} file(s) that do not exist`);
+});
+
+test("real route-guard and credential characterization imports stay in mutation coverage", () => {
+  const repoRoot = path.resolve(import.meta.dirname, "../../..");
+  const conf = JSON.parse(fs.readFileSync(path.join(repoRoot, "stryker.conf.json"), "utf8"));
+  for (const [file, module] of [
+    ["tests/unit/route-guard-local-only-sweep.test.ts", "src/server/authz/routeGuard.ts"],
+    ["tests/unit/characterization-oauth.test.ts", "open-sse/utils/publicCreds.ts"],
+  ]) {
+    const content = fs.readFileSync(path.join(repoRoot, file), "utf8");
+    const input = { mutate: [module], unitTests: [{ path: file, content }] };
+    assert.deepEqual(findCoverageDrift({ ...input, tapTestFiles: [] }), { [module]: [file] });
+    assert.deepEqual(findCoverageDrift({ ...input, tapTestFiles: conf.tap.testFiles }), {});
+  }
+  assert.ok(
+    !conf.tap.testFiles.includes("tests/unit/measure-boundary.test.ts"),
+    "source fixtures are not runtime mutant coverage"
+  );
 });

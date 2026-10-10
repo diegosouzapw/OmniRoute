@@ -25,24 +25,74 @@
 
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
+import ts from "typescript";
 
 /** 3-segment path suffix without extension (unique enough; matches relative + alias imports). */
 export function moduleFragment(modulePath) {
   return modulePath.replace(/\.ts$/, "").split("/").slice(-3).join("/");
 }
 
-/**
- * True if `content` imports the module identified by `fragment`, in any form:
- * static `... from "…fragment…"`, dynamic `import("…fragment…")` (incl. split
- * across lines), or `require("…fragment…")`. The fragment must appear INSIDE the
- * import string literal — a bare mention in a comment does not match.
- */
-export function testImportsModule(content, fragment) {
-  const esc = fragment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(
-    "(?:from\\s+|\\bimport\\s*\\(\\s*|\\brequire\\s*\\(\\s*)[\"'][^\"']*" + esc
+/** Syntactic runtime imports only: fixture strings/comments/types cannot kill mutants. */
+function runtimeImports(content) {
+  const file = ts.createSourceFile(
+    "unit.test.ts",
+    content,
+    ts.ScriptTarget.Latest,
+    false,
+    ts.ScriptKind.TS
   );
-  return re.test(content);
+  const specifiers = new Set();
+  const add = (node) => {
+    if (node && ts.isStringLiteralLike(node)) specifiers.add(node.text);
+  };
+  const hasRuntimeBinding = (bindings) =>
+    !bindings ||
+    !ts.isNamedImports(bindings) ||
+    bindings.elements.some((element) => !element.isTypeOnly);
+  const visit = (node) => {
+    if (ts.isImportDeclaration(node)) {
+      const clause = node.importClause;
+      if (
+        !clause ||
+        (!clause.isTypeOnly && (clause.name || hasRuntimeBinding(clause.namedBindings)))
+      )
+        add(node.moduleSpecifier);
+    } else if (ts.isExportDeclaration(node)) {
+      const clause = node.exportClause;
+      if (
+        !node.isTypeOnly &&
+        (!clause ||
+          !ts.isNamedExports(clause) ||
+          clause.elements.some((element) => !element.isTypeOnly))
+      )
+        add(node.moduleSpecifier);
+    } else if (
+      ts.isCallExpression(node) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        (ts.isIdentifier(node.expression) && node.expression.text === "require"))
+    ) {
+      add(node.arguments[0]);
+    } else if (
+      ts.isImportEqualsDeclaration(node) &&
+      !node.isTypeOnly &&
+      ts.isExternalModuleReference(node.moduleReference)
+    ) {
+      add(node.moduleReference.expression);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return [...specifiers];
+}
+
+function matchesModule(specifier, fragment) {
+  const withoutExtension = specifier.replace(/\.[cm]?[jt]sx?$/, "");
+  return withoutExtension === fragment || withoutExtension.endsWith(`/${fragment}`);
+}
+
+/** Match actual runtime import syntax, not embedded source text or a module-name prefix. */
+export function testImportsModule(content, fragment) {
+  return runtimeImports(content).some((specifier) => matchesModule(specifier, fragment));
 }
 
 /**
@@ -52,11 +102,16 @@ export function testImportsModule(content, fragment) {
 export function findCoverageDrift({ mutate, tapTestFiles, unitTests }) {
   const tap = new Set(tapTestFiles);
   const drift = {};
+  const imports = new Map();
   for (const mod of mutate) {
     if (mod.startsWith("_") || !mod.endsWith(".ts")) continue; // skip comment/non-ts entries
     const frag = moduleFragment(mod);
     const missing = unitTests
-      .filter((t) => testImportsModule(t.content, frag) && !tap.has(t.path))
+      .filter((t) => {
+        if (tap.has(t.path) || !t.content.includes(frag)) return false;
+        if (!imports.has(t)) imports.set(t, runtimeImports(t.content));
+        return imports.get(t).some((specifier) => matchesModule(specifier, frag));
+      })
       .map((t) => t.path)
       .sort();
     if (missing.length > 0) drift[mod] = missing;
@@ -70,10 +125,6 @@ function listUnitTests() {
   return out
     .split("\n")
     .filter((f) => /\.test\.ts$/.test(f))
-    // Exclude tests/unit/build/: these test the build TOOLING (scripts/), not the
-    // mutated runtime modules. They legitimately embed module paths as fixture
-    // strings (e.g. this gate's own test), which would otherwise false-match.
-    .filter((f) => !f.startsWith("tests/unit/build/"))
     .map((path) => ({ path, content: fs.readFileSync(path, "utf8") }));
 }
 
