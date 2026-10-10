@@ -134,7 +134,8 @@ export async function evaluateAutoCandidates(options: EvaluateAutoCandidatesOpti
 /**
  * Resolve target ordering for the `auto` combo strategy.
  *
- * Extracted verbatim from `handleComboChat`'s `if (strategy === "auto")` branch:
+ * Extracted verbatim from `handleComboChat`'s auto-strategy branch (now selected by the
+ * `ordering: "auto"` trait in strategyRegistry.ts):
  * tool-calling + context-window pre-filters, intent classification, candidate
  * building (quota cutoff), explicit-router vs rules selection, complexity-aware
  * scoring and final dedup ordering. Behavior is byte-identical to the previous

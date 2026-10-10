@@ -84,7 +84,7 @@ export interface StrategyTraits {
 /**
  * Traits of a strategy that takes no strategy-specific branch — also the safe answer
  * for an unknown strategy string (identical to the `else` fall-through of the former
- * `strategy === "..."` chains).
+ * literal string-comparison chains).
  */
 export const DEFAULT_STRATEGY_TRAITS: Readonly<StrategyTraits> = Object.freeze({
   ordering: "declared",
