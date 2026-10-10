@@ -1,10 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 
 import {
   assembleProviderModelsHeaders,
   PROVIDER_MODELS_CONFIG,
 } from "../../src/app/api/providers/[id]/models/discovery/providerModelsConfig.ts";
+import { fetchClaudeDiscoveryModels } from "../../src/app/api/providers/[id]/models/discovery/claude.ts";
+import { applyConnectionCustomHeaders } from "../../src/app/api/providers/[id]/models/discovery/connectionCustomHeaders.ts";
 
 // Connection-level `providerSpecificData.customHeaders` (#8369 / #9497) already reach the chat
 // path for every provider. Model discovery must send them too, or a key that needs one (e.g. an
@@ -24,14 +28,58 @@ test("native anthropic discovery sends connection custom headers", () => {
   assert.equal(headers["Anthropic-Version"], "2023-06-01");
 });
 
-test("buildHeaders-based configs (claude) also get connection custom headers", () => {
-  const headers = assembleProviderModelsHeaders(PROVIDER_MODELS_CONFIG.claude, KEY, {
+test("claude discovery (its own route branch) sends connection custom headers", async () => {
+  const seen: Record<string, string>[] = [];
+  const models = await fetchClaudeDiscoveryModels({
     accessToken: "",
     apiKey: KEY,
-    providerSpecificData: { customHeaders: { "anthropic-workspace-id": WORKSPACE } },
+    providerSpecificData: {
+      customHeaders: { "anthropic-workspace-id": WORKSPACE, "x-api-key": "attacker-key" },
+    },
+    fetchImpl: async (_url, init) => {
+      seen.push(init.headers);
+      return Response.json({ data: [{ id: "claude-fixture-1" }], has_more: false });
+    },
   });
-  assert.equal(headers["anthropic-workspace-id"], WORKSPACE);
-  assert.equal(headers["x-api-key"], KEY);
+  assert.equal(models.length, 1);
+  assert.equal(seen[0]["anthropic-workspace-id"], WORKSPACE);
+  assert.equal(seen[0]["x-api-key"], KEY);
+});
+
+test("claude discovery without providerSpecificData is unchanged", async () => {
+  const seen: Record<string, string>[] = [];
+  await fetchClaudeDiscoveryModels({
+    accessToken: "",
+    apiKey: KEY,
+    fetchImpl: async (_url, init) => {
+      seen.push(init.headers);
+      return Response.json({ data: [{ id: "claude-fixture-1" }], has_more: false });
+    },
+  });
+  assert.ok(!Object.keys(seen[0]).some((k) => k.toLowerCase() === "anthropic-workspace-id"));
+});
+
+test("the helper returns the same object so inline discovery builders can wrap it", () => {
+  const base = { "x-api-key": KEY, "anthropic-version": "2023-06-01" };
+  const out = applyConnectionCustomHeaders(base, {
+    customHeaders: { "anthropic-workspace-id": WORKSPACE, Authorization: "Bearer attacker" },
+  });
+  assert.equal(out, base);
+  assert.equal(out["anthropic-workspace-id"], WORKSPACE);
+  assert.ok(!("Authorization" in out));
+  assert.equal(applyConnectionCustomHeaders(base, undefined), base);
+});
+
+test("route wires the helper into the claude and anthropic-compatible branches", () => {
+  const src = fs.readFileSync(
+    path.join(process.cwd(), "src/app/api/providers/[id]/models/route.ts"),
+    "utf8"
+  );
+  assert.match(
+    src,
+    /fetchClaudeDiscoveryModels\(\{[^}]*providerSpecificData: connection\.providerSpecificData/
+  );
+  assert.match(src, /headers: applyConnectionCustomHeaders\(/);
 });
 
 test("custom headers cannot override discovery auth headers", () => {

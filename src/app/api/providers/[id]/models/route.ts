@@ -142,6 +142,7 @@ import {
 } from "./discovery/codex";
 import { getCodexDiscoveryMode } from "@/shared/services/codexDiscoveryPolicy";
 import { fetchClaudeDiscoveryModels } from "./discovery/claude";
+import { applyConnectionCustomHeaders } from "./discovery/connectionCustomHeaders";
 import { maybeHandleConolOrSyntxModelDiscovery } from "./webSessionDiscovery";
 import { maybeHandleTwinmindModelDiscovery } from "./twinmindDiscovery";
 import { maybeHandleVertexModelDiscovery } from "./vertexDiscovery";
@@ -1341,6 +1342,7 @@ export async function GET(
         const models = await fetchClaudeDiscoveryModels({
           accessToken,
           apiKey,
+          providerSpecificData: connection.providerSpecificData,
           fetchImpl: (url, init) =>
             safeOutboundFetch(url, {
               ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
@@ -1919,12 +1921,15 @@ export async function GET(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(apiKey ? { "x-api-key": apiKey } : {}),
-            "anthropic-version": "2023-06-01",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: applyConnectionCustomHeaders(
+            {
+              "Content-Type": "application/json",
+              ...(apiKey ? { "x-api-key": apiKey } : {}),
+              "anthropic-version": "2023-06-01",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            psd
+          ),
         });
       } catch (error) {
         const fallback = buildDiscoveryErrorFallbackResponse(error);
