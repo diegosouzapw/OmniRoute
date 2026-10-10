@@ -247,6 +247,7 @@
     "quality:headroom": "node scripts/quality/baseline-headroom.mjs",
     "quality:relax-baselines": "node scripts/quality/relax-baselines.mjs",
     "quality:refresh-model-lifecycle": "node scripts/quality/refresh-model-lifecycle.mjs",
+    "quality:boundary": "node scripts/quality/measure-boundary.mjs",
     "quality:gate": "npm run quality:collect && npm run quality:ratchet -- --allow-missing",
     "check:gate-manifest": "node scripts/quality/gate-manifest.mjs",
     "check:quality-skill-contract": "node scripts/quality/check-skill-contract.mjs",
