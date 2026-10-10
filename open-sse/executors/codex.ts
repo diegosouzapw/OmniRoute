@@ -52,7 +52,7 @@ import {
   buildSyntheticResponsesFailureId,
   buildSyntheticResponsesFailedEvent,
 } from "../utils/responsesSequence.ts";
-import { hasCodexSsePeekProgress } from "./codex/ssePeekProgress.ts";
+import { hasCodexSsePeekProgress, scanCodexSseOutputText } from "./codex/ssePeekProgress.ts";
 import { normalizeCodexResponsesInput } from "../utils/responsesInputNormalization.ts";
 import * as prl from "../utils/providerRequestLogging.ts";
 import { createRequire } from "module";
@@ -560,6 +560,33 @@ const CODEX_SSE_TRANSIENT_ERROR_PATTERNS = [
 // small peek window is enough — this bounds how much of a legitimate response we
 // buffer before giving up and passing the stream through unchanged.
 const CODEX_SSE_PEEK_MAX_BYTES = 8192;
+// Codex also disguises overload as a "successful" stream whose ONLY output text is
+// this exact sentence (decolua/9router#3232). Matched case-insensitively and
+// trimmed, and only as the WHOLE output — an answer that quotes it and continues
+// is legitimate and passes through untouched.
+const CODEX_OVERLOADED_OUTPUT_MESSAGE =
+  "Our servers are currently overloaded. Please try again later.";
+const CODEX_OVERLOADED_OUTPUT_MATCH = "codex_overloaded_output";
+
+function normalizeCodexOutputText(text: string): string {
+  return text.trim().toLowerCase();
+}
+
+/** True while the peeked output could still turn out to be the fake-200 overload. */
+function isCodexOverloadedOutputPrefix(outputText: string): boolean {
+  return CODEX_OVERLOADED_OUTPUT_MESSAGE.toLowerCase().startsWith(
+    normalizeCodexOutputText(outputText)
+  );
+}
+
+function isCodexOverloadedOutput(text: string): boolean {
+  const scan = scanCodexSseOutputText(text);
+  return (
+    !scan.otherProgress &&
+    normalizeCodexOutputText(scan.outputText) ===
+      normalizeCodexOutputText(CODEX_OVERLOADED_OUTPUT_MESSAGE)
+  );
+}
 
 /**
  * Best-effort extraction of the human-readable error message from a peeked SSE
@@ -643,6 +670,18 @@ export async function peekCodexSseTransientError(
         matched = hit;
         break;
       }
+      // Fake-200 overload delivered as output text: keep peeking while the text
+      // seen so far is still a prefix of the overload sentence (it may be split
+      // across frames), until response.completed or the next delta settles it.
+      const scan = scanCodexSseOutputText(text);
+      if (
+        scan.outputText.trim() &&
+        !scan.otherProgress &&
+        isCodexOverloadedOutputPrefix(scan.outputText)
+      ) {
+        if (scan.completed) break;
+        continue;
+      }
       // Hand off actual text/reasoning/tool progress, but retain the early
       // error window across lifecycle-only frames such as response.created.
       if (hasCodexSsePeekProgress(text)) {
@@ -657,13 +696,23 @@ export async function peekCodexSseTransientError(
     );
   }
 
+  let message: string | null = null;
+  if (!matched && isCodexOverloadedOutput(text)) {
+    matched = CODEX_OVERLOADED_OUTPUT_MATCH;
+    message = CODEX_OVERLOADED_OUTPUT_MESSAGE;
+  }
+
   if (matched) {
     try {
       await reader.cancel();
     } catch {
       // Upstream socket may already be closing; nothing to clean up.
     }
-    return { matched, message: extractCodexSseErrorMessage(text, matched), replacementBody: null };
+    return {
+      matched,
+      message: message ?? extractCodexSseErrorMessage(text, matched),
+      replacementBody: null,
+    };
   }
 
   // Re-assemble the stream: peeked prefix chunks, then continue draining the
