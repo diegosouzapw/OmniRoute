@@ -2,6 +2,26 @@
 FROM node:26-trixie-slim AS base
 WORKDIR /app
 
+# Mirrors for builders whose network cannot reach the default sources
+# (deb.debian.org / registry.npmjs.org / nodejs.org). Defaults keep upstream
+# behavior byte-identical; override at build time, e.g.:
+#   podman build \
+#     --build-arg APT_MIRROR=http://mirrors.tuna.tsinghua.edu.cn \
+#     --build-arg NPM_REGISTRY=https://registry.npmmirror.com \
+#     --build-arg NODE_DIST_URL=https://npmmirror.com/mirrors/node ...
+# APT_MIRROR replaces the whole scheme-plus-host. The default matches the base
+# image, whose single /etc/apt/sources.list.d/debian.sources lists both
+# /debian and /debian-security under http://deb.debian.org, so the default
+# substitution changes nothing. A mirror must serve both paths and include its
+# own scheme (e.g. http://mirrors.example.cn).
+# NODE_DIST_URL, when set, is exported as NODEJS_ORG_MIRROR only for the
+# node-gyp rebuild in the builder stage (lib/process-release.js). Left empty,
+# the variable is never set and node-gyp uses nodejs.org. The npm config write
+# persists in ~/.npmrc for every stage derived from base.
+ARG APT_MIRROR=http://deb.debian.org
+ARG NPM_REGISTRY=
+ARG NODE_DIST_URL=
+
 # `apt-get upgrade` pulls the security-patched versions of the Debian (trixie)
 # base-image packages at build time — clears the subset of container-scan CVEs
 # (perl / util-linux / systemd / ncurses / zlib / tar / sqlite / shadow / pam …)
@@ -10,7 +30,9 @@ WORKDIR /app
 # is rebuilt; none are reachable from the proxy's request surface at runtime.
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-apt-lists,target=/var/lib/apt/lists,sharing=locked \
-  apt-get update \
+  sed -i -E "s|https?://deb.debian.org|${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+  && if [ -n "${NPM_REGISTRY}" ]; then npm config set registry "${NPM_REGISTRY}"; fi \
+  && apt-get update \
   && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends libsecret-1-0 ca-certificates \
   && rm -rf /var/lib/apt/lists/*
@@ -59,6 +81,7 @@ RUN set -eux; \
 
 # ── Builder ────────────────────────────────────────────────────────────────
 FROM base AS builder
+ARG NODE_DIST_URL=
 
 # No telemetry, anywhere. Disable Next.js's anonymous build-time telemetry
 # (it otherwise pings Vercel during `next build`). Set on the builder stage so
@@ -107,6 +130,7 @@ RUN test -f package-lock.json \
 RUN --mount=type=cache,id=s/92ca8a61-c1ba-421f-a389-d48ac7258c2d-npm-cache,target=/root/.npm \
   npm ci --include=optional --no-audit --no-fund --legacy-peer-deps --ignore-scripts \
   && (cd node_modules/better-sqlite3 \
+      && if [ -n "${NODE_DIST_URL}" ]; then export NODEJS_ORG_MIRROR="${NODE_DIST_URL}"; fi \
       && node /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js rebuild --force_build=1) \
   && test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node \
   && node -e "require('better-sqlite3')(':memory:').close()" \

@@ -82,3 +82,25 @@ export function resolveCacheCreationInPrompt(
   const nestedAliasWrite = promptDetails?.cache_write_tokens ?? inputDetails?.cache_write_tokens;
   return nestedAliasWrite ? true : undefined;
 }
+
+// Nested write aliases are inclusive. An unmarked top-level alias stays unmarked.
+export function assignAliasCacheWrite(
+  usage: CacheWriteUsageSource & { input_tokens_details?: Record<string, unknown> },
+  inputDetails: Record<string, unknown>
+): void {
+  const cacheCreationInPrompt = resolveCacheCreationInPrompt(usage);
+  const aliasWrite = inputDetails.cache_write_tokens ?? usage.cache_write_tokens;
+  if (aliasWrite !== undefined && inputDetails.cache_creation_tokens === undefined) {
+    inputDetails.cache_creation_tokens = aliasWrite;
+  }
+  if (
+    cacheCreationInPrompt !== undefined &&
+    inputDetails.cache_creation_tokens !== undefined &&
+    inputDetails.cache_creation_in_prompt === undefined
+  ) {
+    inputDetails.cache_creation_in_prompt = cacheCreationInPrompt;
+  }
+  if (Object.keys(inputDetails).length > 0) {
+    usage.input_tokens_details = inputDetails;
+  }
+}

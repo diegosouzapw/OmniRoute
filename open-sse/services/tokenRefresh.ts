@@ -40,6 +40,7 @@ import {
   refreshWithRetry,
 } from "./tokenRefresh/circuitBreaker.ts";
 import { refreshCodebuddyCnToken } from "./tokenRefresh/providers/codebuddyCn.ts";
+import { refreshCodebuddyIntlToken } from "./tokenRefresh/providers/codebuddyIntl.ts";
 import { refreshWorkbuddyToken } from "./tokenRefresh/providers/workbuddy.ts";
 import { refreshClineToken } from "./tokenRefresh/providers/cline.ts";
 import { refreshKimiCodingToken } from "./tokenRefresh/providers/kimiCoding.ts";
@@ -472,6 +473,9 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
     case "codebuddy-cn":
       return await refreshCodebuddyCnToken(credentials.refreshToken, log, proxyConfig);
 
+    case "codebuddy-intl":
+      return await refreshCodebuddyIntlToken(credentials.refreshToken, log, proxyConfig);
+
     case "workbuddy":
       return await refreshWorkbuddyToken(credentials.refreshToken, log, proxyConfig);
 
@@ -506,6 +510,7 @@ export function supportsTokenRefresh(provider) {
     // testStatus="expired" / errorCode="no_refresh_token".
     "gitlab-duo",
     "codebuddy-cn",
+    "codebuddy-intl",
     "workbuddy",
     "cursor",
   ]);

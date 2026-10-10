@@ -1,0 +1,1 @@
+- **fix(codex):** Explain models withheld by the effective HTTP client version during discovery, preserving account inventory authority and refreshed catalog diagnostics ([#12893](https://github.com/diegosouzapw/OmniRoute/pull/12893)) — thanks @guanbear

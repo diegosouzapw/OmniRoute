@@ -1435,9 +1435,8 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         }
         if (cacheCreationTokens > 0) {
           state.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
-          state.usage.prompt_tokens_details.cache_creation_in_prompt = anthropicKeys
-            ? true
-            : (pickCacheCreationInPrompt(responseUsage) ?? true);
+          state.usage.prompt_tokens_details.cache_creation_in_prompt =
+            anthropicKeys || sourceWriteInPrompt !== false;
         }
       }
 

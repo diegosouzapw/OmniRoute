@@ -440,9 +440,50 @@ function setAsideKind(entryKey: string, now: number): ProxyRefusalKind | null {
   }
 }
 
+/**
+ * Last persisted switch motive for a subscription, reused when a throttled
+ * repeat has no propagated kind: the refusal memory only knows the live
+ * snapshot, so without this the throttled row would overwrite the propagated
+ * motive (e.g. "transport" from the transition subscriber) with the live
+ * snapshot or the hard default. Unknown or unreadable values fall through to
+ * the live snapshot path. Never throws.
+ */
+function lastPersistedSwitchKind(subscriptionId: string): ProxyRefusalKind | null {
+  try {
+    const db = getDbInstance();
+    const row = db
+      .prepare("SELECT selector_last_switch_kind FROM proxy_subscriptions WHERE id = ?")
+      .get(subscriptionId) as { selector_last_switch_kind?: unknown } | undefined;
+    const kind = row?.selector_last_switch_kind;
+    return typeof kind === "string" && kind.length > 0 ? (kind as ProxyRefusalKind) : null;
+  } catch {
+    return null;
+  }
+}
+
 function restoreSlot(throttleKey: string, prev: number | undefined): void {
   if (prev === undefined) lastSwitch.delete(throttleKey);
   else lastSwitch.set(throttleKey, prev);
+}
+/**
+ * Resolve the refusal motive for a persisted switch outcome: the caller that
+ * set the member aside knows why (propagated kind first); on the throttled
+ * path the last persisted motive wins over the live snapshot (same entry,
+ * earlier outcome); live snapshot as fallback for the synchronous quota
+ * caller; hard default last so the column never stays unexplained.
+ */
+function switchOutcomeKind(
+  setAsideKey: string,
+  now: number,
+  propagated?: ProxyRefusalKind,
+  subscriptionId?: string
+): ProxyRefusalKind {
+  if (propagated !== undefined) return propagated;
+  if (subscriptionId !== undefined) {
+    const kept = lastPersistedSwitchKind(subscriptionId);
+    if (kept !== null) return kept;
+  }
+  return setAsideKind(setAsideKey, now) ?? "ip_quota_429";
 }
 /**
  * Maybe switch a selector group after a set-aside. Fire-and-forget entry:
@@ -467,17 +508,16 @@ export async function maybeSwitchOnSetAside(
     const hit = pairs[0]!;
     const now = typeof opts?.nowMs === "number" ? opts.nowMs : Date.now();
     if (isThrottled(hit, now)) {
+      // A throttled repeat still documents why nothing moved: the list shows
+      // the last outcome, and a throttle is normal backoff, never a failure.
+      await recordSelectorSwitchOutcome({
+        subscriptionId: hit.subscriptionId,
+        result: "throttled",
+        kind: switchOutcomeKind(setAsideKey, now, opts?.kind, hit.subscriptionId),
+      });
       return { switched: false, reason: "throttled" };
     }
-    // Propagated kind first (the caller that set the member aside knows why);
-    // live snapshot as fallback for the synchronous quota caller; hard default
-    // last so the column never stays unexplained.
-    return runSwitch(
-      hit,
-      setAsideKey,
-      now,
-      opts?.kind ?? setAsideKind(setAsideKey, now) ?? "ip_quota_429"
-    );
+    return runSwitch(hit, setAsideKey, now, switchOutcomeKind(setAsideKey, now, opts?.kind));
   } catch {
     return { switched: false, reason: "network-error" };
   }

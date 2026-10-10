@@ -14,7 +14,7 @@ import {
 } from "./responseSanitizer/cacheHitTokens.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
 import { normalizeArrayContentChunk } from "../utils/arrayContentDelta.ts";
-import { resolveCacheCreationInPrompt } from "../utils/pickCacheCreationTokens.ts";
+import { assignAliasCacheWrite } from "../utils/pickCacheCreationTokens.ts";
 export {
   extractThinkingFromContent,
   shouldParseTextualReasoningTags,
@@ -585,7 +585,6 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
     };
   }
 
-  const cacheCreationInPrompt = resolveCacheCreationInPrompt(normalized);
   const inputDetails = toRecord(normalized.input_tokens_details) || {};
   const cachedTokens = normalized.cached_tokens ?? normalized.cache_read_input_tokens;
   if (cachedTokens !== undefined && inputDetails.cached_tokens === undefined) {
@@ -597,20 +596,7 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   ) {
     inputDetails.cache_creation_tokens = normalized.cache_creation_input_tokens;
   }
-  const aliasWrite = inputDetails.cache_write_tokens ?? normalized.cache_write_tokens;
-  if (aliasWrite !== undefined && inputDetails.cache_creation_tokens === undefined) {
-    inputDetails.cache_creation_tokens = aliasWrite;
-  }
-  if (
-    cacheCreationInPrompt !== undefined &&
-    inputDetails.cache_creation_tokens !== undefined &&
-    inputDetails.cache_creation_in_prompt === undefined
-  ) {
-    inputDetails.cache_creation_in_prompt = cacheCreationInPrompt;
-  }
-  if (Object.keys(inputDetails).length > 0) {
-    normalized.input_tokens_details = inputDetails;
-  }
+  assignAliasCacheWrite(normalized, inputDetails);
 
   const outputDetails = toRecord(normalized.output_tokens_details) || {};
   if (normalized.reasoning_tokens !== undefined && outputDetails.reasoning_tokens === undefined) {
@@ -860,7 +846,6 @@ function sanitizeResponsesOutput(output: unknown): JsonRecord[] {
     .map((item, index) => sanitizeResponsesOutputItem(item, index))
     .filter((item): item is JsonRecord => item !== null);
 }
-
 function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord | null {
   const itemRecord = toRecord(item);
   if (!itemRecord) return null;
@@ -869,11 +854,12 @@ function sanitizeResponsesOutputItem(item: unknown, index: number): JsonRecord |
 
   if (type === "message") {
     const content = sanitizeResponsesMessageContent(itemRecord.content);
+    // prettier-ignore
     const sanitized: JsonRecord = {
       id: toString(itemRecord.id) || `msg_${index}`,
       type: "message",
       role: toString(itemRecord.role) || "assistant",
-      content,
+      content, ...(itemRecord.phase ? { phase: toString(itemRecord.phase) } : {}),
     };
     return sanitized;
   }

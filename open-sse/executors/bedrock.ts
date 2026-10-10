@@ -168,21 +168,39 @@ function getToolResultIdFromBlock(block) {
   return normalizeToolUseId(block?.toolResult?.toolUseId);
 }
 
-function isToolResultOnlyMessage(message) {
+function isEmptyTurnFiller(block) {
+  return block?.text === " " && Object.keys(block).length === 1;
+}
+
+function messageHasToolResult(message) {
   return (
-    message?.role === "user" &&
-    Array.isArray(message.content) &&
-    message.content.length > 0 &&
-    message.content.every((block) => Boolean(getToolResultIdFromBlock(block)))
+    Array.isArray(message?.content) &&
+    message.content.some((block) => Boolean(getToolResultIdFromBlock(block)))
   );
 }
 
-function mergeConsecutiveToolResultMessages(messages) {
+// Same-role turns collapse, except a plain user turn must not absorb a later
+// tool-result turn — that would make a non-adjacent result look immediate.
+// The other direction (tool result, then plain user text) still merges.
+function mergeConsecutiveMessagesByRole(messages) {
   const merged = [];
   for (const message of messages) {
     const previous = merged[merged.length - 1];
-    if (isToolResultOnlyMessage(previous) && isToolResultOnlyMessage(message)) {
-      previous.content.push(...message.content);
+    const sameRole =
+      previous?.role === message?.role &&
+      Array.isArray(previous.content) &&
+      Array.isArray(message.content);
+    const plainUserBeforeToolResult =
+      sameRole &&
+      previous.role === "user" &&
+      messageHasToolResult(message) &&
+      !messageHasToolResult(previous);
+    if (sameRole && !plainUserBeforeToolResult) {
+      const content = [...previous.content, ...message.content];
+      const hasContent = content.some((block) => !isEmptyTurnFiller(block));
+      previous.content = hasContent
+        ? content.filter((block) => !isEmptyTurnFiller(block))
+        : content.slice(0, 1);
       continue;
     }
     merged.push(message);
@@ -197,7 +215,7 @@ function ensureNonEmptyContent(message) {
 }
 
 function sanitizeBedrockToolPairs(messages) {
-  const normalized = mergeConsecutiveToolResultMessages(messages);
+  const normalized = mergeConsecutiveMessagesByRole(messages);
   const validResultCounts = new Map();
 
   for (let i = 0; i < normalized.length; i++) {

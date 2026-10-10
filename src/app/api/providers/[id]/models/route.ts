@@ -28,6 +28,7 @@ import {
 } from "@/shared/network/outboundUrlGuardPolicy";
 import { errorResponse, sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { getStaticQoderModels } from "@omniroute/open-sse/services/qoderCli.ts";
+import { getCodexDiscoveryMode } from "@/shared/services/codexDiscoveryPolicy";
 import { deriveConfigFromRegistryModelsUrl } from "./discoveryConfig";
 import {
   buildTokenPlanCatalogRequest,
@@ -138,10 +139,10 @@ import {
   enrichCodexModelsFromGithubCatalog,
   fetchCodexDiscoveryModels,
   fetchCodexGithubCatalogModels,
-  reconcileCodexDiscoveryCatalog,
 } from "./discovery/codex";
-import { getCodexDiscoveryMode } from "@/shared/services/codexDiscoveryPolicy";
+import { createCodexDiscoveryFetch, createCodexCatalogReconciler } from "./discovery/codexRoute";
 import { fetchClaudeDiscoveryModels } from "./discovery/claude";
+import { applyConnectionCustomHeaders } from "./discovery/connectionCustomHeaders";
 import { maybeHandleConolOrSyntxModelDiscovery } from "./webSessionDiscovery";
 import { maybeHandleTwinmindModelDiscovery } from "./twinmindDiscovery";
 import { maybeHandleVertexModelDiscovery } from "./vertexDiscovery";
@@ -1341,6 +1342,7 @@ export async function GET(
         const models = await fetchClaudeDiscoveryModels({
           accessToken,
           apiKey,
+          providerSpecificData: connection.providerSpecificData,
           fetchImpl: (url, init) =>
             safeOutboundFetch(url, {
               ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
@@ -1919,12 +1921,15 @@ export async function GET(
           guard: getProviderOutboundGuard(),
           proxyConfig: proxy,
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(apiKey ? { "x-api-key": apiKey } : {}),
-            "anthropic-version": "2023-06-01",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: applyConnectionCustomHeaders(
+            {
+              "Content-Type": "application/json",
+              ...(apiKey ? { "x-api-key": apiKey } : {}),
+              "anthropic-version": "2023-06-01",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            psd
+          ),
         });
       } catch (error) {
         const fallback = buildDiscoveryErrorFallbackResponse(error);
@@ -2050,34 +2055,28 @@ export async function GET(
         getModelsByProviderId("codex") || [],
         getStaticModelsForProvider("codex") || []
       );
-      const reconcileCodexCatalog = (
-        remoteModels: typeof cachedDiscoveryModels,
-        source: "live" | "github" = "live"
-      ) =>
-        reconcileCodexDiscoveryCatalog(
-          remoteModels.map((model) => ({ ...model, discoverySource: source })),
-          staticCodexCatalog,
-          codexDiscoveryMode
-        );
-      const finalizeCodexCatalog = (remoteModels: typeof cachedDiscoveryModels) =>
-        reconcileCodexCatalog(remoteModels).activeModels;
-      const cachedCatalogModels = finalizeCodexCatalog(cachedDiscoveryModels);
-      const cachedIdsMatchFinalCatalog =
-        cachedDiscoveryModels.length === cachedCatalogModels.length &&
-        cachedDiscoveryModels.every((model, index) => model.id === cachedCatalogModels[index]?.id);
-      const persistFilteredCacheIfNeeded = async () => {
-        if (cachedIdsMatchFinalCatalog) return;
-        await persistDiscoveredModels(provider, connectionId, cachedCatalogModels);
+      const reconcileCodexCatalog = createCodexCatalogReconciler(
+        staticCodexCatalog,
+        codexDiscoveryMode
+      );
+      const persistFilteredCacheIfNeeded = async (models: readonly { id: string }[]) => {
+        if (
+          cachedDiscoveryModels.length === models.length &&
+          cachedDiscoveryModels.every((model, index) => model.id === models[index]?.id)
+        )
+          return;
+        await persistDiscoveredModels(provider, connectionId, models);
       };
 
       if (!refresh && cachedDiscoveryModels.length > 0) {
-        await persistFilteredCacheIfNeeded();
         const catalog = reconcileCodexCatalog(cachedDiscoveryModels);
+        await persistFilteredCacheIfNeeded(catalog.activeModels);
         return buildResponse({
           provider,
           connectionId,
           models: catalog.activeModels,
           source: "cache",
+          warning: catalog.warning,
           discovery: { mode: codexDiscoveryMode },
           ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
         });
@@ -2096,22 +2095,10 @@ export async function GET(
       const liveModels = await fetchCodexDiscoveryModels({
         accessToken: accessToken || null,
         providerSpecificData: connection.providerSpecificData,
-        fetchImpl: (url, init) =>
-          safeOutboundFetch(url, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: getProviderOutboundGuard(),
-            proxyConfig: proxy,
-            ...init,
-          }),
+        fetchImpl: createCodexDiscoveryFetch(proxy, getProviderOutboundGuard()),
       });
       const githubCatalogModels = await fetchCodexGithubCatalogModels({
-        fetchImpl: (url, init) =>
-          safeOutboundFetch(url, {
-            ...SAFE_OUTBOUND_FETCH_PRESETS.modelsDiscovery,
-            guard: "public-only",
-            proxyConfig: proxy,
-            ...init,
-          }),
+        fetchImpl: createCodexDiscoveryFetch(proxy, "public-only"),
       });
       if (liveModels && liveModels.length > 0) {
         const enrichedLiveModels =
@@ -2125,29 +2112,39 @@ export async function GET(
           connectionId,
           models: catalog.activeModels,
           source: "api",
+          warning: catalog.warning,
           discovery: { mode: codexDiscoveryMode },
           ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
         });
       }
 
       if (cachedDiscoveryModels.length > 0) {
-        await persistFilteredCacheIfNeeded();
+        const catalog = reconcileCodexCatalog(
+          cachedDiscoveryModels,
+          "live",
+          "Codex live catalog unavailable — using cached catalog"
+        );
+        await persistFilteredCacheIfNeeded(catalog.activeModels);
         return buildResponse({
           provider,
           connectionId,
-          models: cachedCatalogModels,
+          models: catalog.activeModels,
           source: "cache",
-          warning: "Codex live catalog unavailable — using cached catalog",
+          warning: catalog.warning,
         });
       }
       if (githubCatalogModels && githubCatalogModels.length > 0) {
-        const catalog = reconcileCodexCatalog(githubCatalogModels, "github");
+        const catalog = reconcileCodexCatalog(
+          githubCatalogModels,
+          "github",
+          "Codex live catalog unavailable — using GitHub model catalog"
+        );
         return buildResponse({
           provider,
           connectionId,
           models: catalog.activeModels,
           source: "github_catalog",
-          warning: "Codex live catalog unavailable — using GitHub model catalog",
+          warning: catalog.warning,
           discovery: { mode: codexDiscoveryMode },
           ...(includeCandidates ? { candidateModels: catalog.candidateModels } : {}),
         });
