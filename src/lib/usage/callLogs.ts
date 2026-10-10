@@ -10,6 +10,7 @@ import path from "node:path";
 import type { RequestPipelinePayloads } from "@omniroute/open-sse/utils/requestLogger.ts";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { getDbInstance } from "../db/core";
+import { failPendingCallLogDetail, publishPendingCallLogDetail } from "../db/callLogDetails";
 import { getRequestDetailLogByCallLogId } from "../db/detailedLogs";
 import { shouldPersistToDisk } from "./migrations";
 import { updateRequestTokensById } from "./usageHistory";
@@ -764,29 +765,14 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         protectedError !== null ||
         protectedPipelinePayloads !== null);
 
-    let detailState: CallLogDetailState = "none";
-    let artifactRelPath: string | null = null;
-    let artifactSizeBytes: number | null = null;
-    let artifactSha256: string | null = null;
-
-    if (detailExpected) {
-      const artifact = buildArtifact(
-        logEntry,
-        protectedRequestBody,
-        protectedResponseBody,
-        protectedError,
-        protectedPipelinePayloads
-      );
-      const artifactResult = await writeCallArtifactAsync(artifact);
-      if (artifactResult) {
-        detailState = "ready";
-        artifactRelPath = artifactResult.relPath;
-        artifactSizeBytes = artifactResult.sizeBytes;
-        artifactSha256 = artifactResult.sha256;
-      } else {
-        detailState = "missing";
-      }
-    }
+    // The row is inserted BEFORE its artifact is written: the artifact path is
+    // derived from (timestamp, id), so the id must be final — i.e. accepted by
+    // the UNIQUE primary key — before any file is published. Writing first and
+    // regenerating the id afterwards let a repeated explicit id + timestamp
+    // overwrite an earlier row's artifact. Pending is a durable export barrier;
+    // a failed or abandoned write becomes terminal missing instead.
+    const initialDetailState: CallLogDetailState = detailExpected ? "pending" : "none";
+    const detailPendingUntil = detailExpected ? Date.now() + 5 * 60_000 : null;
 
     // Optional column (migration 191) — only fixed identifiers are spliced in.
     const resilienceCol = hasResilienceColumn ? ", resilience_actions" : "";
@@ -802,7 +788,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         reasoning_encrypted,
         cache_source, request_type, source_format, target_format, api_key_id, api_key_name,
         combo_name, combo_step_id, combo_execution_key, error_summary, detail_state,
-        artifact_relpath, artifact_size_bytes, artifact_sha256,
+        detail_pending_until, artifact_relpath, artifact_size_bytes, artifact_sha256,
         has_request_body, has_response_body, has_pipeline_details, request_summary,
         correlation_id, model_pinned, session_tag, response_id, error_type,
         video_content_removed, has_content, usage_provenance,
@@ -817,7 +803,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
         @reasoningEncrypted,
         @cacheSource, @requestType, @sourceFormat, @targetFormat, @apiKeyId, @apiKeyName,
         @comboName, @comboStepId, @comboExecutionKey, @errorSummary, @detailState,
-        @artifactRelPath, @artifactSizeBytes, @artifactSha256,
+        @detailPendingUntil, @artifactRelPath, @artifactSizeBytes, @artifactSha256,
         @hasRequestBody, @hasResponseBody, @hasPipelineDetails, @requestSummary,
         @correlationId, @modelPinned, @sessionTag, @responseId, @errorType,
         @videoContentRemoved, @hasContent, @usageProvenance,
@@ -828,10 +814,11 @@ async function saveCallLogOperation(entry: any): Promise<void> {
     const insertParams = {
       ...logEntry,
       errorSummary: toStoredErrorSummary(protectedError),
-      detailState,
-      artifactRelPath,
-      artifactSizeBytes,
-      artifactSha256,
+      detailState: initialDetailState,
+      detailPendingUntil,
+      artifactRelPath: null,
+      artifactSizeBytes: null,
+      artifactSha256: null,
       hasRequestBody: protectedRequestBody !== null ? 1 : 0,
       hasResponseBody: protectedResponseBody !== null ? 1 : 0,
       resilienceActions,
@@ -839,7 +826,7 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       requestSummary,
     };
     // #14451: a 6-char dashboard traceId (or any reused explicit id) can collide.
-    // Keep the already-written artifact path; only the SQLite primary key is regenerated.
+    // Regenerate logEntry.id too, so the artifact summary and path use the final id.
     for (let attempt = 0; ; attempt++) {
       try {
         insertStmt.run(insertParams);
@@ -847,12 +834,33 @@ async function saveCallLogOperation(entry: any): Promise<void> {
       } catch (error) {
         if (!isCallLogIdCollision(error) || attempt >= CALL_LOG_ID_RETRY_LIMIT) throw error;
         insertParams.id = generateLogId();
+        logEntry.id = insertParams.id;
       }
     }
     // sink note: the sink is the unique consumer — reset only after a successful
     // INSERT, so a failed write (or a second persistence of the same
     // attempt) keeps the summary instead of silently writing NULL.
     resetResilienceActions();
+
+    let detailState: CallLogDetailState = initialDetailState;
+    if (detailExpected) {
+      try {
+        const artifact = buildArtifact(
+          logEntry,
+          protectedRequestBody,
+          protectedResponseBody,
+          protectedError,
+          protectedPipelinePayloads
+        );
+        const artifactResult = await writeCallArtifactAsync(artifact);
+        if (artifactResult && publishPendingCallLogDetail(db, logEntry.id, artifactResult)) {
+          detailState = "ready";
+        }
+      } finally {
+        // A null result or a thrown write must not strand the export cursor.
+        failPendingCallLogDetail(db, logEntry.id);
+      }
+    }
 
     if (detailState === "ready" && typeof logEntry.responseId === "string") {
       // The durable row is now authoritative; drop the bridge entry instead

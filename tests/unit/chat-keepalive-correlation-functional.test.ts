@@ -157,7 +157,7 @@ test("slow streaming chat request persists keepalive bytes in the call-log row",
   while (!row && Date.now() < deadline) {
     const recent = (await getCallLogs({ limit: 10 })) as Array<Record<string, unknown>>;
     const summary = recent.find((r) => JSON.stringify(r).includes(correlationId));
-    if (summary?.id) {
+    if (summary?.id && summary.detailState === "ready") {
       row = (await getCallLogById(summary.id as string)) as Record<string, unknown> | null;
     }
     if (!row) await new Promise((resolve) => setTimeout(resolve, 50));

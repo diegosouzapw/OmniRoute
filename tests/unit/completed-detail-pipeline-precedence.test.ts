@@ -12,9 +12,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { writeCallArtifact } = await import("../../src/lib/usage/callLogArtifacts.ts");
-const { maybeEnrichCompletedDetail } = await import(
-  "../../src/lib/usage/completedRequestDetails.ts"
-);
+const { maybeEnrichCompletedDetail } =
+  await import("../../src/lib/usage/completedRequestDetails.ts");
 
 type PipelinePayloads = { providerResponse?: unknown; clientResponse?: unknown };
 
@@ -87,6 +86,25 @@ test("completed-detail enrichment prefers the pipeline over the body", async (t)
 
     assert.deepEqual(detail.providerResponse, { from: "responseBody" });
     assert.deepEqual(detail.clientResponse, { from: "responseBody" });
+  });
+
+  await t.test("pending rows do not consume the readable candidate limit", async () => {
+    const connectionId = "conn-pending-candidates";
+    seedRow("older-readable", connectionId, { providerResponse: { from: "older-ready" } });
+    const insert = core.getDbInstance().prepare(
+      `INSERT INTO call_logs (id, timestamp, method, model, connection_id, detail_state)
+       VALUES (?, ?, 'POST', 'openai/gpt-4.1', ?, 'pending')`
+    );
+    for (let index = 0; index < 5; index++) {
+      insert.run(
+        `newer-pending-${index}`,
+        new Date(Date.now() + index + 1000).toISOString(),
+        connectionId
+      );
+    }
+
+    const detail = await enrich("completed-candidates", connectionId);
+    assert.deepEqual(detail.providerResponse, { from: "older-ready" });
   });
 
   await t.test("a half-filled pipeline keeps its side and the body fills the other", async () => {

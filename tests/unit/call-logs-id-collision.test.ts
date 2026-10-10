@@ -16,6 +16,7 @@ process.env.DATA_DIR = testDataDir;
 
 const coreDb = await import("../../src/lib/db/core.ts");
 const callLogs = await import("../../src/lib/usage/callLogs.ts");
+const artifacts = await import("../../src/lib/usage/callLogArtifacts.ts");
 const { persistAttemptLogs } = await import("../../open-sse/handlers/chatCore/attemptLogging.ts");
 const { on } = await import("../../src/lib/events/eventBus.ts");
 
@@ -178,6 +179,52 @@ test("saveCallLog retries UNIQUE on an explicit id instead of dropping the secon
   const regenerated = rows.find((row) => row.id !== collidingId);
   assert.ok(regenerated);
   assert.match(regenerated.id, UUID_RE);
+});
+
+test("a repeated explicit id with the same timestamp does not overwrite the first row's artifact", async () => {
+  clearCallLogs();
+  const collidingId = "replayed-session-id";
+  const timestamp = "2026-10-05T12:00:00.000Z";
+  const base = {
+    id: collidingId,
+    timestamp,
+    method: "POST",
+    path: "/v1/responses",
+    model: "test-model",
+    provider: "test-provider",
+    duration: 1,
+    tokens: { in: 0, out: 0 },
+  };
+  await callLogs.saveCallLog({ ...base, status: 500, error: "first attempt detail" });
+  await callLogs.saveCallLog({ ...base, status: 502, error: "second attempt detail" });
+  assert.equal(await callLogs.waitForCallLogSaves(10_000), true);
+
+  const rows = coreDb
+    .getDbInstance()
+    .prepare("SELECT id, status, artifact_relpath FROM call_logs ORDER BY status")
+    .all() as Array<{ id: string; status: number; artifact_relpath: string | null }>;
+  assert.equal(rows.length, 2);
+  assert.ok(rows.every((row) => row.artifact_relpath));
+  assert.notEqual(
+    rows[0].artifact_relpath,
+    rows[1].artifact_relpath,
+    "two rows must never share one artifact file"
+  );
+
+  for (const [row, expectedError] of [
+    [rows[0], "first attempt detail"],
+    [rows[1], "second attempt detail"],
+  ] as const) {
+    const detail = await callLogs.getCallLogById(row.id);
+    assert.equal(detail?.detailState, "ready");
+    assert.equal(detail?.error, expectedError, `row ${row.status} must open its own artifact`);
+    const { artifact } = artifacts.readCallArtifact(row.artifact_relpath);
+    assert.equal(
+      artifact?.summary.id,
+      row.id,
+      "artifact summary.id must match the row's final primary key"
+    );
+  }
 });
 
 test("chatCore does not truncate randomUUID to six hex chars for the request trace", () => {

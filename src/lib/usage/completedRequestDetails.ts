@@ -165,7 +165,7 @@ export function maybeEnrichCompletedDetail(updated: PendingRequestDetail, connec
       const sinceIso = new Date(Date.now() - 30_000).toISOString();
       const rows = db
         .prepare(
-          `SELECT artifact_relpath FROM call_logs WHERE connection_id = ? AND model = ? AND timestamp >= ? ORDER BY timestamp DESC LIMIT 5`
+          `SELECT artifact_relpath FROM call_logs WHERE connection_id = ? AND model = ? AND timestamp >= ? AND detail_state = 'ready' AND artifact_relpath IS NOT NULL ORDER BY timestamp DESC LIMIT 5`
         )
         .all(connectionId, updated.model, sinceIso) as Array<{ artifact_relpath: string | null }>;
       for (const row of rows) {

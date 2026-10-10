@@ -17,6 +17,7 @@
  */
 
 import { getDbInstance } from "../db/core";
+import { expirePendingCallLogDetails } from "../db/callLogDetails";
 import { applyNodePrefix, getCallLogById, resolveProviderDisplay } from "./callLogs";
 import type { LogExportRecord, LogExportSourceRow } from "../logExport/types";
 
@@ -238,8 +239,13 @@ export function countCallLogsAfterRowId(afterRowId: number): number {
 }
 
 /** One batch of exportable rows, oldest first, paired with their cursor value. */
-export function getCallLogsForExport(afterRowId: number, limit: number): LogExportSourceRow[] {
+export function getCallLogsForExport(
+  afterRowId: number,
+  limit: number,
+  options: Pick<CallLogExportOptions, "includeBodies"> = {}
+): LogExportSourceRow[] {
   const db = getDbInstance();
+  if (options.includeBodies) expirePendingCallLogDetails(db);
   const rows = db
     .prepare(
       `SELECT cl.rowid AS row_id, cl.*,
@@ -255,5 +261,10 @@ export function getCallLogsForExport(afterRowId: number, limit: number): LogExpo
     )
     .all({ afterRowId, limit }) as ExportSourceRow[];
 
-  return rows.map((row) => ({ rowId: Number(row.row_id), record: mapExportRow(row) }));
+  // Never advance a body-export cursor past a write that can still publish payloads.
+  const pendingIndex = options.includeBodies
+    ? rows.findIndex((row) => row.detail_state === "pending")
+    : -1;
+  const exportable = pendingIndex < 0 ? rows : rows.slice(0, pendingIndex);
+  return exportable.map((row) => ({ rowId: Number(row.row_id), record: mapExportRow(row) }));
 }

@@ -59,7 +59,8 @@ function preserveErrorForSizeLimit(error: unknown): unknown {
   return `${truncateUtf8(serialized, MAX_PRESERVED_ERROR_BYTES)} ${ERROR_TRUNCATED_FOR_SIZE_LIMIT}`;
 }
 
-export type CallLogDetailState = "none" | "ready" | "missing" | "corrupt" | "legacy-inline";
+export type CallLogDetailState =
+  "none" | "pending" | "ready" | "missing" | "corrupt" | "legacy-inline";
 
 export type CallLogArtifact = {
   schemaVersion: 5;
@@ -227,7 +228,9 @@ function buildSizeLimitStages(artifact: CallLogArtifact): Array<() => unknown> {
   const omitBodies = <T extends object>(value: T, keepResponse = false) => ({
     ...value,
     requestBody: OMITTED_FOR_SIZE_LIMIT,
-    responseBody: keepResponse ? (value as { responseBody: unknown }).responseBody : OMITTED_FOR_SIZE_LIMIT,
+    responseBody: keepResponse
+      ? (value as { responseBody: unknown }).responseBody
+      : OMITTED_FOR_SIZE_LIMIT,
     error: preserveErrorForSizeLimit(artifact.error),
   });
 

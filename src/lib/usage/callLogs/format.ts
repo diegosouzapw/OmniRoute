@@ -47,6 +47,7 @@ export function parseInlineError(value: unknown): unknown {
 export function normalizeDetailState(value: unknown): CallLogDetailState {
   if (
     value === "ready" ||
+    value === "pending" ||
     value === "missing" ||
     value === "corrupt" ||
     value === "legacy-inline"

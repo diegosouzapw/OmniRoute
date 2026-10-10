@@ -62,7 +62,7 @@ async function pollForCallLog(traceId: string, tries = 120) {
   // correlation_id so a test can still find the attempt without sharing a PK.
   for (let i = 0; i < tries; i++) {
     const rows = await getCallLogs({ correlationId: traceId, limit: 5 });
-    if (rows[0]?.id) {
+    if (rows[0]?.id && rows[0].detailState === "ready") {
       const row = await getCallLogById(rows[0].id);
       if (row) return row as Record<string, unknown>;
     }

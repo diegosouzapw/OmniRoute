@@ -51,7 +51,7 @@ async function waitForAsyncSideEffects() {
 
 async function getLatestCallLog() {
   const rows = await getCallLogs({ limit: 5 });
-  if (!Array.isArray(rows) || rows.length === 0) return null;
+  if (!Array.isArray(rows) || rows.length === 0 || rows[0].detailState !== "ready") return null;
   return getCallLogById(rows[0].id);
 }
 

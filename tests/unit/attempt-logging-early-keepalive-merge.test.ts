@@ -63,7 +63,7 @@ async function pollForCallLog(traceId: string, deadlineMs = POLL_DEADLINE_MS) {
     const rows = await getCallLogs({ correlationId: traceId, limit: 5 });
     if (rows[0]?.id) {
       const row = await getCallLogById(rows[0].id);
-      if (row) return row as Record<string, unknown>;
+      if (row?.detailState === "ready") return row as Record<string, unknown>;
     }
     if (Date.now() >= deadline) return null;
     await new Promise((r) => setTimeout(r, 20));

@@ -126,7 +126,9 @@ export async function runDestinationExport(
 
     while (result.exported < maxRows) {
       const remaining = maxRows - result.exported;
-      const summaries = getCallLogsForExport(cursor, Math.min(batchSize, remaining));
+      const summaries = getCallLogsForExport(cursor, Math.min(batchSize, remaining), {
+        includeBodies: destination.includeBodies,
+      });
       if (summaries.length === 0) break;
 
       // Payload hydration is per-row filesystem work, so it only runs when the

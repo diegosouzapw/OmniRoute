@@ -68,8 +68,8 @@ already PII-sanitised and secret-redacted when they are written, and a call made
 `noLog` API key stores no payload at all, so there is nothing to export.
 
 Payloads are read per row from the filesystem artifact, so hydration only runs for destinations
-that asked for it. A row whose artifact is missing or corrupt exports its summary with null
-payloads rather than failing the batch and stranding the cursor.
+that asked for it. A missing or corrupt artifact exports its summary with null payloads rather
+than failing the batch and stranding the cursor.
 
 `maxBodyBytes` (default 262144) caps each field. Longer payloads are **truncated rather than
 dropped** — a clipped prompt still answers "what was asked" — and the row is flagged with
