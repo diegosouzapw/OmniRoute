@@ -176,3 +176,19 @@ test("t() usa pt-BR quando disponível", async () => {
   assert.ok(result.includes("omniroute serve"), `Esperava mensagem pt-BR, obteve: ${result}`);
   resetForTests();
 });
+
+test("maltese catalog interpolates the saved path", async () => {
+  const { resetForTests, t, setLocale } = await import("../../bin/cli/i18n.mjs");
+  resetForTests();
+  setLocale("mt");
+  const outPath = ["", "tmp", "out.json"].join("/");
+  const logsPath = ["", "tmp", "logs.json"].join("/");
+  const packsDir = ["", "tmp", "packs"].join("/");
+  assert.equal(t("test.saved", { path: outPath }), `Rizultati ħliefa fi ${outPath}`);
+  assert.equal(t("logs.exported", { path: logsPath }), `Logs issejvjati fi ${logsPath}`);
+  assert.equal(
+    t("packs.installed", { name: "demo", dir: packsDir }),
+    `pack "demo" installat u verifikat fi ${packsDir}`
+  );
+  resetForTests();
+});

@@ -1,0 +1,1 @@
+- **fix(i18n):** keep rich-text tags across locales and Maltese CLI paths ([#16162](https://github.com/diegosouzapw/OmniRoute/pull/16162)) — thanks @maxmad64bis

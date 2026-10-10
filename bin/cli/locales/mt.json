@@ -331,7 +331,7 @@
     "repeatOpt": "Irrepeti l-ittestjar N darbiet u aggrega r-rizultati",
     "compareOpt": "Mudelli separati b'virgola biex tivvaluta (e.g. gpt-4o,claude-3-5-sonnet)",
     "saveOpt": "Ħlif ir-rizultati f'fajl JSON",
-    "saved": "Rizultati ħliefa f'{path}'",
+    "saved": "Rizultati ħliefa fi {path}",
     "compareTitle": "Vvalutazzjoni tal-Mudelli",
     "compareMinTwo": "Mhux anqas żewġ mudelli meħtieġa għal --compare (separati b'virgola)",
     "noProviders": "L-ebda fornituri mqabbdin. Żid wieħed b'permezz ta': omniroute keys add"
@@ -1250,7 +1250,7 @@
     "durationMin": "Durata minima tat-talba f'ms",
     "durationMax": "Durata massima tat-talba f'ms",
     "export": "Issejvja l-logs f'fajl (json/jsonl/csv)",
-    "exported": "Logs issejvjati f'{path}",
+    "exported": "Logs issejvjati fi {path}",
     "stopped": "Il-fluss tal-log waqaf.",
     "streamError": "Żball fil-fluss tal-log: {message}"
   },
@@ -1329,7 +1329,7 @@
     "warnNoIndex": "optional-packs.index.json ma nstabx — install/verifika mhumiex disponibbli f'dan il-checkout (desktop bundles jibagħthu)",
     "errUnknown": "pack mhux magħruf: {name}",
     "errNoIndex": "indiċi tal-pack ma nstabx; għaddi --source <dir> li fih il-payload tal-pack (desktop bundles jibagħthu ħdejn l-app)",
-    "installed": "pack \"{name}\" installat u verifikat f'{dir}'",
+    "installed": "pack \"{name}\" installat u verifikat fi {dir}",
     "restartHint": "terġa' tibda l-server tal-OmniRoute (jew l-app desktop) sabiex il-ħin tax-xogħol jaħbad il-pack",
     "removed": "pack \"{name}\" neħħa",
     "notInstalled": "pack \"{name}\" ma kienx installat",

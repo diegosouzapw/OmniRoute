@@ -9287,7 +9287,7 @@
     "previous": "上一页",
     "next": "下一页",
     "providerExposure": "提供者暴露",
-    "providerExposureDescription": "将 9Router 模型以 9router/ 前缀暴露为路由目标。",
+    "providerExposureDescription": "将 9Router 模型以 <prefix>9router/</prefix> 前缀暴露为路由目标。",
     "providerExposureLabel": "以 <prefix>9router/...</prefix> 前缀暴露",
     "providerExposureHint": "启用后，发现的模型会出现在 OmniRoute 各处的提供者选择器中。",
     "providerExposureUpdateFailed": "更新失败 (HTTP {status})",

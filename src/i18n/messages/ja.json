@@ -14526,7 +14526,7 @@
     "errorImportFailed": "インポートに失敗しました",
     "title": "Trae SOLOに接続する",
     "authorizeDescription": "ポップアップで<code>trae.ai</code>を介して認証します。トークンがインポートされると、ポップアップは自動的に閉じます。",
-    "authorizeImportant": "<strong>重要:</strong> まず、このブラウザで <code>trae.ai</code> にログインしている必要があります。認証ページは既存のセッションを確認するだけで、サインインすることはできません。「ログイン失敗」と表示された場合は、「solo.trae.aiを開く」をクリックし、サインインしてからここに戻ってください。",
+    "authorizeImportant": "<strong>重要:</strong> まず、この<em>ブラウザ</em>で <code>trae.ai</code> にログインしている必要があります。認証ページは既存のセッションを確認するだけで、サインインすることはできません。「ログイン失敗」と表示された場合は、「solo.trae.aiを開く」をクリックし、サインインしてからここに戻ってください。",
     "waitingForAuthorization": "trae.aiを待っています…",
     "authorizeWithBrowser": "ブラウザで認証する",
     "openSoloTrae": "solo.trae.ai を開く",

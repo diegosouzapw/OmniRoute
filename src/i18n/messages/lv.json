@@ -14526,7 +14526,7 @@
     "errorImportFailed": "Importēšana neizdevās",
     "title": "Izveidot savienojumu ar Trae SOLO",
     "authorizeDescription": "Autorizējieties, izmantojot <code>trae.ai</code> uznirstošajā logā. Pēc pilnvaras importēšanas uznirstošais logs tiks automātiski aizvērts.",
-    "authorizeImportant": "<strong>Svarīgi:</strong> vispirms šajā pārlūkprogrammā jums ir jāpiesakās <code>trae.ai</code>. Autorizācijas lapa tikai apstiprina esošu sesiju — tā nevar jūs pieteikt. Ja redzat “Pieteikšanās neizdevās”, noklikšķiniet uz “Atvērt solo.trae.ai”, piesakieties un pēc tam atgriezieties šeit.",
+    "authorizeImportant": "<strong>Svarīgi:</strong> vispirms šajā <em>pārlūkprogrammā</em> jums ir jāpiesakās <code>trae.ai</code>. Autorizācijas lapa tikai apstiprina esošu sesiju — tā nevar jūs pieteikt. Ja redzat “Pieteikšanās neizdevās”, noklikšķiniet uz “Atvērt solo.trae.ai”, piesakieties un pēc tam atgriezieties šeit.",
     "waitingForAuthorization": "Gaida trae.ai…",
     "authorizeWithBrowser": "Autorizēt, izmantojot pārlūkprogrammu",
     "openSoloTrae": "Atvērt solo.trae.ai",

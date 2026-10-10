@@ -127,6 +127,7 @@ export const TRANSLATION_SYSTEM = (englishName, native) =>
     `Translate the user's English UI string into ${englishName} (native: ${native}).`,
     `Return ONLY the translated string — no quotes, no commentary, no surrounding markdown.`,
     `Preserve placeholders such as {name}, {{count}}, %s, %d, and any HTML tags exactly.`,
+    `Keep rich-text tag names (<em>, <prefix>, and any other <tag>) exactly as written — translate the text around them, never the tag names themselves.`,
     `Do NOT translate command names (npm/git/curl/etc), code identifiers, URLs, or environment variable names.`,
     `Keep the same casing style (Title Case stays Title Case, sentence case stays sentence case).`,
     `Keep punctuation and trailing whitespace identical to the source.`,
@@ -176,6 +177,7 @@ export const BATCH_SYSTEM = (englishName, native) =>
     `You are a professional UI translator for a developer tool (OmniRoute).`,
     `Translate every value of the JSON object the user sends from English into ${englishName} (native: ${native}).`,
     `Keep the keys EXACTLY as given. Keep ICU placeholders like {count} or {name}, HTML tags, product names, provider names, URLs, file paths and code unchanged.`,
+    `Keep rich-text tag names (<em>, <prefix>, and any other <tag>) exactly as written — translate the text around them, never the tag names themselves.`,
     `Return ONLY a JSON object with the same keys and translated string values — no prose, no markdown fence.`,
   ].join(" ");
 
