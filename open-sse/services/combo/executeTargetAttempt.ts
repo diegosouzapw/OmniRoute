@@ -51,7 +51,7 @@ import { recordStickyBinding } from "./sessionStickiness.ts";
 import { recordStickyWeightedSuccess } from "./rrState.ts";
 import { resolveReasoningBufferedMaxTokens, toPositiveInteger } from "../reasoningTokenBuffer.ts";
 import { parseModel } from "../model.ts";
-import { getNextFamilyFallback } from "../modelFamilyFallback.ts";
+import { getNextEligibleFamilyFallback } from "../modelFamilyFallback.ts";
 import type { ProviderProfile } from "../accountFallback.ts";
 import {
   MAX_FALLBACK_WAIT_MS,
@@ -447,7 +447,12 @@ export async function executeTargetAttempt(opts: {
         // same model just repeats the refusal, so let the combo advance instead.
         const familyNext =
           provider && provider !== "unknown" && !quality.upstreamFailure?.requestScoped
-            ? getNextFamilyFallback(modelStr, familyTried, provider)
+            ? getNextEligibleFamilyFallback(
+                modelStr,
+                familyTried,
+                provider,
+                targetForAttempt.connectionId || ""
+              )
             : null;
         if (familyNext && familyNext !== modelStr) {
           deps.log.info("COMBO", `Quality fail ${modelStr} -> family sibling ${familyNext}`);
