@@ -144,6 +144,7 @@ export async function GET() {
       comboCooldownWait: resilience.comboCooldownWait,
       quotaShareConcurrencyLimit: resilience.quotaShareConcurrencyLimit,
       streamStallCooldown: resilience.streamStallCooldown,
+      streamRecovery: resilience.streamRecovery,
       providerCooldown: resilience.providerCooldown,
       quotaPreflight: resilience.quotaPreflight,
       providerQuotaOverrides: resilience.providerQuotaOverrides,
@@ -227,6 +228,11 @@ export async function PATCH(request) {
               body.streamStallCooldown as ResilienceSettingsPatch["streamStallCooldown"],
           }
         : {}),
+      ...(body.streamRecovery
+        ? {
+            streamRecovery: body.streamRecovery as ResilienceSettingsPatch["streamRecovery"],
+          }
+        : {}),
       ...(body.providerCooldown
         ? {
             providerCooldown: body.providerCooldown as ResilienceSettingsPatch["providerCooldown"],
@@ -285,6 +291,7 @@ export async function PATCH(request) {
       comboCooldownWait: nextResilience.comboCooldownWait,
       quotaShareConcurrencyLimit: nextResilience.quotaShareConcurrencyLimit,
       streamStallCooldown: nextResilience.streamStallCooldown,
+      streamRecovery: nextResilience.streamRecovery,
       providerCooldown: nextResilience.providerCooldown,
       quotaPreflight: nextResilience.quotaPreflight,
       providerQuotaOverrides: nextResilience.providerQuotaOverrides,

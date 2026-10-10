@@ -1,0 +1,1 @@
+- **fix(resilience):** PATCH /api/resilience accepts and returns the stream recovery block, so stored values can be changed without direct database edits ([#16272](https://github.com/diegosouzapw/OmniRoute/pull/16272)) — thanks @maxmad64bis

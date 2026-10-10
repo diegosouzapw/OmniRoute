@@ -560,6 +560,8 @@ test("resilience API only exposes configuration, not runtime breaker state", asy
   // `quotaPreflight` joined in #12014 (Settings → Routing Quota Preflight card);
   // `credentialHealthCheck` joined in #12043 (the sweep's intervalMinutes setting);
   // `streamStallCooldown` decides whether a stream content stall cools the account.
+  // `streamRecovery` joined the projection with this change: the route stores the
+  // block on every PATCH, so GET exposes it like every other stored block.
   assert.deepEqual(Object.keys(json).sort(), [
     "comboCooldownWait",
     "connectionCooldown",
@@ -571,6 +573,7 @@ test("resilience API only exposes configuration, not runtime breaker state", asy
     "quotaPreflight",
     "quotaShareConcurrencyLimit",
     "requestQueue",
+    "streamRecovery",
     "streamStallCooldown",
     "tokenRefreshBreaker",
     "waitForCooldown",
