@@ -1,5 +1,6 @@
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { createErrorResponseFromUnknown } from "@/lib/api/errorResponse";
+import { readSelectorEarlyReasons } from "@/lib/proxySubscription/selectorEarlyReasons";
 import {
   listSubscriptions,
   createSubscription,
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
     const items = await listSubscriptions();
     // Redact credentials in the subscription URL before sending to the client.
     const safe = items.map((it) => ({ ...it, url: redactSubscriptionUrl(it.url) }));
-    return Response.json({ items: safe });
+    return Response.json({ items: safe, earlyReasons: readSelectorEarlyReasons() });
   } catch (error) {
     return createErrorResponseFromUnknown(error, "Failed to list proxy subscriptions");
   }
