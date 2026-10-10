@@ -117,6 +117,10 @@ export async function deliverWebhook(
         return { success: response.ok, status: response.status };
       }
 
+      if (attempt === maxRetries) {
+        return { success: false, status: response.status, error: "Max retries exceeded" };
+      }
+
       if (attempt < maxRetries) {
         await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
       }
