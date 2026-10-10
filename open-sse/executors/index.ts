@@ -193,6 +193,7 @@ const lazyExecutors: Record<string, () => Promise<BaseExecutor>> = {
   chatplayground: () => import("./chatplayground.ts").then((m) => new m.ChatPlaygroundExecutor()),
   cpl: () =>
     import("./chatplayground.ts").then((m) => new m.ChatPlaygroundExecutor("chatplayground")), // Alias
+  factory: () => import("./factory.ts").then((m) => new m.FactoryExecutor()),
 };
 
 // Bootstrap: declare every built-in alias in the ExecutorRegistry. Duplicate
