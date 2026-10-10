@@ -1,0 +1,844 @@
+# Shadow pilot only. Existing admission checks remain authoritative.
+name: Reusable PR Policy Shadow
+"on":
+  workflow_call:
+    inputs:
+      run-all:
+        type: boolean
+        required: false
+        default: false
+permissions:
+  contents: read
+env:
+  OMNIROUTE_SKIP_SYSTEM_TRUST: "1"
+  CI_NODE_VERSION: "24"
+  SHADOW_WORKFLOW_SHA: ${{ github.workflow_sha }}
+  SHADOW_RUN_ALL: ${{ inputs.run-all }}
+  GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+  BASE_REF: ${{ github.event.pull_request.base.sha }}
+  CHANGELOG_BASE_REF: ${{ github.event.pull_request.base.sha }}
+jobs:
+  bootstrap:
+    name: Shadow / Bootstrap
+    runs-on: ubuntu-latest
+    outputs:
+      plan_hash: ${{ steps.plan.outputs.plan_hash }}
+      ci_docs_sync_strict: ${{ steps.plan.outputs.ci_docs_sync_strict }}
+      ci_docs_lint: ${{ steps.plan.outputs.ci_docs_lint }}
+      ci_i18n_ui_coverage: ${{ steps.plan.outputs.ci_i18n_ui_coverage }}
+      ci_i18n_glossary_zhcn: ${{ steps.plan.outputs.ci_i18n_glossary_zhcn }}
+      ci_i18n: ${{ steps.plan.outputs.ci_i18n }}
+      ci_pr_test_policy: ${{ steps.plan.outputs.ci_pr_test_policy }}
+      quality_docs_gates: ${{ steps.plan.outputs.quality_docs_gates }}
+      quality_merge_integrity: ${{ steps.plan.outputs.quality_merge_integrity }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - name: Classify and plan without dependencies
+        id: plan
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" plan
+      - name: Preserve plan
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}/plan.json
+          if-no-files-found: error
+  ci_docs_sync_strict:
+    name: Shadow / ci:docs-sync-strict
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.ci_docs_sync_strict == 'true' }}
+    continue-on-error: false
+    env:
+      SHADOW_GROUP: ci:docs-sync-strict
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - uses: ./.github/actions/npm-ci-retry
+        with:
+          cache: ${{ github.event_name == 'pull_request' }}
+      - run: npm run check:docs-all
+        id: gate_0
+      - name: CLI i18n consistency
+        run: npm run check:cli-i18n
+        id: gate_1
+      - name: OpenAPI route coverage (ratchet)
+        run: npm run check:openapi-coverage
+        id: gate_2
+      - name: OpenAPI security-tier consistency (advisory)
+        run: npm run check:openapi-security-tiers
+        id: gate_3
+      - name: "API docs refs (openapi + prose \u2192 routes)"
+        run: npm run check:api-docs-refs
+        id: gate_4
+      - name: i18n docs drift (sources changed since their translation)
+        run: node scripts/i18n/check-translation-drift.mjs
+        id: gate_5
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_docs_sync_strict
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  ci_docs_lint:
+    name: Shadow / ci:docs-lint
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.ci_docs_lint == 'true' }}
+    continue-on-error: true
+    env:
+      SHADOW_GROUP: ci:docs-lint
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - name: markdownlint (docs + root, advisory)
+        run: |
+          set +e
+          npx --yes markdownlint-cli2 "docs/**/*.md" "*.md" "!docs/i18n" "!docs/research"
+          result=$?
+          echo "raw_exit=$result" >> "$GITHUB_OUTPUT"
+          exit 0
+        id: gate_0
+      - name: Vale prose lint (Microsoft style, advisory)
+        continue-on-error: true
+        uses: errata-ai/vale-action@reviewdog
+        with:
+          files: docs
+          fail_on_error: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: gate_1
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_docs_lint
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  ci_i18n_ui_coverage:
+    name: Shadow / ci:i18n-ui-coverage
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.ci_i18n_ui_coverage == 'true' }}
+    continue-on-error: false
+    env:
+      SHADOW_GROUP: ci:i18n-ui-coverage
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - uses: ./.github/actions/npm-ci-retry
+        with:
+          cache: ${{ github.event_name == 'pull_request' }}
+      - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+        id: gate_0
+      - name: i18n ICU compilation (all UI catalogs)
+        run: npm run check:ui-icu
+        id: gate_1
+      - name: i18n real-translation ratio
+        run: node scripts/i18n/check-translation-ratio.mjs
+        id: gate_2
+      - name: i18n UI value drift (stale translations)
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/i18n/check-ui-value-drift.mjs
+        id: gate_3
+      - name: i18n new-key coverage (a new key must reach every locale)
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/i18n/check-new-key-coverage.mjs
+        id: gate_4
+      - name: i18n key completeness (every locale carries every en.json key)
+        run: node scripts/i18n/check-key-completeness.mjs
+        id: gate_5
+      - name: i18n key completeness (CLI catalogs)
+        run: node scripts/i18n/check-key-completeness.mjs --catalog=cli
+        id: gate_6
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_i18n_ui_coverage
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  ci_i18n_glossary_zhcn:
+    name: Shadow / ci:i18n-glossary-zhcn
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.ci_i18n_glossary_zhcn == 'true' }}
+    continue-on-error: false
+    env:
+      SHADOW_GROUP: ci:i18n-glossary-zhcn
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - uses: ./.github/actions/npm-ci-retry
+        with:
+          cache: ${{ github.event_name == 'pull_request' }}
+      - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-CN
+        id: gate_0
+      - run: node scripts/i18n/check-glossary-consistency.mjs --locale=zh-TW
+        id: gate_1
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_i18n_glossary_zhcn
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  ci_i18n:
+    name: Shadow / ci:i18n
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.ci_i18n == 'true' }}
+    continue-on-error: true
+    env:
+      SHADOW_GROUP: ci:i18n
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Validate all languages
+        run: |
+          set -uo pipefail
+          mkdir -p i18n-results
+          FAIL=0
+          for f in src/i18n/messages/*.json; do
+            lang=$(basename "$f" .json)
+            [ "$lang" = "en" ] && continue
+            echo "::group::i18n $lang"
+            if python3 scripts/i18n/validate_translation.py quick -l "$lang" > "i18n-results/$lang.txt" 2>&1; then
+              echo "OK $lang"
+            else
+              FAIL=1
+              echo "FAIL $lang"
+              cat "i18n-results/$lang.txt"
+            fi
+            echo "::endgroup::"
+          done
+          exit "$FAIL"
+        id: gate_0
+      - name: Preserve original details
+        id: details
+        if: ${{ always() && steps.verify.outcome == 'success' }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" preserve
+      - name: Preserve details artifact
+        if: ${{ always() && steps.details.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-details-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_i18n
+          path: ${{ env.SHADOW_STATE_DIR }}/details
+          if-no-files-found: error
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_i18n
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  ci_pr_test_policy:
+    name: Shadow / ci:pr-test-policy
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.ci_pr_test_policy == 'true' }}
+    continue-on-error: false
+    env:
+      SHADOW_GROUP: ci:pr-test-policy
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - name: Fetch base branch
+        run: git cat-file -e "${GITHUB_BASE_SHA}^{commit}"
+        id: gate_0
+      - name: Validate source changes include tests
+        run: node scripts/check/check-pr-test-policy.mjs --summary-file .artifacts/pr-test-policy.md
+        id: gate_1
+      - name: Detect test-masking (weakened assertions)
+        run: npm run check:test-masking
+        id: gate_2
+      - name: Require evidence in PR body
+        run: npm run check:pr-evidence
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        id: gate_3
+      - name: Publish PR test policy summary
+        if: always()
+        run: |
+          if [ -f .artifacts/pr-test-policy.md ]; then
+            cat .artifacts/pr-test-policy.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+        id: gate_4
+      - name: Preserve original details
+        id: details
+        if: ${{ always() && steps.verify.outcome == 'success' }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" preserve
+      - name: Preserve details artifact
+        if: ${{ always() && steps.details.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-details-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_pr_test_policy
+          path: ${{ env.SHADOW_STATE_DIR }}/details
+          if-no-files-found: error
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-ci_pr_test_policy
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  quality_docs_gates:
+    name: Shadow / quality:docs-gates
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.quality_docs_gates == 'true' }}
+    continue-on-error: false
+    env:
+      SHADOW_GROUP: quality:docs-gates
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - uses: ./.github/actions/npm-ci-retry
+        with:
+          cache: ${{ github.event_name == 'pull_request' }}
+      - run: npm run check:api-docs-refs
+        id: gate_0
+      - name: Docs accuracy (fabricated-docs + i18n mirrors, strict)
+        run: npm run check:docs-all
+        id: gate_1
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-quality_docs_gates
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  quality_merge_integrity:
+    name: Shadow / quality:merge-integrity
+    runs-on: ubuntu-latest
+    needs: bootstrap
+    if: ${{ needs.bootstrap.outputs.quality_merge_integrity == 'true' }}
+    continue-on-error: false
+    env:
+      JWT_SECRET: ci-lint-secret-with-sufficient-length-for-validation
+      API_KEY_SECRET: ci-lint-api-key-secret-long
+      DISABLE_SQLITE_AUTO_BACKUP: "true"
+      SHADOW_GROUP: quality:merge-integrity
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - uses: ./.github/actions/npm-ci-retry
+        with:
+          cache: ${{ github.event_name == 'pull_request' }}
+      - name: CHANGELOG integrity (nenhum bullet da base pode sumir no merge-result)
+        run: npm run check:changelog-integrity
+        id: gate_0
+      - name: "Agent-skills generator sync (SKILL.md gerado \u2261 cat\xE1logo)"
+        run: npm run check:agent-skills-sync
+        id: gate_1
+      - name: Record original step outcomes
+        if: always()
+        env:
+          SHADOW_STEPS: ${{ toJSON(steps) }}
+          SHADOW_JOB_STATUS: ${{ job.status }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" write
+      - name: Preserve receipt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-quality_merge_integrity
+          path: ${{ env.SHADOW_STATE_DIR }}/receipt.json
+          if-no-files-found: error
+  collect:
+    name: Shadow / Diagnostic collection
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - bootstrap
+      - ci_docs_sync_strict
+      - ci_docs_lint
+      - ci_i18n_ui_coverage
+      - ci_i18n_glossary_zhcn
+      - ci_i18n
+      - ci_pr_test_policy
+      - quality_docs_gates
+      - quality_merge_integrity
+    env:
+      SHADOW_PLAN_HASH: ${{ needs.bootstrap.outputs.plan_hash }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          package-manager-cache: false
+      - name: Extract fixed workflow control source
+        id: control
+        run: |
+          set -euo pipefail
+          export SHADOW_CONTROL="$RUNNER_TEMP/shadow-control-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          export SHADOW_STATE_DIR="$RUNNER_TEMP/shadow-state-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          printf 'SHADOW_CONTROL=%s\nSHADOW_STATE_DIR=%s\n' "$SHADOW_CONTROL" "$SHADOW_STATE_DIR" >> "$GITHUB_ENV"
+          [[ "$SHADOW_WORKFLOW_SHA" =~ ^[0-9a-f]{40}$ ]]
+          mkdir -p "$SHADOW_CONTROL" "$SHADOW_STATE_DIR"
+          files=(
+            package.json
+            config/quality/gate-manifest.json
+            config/quality/admission-policy.json
+            scripts/quality/classify-pr-changes.mjs
+            scripts/quality/gate-manifest.mjs
+            scripts/quality/select-impacted-tests.mjs
+            scripts/quality/shadow-gate-policy.mjs
+            scripts/quality/shadow-policy-bootstrap.mjs
+            scripts/quality/shadow-policy-receipt.mjs
+            scripts/check/check-pr-self-target.mjs
+            .github/workflows/pr-policy-shadow.yml
+            .github/workflows/pr-policy-shadow-reusable.yml
+          )
+          for file in "${files[@]}"; do
+            mkdir -p "$SHADOW_CONTROL/$(dirname "$file")"
+            git show "$SHADOW_WORKFLOW_SHA:$file" > "$SHADOW_CONTROL/$file"
+          done
+      - uses: actions/download-artifact@v8
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}
+      - name: Verify immutable plan and checkout
+        id: verify
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-bootstrap.mjs" verify
+      - name: Collect this attempt receipts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: shadow-receipt-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}-*
+          path: ${{ env.SHADOW_STATE_DIR }}/receipts
+          merge-multiple: false
+      - name: Report incomplete pilot without admission
+        id: report
+        if: ${{ always() && steps.verify.outcome == 'success' }}
+        env:
+          SHADOW_NEEDS: ${{ toJSON(needs) }}
+        run: node "$SHADOW_CONTROL/scripts/quality/shadow-policy-receipt.mjs" collect
+      - name: Preserve diagnostic report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: shadow-report-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.sha }}
+          path: ${{ env.SHADOW_STATE_DIR }}/report.json
+          if-no-files-found: error

@@ -1,0 +1,23 @@
+# Shadow pilot only. Existing admission checks remain authoritative.
+name: PR Policy Shadow
+"on":
+  pull_request:
+    branches:
+      - main
+      - release/**
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+      - edited
+permissions:
+  contents: read
+concurrency:
+  group: pr-policy-shadow-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  pilot:
+    name: Shadow / Pilot
+    uses: ./.github/workflows/pr-policy-shadow-reusable.yml
