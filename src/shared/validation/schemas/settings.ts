@@ -120,6 +120,26 @@ export const streamStallCooldownSettingsSchema = z
   })
   .strict();
 
+// Mid-stream recovery block. Bounds mirror normalizeStreamRecoverySettings in
+// src/lib/resilience/settings/normalize.ts.
+export const throughputWatchdogSettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    warmupMs: z.number().int().min(0).max(600_000).optional(),
+    windowMs: z.number().int().min(1_000).max(600_000).optional(),
+    minUsefulBytesPerSecond: z.number().int().min(1).max(1_000_000).optional(),
+    minUsefulBytes: z.number().int().min(1).max(1_000_000).optional(),
+  })
+  .strict();
+
+export const streamRecoverySettingsSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    continueMidStream: z.boolean().optional(),
+    throughputWatchdog: throughputWatchdogSettingsSchema.optional(),
+  })
+  .strict();
+
 // Quota preflight cutoff (auth-level account skipping). Thresholds use
 // "minimum remaining %" semantics to match the dashboard's quota bars, and the
 // per-(provider, window) defaults override the global default per window.
@@ -197,6 +217,7 @@ export const updateResilienceSchema = z
     comboCooldownWait: comboCooldownWaitSettingsSchema.optional(),
     quotaShareConcurrencyLimit: quotaShareConcurrencyLimitSettingsSchema.optional(),
     streamStallCooldown: streamStallCooldownSettingsSchema.optional(),
+    streamRecovery: streamRecoverySettingsSchema.optional(),
     providerCooldown: providerCooldownSettingsSchema.optional(),
     // Quota preflight cutoff (auth-level account skipping) — surfaced in the
     // Settings → Routing UI. Mirrors QuotaPreflightSettings in
@@ -231,22 +252,24 @@ export const updateResilienceSchema = z
   })
   .strict()
   .superRefine((value, ctx) => {
-    if (
-      !value.requestQueue &&
-      !value.connectionCooldown &&
-      !value.providerBreaker &&
-      !value.tokenRefreshBreaker &&
-      !value.waitForCooldown &&
-      !value.comboCooldownWait &&
-      !value.quotaShareConcurrencyLimit &&
-      !value.streamStallCooldown &&
-      !value.providerCooldown &&
-      !value.quotaPreflight &&
-      !value.profiles &&
-      !value.defaults &&
-      !value.providerQuotaOverrides &&
-      !value.credentialHealthCheck
-    ) {
+    const provided = [
+      value.requestQueue,
+      value.connectionCooldown,
+      value.providerBreaker,
+      value.tokenRefreshBreaker,
+      value.waitForCooldown,
+      value.comboCooldownWait,
+      value.quotaShareConcurrencyLimit,
+      value.streamStallCooldown,
+      value.streamRecovery,
+      value.providerCooldown,
+      value.quotaPreflight,
+      value.profiles,
+      value.defaults,
+      value.providerQuotaOverrides,
+      value.credentialHealthCheck,
+    ].some(Boolean);
+    if (!provided) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Must provide resilience settings to update",
