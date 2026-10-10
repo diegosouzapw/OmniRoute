@@ -12731,10 +12731,55 @@ paths:
       tags:
         - System
       summary: "GET system › version"
+      description: >-
+        Running version, latest published version, auto-update status and npm release channel.
+        `releaseChannel` and `channels` are additive (rail 3.8.54); `channel` keeps meaning the
+        deployment mode used by the dashboard updater.
       x-loopback-only: true
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [current, latest, updateAvailable, channel, releaseChannel, channels]
+                properties:
+                  current: { type: string, description: Running OmniRoute version. }
+                  latest:
+                    type: string
+                    description: Latest published version, or "unavailable" when every lookup failed.
+                  updateAvailable: { type: boolean }
+                  channel:
+                    type: string
+                    enum: [npm, source, docker-compose]
+                    description: Deployment mode the auto-updater uses (not the npm release channel).
+                  autoUpdateSupported: { type: boolean }
+                  autoUpdateError: { type: [string, "null"] }
+                  news: { description: Active release-news payload, or null. }
+                  releaseChannel:
+                    type: string
+                    enum: [latest, next, nightly, lts]
+                    description: >-
+                      npm channel of the running build — `nightly` for `-nightly.*`, `next` for other
+                      pre-releases, `lts` for a stable of an older major than `channels.latest`,
+                      otherwise `latest` (same rules as scripts/release/dist-tag.mjs).
+                  channels:
+                    type: object
+                    description: >-
+                      Published head of each npm dist-tag (`npm view omniroute dist-tags`, cached
+                      10 minutes). `latest` is always present; the others only when the dist-tag
+                      exists.
+                    required: [latest]
+                    properties:
+                      latest: { type: string }
+                      next: { type: string }
+                      nightly: { type: string }
+                      lts: { type: string }
+        "304":
+          description: Not modified (If-None-Match matched the ETag).
+        "401":
+          description: Unauthorized
     post:
       tags:
         - System

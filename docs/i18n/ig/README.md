@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Njirimara</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Ngwakọta</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Ndị Na-enye Ọrụ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Ndị Na-enye Ọrụ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ na-egosi env/args kpọmkwem tupu emee ha, ebe `--api-key-env NAME` na-eme ka ih
 
 <div align="center">
 
-## 🌐 Ndị Na-enye AI 357 — Ndị Katalọgụ Kara 152 Dị Ka N'efu
+## 🌐 Ndị Na-enye AI 372 — Ndị Katalọgụ Kara 154 Dị Ka N'efu
 
 </div>
 

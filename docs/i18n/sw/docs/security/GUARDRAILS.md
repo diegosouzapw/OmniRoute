@@ -258,6 +258,8 @@ Mwili uliotumwa juu kwa mfano haujabadilika. Ombi lililozingatiwa pia halijazi
 Kumbukumbu ya kudumu (uchimbaji unaotokana na ombi na majibu hurukwa),
 kwa hivyo jibu la mfano haliwezi kurudia maandishi ya nakala kwenye Kumbukumbu.
 
+**Sehemu ghafi za video (#12430).** Daraja likiwashwa na uwezo wa asili wa video haujulikani au haupo, sehemu zilizofafanuliwa za `transcript`/`audioTranscript` pia huwasha `videoBridgeObserved`, hata maelezo yakishindwa au kikomo cha `maxVideos` kikifikiwa. `null` na mifuatano tupu huhesabiwa; sehemu zisizopo na metadata zisizohusu video hazihesabiwi. Nakala zinazohifadhiwa huficha sehemu hizi au huacha ombi, na cache/Memory hazitumiki. Data inayotumwa kwa mtoa huduma haibadiliki.
+
 Nakala za ziada zilizohifadhiwa hutumia ishara sawa ya ombi lililozingatiwa.
 Picha ya mteja-ombi ya kabla ya ulinzi, ombi linalosubiri kwenye kumbukumbu, na
 kumbukumbu ya ombi lililokataliwa mapema hubadilisha sehemu za nakala katika sehemu za video;

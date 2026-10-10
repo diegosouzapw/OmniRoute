@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ လုပ်ဆောင်ချက်များ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 ပေါင်းစပ်မှုများ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ပံ့ပိုးသူများ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ပံ့ပိုးသူများ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -667,7 +667,7 @@ command တိုင်းသည် လက်ရှိအသုံးပြု�
 
 <div align="center">
 
-## 🌐 AI ဝန်ဆောင်မှုပေးသူ 357 ခု — အခမဲ့ဟု ကတ်တလောက်တွင် မှတ်သားထားသည့် 152 ခု
+## 🌐 AI ဝန်ဆောင်မှုပေးသူ 372 ခု — အခမဲ့ဟု ကတ်တလောက်တွင် မှတ်သားထားသည့် 154 ခု
 
 </div>
 

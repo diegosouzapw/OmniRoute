@@ -336,7 +336,6 @@ Arba įdėkite jį į atpažįstamą vietą:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Naudotojo lygmuo
-<project>/.compression/rules/hi/filler.json   # Projekto lygmuo
 ```
 
 ### Geriausios kalbos paketų kūrimo praktikos

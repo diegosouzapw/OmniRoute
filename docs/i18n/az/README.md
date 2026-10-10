@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funksiyalar</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinasiyalar</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Provayderlər</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provayderlər</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI və MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ icra etmədən dəqiq mühit dəyişənlərini/arqumentləri əvvəlcədən gös
 
 <div align="center">
 
-## 🌐 357 AI Provayderi — 152-si Kataloqda Pulsuz Olaraq İşarələnib
+## 🌐 372 AI Provayderi — 154-si Kataloqda Pulsuz Olaraq İşarələnib
 
 </div>
 

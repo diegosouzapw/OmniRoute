@@ -254,6 +254,7 @@
     "log": "Serverprotokolle direkt anzeigen",
     "no_recovery": "Automatischen Neustart bei Absturz deaktivieren (Debugging-Modus)",
     "max_restarts": "Maximale Anzahl von Neustarts nach Abstürzen innerhalb von 30 s, bevor aufgegeben wird (Standard: 2)",
+    "headless": "Nur die Proxy-Engine ausführen: Dashboard deaktiviert (404), optionale Subsysteme übersprungen (setzt OMNIROUTE_HEADLESS=1)",
     "tray": "Im Infobereich starten (nur Desktop, optionale Aktivierung)",
     "no_tray": "Infobereichssymbol deaktivieren",
     "ready_timeout": "Zeitüberschreitung der Bereitschaftsprüfung in ms (auch OMNIROUTE_READY_TIMEOUT_MS, Standard: 60000)",

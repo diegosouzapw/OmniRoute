@@ -4,8 +4,8 @@
   "rules": [
     {
       "name": "it_articles",
-      "pattern": "\\b(?:[Ii]l|[Ll]o|[Ll]a|[Ii]|[Gg]li|[Ll]e|[Uu]n|[Uu]no|[Uu]na)\\s+(?=[a-zàèéìòù])",
-      "flags": "g",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:[Ii]l|[Ll]o|[Ll]a|[Ii]|[Gg]li|[Ll]e|[Uu]n|[Uu]no|[Uu]na)\\s+(?=[a-zàèéìòù])",
+      "flags": "gu",
       "replacement": "",
       "context": "all",
       "category": "terse",
@@ -85,11 +85,12 @@
     },
     {
       "name": "it_copula_drop",
-      "pattern": "\\b(?:che )?(?:è|sono) (?:un|una|il|la|lo|gli|le)\\s+(?=[a-zàèéìòù])",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:che )?(?:è|sono) (?:un|una|il|la|lo|gli|le)\\s+(?=[a-zàèéìòù])",
       "replacement": "",
       "context": "all",
       "category": "terse",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     },
     {
       "name": "it_ultra_environment",

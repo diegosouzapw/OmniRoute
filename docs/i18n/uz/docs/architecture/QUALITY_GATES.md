@@ -322,13 +322,14 @@ hujjatlar/muhit shartnomasi, i18n muvofiqligi, birlik testlari) o‘zgarmadi —
   yumshatish (`scripts/quality/relax-baselines.mjs`); ayni qayd bilan ikkinchi marta ishga tushishni
   rad etadi.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  har bir raqamli darvozani CI qanday o‘lchasa, xuddi shunday o‘lchaydi va har bir darvoza uchun qolgan
-  zaxirani chiqaradi (`scripts/quality/baseline-headroom.mjs`). Tungi `baseline-headroom` vazifasi
-  jadvalni doimiy yangilanadigan **📈 Bazaviy chegara zaxirasi (tezlik bosqichi)** muammosiga joylaydi va
-  biror darvoza o‘z yuqori chegarasining 10% ichida bo‘lsa yoki undan allaqachon oshib ketgan bo‘lsa,
-  `headroom-alert` yorlig‘ini qo‘shadi. Bu muammo erta ogohlantirish vazifasini bajaradi: bir necha kunda
-  to‘lib qoladigan budjet yumshatishdan butun jamoa emas, bir nechta PR foydalanayotganini anglatadi —
-  muammo yuzaga keltirgan darvozaning `_rebaseline_*` qaydlarini tekshiring.
+  har bir sonli sifat tekshiruvini CI bilan bir xil usulda o‘lchaydi va har bir tekshiruv uchun qolgan zaxirani ko‘rsatadi
+  (`scripts/quality/baseline-headroom.mjs`). Har kecha bajariladigan `baseline-headroom` vazifasi jadvalni
+  ish jarayoni bajarilishining xulosasida e’lon qiladi va JSON/Markdown hisobotini
+  `baseline-headroom-<run_id>` nomi bilan yuklaydi; hisobot 90 kun saqlanadi. Ogohlantirish va jiddiy holat satrlari
+  chegaragacha 10% yoki undan kam zaxirasi qolgan yoxud chegaradan oshgan tekshiruvlarni ko‘rsatadi.
+  Ushbu hisobotlarni ajratilgan budjetlarning sarflanishi haqida erta ogohlantirish sifatida ko‘rib chiqing; tegishli tekshiruvning
+  `_rebaseline_*` qaydlarini tekshiring. Vazifa endi doimiy muammo yozuvini yaratmaydi yoki yangilamaydi;
+  #12149 oldingi hisobotlar tarixini saqlaydi.
 
 **Yangi kod rejimi (Clean-as-You-Code) — 2026-08-30 dan boshlab, faqat PR tezkor yo‘li uchun**
 

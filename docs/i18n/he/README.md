@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ תכונות</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 שילובים</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ספקים</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ספקים</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ו-MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # גם: claude opencode qwen aider goose gemi
 
 <div align="center">
 
-## 🌐 357 ספקי AI — מתוכם 152 מסומנים בקטלוג כחינמיים
+## 🌐 372 ספקי AI — מתוכם 154 מסומנים בקטלוג כחינמיים
 
 </div>
 

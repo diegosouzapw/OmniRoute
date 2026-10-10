@@ -1,0 +1,1 @@
+- Fix CommandCode CLI reasoning retries to update nested parameters while retaining the complete request envelope, and recover primary endpoint 400 errors for rejected request fields using the shared bounded recovery helper.

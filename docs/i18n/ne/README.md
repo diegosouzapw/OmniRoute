@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ सुविधाहरू</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 कम्बोहरू</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 प्रदायकहरू</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 प्रदायकहरू</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI र MCP</a></td>
   </tr>
   <tr>
@@ -673,7 +673,7 @@ omniroute configure codex          # यी पनि: claude opencode qwen aide
 
 <div align="center">
 
-## 🌐 357 AI प्रदायकहरू — 152 क्याटलगमा निःशुल्कका रूपमा चिन्हित
+## 🌐 372 AI प्रदायकहरू — 154 क्याटलगमा निःशुल्कका रूपमा चिन्हित
 
 </div>
 

@@ -96,6 +96,8 @@ Protection contre les régressions : `tests/unit/provider-cooldown-window-gate.t
 
 **Protection contre les afflux simultanés :** empêche des échecs simultanés de prolonger excessivement le refroidissement ou de doubler l’incrémentation de `backoffLevel`.
 
+Les trames binaires `reasoningContentEvent` de Kiro avec une signature non vide préservent l’activité de raisonnement à travers l’exécuteur sous forme de delta `reasoning_content` vide. La signature n’est pas transmise. Les métadonnées, les trames incomplètes et les signatures vides ne relancent pas le délai de contenu ; la limite indépendante de durée du flux actif et l’annulation par le client restent applicables. (`open-sse/executors/kiro/reasoning.ts`).
+
 **États terminaux (PAS des refroidissements) :**
 
 - `banned` — défini par la détection de mots-clés d’interdiction/de bannissement de compte (voir [BAN_DETECTION](../security/BAN_DETECTION.md)), ainsi que par trois refus consécutifs en amont par requête (`request_rejected`, par exemple Anthropic OAuth 403 « Request not allowed » — `open-sse/services/requestRejectedStreak.ts`) ; un refus unique ne fait que mettre la connexion en refroidissement

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ คุณสมบัติ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 คอมโบ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ผู้ให้บริการ</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ผู้ให้บริการ</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI และ MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # รองรับด้วย: claude open
 
 <div align="center">
 
-## 🌐 ผู้ให้บริการ AI 357 ราย — 152 รายถูกระบุในแคตตาล็อกว่าใช้ฟรี
+## 🌐 ผู้ให้บริการ AI 372 ราย — 154 รายถูกระบุในแคตตาล็อกว่าใช้ฟรี
 
 </div>
 

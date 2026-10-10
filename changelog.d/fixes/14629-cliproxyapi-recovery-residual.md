@@ -1,0 +1,1 @@
+- **CLIProxyAPI recovery:** Return the request body actually used after reasoning retries, retry a known unsupported field once after a 400, and reuse observed effort limits on later requests. Preserve private tool aliases and namespace identities through body copies and response restoration without sending them upstream. Refs #14629.

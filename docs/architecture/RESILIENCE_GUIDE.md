@@ -114,6 +114,12 @@ turn. They are still not model output, so a turn that ends with reasoning only i
 reported as empty, and a turn that stops reasoning and only sends heartbeats still trips
 the watchdog.
 
+Kiro's binary `reasoningContentEvent` frames with a non-empty signature preserve this
+reasoning activity through the executor as an empty `reasoning_content` delta. The signature is
+not forwarded. Metadata, incomplete frames and empty signatures do not restart the
+content budget; the independent active-stream timeout and client cancellation still
+apply (`open-sse/executors/kiro/reasoning.ts`).
+
 **Terminal states (NOT cooldowns):**
 
 - `banned` — set by banned-keyword / account-ban detection (see [BAN_DETECTION](../security/BAN_DETECTION.md)), and by three consecutive upstream per-request refusals (`request_rejected`, e.g. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); a single refusal only cools the connection down
