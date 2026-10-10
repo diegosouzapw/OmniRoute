@@ -10,7 +10,7 @@ import {
   parseRequestBudgetCap,
   parseRequestBudgetFallback,
 } from "../autoCombo/requestControls.ts";
-import { selectWithStrategy } from "../autoCombo/routerStrategy.ts";
+import { selectWithStrategyAsync } from "../autoCombo/routerStrategy.ts";
 import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
 import { getModePack } from "../autoCombo/modePacks.ts";
 import { recordComboIntent } from "../comboMetrics.ts";
@@ -134,7 +134,8 @@ export async function evaluateAutoCandidates(options: EvaluateAutoCandidatesOpti
 /**
  * Resolve target ordering for the `auto` combo strategy.
  *
- * Extracted verbatim from `handleComboChat`'s `if (strategy === "auto")` branch:
+ * Extracted verbatim from `handleComboChat`'s auto-strategy branch (now selected by the
+ * `ordering: "auto"` trait in strategyRegistry.ts):
  * tool-calling + context-window pre-filters, intent classification, candidate
  * building (quota cutoff), explicit-router vs rules selection, complexity-aware
  * scoring and final dedup ordering. Behavior is byte-identical to the previous
@@ -254,6 +255,7 @@ export async function resolveAutoStrategyOrder(
     modePack: configModePack,
     resetWindowConfig,
     slaPolicy,
+    nadirConfig,
   } = parseAutoConfig(combo, eligibleTargets);
 
   // Per-request overrides (#6023 / #6024 / #6025 / #3470): X-OmniRoute-Budget,
@@ -363,7 +365,7 @@ export async function resolveAutoStrategyOrder(
 
     if (routingStrategy !== "rules") {
       try {
-        const decision = selectWithStrategy(
+        const decision = await selectWithStrategyAsync(
           routableCandidates,
           {
             taskType,
@@ -379,6 +381,8 @@ export async function resolveAutoStrategyOrder(
             sla: slaPolicy,
             weights,
             explorationRate,
+            messages: body.messages,
+            nadir: nadirConfig,
           },
           routingStrategy
         );

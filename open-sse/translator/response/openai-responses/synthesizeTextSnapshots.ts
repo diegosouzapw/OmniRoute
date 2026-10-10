@@ -139,13 +139,17 @@ function reconcile(t: TextTracker, part: TextPart, snapshot: string): string {
   part.length = snapshot.length;
   return suffix;
 }
-export function buildTextSnapshotChunk(state: TextState, text: string): Record<string, unknown> {
+export function buildTextSnapshotChunk(
+  state: TextState,
+  text: string,
+  field: "content" | "refusal" = "content"
+): Record<string, unknown> {
   return {
     id: state.chatId,
     object: "chat.completion.chunk",
     created: state.created,
     model: state.model || "gpt-4",
-    choices: [{ index: 0, delta: { content: text }, finish_reason: null }],
+    choices: [{ index: 0, delta: { [field]: text }, finish_reason: null }],
   };
 }
 export function recordResponsesTextDelta(state: TextState, identity: Identity, text: string): void {
@@ -185,17 +189,27 @@ export function bindResponsesTextItem(
     resolveItem(tracker(state), { item_id: item.id, output_index: outputIndex });
   }
 }
-function recoverItem(t: TextTracker, item: TextItem, snapshot: Snapshot): string[] {
+function recoverItem(
+  t: TextTracker,
+  item: TextItem,
+  snapshot: Snapshot
+): { text: string; field: "content" | "refusal" }[] {
   if (!Array.isArray(snapshot.content)) return [];
   const parts = snapshot.content
     .map((part, contentIndex) => ({ part: object(part), contentIndex }))
-    .filter(({ part }) => part?.type === "output_text" && typeof part.text === "string");
-  const recovered: string[] = [];
+    .filter(
+      ({ part }) =>
+        (part?.type === "output_text" && typeof part.text === "string") ||
+        (part?.type === "refusal" && typeof part.refusal === "string")
+    );
+  const recovered: { text: string; field: "content" | "refusal" }[] = [];
   for (const { part, contentIndex } of parts) {
-    const tracked = resolvePart(item, contentIndex, parts.length === 1, part.text as string);
+    const text = (part.type === "refusal" ? part.refusal : part.text) as string;
+    const tracked = resolvePart(item, contentIndex, parts.length === 1, text);
     if (!tracked) continue;
-    const suffix = reconcile(t, tracked, part.text as string);
-    if (suffix) recovered.push(suffix);
+    const suffix = reconcile(t, tracked, text);
+    if (suffix)
+      recovered.push({ text: suffix, field: part.type === "refusal" ? "refusal" : "content" });
   }
   return recovered;
 }
@@ -213,7 +227,9 @@ export function synthesizeTextItemSnapshot(
     t.items.size === 1 && !!t.anonymous
   );
   if (t.anonymous && t.items.size > 1) return [];
-  return recoverItem(t, item, snapshot).map((text) => buildTextSnapshotChunk(state, text));
+  return recoverItem(t, item, snapshot).map(({ text, field }) =>
+    buildTextSnapshotChunk(state, text, field)
+  );
 }
 // Key by the original output position so callers can interleave text with tool snapshots.
 export function recoverTextSnapshotsByOutputIndex(
@@ -240,7 +256,9 @@ export function recoverTextSnapshotsByOutputIndex(
   for (const { snapshot, item, outputIndex } of resolved) {
     recovered.set(
       outputIndex,
-      recoverItem(t, item, snapshot).map((text) => buildTextSnapshotChunk(state, text))
+      recoverItem(t, item, snapshot).map(({ text, field }) =>
+        buildTextSnapshotChunk(state, text, field)
+      )
     );
   }
   return recovered;

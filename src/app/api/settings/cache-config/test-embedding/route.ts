@@ -5,6 +5,9 @@ import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { resolveProviderConnectionDetails } from "@/lib/cache/semanticCacheDbBridge";
+import { resolveEmbeddingCredentials } from "@omniroute/open-sse/services/cache/embeddingEndpoint";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
+import { CACHE_SECRET_MASK } from "@/lib/db/cacheSecrets";
 
 const testEmbeddingSchema = z.object({
   provider: z.string().trim().min(1),
@@ -38,8 +41,19 @@ export async function POST(request: Request) {
 
   // Resolve connection details from DB if not explicitly passed
   const conn = resolveProviderConnectionDetails(provider);
-  const effectiveBaseUrl = baseUrl || conn.baseUrl;
-  const effectiveApiKey = apiKey || conn.apiKey;
+  const stored = getUserDatabaseSettings().cache;
+  const masked = apiKey === CACHE_SECRET_MASK;
+  const source =
+    masked && stored.semanticCacheEmbeddingProvider === provider
+      ? {
+          baseUrl: stored.semanticCacheEmbeddingBaseUrl,
+          apiKey: stored.semanticCacheEmbeddingApiKey,
+        }
+      : conn;
+  const { baseUrl: effectiveBaseUrl, apiKey: effectiveApiKey } = resolveEmbeddingCredentials(
+    { baseUrl, apiKey: masked ? undefined : apiKey },
+    source
+  );
 
   try {
     const generator = createDefaultEmbeddingGenerator({

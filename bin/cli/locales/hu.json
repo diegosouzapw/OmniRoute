@@ -254,6 +254,7 @@
     "log": "A szervernaplók megjelenítése helyben",
     "no_recovery": "Az összeomlás utáni automatikus újraindítás letiltása (hibakeresési mód)",
     "max_restarts": "Összeomlás utáni újraindítások maximális száma 30 másodpercen belül a feladás előtt (alapértelmezett: 2)",
+    "headless": "Csak a proxymotor futtatása: irányítópult letiltva (404), opcionális alrendszerek kihagyva (beállítja: OMNIROUTE_HEADLESS=1)",
     "tray": "Indítás a rendszertálcán (csak asztali környezetben, külön engedélyezendő)",
     "no_tray": "A rendszertálcaikon letiltása",
     "ready_timeout": "Az üzemkészségi ellenőrzés időkorlátja ezredmásodpercben (az OMNIROUTE_READY_TIMEOUT_MS változóval is megadható, alapértelmezett: 60000)",

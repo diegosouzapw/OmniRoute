@@ -394,6 +394,7 @@ test("Cursor turn end exposes upstream cache reads and writes in OpenAI usage", 
   assert.deepEqual(usage.prompt_tokens_details, {
     cached_tokens: 8,
     cache_creation_tokens: 4,
+    cache_creation_in_prompt: true,
   });
   assert.equal(usage.estimated, undefined);
 });

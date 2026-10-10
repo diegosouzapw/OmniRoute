@@ -17,6 +17,7 @@ import crypto from "crypto";
 import { LRUCache } from "./cacheLayer";
 import { getDbInstance } from "./db/core";
 import { toNumber } from "@/shared/utils/numeric";
+import { conversationSignatureFields } from "../../open-sse/utils/conversationSignatureFields";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -322,6 +323,7 @@ function normalizeConversation(conversation: unknown) {
   return conversation.map((item: Record<string, unknown>) => ({
     role: typeof item?.role === "string" && item.role.trim().length > 0 ? item.role : "user",
     content: stringifyForSignature(item?.content),
+    ...conversationSignatureFields(item),
   }));
 }
 

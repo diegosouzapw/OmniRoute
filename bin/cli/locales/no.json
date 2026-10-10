@@ -254,6 +254,7 @@
     "log": "Vis serverlogger fortløpende",
     "no_recovery": "Deaktiver automatisk omstart ved krasj (feilsøkingsmodus)",
     "max_restarts": "Maksimalt antall omstarter etter krasj innen 30 s før det gis opp (standard: 2)",
+    "headless": "Kjør bare proxy-motoren: dashbord deaktivert (404), valgfrie delsystemer hoppes over (setter OMNIROUTE_HEADLESS=1)",
     "tray": "Start i systemstatusfeltet (kun skrivebord, må aktiveres)",
     "no_tray": "Deaktiver ikonet i systemstatusfeltet",
     "ready_timeout": "Tidsavbrudd for klarhetssjekk i ms (også OMNIROUTE_READY_TIMEOUT_MS, standard 60000)",

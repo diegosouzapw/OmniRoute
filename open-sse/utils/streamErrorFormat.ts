@@ -190,6 +190,8 @@ export function normalizeStreamFailurePayload(payload: unknown): StreamFailurePa
               ? record.message
               : "Upstream failure";
   const requestScopedInputFailure =
+    type === "invalid_request" ||
+    code === "invalid_request" ||
     type === "invalid_request_error" ||
     code === "invalid_request_error" ||
     type === "context_length_exceeded" ||

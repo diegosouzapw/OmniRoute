@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ",
+      "description": "ਇੱਕ ਅਚਾਨਕ ਗਲਤੀ ਆਈ ਹੈ। ਇਸਨੂੰ ਲੌਗ ਕਰ ਲਿਆ ਗਿਆ ਹੈ ਅਤੇ ਸਾਡੀ ਟੀਮ ਇਸਦੀ ਜਾਂਚ ਕਰੇਗੀ।",
+      "detailsAriaLabel": "ਗਲਤੀ ਦੇ ਵੇਰਵੇ",
+      "retryAriaLabel": "ਪੰਨਾ ਲੋਡ ਕਰਨ ਦੀ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+      "tryAgain": "ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+      "statusAriaLabel": "ਸਿਸਟਮ ਸਥਿਤੀ ਖੋਲ੍ਹੋ",
+      "systemStatus": "ਸਿਸਟਮ ਸਥਿਤੀ"
+    }
+  }
+}
