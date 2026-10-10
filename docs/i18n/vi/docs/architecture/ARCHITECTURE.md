@@ -11,27 +11,27 @@ _Cập nhật lần cuối: 2026-06-28_
 ## Tóm tắt Điều hành
 
 OmniRoute là một cổng định tuyến AI cục bộ và bảng điều khiển được xây dựng trên Next.js.
-Nó cung cấp một endpoint duy nhất tương thích với OpenAI (`/v1/*`) và định tuyến lưu lượng qua nhiều nhà cung cấp thượng nguồn, hỗ trợ chuyển đổi định dạng, dự phòng, làm mới token và theo dõi mức sử dụng.
+Nó cung cấp một endpoint tương thích với OpenAI duy nhất (`/v1/*`) và định tuyến lưu lượng qua nhiều nhà cung cấp thượng nguồn, hỗ trợ chuyển đổi, dự phòng, làm mới token và theo dõi mức sử dụng.
 
 Các khả năng cốt lõi:
 
-- Bề mặt API tương thích với OpenAI dành cho CLI/công cụ (355 nhà cung cấp, 108 trình thực thi)
+- Bề mặt API tương thích với OpenAI dành cho CLI/công cụ (372 nhà cung cấp, 148 trình thực thi)
 - Chuyển đổi yêu cầu/phản hồi giữa các định dạng của nhà cung cấp
-- Dự phòng theo tổ hợp mô hình (chuỗi nhiều mô hình)
-- Các bước tổ hợp có cấu trúc (`provider + model + connection`) với thứ tự khi chạy dựa trên `compositeTiers`
-- Dự phòng cấp tài khoản (nhiều tài khoản cho mỗi nhà cung cấp)
-- Kiểm tra trước hạn ngạch và lựa chọn tài khoản P2C có xét hạn ngạch trong luồng chat chính
-- Quản lý kết nối nhà cung cấp bằng OAuth + khóa API (22 mô-đun nhà cung cấp OAuth)
+- Dự phòng bằng tổ hợp mô hình (chuỗi nhiều mô hình)
+- Các bước tổ hợp có cấu trúc (`provider + model + connection`) với thứ tự thực thi được xác định tại thời điểm chạy bởi `compositeTiers`
+- Dự phòng ở cấp tài khoản (nhiều tài khoản cho mỗi nhà cung cấp)
+- Kiểm tra hạn ngạch trước khi thực thi và lựa chọn tài khoản P2C có xét đến hạn ngạch trong luồng trò chuyện chính
+- Quản lý kết nối nhà cung cấp bằng OAuth + khóa API (27 mô-đun nhà cung cấp OAuth)
 - Tạo embedding qua `/v1/embeddings` (18 nhà cung cấp)
 - Tạo hình ảnh qua `/v1/images/generations` (hơn 10 nhà cung cấp, hơn 20 mô hình)
-- Chuyển lời nói thành văn bản qua `/v1/audio/transcriptions` (18 nhà cung cấp)
+- Chuyển âm thanh thành văn bản qua `/v1/audio/transcriptions` (18 nhà cung cấp)
 - Chuyển văn bản thành giọng nói qua `/v1/audio/speech` (24 nhà cung cấp tích hợp sẵn)
 - Tạo video qua `/v1/videos/generations` (ComfyUI + SD WebUI)
 - Tạo nhạc qua `/v1/music/generations` (ComfyUI)
-- Tìm kiếm web qua `/v1/search` (20 nhà cung cấp)
+- Tìm kiếm trên web qua `/v1/search` (20 nhà cung cấp)
 - Kiểm duyệt qua `/v1/moderations`
 - Xếp hạng lại qua `/v1/rerank`
-- Phân tích thẻ suy luận (`<think>...</think>`) cho các mô hình lập luận
+- Phân tích thẻ suy luận (``) cho các mô hình suy luận
 - Làm sạch phản hồi để tương thích nghiêm ngặt với OpenAI SDK
 - Chuẩn hóa vai trò (developer→system, system→user) để tương thích giữa các nhà cung cấp
 - Chuyển đổi đầu ra có cấu trúc (json_schema → Gemini responseSchema)
@@ -40,47 +40,47 @@ Các khả năng cốt lõi:
 - Đồng bộ đám mây tùy chọn để đồng bộ trạng thái trên nhiều thiết bị
 - Danh sách cho phép/chặn IP để kiểm soát quyền truy cập API
 - Quản lý ngân sách suy luận (truyền nguyên trạng/tự động/tùy chỉnh/thích ứng)
-- Chèn prompt hệ thống toàn cục
+- Chèn lời nhắc hệ thống toàn cục
 - Theo dõi phiên và tạo dấu vân tay
-- Giới hạn tốc độ nâng cao theo từng tài khoản với hồ sơ riêng cho từng nhà cung cấp
-- Mẫu ngắt mạch để tăng khả năng phục hồi của nhà cung cấp
-- Bảo vệ chống hiệu ứng dồn tải bằng khóa mutex
-- Bộ nhớ đệm chống trùng lặp yêu cầu dựa trên chữ ký
+- Giới hạn tốc độ nâng cao theo tài khoản với các hồ sơ dành riêng cho từng nhà cung cấp
+- Mẫu bộ ngắt mạch để tăng khả năng phục hồi của nhà cung cấp
+- Bảo vệ chống hiệu ứng đám đông truy cập đồng thời bằng khóa mutex
+- Bộ nhớ đệm khử trùng lặp yêu cầu dựa trên chữ ký
 - Lớp miền: quy tắc chi phí, chính sách dự phòng, chính sách khóa
-- Context Relay: bản tóm tắt bàn giao phiên để duy trì tính liên tục khi xoay vòng tài khoản
-- Lưu trữ trạng thái miền (bộ nhớ đệm ghi xuyên SQLite cho trạng thái dự phòng, ngân sách, khóa và bộ ngắt mạch)
+- Context Relay: bản tóm tắt bàn giao phiên nhằm duy trì tính liên tục khi luân chuyển tài khoản
+- Lưu trữ trạng thái miền (bộ nhớ đệm ghi xuyên SQLite cho các trạng thái dự phòng, ngân sách, khóa và bộ ngắt mạch)
 - Công cụ chính sách để đánh giá yêu cầu tập trung (khóa → ngân sách → dự phòng)
 - Dữ liệu đo từ xa của yêu cầu với tổng hợp độ trễ p50/p95/p99
-- Dữ liệu đo từ xa cho đích tổ hợp và tình trạng lịch sử của đích tổ hợp qua `combo_execution_key` / `combo_step_id`
+- Dữ liệu đo từ xa của mục tiêu tổ hợp và tình trạng lịch sử của mục tiêu tổ hợp qua `combo_execution_key` / `combo_step_id`
 - ID tương quan (X-Request-Id) để truy vết đầu cuối
 - Ghi nhật ký kiểm toán tuân thủ với tùy chọn từ chối theo từng khóa API
 - Khung đánh giá để đảm bảo chất lượng LLM
 - Bảng điều khiển tình trạng với trạng thái bộ ngắt mạch của nhà cung cấp theo thời gian thực
-- MCP Server (110 công cụ) với 3 phương thức truyền tải (stdio/SSE/Streamable HTTP)
-- A2A Server (JSON-RPC 2.0 + SSE) với các kỹ năng và vòng đời tác vụ
+- Máy chủ MCP (110 công cụ) với 3 phương thức truyền tải (stdio/SSE/Streamable HTTP)
+- Máy chủ A2A (JSON-RPC 2.0 + SSE) với các kỹ năng và vòng đời tác vụ
 - Hệ thống bộ nhớ (trích xuất, chèn, truy xuất, tóm tắt)
-- Hệ thống kỹ năng (registry, trình thực thi, sandbox, các kỹ năng tích hợp sẵn)
-- Proxy MITM với quản lý chứng chỉ và xử lý DNS
-- Middleware bảo vệ chống chèn prompt
-- Pipeline nén prompt với Caveman, RTK, các pipeline xếp chồng, tổ hợp nén, gói ngôn ngữ và phân tích
-- Registry ACP (Agent Communication Protocol)
-- Các nhà cung cấp OAuth dạng mô-đun (22 mô-đun riêng biệt trong `src/lib/oauth/providers/`)
-- Các script gỡ cài đặt/gỡ cài đặt hoàn toàn
-- Tác vụ sửa chữa môi trường OAuth
+- Hệ thống kỹ năng (sổ đăng ký, trình thực thi, môi trường cách ly, kỹ năng tích hợp sẵn)
+- Proxy MITM với khả năng quản lý chứng chỉ và xử lý DNS
+- Phần mềm trung gian bảo vệ chống chèn lời nhắc
+- Quy trình nén lời nhắc với Caveman, RTK, các quy trình xếp chồng, tổ hợp nén, gói ngôn ngữ và phân tích
+- Sổ đăng ký ACP (Agent Communication Protocol)
+- Các nhà cung cấp OAuth dạng mô-đun (22 mô-đun riêng lẻ trong `src/lib/oauth/providers/`)
+- Các tập lệnh gỡ cài đặt/gỡ cài đặt hoàn toàn
+- Hành động sửa chữa môi trường OAuth
 - Cầu nối WebSocket cho các máy khách WS tương thích với OpenAI (`/v1/ws`)
 - Quản lý token đồng bộ (cấp/thu hồi, tải xuống gói cấu hình được lập phiên bản bằng ETag)
-- Preset nhà cung cấp hạng nhất GLM Thinking (`glmt`)
+- Cấu hình sẵn nhà cung cấp hạng nhất GLM Thinking (`glmt`)
 - Đếm token kết hợp (`/messages/count_tokens` phía nhà cung cấp với phương án dự phòng bằng ước tính)
-- Tự động khởi tạo bí danh mô hình (hơn 30 chuẩn hóa phương ngữ giữa các proxy khi khởi động)
-- Tìm nạp ra ngoài an toàn với cơ chế bảo vệ SSRF, chặn URL riêng tư và khả năng thử lại có thể cấu hình
-- Thử lại chat có xét thời gian chờ với `requestRetry` và `maxRetryIntervalSec` có thể cấu hình
-- Xác thực môi trường runtime bằng Zod khi khởi động
+- Tự động khởi tạo bí danh mô hình (hơn 30 phép chuẩn hóa phương ngữ proxy chéo khi khởi động)
+- Tìm nạp gửi đi an toàn với cơ chế bảo vệ SSRF, chặn URL riêng tư và khả năng thử lại có thể cấu hình
+- Thử lại trò chuyện có xét đến thời gian hồi với `requestRetry` và `maxRetryIntervalSec` có thể cấu hình
+- Xác thực môi trường thời gian chạy bằng Zod khi khởi động
 - Kiểm toán tuân thủ v2 với phân trang, sự kiện CRUD của nhà cung cấp và ghi nhật ký xác thực bị SSRF chặn
 
-Mô hình runtime chính:
+Mô hình thời gian chạy chính:
 
-- Các route ứng dụng Next.js trong `src/app/api/*` triển khai cả API bảng điều khiển và API tương thích
-- Phần lõi SSE/định tuyến dùng chung trong `src/sse/*` + `open-sse/*` xử lý việc thực thi nhà cung cấp, chuyển đổi, truyền phát, dự phòng và mức sử dụng
+- Các tuyến ứng dụng Next.js trong `src/app/api/*` triển khai cả API bảng điều khiển lẫn API tương thích
+- Lõi SSE/định tuyến dùng chung trong `src/sse/*` + `open-sse/*` xử lý việc thực thi nhà cung cấp, chuyển đổi, truyền phát, dự phòng và mức sử dụng
 
 ## Sơ đồ tham chiếu
 
@@ -258,24 +258,24 @@ Các miền quản lý:
 - Gói cấu hình: `src/app/api/sync/bundle` (GET, ảnh chụp nhanh cài đặt/nhà cung cấp/tổ hợp/khóa được quản lý phiên bản bằng ETag)
 - WebSocket: `src/app/api/v1/ws/route.ts` — trình xử lý nâng cấp dành cho các ứng dụng khách WS tương thích với OpenAI
 
-## 2) SSE + Lõi chuyển đổi
+## 2) SSE + Lõi dịch thuật
 
 Các mô-đun luồng chính:
 
 - Điểm vào: `src/sse/handlers/chat.ts`
-- Điều phối cốt lõi: `open-sse/handlers/chatCore.ts`
-- Bộ điều hợp thực thi nhà cung cấp: `open-sse/executors/*`
+- Điều phối lõi: `open-sse/handlers/chatCore.ts`
+- Các bộ điều hợp thực thi nhà cung cấp: `open-sse/executors/*`
 - Phát hiện định dạng/cấu hình nhà cung cấp: `open-sse/services/provider.ts`
 - Phân tích/giải quyết mô hình: `src/sse/services/model.ts`, `open-sse/services/model.ts`
 - Logic dự phòng tài khoản: `open-sse/services/accountFallback.ts`
-- Sổ đăng ký chuyển đổi: `open-sse/translator/index.ts`
+- Registry dịch thuật: `open-sse/translator/index.ts`
 - Chuyển đổi luồng: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
 - Trích xuất/chuẩn hóa mức sử dụng: `open-sse/utils/usageTracking.ts`
-- Bộ phân tích thẻ think: `open-sse/utils/thinkTagParser.ts`
+- Bộ phân tích thẻ suy luận: `open-sse/utils/thinkTagParser.ts`
 - Trình xử lý embedding: `open-sse/handlers/embeddings.ts`
-- Sổ đăng ký nhà cung cấp embedding: `open-sse/config/embeddingRegistry.ts`
+- Registry nhà cung cấp embedding: `open-sse/config/embeddingRegistry.ts`
 - Trình xử lý tạo hình ảnh: `open-sse/handlers/imageGeneration.ts`
-- Sổ đăng ký nhà cung cấp hình ảnh: `open-sse/config/imageRegistry.ts`
+- Registry nhà cung cấp hình ảnh: `open-sse/config/imageRegistry.ts`
 - Làm sạch phản hồi: `open-sse/handlers/responseSanitizer.ts`
 - Chuẩn hóa vai trò: `open-sse/services/roleNormalizer.ts`
 
@@ -291,18 +291,18 @@ Các dịch vụ (logic nghiệp vụ):
 - Định tuyến mô hình bằng ký tự đại diện: `open-sse/services/wildcardRouter.ts`
 - Quản lý giới hạn tốc độ: `open-sse/services/rateLimitManager.ts`
 - Bộ ngắt mạch: `src/shared/utils/circuitBreaker.ts`
-- Chuyển giao ngữ cảnh: `open-sse/services/contextHandoff.ts` — tạo và chèn bản tóm tắt chuyển giao cho chiến lược chuyển tiếp ngữ cảnh
-- Nén: `open-sse/services/compression/*` — nén chủ động trước khi chuyển đổi cho nhà cung cấp;
-  bao gồm các quy tắc Caveman, bộ lọc RTK, quy trình xếp chồng, tổ hợp nén, số liệu thống kê và xác thực
-- Trình lấy hạn ngạch Codex: `open-sse/services/codexQuotaFetcher.ts` — lấy hạn ngạch Codex để phục vụ quyết định chuyển giao ngữ cảnh
-- Thử lại có tính đến thời gian chờ: `src/sse/services/cooldownAwareRetry.ts` — thử lại theo thời gian chờ của từng mô hình với `requestRetry` / `maxRetryIntervalSec` có thể cấu hình
-- Fetch đi an toàn: `src/shared/network/safeOutboundFetch.ts` — fetch nhà cung cấp/mô hình có bảo vệ với cơ chế chống SSRF, chặn URL riêng tư, thử lại và thời gian chờ
-- Bộ bảo vệ URL đi: `src/shared/network/outboundUrlGuard.ts` — xác thực URL của nhà cung cấp dựa trên các dải CIDR riêng tư/localhost
+- Bàn giao ngữ cảnh: `open-sse/services/contextHandoff.ts` — tạo và chèn bản tóm tắt bàn giao cho chiến lược chuyển tiếp ngữ cảnh
+- Nén: `open-sse/services/compression/*` — nén chủ động trước khi dịch cho nhà cung cấp;
+  bao gồm các quy tắc Caveman, bộ lọc RTK, pipeline xếp chồng, tổ hợp nén, số liệu thống kê và xác thực
+- Trình truy xuất hạn ngạch Codex: `open-sse/services/codexQuotaFetcher.ts` — truy xuất hạn ngạch Codex để đưa ra quyết định bàn giao chuyển tiếp ngữ cảnh
+- Thử lại có nhận biết thời gian chờ: `src/sse/services/cooldownAwareRetry.ts` — thử lại theo thời gian chờ của từng mô hình với `requestRetry` / `maxRetryIntervalSec` có thể cấu hình
+- Truy xuất gửi đi an toàn: `src/shared/network/safeOutboundFetch.ts` — truy xuất nhà cung cấp/mô hình có bảo vệ bằng cơ chế chống SSRF, chặn URL riêng tư, thử lại và thời gian chờ
+- Bộ bảo vệ URL gửi đi: `src/shared/network/outboundUrlGuard.ts` — kiểm tra máy chủ trên URL của nhà cung cấp; `src/shared/network/outboundUrlGuardPolicy.ts` chọn chế độ từ `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` và các tùy chọn bật/tắt tương ứng trên bảng điều khiển (xem `docs/reference/ENVIRONMENT.md`)
 - Giá trị mặc định cho yêu cầu nhà cung cấp: `open-sse/services/providerRequestDefaults.ts` — các giá trị mặc định cấp nhà cung cấp cho `maxTokens`, `temperature`, `thinkingBudgetTokens`
 - Hằng số nhà cung cấp GLM: `open-sse/config/glmProvider.ts` — các mô hình GLM dùng chung, URL hạn ngạch, thời gian chờ/giá trị mặc định GLMT
-- Thượng nguồn Antigravity: `open-sse/config/antigravityUpstream.ts` — URL cơ sở và các hằng số đường dẫn khám phá
-- Hằng số máy khách Codex: `open-sse/config/codexClient.ts` — các giá trị user-agent và phiên bản máy khách có quản lý phiên bản
-- Dữ liệu khởi tạo bí danh mô hình: `src/lib/modelAliasSeed.ts` — khởi tạo hơn 30 bí danh phương ngữ liên proxy khi khởi động
+- Upstream Antigravity: `open-sse/config/antigravityUpstream.ts` — các hằng số URL cơ sở và đường dẫn khám phá
+- Hằng số máy khách Codex: `open-sse/config/codexClient.ts` — các giá trị user-agent và phiên bản máy khách được quản lý theo phiên bản
+- Dữ liệu khởi tạo bí danh mô hình: `src/lib/modelAliasSeed.ts` — khởi tạo hơn 30 bí danh phương ngữ xuyên proxy khi khởi động
 
 Các mô-đun tầng miền:
 
@@ -313,17 +313,18 @@ Các mô-đun tầng miền:
 - Công cụ chính sách: `src/domain/policyEngine.ts` — đánh giá tập trung theo thứ tự khóa → ngân sách → dự phòng
 - Danh mục mã lỗi: `src/shared/constants/errorCodes.ts`
 - ID yêu cầu: `src/shared/utils/requestId.ts`
-- Thời gian chờ fetch: `src/shared/utils/fetchTimeout.ts`
+- Thời gian chờ truy xuất: `src/shared/utils/fetchTimeout.ts`
 - Dữ liệu đo từ xa của yêu cầu: `src/shared/utils/requestTelemetry.ts`
 - Tuân thủ/kiểm toán: `src/lib/compliance/index.ts`
 - Trình chạy đánh giá: `src/lib/evals/evalRunner.ts`
-- Lưu trữ trạng thái miền: `src/lib/db/domainState.ts` — SQLite CRUD cho chuỗi dự phòng, ngân sách, lịch sử chi phí, trạng thái khóa và bộ ngắt mạch
+- Lưu trữ trạng thái miền: `src/lib/db/domainState.ts` — CRUD SQLite cho các chuỗi dự phòng, ngân sách, lịch sử chi phí, trạng thái khóa và bộ ngắt mạch
 
-Các mô-đun nhà cung cấp OAuth (22 tệp riêng lẻ trong `src/lib/oauth/providers/`):
+Các mô-đun nhà cung cấp OAuth (27 tệp riêng lẻ trong `src/lib/oauth/providers/`):
 
-- Chỉ mục sổ đăng ký: `src/lib/oauth/providers/index.ts`
-- Các nhà cung cấp riêng lẻ: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- Trình bao bọc mỏng: `src/lib/oauth/providers.ts` — tái xuất từ các mô-đun riêng lẻ
+- Chỉ mục registry: `src/lib/oauth/providers/index.ts`
+- Các nhà cung cấp riêng lẻ: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- Các trình trợ giúp dùng chung: `codebuddyDeviceAuth.ts` (luồng thiết bị CodeBuddy CN/quốc tế), `museCodeDeviceResponse.ts`
+- Lớp bao mỏng: `src/lib/oauth/providers.ts` — tái xuất từ các mô-đun riêng lẻ
 
 ## 5) Dịch vụ nhúng (v3.8.4)
 

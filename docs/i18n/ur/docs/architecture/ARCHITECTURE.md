@@ -11,76 +11,76 @@ _آخری بار اپ ڈیٹ کیا گیا: 2026-06-28_
 ## انتظامی خلاصہ
 
 OmniRoute ایک مقامی AI روٹنگ گیٹ وے اور ڈیش بورڈ ہے جو Next.js پر بنایا گیا ہے۔
-یہ ایک واحد OpenAI-مطابق اینڈ پوائنٹ (`/v1/*`) فراہم کرتا ہے اور ترجمے، متبادل راستے، ٹوکن کی تجدید، اور استعمال کی ٹریکنگ کے ساتھ ٹریفک کو متعدد اپ اسٹریم فراہم کنندگان میں روٹ کرتا ہے۔
+یہ ایک واحد OpenAI سے ہم آہنگ اینڈ پوائنٹ (`/v1/*`) فراہم کرتا ہے اور ترجمے، متبادل راستے، ٹوکن کی تجدید، اور استعمال کی نگرانی کے ساتھ ٹریفک کو متعدد بالائی فراہم کنندگان کے درمیان روٹ کرتا ہے۔
 
 بنیادی صلاحیتیں:
 
-- CLI/ٹولز کے لیے OpenAI-مطابق API سطح (355 فراہم کنندگان، 108 ایگزیکیوٹرز)
+- CLI/ٹولز کے لیے OpenAI سے ہم آہنگ API سطح (372 فراہم کنندگان، 148 ایگزیکیوٹرز)
 - فراہم کنندگان کے فارمیٹس کے درمیان درخواست/جواب کا ترجمہ
-- ماڈل کومبو کا متبادل راستہ (متعدد ماڈلز کی ترتیب)
-- `compositeTiers` کے لحاظ سے رن ٹائم ترتیب کے ساتھ منظم کومبو مراحل (`provider + model + connection`)
-- اکاؤنٹ کی سطح پر متبادل راستہ (ہر فراہم کنندہ کے لیے متعدد اکاؤنٹس)
-- مرکزی چیٹ پاتھ میں کوٹا کی پیشگی جانچ اور کوٹا سے آگاہ P2C اکاؤنٹ کا انتخاب
-- OAuth + API کلید کے ذریعے فراہم کنندہ کنکشن کا نظم (22 OAuth فراہم کنندہ ماڈیولز)
-- `/v1/embeddings` کے ذریعے ایمبیڈنگز کی تخلیق (18 فراہم کنندگان)
-- `/v1/images/generations` کے ذریعے تصاویر کی تخلیق (10+ فراہم کنندگان، 20+ ماڈلز)
+- ماڈل کومبو فال بیک (متعدد ماڈلز کی ترتیب)
+- منظم کومبو مراحل (`provider + model + connection`) جن کی رن ٹائم ترتیب `compositeTiers` کے مطابق ہوتی ہے
+- اکاؤنٹ کی سطح پر فال بیک (ہر فراہم کنندہ کے لیے متعدد اکاؤنٹس)
+- مرکزی چیٹ پاتھ میں کوٹا کی پیشگی جانچ اور کوٹا سے آگاہ P2C اکاؤنٹ انتخاب
+- OAuth + API کلید کے ذریعے فراہم کنندہ کنکشن کا انتظام (27 OAuth فراہم کنندہ ماڈیولز)
+- `/v1/embeddings` کے ذریعے ایمبیڈنگز بنانا (18 فراہم کنندگان)
+- `/v1/images/generations` کے ذریعے تصاویر بنانا (10+ فراہم کنندگان، 20+ ماڈلز)
 - `/v1/audio/transcriptions` کے ذریعے آڈیو کی نقل نویسی (18 فراہم کنندگان)
-- `/v1/audio/speech` کے ذریعے متن سے آواز کی تخلیق (24 بلٹ اِن فراہم کنندگان)
-- `/v1/videos/generations` کے ذریعے ویڈیو کی تخلیق (ComfyUI + SD WebUI)
-- `/v1/music/generations` کے ذریعے موسیقی کی تخلیق (ComfyUI)
+- `/v1/audio/speech` کے ذریعے متن سے آواز بنانا (24 بلٹ اِن فراہم کنندگان)
+- `/v1/videos/generations` کے ذریعے ویڈیو بنانا (ComfyUI + SD WebUI)
+- `/v1/music/generations` کے ذریعے موسیقی بنانا (ComfyUI)
 - `/v1/search` کے ذریعے ویب تلاش (20 فراہم کنندگان)
 - `/v1/moderations` کے ذریعے مواد کی جانچ
 - `/v1/rerank` کے ذریعے دوبارہ درجہ بندی
-- استدلالی ماڈلز کے لیے تھنک ٹیگ کی پارسنگ (`<think>...</think>`)
+- استدلالی ماڈلز کے لیے تھنک ٹیگ پارسنگ (``)
 - سخت OpenAI SDK مطابقت کے لیے جوابات کی صفائی
 - مختلف فراہم کنندگان کے درمیان مطابقت کے لیے رول نارملائزیشن (developer→system، system→user)
 - منظم آؤٹ پٹ کی تبدیلی (json_schema → Gemini responseSchema)
 - فراہم کنندگان، کلیدوں، عرفی ناموں، کومبوز، ترتیبات، اور قیمتوں کے لیے مقامی مستقل ذخیرہ (122 DB ماڈیولز)
-- استعمال/لاگت کی ٹریکنگ اور درخواستوں کی لاگنگ
-- متعدد ڈیوائسز/حالت کی ہم وقت سازی کے لیے اختیاری کلاؤڈ سنک
+- استعمال/لاگت کی نگرانی اور درخواستوں کی لاگنگ
+- متعدد ڈیوائسز/اسٹیٹ کی ہم وقت سازی کے لیے اختیاری کلاؤڈ سنک
 - API رسائی کے کنٹرول کے لیے IP اجازت فہرست/بلاک فہرست
-- تھنکنگ بجٹ کا نظم (passthrough/auto/custom/adaptive)
+- تھنکنگ بجٹ کا انتظام (پاس تھرو/خودکار/حسبِ ضرورت/موافقت پذیر)
 - عالمی سسٹم پرامپٹ کا اندراج
-- سیشن ٹریکنگ اور فنگر پرنٹنگ
+- سیشن کی نگرانی اور فنگر پرنٹنگ
 - فراہم کنندہ سے مخصوص پروفائلز کے ساتھ فی اکاؤنٹ بہتر شرح کی تحدید
 - فراہم کنندہ کی لچک کے لیے سرکٹ بریکر پیٹرن
-- میوٹیکس لاکنگ کے ساتھ تھنڈرنگ ہرڈ سے تحفظ
-- دستخط پر مبنی درخواستوں کی نقل ختم کرنے والا کیش
-- ڈومین لیئر: لاگت کے قواعد، متبادل راستے کی پالیسی، لاک آؤٹ پالیسی
-- Context Relay: اکاؤنٹ کی تبدیلی کے دوران تسلسل کے لیے سیشن ہینڈ آف کے خلاصے
-- ڈومین اسٹیٹ کا مستقل ذخیرہ (متبادل راستوں، بجٹس، لاک آؤٹس، اور سرکٹ بریکرز کے لیے SQLite رائٹ تھرو کیش)
-- درخواستوں کی مرکزی جانچ کے لیے پالیسی انجن (لاک آؤٹ → بجٹ → متبادل راستہ)
+- میوٹیکس لاکنگ کے ساتھ اینٹی تھنڈرنگ ہرڈ تحفظ
+- دستخط پر مبنی یکساں درخواستوں کو ختم کرنے والا کیش
+- ڈومین پرت: لاگت کے قواعد، فال بیک پالیسی، لاک آؤٹ پالیسی
+- Context Relay: اکاؤنٹ روٹیشن میں تسلسل کے لیے سیشن حوالگی کے خلاصے
+- ڈومین اسٹیٹ کا مستقل ذخیرہ (فال بیکس، بجٹس، لاک آؤٹس، اور سرکٹ بریکرز کے لیے SQLite رائٹ تھرو کیش)
+- مرکزی درخواست جانچ کے لیے پالیسی انجن (لاک آؤٹ → بجٹ → فال بیک)
 - p50/p95/p99 تاخیر کی مجموعی پیمائش کے ساتھ درخواست ٹیلی میٹری
-- `combo_execution_key` / `combo_step_id` کے ذریعے کومبو ٹارگٹ ٹیلی میٹری اور کومبو ٹارگٹ کی تاریخی صحت
-- ابتدا سے انتہا تک ٹریسنگ کے لیے کوریلیشن ID (X-Request-Id)
+- `combo_execution_key` / `combo_step_id` کے ذریعے کومبو ہدف ٹیلی میٹری اور کومبو اہداف کی تاریخی صحت
+- ایک سرے سے دوسرے سرے تک ٹریسنگ کے لیے کوریلیشن ID (X-Request-Id)
 - فی API کلید آپٹ آؤٹ کے ساتھ تعمیل کی آڈٹ لاگنگ
-- LLM معیار کی یقین دہانی کے لیے ایویل فریم ورک
-- فراہم کنندہ کے سرکٹ بریکر کی حقیقی وقت کی حالت کے ساتھ صحت کا ڈیش بورڈ
-- MCP Server (110 ٹولز)، 3 ٹرانسپورٹس کے ساتھ (stdio/SSE/Streamable HTTP)
-- A2A Server (JSON-RPC 2.0 + SSE)، مہارتوں اور ٹاسک لائف سائیکل کے ساتھ
+- LLM معیار کی یقین دہانی کے لیے ایویلیوایشن فریم ورک
+- فراہم کنندگان کے سرکٹ بریکرز کی حقیقی وقت کی حالت کے ساتھ صحت کا ڈیش بورڈ
+- MCP سرور (110 ٹولز) جس میں 3 ٹرانسپورٹس (stdio/SSE/Streamable HTTP) ہیں
+- A2A سرور (JSON-RPC 2.0 + SSE) جس میں مہارتیں اور ٹاسک لائف سائیکل شامل ہیں
 - میموری سسٹم (اخذ، اندراج، بازیافت، خلاصہ سازی)
 - مہارتوں کا نظام (رجسٹری، ایگزیکیوٹر، سینڈ باکس، بلٹ اِن مہارتیں)
-- سرٹیفکیٹ کے نظم اور DNS ہینڈلنگ کے ساتھ MITM پراکسی
+- سرٹیفکیٹ کے انتظام اور DNS ہینڈلنگ کے ساتھ MITM پراکسی
 - پرامپٹ انجیکشن گارڈ مڈل ویئر
-- Caveman، RTK، اسٹیک شدہ پائپ لائنز، کمپریشن کومبوز، لینگویج پیکس، اور تجزیات کے ساتھ پرامپٹ کمپریشن پائپ لائن
+- Caveman، RTK، اسٹیکڈ پائپ لائنز، کمپریشن کومبوز، لینگویج پیکس، اور تجزیات کے ساتھ پرامپٹ کمپریشن پائپ لائن
 - ACP (Agent Communication Protocol) رجسٹری
 - ماڈیولر OAuth فراہم کنندگان (`src/lib/oauth/providers/` کے تحت 22 انفرادی ماڈیولز)
-- اَن انسٹال/مکمل اَن انسٹال اسکرپٹس
+- ان انسٹال/مکمل ان انسٹال اسکرپٹس
 - OAuth ماحول کی مرمت کی کارروائی
-- OpenAI-مطابق WS کلائنٹس کے لیے WebSocket برج (`/v1/ws`)
-- سنک ٹوکن کا نظم (اجرا/تنسیخ، ETag-ورژن شدہ کنفیگریشن بنڈل ڈاؤن لوڈ)
+- OpenAI سے ہم آہنگ WS کلائنٹس کے لیے WebSocket برج (`/v1/ws`)
+- سنک ٹوکن کا انتظام (جاری کرنا/منسوخ کرنا، ETag ورژن شدہ کنفیگریشن بنڈل ڈاؤن لوڈ)
 - GLM Thinking (`glmt`) بطور فرسٹ کلاس فراہم کنندہ پری سیٹ
-- ہائبرڈ ٹوکن گنتی (فراہم کنندہ کی جانب سے `/messages/count_tokens`، تخمینے کے متبادل کے ساتھ)
-- ماڈل عرفی ناموں کی خودکار ابتدائی تیاری (اسٹارٹ اپ پر 30+ کراس پراکسی ڈائیلیکٹ نارملائزیشنز)
-- SSRF گارڈ، نجی URLs کی بلاکنگ، اور قابل ترتیب دوبارہ کوشش کے ساتھ محفوظ آؤٹ باؤنڈ فیچ
+- ہائبرڈ ٹوکن گنتی (تخمینی فال بیک کے ساتھ فراہم کنندہ کی جانب سے `/messages/count_tokens`)
+- ماڈل عرفی ناموں کی خودکار سیڈنگ (اسٹارٹ اپ پر 30+ کراس پراکسی ڈائلیکٹ نارملائزیشنز)
+- SSRF گارڈ، نجی URLs کو بلاک کرنے، اور قابل ترتیب دوبارہ کوشش کے ساتھ محفوظ آؤٹ باؤنڈ فیچ
 - قابل ترتیب `requestRetry` اور `maxRetryIntervalSec` کے ساتھ کول ڈاؤن سے آگاہ چیٹ کی دوبارہ کوششیں
-- اسٹارٹ اپ پر Zod کے ذریعے رن ٹائم ماحول کی توثیق
-- صفحہ بندی، فراہم کنندہ کے CRUD واقعات، اور SSRF کے باعث بلاک شدہ توثیق کی لاگنگ کے ساتھ تعمیل آڈٹ v2
+- اسٹارٹ اپ پر Zod کے ساتھ رن ٹائم ماحول کی توثیق
+- صفحہ بندی، فراہم کنندہ CRUD ایونٹس، اور SSRF سے بلاک شدہ توثیق کی لاگنگ کے ساتھ تعمیل آڈٹ v2
 
 بنیادی رن ٹائم ماڈل:
 
-- `src/app/api/*` کے تحت Next.js ایپ روٹس ڈیش بورڈ APIs اور مطابقتی APIs دونوں نافذ کرتے ہیں
-- `src/sse/*` + `open-sse/*` میں موجود مشترکہ SSE/روٹنگ کور فراہم کنندہ کے نفاذ، ترجمے، اسٹریمنگ، متبادل راستے، اور استعمال کو سنبھالتا ہے
+- `src/app/api/*` کے تحت Next.js ایپ روٹس ڈیش بورڈ APIs اور مطابقتی APIs دونوں کو نافذ کرتے ہیں
+- `src/sse/*` + `open-sse/*` میں مشترکہ SSE/روٹنگ کور فراہم کنندہ کی تکمیل، ترجمہ، اسٹریمنگ، فال بیک، اور استعمال کو سنبھالتا ہے
 
 ## حوالہ جاتی خاکے
 
@@ -152,34 +152,34 @@ v3.8.0 پلیٹ فارم کے لیے مستند، ورژن کنٹرول شدہ M
 - `/dashboard/compression` — کمپریشن کے تجزیات، اعداد و شمار، اور پائپ لائن کی تفویض
 - `/dashboard/api-manager` — API کلید کا لائف سائیکل اور ماڈل کی اجازتیں
 
-## اعلیٰ سطحی سسٹم کا سیاق و سباق
+## اعلیٰ سطحی نظام کا سیاق و سباق
 
 ```mermaid
 flowchart LR
-    subgraph Clients[Developer Clients]
+    subgraph Clients[ڈیولپر کلائنٹس]
         C1[Claude Code]
         C2[Codex CLI]
         C3[OpenClaw / Droid / Cline / Continue / Roo]
-        C4[Custom OpenAI-compatible clients]
-        BROWSER[Browser Dashboard]
+        C4[حسبِ ضرورت OpenAI سے ہم آہنگ کلائنٹس]
+        BROWSER[براؤزر ڈیش بورڈ]
     end
 
-    subgraph Router[OmniRoute Local Process]
-        API[V1 Compatibility API\n/v1/*]
-        DASH[Dashboard + Management API\n/api/*]
-        CORE[SSE + Translation Core\nopen-sse + src/sse]
+    subgraph Router[OmniRoute مقامی پراسیس]
+        API[V1 مطابقتی API\n/v1/*]
+        DASH[ڈیش بورڈ + انتظامی API\n/api/*]
+        CORE[SSE + ترجمہ کور\nopen-sse + src/sse]
         DB[(storage.sqlite)]
-        UDB[(usage tables + log artifacts)]
+        UDB[(استعمال کی جدولیں + لاگ آرٹیفیکٹس)]
     end
 
-    subgraph Upstreams[Upstream Providers]
-        P1[OAuth Providers\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
-        P2[API Key Providers\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
-        P3[Compatible Nodes\nOpenAI-compatible / Anthropic-compatible]
+    subgraph Upstreams[اپ اسٹریم فراہم کنندگان]
+        P1[OAuth فراہم کنندگان\nClaude/Codex/Gemini/Qoder/GitHub/Kiro/Cursor/Antigravity]
+        P2[API Key فراہم کنندگان\nOpenAI/Anthropic/OpenRouter/GLM/Kimi/MiniMax\nDeepSeek/Groq/xAI/Mistral/Perplexity\nTogether/Fireworks/Cerebras/Cohere/NVIDIA]
+        P3[ہم آہنگ نوڈز\nOpenAI سے ہم آہنگ / Anthropic سے ہم آہنگ]
     end
 
-    subgraph Cloud[Optional Cloud Sync]
-        CLOUD[Cloud Sync Endpoint\nNEXT_PUBLIC_CLOUD_URL]
+    subgraph Cloud[اختیاری کلاؤڈ مطابقت پذیری]
+        CLOUD[کلاؤڈ مطابقت پذیری اینڈ پوائنٹ\nNEXT_PUBLIC_CLOUD_URL]
     end
 
     C1 --> API
@@ -258,25 +258,25 @@ flowchart LR
 - کنفیگریشن بنڈل: `src/app/api/sync/bundle` (GET، ترتیبات/پرووائیڈرز/کومبوز/کیز کا ETag-ورژن شدہ اسنیپ شاٹ)
 - WebSocket: `src/app/api/v1/ws/route.ts` — OpenAI سے مطابقت رکھنے والے WS کلائنٹس کے لیے اپ گریڈ ہینڈلر
 
-## 2) SSE + ترجمے کا بنیادی نظام
+## 2) SSE + ترجمہ کور
 
-مرکزی فلو کے ماڈیولز:
+مرکزی فلو ماڈیولز:
 
 - انٹری: `src/sse/handlers/chat.ts`
 - بنیادی آرکیسٹریشن: `open-sse/handlers/chatCore.ts`
 - پرووائیڈر ایگزیکیوشن اڈاپٹرز: `open-sse/executors/*`
 - فارمیٹ کی شناخت/پرووائیڈر کنفیگریشن: `open-sse/services/provider.ts`
 - ماڈل پارس/ریزولو: `src/sse/services/model.ts`، `open-sse/services/model.ts`
-- اکاؤنٹ فال بیک لاجک: `open-sse/services/accountFallback.ts`
+- اکاؤنٹ فال بیک منطق: `open-sse/services/accountFallback.ts`
 - ترجمہ رجسٹری: `open-sse/translator/index.ts`
 - اسٹریم ٹرانسفارمیشنز: `open-sse/utils/stream.ts`، `open-sse/utils/streamHandler.ts`
-- استعمال کا اخراج/نارملائزیشن: `open-sse/utils/usageTracking.ts`
+- استعمال کا اخذ/نارملائزیشن: `open-sse/utils/usageTracking.ts`
 - تھنک ٹیگ پارسر: `open-sse/utils/thinkTagParser.ts`
 - ایمبیڈنگ ہینڈلر: `open-sse/handlers/embeddings.ts`
 - ایمبیڈنگ پرووائیڈر رجسٹری: `open-sse/config/embeddingRegistry.ts`
-- امیج جنریشن ہینڈلر: `open-sse/handlers/imageGeneration.ts`
+- تصویر تخلیق کرنے کا ہینڈلر: `open-sse/handlers/imageGeneration.ts`
 - امیج پرووائیڈر رجسٹری: `open-sse/config/imageRegistry.ts`
-- رسپانس سینیٹائزیشن: `open-sse/handlers/responseSanitizer.ts`
+- ریسپانس سینیٹائزیشن: `open-sse/handlers/responseSanitizer.ts`
 - رول نارملائزیشن: `open-sse/services/roleNormalizer.ts`
 
 سروسز (کاروباری منطق):
@@ -285,20 +285,20 @@ flowchart LR
 - کانٹیکسٹ لائف سائیکل مینجمنٹ: `open-sse/services/contextManager.ts`
 - IP فلٹر کا نفاذ: `open-sse/services/ipFilter.ts`
 - سیشن ٹریکنگ: `open-sse/services/sessionManager.ts`
-- ریکویسٹ ڈی ڈپلیکیشن: `open-sse/services/signatureCache.ts`
+- درخواستوں کی نقل ختم کرنا: `open-sse/services/signatureCache.ts`
 - سسٹم پرامپٹ انجیکشن: `open-sse/services/systemPrompt.ts`
 - تھنکنگ بجٹ مینجمنٹ: `open-sse/services/thinkingBudget.ts`
-- وائلڈ کارڈ ماڈل روٹنگ: `open-sse/services/wildcardRouter.ts`
+- وائلڈ کارڈ ماڈل راؤٹنگ: `open-sse/services/wildcardRouter.ts`
 - ریٹ لمٹ مینجمنٹ: `open-sse/services/rateLimitManager.ts`
 - سرکٹ بریکر: `src/shared/utils/circuitBreaker.ts`
-- کانٹیکسٹ ہینڈ آف: `open-sse/services/contextHandoff.ts` — کانٹیکسٹ ریلے حکمتِ عملی کے لیے ہینڈ آف خلاصے کی تیاری اور انجیکشن
-- کمپریشن: `open-sse/services/compression/*` — پرووائیڈر ترجمے سے پہلے فعال کمپریشن؛
-  اس میں Caveman قواعد، RTK فلٹرز، اسٹیک شدہ پائپ لائنز، کمپریشن امتزاج، اعدادوشمار اور توثیق شامل ہیں
-- Codex کوٹا فیچر: `open-sse/services/codexQuotaFetcher.ts` — کانٹیکسٹ ریلے ہینڈ آف کے فیصلوں کے لیے Codex کوٹا حاصل کرتا ہے
-- کول ڈاؤن سے آگاہ ری ٹرائی: `src/sse/services/cooldownAwareRetry.ts` — قابلِ ترتیب `requestRetry` / `maxRetryIntervalSec` کے ساتھ فی ماڈل کول ڈاؤن ری ٹرائیز
-- محفوظ آؤٹ باؤنڈ فیچ: `src/shared/network/safeOutboundFetch.ts` — SSRF تحفظ، نجی URL بلاکنگ، ری ٹرائی اور ٹائم آؤٹ کے ساتھ محفوظ پرووائیڈر/ماڈل فیچ
-- آؤٹ باؤنڈ URL گارڈ: `src/shared/network/outboundUrlGuard.ts` — نجی/localhost CIDR رینجز کے مقابل پرووائیڈر URLs کی توثیق کرتا ہے
-- پرووائیڈر ریکویسٹ ڈیفالٹس: `open-sse/services/providerRequestDefaults.ts` — پرووائیڈر سطح کی `maxTokens`، `temperature`، `thinkingBudgetTokens` ڈیفالٹ اقدار
+- کانٹیکسٹ ہینڈ آف: `open-sse/services/contextHandoff.ts` — کانٹیکسٹ-ریلے حکمت عملی کے لیے ہینڈ آف خلاصے کی تخلیق اور انجیکشن
+- کمپریشن: `open-sse/services/compression/*` — پرووائیڈر ترجمے سے پہلے پیشگی کمپریشن؛
+  اس میں Caveman اصول، RTK فلٹرز، اسٹیکڈ پائپ لائنز، کمپریشن امتزاج، اعداد و شمار، اور توثیق شامل ہیں
+- Codex کوٹا فیچر: `open-sse/services/codexQuotaFetcher.ts` — کانٹیکسٹ-ریلے ہینڈ آف کے فیصلوں کے لیے Codex کوٹا حاصل کرتا ہے
+- کول ڈاؤن سے آگاہ ری ٹرائی: `src/sse/services/cooldownAwareRetry.ts` — قابلِ کنفیگریشن `requestRetry` / `maxRetryIntervalSec` کے ساتھ فی ماڈل کول ڈاؤن ری ٹرائز
+- محفوظ آؤٹ باؤنڈ فیچ: `src/shared/network/safeOutboundFetch.ts` — SSRF گارڈ، نجی URL بلاکنگ، ری ٹرائی، اور ٹائم آؤٹ کے ساتھ محفوظ پرووائیڈر/ماڈل فیچ
+- آؤٹ باؤنڈ URL گارڈ: `src/shared/network/outboundUrlGuard.ts` — پرووائیڈر URLs پر ہوسٹ کی جانچ؛ `src/shared/network/outboundUrlGuardPolicy.ts`، `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`، `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS`، اور ان کے ڈیش بورڈ ٹوگلز سے موڈ منتخب کرتا ہے (`docs/reference/ENVIRONMENT.md` دیکھیں)
+- پرووائیڈر درخواست کی ڈیفالٹ اقدار: `open-sse/services/providerRequestDefaults.ts` — پرووائیڈر سطح کی `maxTokens`، `temperature`، `thinkingBudgetTokens` ڈیفالٹ اقدار
 - GLM پرووائیڈر کانسٹنٹس: `open-sse/config/glmProvider.ts` — مشترکہ GLM ماڈلز، کوٹا URLs، GLMT ٹائم آؤٹ/ڈیفالٹس
 - Antigravity اپ اسٹریم: `open-sse/config/antigravityUpstream.ts` — بنیادی URL اور ڈسکوری پاتھ کانسٹنٹس
 - Codex کلائنٹ کانسٹنٹس: `open-sse/config/codexClient.ts` — ورژن شدہ یوزر ایجنٹ اور کلائنٹ ورژن اقدار
@@ -306,23 +306,24 @@ flowchart LR
 
 ڈومین لیئر ماڈیولز:
 
-- لاگت کے قواعد/بجٹس: `src/domain/costRules.ts`
+- لاگت کے اصول/بجٹس: `src/domain/costRules.ts`
 - فال بیک پالیسی: `src/domain/fallbackPolicy.ts`
 - کومبو ریزولور: `src/domain/comboResolver.ts`
 - لاک آؤٹ پالیسی: `src/domain/lockoutPolicy.ts`
 - پالیسی انجن: `src/domain/policyEngine.ts` — مرکزی لاک آؤٹ → بجٹ → فال بیک جائزہ
 - ایرر کوڈز کیٹلاگ: `src/shared/constants/errorCodes.ts`
-- ریکویسٹ ID: `src/shared/utils/requestId.ts`
+- درخواست ID: `src/shared/utils/requestId.ts`
 - فیچ ٹائم آؤٹ: `src/shared/utils/fetchTimeout.ts`
-- ریکویسٹ ٹیلی میٹری: `src/shared/utils/requestTelemetry.ts`
-- کمپلائنس/آڈٹ: `src/lib/compliance/index.ts`
+- درخواست ٹیلی میٹری: `src/shared/utils/requestTelemetry.ts`
+- تعمیل/آڈٹ: `src/lib/compliance/index.ts`
 - ایویل رنر: `src/lib/evals/evalRunner.ts`
-- ڈومین اسٹیٹ پرسسٹنس: `src/lib/db/domainState.ts` — فال بیک چینز، بجٹس، لاگت کی ہسٹری، لاک آؤٹ اسٹیٹ اور سرکٹ بریکرز کے لیے SQLite CRUD
+- ڈومین اسٹیٹ پرسسٹنس: `src/lib/db/domainState.ts` — فال بیک چینز، بجٹس، لاگت کی تاریخ، لاک آؤٹ اسٹیٹ، اور سرکٹ بریکرز کے لیے SQLite CRUD
 
-OAuth پرووائیڈر ماڈیولز (`src/lib/oauth/providers/` کے تحت 22 انفرادی فائلیں):
+OAuth پرووائیڈر ماڈیولز (`src/lib/oauth/providers/` کے تحت 27 انفرادی فائلیں):
 
 - رجسٹری انڈیکس: `src/lib/oauth/providers/index.ts`
-- انفرادی پرووائیڈرز: `agy.ts`، `antigravity.ts`، `claude.ts`، `cline.ts`، `codebuddy-cn.ts`، `codex.ts`، `cursor.ts`، `devin-desktop.ts`، `ghe-copilot.ts`، `github.ts`، `gitlab-duo.ts`، `grok-cli-oauth.ts`، `grok-cli.ts`، `kilocode.ts`، `kimi-coding.ts`، `kiro.ts`، `openference.ts`، `qoder.ts`، `trae.ts`، `xai-oauth.ts`، `zed-hosted.ts`، `zed.ts`
+- انفرادی پرووائیڈرز: `agy.ts`، `antigravity.ts`، `claude.ts`، `cline.ts`، `codebuddy-cn.ts`، `codebuddy-intl.ts`، `codex.ts`، `cursor.ts`، `devin-desktop.ts`، `ghe-copilot.ts`، `github.ts`، `gitlab-duo.ts`، `grok-cli-oauth.ts`، `grok-cli.ts`، `kilocode.ts`، `kimi-coding.ts`، `kiro.ts`، `muse-code.ts`، `openference.ts`، `qoder.ts`، `trae.ts`، `workbuddy.ts`، `xai-oauth.ts`، `zed-hosted.ts`، `zed.ts`
+- مشترکہ ہیلپرز: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl ڈیوائس فلو)، `museCodeDeviceResponse.ts`
 - ہلکا ریپر: `src/lib/oauth/providers.ts` — انفرادی ماڈیولز سے دوبارہ ایکسپورٹ کرتا ہے
 
 ## 5) ایمبیڈڈ سروسز (v3.8.4)

@@ -10,72 +10,72 @@ _അവസാനം പുതുക്കിയത്: 2026-06-28_
 
 ## എക്സിക്യൂട്ടീവ് സംഗ്രഹം
 
-Next.js അടിസ്ഥാനമാക്കി നിർമ്മിച്ച ഒരു ലോക്കൽ AI റൂട്ടിംഗ് ഗേറ്റ്വേയും ഡാഷ്ബോർഡുമാണ് OmniRoute.
-ഇത് ഒരൊറ്റ OpenAI-അനുയോജ്യമായ എൻഡ്പോയിന്റ് (`/v1/*`) നൽകുകയും വിവർത്തനം, ഫാൾബാക്ക്, ടോക്കൺ പുതുക്കൽ, ഉപയോഗ ട്രാക്കിംഗ് എന്നിവയോടെ ഒന്നിലധികം അപ്സ്ട്രീം പ്രൊവൈഡറുകളിലുടനീളം ട്രാഫിക് റൂട്ട് ചെയ്യുകയും ചെയ്യുന്നു.
+OmniRoute എന്നത് Next.js അടിസ്ഥാനമാക്കി നിർമ്മിച്ച ഒരു ലോക്കൽ AI റൂട്ടിംഗ് ഗേറ്റ്വേയും ഡാഷ്ബോർഡുമാണ്.
+ഇത് ഒരൊറ്റ OpenAI-അനുയോജ്യമായ എൻഡ്പോയിന്റ് (`/v1/*`) നൽകുകയും വിവർത്തനം, ഫോൾബാക്ക്, ടോക്കൺ പുതുക്കൽ, ഉപയോഗ ട്രാക്കിംഗ് എന്നിവയോടെ ഒന്നിലധികം അപ്സ്ട്രീം പ്രൊവൈഡറുകളിലുടനീളം ട്രാഫിക് റൂട്ട് ചെയ്യുകയും ചെയ്യുന്നു.
 
 പ്രധാന ശേഷികൾ:
 
-- CLI/ടൂളുകൾക്കായുള്ള OpenAI-അനുയോജ്യമായ API ഇന്റർഫേസ് (355 പ്രൊവൈഡറുകൾ, 108 എക്സിക്യൂട്ടറുകൾ)
-- പ്രൊവൈഡർ ഫോർമാറ്റുകൾക്കിടയിലെ അഭ്യർത്ഥന/പ്രതികരണ വിവർത്തനം
-- മോഡൽ കോംബോ ഫാൾബാക്ക് (ഒന്നിലധികം മോഡലുകളുടെ ക്രമം)
-- `compositeTiers` അനുസരിച്ചുള്ള റൺടൈം ക്രമീകരണത്തോടെ ഘടനാബദ്ധമായ കോംബോ ഘട്ടങ്ങൾ (`provider + model + connection`)
-- അക്കൗണ്ട്-തല ഫാൾബാക്ക് (ഓരോ പ്രൊവൈഡറിനും ഒന്നിലധികം അക്കൗണ്ടുകൾ)
-- പ്രധാന ചാറ്റ് പാതയിലെ ക്വോട്ട പ്രീഫ്ലൈറ്റും ക്വോട്ടയെ പരിഗണിക്കുന്ന P2C അക്കൗണ്ട് തിരഞ്ഞെടുപ്പും
-- OAuth + API-key പ്രൊവൈഡർ കണക്ഷൻ മാനേജ്മെന്റ് (22 OAuth പ്രൊവൈഡർ മൊഡ്യൂളുകൾ)
-- `/v1/embeddings` വഴിയുള്ള എംബെഡിംഗ് സൃഷ്ടിക്കൽ (18 പ്രൊവൈഡറുകൾ)
-- `/v1/images/generations` വഴിയുള്ള ഇമേജ് സൃഷ്ടിക്കൽ (10+ പ്രൊവൈഡറുകൾ, 20+ മോഡലുകൾ)
+- CLI/ടൂളുകൾക്കായുള്ള OpenAI-അനുയോജ്യമായ API ഇന്റർഫേസ് (372 പ്രൊവൈഡറുകൾ, 148 എക്സിക്യൂട്ടറുകൾ)
+- പ്രൊവൈഡർ ഫോർമാറ്റുകൾക്കിടയിൽ റിക്വസ്റ്റ്/റെസ്പോൺസ് വിവർത്തനം
+- മോഡൽ കോംബോ ഫാൾബാക്ക് (മൾട്ടി-മോഡൽ ക്രമം)
+- `compositeTiers` അനുസരിച്ചുള്ള റൺടൈം ക്രമീകരണത്തോടുകൂടിയ ഘടനാബദ്ധമായ കോംബോ ഘട്ടങ്ങൾ (`provider + model + connection`)
+- അക്കൗണ്ട്-ലെവൽ ഫാൾബാക്ക് (ഓരോ പ്രൊവൈഡറിനും ഒന്നിലധികം അക്കൗണ്ടുകൾ)
+- പ്രധാന ചാറ്റ് പാതയിൽ ക്വോട്ട പ്രീഫ്ലൈറ്റും ക്വോട്ട-അവബോധമുള്ള P2C അക്കൗണ്ട് തിരഞ്ഞെടുപ്പും
+- OAuth + API-key പ്രൊവൈഡർ കണക്ഷൻ മാനേജ്മെന്റ് (27 OAuth പ്രൊവൈഡർ മൊഡ്യൂളുകൾ)
+- `/v1/embeddings` വഴിയുള്ള എംബെഡിംഗ് ജനറേഷൻ (18 പ്രൊവൈഡറുകൾ)
+- `/v1/images/generations` വഴിയുള്ള ഇമേജ് ജനറേഷൻ (10+ പ്രൊവൈഡറുകൾ, 20+ മോഡലുകൾ)
 - `/v1/audio/transcriptions` വഴിയുള്ള ഓഡിയോ ട്രാൻസ്ക്രിപ്ഷൻ (18 പ്രൊവൈഡറുകൾ)
 - `/v1/audio/speech` വഴിയുള്ള ടെക്സ്റ്റ്-ടു-സ്പീച്ച് (24 ബിൽറ്റ്-ഇൻ പ്രൊവൈഡറുകൾ)
-- `/v1/videos/generations` വഴിയുള്ള വീഡിയോ സൃഷ്ടിക്കൽ (ComfyUI + SD WebUI)
-- `/v1/music/generations` വഴിയുള്ള സംഗീത സൃഷ്ടിക്കൽ (ComfyUI)
+- `/v1/videos/generations` വഴിയുള്ള വീഡിയോ ജനറേഷൻ (ComfyUI + SD WebUI)
+- `/v1/music/generations` വഴിയുള്ള സംഗീത ജനറേഷൻ (ComfyUI)
 - `/v1/search` വഴിയുള്ള വെബ് തിരയൽ (20 പ്രൊവൈഡറുകൾ)
 - `/v1/moderations` വഴിയുള്ള മോഡറേഷനുകൾ
-- `/v1/rerank` വഴിയുള്ള പുനഃറാങ്കിംഗ്
-- റീസണിംഗ് മോഡലുകൾക്കായുള്ള തിങ്ക് ടാഗ് പാർസിംഗ് (`<think>...</think>`)
-- കർശനമായ OpenAI SDK അനുയോജ്യതയ്ക്കായുള്ള പ്രതികരണ ശുദ്ധീകരണം
-- വിവിധ പ്രൊവൈഡറുകൾ തമ്മിലുള്ള അനുയോജ്യതയ്ക്കായുള്ള റോൾ നോർമലൈസേഷൻ (developer→system, system→user)
+- `/v1/rerank` വഴിയുള്ള റീറാങ്കിംഗ്
+- റീസണിംഗ് മോഡലുകൾക്കായുള്ള തിങ്ക് ടാഗ് പാർസിംഗ് (``)
+- കർശനമായ OpenAI SDK അനുയോജ്യതയ്ക്കായുള്ള റെസ്പോൺസ് സാനിറ്റൈസേഷൻ
+- ക്രോസ്-പ്രൊവൈഡർ അനുയോജ്യതയ്ക്കായുള്ള റോൾ നോർമലൈസേഷൻ (developer→system, system→user)
 - ഘടനാബദ്ധമായ ഔട്ട്പുട്ട് പരിവർത്തനം (json_schema → Gemini responseSchema)
-- പ്രൊവൈഡറുകൾ, കീകൾ, അപരനാമങ്ങൾ, കോംബോകൾ, ക്രമീകരണങ്ങൾ, വിലനിർണ്ണയം എന്നിവയ്ക്കായുള്ള ലോക്കൽ പെർസിസ്റ്റൻസ് (122 DB മൊഡ്യൂളുകൾ)
-- ഉപയോഗം/ചെലവ് ട്രാക്കിംഗും അഭ്യർത്ഥന ലോഗിംഗും
-- ഒന്നിലധികം ഉപകരണങ്ങൾ/സ്റ്റേറ്റ് സമന്വയിപ്പിക്കുന്നതിനുള്ള ഐച്ഛിക ക്ലൗഡ് സിങ്ക്
-- API ആക്സസ് നിയന്ത്രണത്തിനായുള്ള IP അനുവദനീയപട്ടിക/തടയൽപട്ടിക
+- പ്രൊവൈഡറുകൾ, കീകൾ, അപരനാമങ്ങൾ, കോംബോകൾ, ക്രമീകരണങ്ങൾ, പ്രൈസിംഗ് എന്നിവയ്ക്കുള്ള ലോക്കൽ പെർസിസ്റ്റൻസ് (122 DB മൊഡ്യൂളുകൾ)
+- ഉപയോഗ/ചെലവ് ട്രാക്കിംഗും റിക്വസ്റ്റ് ലോഗിംഗും
+- മൾട്ടി-ഡിവൈസ്/സ്റ്റേറ്റ് സമന്വയത്തിനായുള്ള ഓപ്ഷണൽ ക്ലൗഡ് സിങ്ക്
+- API ആക്സസ് നിയന്ത്രണത്തിനായുള്ള IP അനുവദനീയ പട്ടിക/തടയൽ പട്ടിക
 - തിങ്കിംഗ് ബജറ്റ് മാനേജ്മെന്റ് (പാസ്ത്രൂ/ഓട്ടോ/കസ്റ്റം/അഡാപ്റ്റീവ്)
-- ഗ്ലോബൽ സിസ്റ്റം പ്രോംപ്റ്റ് ഇൻജക്ഷൻ
+- ഗ്ലോബൽ സിസ്റ്റം പ്രോംപ്റ്റ് ഇൻജെക്ഷൻ
 - സെഷൻ ട്രാക്കിംഗും ഫിംഗർപ്രിന്റിംഗും
 - പ്രൊവൈഡർ-നിർദ്ദിഷ്ട പ്രൊഫൈലുകളോടുകൂടിയ ഓരോ അക്കൗണ്ടിനുമുള്ള മെച്ചപ്പെടുത്തിയ റേറ്റ് ലിമിറ്റിംഗ്
 - പ്രൊവൈഡർ പ്രതിരോധശേഷിക്കായുള്ള സർക്യൂട്ട് ബ്രേക്കർ പാറ്റേൺ
-- മ്യൂട്ടക്സ് ലോക്കിംഗോടുകൂടിയ ആന്റി-തണ്ടറിംഗ് ഹെർഡ് സംരക്ഷണം
-- സിഗ്നേച്ചർ അടിസ്ഥാനമാക്കിയുള്ള അഭ്യർത്ഥന ഡിഡ്യൂപ്ലിക്കേഷൻ കാഷെ
-- ഡൊമെയ്ൻ ലെയർ: ചെലവ് നിയമങ്ങൾ, ഫാൾബാക്ക് നയം, ലോക്കൗട്ട് നയം
-- കോൺടെക്സ്റ്റ് റിലേ: അക്കൗണ്ട് റൊട്ടേഷനിലുടനീളം തുടർച്ച നിലനിർത്തുന്നതിനുള്ള സെഷൻ കൈമാറ്റ സംഗ്രഹങ്ങൾ
-- ഡൊമെയ്ൻ സ്റ്റേറ്റ് പെർസിസ്റ്റൻസ് (ഫാൾബാക്കുകൾ, ബജറ്റുകൾ, ലോക്കൗട്ടുകൾ, സർക്യൂട്ട് ബ്രേക്കറുകൾ എന്നിവയ്ക്കുള്ള SQLite റൈറ്റ്-ത്രൂ കാഷെ)
-- കേന്ദ്രീകൃത അഭ്യർത്ഥന വിലയിരുത്തലിനുള്ള പോളിസി എൻജിൻ (ലോക്കൗട്ട് → ബജറ്റ് → ഫാൾബാക്ക്)
-- p50/p95/p99 ലേറ്റൻസി അഗ്രിഗേഷനോടുകൂടിയ അഭ്യർത്ഥന ടെലിമെട്രി
+- മ്യൂട്ടെക്സ് ലോക്കിംഗോടുകൂടിയ ആന്റി-തണ്ടറിംഗ് ഹെർഡ് സംരക്ഷണം
+- സിഗ്നേച്ചർ അടിസ്ഥാനമാക്കിയുള്ള റിക്വസ്റ്റ് ഡീഡ്യൂപ്ലിക്കേഷൻ കാഷ്
+- ഡൊമെയ്ൻ ലെയർ: ചെലവ് നിയമങ്ങൾ, ഫാൾബാക്ക് പോളിസി, ലോക്കൗട്ട് പോളിസി
+- Context Relay: അക്കൗണ്ട് റൊട്ടേഷൻ തുടർച്ചയ്ക്കായുള്ള സെഷൻ കൈമാറ്റ സംഗ്രഹങ്ങൾ
+- ഡൊമെയ്ൻ സ്റ്റേറ്റ് പെർസിസ്റ്റൻസ് (ഫാൾബാക്കുകൾ, ബജറ്റുകൾ, ലോക്കൗട്ടുകൾ, സർക്യൂട്ട് ബ്രേക്കറുകൾ എന്നിവയ്ക്കായുള്ള SQLite റൈറ്റ്-ത്രൂ കാഷ്)
+- കേന്ദ്രീകൃത റിക്വസ്റ്റ് മൂല്യനിർണ്ണയത്തിനായുള്ള പോളിസി എഞ്ചിൻ (ലോക്കൗട്ട് → ബജറ്റ് → ഫാൾബാക്ക്)
+- p50/p95/p99 ലേറ്റൻസി അഗ്രിഗേഷനോടുകൂടിയ റിക്വസ്റ്റ് ടെലിമെട്രി
 - `combo_execution_key` / `combo_step_id` വഴിയുള്ള കോംബോ ടാർഗറ്റ് ടെലിമെട്രിയും ചരിത്രപരമായ കോംബോ ടാർഗറ്റ് ആരോഗ്യനിലയും
 - എൻഡ്-ടു-എൻഡ് ട്രേസിംഗിനായുള്ള കോറിലേഷൻ ID (X-Request-Id)
-- ഓരോ API കീയ്ക്കും ഓപ്റ്റ്-ഔട്ട് സൗകര്യമുള്ള കംപ്ലയൻസ് ഓഡിറ്റ് ലോഗിംഗ്
+- ഓരോ API കീയ്ക്കും ഒഴിവാക്കൽ ഓപ്ഷനോടുകൂടിയ കംപ്ലയൻസ് ഓഡിറ്റ് ലോഗിംഗ്
 - LLM ഗുണനിലവാര ഉറപ്പിനായുള്ള ഇവാൽ ഫ്രെയിംവർക്ക്
-- തത്സമയ പ്രൊവൈഡർ സർക്യൂട്ട് ബ്രേക്കർ നിലയോടുകൂടിയ ആരോഗ്യ ഡാഷ്ബോർഡ്
+- റിയൽ-ടൈം പ്രൊവൈഡർ സർക്യൂട്ട് ബ്രേക്കർ നിലയോടുകൂടിയ ഹെൽത്ത് ഡാഷ്ബോർഡ്
 - 3 ട്രാൻസ്പോർട്ടുകളോടുകൂടിയ MCP Server (110 ടൂളുകൾ) (stdio/SSE/Streamable HTTP)
-- സ്കില്ലുകളും ടാസ്ക് ലൈഫ്സൈക്കിളുമുള്ള A2A Server (JSON-RPC 2.0 + SSE)
-- മെമ്മറി സിസ്റ്റം (എക്സ്ട്രാക്ഷൻ, ഇൻജക്ഷൻ, റിട്രീവൽ, സംഗ്രഹിക്കൽ)
+- സ്കില്ലുകളും ടാസ്ക് ലൈഫ്സൈക്കിളും ഉൾപ്പെടുന്ന A2A Server (JSON-RPC 2.0 + SSE)
+- മെമ്മറി സിസ്റ്റം (എക്സ്ട്രാക്ഷൻ, ഇൻജെക്ഷൻ, റിട്രീവൽ, സമ്മറൈസേഷൻ)
 - സ്കിൽസ് സിസ്റ്റം (രജിസ്ട്രി, എക്സിക്യൂട്ടർ, സാൻഡ്ബോക്സ്, ബിൽറ്റ്-ഇൻ സ്കില്ലുകൾ)
-- സർട്ടിഫിക്കറ്റ് മാനേജ്മെന്റും DNS കൈകാര്യം ചെയ്യലുമുള്ള MITM പ്രോക്സി
-- പ്രോംപ്റ്റ് ഇൻജക്ഷൻ ഗാർഡ് മിഡിൽവെയർ
-- Caveman, RTK, സ്റ്റാക്ക്ഡ് പൈപ്പ്ലൈനുകൾ, കംപ്രഷൻ കോംബോകൾ, ഭാഷാ പാക്കുകൾ, അനലിറ്റിക്സ് എന്നിവയോടുകൂടിയ പ്രോംപ്റ്റ് കംപ്രഷൻ പൈപ്പ്ലൈൻ
+- സർട്ടിഫിക്കറ്റ് മാനേജ്മെന്റും DNS കൈകാര്യം ചെയ്യലും ഉൾപ്പെടുന്ന MITM പ്രോക്സി
+- പ്രോംപ്റ്റ് ഇൻജെക്ഷൻ ഗാർഡ് മിഡിൽവെയർ
+- Caveman, RTK, സ്റ്റാക്ക്ഡ് പൈപ്പ്ലൈനുകൾ, കംപ്രഷൻ കോംബോകൾ, ലാംഗ്വേജ് പാക്കുകൾ, അനലിറ്റിക്സ് എന്നിവയോടുകൂടിയ പ്രോംപ്റ്റ് കംപ്രഷൻ പൈപ്പ്ലൈൻ
 - ACP (Agent Communication Protocol) രജിസ്ട്രി
-- മൊഡ്യൂളാർ OAuth പ്രൊവൈഡറുകൾ (`src/lib/oauth/providers/`-ന് കീഴിലുള്ള 22 പ്രത്യേക മൊഡ്യൂളുകൾ)
-- അൺഇൻസ്റ്റാൾ/പൂർണ്ണ-അൺഇൻസ്റ്റാൾ സ്ക്രിപ്റ്റുകൾ
+- മോഡുലാർ OAuth പ്രൊവൈഡറുകൾ (`src/lib/oauth/providers/`-ന് കീഴിലുള്ള 22 വ്യക്തിഗത മൊഡ്യൂളുകൾ)
+- അൺഇൻസ്റ്റാൾ/ഫുൾ-അൺഇൻസ്റ്റാൾ സ്ക്രിപ്റ്റുകൾ
 - OAuth എൻവയോൺമെന്റ് റിപ്പയർ ആക്ഷൻ
 - OpenAI-അനുയോജ്യമായ WS ക്ലയന്റുകൾക്കായുള്ള WebSocket ബ്രിഡ്ജ് (`/v1/ws`)
-- സിങ്ക് ടോക്കൺ മാനേജ്മെന്റ് (ഇഷ്യൂ/റിവോക്ക്, ETag-പതിപ്പിട്ട കോൺഫിഗ് ബണ്ടിൽ ഡൗൺലോഡ്)
+- സിങ്ക് ടോക്കൺ മാനേജ്മെന്റ് (ഇഷ്യൂ/റിവോക്ക്, ETag-വേർഷൻ ചെയ്ത കോൺഫിഗ് ബണ്ടിൽ ഡൗൺലോഡ്)
 - GLM Thinking (`glmt`) ഫസ്റ്റ്-ക്ലാസ് പ്രൊവൈഡർ പ്രീസെറ്റ്
 - ഹൈബ്രിഡ് ടോക്കൺ കൗണ്ടിംഗ് (എസ്റ്റിമേഷൻ ഫാൾബാക്കോടുകൂടിയ പ്രൊവൈഡർ-സൈഡ് `/messages/count_tokens`)
-- മോഡൽ അപരനാമ ഓട്ടോ-സീഡിംഗ് (സ്റ്റാർട്ടപ്പിൽ 30+ ക്രോസ്-പ്രോക്സി ഡയലക്റ്റ് നോർമലൈസേഷനുകൾ)
-- SSRF ഗാർഡ്, സ്വകാര്യ URL തടയൽ, കോൺഫിഗർ ചെയ്യാവുന്ന റീട്രൈ എന്നിവയോടുകൂടിയ സുരക്ഷിത ഔട്ട്ബൗണ്ട് ഫെച്ച്
+- മോഡൽ അപരനാമ ഓട്ടോ-സീഡിംഗ് (സ്റ്റാർട്ടപ്പിൽ 30+ ക്രോസ്-പ്രോക്സി ഡയലക്ട് നോർമലൈസേഷനുകൾ)
+- SSRF ഗാർഡ്, പ്രൈവറ്റ് URL ബ്ലോക്കിംഗ്, കോൺഫിഗർ ചെയ്യാവുന്ന റീട്രൈ എന്നിവയോടുകൂടിയ സുരക്ഷിത ഔട്ട്ബൗണ്ട് ഫെച്ച്
 - കോൺഫിഗർ ചെയ്യാവുന്ന `requestRetry`, `maxRetryIntervalSec` എന്നിവയോടുകൂടിയ കൂൾഡൗൺ-അവബോധമുള്ള ചാറ്റ് റീട്രൈകൾ
-- സ്റ്റാർട്ടപ്പിൽ Zod ഉപയോഗിച്ചുള്ള റൺടൈം എൻവയോൺമെന്റ് സാധൂകരണം
-- പേജിനേഷൻ, പ്രൊവൈഡർ CRUD ഇവന്റുകൾ, SSRF-തടഞ്ഞ സാധൂകരണ ലോഗിംഗ് എന്നിവയോടുകൂടിയ കംപ്ലയൻസ് ഓഡിറ്റ് v2
+- സ്റ്റാർട്ടപ്പിൽ Zod ഉപയോഗിച്ചുള്ള റൺടൈം എൻവയോൺമെന്റ് വാലിഡേഷൻ
+- പേജിനേഷൻ, പ്രൊവൈഡർ CRUD ഇവന്റുകൾ, SSRF-തടഞ്ഞ വാലിഡേഷൻ ലോഗിംഗ് എന്നിവയോടുകൂടിയ കംപ്ലയൻസ് ഓഡിറ്റ് v2
 
 പ്രാഥമിക റൺടൈം മോഡൽ:
 
@@ -266,11 +266,11 @@ flowchart LR
 - കോർ ഓർക്കസ്ട്രേഷൻ: `open-sse/handlers/chatCore.ts`
 - പ്രൊവൈഡർ എക്സിക്യൂഷൻ അഡാപ്റ്ററുകൾ: `open-sse/executors/*`
 - ഫോർമാറ്റ് കണ്ടെത്തൽ/പ്രൊവൈഡർ കോൺഫിഗറേഷൻ: `open-sse/services/provider.ts`
-- മോഡൽ പാർസിംഗ്/റിസോൾവിംഗ്: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- മോഡൽ പാർസ്/റിസോൾവ്: `src/sse/services/model.ts`, `open-sse/services/model.ts`
 - അക്കൗണ്ട് ഫാൾബാക്ക് ലോജിക്: `open-sse/services/accountFallback.ts`
 - വിവർത്തന രജിസ്ട്രി: `open-sse/translator/index.ts`
 - സ്ട്രീം രൂപാന്തരങ്ങൾ: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- ഉപയോഗം വേർതിരിച്ചെടുക്കൽ/നോർമലൈസേഷൻ: `open-sse/utils/usageTracking.ts`
+- ഉപയോഗ വിവരങ്ങളുടെ എക്സ്ട്രാക്ഷൻ/നോർമലൈസേഷൻ: `open-sse/utils/usageTracking.ts`
 - Think ടാഗ് പാർസർ: `open-sse/utils/thinkTagParser.ts`
 - എംബെഡ്ഡിംഗ് ഹാൻഡ്ലർ: `open-sse/handlers/embeddings.ts`
 - എംബെഡ്ഡിംഗ് പ്രൊവൈഡർ രജിസ്ട്രി: `open-sse/config/embeddingRegistry.ts`
@@ -286,44 +286,45 @@ flowchart LR
 - IP ഫിൽട്ടർ നടപ്പാക്കൽ: `open-sse/services/ipFilter.ts`
 - സെഷൻ ട്രാക്കിംഗ്: `open-sse/services/sessionManager.ts`
 - റിക്വസ്റ്റ് ഡീഡ്യൂപ്ലിക്കേഷൻ: `open-sse/services/signatureCache.ts`
-- സിസ്റ്റം പ്രോംപ്റ്റ് ഇൻജക്ഷൻ: `open-sse/services/systemPrompt.ts`
+- സിസ്റ്റം പ്രോംപ്റ്റ് ഇൻജെക്ഷൻ: `open-sse/services/systemPrompt.ts`
 - തിങ്കിംഗ് ബജറ്റ് മാനേജ്മെന്റ്: `open-sse/services/thinkingBudget.ts`
 - വൈൽഡ്കാർഡ് മോഡൽ റൂട്ടിംഗ്: `open-sse/services/wildcardRouter.ts`
 - റേറ്റ് ലിമിറ്റ് മാനേജ്മെന്റ്: `open-sse/services/rateLimitManager.ts`
 - സർക്യൂട്ട് ബ്രേക്കർ: `src/shared/utils/circuitBreaker.ts`
-- കോൺടെക്സ്റ്റ് കൈമാറ്റം: `open-sse/services/contextHandoff.ts` — കോൺടെക്സ്റ്റ്-റിലേ സ്ട്രാറ്റജിക്കായുള്ള കൈമാറ്റ സംഗ്രഹം സൃഷ്ടിക്കലും ഇൻജക്ഷനും
-- കംപ്രഷൻ: `open-sse/services/compression/*` — പ്രൊവൈഡർ വിവർത്തനത്തിന് മുമ്പുള്ള മുൻകരുതൽ കംപ്രഷൻ;
-  Caveman നിയമങ്ങൾ, RTK ഫിൽട്ടറുകൾ, സ്റ്റാക്ക് ചെയ്ത പൈപ്പ്ലൈനുകൾ, കംപ്രഷൻ കോമ്പോകൾ, സ്ഥിതിവിവരക്കണക്കുകൾ, സാധൂകരണം എന്നിവ ഉൾപ്പെടുന്നു
-- Codex ക്വോട്ട ഫെച്ചർ: `open-sse/services/codexQuotaFetcher.ts` — കോൺടെക്സ്റ്റ്-റിലേ കൈമാറ്റ തീരുമാനങ്ങൾക്കായി Codex ക്വോട്ട ലഭ്യമാക്കുന്നു
-- കൂൾഡൗൺ-അവബോധമുള്ള റീട്രൈ: `src/sse/services/cooldownAwareRetry.ts` — കോൺഫിഗർ ചെയ്യാവുന്ന `requestRetry` / `maxRetryIntervalSec` ഉപയോഗിച്ചുള്ള ഓരോ മോഡലിനുമുള്ള കൂൾഡൗൺ റീട്രൈകൾ
-- സുരക്ഷിത ഔട്ട്ബൗണ്ട് ഫെച്ച്: `src/shared/network/safeOutboundFetch.ts` — SSRF ഗാർഡ്, സ്വകാര്യ-URL തടയൽ, റീട്രൈ, ടൈംഔട്ട് എന്നിവയോടുകൂടിയ സംരക്ഷിത പ്രൊവൈഡർ/മോഡൽ ഫെച്ച്
-- ഔട്ട്ബൗണ്ട് URL ഗാർഡ്: `src/shared/network/outboundUrlGuard.ts` — സ്വകാര്യ/localhost CIDR പരിധികൾക്കെതിരെ പ്രൊവൈഡർ URL-കൾ സാധൂകരിക്കുന്നു
-- പ്രൊവൈഡർ റിക്വസ്റ്റ് ഡിഫോൾട്ടുകൾ: `open-sse/services/providerRequestDefaults.ts` — പ്രൊവൈഡർ-തലത്തിലുള്ള `maxTokens`, `temperature`, `thinkingBudgetTokens` ഡിഫോൾട്ടുകൾ
+- കോൺടെക്സ്റ്റ് ഹാൻഡ്ഓഫ്: `open-sse/services/contextHandoff.ts` — കോൺടെക്സ്റ്റ്-റിലേ തന്ത്രത്തിനായുള്ള ഹാൻഡ്ഓഫ് സംഗ്രഹം സൃഷ്ടിക്കലും ഇൻജെക്ഷനും
+- കംപ്രഷൻ: `open-sse/services/compression/*` — പ്രൊവൈഡർ വിവർത്തനത്തിന് മുമ്പുള്ള പ്രോആക്റ്റീവ് കംപ്രഷൻ;
+  Caveman നിയമങ്ങൾ, RTK ഫിൽട്ടറുകൾ, സ്റ്റാക്ക് ചെയ്ത പൈപ്പ്ലൈനുകൾ, കംപ്രഷൻ കോംബോകൾ, സ്ഥിതിവിവരക്കണക്കുകൾ, വാലിഡേഷൻ എന്നിവ ഉൾപ്പെടുന്നു
+- Codex ക്വോട്ട ഫെച്ചർ: `open-sse/services/codexQuotaFetcher.ts` — കോൺടെക്സ്റ്റ്-റിലേ ഹാൻഡ്ഓഫ് തീരുമാനങ്ങൾക്കായി Codex ക്വോട്ട ലഭ്യമാക്കുന്നു
+- കൂൾഡൗൺ-അവെയർ റീട്രൈ: `src/sse/services/cooldownAwareRetry.ts` — കോൺഫിഗർ ചെയ്യാവുന്ന `requestRetry` / `maxRetryIntervalSec` സഹിതം ഓരോ മോഡലിനുമുള്ള കൂൾഡൗൺ റീട്രൈകൾ
+- സുരക്ഷിത ഔട്ട്ബൗണ്ട് ഫെച്ച്: `src/shared/network/safeOutboundFetch.ts` — SSRF ഗാർഡ്, സ്വകാര്യ URL ബ്ലോക്കിംഗ്, റീട്രൈ, ടൈംഔട്ട് എന്നിവയുള്ള സംരക്ഷിത പ്രൊവൈഡർ/മോഡൽ ഫെച്ച്
+- ഔട്ട്ബൗണ്ട് URL ഗാർഡ്: `src/shared/network/outboundUrlGuard.ts` — പ്രൊവൈഡർ URL-കളിലെ ഹോസ്റ്റ് പരിശോധനകൾ; `src/shared/network/outboundUrlGuardPolicy.ts`, `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` എന്നിവയിൽനിന്നും അവയുടെ ഡാഷ്ബോർഡ് ടോഗിളുകളിൽനിന്നും മോഡ് തിരഞ്ഞെടുക്കുന്നു (`docs/reference/ENVIRONMENT.md` കാണുക)
+- പ്രൊവൈഡർ റിക്വസ്റ്റ് ഡിഫോൾട്ടുകൾ: `open-sse/services/providerRequestDefaults.ts` — പ്രൊവൈഡർ-ലെവൽ `maxTokens`, `temperature`, `thinkingBudgetTokens` ഡിഫോൾട്ടുകൾ
 - GLM പ്രൊവൈഡർ കോൺസ്റ്റന്റുകൾ: `open-sse/config/glmProvider.ts` — പങ്കിട്ട GLM മോഡലുകൾ, ക്വോട്ട URL-കൾ, GLMT ടൈംഔട്ട്/ഡിഫോൾട്ടുകൾ
 - Antigravity അപ്സ്ട്രീം: `open-sse/config/antigravityUpstream.ts` — ബേസ് URL, ഡിസ്കവറി പാത്ത് കോൺസ്റ്റന്റുകൾ
-- Codex ക്ലയന്റ് കോൺസ്റ്റന്റുകൾ: `open-sse/config/codexClient.ts` — പതിപ്പ് നൽകിയ യൂസർ-ഏജന്റ്, ക്ലയന്റ്-പതിപ്പ് മൂല്യങ്ങൾ
-- മോഡൽ അപരനാമ സീഡ്: `src/lib/modelAliasSeed.ts` — സ്റ്റാർട്ടപ്പിൽ 30+ ക്രോസ്-പ്രോക്സി ഡയലക്ട് അപരനാമങ്ങൾ സീഡ് ചെയ്യുന്നു
+- Codex ക്ലയന്റ് കോൺസ്റ്റന്റുകൾ: `open-sse/config/codexClient.ts` — പതിപ്പോടുകൂടിയ യൂസർ-ഏജന്റ്, ക്ലയന്റ്-വേർഷൻ മൂല്യങ്ങൾ
+- മോഡൽ അലിയാസ് സീഡ്: `src/lib/modelAliasSeed.ts` — സ്റ്റാർട്ടപ്പിൽ 30+ ക്രോസ്-പ്രോക്സി ഡയലക്റ്റ് അലിയാസുകൾ സീഡ് ചെയ്യുന്നു
 
 ഡൊമെയ്ൻ ലെയർ മൊഡ്യൂളുകൾ:
 
-- കോസ്റ്റ് നിയമങ്ങൾ/ബജറ്റുകൾ: `src/domain/costRules.ts`
+- ചെലവ് നിയമങ്ങൾ/ബജറ്റുകൾ: `src/domain/costRules.ts`
 - ഫാൾബാക്ക് പോളിസി: `src/domain/fallbackPolicy.ts`
-- കോമ്പോ റിസോൾവർ: `src/domain/comboResolver.ts`
+- കോംബോ റിസോൾവർ: `src/domain/comboResolver.ts`
 - ലോക്ക്ഔട്ട് പോളിസി: `src/domain/lockoutPolicy.ts`
-- പോളിസി എൻജിൻ: `src/domain/policyEngine.ts` — കേന്ദ്രീകൃത ലോക്ക്ഔട്ട് → ബജറ്റ് → ഫാൾബാക്ക് വിലയിരുത്തൽ
+- പോളിസി എഞ്ചിൻ: `src/domain/policyEngine.ts` — കേന്ദ്രീകൃത ലോക്ക്ഔട്ട് → ബജറ്റ് → ഫാൾബാക്ക് വിലയിരുത്തൽ
 - എറർ കോഡ് കാറ്റലോഗ്: `src/shared/constants/errorCodes.ts`
 - റിക്വസ്റ്റ് ID: `src/shared/utils/requestId.ts`
 - ഫെച്ച് ടൈംഔട്ട്: `src/shared/utils/fetchTimeout.ts`
 - റിക്വസ്റ്റ് ടെലിമെട്രി: `src/shared/utils/requestTelemetry.ts`
 - കംപ്ലയൻസ്/ഓഡിറ്റ്: `src/lib/compliance/index.ts`
-- Eval റണ്ണർ: `src/lib/evals/evalRunner.ts`
-- ഡൊമെയ്ൻ സ്റ്റേറ്റ് പെർസിസ്റ്റൻസ്: `src/lib/db/domainState.ts` — ഫാൾബാക്ക് ചെയിനുകൾ, ബജറ്റുകൾ, കോസ്റ്റ് ഹിസ്റ്ററി, ലോക്ക്ഔട്ട് സ്റ്റേറ്റ്, സർക്യൂട്ട് ബ്രേക്കറുകൾ എന്നിവയ്ക്കുള്ള SQLite CRUD
+- ഇവാൽ റണ്ണർ: `src/lib/evals/evalRunner.ts`
+- ഡൊമെയ്ൻ സ്റ്റേറ്റ് പെർസിസ്റ്റൻസ്: `src/lib/db/domainState.ts` — ഫാൾബാക്ക് ചെയിനുകൾ, ബജറ്റുകൾ, ചെലവ് ചരിത്രം, ലോക്ക്ഔട്ട് സ്റ്റേറ്റ്, സർക്യൂട്ട് ബ്രേക്കറുകൾ എന്നിവയ്ക്കായുള്ള SQLite CRUD
 
-OAuth പ്രൊവൈഡർ മൊഡ്യൂളുകൾ (`src/lib/oauth/providers/`-ന് കീഴിലുള്ള 22 പ്രത്യേക ഫയലുകൾ):
+OAuth പ്രൊവൈഡർ മൊഡ്യൂളുകൾ (`src/lib/oauth/providers/` എന്നതിനു കീഴിലുള്ള 27 വ്യക്തിഗത ഫയലുകൾ):
 
 - രജിസ്ട്രി ഇൻഡക്സ്: `src/lib/oauth/providers/index.ts`
-- പ്രത്യേക പ്രൊവൈഡറുകൾ: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- ലഘു റാപ്പർ: `src/lib/oauth/providers.ts` — പ്രത്യേക മൊഡ്യൂളുകളിൽ നിന്ന് വീണ്ടും എക്സ്പോർട്ട് ചെയ്യുന്നു
+- വ്യക്തിഗത പ്രൊവൈഡറുകൾ: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- പങ്കിട്ട ഹെൽപ്പറുകൾ: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl ഡിവൈസ് ഫ്ലോ), `museCodeDeviceResponse.ts`
+- തിൻ റാപ്പർ: `src/lib/oauth/providers.ts` — വ്യക്തിഗത മൊഡ്യൂളുകളിൽനിന്ന് വീണ്ടും എക്സ്പോർട്ട് ചെയ്യുന്നു
 
 ## 5) ഉൾച്ചേർത്ത സേവനങ്ങൾ (v3.8.4)
 
@@ -545,51 +546,51 @@ FSM ട്രാൻസിഷനുകൾ Auto Combo-യുടെ സ്കോറ
 - ആവർത്തന ടാസ്ക്: `src/shared/services/modelSyncScheduler.ts`
 - നിയന്ത്രണ റൂട്ട്: `src/app/api/sync/cloud/route.ts`
 
-## അഭ്യർത്ഥനയുടെ ലൈഫ്സൈക്കിൾ (`/v1/chat/completions`)
+## അഭ്യർത്ഥനയുടെ ജീവിതചക്രം (`/v1/chat/completions`)
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as CLI/SDK ക്ലയന്റ്
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as മോഡൽ റിസോൾവർ
+    participant Auth as ക്രെഡൻഷ്യൽ സെലക്ടർ
+    participant Exec as പ്രൊവൈഡർ എക്സിക്യൂട്ടർ
+    participant Prov as അപ്സ്ട്രീം പ്രൊവൈഡർ
+    participant Stream as സ്ട്രീം ട്രാൻസ്ലേറ്റർ
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: മോഡൽ അല്ലെങ്കിൽ കോംബോ പാഴ്സ്/റിസോൾവ് ചെയ്യുക
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt കോംബോ മോഡൽ
+        Chat->>Chat: കോംബോ മോഡലുകളിലൂടെ ആവർത്തിക്കുക (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: സജീവ അക്കൗണ്ട് + ടോക്കണുകൾ/api കീ
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: ഉറവിട ഫോർമാറ്റ് കണ്ടെത്തുക
+    Core->>Core: അഭ്യർത്ഥന ലക്ഷ്യ ഫോർമാറ്റിലേക്ക് വിവർത്തനം ചെയ്യുക
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: അപ്സ്ട്രീം API കോൾ
+    Prov-->>Exec: SSE/JSON പ്രതികരണം
+    Exec-->>Core: പ്രതികരണം + മെറ്റാഡാറ്റ
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: പുതുക്കിയ ടോക്കണുകൾ
+        Core->>Exec: അഭ്യർത്ഥന വീണ്ടും ശ്രമിക്കുക
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: സ്ട്രീം ക്ലയന്റ് ഫോർമാറ്റിലേക്ക് വിവർത്തനം/നോർമലൈസ് ചെയ്യുക
+    Stream-->>Client: SSE ചങ്കുകൾ / JSON പ്രതികരണം
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: ഉപയോഗം എക്സ്ട്രാക്റ്റ് ചെയ്യുക + ചരിത്രം/ലോഗ് നിലനിർത്തുക
 ```
 
 ## കോംബോ + അക്കൗണ്ട് ഫാൾബാക്ക് പ്രവാഹം
@@ -802,21 +803,21 @@ erDiagram
 
 ```mermaid
 flowchart LR
-    subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
-        Browser[Dashboard Browser]
+    subgraph LocalHost[ഡെവലപ്പർ ഹോസ്റ്റ്]
+        CLI[CLI ഉപകരണങ്ങൾ]
+        Browser[ഡാഷ്ബോർഡ് ബ്രൗസർ]
     end
 
-    subgraph ContainerOrProcess[OmniRoute Runtime]
-        Next[Next.js Server\nPORT=20128]
-        Core[SSE Core + Executors]
+    subgraph ContainerOrProcess[OmniRoute റൺടൈം]
+        Next[Next.js സെർവർ\nPORT=20128]
+        Core[SSE കോർ + എക്സിക്യൂട്ടറുകൾ]
         MainDB[(storage.sqlite)]
-        UsageDB[(usage tables + log artifacts)]
+        UsageDB[(ഉപയോഗ പട്ടികകൾ + ലോഗ് ആർട്ടിഫാക്റ്റുകൾ)]
     end
 
-    subgraph External[External Services]
-        Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
+    subgraph External[ബാഹ്യ സേവനങ്ങൾ]
+        Providers[AI ദാതാക്കൾ]
+        SyncCloud[ക്ലൗഡ് സമന്വയ സേവനം]
     end
 
     CLI --> Next

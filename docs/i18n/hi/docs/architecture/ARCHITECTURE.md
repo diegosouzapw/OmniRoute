@@ -11,43 +11,43 @@ _अंतिम अपडेट: 2026-06-28_
 ## कार्यकारी सारांश
 
 OmniRoute, Next.js पर निर्मित एक स्थानीय AI रूटिंग गेटवे और डैशबोर्ड है।
-यह एकल OpenAI-संगत एंडपॉइंट (`/v1/*`) प्रदान करता है और अनुवाद, फ़ॉलबैक, टोकन रीफ़्रेश तथा उपयोग ट्रैकिंग के साथ ट्रैफ़िक को कई अपस्ट्रीम प्रदाताओं में रूट करता है।
+यह एकल OpenAI-संगत एंडपॉइंट (`/v1/*`) प्रदान करता है और अनुवाद, फ़ॉलबैक, टोकन रिफ़्रेश तथा उपयोग ट्रैकिंग के साथ ट्रैफ़िक को कई अपस्ट्रीम प्रदाताओं के बीच रूट करता है।
 
 मुख्य क्षमताएँ:
 
-- CLI/टूल्स के लिए OpenAI-संगत API इंटरफ़ेस (355 प्रदाता, 108 एक्ज़ीक्यूटर)
-- विभिन्न प्रदाता प्रारूपों के बीच अनुरोध/प्रतिक्रिया अनुवाद
+- CLI/टूल्स के लिए OpenAI-संगत API सतह (372 प्रदाता, 148 एक्ज़ीक्यूटर)
+- प्रदाता प्रारूपों के बीच अनुरोध/प्रतिक्रिया अनुवाद
 - मॉडल कॉम्बो फ़ॉलबैक (बहु-मॉडल अनुक्रम)
-- `compositeTiers` के अनुसार रनटाइम क्रम निर्धारण के साथ संरचित कॉम्बो चरण (`provider + model + connection`)
+- `compositeTiers` द्वारा रनटाइम क्रम निर्धारण के साथ संरचित कॉम्बो चरण (`provider + model + connection`)
 - खाता-स्तरीय फ़ॉलबैक (प्रति प्रदाता एकाधिक खाते)
-- मुख्य चैट पथ में कोटा प्रीफ़्लाइट और कोटा-सचेत P2C खाता चयन
-- OAuth + API-कुंजी प्रदाता कनेक्शन प्रबंधन (22 OAuth प्रदाता मॉड्यूल)
+- मुख्य चैट पथ में कोटा प्रीफ़्लाइट और कोटा-सजग P2C खाता चयन
+- OAuth + API-कुंजी प्रदाता कनेक्शन प्रबंधन (27 OAuth प्रदाता मॉड्यूल)
 - `/v1/embeddings` के माध्यम से एम्बेडिंग जनरेशन (18 प्रदाता)
 - `/v1/images/generations` के माध्यम से इमेज जनरेशन (10+ प्रदाता, 20+ मॉडल)
 - `/v1/audio/transcriptions` के माध्यम से ऑडियो ट्रांसक्रिप्शन (18 प्रदाता)
-- `/v1/audio/speech` के माध्यम से टेक्स्ट-टू-स्पीच (24 अंतर्निर्मित प्रदाता)
+- `/v1/audio/speech` के माध्यम से टेक्स्ट-टू-स्पीच (24 अंतर्निहित प्रदाता)
 - `/v1/videos/generations` के माध्यम से वीडियो जनरेशन (ComfyUI + SD WebUI)
 - `/v1/music/generations` के माध्यम से संगीत जनरेशन (ComfyUI)
 - `/v1/search` के माध्यम से वेब खोज (20 प्रदाता)
 - `/v1/moderations` के माध्यम से मॉडरेशन
-- `/v1/rerank` के माध्यम से पुनः रैंकिंग
-- रीजनिंग मॉडल के लिए Think टैग पार्सिंग (`<think>...</think>`)
-- OpenAI SDK की सख्त संगतता के लिए प्रतिक्रिया सैनिटाइज़ेशन
+- `/v1/rerank` के माध्यम से पुनः-रैंकिंग
+- रीजनिंग मॉडल के लिए थिंक टैग पार्सिंग (``)
+- कठोर OpenAI SDK संगतता के लिए प्रतिक्रिया सैनिटाइज़ेशन
 - क्रॉस-प्रदाता संगतता के लिए भूमिका सामान्यीकरण (developer→system, system→user)
 - संरचित आउटपुट रूपांतरण (json_schema → Gemini responseSchema)
-- प्रदाताओं, कुंजियों, उपनामों, कॉम्बो, सेटिंग्स और मूल्य निर्धारण के लिए स्थानीय स्थायित्व (122 DB मॉड्यूल)
+- प्रदाताओं, कुंजियों, उपनामों, कॉम्बो, सेटिंग्स और मूल्य-निर्धारण के लिए स्थानीय स्थायित्व (122 DB मॉड्यूल)
 - उपयोग/लागत ट्रैकिंग और अनुरोध लॉगिंग
 - बहु-डिवाइस/स्थिति सिंक के लिए वैकल्पिक क्लाउड सिंक
-- API एक्सेस नियंत्रण के लिए IP अनुमति-सूची/ब्लॉक-सूची
-- थिंकिंग बजट प्रबंधन (पासथ्रू/स्वचालित/कस्टम/अनुकूली)
+- API अभिगम नियंत्रण के लिए IP अनुमति-सूची/ब्लॉक-सूची
+- थिंकिंग बजट प्रबंधन (पासथ्रू/ऑटो/कस्टम/एडेप्टिव)
 - वैश्विक सिस्टम प्रॉम्प्ट इंजेक्शन
 - सत्र ट्रैकिंग और फ़िंगरप्रिंटिंग
-- प्रदाता-विशिष्ट प्रोफ़ाइल के साथ प्रति-खाता उन्नत दर सीमांकन
-- प्रदाता की सुदृढ़ता के लिए सर्किट ब्रेकर पैटर्न
+- प्रदाता-विशिष्ट प्रोफ़ाइल के साथ प्रति-खाता उन्नत दर सीमितकरण
+- प्रदाता प्रत्यास्थता के लिए सर्किट ब्रेकर पैटर्न
 - म्यूटेक्स लॉकिंग के साथ एंटी-थंडरिंग हर्ड सुरक्षा
 - हस्ताक्षर-आधारित अनुरोध डीडुप्लिकेशन कैश
 - डोमेन परत: लागत नियम, फ़ॉलबैक नीति, लॉकआउट नीति
-- Context Relay: खाता रोटेशन की निरंतरता के लिए सत्र हैंडऑफ़ सारांश
+- कॉन्टेक्स्ट रिले: खाता रोटेशन निरंतरता के लिए सत्र हैंडऑफ़ सारांश
 - डोमेन स्थिति स्थायित्व (फ़ॉलबैक, बजट, लॉकआउट और सर्किट ब्रेकर के लिए SQLite राइट-थ्रू कैश)
 - केंद्रीकृत अनुरोध मूल्यांकन के लिए नीति इंजन (लॉकआउट → बजट → फ़ॉलबैक)
 - p50/p95/p99 विलंबता एकत्रीकरण के साथ अनुरोध टेलीमेट्री
@@ -55,32 +55,32 @@ OmniRoute, Next.js पर निर्मित एक स्थानीय AI 
 - एंड-टू-एंड ट्रेसिंग के लिए सहसंबंध ID (X-Request-Id)
 - प्रति API कुंजी ऑप्ट-आउट के साथ अनुपालन ऑडिट लॉगिंग
 - LLM गुणवत्ता आश्वासन के लिए मूल्यांकन फ़्रेमवर्क
-- रीयल-टाइम प्रदाता सर्किट ब्रेकर स्थिति वाला स्वास्थ्य डैशबोर्ड
+- रियल-टाइम प्रदाता सर्किट ब्रेकर स्थिति वाला स्वास्थ्य डैशबोर्ड
 - 3 ट्रांसपोर्ट (stdio/SSE/Streamable HTTP) वाला MCP Server (110 टूल)
 - कौशल और कार्य जीवनचक्र वाला A2A Server (JSON-RPC 2.0 + SSE)
 - मेमोरी सिस्टम (निष्कर्षण, इंजेक्शन, पुनर्प्राप्ति, सारांशीकरण)
-- कौशल सिस्टम (रजिस्ट्री, एक्ज़ीक्यूटर, सैंडबॉक्स, अंतर्निर्मित कौशल)
+- कौशल सिस्टम (रजिस्ट्री, एक्ज़ीक्यूटर, सैंडबॉक्स, अंतर्निहित कौशल)
 - प्रमाणपत्र प्रबंधन और DNS हैंडलिंग वाला MITM प्रॉक्सी
 - प्रॉम्प्ट इंजेक्शन गार्ड मिडलवेयर
-- Caveman, RTK, स्टैक्ड पाइपलाइन, कम्प्रेशन कॉम्बो, भाषा पैक और एनालिटिक्स वाली प्रॉम्प्ट कम्प्रेशन पाइपलाइन
+- Caveman, RTK, स्टैक्ड पाइपलाइन, कंप्रेशन कॉम्बो, भाषा पैक और एनालिटिक्स वाली प्रॉम्प्ट कंप्रेशन पाइपलाइन
 - ACP (Agent Communication Protocol) रजिस्ट्री
 - मॉड्यूलर OAuth प्रदाता (`src/lib/oauth/providers/` के अंतर्गत 22 अलग-अलग मॉड्यूल)
 - अनइंस्टॉल/पूर्ण-अनइंस्टॉल स्क्रिप्ट
-- OAuth एनवायरनमेंट सुधार क्रिया
+- OAuth परिवेश सुधार कार्रवाई
 - OpenAI-संगत WS क्लाइंट के लिए WebSocket ब्रिज (`/v1/ws`)
-- सिंक टोकन प्रबंधन (जारी करना/निरस्त करना, ETag-संस्करणयुक्त कॉन्फ़िगरेशन बंडल डाउनलोड)
-- प्रथम-श्रेणी GLM Thinking (`glmt`) प्रदाता प्रीसेट
+- सिंक टोकन प्रबंधन (जारी करना/निरस्त करना, ETag-संस्करणित कॉन्फ़िगरेशन बंडल डाउनलोड)
+- GLM Thinking (`glmt`) प्रथम-श्रेणी प्रदाता प्रीसेट
 - हाइब्रिड टोकन गणना (अनुमान फ़ॉलबैक के साथ प्रदाता-पक्षीय `/messages/count_tokens`)
-- मॉडल उपनाम की स्वचालित सीडिंग (स्टार्टअप पर 30+ क्रॉस-प्रॉक्सी डायलेक्ट सामान्यीकरण)
-- SSRF गार्ड, निजी URL ब्लॉकिंग और कॉन्फ़िगर करने योग्य पुनः प्रयास के साथ सुरक्षित आउटबाउंड फ़ेच
-- कॉन्फ़िगर करने योग्य `requestRetry` और `maxRetryIntervalSec` के साथ कूलडाउन-सचेत चैट पुनः प्रयास
-- स्टार्टअप पर Zod के साथ रनटाइम एनवायरनमेंट सत्यापन
-- पेजिनेशन, प्रदाता CRUD इवेंट और SSRF-अवरुद्ध सत्यापन लॉगिंग के साथ अनुपालन ऑडिट v2
+- मॉडल उपनाम ऑटो-सीडिंग (स्टार्टअप पर 30+ क्रॉस-प्रॉक्सी डायलेक्ट सामान्यीकरण)
+- SSRF गार्ड, निजी URL ब्लॉकिंग और कॉन्फ़िगर करने योग्य पुनः-प्रयास के साथ सुरक्षित आउटबाउंड फ़ेच
+- कॉन्फ़िगर करने योग्य `requestRetry` और `maxRetryIntervalSec` के साथ कूलडाउन-सजग चैट पुनः-प्रयास
+- स्टार्टअप पर Zod के साथ रनटाइम परिवेश सत्यापन
+- पेजिनेशन, प्रदाता CRUD इवेंट और SSRF-ब्लॉक किए गए सत्यापन लॉगिंग के साथ अनुपालन ऑडिट v2
 
 प्राथमिक रनटाइम मॉडल:
 
 - `src/app/api/*` के अंतर्गत Next.js ऐप रूट, डैशबोर्ड API और संगतता API दोनों को कार्यान्वित करते हैं
-- `src/sse/*` + `open-sse/*` में साझा SSE/रूटिंग कोर प्रदाता निष्पादन, अनुवाद, स्ट्रीमिंग, फ़ॉलबैक और उपयोग को संभालता है
+- `src/sse/*` + `open-sse/*` में एक साझा SSE/रूटिंग कोर प्रदाता निष्पादन, अनुवाद, स्ट्रीमिंग, फ़ॉलबैक और उपयोग को संभालता है
 
 ## संदर्भ आरेख
 
@@ -263,45 +263,45 @@ flowchart LR
 मुख्य प्रवाह मॉड्यूल:
 
 - प्रवेश बिंदु: `src/sse/handlers/chat.ts`
-- मुख्य ऑर्केस्ट्रेशन: `open-sse/handlers/chatCore.ts`
-- प्रोवाइडर निष्पादन अडैप्टर: `open-sse/executors/*`
-- प्रारूप पहचान/प्रोवाइडर कॉन्फ़िगरेशन: `open-sse/services/provider.ts`
-- मॉडल पार्सिंग/रिज़ॉल्यूशन: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- अकाउंट फ़ॉलबैक लॉजिक: `open-sse/services/accountFallback.ts`
+- कोर ऑर्केस्ट्रेशन: `open-sse/handlers/chatCore.ts`
+- प्रदाता निष्पादन अडैप्टर: `open-sse/executors/*`
+- प्रारूप पहचान/प्रदाता कॉन्फ़िगरेशन: `open-sse/services/provider.ts`
+- मॉडल पार्स/रिज़ॉल्व: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- खाता फ़ॉलबैक लॉजिक: `open-sse/services/accountFallback.ts`
 - अनुवाद रजिस्ट्री: `open-sse/translator/index.ts`
 - स्ट्रीम रूपांतरण: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
 - उपयोग निष्कर्षण/सामान्यीकरण: `open-sse/utils/usageTracking.ts`
 - थिंक टैग पार्सर: `open-sse/utils/thinkTagParser.ts`
 - एम्बेडिंग हैंडलर: `open-sse/handlers/embeddings.ts`
-- एम्बेडिंग प्रोवाइडर रजिस्ट्री: `open-sse/config/embeddingRegistry.ts`
+- एम्बेडिंग प्रदाता रजिस्ट्री: `open-sse/config/embeddingRegistry.ts`
 - इमेज जनरेशन हैंडलर: `open-sse/handlers/imageGeneration.ts`
-- इमेज प्रोवाइडर रजिस्ट्री: `open-sse/config/imageRegistry.ts`
+- इमेज प्रदाता रजिस्ट्री: `open-sse/config/imageRegistry.ts`
 - प्रतिक्रिया सैनिटाइज़ेशन: `open-sse/handlers/responseSanitizer.ts`
 - भूमिका सामान्यीकरण: `open-sse/services/roleNormalizer.ts`
 
 सेवाएँ (व्यावसायिक लॉजिक):
 
-- अकाउंट चयन/स्कोरिंग: `open-sse/services/accountSelector.ts`
+- खाता चयन/स्कोरिंग: `open-sse/services/accountSelector.ts`
 - कॉन्टेक्स्ट जीवनचक्र प्रबंधन: `open-sse/services/contextManager.ts`
 - IP फ़िल्टर प्रवर्तन: `open-sse/services/ipFilter.ts`
-- सेशन ट्रैकिंग: `open-sse/services/sessionManager.ts`
-- अनुरोध डुप्लिकेशन हटाना: `open-sse/services/signatureCache.ts`
+- सत्र ट्रैकिंग: `open-sse/services/sessionManager.ts`
+- अनुरोध डिडुप्लिकेशन: `open-sse/services/signatureCache.ts`
 - सिस्टम प्रॉम्प्ट इंजेक्शन: `open-sse/services/systemPrompt.ts`
 - थिंकिंग बजट प्रबंधन: `open-sse/services/thinkingBudget.ts`
 - वाइल्डकार्ड मॉडल रूटिंग: `open-sse/services/wildcardRouter.ts`
-- रेट लिमिट प्रबंधन: `open-sse/services/rateLimitManager.ts`
+- दर-सीमा प्रबंधन: `open-sse/services/rateLimitManager.ts`
 - सर्किट ब्रेकर: `src/shared/utils/circuitBreaker.ts`
-- कॉन्टेक्स्ट हैंडऑफ़: `open-sse/services/contextHandoff.ts` — कॉन्टेक्स्ट-रिले रणनीति के लिए हैंडऑफ़ सारांश का निर्माण और इंजेक्शन
-- कम्प्रेशन: `open-sse/services/compression/*` — प्रोवाइडर अनुवाद से पहले सक्रिय कम्प्रेशन;
-  इसमें Caveman नियम, RTK फ़िल्टर, स्टैक्ड पाइपलाइन, कम्प्रेशन संयोजन, आँकड़े और सत्यापन शामिल हैं
+- कॉन्टेक्स्ट हैंडऑफ़: `open-sse/services/contextHandoff.ts` — कॉन्टेक्स्ट-रिले रणनीति के लिए हैंडऑफ़ सारांश जनरेशन और इंजेक्शन
+- कम्प्रेशन: `open-sse/services/compression/*` — प्रदाता अनुवाद से पहले सक्रिय कम्प्रेशन;
+  इसमें Caveman नियम, RTK फ़िल्टर, स्टैक्ड पाइपलाइन, कम्प्रेशन कॉम्बो, आँकड़े और सत्यापन शामिल हैं
 - Codex कोटा फ़ेचर: `open-sse/services/codexQuotaFetcher.ts` — कॉन्टेक्स्ट-रिले हैंडऑफ़ निर्णयों के लिए Codex कोटा प्राप्त करता है
-- कूलडाउन-सचेत पुनः प्रयास: `src/sse/services/cooldownAwareRetry.ts` — कॉन्फ़िगर करने योग्य `requestRetry` / `maxRetryIntervalSec` के साथ प्रति-मॉडल कूलडाउन पुनः प्रयास
-- सुरक्षित आउटबाउंड फ़ेच: `src/shared/network/safeOutboundFetch.ts` — SSRF सुरक्षा, निजी-URL अवरोधन, पुनः प्रयास और टाइमआउट के साथ संरक्षित प्रोवाइडर/मॉडल फ़ेच
-- आउटबाउंड URL सुरक्षा: `src/shared/network/outboundUrlGuard.ts` — निजी/localhost CIDR श्रेणियों के विरुद्ध प्रोवाइडर URL का सत्यापन करता है
-- प्रोवाइडर अनुरोध डिफ़ॉल्ट: `open-sse/services/providerRequestDefaults.ts` — प्रोवाइडर-स्तरीय `maxTokens`, `temperature`, `thinkingBudgetTokens` डिफ़ॉल्ट
-- GLM प्रोवाइडर कॉन्स्टेंट: `open-sse/config/glmProvider.ts` — साझा GLM मॉडल, कोटा URL, GLMT टाइमआउट/डिफ़ॉल्ट
+- कूलडाउन-जागरूक पुनः प्रयास: `src/sse/services/cooldownAwareRetry.ts` — कॉन्फ़िगर करने योग्य `requestRetry` / `maxRetryIntervalSec` के साथ प्रति-मॉडल कूलडाउन पुनः प्रयास
+- सुरक्षित आउटबाउंड फ़ेच: `src/shared/network/safeOutboundFetch.ts` — SSRF सुरक्षा, निजी-URL अवरोधन, पुनः प्रयास और टाइमआउट के साथ संरक्षित प्रदाता/मॉडल फ़ेच
+- आउटबाउंड URL सुरक्षा: `src/shared/network/outboundUrlGuard.ts` — प्रदाता URL पर होस्ट जाँच; `src/shared/network/outboundUrlGuardPolicy.ts`, `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` और उनके डैशबोर्ड टॉगल से मोड चुनता है (`docs/reference/ENVIRONMENT.md` देखें)
+- प्रदाता अनुरोध डिफ़ॉल्ट: `open-sse/services/providerRequestDefaults.ts` — प्रदाता-स्तरीय `maxTokens`, `temperature`, `thinkingBudgetTokens` डिफ़ॉल्ट
+- GLM प्रदाता कॉन्स्टेंट: `open-sse/config/glmProvider.ts` — साझा GLM मॉडल, कोटा URL, GLMT टाइमआउट/डिफ़ॉल्ट
 - Antigravity अपस्ट्रीम: `open-sse/config/antigravityUpstream.ts` — बेस URL और डिस्कवरी पाथ कॉन्स्टेंट
-- Codex क्लाइंट कॉन्स्टेंट: `open-sse/config/codexClient.ts` — संस्करणयुक्त यूज़र-एजेंट और क्लाइंट-वर्ज़न मान
+- Codex क्लाइंट कॉन्स्टेंट: `open-sse/config/codexClient.ts` — संस्करणयुक्त यूज़र-एजेंट और क्लाइंट-संस्करण मान
 - मॉडल एलियास सीड: `src/lib/modelAliasSeed.ts` — स्टार्टअप पर 30+ क्रॉस-प्रॉक्सी डायलेक्ट एलियास सीड करता है
 
 डोमेन लेयर मॉड्यूल:
@@ -317,12 +317,13 @@ flowchart LR
 - अनुरोध टेलीमेट्री: `src/shared/utils/requestTelemetry.ts`
 - अनुपालन/ऑडिट: `src/lib/compliance/index.ts`
 - मूल्यांकन रनर: `src/lib/evals/evalRunner.ts`
-- डोमेन स्थिति परसिस्टेंस: `src/lib/db/domainState.ts` — फ़ॉलबैक चेन, बजट, लागत इतिहास, लॉकआउट स्थिति और सर्किट ब्रेकर के लिए SQLite CRUD
+- डोमेन स्थिति स्थायित्व: `src/lib/db/domainState.ts` — फ़ॉलबैक चेन, बजट, लागत इतिहास, लॉकआउट स्थिति और सर्किट ब्रेकर के लिए SQLite CRUD
 
-OAuth प्रोवाइडर मॉड्यूल (`src/lib/oauth/providers/` के अंतर्गत 22 अलग-अलग फ़ाइलें):
+OAuth प्रदाता मॉड्यूल (`src/lib/oauth/providers/` के अंतर्गत 27 अलग-अलग फ़ाइलें):
 
 - रजिस्ट्री इंडेक्स: `src/lib/oauth/providers/index.ts`
-- अलग-अलग प्रोवाइडर: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- अलग-अलग प्रदाता: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- साझा सहायक: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl डिवाइस प्रवाह), `museCodeDeviceResponse.ts`
 - हल्का रैपर: `src/lib/oauth/providers.ts` — अलग-अलग मॉड्यूल से पुनः निर्यात करता है
 
 ## 5) एम्बेडेड सेवाएँ (v3.8.4)
@@ -804,25 +805,25 @@ erDiagram
 - संरचित कॉल पेलोड अभिलेखागार: `${DATA_DIR}/call_logs/`
 - वैकल्पिक अनुवादक/अनुरोध डीबग सत्र: `<repo>/logs/...`
 
-## डिप्लॉयमेंट टोपोलॉजी
+## परिनियोजन टोपोलॉजी
 
 ```mermaid
 flowchart LR
-    subgraph LocalHost[Developer Host]
-        CLI[CLI Tools]
-        Browser[Dashboard Browser]
+    subgraph LocalHost[डेवलपर होस्ट]
+        CLI[CLI टूल्स]
+        Browser[डैशबोर्ड ब्राउज़र]
     end
 
-    subgraph ContainerOrProcess[OmniRoute Runtime]
-        Next[Next.js Server\nPORT=20128]
-        Core[SSE Core + Executors]
+    subgraph ContainerOrProcess[OmniRoute रनटाइम]
+        Next[Next.js सर्वर\nPORT=20128]
+        Core[SSE कोर + एक्ज़ीक्यूटर]
         MainDB[(storage.sqlite)]
-        UsageDB[(usage tables + log artifacts)]
+        UsageDB[(उपयोग तालिकाएँ + लॉग आर्टिफ़ैक्ट)]
     end
 
-    subgraph External[External Services]
-        Providers[AI Providers]
-        SyncCloud[Cloud Sync Service]
+    subgraph External[बाहरी सेवाएँ]
+        Providers[AI प्रदाता]
+        SyncCloud[क्लाउड सिंक सेवा]
     end
 
     CLI --> Next

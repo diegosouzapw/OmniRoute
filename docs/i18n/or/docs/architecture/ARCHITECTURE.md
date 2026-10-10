@@ -11,76 +11,76 @@ _ଶେଷ ଅଦ୍ୟତନ: 2026-06-28_
 ## କାର୍ଯ୍ୟନିର୍ବାହୀ ସାରାଂଶ
 
 OmniRoute ହେଉଛି Next.js ଉପରେ ନିର୍ମିତ ଏକ ସ୍ଥାନୀୟ AI ରାଉଟିଂ ଗେଟୱେ ଏବଂ ଡ୍ୟାସବୋର୍ଡ।
-ଏହା ଏକକ OpenAI-ସୁସଙ୍ଗତ ଏଣ୍ଡପଏଣ୍ଟ (`/v1/*`) ପ୍ରଦାନ କରେ ଏବଂ ଅନୁବାଦ, ଫଲବ୍ୟାକ୍, ଟୋକେନ୍ ରିଫ୍ରେଶ୍ ଓ ବ୍ୟବହାର ଟ୍ରାକିଂ ସହିତ ଏକାଧିକ ଅପ୍ଷ୍ଟ୍ରିମ୍ ପ୍ରଦାତା ମଧ୍ୟରେ ଟ୍ରାଫିକ୍ ରାଉଟ୍ କରେ।
+ଏହା ଏକକ OpenAI-ସୁସଙ୍ଗତ ଏଣ୍ଡପଏଣ୍ଟ (`/v1/*`) ପ୍ରଦାନ କରେ ଏବଂ ଅନୁବାଦ, ଫଲ୍ବ୍ୟାକ୍, ଟୋକନ୍ ରିଫ୍ରେଶ୍ ଓ ବ୍ୟବହାର ଟ୍ରାକିଂ ସହିତ ଏକାଧିକ ଅପ୍ଷ୍ଟ୍ରିମ୍ ପ୍ରଦାନକାରୀଙ୍କ ମଧ୍ୟରେ ଟ୍ରାଫିକ୍ ରାଉଟ୍ କରେ।
 
 ମୁଖ୍ୟ କ୍ଷମତାଗୁଡ଼ିକ:
 
-- CLI/ଟୁଲ୍ ପାଇଁ OpenAI-ସୁସଙ୍ଗତ API ପୃଷ୍ଠଭାଗ (355 ପ୍ରଦାତା, 108 ନିର୍ବାହକ)
-- ପ୍ରଦାତା ଫର୍ମାଟ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ ଅନୁରୋଧ/ପ୍ରତିକ୍ରିୟା ଅନୁବାଦ
-- ମଡେଲ୍ କମ୍ବୋ ଫଲବ୍ୟାକ୍ (ଏକାଧିକ ମଡେଲ୍ର କ୍ରମ)
-- `compositeTiers` ଅନୁଯାୟୀ ରନ୍ଟାଇମ୍ କ୍ରମ ସହିତ ସଂରଚିତ କମ୍ବୋ ପଦକ୍ଷେପ (`provider + model + connection`)
-- ଆକାଉଣ୍ଟ-ସ୍ତରୀୟ ଫଲବ୍ୟାକ୍ (ପ୍ରତି ପ୍ରଦାତା ପାଇଁ ଏକାଧିକ ଆକାଉଣ୍ଟ)
+- CLI/ଟୁଲ୍ଗୁଡ଼ିକ ପାଇଁ OpenAI-ସୁସଙ୍ଗତ API ପୃଷ୍ଠ (372 ପ୍ରଦାନକାରୀ, 148 ଏକ୍ସିକ୍ୟୁଟର୍)
+- ପ୍ରଦାନକାରୀ ଫର୍ମାଟ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ ଅନୁରୋଧ/ପ୍ରତିକ୍ରିୟା ଅନୁବାଦ
+- ମଡେଲ୍ କମ୍ବୋ ଫଲ୍ବ୍ୟାକ୍ (ଏକାଧିକ-ମଡେଲ୍ କ୍ରମ)
+- `compositeTiers` ଦ୍ୱାରା ରନ୍ଟାଇମ୍ କ୍ରମ ନିର୍ଦ୍ଧାରଣ ସହିତ ସଂରଚିତ କମ୍ବୋ ପଦକ୍ଷେପ (`provider + model + connection`)
+- ଆକାଉଣ୍ଟ-ସ୍ତରୀୟ ଫଲ୍ବ୍ୟାକ୍ (ପ୍ରତି ପ୍ରଦାନକାରୀ ପାଇଁ ଏକାଧିକ ଆକାଉଣ୍ଟ)
 - ମୁଖ୍ୟ ଚାଟ୍ ପଥରେ କୋଟା ପ୍ରିଫ୍ଲାଇଟ୍ ଏବଂ କୋଟା-ସଚେତନ P2C ଆକାଉଣ୍ଟ ଚୟନ
-- OAuth + API-କୀ ପ୍ରଦାତା ସଂଯୋଗ ପରିଚାଳନା (22 OAuth ପ୍ରଦାତା ମଡ୍ୟୁଲ୍)
-- `/v1/embeddings` ମାଧ୍ୟମରେ ଏମ୍ବେଡିଂ ସୃଷ୍ଟି (18 ପ୍ରଦାତା)
-- `/v1/images/generations` ମାଧ୍ୟମରେ ପ୍ରତିଛବି ସୃଷ୍ଟି (10+ ପ୍ରଦାତା, 20+ ମଡେଲ୍)
-- `/v1/audio/transcriptions` ମାଧ୍ୟମରେ ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ (18 ପ୍ରଦାତା)
-- `/v1/audio/speech` ମାଧ୍ୟମରେ ଟେକ୍ସଟ୍ରୁ-ସ୍ପିଚ୍ (24 ଅନ୍ତର୍ନିର୍ମିତ ପ୍ରଦାତା)
+- OAuth + API-key ପ୍ରଦାନକାରୀ ସଂଯୋଗ ପରିଚାଳନା (27 OAuth ପ୍ରଦାନକାରୀ ମଡ୍ୟୁଲ୍)
+- `/v1/embeddings` ମାଧ୍ୟମରେ ଏମ୍ବେଡିଂ ସୃଷ୍ଟି (18 ପ୍ରଦାନକାରୀ)
+- `/v1/images/generations` ମାଧ୍ୟମରେ ଚିତ୍ର ସୃଷ୍ଟି (10+ ପ୍ରଦାନକାରୀ, 20+ ମଡେଲ୍)
+- `/v1/audio/transcriptions` ମାଧ୍ୟମରେ ଅଡିଓ ଟ୍ରାନ୍ସକ୍ରିପ୍ସନ୍ (18 ପ୍ରଦାନକାରୀ)
+- `/v1/audio/speech` ମାଧ୍ୟମରେ ଟେକ୍ସଟ୍-ଟୁ-ସ୍ପିଚ୍ (24 ଅନ୍ତର୍ନିର୍ମିତ ପ୍ରଦାନକାରୀ)
 - `/v1/videos/generations` ମାଧ୍ୟମରେ ଭିଡିଓ ସୃଷ୍ଟି (ComfyUI + SD WebUI)
 - `/v1/music/generations` ମାଧ୍ୟମରେ ସଙ୍ଗୀତ ସୃଷ୍ଟି (ComfyUI)
-- `/v1/search` ମାଧ୍ୟମରେ ୱେବ୍ ସନ୍ଧାନ (20 ପ୍ରଦାତା)
-- `/v1/moderations` ମାଧ୍ୟମରେ ବିଷୟବସ୍ତୁ ନିୟନ୍ତ୍ରଣ
-- `/v1/rerank` ମାଧ୍ୟମରେ ପୁନଃ-ର୍ୟାଙ୍କିଂ
-- ରିଜନିଂ ମଡେଲ୍ଗୁଡ଼ିକ ପାଇଁ ଥିଙ୍କ୍ ଟ୍ୟାଗ୍ ପାର୍ସିଂ (`<think>...</think>`)
-- କଠୋର OpenAI SDK ସୁସଙ୍ଗତତା ପାଇଁ ପ୍ରତିକ୍ରିୟା ପରିଶୋଧନ
-- ପ୍ରଦାତାଗୁଡ଼ିକ ମଧ୍ୟରେ ସୁସଙ୍ଗତତା ପାଇଁ ଭୂମିକା ସ୍ୱାଭାବିକୀକରଣ (developer→system, system→user)
+- `/v1/search` ମାଧ୍ୟମରେ ୱେବ୍ ସନ୍ଧାନ (20 ପ୍ରଦାନକାରୀ)
+- `/v1/moderations` ମାଧ୍ୟମରେ ମଡରେସନ୍
+- `/v1/rerank` ମାଧ୍ୟମରେ ପୁନଃର୍ୟାଙ୍କିଂ
+- ରିଜନିଂ ମଡେଲ୍ଗୁଡ଼ିକ ପାଇଁ ଥିଙ୍କ୍ ଟ୍ୟାଗ୍ ପାର୍ସିଂ (``)
+- କଠୋର OpenAI SDK ସୁସଙ୍ଗତତା ପାଇଁ ପ୍ରତିକ୍ରିୟା ସାନିଟାଇଜେସନ୍
+- କ୍ରସ୍-ପ୍ରଦାନକାରୀ ସୁସଙ୍ଗତତା ପାଇଁ ଭୂମିକା ସାମାନ୍ୟୀକରଣ (developer→system, system→user)
 - ସଂରଚିତ ଆଉଟପୁଟ୍ ରୂପାନ୍ତରଣ (json_schema → Gemini responseSchema)
-- ପ୍ରଦାତା, କୀ, ଉପନାମ, କମ୍ବୋ, ସେଟିଂ ଏବଂ ମୂଲ୍ୟ ନିର୍ଦ୍ଧାରଣ ପାଇଁ ସ୍ଥାନୀୟ ସ୍ଥାୟୀ ସଂରକ୍ଷଣ (122 DB ମଡ୍ୟୁଲ୍)
+- ପ୍ରଦାନକାରୀ, କୀ, ଉପନାମ, କମ୍ବୋ, ସେଟିଂ ଏବଂ ମୂଲ୍ୟ ନିର୍ଦ୍ଧାରଣ ପାଇଁ ସ୍ଥାନୀୟ ସ୍ଥାୟୀ ସଂରକ୍ଷଣ (122 DB ମଡ୍ୟୁଲ୍)
 - ବ୍ୟବହାର/ଖର୍ଚ୍ଚ ଟ୍ରାକିଂ ଏବଂ ଅନୁରୋଧ ଲଗିଂ
 - ଏକାଧିକ ଡିଭାଇସ୍/ସ୍ଥିତି ସିଙ୍କ୍ ପାଇଁ ଇଚ୍ଛାଧୀନ କ୍ଲାଉଡ୍ ସିଙ୍କ୍
 - API ପ୍ରବେଶ ନିୟନ୍ତ୍ରଣ ପାଇଁ IP ଅନୁମତି-ତାଲିକା/ଅବରୋଧ-ତାଲିକା
 - ଥିଙ୍କିଂ ବଜେଟ୍ ପରିଚାଳନା (ପାସ୍ଥ୍ରୁ/ସ୍ୱୟଂଚାଳିତ/କଷ୍ଟମ୍/ଅନୁକୂଳନଶୀଳ)
-- ବିଶ୍ୱବ୍ୟାପୀ ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ ଇଞ୍ଜେକ୍ସନ୍
+- ଗ୍ଲୋବାଲ୍ ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ ଇଞ୍ଜେକ୍ସନ୍
 - ସେସନ୍ ଟ୍ରାକିଂ ଏବଂ ଫିଙ୍ଗରପ୍ରିଣ୍ଟିଂ
-- ପ୍ରଦାତା-ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରୋଫାଇଲ୍ ସହିତ ପ୍ରତି-ଆକାଉଣ୍ଟ ଉନ୍ନତ ରେଟ୍ ଲିମିଟିଂ
-- ପ୍ରଦାତା ସ୍ଥିତିସ୍ଥାପକତା ପାଇଁ ସର୍କିଟ୍ ବ୍ରେକର୍ ପ୍ୟାଟର୍ନ
+- ପ୍ରଦାନକାରୀ-ନିର୍ଦ୍ଦିଷ୍ଟ ପ୍ରୋଫାଇଲ୍ ସହିତ ପ୍ରତି-ଆକାଉଣ୍ଟ ଉନ୍ନତ ରେଟ୍ ଲିମିଟିଂ
+- ପ୍ରଦାନକାରୀ ସହନଶୀଳତା ପାଇଁ ସର୍କିଟ୍ ବ୍ରେକର୍ ପ୍ୟାଟର୍ନ
 - ମ୍ୟୁଟେକ୍ସ ଲକିଂ ସହିତ ଆଣ୍ଟି-ଥଣ୍ଡରିଂ ହର୍ଡ ସୁରକ୍ଷା
-- ସ୍ୱାକ୍ଷର-ଆଧାରିତ ଅନୁରୋଧ ଡିଡୁପ୍ଲିକେସନ୍ କ୍ୟାଶ୍
-- ଡୋମେନ୍ ସ୍ତର: ଖର୍ଚ୍ଚ ନିୟମ, ଫଲବ୍ୟାକ୍ ନୀତି, ଲକ୍ଆଉଟ୍ ନୀତି
-- Context Relay: ଆକାଉଣ୍ଟ ରୋଟେସନ୍ର ନିରନ୍ତରତା ପାଇଁ ସେସନ୍ ହସ୍ତାନ୍ତର ସାରାଂଶ
-- ଡୋମେନ୍ ସ୍ଥିତିର ସ୍ଥାୟୀ ସଂରକ୍ଷଣ (ଫଲବ୍ୟାକ୍, ବଜେଟ୍, ଲକ୍ଆଉଟ୍ ଏବଂ ସର୍କିଟ୍ ବ୍ରେକର୍ ପାଇଁ SQLite ରାଇଟ୍-ଥ୍ରୁ କ୍ୟାଶ୍)
-- କେନ୍ଦ୍ରୀଭୂତ ଅନୁରୋଧ ମୂଲ୍ୟାୟନ ପାଇଁ ନୀତି ଇଞ୍ଜିନ୍ (ଲକ୍ଆଉଟ୍ → ବଜେଟ୍ → ଫଲବ୍ୟାକ୍)
-- p50/p95/p99 ବିଳମ୍ବ ସମାହାର ସହିତ ଅନୁରୋଧ ଟେଲିମେଟ୍ରି
-- `combo_execution_key` / `combo_step_id` ମାଧ୍ୟମରେ କମ୍ବୋ ଲକ୍ଷ୍ୟ ଟେଲିମେଟ୍ରି ଏବଂ ଐତିହାସିକ କମ୍ବୋ ଲକ୍ଷ୍ୟ ସ୍ୱାସ୍ଥ୍ୟ
+- ସିଗ୍ନେଚର୍-ଆଧାରିତ ଅନୁରୋଧ ଡିଡୁପ୍ଲିକେସନ୍ କ୍ୟାଶ୍
+- ଡୋମେନ୍ ସ୍ତର: ଖର୍ଚ୍ଚ ନିୟମ, ଫଲ୍ବ୍ୟାକ୍ ନୀତି, ଲକ୍ଆଉଟ୍ ନୀତି
+- କଣ୍ଟେକ୍ସ୍ଟ ରିଲେ: ଆକାଉଣ୍ଟ ରୋଟେସନ୍ର ନିରନ୍ତରତା ପାଇଁ ସେସନ୍ ହ୍ୟାଣ୍ଡଅଫ୍ ସାରାଂଶ
+- ଡୋମେନ୍ ସ୍ଥିତିର ସ୍ଥାୟୀ ସଂରକ୍ଷଣ (ଫଲ୍ବ୍ୟାକ୍, ବଜେଟ୍, ଲକ୍ଆଉଟ୍ ଏବଂ ସର୍କିଟ୍ ବ୍ରେକର୍ ପାଇଁ SQLite ରାଇଟ୍-ଥ୍ରୁ କ୍ୟାଶ୍)
+- କେନ୍ଦ୍ରୀକୃତ ଅନୁରୋଧ ମୂଲ୍ୟାଙ୍କନ ପାଇଁ ପଲିସି ଇଞ୍ଜିନ୍ (ଲକ୍ଆଉଟ୍ → ବଜେଟ୍ → ଫଲ୍ବ୍ୟାକ୍)
+- p50/p95/p99 ଲେଟେନ୍ସି ଏଗ୍ରିଗେସନ୍ ସହିତ ଅନୁରୋଧ ଟେଲିମେଟ୍ରି
+- `combo_execution_key` / `combo_step_id` ମାଧ୍ୟମରେ କମ୍ବୋ ଟାର୍ଗେଟ୍ ଟେଲିମେଟ୍ରି ଏବଂ ଐତିହାସିକ କମ୍ବୋ ଟାର୍ଗେଟ୍ ସ୍ୱାସ୍ଥ୍ୟ
 - ଏଣ୍ଡ୍-ଟୁ-ଏଣ୍ଡ୍ ଟ୍ରେସିଂ ପାଇଁ କୋରିଲେସନ୍ ID (X-Request-Id)
 - ପ୍ରତି API କୀ ପାଇଁ ଅପ୍ଟ-ଆଉଟ୍ ସହିତ ଅନୁପାଳନ ଅଡିଟ୍ ଲଗିଂ
-- LLM ଗୁଣବତ୍ତା ନିଶ୍ଚିତକରଣ ପାଇଁ ମୂଲ୍ୟାୟନ ଫ୍ରେମ୍ୱର୍କ
-- ରିଅଲ୍-ଟାଇମ୍ ପ୍ରଦାତା ସର୍କିଟ୍ ବ୍ରେକର୍ ସ୍ଥିତି ସହିତ ସ୍ୱାସ୍ଥ୍ୟ ଡ୍ୟାସବୋର୍ଡ
-- 3ଟି ପରିବହନ (stdio/SSE/Streamable HTTP) ସହିତ MCP Server (110 ଟୁଲ୍)
-- କୌଶଳ ଏବଂ କାର୍ଯ୍ୟ ଜୀବନଚକ୍ର ସହିତ A2A Server (JSON-RPC 2.0 + SSE)
-- ସ୍ମୃତି ପ୍ରଣାଳୀ (ନିଷ୍କାସନ, ଇଞ୍ଜେକ୍ସନ୍, ପୁନରୁଦ୍ଧାର, ସାରାଂଶକରଣ)
-- କୌଶଳ ପ୍ରଣାଳୀ (ରେଜିଷ୍ଟ୍ରି, ନିର୍ବାହକ, ସ୍ୟାଣ୍ଡବକ୍ସ, ଅନ୍ତର୍ନିର୍ମିତ କୌଶଳ)
-- ସାର୍ଟିଫିକେଟ୍ ପରିଚାଳନା ଏବଂ DNS ପରିଚାଳନା ସହିତ MITM ପ୍ରକ୍ସି
-- ପ୍ରମ୍ପ୍ଟ ଇଞ୍ଜେକ୍ସନ୍ ଗାର୍ଡ ମିଡଲୱେର୍
-- Caveman, RTK, ସ୍ତରୀକୃତ ପାଇପଲାଇନ୍, କମ୍ପ୍ରେସନ୍ କମ୍ବୋ, ଭାଷା ପ୍ୟାକ୍ ଏବଂ ଆନାଲିଟିକ୍ସ ସହିତ ପ୍ରମ୍ପ୍ଟ କମ୍ପ୍ରେସନ୍ ପାଇପଲାଇନ୍
+- LLM ଗୁଣବତ୍ତା ନିଶ୍ଚିତକରଣ ପାଇଁ ମୂଲ୍ୟାଙ୍କନ ଫ୍ରେମ୍ୱର୍କ
+- ରିଅଲ୍-ଟାଇମ୍ ପ୍ରଦାନକାରୀ ସର୍କିଟ୍ ବ୍ରେକର୍ ସ୍ଥିତି ସହିତ ସ୍ୱାସ୍ଥ୍ୟ ଡ୍ୟାସବୋର୍ଡ
+- 3ଟି ଟ୍ରାନ୍ସପୋର୍ଟ (stdio/SSE/Streamable HTTP) ସହିତ MCP Server (110 ଟୁଲ୍)
+- ଦକ୍ଷତା ଏବଂ ଟାସ୍କ ଜୀବନଚକ୍ର ସହିତ A2A Server (JSON-RPC 2.0 + SSE)
+- ମେମୋରି ସିଷ୍ଟମ୍ (ନିଷ୍କାଷଣ, ଇଞ୍ଜେକ୍ସନ୍, ପୁନରୁଦ୍ଧାର, ସାରାଂଶକରଣ)
+- ସ୍କିଲ୍ସ ସିଷ୍ଟମ୍ (ରେଜିଷ୍ଟ୍ରି, ଏକ୍ସିକ୍ୟୁଟର୍, ସ୍ୟାଣ୍ଡବକ୍ସ, ଅନ୍ତର୍ନିର୍ମିତ ସ୍କିଲ୍)
+- ସାର୍ଟିଫିକେଟ୍ ପରିଚାଳନା ଏବଂ DNS ହ୍ୟାଣ୍ଡଲିଂ ସହିତ MITM ପ୍ରକ୍ସି
+- ପ୍ରମ୍ପ୍ଟ ଇଞ୍ଜେକ୍ସନ୍ ଗାର୍ଡ ମିଡଲ୍ୱେର୍
+- Caveman, RTK, ଷ୍ଟାକ୍ଡ ପାଇପ୍ଲାଇନ୍, କମ୍ପ୍ରେସନ୍ କମ୍ବୋ, ଭାଷା ପ୍ୟାକ୍ ଏବଂ ଆନାଲିଟିକ୍ସ ସହିତ ପ୍ରମ୍ପ୍ଟ କମ୍ପ୍ରେସନ୍ ପାଇପ୍ଲାଇନ୍
 - ACP (Agent Communication Protocol) ରେଜିଷ୍ଟ୍ରି
-- ମଡ୍ୟୁଲାର୍ OAuth ପ୍ରଦାତା (`src/lib/oauth/providers/` ଅଧୀନରେ 22ଟି ବ୍ୟକ୍ତିଗତ ମଡ୍ୟୁଲ୍)
+- ମଡ୍ୟୁଲାର୍ OAuth ପ୍ରଦାନକାରୀ (`src/lib/oauth/providers/` ଅଧୀନରେ 22ଟି ସ୍ୱତନ୍ତ୍ର ମଡ୍ୟୁଲ୍)
 - ଅନଇନ୍ଷ୍ଟଲ୍/ସମ୍ପୂର୍ଣ୍ଣ-ଅନଇନ୍ଷ୍ଟଲ୍ ସ୍କ୍ରିପ୍ଟ
 - OAuth ପରିବେଶ ମରାମତି କାର୍ଯ୍ୟ
-- OpenAI-ସୁସଙ୍ଗତ WS କ୍ଲାଏଣ୍ଟ୍ଗୁଡ଼ିକ ପାଇଁ WebSocket ବ୍ରିଜ୍ (`/v1/ws`)
-- ସିଙ୍କ୍ ଟୋକେନ୍ ପରିଚାଳନା (ଜାରି/ପ୍ରତ୍ୟାହାର, ETag-ସଂସ୍କରଣଯୁକ୍ତ କନଫିଗ୍ ବଣ୍ଡଲ୍ ଡାଉନଲୋଡ୍)
-- GLM Thinking (`glmt`) ପ୍ରଥମ-ଶ୍ରେଣୀ ପ୍ରଦାତା ପ୍ରିସେଟ୍
-- ହାଇବ୍ରିଡ୍ ଟୋକେନ୍ ଗଣନା (ଆକଳନ ଫଲବ୍ୟାକ୍ ସହିତ ପ୍ରଦାତା-ପାର୍ଶ୍ୱ `/messages/count_tokens`)
-- ମଡେଲ୍ ଉପନାମ ସ୍ୱୟଂଚାଳିତ ସିଡିଂ (ଷ୍ଟାର୍ଟଅପ୍ ସମୟରେ 30+ କ୍ରସ୍-ପ୍ରକ୍ସି ଡାଇଲେକ୍ଟ ସ୍ୱାଭାବିକୀକରଣ)
-- SSRF ଗାର୍ଡ, ବ୍ୟକ୍ତିଗତ URL ଅବରୋଧ ଏବଂ କନଫିଗର୍ଯୋଗ୍ୟ ପୁନଃପ୍ରୟାସ ସହିତ ସୁରକ୍ଷିତ ଆଉଟ୍ବାଉଣ୍ଡ ଫେଚ୍
-- କନଫିଗର୍ଯୋଗ୍ୟ `requestRetry` ଏବଂ `maxRetryIntervalSec` ସହିତ କୁଲ୍ଡାଉନ୍-ସଚେତନ ଚାଟ୍ ପୁନଃପ୍ରୟାସ
+- OpenAI-ସୁସଙ୍ଗତ WS କ୍ଲାଏଣ୍ଟଗୁଡ଼ିକ ପାଇଁ WebSocket ବ୍ରିଜ୍ (`/v1/ws`)
+- ସିଙ୍କ୍ ଟୋକନ୍ ପରିଚାଳନା (ଜାରି/ପ୍ରତ୍ୟାହାର, ETag-ଭର୍ସନ୍ଯୁକ୍ତ କନଫିଗ୍ ବଣ୍ଡଲ୍ ଡାଉନଲୋଡ୍)
+- GLM Thinking (`glmt`) ପ୍ରଥମ-ଶ୍ରେଣୀ ପ୍ରଦାନକାରୀ ପ୍ରିସେଟ୍
+- ହାଇବ୍ରିଡ୍ ଟୋକନ୍ ଗଣନା (ଆନୁମାନିକ ଫଲ୍ବ୍ୟାକ୍ ସହିତ ପ୍ରଦାନକାରୀ-ପାର୍ଶ୍ୱ `/messages/count_tokens`)
+- ମଡେଲ୍ ଉପନାମର ସ୍ୱୟଂଚାଳିତ ସିଡିଂ (ଷ୍ଟାର୍ଟଅପ୍ ସମୟରେ 30+ କ୍ରସ୍-ପ୍ରକ୍ସି ଡାଇଆଲେକ୍ଟ ସାମାନ୍ୟୀକରଣ)
+- SSRF ଗାର୍ଡ, ବ୍ୟକ୍ତିଗତ URL ଅବରୋଧ ଏବଂ କନଫିଗର୍ କରାଯୋଗ୍ୟ ପୁନଃପ୍ରୟାସ ସହିତ ସୁରକ୍ଷିତ ଆଉଟ୍ବାଉଣ୍ଡ ଫେଚ୍
+- କନଫିଗର୍ କରାଯୋଗ୍ୟ `requestRetry` ଏବଂ `maxRetryIntervalSec` ସହିତ କୁଲ୍ଡାଉନ୍-ସଚେତନ ଚାଟ୍ ପୁନଃପ୍ରୟାସ
 - ଷ୍ଟାର୍ଟଅପ୍ ସମୟରେ Zod ସହିତ ରନ୍ଟାଇମ୍ ପରିବେଶ ବୈଧତା ଯାଞ୍ଚ
-- ପୃଷ୍ଠାଙ୍କନ, ପ୍ରଦାତା CRUD ଇଭେଣ୍ଟ ଏବଂ SSRF-ଅବରୋଧିତ ବୈଧତା ଲଗିଂ ସହିତ ଅନୁପାଳନ ଅଡିଟ୍ v2
+- ପୃଷ୍ଠାଙ୍କନ, ପ୍ରଦାନକାରୀ CRUD ଇଭେଣ୍ଟ ଏବଂ SSRF-ଅବରୋଧିତ ବୈଧତା ଯାଞ୍ଚ ଲଗିଂ ସହିତ ଅନୁପାଳନ ଅଡିଟ୍ v2
 
 ପ୍ରାଥମିକ ରନ୍ଟାଇମ୍ ମଡେଲ୍:
 
-- `src/app/api/*` ଅଧୀନରେ ଥିବା Next.js ଆପ୍ ରୁଟ୍ଗୁଡ଼ିକ ଡ୍ୟାସବୋର୍ଡ API ଏବଂ ସୁସଙ୍ଗତତା API ଉଭୟକୁ କାର୍ଯ୍ୟକାରୀ କରନ୍ତି
-- `src/sse/*` + `open-sse/*` ରେ ଥିବା ଏକ ସହଭାଗୀ SSE/ରାଉଟିଂ କୋର୍ ପ୍ରଦାତା ନିର୍ବାହ, ଅନୁବାଦ, ଷ୍ଟ୍ରିମିଂ, ଫଲବ୍ୟାକ୍ ଏବଂ ବ୍ୟବହାର ପରିଚାଳନା କରେ
+- `src/app/api/*` ଅଧୀନରେ ଥିବା Next.js ଆପ୍ ରୁଟ୍ଗୁଡ଼ିକ ଉଭୟ ଡ୍ୟାସବୋର୍ଡ API ଏବଂ ସୁସଙ୍ଗତତା API କାର୍ଯ୍ୟକାରୀ କରନ୍ତି
+- `src/sse/*` + `open-sse/*` ରେ ଥିବା ଏକ ସହଭାଗୀ SSE/ରାଉଟିଂ କୋର୍ ପ୍ରଦାନକାରୀ ନିଷ୍ପାଦନ, ଅନୁବାଦ, ଷ୍ଟ୍ରିମିଂ, ଫଲ୍ବ୍ୟାକ୍ ଏବଂ ବ୍ୟବହାର ପରିଚାଳନା କରେ
 
 ## ସନ୍ଦର୍ଭ ଚିତ୍ରଗୁଡ଼ିକ
 
@@ -258,72 +258,73 @@ flowchart LR
 - ବିନ୍ୟାସ ବଣ୍ଡଲ୍: `src/app/api/sync/bundle` (GET, ସେଟିଂସ୍/ପ୍ରଦାନକାରୀ/ସଂଯୋଜନ/କୀଗୁଡ଼ିକର ETag-ସଂସ୍କରଣଯୁକ୍ତ ସ୍ନାପ୍ଶଟ୍)
 - WebSocket: `src/app/api/v1/ws/route.ts` — OpenAI-ସୁସଙ୍ଗତ WS କ୍ଲାଏଣ୍ଟଗୁଡ଼ିକ ପାଇଁ Upgrade ହ୍ୟାଣ୍ଡଲର୍
 
-## ୨) ଏସ୍ଏସ୍ଇ + ଅନୁବାଦ ମୂଳ
+## 2) SSE + ଅନୁବାଦ କୋର୍
 
-ମୁଖ୍ୟ ପ୍ରବାହ ମଡ୍ୟୁଲ:
+ମୁଖ୍ୟ ପ୍ରବାହ ମଡ୍ୟୁଲଗୁଡ଼ିକ:
 
-- ପ୍ରବେଶ: `src/sse/handlers/chat.ts`
-- ମୂଳ ଅର୍କେଷ୍ଟ୍ରେସନ: `open-sse/handlers/chatCore.ts`
-- ପ୍ରଦାତା ନିଷ୍ପାଦନ ଅଡାପ୍ଟର: `open-sse/executors/*`
-- ଫର୍ମାଟ୍ ଚିହ୍ନଟ/ପ୍ରଦାତା କନ୍ଫିଗ: `open-sse/services/provider.ts`
-- ମଡେଲ୍ ବିଶ୍ଳେଷଣ/ସମାଧାନ: `src/sse/services/model.ts`, `open-sse/services/model.ts`
-- ଖାତା ଫଲବ୍ୟାକ୍ ଯୁକ୍ତି: `open-sse/services/accountFallback.ts`
+- ପ୍ରବେଶ ବିନ୍ଦୁ: `src/sse/handlers/chat.ts`
+- କୋର୍ ସମନ୍ୱୟ: `open-sse/handlers/chatCore.ts`
+- ପ୍ରଦାତା ନିଷ୍ପାଦନ ଆଡାପ୍ଟରଗୁଡ଼ିକ: `open-sse/executors/*`
+- ଫର୍ମାଟ୍ ଚିହ୍ନଟ/ପ୍ରଦାତା ବିନ୍ୟାସ: `open-sse/services/provider.ts`
+- ମଡେଲ୍ ପାର୍ସ/ରିଜଲ୍ଭ: `src/sse/services/model.ts`, `open-sse/services/model.ts`
+- ଆକାଉଣ୍ଟ ଫଲ୍ବ୍ୟାକ୍ ଲଜିକ୍: `open-sse/services/accountFallback.ts`
 - ଅନୁବାଦ ରେଜିଷ୍ଟ୍ରି: `open-sse/translator/index.ts`
-- ଷ୍ଟ୍ରିମ୍ ରୂପାନ୍ତର: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- ବ୍ୟବହାର ଏକ୍ସଟ୍ରାକ୍ସନ/ସାମାନ୍ୟୀକରଣ: `open-sse/utils/usageTracking.ts`
-- ଥିଙ୍କ୍ ଟ୍ୟାଗ୍ ପାର୍ସର: `open-sse/utils/thinkTagParser.ts`
-- ଏମ୍ବେଡିଙ୍ଗ୍ ହ୍ୟାଣ୍ଡଲର: `open-sse/handlers/embeddings.ts`
-- ଏମ୍ବେଡିଙ୍ଗ୍ ପ୍ରଦାତା ରେଜିଷ୍ଟ୍ରି: `open-sse/config/embeddingRegistry.ts`
-- ଛବି ଜେନେରେସନ୍ ହ୍ୟାଣ୍ଡଲର: `open-sse/handlers/imageGeneration.ts`
-- ଛବି ପ୍ରଦାତା ରେଜିଷ୍ଟ୍ରି: `open-sse/config/imageRegistry.ts`
-- ପ୍ରତିକ୍ରିୟା ସାନିଟାଇଜେସନ୍: `open-sse/handlers/responseSanitizer.ts`
+- ଷ୍ଟ୍ରିମ୍ ରୂପାନ୍ତରଣଗୁଡ଼ିକ: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
+- ବ୍ୟବହାର ନିଷ୍କାସନ/ସାମାନ୍ୟୀକରଣ: `open-sse/utils/usageTracking.ts`
+- ଥିଙ୍କ୍ ଟ୍ୟାଗ୍ ପାର୍ସର୍: `open-sse/utils/thinkTagParser.ts`
+- ଏମ୍ବେଡିଂ ହ୍ୟାଣ୍ଡଲର୍: `open-sse/handlers/embeddings.ts`
+- ଏମ୍ବେଡିଂ ପ୍ରଦାତା ରେଜିଷ୍ଟ୍ରି: `open-sse/config/embeddingRegistry.ts`
+- ପ୍ରତିଛବି ସୃଷ୍ଟି ହ୍ୟାଣ୍ଡଲର୍: `open-sse/handlers/imageGeneration.ts`
+- ପ୍ରତିଛବି ପ୍ରଦାତା ରେଜିଷ୍ଟ୍ରି: `open-sse/config/imageRegistry.ts`
+- ପ୍ରତିକ୍ରିୟା ପରିଶୋଧନ: `open-sse/handlers/responseSanitizer.ts`
 - ଭୂମିକା ସାମାନ୍ୟୀକରଣ: `open-sse/services/roleNormalizer.ts`
 
-ସେବା (ବ୍ୟବସାୟ ଯୁକ୍ତି):
+ସେବାଗୁଡ଼ିକ (ବ୍ୟବସାୟିକ ଲଜିକ୍):
 
-- ଖାତା ଚୟନ/ସ୍କୋରିଂ: `open-sse/services/accountSelector.ts`
+- ଆକାଉଣ୍ଟ ଚୟନ/ସ୍କୋରିଂ: `open-sse/services/accountSelector.ts`
 - ପ୍ରସଙ୍ଗ ଜୀବନଚକ୍ର ପରିଚାଳନା: `open-sse/services/contextManager.ts`
-- IP ଫିଲ୍ଟର୍ ପ୍ରୟୋଗ: `open-sse/services/ipFilter.ts`
+- IP ଫିଲ୍ଟର୍ ପ୍ରବର୍ତ୍ତନ: `open-sse/services/ipFilter.ts`
 - ସେସନ୍ ଟ୍ରାକିଂ: `open-sse/services/sessionManager.ts`
 - ଅନୁରୋଧ ଡିଡୁପ୍ଲିକେସନ୍: `open-sse/services/signatureCache.ts`
-- ସିଷ୍ଟମ୍ ପ୍ରମ୍ପଟ୍ ଇଞ୍ଜେକ୍ସନ୍: `open-sse/services/systemPrompt.ts`
-- ଥିଙ୍କିଂ ବଜେଟ୍ ପରିଚାଳନା: `open-sse/services/thinkingBudget.ts`
-- ୱାଇଲ୍ଡକାର୍ଡ୍ ମଡେଲ୍ ରୁଟିଂ: `open-sse/services/wildcardRouter.ts`
+- ସିଷ୍ଟମ୍ ପ୍ରମ୍ପ୍ଟ ଇଞ୍ଜେକ୍ସନ୍: `open-sse/services/systemPrompt.ts`
+- ଚିନ୍ତନ ବଜେଟ୍ ପରିଚାଳନା: `open-sse/services/thinkingBudget.ts`
+- ୱାଇଲ୍ଡକାର୍ଡ ମଡେଲ୍ ରାଉଟିଂ: `open-sse/services/wildcardRouter.ts`
 - ହାର ସୀମା ପରିଚାଳନା: `open-sse/services/rateLimitManager.ts`
-- ସର୍କିଟ୍ ବ୍ରେକର: `src/shared/utils/circuitBreaker.ts`
-- ପ୍ରସଙ୍ଗ ହ୍ୟାଣ୍ଡଅଫ୍: `open-sse/services/contextHandoff.ts` — ପ୍ରସଙ୍ଗ-ରିଲେ ରଣନୀତି ପାଇଁ ହ୍ୟାଣ୍ଡଅଫ୍ ସାରାଂଶ ଜେନେରେସନ୍ ଏବଂ ଇଞ୍ଜେକ୍ସନ୍
+- ସର୍କିଟ୍ ବ୍ରେକର୍: `src/shared/utils/circuitBreaker.ts`
+- ପ୍ରସଙ୍ଗ ହ୍ୟାଣ୍ଡଅଫ୍: `open-sse/services/contextHandoff.ts` — ପ୍ରସଙ୍ଗ-ରିଲେ ରଣନୀତି ପାଇଁ ହ୍ୟାଣ୍ଡଅଫ୍ ସାରାଂଶ ସୃଷ୍ଟି ଏବଂ ଇଞ୍ଜେକ୍ସନ୍
 - ସଂକୋଚନ: `open-sse/services/compression/*` — ପ୍ରଦାତା ଅନୁବାଦ ପୂର୍ବରୁ ସକ୍ରିୟ ସଂକୋଚନ;
-  କାଭମ୍ୟାନ୍ ନିୟମ, RTK ଫିଲ୍ଟର୍, ସ୍ଟ୍ୟାକ୍ ପାଇପ୍ଲାଇନ୍, ସଂକୋଚନ କମ୍ବୋ, ପରିସଂଖ୍ୟାନ, ଏବଂ ଯାଞ୍ଚ ଅନ୍ତର୍ଭୁକ୍ତ
-- କୋଡେକ୍ସ୍ କୋଟା ଫେଚର: `open-sse/services/codexQuotaFetcher.ts` — ପ୍ରସଙ୍ଗ-ରିଲେ ହ୍ୟାଣ୍ଡଅଫ୍ ନିର୍ଣ୍ଣୟ ପାଇଁ କୋଡେକ୍ସ୍ କୋଟା ଆଣେ
-- କୁଲଡାଉନ୍-ସଚେତନ ପୁନର୍ଚେଷ୍ଟା: `src/sse/services/cooldownAwareRetry.ts` — କନ୍ଫିଗର୍ ଯୋଗ୍ୟ `requestRetry` / `maxRetryIntervalSec` ସହ ମଡେଲ୍-ସ୍ପେସିଫିକ୍ କୁଲଡାଉନ୍ ପୁନର୍ଚେଷ୍ଟା
-- ସୁରକ୍ଷିତ ଆଉଟବାଉଣ୍ଡ୍ ଫେଚ୍: `src/shared/network/safeOutboundFetch.ts` — SSRF ଗାର୍ଡ, ପ୍ରାଇଭେଟ୍ URL ବ୍ଲକିଂ, ପୁନର୍ଚେଷ୍ଟା, ଏବଂ ଟାଇମ୍ଆଉଟ୍ ସହ ରକ୍ଷିତ ପ୍ରଦାତା/ମଡେଲ୍ ଫେଚ୍
-- ଆଉଟବାଉଣ୍ଡ୍ URL ଗାର୍ଡ: `src/shared/network/outboundUrlGuard.ts` — ପ୍ରାଇଭେଟ୍/ଲୋକାଲହୋଷ୍ଟ CIDR ପରିସର ବିରୁଦ୍ଧରେ ପ୍ରଦାତା URLs ଯାଞ୍ଚ କରେ
-- ପ୍ରଦାତା ଅନୁରୋଧ ଡିଫଲ୍ଟ: `open-sse/services/providerRequestDefaults.ts` — ପ୍ରଦାତା-ସ୍ତର `maxTokens`, `temperature`, `thinkingBudgetTokens` ଡିଫଲ୍ଟ
-- GLM ପ୍ରଦାତା ଧାରା: `open-sse/config/glmProvider.ts` — ସାଝା GLM ମଡେଲ, କୋଟା URLs, GLMT ଟାଇମ୍ଆଉଟ୍/ଡିଫଲ୍ଟ
-- ଆଣ୍ଟିଗ୍ରାଭିଟି ଅପ୍ଷ୍ଟ୍ରିମ: `open-sse/config/antigravityUpstream.ts` — ମୂଳ URL ଏବଂ ଆବିଷ୍କାର ପାଥ୍ ଧାରା
-- କୋଡେକ୍ସ୍ କ୍ଲାଏଣ୍ଟ୍ ଧାରା: `open-sse/config/codexClient.ts` — ସଂସ୍କରଣଯୁକ୍ତ ୟୁଜର୍-ଏଜେଣ୍ଟ୍ ଏବଂ କ୍ଲାଏଣ୍ଟ୍-ଭର୍ସନ୍ ମୂଲ୍ୟ
-- ମଡେଲ୍ ଉପନାମ ବୀଜ: `src/lib/modelAliasSeed.ts` — ଷ୍ଟାର୍ଟଅପ୍ରେ ୩୦+ କ୍ରସ୍-ପ୍ରକ୍ସି ଡାଏଲେକ୍ଟ୍ ଉପନାମ ବୁଣାଯାଏ
+  ଏଥିରେ Caveman ନିୟମ, RTK ଫିଲ୍ଟର୍, ସ୍ତରୀକୃତ ପାଇପଲାଇନ୍, ସଂକୋଚନ ସମ୍ମିଶ୍ରଣ, ପରିସଂଖ୍ୟାନ ଏବଂ ବୈଧତା ଯାଞ୍ଚ ଅନ୍ତର୍ଭୁକ୍ତ
+- Codex କୋଟା ଫେଚର୍: `open-sse/services/codexQuotaFetcher.ts` — ପ୍ରସଙ୍ଗ-ରିଲେ ହ୍ୟାଣ୍ଡଅଫ୍ ନିଷ୍ପତ୍ତି ପାଇଁ Codex କୋଟା ଆଣେ
+- କୁଲ୍ଡାଉନ୍-ସଚେତନ ପୁନଃପ୍ରୟାସ: `src/sse/services/cooldownAwareRetry.ts` — ବିନ୍ୟାସଯୋଗ୍ୟ `requestRetry` / `maxRetryIntervalSec` ସହିତ ପ୍ରତି-ମଡେଲ୍ କୁଲ୍ଡାଉନ୍ ପୁନଃପ୍ରୟାସ
+- ସୁରକ୍ଷିତ ଆଉଟ୍ବାଉଣ୍ଡ ଫେଚ୍: `src/shared/network/safeOutboundFetch.ts` — SSRF ସୁରକ୍ଷା, ବ୍ୟକ୍ତିଗତ-URL ବ୍ଲକିଂ, ପୁନଃପ୍ରୟାସ ଏବଂ ସମୟସୀମା ସହିତ ସୁରକ୍ଷିତ ପ୍ରଦାତା/ମଡେଲ୍ ଫେଚ୍
+- ଆଉଟ୍ବାଉଣ୍ଡ URL ସୁରକ୍ଷା: `src/shared/network/outboundUrlGuard.ts` — ପ୍ରଦାତା URLଗୁଡ଼ିକରେ ହୋଷ୍ଟ ଯାଞ୍ଚ; `src/shared/network/outboundUrlGuardPolicy.ts`, `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` ଏବଂ ସେଗୁଡ଼ିକର ଡ୍ୟାସ୍ବୋର୍ଡ ଟୋଗଲ୍ରୁ ମୋଡ୍ ଚୟନ କରେ (`docs/reference/ENVIRONMENT.md` ଦେଖନ୍ତୁ)
+- ପ୍ରଦାତା ଅନୁରୋଧ ଡିଫଲ୍ଟଗୁଡ଼ିକ: `open-sse/services/providerRequestDefaults.ts` — ପ୍ରଦାତା-ସ୍ତରୀୟ `maxTokens`, `temperature`, `thinkingBudgetTokens` ଡିଫଲ୍ଟଗୁଡ଼ିକ
+- GLM ପ୍ରଦାତା ସ୍ଥିରାଙ୍କଗୁଡ଼ିକ: `open-sse/config/glmProvider.ts` — ଅଂଶୀଦାର GLM ମଡେଲ୍, କୋଟା URL, GLMT ସମୟସୀମା/ଡିଫଲ୍ଟଗୁଡ଼ିକ
+- Antigravity ଅପ୍ଷ୍ଟ୍ରିମ୍: `open-sse/config/antigravityUpstream.ts` — ମୂଳ URL ଏବଂ ଆବିଷ୍କାର ପଥର ସ୍ଥିରାଙ୍କଗୁଡ଼ିକ
+- Codex କ୍ଲାଏଣ୍ଟ ସ୍ଥିରାଙ୍କଗୁଡ଼ିକ: `open-sse/config/codexClient.ts` — ସଂସ୍କରଣଯୁକ୍ତ ୟୁଜର୍-ଏଜେଣ୍ଟ ଏବଂ କ୍ଲାଏଣ୍ଟ-ସଂସ୍କରଣ ମୂଲ୍ୟଗୁଡ଼ିକ
+- ମଡେଲ୍ ଉପନାମ ସିଡ୍: `src/lib/modelAliasSeed.ts` — ଷ୍ଟାର୍ଟଅପ୍ ସମୟରେ 30+ କ୍ରସ୍-ପ୍ରକ୍ସି ଡାୟାଲେକ୍ଟ ଉପନାମ ସିଡ୍ କରେ
 
-ଡୋମେନ୍ ସ୍ତର ମଡ୍ୟୁଲ:
+ଡୋମେନ୍ ସ୍ତର ମଡ୍ୟୁଲଗୁଡ଼ିକ:
 
 - ଖର୍ଚ୍ଚ ନିୟମ/ବଜେଟ୍: `src/domain/costRules.ts`
-- ଫଲବ୍ୟାକ୍ ନୀତି: `src/domain/fallbackPolicy.ts`
-- କମ୍ବୋ ରିଜୋଲଭର: `src/domain/comboResolver.ts`
+- ଫଲ୍ବ୍ୟାକ୍ ନୀତି: `src/domain/fallbackPolicy.ts`
+- କମ୍ବୋ ରିଜଲ୍ଭର୍: `src/domain/comboResolver.ts`
 - ଲକ୍ଆଉଟ୍ ନୀତି: `src/domain/lockoutPolicy.ts`
-- ନୀତି ଇଞ୍ଜିନ୍: `src/domain/policyEngine.ts` — କେନ୍ଦ୍ରୀକୃତ ଲକ୍ଆଉଟ୍ → ବଜେଟ୍ → ଫଲବ୍ୟାକ୍ ମୂଲ୍ୟାୟନ
-- ତ୍ରୁଟି କୋଡ୍ ସୂଚୀ: `src/shared/constants/errorCodes.ts`
+- ନୀତି ଇଞ୍ଜିନ୍: `src/domain/policyEngine.ts` — କେନ୍ଦ୍ରୀକୃତ ଲକ୍ଆଉଟ୍ → ବଜେଟ୍ → ଫଲ୍ବ୍ୟାକ୍ ମୂଲ୍ୟାୟନ
+- ତ୍ରୁଟି କୋଡ୍ କ୍ୟାଟାଲଗ୍: `src/shared/constants/errorCodes.ts`
 - ଅନୁରୋଧ ID: `src/shared/utils/requestId.ts`
-- ଫେଚ୍ ଟାଇମ୍ଆଉଟ୍: `src/shared/utils/fetchTimeout.ts`
+- ଫେଚ୍ ସମୟସୀମା: `src/shared/utils/fetchTimeout.ts`
 - ଅନୁରୋଧ ଟେଲିମେଟ୍ରି: `src/shared/utils/requestTelemetry.ts`
 - ଅନୁପାଳନ/ଅଡିଟ୍: `src/lib/compliance/index.ts`
-- ମୂଲ୍ୟାୟନ ରନର: `src/lib/evals/evalRunner.ts`
-- ଡୋମେନ୍ ସ୍ଥିତି ସ୍ଥାୟୀକରଣ: `src/lib/db/domainState.ts` — ଫଲବ୍ୟାକ୍ ଚେନ୍, ବଜେଟ୍, ଖର୍ଚ୍ଚ ଇତିହାସ, ଲକ୍ଆଉଟ୍ ସ୍ଥିତି, ସର୍କିଟ୍ ବ୍ରେକର୍ ପାଇଁ SQLite CRUD
+- ମୂଲ୍ୟାୟନ ରନର୍: `src/lib/evals/evalRunner.ts`
+- ଡୋମେନ୍ ସ୍ଥିତି ସ୍ଥାୟୀକରଣ: `src/lib/db/domainState.ts` — ଫଲ୍ବ୍ୟାକ୍ ଶୃଙ୍ଖଳା, ବଜେଟ୍, ଖର୍ଚ୍ଚ ଇତିହାସ, ଲକ୍ଆଉଟ୍ ସ୍ଥିତି ଏବଂ ସର୍କିଟ୍ ବ୍ରେକର୍ଗୁଡ଼ିକ ପାଇଁ SQLite CRUD
 
-OAuth ପ୍ରଦାତା ମଡ୍ୟୁଲ (`src/lib/oauth/providers/` ଅଧୀନ ୨୨ ଟି ପୃଥକ ଫାଇଲ):
+OAuth ପ୍ରଦାତା ମଡ୍ୟୁଲଗୁଡ଼ିକ (`src/lib/oauth/providers/` ଅଧୀନରେ 27ଟି ସ୍ୱତନ୍ତ୍ର ଫାଇଲ୍):
 
-- ରେଜିଷ୍ଟ୍ରି ସୂଚୀ: `src/lib/oauth/providers/index.ts`
-- ପୃଥକ ପ୍ରଦାତା: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, "trae.ts", "xai-oauth.ts", "zed-hosted.ts", "zed.ts"
-- ସୂକ୍ଷ୍ମ ୱ୍ରାପର: `src/lib/oauth/providers.ts` — ପୃଥକ ମଡ୍ୟୁଲରୁ ପୁନଃ-ରପ୍ତାନ୍ତର
+- ରେଜିଷ୍ଟ୍ରି ଇଣ୍ଡେକ୍ସ: `src/lib/oauth/providers/index.ts`
+- ସ୍ୱତନ୍ତ୍ର ପ୍ରଦାତାଗୁଡ଼ିକ: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- ଅଂଶୀଦାର ସହାୟକଗୁଡ଼ିକ: `codebuddyDeviceAuth.ts` (CodeBuddy CN/ଆନ୍ତର୍ଜାତୀୟ ଡିଭାଇସ୍ ପ୍ରବାହ), `museCodeDeviceResponse.ts`
+- ସରଳ ରାପର୍: `src/lib/oauth/providers.ts` — ସ୍ୱତନ୍ତ୍ର ମଡ୍ୟୁଲଗୁଡ଼ିକରୁ ପୁନଃ-ରପ୍ତାନି କରେ
 
 ## �) ଏମ୍ବେଡେଡ୍ ସର୍ଭିସ୍ଗୁଡ଼ିକ (v3.8.4)
 
@@ -501,46 +502,46 @@ FSM ସଂକ୍ରମଣ ଅଟୋ କମ୍ବୋ ର ସ୍କୋରିଂର
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Client as CLI/SDK Client
+    participant Client as CLI/SDK କ୍ଲାଏଣ୍ଟ
     participant Route as /api/v1/chat/completions
     participant Chat as src/sse/handlers/chat
     participant Core as open-sse/handlers/chatCore
-    participant Model as Model Resolver
-    participant Auth as Credential Selector
-    participant Exec as Provider Executor
-    participant Prov as Upstream Provider
-    participant Stream as Stream Translator
+    participant Model as ମଡେଲ୍ ସମାଧାନକାରୀ
+    participant Auth as ପରିଚୟପତ୍ର ଚୟନକାରୀ
+    participant Exec as ପ୍ରଦାନକାରୀ ନିଷ୍ପାଦକ
+    participant Prov as ଅପ୍ଷ୍ଟ୍ରିମ୍ ପ୍ରଦାନକାରୀ
+    participant Stream as ଷ୍ଟ୍ରିମ୍ ଅନୁବାଦକ
     participant Usage as usageDb
 
     Client->>Route: POST /v1/chat/completions
     Route->>Chat: handleChat(request)
-    Chat->>Model: parse/resolve model or combo
+    Chat->>Model: ମଡେଲ୍ କିମ୍ବା କମ୍ବୋକୁ ପାର୍ସ/ସମାଧାନ କରନ୍ତୁ
 
-    alt Combo model
-        Chat->>Chat: iterate combo models (handleComboChat)
+    alt କମ୍ବୋ ମଡେଲ୍
+        Chat->>Chat: କମ୍ବୋ ମଡେଲ୍ଗୁଡ଼ିକ ମଧ୍ୟରେ ପୁନରାବୃତ୍ତି କରନ୍ତୁ (handleComboChat)
     end
 
     Chat->>Auth: getProviderCredentials(provider)
-    Auth-->>Chat: active account + tokens/api key
+    Auth-->>Chat: ସକ୍ରିୟ ଆକାଉଣ୍ଟ + ଟୋକନ୍ଗୁଡ଼ିକ/api କି
 
     Chat->>Core: handleChatCore(body, modelInfo, credentials)
-    Core->>Core: detect source format
-    Core->>Core: translate request to target format
+    Core->>Core: ଉତ୍ସ ଫର୍ମାଟ୍ ଚିହ୍ନଟ କରନ୍ତୁ
+    Core->>Core: ଅନୁରୋଧକୁ ଲକ୍ଷ୍ୟ ଫର୍ମାଟ୍କୁ ଅନୁବାଦ କରନ୍ତୁ
     Core->>Exec: execute(provider, transformedBody)
-    Exec->>Prov: upstream API call
-    Prov-->>Exec: SSE/JSON response
-    Exec-->>Core: response + metadata
+    Exec->>Prov: ଅପ୍ଷ୍ଟ୍ରିମ୍ API କଲ୍
+    Prov-->>Exec: SSE/JSON ପ୍ରତିକ୍ରିୟା
+    Exec-->>Core: ପ୍ରତିକ୍ରିୟା + ମେଟାଡାଟା
 
     alt 401/403
         Core->>Exec: refreshCredentials()
-        Exec-->>Core: updated tokens
-        Core->>Exec: retry request
+        Exec-->>Core: ଅଦ୍ୟତନ ହୋଇଥିବା ଟୋକନ୍ଗୁଡ଼ିକ
+        Core->>Exec: ଅନୁରୋଧକୁ ପୁନଃଚେଷ୍ଟା କରନ୍ତୁ
     end
 
-    Core->>Stream: translate/normalize stream to client format
-    Stream-->>Client: SSE chunks / JSON response
+    Core->>Stream: ଷ୍ଟ୍ରିମ୍କୁ କ୍ଲାଏଣ୍ଟ ଫର୍ମାଟ୍ରେ ଅନୁବାଦ/ସାମାନ୍ୟୀକରଣ କରନ୍ତୁ
+    Stream-->>Client: SSE ଖଣ୍ଡଗୁଡ଼ିକ / JSON ପ୍ରତିକ୍ରିୟା
 
-    Stream->>Usage: extract usage + persist history/log
+    Stream->>Usage: ବ୍ୟବହାର ତଥ୍ୟ ବାହାର କରନ୍ତୁ + ଇତିହାସ/ଲଗ୍ ସ୍ଥାୟୀ ଭାବେ ସଂରକ୍ଷଣ କରନ୍ତୁ
 ```
 
 ## କମ୍ବୋ + ଆକାଉଣ୍ଟ ଫଲ୍ବ୍ୟାକ୍ ଫ୍ଲୋ

@@ -11,60 +11,60 @@ _पछिल्लो अद्यावधिक: 2026-06-28_
 ## कार्यकारी सारांश
 
 OmniRoute Next.js मा निर्मित स्थानीय AI राउटिङ गेटवे र ड्यासबोर्ड हो।
-यसले एउटै OpenAI-संगत एन्डपोइन्ट (`/v1/*`) उपलब्ध गराउँछ र अनुवाद, फलब्याक, टोकन रिफ्रेस तथा प्रयोग ट्र्याकिङसहित धेरै अपस्ट्रिम प्रदायकहरूमा ट्राफिक रुट गर्छ।
+यसले एउटै OpenAI-संगत एन्डपोइन्ट (`/v1/*`) प्रदान गर्छ र अनुवाद, फलब्याक, टोकन रिफ्रेस तथा प्रयोग ट्र्याकिङसहित धेरै अपस्ट्रिम प्रदायकहरूमा ट्राफिक राउट गर्छ।
 
 मुख्य क्षमताहरू:
 
-- CLI/उपकरणहरूका लागि OpenAI-संगत API सतह (355 प्रदायक, 108 एक्जिक्युटर)
+- CLI/उपकरणहरूका लागि OpenAI-संगत API सतह (372 प्रदायक, 148 एक्जिक्युटर)
 - प्रदायकका ढाँचाहरूबीच अनुरोध/प्रतिक्रिया अनुवाद
 - मोडेल कम्बो फलब्याक (बहु-मोडेल अनुक्रम)
 - `compositeTiers` अनुसार रनटाइम क्रम निर्धारणसहित संरचित कम्बो चरणहरू (`provider + model + connection`)
 - खाता-स्तरीय फलब्याक (प्रति प्रदायक बहु-खाता)
-- मुख्य च्याट पथमा कोटा पूर्व-जाँच र कोटा-सचेत P2C खाता चयन
-- OAuth + API-key प्रदायक जडान व्यवस्थापन (22 OAuth प्रदायक मोड्युल)
-- `/v1/embeddings` मार्फत एम्बेडिङ सिर्जना (18 प्रदायक)
-- `/v1/images/generations` मार्फत छवि सिर्जना (10+ प्रदायक, 20+ मोडेल)
+- मुख्य च्याट पथमा कोटा प्रिफ्लाइट र कोटा-सचेत P2C खाता छनोट
+- OAuth + API-key प्रदायक जडान व्यवस्थापन (27 OAuth प्रदायक मोड्युल)
+- `/v1/embeddings` मार्फत एम्बेडिङ उत्पादन (18 प्रदायक)
+- `/v1/images/generations` मार्फत छवि उत्पादन (10+ प्रदायक, 20+ मोडेल)
 - `/v1/audio/transcriptions` मार्फत अडियो ट्रान्सक्रिप्सन (18 प्रदायक)
-- `/v1/audio/speech` मार्फत पाठ-देखि-वाणी रूपान्तरण (24 बिल्ट-इन प्रदायक)
-- `/v1/videos/generations` मार्फत भिडियो सिर्जना (ComfyUI + SD WebUI)
-- `/v1/music/generations` मार्फत सङ्गीत सिर्जना (ComfyUI)
+- `/v1/audio/speech` मार्फत पाठबाट वाणी उत्पादन (24 बिल्ट-इन प्रदायक)
+- `/v1/videos/generations` मार्फत भिडियो उत्पादन (ComfyUI + SD WebUI)
+- `/v1/music/generations` मार्फत सङ्गीत उत्पादन (ComfyUI)
 - `/v1/search` मार्फत वेब खोज (20 प्रदायक)
 - `/v1/moderations` मार्फत मोडरेसन
-- `/v1/rerank` मार्फत पुनःक्रमाङ्कन
-- रिजनिङ मोडेलहरूका लागि Think ट्याग पार्सिङ (`<think>...</think>`)
+- `/v1/rerank` मार्फत पुनःर्याङ्किङ
+- तर्क गर्ने मोडेलहरूका लागि Think ट्याग पार्सिङ (``)
 - कडा OpenAI SDK अनुकूलताका लागि प्रतिक्रिया स्यानिटाइजेसन
-- विभिन्न प्रदायकबीचको अनुकूलताका लागि भूमिका सामान्यीकरण (developer→system, system→user)
+- अन्तर-प्रदायक अनुकूलताका लागि भूमिका सामान्यीकरण (developer→system, system→user)
 - संरचित आउटपुट रूपान्तरण (json_schema → Gemini responseSchema)
-- प्रदायक, कुञ्जी, एलियास, कम्बो, सेटिङ र मूल्य निर्धारणका लागि स्थानीय पर्सिस्टेन्स (122 DB मोड्युल)
+- प्रदायक, की, एलियास, कम्बो, सेटिङ र मूल्य निर्धारणका लागि स्थानीय स्थायित्व (122 DB मोड्युल)
 - प्रयोग/लागत ट्र्याकिङ र अनुरोध लगिङ
-- बहु-उपकरण/स्टेट समक्रमणका लागि वैकल्पिक क्लाउड सिंक
-- API पहुँच नियन्त्रणका लागि IP अनुमति-सूची/ब्लक-सूची
-- Thinking बजेट व्यवस्थापन (passthrough/auto/custom/adaptive)
+- बहु-उपकरण/स्थिति समक्रमणका लागि वैकल्पिक क्लाउड सिंक
+- API पहुँच नियन्त्रणका लागि IP अनुमति-सूची/रोक-सूची
+- थिङ्किङ बजेट व्यवस्थापन (पासथ्रु/स्वचालित/अनुकूलनयोग्य/अनुकूली)
 - ग्लोबल सिस्टम प्रम्प्ट इन्जेक्सन
 - सेसन ट्र्याकिङ र फिङ्गरप्रिन्टिङ
-- प्रदायक-विशिष्ट प्रोफाइलसहित प्रति-खाता परिष्कृत दर सीमितता
+- प्रदायक-विशिष्ट प्रोफाइलसहित प्रति-खाता उन्नत दर सीमितता
 - प्रदायकको लचिलोपनका लागि सर्किट ब्रेकर ढाँचा
 - म्युटेक्स लकिङसहित एन्टी-थन्डरिङ हर्ड सुरक्षा
-- सिग्नेचर-आधारित अनुरोध डिडुप्लिकेसन क्यास
+- हस्ताक्षरमा आधारित अनुरोध डिडुप्लिकेसन क्यास
 - डोमेन तह: लागत नियम, फलब्याक नीति, लकआउट नीति
 - Context Relay: खाता रोटेसनको निरन्तरताका लागि सेसन हस्तान्तरण सारांश
-- डोमेन स्टेट पर्सिस्टेन्स (फलब्याक, बजेट, लकआउट र सर्किट ब्रेकरहरूका लागि SQLite write-through क्यास)
-- केन्द्रीकृत अनुरोध मूल्याङ्कनका लागि नीति इन्जिन (lockout → budget → fallback)
+- डोमेन स्थिति स्थायित्व (फलब्याक, बजेट, लकआउट र सर्किट ब्रेकरका लागि SQLite राइट-थ्रु क्यास)
+- केन्द्रीकृत अनुरोध मूल्याङ्कनका लागि नीति इन्जिन (लकआउट → बजेट → फलब्याक)
 - p50/p95/p99 विलम्बता एग्रिगेसनसहित अनुरोध टेलिमेट्री
-- `combo_execution_key` / `combo_step_id` मार्फत कम्बो टार्गेट टेलिमेट्री र ऐतिहासिक कम्बो टार्गेट स्वास्थ्य
-- अन्त्यदेखि अन्त्यसम्म ट्रेसिङका लागि सहसम्बन्ध ID (X-Request-Id)
-- प्रति API कुञ्जी अप्ट-आउटसहित अनुपालन अडिट लगिङ
-- LLM गुणस्तर सुनिश्चितताका लागि Eval फ्रेमवर्क
-- प्रदायकको रियल-टाइम सर्किट ब्रेकर स्थितिसहित स्वास्थ्य ड्यासबोर्ड
+- `combo_execution_key` / `combo_step_id` मार्फत कम्बो लक्ष्य टेलिमेट्री र ऐतिहासिक कम्बो लक्ष्य स्वास्थ्य
+- एन्ड-टु-एन्ड ट्रेसिङका लागि कोरिलेसन ID (X-Request-Id)
+- प्रति API key अप्ट-आउटसहित अनुपालन अडिट लगिङ
+- LLM गुणस्तर आश्वासनका लागि मूल्याङ्कन फ्रेमवर्क
+- वास्तविक-समय प्रदायक सर्किट ब्रेकर स्थितिसहित स्वास्थ्य ड्यासबोर्ड
 - 3 ट्रान्सपोर्ट (stdio/SSE/Streamable HTTP) सहित MCP Server (110 उपकरण)
 - सीप र कार्य जीवनचक्रसहित A2A Server (JSON-RPC 2.0 + SSE)
 - मेमोरी प्रणाली (निष्कर्षण, इन्जेक्सन, पुनर्प्राप्ति, सारांशीकरण)
 - सीप प्रणाली (रजिस्ट्री, एक्जिक्युटर, स्यान्डबक्स, बिल्ट-इन सीपहरू)
 - प्रमाणपत्र व्यवस्थापन र DNS ह्यान्डलिङसहित MITM प्रोक्सी
 - प्रम्प्ट इन्जेक्सन गार्ड मिडलवेयर
-- Caveman, RTK, स्ट्याक गरिएका पाइपलाइन, कम्प्रेसन कम्बो, भाषा प्याक र एनालिटिक्ससहित प्रम्प्ट कम्प्रेसन पाइपलाइन
+- Caveman, RTK, स्ट्याक्ड पाइपलाइन, कम्प्रेसन कम्बो, भाषा प्याक र एनालिटिक्ससहित प्रम्प्ट कम्प्रेसन पाइपलाइन
 - ACP (Agent Communication Protocol) रजिस्ट्री
-- मोड्युलर OAuth प्रदायकहरू (`src/lib/oauth/providers/` अन्तर्गत 22 व्यक्तिगत मोड्युल)
+- मोड्युलर OAuth प्रदायकहरू (`src/lib/oauth/providers/` अन्तर्गत 22 अलग-अलग मोड्युल)
 - अनइन्स्टल/पूर्ण-अनइन्स्टल स्क्रिप्टहरू
 - OAuth वातावरण मर्मत कार्य
 - OpenAI-संगत WS क्लाइन्टहरूका लागि WebSocket ब्रिज (`/v1/ws`)
@@ -72,15 +72,15 @@ OmniRoute Next.js मा निर्मित स्थानीय AI रा�
 - GLM Thinking (`glmt`) प्रथम-श्रेणी प्रदायक प्रिसेट
 - हाइब्रिड टोकन गणना (अनुमान फलब्याकसहित प्रदायक-पक्षीय `/messages/count_tokens`)
 - मोडेल एलियास स्वतः-सिडिङ (स्टार्टअपमा 30+ क्रस-प्रोक्सी डायलेक्ट सामान्यीकरण)
-- SSRF गार्ड, निजी URL ब्लकिङ र कन्फिगर गर्न मिल्ने पुनःप्रयाससहित सुरक्षित आउटबाउन्ड फेच
+- SSRF गार्ड, निजी URL रोकावट र कन्फिगर गर्न मिल्ने पुनःप्रयाससहित सुरक्षित आउटबाउन्ड फेच
 - कन्फिगर गर्न मिल्ने `requestRetry` र `maxRetryIntervalSec` सहित कुलडाउन-सचेत च्याट पुनःप्रयास
-- स्टार्टअपमा Zod सहित रनटाइम वातावरण प्रमाणीकरण
-- पृष्ठाङ्कन, प्रदायक CRUD घटना र SSRF-अवरुद्ध प्रमाणीकरण लगिङसहित अनुपालन अडिट v2
+- स्टार्टअपमा Zod मार्फत रनटाइम वातावरण प्रमाणीकरण
+- पृष्ठाङ्कन, प्रदायक CRUD घटना र SSRF-द्वारा रोकिएको प्रमाणीकरण लगिङसहित अनुपालन अडिट v2
 
 प्राथमिक रनटाइम मोडेल:
 
 - `src/app/api/*` अन्तर्गतका Next.js एप रुटहरूले ड्यासबोर्ड API र अनुकूलता API दुवै कार्यान्वयन गर्छन्
-- `src/sse/*` + `open-sse/*` मा रहेको साझा SSE/राउटिङ कोरले प्रदायक कार्यान्वयन, अनुवाद, स्ट्रिमिङ, फलब्याक र प्रयोग व्यवस्थापन गर्छ
+- `src/sse/*` + `open-sse/*` मा रहेको साझा SSE/राउटिङ कोरले प्रदायक कार्यान्वयन, अनुवाद, स्ट्रिमिङ, फलब्याक र प्रयोग सम्हाल्छ
 
 ## सन्दर्भ आरेखहरू
 
@@ -263,15 +263,15 @@ flowchart LR
 मुख्य प्रवाह मोड्युलहरू:
 
 - प्रवेश: `src/sse/handlers/chat.ts`
-- कोर समन्वय: `open-sse/handlers/chatCore.ts`
+- मुख्य समन्वय: `open-sse/handlers/chatCore.ts`
 - प्रदायक कार्यान्वयन एडाप्टरहरू: `open-sse/executors/*`
 - ढाँचा पहिचान/प्रदायक कन्फिगरेसन: `open-sse/services/provider.ts`
 - मोडेल पार्स/रिजोल्भ: `src/sse/services/model.ts`, `open-sse/services/model.ts`
 - खाता फलब्याक तर्क: `open-sse/services/accountFallback.ts`
 - अनुवाद रजिस्ट्री: `open-sse/translator/index.ts`
 - स्ट्रिम रूपान्तरणहरू: `open-sse/utils/stream.ts`, `open-sse/utils/streamHandler.ts`
-- उपयोग निष्कर्षण/सामान्यीकरण: `open-sse/utils/usageTracking.ts`
-- थिङ्क ट्याग पार्सर: `open-sse/utils/thinkTagParser.ts`
+- प्रयोग निष्कर्षण/सामान्यीकरण: `open-sse/utils/usageTracking.ts`
+- Think ट्याग पार्सर: `open-sse/utils/thinkTagParser.ts`
 - एम्बेडिङ ह्यान्डलर: `open-sse/handlers/embeddings.ts`
 - एम्बेडिङ प्रदायक रजिस्ट्री: `open-sse/config/embeddingRegistry.ts`
 - छवि उत्पादन ह्यान्डलर: `open-sse/handlers/imageGeneration.ts`
@@ -284,20 +284,20 @@ flowchart LR
 - खाता चयन/स्कोरिङ: `open-sse/services/accountSelector.ts`
 - कन्टेक्स्ट जीवनचक्र व्यवस्थापन: `open-sse/services/contextManager.ts`
 - IP फिल्टर कार्यान्वयन: `open-sse/services/ipFilter.ts`
-- सेसन ट्र्याकिङ: `open-sse/services/sessionManager.ts`
+- सत्र ट्र्याकिङ: `open-sse/services/sessionManager.ts`
 - अनुरोध डिडुप्लिकेसन: `open-sse/services/signatureCache.ts`
-- सिस्टम प्रम्प्ट इन्जेक्सन: `open-sse/services/systemPrompt.ts`
+- प्रणाली प्रम्प्ट इन्जेक्सन: `open-sse/services/systemPrompt.ts`
 - थिङ्किङ बजेट व्यवस्थापन: `open-sse/services/thinkingBudget.ts`
 - वाइल्डकार्ड मोडेल राउटिङ: `open-sse/services/wildcardRouter.ts`
 - दर सीमा व्यवस्थापन: `open-sse/services/rateLimitManager.ts`
 - सर्किट ब्रेकर: `src/shared/utils/circuitBreaker.ts`
 - कन्टेक्स्ट ह्यान्डअफ: `open-sse/services/contextHandoff.ts` — कन्टेक्स्ट-रिले रणनीतिका लागि ह्यान्डअफ सारांश उत्पादन र इन्जेक्सन
 - कम्प्रेसन: `open-sse/services/compression/*` — प्रदायक अनुवादअघि सक्रिय कम्प्रेसन;
-  यसमा Caveman नियमहरू, RTK फिल्टरहरू, स्ट्याक गरिएका पाइपलाइनहरू, कम्प्रेसन संयोजनहरू, तथ्याङ्क र प्रमाणीकरण समावेश छन्
-- Codex कोटा फेचर: `open-sse/services/codexQuotaFetcher.ts` — कन्टेक्स्ट-रिले ह्यान्डअफ निर्णयहरूका लागि Codex कोटा प्राप्त गर्छ
+  यसमा Caveman नियमहरू, RTK फिल्टरहरू, स्ट्याक गरिएका पाइपलाइनहरू, कम्प्रेसन कम्बोहरू, तथ्याङ्क र प्रमाणीकरण समावेश छन्
+- Codex कोटा फेचर: `open-sse/services/codexQuotaFetcher.ts` — कन्टेक्स्ट-रिले ह्यान्डअफ निर्णयहरूका लागि Codex कोटा ल्याउँछ
 - कुलडाउन-सचेत पुनःप्रयास: `src/sse/services/cooldownAwareRetry.ts` — कन्फिगर गर्न मिल्ने `requestRetry` / `maxRetryIntervalSec` सहित प्रति-मोडेल कुलडाउन पुनःप्रयासहरू
 - सुरक्षित आउटबाउन्ड फेच: `src/shared/network/safeOutboundFetch.ts` — SSRF सुरक्षा, निजी-URL अवरोध, पुनःप्रयास र टाइमआउटसहित सुरक्षित गरिएको प्रदायक/मोडेल फेच
-- आउटबाउन्ड URL सुरक्षा: `src/shared/network/outboundUrlGuard.ts` — निजी/localhost CIDR दायराहरूविरुद्ध प्रदायक URL हरू प्रमाणीकरण गर्छ
+- आउटबाउन्ड URL सुरक्षा: `src/shared/network/outboundUrlGuard.ts` — प्रदायक URL हरूमा होस्ट जाँच; `src/shared/network/outboundUrlGuardPolicy.ts` ले `OMNIROUTE_ALLOW_LOCAL_PROVIDER_URLS`, `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` र तिनका ड्यासबोर्ड टगलहरूबाट मोड चयन गर्छ (`docs/reference/ENVIRONMENT.md` हेर्नुहोस्)
 - प्रदायक अनुरोध पूर्वनिर्धारितहरू: `open-sse/services/providerRequestDefaults.ts` — प्रदायक-स्तरीय `maxTokens`, `temperature`, `thinkingBudgetTokens` पूर्वनिर्धारितहरू
 - GLM प्रदायक स्थिराङ्कहरू: `open-sse/config/glmProvider.ts` — साझा GLM मोडेलहरू, कोटा URL हरू, GLMT टाइमआउट/पूर्वनिर्धारितहरू
 - Antigravity अपस्ट्रिम: `open-sse/config/antigravityUpstream.ts` — आधार URL र डिस्कभरी पाथ स्थिराङ्कहरू
@@ -311,19 +311,20 @@ flowchart LR
 - कम्बो रिजोल्भर: `src/domain/comboResolver.ts`
 - लकआउट नीति: `src/domain/lockoutPolicy.ts`
 - नीति इन्जिन: `src/domain/policyEngine.ts` — केन्द्रीकृत लकआउट → बजेट → फलब्याक मूल्याङ्कन
-- त्रुटि कोड क्याटलग: `src/shared/constants/errorCodes.ts`
+- त्रुटि कोड सूची: `src/shared/constants/errorCodes.ts`
 - अनुरोध ID: `src/shared/utils/requestId.ts`
 - फेच टाइमआउट: `src/shared/utils/fetchTimeout.ts`
 - अनुरोध टेलिमेट्री: `src/shared/utils/requestTelemetry.ts`
 - अनुपालन/अडिट: `src/lib/compliance/index.ts`
-- इभ्याल रनर: `src/lib/evals/evalRunner.ts`
-- डोमेन अवस्था पर्सिस्टेन्स: `src/lib/db/domainState.ts` — फलब्याक चेनहरू, बजेटहरू, लागत इतिहास, लकआउट अवस्था र सर्किट ब्रेकरहरूका लागि SQLite CRUD
+- मूल्याङ्कन रनर: `src/lib/evals/evalRunner.ts`
+- डोमेन स्थिति स्थायित्व: `src/lib/db/domainState.ts` — फलब्याक चेनहरू, बजेटहरू, लागत इतिहास, लकआउट स्थिति र सर्किट ब्रेकरहरूका लागि SQLite CRUD
 
-OAuth प्रदायक मोड्युलहरू (`src/lib/oauth/providers/` अन्तर्गतका 22 वटा अलग-अलग फाइलहरू):
+OAuth प्रदायक मोड्युलहरू (`src/lib/oauth/providers/` अन्तर्गतका 27 वटा छुट्टाछुट्टै फाइल):
 
 - रजिस्ट्री इन्डेक्स: `src/lib/oauth/providers/index.ts`
-- अलग-अलग प्रदायकहरू: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
-- पातलो र्यापर: `src/lib/oauth/providers.ts` — अलग-अलग मोड्युलहरूबाट पुनःनिर्यात गर्छ
+- छुट्टाछुट्टै प्रदायकहरू: `agy.ts`, `antigravity.ts`, `claude.ts`, `cline.ts`, `codebuddy-cn.ts`, `codebuddy-intl.ts`, `codex.ts`, `cursor.ts`, `devin-desktop.ts`, `ghe-copilot.ts`, `github.ts`, `gitlab-duo.ts`, `grok-cli-oauth.ts`, `grok-cli.ts`, `kilocode.ts`, `kimi-coding.ts`, `kiro.ts`, `muse-code.ts`, `openference.ts`, `qoder.ts`, `trae.ts`, `workbuddy.ts`, `xai-oauth.ts`, `zed-hosted.ts`, `zed.ts`
+- साझा सहायकहरू: `codebuddyDeviceAuth.ts` (CodeBuddy CN/intl डिभाइस प्रवाह), `museCodeDeviceResponse.ts`
+- पातलो र्यापर: `src/lib/oauth/providers.ts` — छुट्टाछुट्टै मोड्युलहरूबाट पुनःनिर्यात गर्छ
 
 ## 5) एम्बेडेड सेवाहरू (v3.8.4)
 
