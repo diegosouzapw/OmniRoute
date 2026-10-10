@@ -176,8 +176,7 @@ import {
 
 import { resolveResilienceSettings } from "@/lib/resilience/settings";
 import { classifyProviderError, PROVIDER_ERROR_TYPES } from "../services/errorClassifier.ts";
-import { isOpencodeFreeTierRefusalForProvider } from "../executors/opencodeGeoBlock.ts";
-import { noteOpencodeFreeTierSkip } from "../services/opencodeFreeTierSkip.ts";
+import { armOpencodeFreeTierSkipAfterRefusal } from "../executors/opencodeFreeTierContract.ts";
 import { updateProviderConnection, getProviderConnectionById } from "@/lib/db/providers";
 
 import { connectionHasExtraKeys } from "../services/apiKeyRotator.ts";
@@ -3533,14 +3532,16 @@ async function handleChatCoreInner({
           console.warn(
             `[provider] Node ${errorConnectionId} project routing error (${statusCode}) -- not banning`
           );
-          // #14313: free-tier refusal on the keyless path — record a short TTL
-          // skip so auto-combo / noauth fallback stop re-picking it immediately.
-          if (
-            errorConnectionId === "noauth" &&
-            isOpencodeFreeTierRefusalForProvider(provider, statusCode, message)
-          ) {
-            noteOpencodeFreeTierSkip(provider, Date.now(), undefined, targetModel);
-          }
+          // #14313/#14977: short per-model keyless pause, unless the request carried the contract.
+          armOpencodeFreeTierSkipAfterRefusal(
+            errorConnectionId,
+            provider,
+            statusCode,
+            message,
+            clientRawRequest?.body ?? body,
+            getExecutorClientHeaders(),
+            targetModel
+          );
         } else if (errorType === PROVIDER_ERROR_TYPES.GEO_BLOCKED) {
           // Google regional refusal: account-independent, non-terminal; park the connection
           // until egress uses a supported region; probes skip the day-long cooldown (#9817).
