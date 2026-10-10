@@ -96,6 +96,11 @@ function resolveCallCount() {
   ).length;
 }
 
+// Collect the real public-path modules before the test starts. Cold Vite
+// transformation is not part of the unchanged 30s proxy-refresh assertion budget.
+const { useProviderConnections } = await import("../hooks/useProviderConnections");
+const ProviderModalsPanel = (await import("../components/ProviderModalsPanel")).default;
+
 describe("provider page — proxy save refreshes per-connection proxy badges", () => {
   let container: HTMLElement;
   let root: ReturnType<typeof createRoot>;
@@ -116,9 +121,6 @@ describe("provider page — proxy save refreshes per-connection proxy badges", (
   });
 
   it("re-resolves connection proxies when ProxyConfigModal reports a save", async () => {
-    const { useProviderConnections } = await import("../hooks/useProviderConnections");
-    const ProviderModalsPanel = (await import("../components/ProviderModalsPanel")).default;
-
     type HookResult = ReturnType<typeof useProviderConnections>;
     let hook: HookResult | null = null;
 
