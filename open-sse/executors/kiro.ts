@@ -20,6 +20,7 @@ import {
   type KiroThinkingState,
 } from "./kiroThinking.ts";
 import { ByteQueue, TEXT_ENCODER, parseEventFrame } from "./kiro/eventstream.ts";
+import { readKiroReasoningText } from "./kiro/reasoning.ts";
 import { kiroRuntimeHost, resolveKiroRuntimeRegion } from "../services/kiroRegion.ts";
 import {
   KIRO_TOOL_CALL_WRAPPER,
@@ -670,22 +671,9 @@ export class KiroExecutor extends BaseExecutor {
               const rp = event.payload as Record<string, unknown> | undefined;
               const rt = rp?.reasoningText;
               if (eventType === "reasoningContentEvent" || rt !== undefined) {
-                let nativeReasoning = "";
-                if (rt && typeof rt === "object") {
-                  const rto = rt as { text?: unknown; Text?: unknown };
-                  nativeReasoning =
-                    typeof rto.text === "string"
-                      ? rto.text
-                      : typeof rto.Text === "string"
-                        ? rto.Text
-                        : "";
-                } else if (typeof rt === "string") {
-                  nativeReasoning = rt;
-                } else if (typeof rp?.text === "string") {
-                  nativeReasoning = rp.text as string;
-                }
-                if (nativeReasoning) {
-                  state.hasReasoningContent = true;
+                const nativeReasoning = readKiroReasoningText(eventType, rp);
+                if (nativeReasoning !== undefined) {
+                  if (nativeReasoning) state.hasReasoningContent = true;
                   const reasoningDelta: JsonRecord =
                     (state.reasoningChunkCount ?? 0) === 0 && chunkIndex === 0
                       ? { role: "assistant", reasoning_content: nativeReasoning }

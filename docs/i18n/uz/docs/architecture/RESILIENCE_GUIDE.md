@@ -95,6 +95,8 @@ Regressiyadan himoya: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Birdaniga ommaviy qayta urinishdan himoya:** bir vaqtdagi nosozliklar sovish davrini haddan tashqari uzaytirishi yoki `backoffLevel` qiymatini ikki marta oshirishining oldini oladi.
 
+Kiro’ning bo‘sh bo‘lmagan imzoli ikkilik `reasoningContentEvent` kadrlari ijrochi orqali fikrlash faolligini bo‘sh `reasoning_content` deltasi sifatida saqlaydi. Imzo uzatilmaydi. Metama’lumotlar, to‘liq bo‘lmagan kadrlar va bo‘sh imzolar kontent uchun vaqt limitini qayta boshlamaydi; faol oqimning mustaqil vaqt chegarasi va mijozning bekor qilishi amal qilishda davom etadi. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Yakuniy holatlar (sovish davrlari EMAS):**
 
 - `banned` — taqiqlangan kalit so‘zi / hisob bloklanishini aniqlash orqali o‘rnatiladi ([BAN_DETECTION](../security/BAN_DETECTION.md) ga qarang), shuningdek, yuqori oqimdagi har bir so‘rov bo‘yicha ketma-ket uchta rad javobidan so‘ng (`request_rejected`, masalan, Anthropic OAuth 403 "So‘rovga ruxsat berilmagan" — `open-sse/services/requestRejectedStreak.ts`); bitta rad javobi ulanishni faqat sovish holatiga o‘tkazadi
