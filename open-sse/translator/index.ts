@@ -26,6 +26,7 @@ import {
 } from "./helpers/schemaCoercion.ts";
 import { getRequestTranslator, getResponseTranslator } from "./registry.ts";
 import { bootstrapTranslatorRegistry } from "./bootstrap.ts";
+import { scopeGeminiThoughtSignatureNamespace } from "../services/geminiThoughtSignatureStore.ts";
 import { hasThinkingConfig, normalizeThinkingConfig } from "../services/provider.ts";
 import { applyThinkingBudget } from "../services/thinkingBudget.ts";
 import { applyReasoningRuleDirective } from "@/lib/reasoningRouting/policy";
@@ -498,7 +499,14 @@ export function translateRequest(
           ? {
               ...(credentials && typeof credentials === "object" ? credentials : {}),
               ...(hasProvider ? { _provider: provider } : {}),
-              ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
+              ...(hasNs
+                ? {
+                    _signatureNamespace: scopeGeminiThoughtSignatureNamespace(
+                      options.signatureNamespace,
+                      model
+                    ),
+                  }
+                : {}),
             }
           : credentials;
       result = directTranslator(model, result, stream, directCredentials);
@@ -583,7 +591,14 @@ export function translateRequest(
             hasNs || hasPreCompression || hasCopilot || hasProvider
               ? {
                   ...(credentials && typeof credentials === "object" ? credentials : {}),
-                  ...(hasNs ? { _signatureNamespace: options.signatureNamespace } : {}),
+                  ...(hasNs
+                    ? {
+                        _signatureNamespace: scopeGeminiThoughtSignatureNamespace(
+                          options.signatureNamespace,
+                          model
+                        ),
+                      }
+                    : {}),
                   ...(hasPreCompression ? { _preCompressionBody: options.preCompressionBody } : {}),
                   ...(hasCopilot ? { _copilotClient: true } : {}),
                   // Routed provider id so target translators can apply provider-specific

@@ -47,6 +47,33 @@ export function buildGeminiThoughtSignatureKey(namespace: unknown, toolCallId: u
   return toolCallId;
 }
 
+/**
+ * Model family that produced (or will consume) a thought signature. Each backend only
+ * accepts its own signatures: a Claude signature replayed to Gemini (or the reverse)
+ * is rejected with 400 "Corrupted thought signature" (#4136 — Antigravity serves both
+ * families on one connection). Unknown models return null and keep the legacy key.
+ */
+export function getThoughtSignatureModelFamily(model: unknown): "claude" | "gemini" | null {
+  if (typeof model !== "string" || model.length === 0) return null;
+  const normalized = model.toLowerCase();
+  if (normalized.includes("claude")) return "claude";
+  if (normalized.includes("gemini")) return "gemini";
+  return null;
+}
+
+/**
+ * Scope a signature namespace (connection id) by model family, so a lookup from a
+ * different family is a cache miss instead of replaying a foreign signature (#4136).
+ */
+export function scopeGeminiThoughtSignatureNamespace<T extends string | null | undefined>(
+  namespace: T,
+  model: unknown
+): T | string {
+  if (typeof namespace !== "string" || namespace.length === 0) return namespace;
+  const family = getThoughtSignatureModelFamily(model);
+  return family ? `${namespace}:${family}` : namespace;
+}
+
 function pruneExpired() {
   const now = Date.now();
   for (const [key, value] of signatures.entries()) {
