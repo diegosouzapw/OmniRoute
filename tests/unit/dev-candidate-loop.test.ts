@@ -18,6 +18,7 @@ import {
   planCandidatePaths,
   planPromote,
   planRollback,
+  prepareDataDir,
   promoteCandidate,
   recordValidation,
   resolveTarget,
@@ -189,6 +190,7 @@ test("buildCandidateEnv isolates DATA_DIR/port, injects fake secrets and strips 
   const base = {
     PATH: "/usr/bin",
     HOME: "/home/x",
+    XDG_CONFIG_HOME: "/home/x/.config",
     OMNIROUTE_API_KEY: "real-key",
     ROUTER_API_KEY: "real-router-key",
     JWT_SECRET: "real-jwt",
@@ -200,7 +202,12 @@ test("buildCandidateEnv isolates DATA_DIR/port, injects fake secrets and strips 
     PORT: "20128",
   };
   const frozen = { ...base };
-  const env = buildCandidateEnv({ port: 24555, dataDir: "/c/slot/data", baseEnv: base });
+  const env = buildCandidateEnv({
+    port: 24555,
+    dataDir: "/c/slot/data",
+    homeDir: "/c/slot/home",
+    baseEnv: base,
+  });
   assert.deepEqual(base, frozen, "baseEnv must not be mutated");
   assert.equal(env.PORT, "24555");
   assert.equal(env.DATA_DIR, "/c/slot/data");
@@ -210,11 +217,39 @@ test("buildCandidateEnv isolates DATA_DIR/port, injects fake secrets and strips 
   for (const key of ["OMNIROUTE_API_KEY", "ROUTER_API_KEY", "STORAGE_ENCRYPTION_KEY"]) {
     assert.equal(env[key], undefined, `${key} leaked into the candidate`);
   }
-  for (const key of ["JWT_SECRET", "API_KEY_SECRET", "INITIAL_PASSWORD"]) {
+  // Found by the real validate run against the 3.8.51 tarball:
+  // - INITIAL_PASSWORD is a credential surface (/v1/models answers 401 even on loopback), and
+  //   the packaged CLI loads <packageRoot>/.env (generated from .env.example: CHANGEME) for
+  //   any key still undefined — so it is pinned to "" (falsy), not merely deleted.
+  // - The CLI also loads <default data dir>/.env, derived from HOME/XDG_CONFIG_HOME/APPDATA:
+  //   the operator's real ~/.omniroute/.env. HOME and the XDG/APPDATA dirs are isolated.
+  assert.equal(env.INITIAL_PASSWORD, "");
+  assert.equal(env.OMNIROUTE_CLI_SKIP_REPO_ENV, "1");
+  assert.equal(env.HOME, "/c/slot/home");
+  assert.equal(env.USERPROFILE, "/c/slot/home");
+  for (const key of ["XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "APPDATA"]) {
+    assert.ok(String(env[key]).startsWith("/c/slot/home"), `${key} not isolated: ${env[key]}`);
+  }
+  for (const key of ["JWT_SECRET", "API_KEY_SECRET"]) {
     assert.ok(env[key], `${key} missing`);
     assert.notEqual(env[key], base[key as keyof typeof base], `${key} reused the real secret`);
   }
   assert.ok(env.JWT_SECRET.length >= 32);
+});
+
+test("prepareDataDir gives every validation a fresh DATA_DIR (stale boot state cannot leak in)", () => {
+  const repo = makeTmpRepo();
+  try {
+    const dataDir = path.join(repo, "slot", "data");
+    fs.mkdirSync(dataDir, { recursive: true });
+    fs.writeFileSync(path.join(dataDir, "storage.sqlite"), "state from an earlier boot");
+    prepareDataDir(dataDir);
+    assert.deepEqual(fs.readdirSync(dataDir), []);
+    prepareDataDir(path.join(repo, "other", "data"));
+    assert.ok(fs.statSync(path.join(repo, "other", "data")).isDirectory());
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
 });
 
 // ── promote / rollback planning and application ─────────────────────────────────────
@@ -683,6 +718,21 @@ test("runCandidateLoop --dry-run plans every stage without building, booting or 
     assert.equal(built, 0);
     assert.equal(validated, 0);
     assert.deepEqual(snapshotTree(repo), before);
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+test("run --dry-run reports a plan, never claims the candidate is active", async () => {
+  const repo = makeTmpRepo();
+  try {
+    const lines: string[] = [];
+    const io = { stdout: (s: string) => lines.push(s), stderr: (s: string) => lines.push(s) };
+    assert.equal(await main(["run", "--id", "new", "--dry-run"], { repoRoot: repo, io }), 0);
+    const text = lines.join("\n");
+    assert.doesNotMatch(text, /is active/);
+    assert.match(text, /dry-run/);
+    assert.deepEqual(snapshotTree(repo), []);
   } finally {
     fs.rmSync(repo, { recursive: true, force: true });
   }

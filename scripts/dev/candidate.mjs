@@ -50,6 +50,9 @@ const VALIDATION_FILE = "validation.json";
 
 // Variables that would make the candidate talk to — or authenticate as — the operator's real
 // install. They are dropped; the fake values below replace the secrets the server needs.
+// No password is faked: any password is a credential surface, and with one configured
+// /v1/models answers 401 even on loopback (src/app/api/v1/models/catalogRequest.ts). The smoke
+// validates the keyless local-first posture of a fresh install instead.
 const STRIPPED_ENV_KEYS = [
   "OMNIROUTE_API_KEY",
   "ROUTER_API_KEY",
@@ -67,7 +70,6 @@ const STRIPPED_ENV_KEYS = [
 const FAKE_SECRETS = Object.freeze({
   JWT_SECRET: "candidate-loop-fake-jwt-secret-not-for-production-0000",
   API_KEY_SECRET: "candidate-loop-fake-api-key-secret-0000000000",
-  INITIAL_PASSWORD: "candidate-loop-fake-initial-password",
 });
 
 export const SMOKE_CHECKS = Object.freeze([
@@ -239,13 +241,35 @@ export function planCandidatePaths({ repoRoot, id, target = null, platform = pro
 
 // ── environment ─────────────────────────────────────────────────────────────────────
 
-/** Child env: the caller's env minus anything pointing at a real install, plus fake secrets. */
-export function buildCandidateEnv({ port, dataDir, baseEnv = process.env }) {
+/**
+ * Child env: the caller's env minus anything pointing at a real install, plus fake secrets.
+ *
+ * The packaged CLI fills every still-undefined key from, in order, <DATA_DIR>/.env, the
+ * default data dir's .env (derived from HOME / XDG_CONFIG_HOME / APPDATA — i.e. the operator's
+ * real ~/.omniroute/.env), <cwd>/.env and <packageRoot>/.env (postinstall copies .env.example
+ * there, with INITIAL_PASSWORD=CHANGEME). So HOME and the XDG/APPDATA dirs point at an
+ * isolated home under the slot, and INITIAL_PASSWORD is pinned to "" (set, falsy) rather than
+ * deleted, which keeps the .env.example default out of the validation boot.
+ */
+export function buildCandidateEnv({
+  port,
+  dataDir,
+  homeDir = path.join(path.dirname(dataDir), "home"),
+  baseEnv = process.env,
+}) {
   const env = { ...baseEnv };
   for (const key of STRIPPED_ENV_KEYS) delete env[key];
   return {
     ...env,
     ...FAKE_SECRETS,
+    HOME: homeDir,
+    USERPROFILE: homeDir,
+    XDG_CONFIG_HOME: path.join(homeDir, ".config"),
+    XDG_CACHE_HOME: path.join(homeDir, ".cache"),
+    XDG_DATA_HOME: path.join(homeDir, ".local", "share"),
+    APPDATA: path.join(homeDir, "AppData", "Roaming"),
+    INITIAL_PASSWORD: "",
+    OMNIROUTE_CLI_SKIP_REPO_ENV: "1",
     PORT: String(port),
     DATA_DIR: dataDir,
     REQUIRE_API_KEY: "false",
@@ -506,17 +530,32 @@ export function findFreePort() {
   });
 }
 
+/**
+ * Validation data is disposable: every boot starts from an empty DATA_DIR so state left by an
+ * earlier boot (a configured password, API keys, migrations) cannot mask or fabricate a result.
+ */
+export function prepareDataDir(dataDir) {
+  fs.rmSync(dataDir, { recursive: true, force: true });
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
 /** Spawn the packaged CLI as its own process group (stopChild signals the whole tree). */
 function launchPackagedServer({ slotDir, port, baseEnv = process.env }) {
   const { binPath, packageRoot, dataDir } = packagePathsFor(slotDir);
   if (!fs.existsSync(binPath)) throw new Error(`no packaged CLI at ${binPath}`);
-  fs.mkdirSync(dataDir, { recursive: true });
-  const child = spawn(process.execPath, [binPath, "serve", "--port", String(port), "--no-open"], {
-    cwd: packageRoot,
-    env: buildCandidateEnv({ port, dataDir, baseEnv }),
-    stdio: ["ignore", "pipe", "pipe"],
-    detached: true,
-  });
+  const homeDir = path.join(slotDir, "home");
+  prepareDataDir(dataDir);
+  prepareDataDir(homeDir);
+  const child = spawn(
+    process.execPath,
+    [binPath, "serve", "--port", String(port), "--log", "--no-open"],
+    {
+      cwd: packageRoot,
+      env: buildCandidateEnv({ port, dataDir, homeDir, baseEnv }),
+      stdio: ["ignore", "pipe", "pipe"],
+      detached: true,
+    }
+  );
   let output = "";
   const keep = (chunk) => {
     output = (output + String(chunk)).slice(-MAX_OUTPUT_CHARS);
@@ -832,8 +871,14 @@ export async function main(argv, { repoRoot = DEFAULT_REPO_ROOT, io = null } = {
           validate: validateSlot,
         });
         Object.assign(report, result);
-        if (result.ok) log.log(`[candidate] ✅ ${id} is active at ${paths.current}`);
-        else log.error(`[candidate] ❌ run failed at stage "${result.stage}"`);
+        if (result.ok && args.dryRun) {
+          log.log(
+            `[candidate] dry-run: would build, validate and promote ${id} → ${paths.current}`
+          );
+        } else if (result.ok) {
+          log.log(`[candidate] ✅ ${id} is active at ${paths.current}`);
+        }
+        if (!result.ok) log.error(`[candidate] ❌ run failed at stage "${result.stage}"`);
         return finish(result.ok ? 0 : 1);
       }
       default:

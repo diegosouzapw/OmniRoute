@@ -225,8 +225,9 @@ npm run dev:candidate -- run --from-tarball <file.tgz>  # reuse a tarball built 
   sha (`-dirty` when the tree has local changes) or `tgz-<sha256>` for a tarball. A clean id that
   is already built is reused instead of rebuilt; pass `--force` to rebuild it.
 - **Validate the package, not the source.** `validate` starts the installed CLI
-  (`serve --port <free port>`) with `DATA_DIR=<candidate>/data`, fake secrets, and the operator's
-  `OMNIROUTE_API_KEY` / `STORAGE_ENCRYPTION_KEY` removed from the environment. It waits for
+  (`serve --port <free port>`) with a fresh `DATA_DIR=<candidate>/data`, fake secrets, and the
+  operator's `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` and `INITIAL_PASSWORD` removed from the
+  environment, so it checks the keyless loopback posture of a fresh install. It waits for
   `GET /api/health` to return 200, requires `GET /v1/models` to return 200, stops the process group,
   and records the verdict in `validation.json` together with the tarball hash.
 - **Promote the same artifact.** `promote` refuses a candidate without a passing validation for its
