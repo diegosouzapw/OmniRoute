@@ -261,6 +261,18 @@ export function syncSkillsBeta(
  * upstream rejects the body with a 400 whose message reads
  * "`tool_addition` blocks require anthropic-beta".
  */
+export const MID_CONVERSATION_SYSTEM_BETA = "mid-conversation-system-2026-04-07";
+
+/** Whether a Claude body still carries a system-role turn inside `messages[]`. */
+export function hasMidConversationSystemTurn(body: unknown): boolean {
+  const messages = (body as Record<string, unknown> | null | undefined)?.messages;
+  if (!Array.isArray(messages)) return false;
+  return messages.some((message) => {
+    const role = (message as Record<string, unknown> | null)?.role;
+    return typeof role === "string" && role.toLowerCase() === "system";
+  });
+}
+
 export const FORWARDABLE_CLIENT_BETAS = Object.freeze([
   "tool-search-tool-2025-10-19",
   "context-1m-2025-08-07",
@@ -360,6 +372,11 @@ export function mergeClientAnthropicBeta(
  * the allowlist still decides what travels and the gateway never invents betas a
  * third-party upstream did not advertise. A merge that survives to nothing leaves
  * the header unset instead of emitting an empty one.
+ *
+ * Same seeded path: chatCore keeps mid-conversation system turns inside messages[]
+ * for these relays (open-sse/services/claudeMidConversationSystem.ts), so the client's
+ * own `mid-conversation-system-2026-04-07` token is forwarded too — never invented,
+ * and only while such a turn is still in the body.
  */
 export function applyClientAnthropicBeta(
   headers: Record<string, string>,
@@ -370,10 +387,14 @@ export function applyClientAnthropicBeta(
   const existingKey = Object.keys(headers).find((key) => key.toLowerCase() === "anthropic-beta");
   const key = existingKey ?? (options.seedWhenAbsent ? "anthropic-beta" : null);
   if (!key) return;
+  const allow =
+    options.seedWhenAbsent && hasMidConversationSystemTurn(options.body)
+      ? [...FORWARDABLE_CLIENT_BETAS, MID_CONVERSATION_SYSTEM_BETA]
+      : undefined;
   const merged = mergeClientAnthropicBeta(
     headers[key] ?? "",
     clientBeta,
-    undefined,
+    allow,
     options.model,
     options.body
   );

@@ -227,9 +227,13 @@ export function injectSystemPromptPostTranslation<T>(body: T, opts?: { targetFor
   // invalid there. When the translated body has no system field at all, CREATE
   // it (combined) — previously this body shape fell through the messages[]
   // early-return and silently got zero injection.
+  // A claude target can still carry system-role turns inside messages[] (the
+  // mid-conversation-system passthrough keeps them in place); those are
+  // conversation turns, not the prompt carrier — writing the suffix onto the
+  // LAST one would move it every turn and break the cached prefix.
   if (targetFormat === "claude" || result.system !== undefined) {
     const hasSystemRole = Array.isArray(result.messages) && result.messages.some(isSystemMessage);
-    if (!hasSystemRole) {
+    if (targetFormat === "claude" || !hasSystemRole) {
       if (typeof result.system === "string") {
         let sys = result.system;
         if (prefix) sys = prefix + "\n\n" + sys;

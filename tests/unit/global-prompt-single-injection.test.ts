@@ -112,6 +112,24 @@ test("claude-format array system: prefix/suffix as text blocks, once each", () =
   assert.ok(!out.messages.some((m) => m.role === "system"));
 });
 
+test("claude target with mid-conversation system turns: prompt goes to body.system only", () => {
+  resetConfig();
+  const body = {
+    system: [{ type: "text", text: "CLIENT" }],
+    messages: [
+      { role: "user", content: "hi" },
+      { role: "system", content: "<total_tokens>100 tokens left</total_tokens>" },
+    ],
+  };
+  const out = injectSystemPromptPostTranslation(body, { targetFormat: "claude" });
+  assert.deepEqual(out.system, [
+    { type: "text", text: "PREFIX-RULES" },
+    { type: "text", text: "CLIENT" },
+    { type: "text", text: "SUFFIX-RULES" },
+  ]);
+  assert.deepEqual(out.messages, body.messages, "conversation turns are not a prompt carrier");
+});
+
 test("gemini-format body: systemInstruction parts get prefix/suffix once each", () => {
   resetConfig();
   // Real shape produced by open-sse/translator/request/claude-to-gemini.ts:95-97
