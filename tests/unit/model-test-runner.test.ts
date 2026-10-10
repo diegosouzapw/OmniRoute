@@ -336,6 +336,11 @@ test("runSingleModelTest skips web-session providers before sending a chat probe
   assert.match(result.error ?? "", /Skipped:.*web-session/i);
 });
 
+test("resolveModelTestTimeoutMs gives ChatGPT Web checks up to 90 seconds", () => {
+  assert.equal(resolveModelTestTimeoutMs("chatgpt-web", "gpt-5.6-luna-free", 30_000), 90_000);
+  assert.equal(resolveModelTestTimeoutMs("CHATGPT-WEB", "chatgpt-web/gpt-5-5", 120_000), 120_000);
+});
+
 test("ChatGPT Web Clean Room is eligible for an explicit model test", async () => {
   const { shouldSkipWebSessionModelTest } = await import("../../src/lib/api/modelTestRunner.ts");
 

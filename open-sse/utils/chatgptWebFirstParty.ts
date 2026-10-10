@@ -630,6 +630,11 @@ async function registerAttachments(
   return page.evaluate(
     async ({ abortKey, attachments: metadata, bridgeKey, requestId }) => {
       const root = globalThis as typeof globalThis & Record<string, unknown>;
+      // The request-scoped abort controller is needed even for text-only turns.
+      const abortStore = (root[abortKey] ??= {}) as Record<string, AbortController>;
+      const controller = new AbortController();
+      abortStore[requestId] = controller;
+      if (metadata.length === 0) return [];
       const bridge = root[bridgeKey] as {
         requestClient?: {
           safePost(path: string, options: JsonRecord): Promise<unknown>;
@@ -638,9 +643,6 @@ async function registerAttachments(
       if (typeof bridge?.requestClient?.safePost !== "function") {
         throw new Error("ChatGPT Web first-party request client is unavailable");
       }
-      const abortStore = (root[abortKey] ??= {}) as Record<string, AbortController>;
-      const controller = new AbortController();
-      abortStore[requestId] = controller;
       const registered: BrowserRegisteredAttachment[] = [];
       for (const attachment of metadata) {
         const useCase = attachment.kind === "image" ? "multimodal" : "my_files";
@@ -750,6 +752,7 @@ async function processRegisteredAttachments(
 ): Promise<void> {
   await page.evaluate(
     async ({ abortKey, bridgeKey, registered, requestId }) => {
+      if (registered.length === 0) return;
       const root = globalThis as typeof globalThis & Record<string, unknown>;
       const bridge = root[bridgeKey] as {
         requestClient?: { safePost(path: string, options: JsonRecord): Promise<unknown> };
@@ -1029,6 +1032,13 @@ async function readConversationResponse(page: Page, requestId: string): Promise<
             throw new Error("ChatGPT Web conversation response exceeded the size limit");
           }
           chunks.push(decoder.decode(value, { stream: true }));
+          // Settle as soon as a complete client tool envelope is available. This
+          // function is serialized into the browser page, so the boundary detector
+          // stays self-contained instead of closing over a module-level constant.
+          if (/(?:<|\\u003c)\\?\/tool(?:>|\\u003e)/i.test(chunks.join(""))) {
+            await reader.cancel().catch(() => {});
+            return chunks.join("");
+          }
         }
         chunks.push(decoder.decode());
       } finally {
@@ -1057,6 +1067,11 @@ async function processAndSubmit(
   const browserRegistered = browserConversationAttachments(registered);
   await processRegisteredAttachments(page, requestId, browserRegistered);
   await storeConversationDraft(page, input, requestId, browserRegistered);
+  // Re-verify (and if needed re-inject) the bridge right before signing: the SPA
+  // can navigate between the initial handshake and this point, which wipes the
+  // bridge from `window`. storeConversationHeaders() still throws when the bridge
+  // is incomplete, so an unsigned request is never sent.
+  await ensureFirstPartyBridge(page);
   await storeConversationHeaders(page, requestId);
   await submitConversationRequest(page, requestId);
   return readConversationResponse(page, requestId);

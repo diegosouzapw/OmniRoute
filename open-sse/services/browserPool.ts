@@ -47,7 +47,12 @@ export interface BrowserPoolContextOptions {
   proxyProviderKey?: string;
   /** Some first-party anti-bot flows reject Chromium's headless mode even with valid cookies. */
   headless?: boolean;
-  /** Optional system Chrome/Chromium path, primarily for headed contexts. */
+  /**
+   * Optional system Chrome/Chromium path. Applied in BOTH modes: headless installs
+   * frequently have no Playwright-managed `chromium_headless_shell`, and an executor
+   * that resolved a working system Chrome must not be overridden by a missing
+   * bundled binary (that mismatch surfaced as a launch error rather than a fallback).
+   */
   executablePath?: string;
 }
 
@@ -296,7 +301,10 @@ export function resolvePlainBrowserLaunchOptions(
   const headless = options.headless !== false;
   return {
     headless,
-    ...(!headless && options.executablePath ? { executablePath: options.executablePath } : {}),
+    // Honour an explicit system Chrome in headless mode too. Without this, a host
+    // that has Chrome installed but no Playwright-managed headless shell fails to
+    // launch at all, even though the executor already resolved a working binary.
+    ...(options.executablePath ? { executablePath: options.executablePath } : {}),
     args: [
       "--no-sandbox",
       "--disable-dev-shm-usage",

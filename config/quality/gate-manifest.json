@@ -584,6 +584,11 @@
       "disposition": "separately-invoked"
     },
     {
+      "name": "test:opencode:smoke",
+      "command": "node scripts/test/opencode-chatgpt-web-smoke.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
       "name": "test:plan3",
       "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test tests/unit/plan3-p0.test.ts",
       "disposition": "separately-invoked"

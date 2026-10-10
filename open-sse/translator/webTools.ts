@@ -25,6 +25,14 @@ interface OpenAIToolDef {
 
 const TOOL_OPEN_RE = /<tool>/g;
 const TOOL_CLOSE_RE = /<\/tool>/g;
+
+export interface SerializeToolsToPromptOptions {
+  /** Retained for callers that opt into the nonce-bound contract. */
+  hardened?: boolean;
+  /** Limit verbose client-tool descriptions without changing their parameter schemas. */
+  descriptionMaxChars?: number;
+}
+
 // Some web-cookie models (e.g. ds-web) wrap calls as `<tool_call name="...">{json}</tool_call>`
 // instead of the canonical `<tool>{json}</tool>`. Capture the JSON body — the real tool name
 // lives there, never in the tag's `name="..."` attribute (#3260).
@@ -72,14 +80,32 @@ function normalizeDsmlToolCalls(text: string): string {
 // without threading extra parameters through executor call chains.
 const toolNonceMap = new WeakMap<object, string>();
 
+/**
+ * Recently issued bindings. Agentic clients resend the previous contract inside the conversation
+ * history, so on a continuation turn the model echoes the PREVIOUS turn's nonce while the parser
+ * (keyed on the new `tools[]` reference) expects a fresh one. Without this window every
+ * continuation tool call was rejected as a nonce mismatch and degraded to plain text — the tool
+ * never ran. A binding that was never issued is still rejected, so the #9343 copy-attack guard
+ * keeps its value.
+ */
+const recentToolNonces: string[] = [];
+const RECENT_TOOL_NONCE_LIMIT = 12;
+
 export function getToolNonce(tools: unknown): string {
   if (!Array.isArray(tools) || tools.length === 0) return "";
   let nonce = toolNonceMap.get(tools);
   if (!nonce) {
     nonce = Math.random().toString(36).slice(2, 10);
     toolNonceMap.set(tools, nonce);
+    recentToolNonces.push(nonce);
+    if (recentToolNonces.length > RECENT_TOOL_NONCE_LIMIT) recentToolNonces.shift();
   }
   return nonce;
+}
+
+/** True when the binding was issued recently (current or a previous turn). */
+export function isRecentToolNonce(value: unknown): boolean {
+  return typeof value === "string" && recentToolNonces.includes(value);
 }
 
 interface ToolParseCandidate {
@@ -285,9 +311,153 @@ function normalizeLooseJson(value: string): string {
     .replace(/,\s*([}\]])/g, "$1");
 }
 
+/**
+ * Repair the two malformations ChatGPT Web reliably produces when it copies a tool contract
+ * that carries a large payload (for example a whole HTML file):
+ *
+ *   1. the binding is emitted *after* the object instead of inside it —
+ *      `{"name":"write","arguments":{…}}_nonce":"abc"}`;
+ *   2. string values contain unescaped quotes — `"content":"<!doctype html><html lang="en">"`.
+ *
+ * Both make the payload invalid JSON, so the call would otherwise degrade to plain text and the
+ * client would never execute the tool. The binding is preserved (and still validated by the
+ * caller) rather than discarded, so the #9343 copy-attack guard keeps working.
+ */
+export function repairToolEnvelopeJson(raw: string): string | null {
+  let text = stripCodeFence(raw).trim();
+
+  // Shape 1: the binding emitted after the object instead of inside it.
+  const nonceAt = text.lastIndexOf("_nonce");
+  let trailingNonce: string | null = null;
+  if (nonceAt > 0) {
+    const binding = text.slice(nonceAt).match(/^_nonce"?\s*:\s*"([^"]*)"/);
+    if (binding) {
+      trailingNonce = binding[1];
+      text = text.slice(0, nonceAt).replace(/[,\s]+$/, "");
+    }
+  }
+
+  // Only repair a structurally COMPLETE envelope. A body cut off mid-value (no closing
+  // brace) is a truncated reply, not a malformed one: "repairing" it fabricates a call with
+  // half-empty arguments (e.g. `{"filePath":""}`) and suppresses the parse-failure retry.
+  if (!text.endsWith("}")) return null;
+
+  const name = text.match(/"name"\s*:\s*"([^"]+)"/)?.[1];
+  if (!name) return null;
+
+  // Shape 2: string arguments contain unescaped quotes (a whole HTML document, a shell
+  // command). Delimit each value by the NEXT KEY rather than by quotes, so stray `"` inside a
+  // value cannot truncate or desynchronise it.
+  const argsAt = text.search(/"arguments"\s*:\s*\{/);
+  let argsText = argsAt === -1 ? "" : text.slice(text.indexOf("{", argsAt));
+  if (argsText) {
+    // End the arguments object at its FIRST closing quote (`"}` / `"}}`). Using the last match
+    // picked up the tail of a key that follows `arguments`, which is how `*** End Patch"},`
+    // reached OpenCode and broke apply_patch verification.
+    const firstClose = argsText.search(/"\}{1,3}/);
+    if (firstClose > 0) argsText = argsText.slice(0, firstClose + 1);
+  }
+  const args: Record<string, unknown> = {};
+  if (argsText) {
+    // Top-level keys are exactly the quoted names that follow `{` or `","`, i.e. the object's
+    // own structure. Scanning for that literal shape avoids matching HTML attributes like
+    // `lang="en"` that live inside a string value.
+    const keyRe = /(?:\{|",)\s*"([^"]+)"\s*:/g;
+    const marks: Array<{ key: string; valueStart: number; next: number }> = [];
+    let match: RegExpExecArray | null;
+    while ((match = keyRe.exec(argsText)) !== null) {
+      if (match[1] === "arguments") continue;
+      marks.push({
+        key: match[1],
+        valueStart: match.index + match[0].length,
+        next: argsText.length,
+      });
+    }
+    for (let index = 0; index + 1 < marks.length; index += 1) {
+      // The next key's `","name":"` marker ends this value: everything up to the `"` that
+      // closes the value belongs to it.
+      const nextKeyMarker = argsText.indexOf(
+        `","${marks[index + 1].key}":"`,
+        marks[index].valueStart
+      );
+      if (nextKeyMarker !== -1) marks[index].next = nextKeyMarker + 1;
+    }
+    for (let index = 0; index < marks.length; index += 1) {
+      const mark = marks[index];
+      const rawValue = argsText.slice(mark.valueStart, mark.next);
+      // The LAST key's value always runs to the end of the object body, whatever junk a
+      // mis-detected key left behind: cut it at its delimiter quote so structural characters
+      // (`"}`, `},`) cannot leak into the payload and break consumers like apply_patch.
+      args[mark.key] = decodeToolStringValue(rawValue, index === marks.length - 1);
+    }
+  }
+
+  const envelope: Record<string, unknown> = { name, arguments: args };
+  if (trailingNonce) envelope._nonce = trailingNonce;
+  return JSON.stringify(envelope);
+}
+
+/**
+ * Decode one raw string value from a repaired envelope.
+ *
+ * The value is delimited by the NEXT KEY (or the object's closing brace) rather than by quotes,
+ * because stray quotes inside the payload cannot be told apart from a terminator. Decoding is
+ * then a normal JSON string decode, so `***`/backslashes/newlines survive byte-for-byte instead
+ * of being mangled by regex unescaping (which corrupted `apply_patch` payloads).
+ */
+function decodeToolStringValue(rawValue: string, isFinal: boolean): string {
+  let body = rawValue.trim();
+  // The final value runs to the end of the object body, so it carries the object's closing
+  // braces: cut at the delimiter quote (the last one) to discard them.
+  if (isFinal) {
+    const lastQuote = body.lastIndexOf('"');
+    if (lastQuote !== -1) body = body.slice(0, lastQuote + 1);
+  }
+  body = body.replace(/,\s*$/, "").trim();
+  if (body.startsWith('"')) body = body.slice(1);
+  if (body.endsWith('"')) body = body.slice(0, -1);
+  // A mis-detected key after this value lets the object's tail (`"},` / `"}`) leak in. Only the
+  // structural characters that follow a quote are removed, so payloads that merely end with a
+  // brace (HTML, JSON bodies) are untouched.
+  const structuralTail = body.match(/"[,\s}\]]*$/);
+  if (structuralTail && structuralTail.index !== undefined && structuralTail.index > 0) {
+    body = body.slice(0, structuralTail.index);
+  }
+
+  // Preferred: the model escaped its inner quotes, so this is already valid JSON.
+  const direct = tryJsonString(body);
+  if (direct !== null) return direct;
+
+  // Otherwise escape the quotes that are not valid terminators, then decode.
+  let escaped = "";
+  let backslashes = 0;
+  for (const char of body) {
+    if (char === "\\") {
+      backslashes += 1;
+      escaped += char;
+      continue;
+    }
+    if (char === '"' && backslashes % 2 === 0) escaped += '\\"';
+    else escaped += char;
+    backslashes = 0;
+  }
+  return tryJsonString(escaped) ?? body;
+}
+
+function tryJsonString(value: string): string | null {
+  try {
+    const parsed = JSON.parse(`"${value}"`);
+    return typeof parsed === "string" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function parseLooseJsonObject(raw: string): Record<string, unknown> | null {
   const trimmed = stripCodeFence(raw);
-  for (const candidate of [trimmed, normalizeLooseJson(trimmed)]) {
+  const repaired = repairToolEnvelopeJson(trimmed);
+  for (const candidate of [trimmed, normalizeLooseJson(trimmed), repaired]) {
+    if (candidate === null) continue;
     try {
       return toRecord(JSON.parse(candidate));
     } catch {
@@ -295,70 +465,6 @@ export function parseLooseJsonObject(raw: string): Record<string, unknown> | nul
     }
   }
   return null;
-}
-
-function findBareJsonCandidates(text: string): ToolParseCandidate[] {
-  const candidates: ToolParseCandidate[] = [];
-  let start = -1;
-  let depth = 0;
-  let quote: '"' | "'" | "" = "";
-  let escaped = false;
-
-  for (let i = 0; i < text.length; i += 1) {
-    const ch = text[i];
-
-    if (depth === 0 && ch !== "{") {
-      continue;
-    }
-
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-
-    if (quote) {
-      if (ch === "\\") {
-        escaped = true;
-      } else if (ch === quote) {
-        quote = "";
-      }
-      continue;
-    }
-
-    if (ch === '"' || ch === "'") {
-      quote = ch;
-      continue;
-    }
-
-    if (ch === "{") {
-      if (depth === 0) start = i;
-      depth += 1;
-      continue;
-    }
-
-    if (ch === "}" && depth > 0) {
-      depth -= 1;
-      if (depth === 0 && start >= 0) {
-        const raw = text.slice(start, i + 1);
-        if (
-          /[{,]\s*["']?(name|command)["']?\s*:/i.test(raw) &&
-          /[{,]\s*["']?arguments["']?\s*:/i.test(raw)
-        ) {
-          candidates.push({ raw, start, end: i + 1, requireRequestedTool: true });
-        }
-        start = -1;
-      }
-    }
-  }
-
-  return candidates;
-}
-
-function rangesOverlap(
-  a: { start: number; end: number },
-  b: { start: number; end: number }
-): boolean {
-  return a.start < b.end && b.start < a.end;
 }
 
 export function stripRanges(text: string, ranges: Array<{ start: number; end: number }>): string {
@@ -406,7 +512,10 @@ export function toArgumentsString(value: unknown): string {
  * `<tool>` JSON to distinguish legitimate tool calls from bare JSON, code-fenced JSON,
  * or copy-attacked envelopes (#9343).
  */
-export function serializeToolsToPrompt(tools: unknown): string {
+export function serializeToolsToPrompt(
+  tools: unknown,
+  options: SerializeToolsToPromptOptions = {}
+): string {
   if (!Array.isArray(tools) || tools.length === 0) return "";
 
   const nonce = getToolNonce(tools);
@@ -416,7 +525,13 @@ export function serializeToolsToPrompt(tools: unknown): string {
   for (const t of tools as OpenAIToolDef[]) {
     const fn = t?.function;
     if (!fn?.name) continue;
-    const desc = typeof fn.description === "string" && fn.description ? fn.description : "";
+    const rawDescription =
+      typeof fn.description === "string" && fn.description ? fn.description : "";
+    const descriptionMaxChars = options.descriptionMaxChars;
+    const desc =
+      descriptionMaxChars !== undefined && rawDescription.length > descriptionMaxChars
+        ? `${rawDescription.slice(0, Math.max(0, descriptionMaxChars - 32))}\n…[description trimmed]`
+        : rawDescription;
     let params = "";
     try {
       params = fn.parameters ? JSON.stringify(fn.parameters) : "";
@@ -438,8 +553,15 @@ export function serializeToolsToPrompt(tools: unknown): string {
       "a single line containing a <tool> block",
     `with JSON that includes the secret binding "_nonce": "${nonce}":`,
     `<tool>{"name": "<tool_name>", "arguments": { ... }, "_nonce": "${nonce}"}</tool>`,
-    "These client tools ARE available to you in this conversation. Only emit the <tool> " +
-      "block when you actually want to call a tool; otherwise answer normally.",
+    "These client tools ARE available to you in this conversation. If the user asks you " +
+      "to inspect, create, edit, or verify files, you MUST invoke the relevant client tool " +
+      "before answering. Do not claim that the tools are unavailable and do not describe " +
+      "steps instead of invoking them.",
+    // Without this, the model reaches for a tool on every turn — including a bare greeting —
+    // which costs the client a full extra round trip per unnecessary tool call.
+    "Use a tool ONLY when the request genuinely needs workspace action. For greetings, small " +
+      "talk, thanks, or any question you can answer from your own knowledge, reply directly " +
+      "with the answer and NO <tool> block; calling a tool there is a protocol violation.",
     "",
     "Available tools:",
     ...lines,
@@ -508,13 +630,23 @@ export function parseToolCallsFromText(
           ? parsed.command
           : null;
     if (!emittedName) continue;
+    // The contract's illustrative `<tool_name>` placeholder is not an invocation.
+    if (emittedName === "<tool_name>") continue;
 
     // Nonce binding check (#9343): when the tool prompt embedded a nonce, check
     // that any _nonce present in the JSON body matches. A wrong nonce (present but
     // does not match) means this is a copy-attack or hallucination — treat it as text
     // instead of executing it. A missing _nonce is tolerated for backward compatibility
     // with models that do not (yet) follow the nonce instruction.
-    if (nonce && parsed && parsed._nonce !== undefined && parsed._nonce !== nonce) continue;
+    if (
+      nonce &&
+      parsed &&
+      parsed._nonce !== undefined &&
+      parsed._nonce !== nonce &&
+      !isRecentToolNonce(parsed._nonce)
+    ) {
+      continue;
+    }
 
     const name =
       resolveRequestedToolName(emittedName, requestedToolNames) ||

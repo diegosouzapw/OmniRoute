@@ -1,14 +1,14 @@
 import type { RegistryEntry } from "../../shared.ts";
 
 const ADJUSTABLE_REASONING = {
-  toolCalling: false,
+  toolCalling: true,
   supportsReasoning: true,
   supportedThinkingEfforts: ["low", "medium", "high", "xhigh", "max"],
   supportsVision: true,
 } as const;
 
 const FIXED_TEXT = {
-  toolCalling: false,
+  toolCalling: true,
   supportsVision: true,
 } as const;
 

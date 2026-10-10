@@ -28,6 +28,21 @@ describe("resolvePlainBrowserLaunchOptions", () => {
     );
     assert.equal(options.args?.includes("--window-position=-32000,-32000"), true);
   });
+
+  // A host can have Chrome installed and no Playwright-managed headless shell; before
+  // this, the explicit path was dropped in headless mode and the launch failed with
+  // "Executable doesn't exist at .../chromium_headless_shell-<rev>/...". The executor
+  // resolves a real Chrome, so headless must honour it too.
+  it("honours an explicitly selected system browser in headless mode", () => {
+    const options = resolvePlainBrowserLaunchOptions({
+      headless: true,
+      executablePath: "/usr/bin/google-chrome",
+    });
+
+    assert.equal(options.headless, true);
+    assert.equal(options.executablePath, "/usr/bin/google-chrome");
+    assert.equal(options.args?.includes("--window-position=-32000,-32000"), false);
+  });
 });
 
 describe("resolvePlaywrightProxy", () => {

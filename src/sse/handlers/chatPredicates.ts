@@ -7,6 +7,9 @@ import { isRequestScopedUpstreamFailure } from "./comboFailureLogging";
 import { getTrustedLocalRateLimitResponse } from "@omniroute/open-sse/services/rateLimitManager/errors";
 import { TRANSLATION_FAILURE_CODE } from "@omniroute/open-sse/handlers/chatCore/translationFailure";
 import { isProviderCircuitOpenResult } from "@omniroute/open-sse/services/combo/comboPredicates.ts";
+import { isChatGptWebBridgeFailure } from "@omniroute/open-sse/utils/chatgptWebBridgeFailure.ts";
+
+export { isChatGptWebBridgeFailure };
 
 export const PROVIDER_BREAKER_FAILURE_STATUSES = new Set([408, 500, 502, 503, 504]);
 
@@ -27,7 +30,8 @@ export function shouldTripProviderBreakerForResult(
     error?: unknown;
   },
   isCombo: boolean,
-  forceLiveComboTest: boolean
+  forceLiveComboTest: boolean,
+  provider?: string | null
 ): boolean {
   return (
     !forceLiveComboTest &&
@@ -39,6 +43,7 @@ export function shouldTripProviderBreakerForResult(
     !isRequestScopedUpstreamFailure({ code: result.errorCode, type: result.errorType }) &&
     !(result.response && getTrustedLocalRateLimitResponse(result.response)) &&
     !isLocalStreamLifecycleError(result.error) &&
+    !isChatGptWebBridgeFailure(provider, result.error) &&
     !isLocalExecutionError(result.error) &&
     // Network-layer errors (ECONNREFUSED, ETIMEDOUT) never reached the provider —
     // the provider may be healthy, only the network path is broken. OmniRoute's own
@@ -77,11 +82,12 @@ export function classifyProviderBreakerResult(
     error?: unknown;
   },
   isCombo: boolean,
-  forceLiveComboTest: boolean
+  forceLiveComboTest: boolean,
+  provider?: string | null
 ): ProviderBreakerResultOutcome {
   if (forceLiveComboTest || isCombo) return "ignore";
   if (result.success) return "success";
-  return shouldTripProviderBreakerForResult(result, isCombo, forceLiveComboTest)
+  return shouldTripProviderBreakerForResult(result, isCombo, forceLiveComboTest, provider)
     ? "failure"
     : "ignore";
 }

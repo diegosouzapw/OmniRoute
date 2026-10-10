@@ -119,6 +119,69 @@ describe("ChatGPT Web first-party module contract discovery", () => {
 });
 
 describe("ChatGPT Web first-party request execution", () => {
+  // Regression: the sentinel headers are what authenticate `/f/conversation`. A bridge
+  // without them used to be ignored silently, so the request went out unsigned and
+  // ChatGPT answered with a redirect to the app shell (~600KB of HTML) instead of SSE.
+  test("never posts an unsigned request when the challenge bridge is incomplete", async () => {
+    const root = globalThis as typeof globalThis & Record<string, unknown>;
+    const previousBridge = root[BRIDGE_KEY];
+    let posted = false;
+    // safePost exists so a bug that skips the header check would still reach the network.
+    root[BRIDGE_KEY] = {
+      requestClient: {
+        safePost: async () => {
+          posted = true;
+          return new Response("{}");
+        },
+      },
+    };
+    try {
+      await assert.rejects(() =>
+        executeChatGptWebFirstPartyTurn(createDirectPage(), {
+          prompt: "unsigned probe",
+          attachments: [],
+          selection: { kind: "free", thinkEnabled: false },
+        })
+      );
+      assert.equal(posted, false, "an unsigned conversation request must never be sent");
+    } finally {
+      if (previousBridge === undefined) delete root[BRIDGE_KEY];
+      else root[BRIDGE_KEY] = previousBridge;
+    }
+  });
+
+  test("stops reading once a complete client tool envelope is available", async () => {
+    let cancelled = false;
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(
+            'event: delta\\ndata: {"v":"<tool>{\\"name\\":\\"write\\"}</tool>"}\\n\\n'
+          )
+        );
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const restoreBridge = installFirstPartyBridge(async (path) => {
+      if (path === "/f/conversation") return new Response(stream, { status: 200 });
+      throw new Error(`Unexpected first-party path: ${path}`);
+    });
+
+    try {
+      const body = await executeChatGptWebFirstPartyTurn(createDirectPage(), {
+        prompt: "tool probe",
+        attachments: [],
+        selection: { kind: "free", thinkEnabled: false },
+      });
+      assert.match(body, /<tool>/);
+      assert.equal(cancelled, true);
+    } finally {
+      restoreBridge();
+    }
+  });
+
   test("uploads image and file inputs before submitting the observed conversation body", async () => {
     const originalFetch = globalThis.fetch;
     const uploadedTypes: string[] = [];

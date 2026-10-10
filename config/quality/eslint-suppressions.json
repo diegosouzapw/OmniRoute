@@ -613,11 +613,6 @@
       "count": 1
     }
   },
-  "open-sse/translator/webTools.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 2
-    }
-  },
   "open-sse/types.d.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2

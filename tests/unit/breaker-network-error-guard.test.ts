@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   classifyProviderBreakerResult,
+  isChatGptWebBridgeFailure,
   shouldTripProviderBreakerForResult,
 } from "../../src/sse/handlers/chatPredicates.ts";
 import {
@@ -10,6 +11,9 @@ import {
   isProviderInCooldown,
 } from "../../open-sse/services/accountFallback.ts";
 import { PROVIDER_PROFILES } from "../../open-sse/config/constants.ts";
+import { describeBridgeLoadFailure } from "../../open-sse/utils/chatgptWebFirstParty.ts";
+import { classifyProviderProbeResult } from "../../src/sse/handlers/providerProbeClassification.ts";
+import { shouldSkipConnDisable } from "../../open-sse/services/combo/comboPredicates.ts";
 
 // Network-layer errors and OmniRoute's own queue timeouts must NOT trip the
 // provider circuit breaker. These are not provider failures — the provider never
@@ -56,6 +60,104 @@ test("genuine 503 without queue timeout DOES trip provider breaker", () => {
   );
   assert.equal(result, true);
 });
+test("ChatGPT Web bridge 502 does not trip the provider breaker", () => {
+  const result = shouldTripProviderBreakerForResult(
+    {
+      status: 502,
+      errorCode: null,
+      errorType: null,
+      error: "ChatGPT Web first-party challenge bridge is incomplete",
+    },
+    false,
+    false,
+    "chatgpt-web"
+  );
+  assert.equal(result, false);
+});
+test("ChatGPT Web bridge failure is ignored without disabling the connection", () => {
+  const outcome = classifyProviderBreakerResult(
+    {
+      success: false,
+      status: 502,
+      errorCode: null,
+      errorType: null,
+      error: "ChatGPT Web first-party request client is unavailable",
+    },
+    false,
+    false,
+    "chatgpt-web"
+  );
+  assert.equal(outcome, "ignore");
+});
+test("ChatGPT Web browser-launch failure is local, not a dead account", () => {
+  // Playwright reports a missing/unlaunchable binary like this; it must not disable
+  // the connection (regression: it surfaced as `Account ... unavailable (502)`).
+  assert.equal(
+    isChatGptWebBridgeFailure(
+      "chatgpt-web",
+      "browserType.launch: Executable doesn't exist at /home/u/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome"
+    ),
+    true
+  );
+  assert.equal(
+    isChatGptWebBridgeFailure("chatgpt-web", "ChatGPT Web first-party bridge did not initialize"),
+    true
+  );
+  assert.equal(
+    isChatGptWebBridgeFailure("chatgpt-web", "ChatGPT Web request scope is unavailable"),
+    true
+  );
+  assert.equal(
+    isChatGptWebBridgeFailure(
+      "chatgpt-web",
+      "ChatGPT Web first-party conversation returned a non-SSE response (the app shell)"
+    ),
+    true
+  );
+  // Other providers keep their existing classification.
+  assert.equal(
+    isChatGptWebBridgeFailure("gemini-web", "browserType.launch: Executable doesn't exist"),
+    false
+  );
+});
+
+test("ChatGPT Web bridge-module load failure (CSP / page error) is a local bridge failure", () => {
+  // The base's bridge injector reports every load failure through
+  // describeBridgeLoadFailure(); that message must be isolated like the others.
+  const message = describeBridgeLoadFailure([
+    { kind: "csp", detail: "script-src blocked blob:https://chatgpt.com/1" },
+  ]);
+  assert.equal(isChatGptWebBridgeFailure("chatgpt-web", message), true);
+  assert.equal(isChatGptWebBridgeFailure("chatgpt-web", describeBridgeLoadFailure([])), true);
+  assert.equal(isChatGptWebBridgeFailure("gemini-web", message), false);
+});
+
+test("an acquired HALF_OPEN probe that hits a ChatGPT Web bridge failure does not re-open the breaker", () => {
+  const result = {
+    success: false,
+    status: 502,
+    errorCode: null,
+    errorType: null,
+    error: "ChatGPT Web first-party bridge did not initialize",
+  };
+  assert.equal(classifyProviderProbeResult(result, "chatgpt-web"), "ignore");
+  // Other providers keep the ordinary upstream policy for the same 502.
+  assert.equal(classifyProviderProbeResult(result, "openai"), "failure");
+  assert.equal(classifyProviderProbeResult({ result }, "chatgpt-web"), "ignore");
+});
+
+test("a ChatGPT Web bridge failure never disables the connection (single-model and combo)", () => {
+  const result = {
+    status: 502,
+    errorCode: null,
+    errorType: null,
+    error: new Error("ChatGPT Web first-party challenge bridge is incomplete"),
+  };
+  assert.equal(shouldSkipConnDisable(result, false, false, "chatgpt-web"), true);
+  // Same synthetic 502 from another provider keeps the ordinary account policy.
+  assert.equal(shouldSkipConnDisable(result, false, false, "openai"), false);
+});
+
 test("isCombo=true prevents breaker trip regardless of error", () => {
   const result = shouldTripProviderBreakerForResult(
     { status: 502, errorCode: null, errorType: null, error: "upstream error" },

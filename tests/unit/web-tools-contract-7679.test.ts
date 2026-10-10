@@ -62,6 +62,24 @@ test("serializeToolsToPrompt contains the tag format example (#7679)", () => {
   assert.match(result, /<tool>\{"name": "<tool_name>"/);
 });
 
+test("serializeToolsToPrompt can trim verbose descriptions while preserving schemas", () => {
+  const verboseTools = [
+    {
+      type: "function",
+      function: {
+        name: "bash",
+        description: "Run a command. ".repeat(100),
+        parameters: { type: "object", properties: { command: { type: "string" } } },
+      },
+    },
+  ];
+  const result = serializeToolsToPrompt(verboseTools, { descriptionMaxChars: 80 });
+  assert.ok(!result.includes("Run a command. ".repeat(20)));
+  assert.match(result, /bash/);
+  assert.match(result, /description trimmed/);
+  assert.match(result, /"command":\{"type":"string"\}/);
+});
+
 test("serializeToolsToPrompt returns empty string for empty tools (#7679)", () => {
   assert.equal(serializeToolsToPrompt([]), "");
 });

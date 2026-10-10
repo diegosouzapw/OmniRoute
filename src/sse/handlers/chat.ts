@@ -2207,7 +2207,7 @@ async function handleSingleModelChat(
         // Acquired probes were settled inside execute(); other successes settle here or in combo.
         if (
           !wasProviderProbe &&
-          classifyProviderBreakerResult(result, isCombo, forceLiveComboTest) === "success"
+          classifyProviderBreakerResult(result, isCombo, forceLiveComboTest, provider) === "success"
         ) {
           breaker._onSuccess();
         }
@@ -2685,7 +2685,7 @@ async function handleSingleModelChat(
       if (
         !wasProviderProbe &&
         !(await shouldIsolateProbeFailures()) &&
-        classifyProviderBreakerResult(result, isCombo, forceLiveComboTest) === "failure"
+        classifyProviderBreakerResult(result, isCombo, forceLiveComboTest, provider) === "failure"
       ) {
         breaker._onFailure();
       }
