@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/shared/components";
 import { isNeedsCoreNode } from "@/lib/proxySubscription/needsCore";
+import type { SelectorEarlyReason } from "@/lib/proxySubscription/selectorEarlyReasons";
 
 interface SubscriptionRecord {
   id: string;
@@ -81,7 +82,11 @@ function nextSwitchLabel(
   return new Date(next).toISOString();
 }
 
-type SubscriptionsFetchResult = { items?: SubscriptionRecord[]; error?: string };
+type SubscriptionsFetchResult = {
+  items?: SubscriptionRecord[];
+  earlyReasons?: Record<SelectorEarlyReason, number>;
+  error?: string;
+};
 
 async function fetchSubscriptionsResult(
   loadFailedMessage: string
@@ -90,14 +95,42 @@ async function fetchSubscriptionsResult(
     const res = await fetch("/api/v1/management/proxy-subscriptions");
     if (!res.ok) throw new Error(loadFailedMessage);
     const data = await res.json();
-    return { items: Array.isArray(data.items) ? data.items : [] };
+    return {
+      items: Array.isArray(data.items) ? data.items : [],
+      earlyReasons: data.earlyReasons ?? undefined,
+    };
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) };
   }
 }
 
+type EarlyReasonLabelKey =
+  "SELECTOR_EARLY_FLAG_OFF" | "SELECTOR_EARLY_NO_CONTROL" | "SELECTOR_EARLY_UNMAPPED";
+
+/** Global early-selector skip counts. Pure; renders nothing when no data yet. */
+function EarlyReasonsSummary({
+  reasons,
+  text,
+}: {
+  reasons: Record<SelectorEarlyReason, number> | null;
+  text: (key: EarlyReasonLabelKey) => string;
+}) {
+  if (!reasons) return null;
+  const parts = (
+    [
+      ["SELECTOR_EARLY_FLAG_OFF", reasons["flag-off"]],
+      ["SELECTOR_EARLY_NO_CONTROL", reasons["no-control"]],
+      ["SELECTOR_EARLY_UNMAPPED", reasons["unmapped"]],
+    ] as const
+  ).map(([key, count]) => `${text(key)}: ${count}`);
+  return <p className="text-xs text-text-muted">{parts.join(" · ")}</p>;
+}
+
 export default function SubscriptionTab() {
   const [subs, setSubs] = useState<SubscriptionRecord[]>([]);
+  const [earlyReasons, setEarlyReasons] = useState<Record<SelectorEarlyReason, number> | null>(
+    null
+  );
   const [providers, setProviders] = useState<ProviderOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -149,6 +182,7 @@ export default function SubscriptionTab() {
 
   const applyLoadResult = useCallback((result: SubscriptionsFetchResult) => {
     if (result.items) setSubs(result.items);
+    setEarlyReasons(result.earlyReasons ?? null);
     if (result.error !== undefined) setError(result.error);
     setLoading(false);
   }, []);
@@ -571,6 +605,10 @@ export default function SubscriptionTab() {
       )}
 
       <div className="space-y-2">
+        <EarlyReasonsSummary
+          reasons={earlyReasons}
+          text={(key) => t(`proxySubscription.error.${key}`)}
+        />
         {loading && <p className="text-sm text-text-muted">{t("proxySubscription.loading")}</p>}
         {!loading && subs.length === 0 && (
           <p className="text-sm text-text-muted">{t("proxySubscription.noSubscriptions")}</p>

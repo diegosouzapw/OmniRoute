@@ -42,6 +42,7 @@ import {
   type ProxyRefusalKind,
 } from "@omniroute/open-sse/utils/proxyRefusalMemory.ts";
 import { parseSelectorTag } from "./selectorEndpoint";
+import { noteSelectorEarlyReason } from "./selectorEarlyReasons";
 import { getGroupMembers, switchSelector, type SelectorSwitchReason } from "./selectorClient";
 import { isSelectorControlUrlAllowedAtFetchTime, resolveSelectorAllowlist } from "./selectorGuard";
 import { recordSelectorSwitchOutcome } from "./subscriptionService";
@@ -495,15 +496,23 @@ export async function maybeSwitchOnSetAside(
   opts?: { nowMs?: number; kind?: ProxyRefusalKind }
 ): Promise<SelectorTriggerResult> {
   try {
-    if (!isProxySkipRecentlyFailedEnabled()) return { switched: false, reason: "flag-off" };
+    if (!isProxySkipRecentlyFailedEnabled()) {
+      noteSelectorEarlyReason("flag-off");
+      return { switched: false, reason: "flag-off" };
+    }
     if (anyControlUrlConfigured === false) {
+      noteSelectorEarlyReason("no-control");
       return { switched: false, reason: "no-control" };
     }
     if (anyControlUrlConfigured === null && !refreshControlUrlCache()) {
+      noteSelectorEarlyReason("no-control");
       return { switched: false, reason: "no-control" };
     }
     const pairs = resolvePairs(setAsideKey);
-    if (pairs.length === 0) return { switched: false, reason: "unmapped" };
+    if (pairs.length === 0) {
+      noteSelectorEarlyReason("unmapped");
+      return { switched: false, reason: "unmapped" };
+    }
     // Deterministic tie-break: first pair in (updated_at DESC, id ASC) order.
     const hit = pairs[0]!;
     const now = typeof opts?.nowMs === "number" ? opts.nowMs : Date.now();
