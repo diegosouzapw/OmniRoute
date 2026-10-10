@@ -484,11 +484,11 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
     if (fmt.type === "json_schema" && fmt.json_schema?.schema) {
       const schemaJson = JSON.stringify(fmt.json_schema.schema, null, 2);
       systemParts.push(
-        `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text.`
+        `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text and no markdown code fences.`
       );
     } else if (fmt.type === "json_object") {
       systemParts.push(
-        "You must respond with valid JSON. Respond ONLY with a JSON object, no other text."
+        "You must respond with valid JSON. Respond ONLY with a JSON object, no other text and no markdown code fences."
       );
     }
   }

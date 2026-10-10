@@ -746,8 +746,8 @@ export class DefaultExecutor extends BaseExecutor {
     const schemaJson = schema ? JSON.stringify(schema, null, 2) : null;
     const prompt =
       schemaJson !== null
-        ? `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text.`
-        : "You must respond with valid JSON only (a single JSON object), no other text.";
+        ? `You must respond with valid JSON that strictly follows this JSON schema:\n\`\`\`json\n${schemaJson}\n\`\`\`\nRespond ONLY with the JSON object, no other text and no markdown code fences.`
+        : "You must respond with valid JSON only (a single JSON object), no other text and no markdown code fences.";
 
     const messages: Array<Record<string, unknown>> = Array.isArray(record.messages)
       ? (record.messages as Array<Record<string, unknown>>).map((m) => ({ ...m }))

@@ -1412,7 +1412,7 @@ export class OpencodeExecutor extends BaseExecutor {
       "You must respond with valid JSON that strictly follows " +
       "this JSON schema:\\n```json\\n" +
       schemaJson +
-      "\\n```\\nRespond ONLY with the JSON object, no other text.";
+      "\\n```\\nRespond ONLY with the JSON object, no other text and no markdown code fences.";
 
     const messages: Array<Record<string, unknown>> = Array.isArray(record.messages)
       ? (record.messages as Array<Record<string, unknown>>).map((message) => ({ ...message }))
