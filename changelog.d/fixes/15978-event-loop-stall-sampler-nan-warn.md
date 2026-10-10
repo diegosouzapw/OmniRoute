@@ -1,0 +1,1 @@
+- **fix(monitoring):** warn once when the stall sampler reports an unusable reading, reusing the existing sampler fallback ([#15978](https://github.com/diegosouzapw/OmniRoute/pull/15978)) — thanks @maxmad64bis

@@ -3,6 +3,7 @@ import { getProviderConnections } from "@/lib/db/providers";
 import { getCachedSettings } from "@/lib/db/readCache";
 import { getWalMaintenanceState } from "@/lib/db/walMaintenance";
 import { buildHealthPayload } from "@/lib/monitoring/observability";
+import { getEventLoopStallStats as readEventLoopStallStats } from "@/lib/healthzLag";
 import { readRunningBuildSha } from "@/lib/monitoring/buildSha";
 import { APP_CONFIG } from "@/shared/constants/config";
 import { AI_PROVIDERS } from "@/shared/constants/providers";
@@ -101,6 +102,7 @@ function refreshDeepHealthVerdict(): void {
           await import("@/lib/monitoring/observability");
         const { getCachedSettings } = await import("@/lib/db/readCache");
         const settings = (await getCachedSettings()) as Record<string, unknown>;
+        // prettier-ignore
         const deepHealthUrl = typeof settings.deepHealthUrl === "string" ? settings.deepHealthUrl : "";
         if (!deepHealthUrl) return;
         const deepHealthToken =
@@ -302,6 +304,12 @@ async function rebuildHealthPayload(): Promise<unknown> {
   // admission gates. getWalMaintenanceState never throws and never touches
   // the DB — a monitoring read stays cheap. Additive key, nothing moves.
   const walMaintenance = readHealthValue("wal maintenance", () => getWalMaintenanceState(), null);
+  // Stall counters from the boot recorder (static import above; readHealthValue
+  // traces a failure and falls back to {0,0}, so health stays 200).
+  const eventLoopStall = readHealthValue("event loop stall", () => readEventLoopStallStats(), {
+    count: 0,
+    maxMs: 0,
+  });
 
   const payload = buildHealthPayload({
     appVersion: APP_CONFIG.version,
@@ -328,6 +336,7 @@ async function rebuildHealthPayload(): Promise<unknown> {
     adaptiveAdmission,
     chatAdmission,
     walMaintenance,
+    eventLoopStall,
   });
 
   if (generation === healthPayloadCacheGeneration) {
