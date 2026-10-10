@@ -172,11 +172,30 @@ function isEmptyTurnFiller(block) {
   return block?.text === " " && Object.keys(block).length === 1;
 }
 
+function messageHasToolResult(message) {
+  return (
+    Array.isArray(message?.content) &&
+    message.content.some((block) => Boolean(getToolResultIdFromBlock(block)))
+  );
+}
+
+// Same-role turns collapse, except a plain user turn must not absorb a later
+// tool-result turn — that would make a non-adjacent result look immediate.
+// The other direction (tool result, then plain user text) still merges.
 function mergeConsecutiveMessagesByRole(messages) {
   const merged = [];
   for (const message of messages) {
     const previous = merged[merged.length - 1];
-    if (previous?.role === message?.role) {
+    const sameRole =
+      previous?.role === message?.role &&
+      Array.isArray(previous.content) &&
+      Array.isArray(message.content);
+    const plainUserBeforeToolResult =
+      sameRole &&
+      previous.role === "user" &&
+      messageHasToolResult(message) &&
+      !messageHasToolResult(previous);
+    if (sameRole && !plainUserBeforeToolResult) {
       const content = [...previous.content, ...message.content];
       const hasContent = content.some((block) => !isEmptyTurnFiller(block));
       previous.content = hasContent

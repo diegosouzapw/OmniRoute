@@ -173,8 +173,9 @@ test("openAIToBedrockConverse allows a tool id to be reused after its result", (
 
   assert.equal(payload.messages[1].content[0].toolUse.toolUseId, "call_reuse");
   assert.equal(payload.messages[2].content[0].toolResult.toolUseId, "call_reuse");
-  assert.equal(payload.messages[4].content[0].toolUse.toolUseId, "call_reuse");
-  assert.equal(payload.messages[5].content[0].toolResult.toolUseId, "call_reuse");
+  assert.equal(payload.messages[2].content[1].text, "again");
+  assert.equal(payload.messages[3].content[0].toolUse.toolUseId, "call_reuse");
+  assert.equal(payload.messages[4].content[0].toolResult.toolUseId, "call_reuse");
 });
 
 test("openAIToBedrockConverse skips assistant tool calls that have no result in history", () => {
@@ -204,8 +205,10 @@ test("openAIToBedrockConverse skips assistant tool calls that have no result in 
 
   const toolUseIds = payload.messages[1].content.map((block) => block.toolUse?.toolUseId);
   assert.deepEqual(toolUseIds, ["call_done"]);
+  assert.equal(payload.messages[2].role, "user");
   assert.equal(payload.messages[2].content[0].toolResult.toolUseId, "call_done");
-  assert.equal(payload.messages[3].role, "user");
+  assert.equal(payload.messages[2].content[1].text, "continue");
+  assert.equal(payload.messages.length, 3);
 });
 
 test("openAIToBedrockConverse skips content tool_use blocks without matching results", () => {
@@ -280,9 +283,18 @@ test("openAIToBedrockConverse merges adjacent user turns around a tool result", 
     ],
   });
 
-  assert.deepEqual(payload.messages.map(({ role }) => role), ["user", "assistant", "user"]);
+  assert.deepEqual(
+    payload.messages.map(({ role }) => role),
+    ["user", "assistant", "user"]
+  );
   assert.deepEqual(payload.messages[2].content, [
-    { toolResult: { toolUseId: "call_lookup", content: "tool result", status: "success" } },
+    {
+      toolResult: {
+        toolUseId: "call_lookup",
+        content: [{ text: "tool result" }],
+        status: "success",
+      },
+    },
     { text: "follow-up one" },
     { text: "follow-up two" },
   ]);
@@ -307,7 +319,10 @@ test("openAIToBedrockConverse merges adjacent assistant turns without losing too
     ],
   });
 
-  assert.deepEqual(payload.messages.map(({ role }) => role), ["assistant", "user"]);
+  assert.deepEqual(
+    payload.messages.map(({ role }) => role),
+    ["assistant", "user"]
+  );
   assert.deepEqual(payload.messages[0].content, [
     { text: "thinking" },
     { toolUse: { toolUseId: "call_lookup", name: "lookup", input: {} } },
