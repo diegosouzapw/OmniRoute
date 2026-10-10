@@ -111,7 +111,7 @@ jobs:
         run: node scripts/build/standaloneBundle.mjs pack --out web-bundle.tar.gz
 
       - name: Upload shared web bundle
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: web-standalone-bundle
           # compression-level 0: the payload is already a deterministic tar.gz;
@@ -345,7 +345,7 @@ jobs:
           done
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: electron-${{ matrix.platform }}
           path: release-assets/

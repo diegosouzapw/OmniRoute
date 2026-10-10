@@ -83,7 +83,7 @@ jobs:
       - name: Build plugin-v2 artifact
         working-directory: "@omniroute/opencode-plugin-v2"
         run: npm ci --no-audit --no-fund && npm run build
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v6
         with:
           name: opencode-plugin-v2-dist
           path: "@omniroute/opencode-plugin-v2/dist"

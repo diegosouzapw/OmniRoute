@@ -58,7 +58,7 @@ jobs:
           cache-dependency-path: "@omniroute/opencode-provider/package-lock.json"
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v6
         with:
           name: opencode-provider-dist
           path: "@omniroute/opencode-provider/dist"

@@ -268,7 +268,7 @@ jobs:
 
       - name: Upload SBOM (npm) as workflow artifact
         if: steps.resolve.outputs.skip != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: sbom-npm
           path: sbom-npm.cdx.json
@@ -354,7 +354,7 @@ jobs:
 
       - name: Hand the tarball to the hosted publish job
         if: steps.resolve.outputs.skip != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: npm-tarball
           path: omniroute-${{ steps.resolve.outputs.version }}.tgz
