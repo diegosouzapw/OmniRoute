@@ -325,6 +325,18 @@ test("resolveModelTestTimeoutMs gives zai-web checks up to 60 seconds", () => {
   assert.equal(resolveModelTestTimeoutMs("zai-web", "zai-web/glm-5.3-flash", 90_000), 90_000);
 });
 
+test("resolveModelTestTimeoutMs applies a 60-second minimum to Xiaomi MiMo Token Plan checks", () => {
+  assert.equal(
+    resolveModelTestTimeoutMs("xiaomi-mimo-token-plan", "mimo-v2.6-flash", 30_000),
+    60_000
+  );
+  assert.equal(resolveModelTestTimeoutMs("xiaomi-mimo", "mimo-v2.6-flash", 30_000), 30_000);
+  assert.equal(
+    resolveModelTestTimeoutMs("xiaomi-mimo-token-plan", "mimo-v2.6-flash", 90_000),
+    90_000
+  );
+});
+
 test("runSingleModelTest skips web-session providers before sending a chat probe", async () => {
   const result = await runSingleModelTest({
     providerId: "deepseek-web",
