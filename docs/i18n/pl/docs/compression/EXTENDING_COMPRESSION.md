@@ -333,7 +333,6 @@ Możesz również umieścić go w rozpoznawanej lokalizacji:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Poziom użytkownika
-<project>/.compression/rules/hi/filler.json   # Poziom projektu
 ```
 
 ### Najlepsze praktyki dotyczące pakietów językowych

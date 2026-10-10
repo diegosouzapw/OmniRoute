@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Functies</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combinaties</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Aanbieders</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Aanbieders</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ de geschiedenis van je shell. → [CLI-integraties](docs/guides/CLI-INTEGRATIONS
 
 <div align="center">
 
-## 🌐 357 AI-providers — 152 in de catalogus als gratis gemarkeerd
+## 🌐 372 AI-providers — 154 in de catalogus als gratis gemarkeerd
 
 </div>
 

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ ವೈಶಿಷ್ಟ್ಯಗಳು</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 ಕಾಂಬೊಗಳು</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ಪೂರೈಕೆದಾರರು</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ಪೂರೈಕೆದಾರರು</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # ಇತರ ಆಯ್ಕೆಗಳು: claude 
 
 <div align="center">
 
-## 🌐 357 AI ಪೂರೈಕೆದಾರರು — 152 ಕ್ಯಾಟಲಾಗ್ನಲ್ಲಿ ಉಚಿತವೆಂದು ಗುರುತಿಸಲಾಗಿದೆ
+## 🌐 372 AI ಪೂರೈಕೆದಾರರು — 154 ಕ್ಯಾಟಲಾಗ್ನಲ್ಲಿ ಉಚಿತವೆಂದು ಗುರುತಿಸಲಾಗಿದೆ
 
 </div>
 

@@ -41,6 +41,11 @@ const future = {
 };
 const compatible = { slug: "account-model", visibility: "list", supported_in_api: true };
 
+function matchesFetchHostname(input: Parameters<typeof fetch>[0], hostname: string): boolean {
+  const url = input instanceof Request ? input.url : input;
+  return new URL(url).hostname === hostname;
+}
+
 async function seed() {
   const connection = await providers.createProviderConnection({
     provider: "codex",
@@ -93,7 +98,7 @@ test("successful account discovery does not warn about public-only newer models"
   const id = await seed();
   globalThis.fetch = async (url) =>
     Response.json({
-      models: String(url).includes("raw.githubusercontent.com")
+      models: matchesFetchHostname(url, "raw.githubusercontent.com")
         ? [compatible, future]
         : [compatible],
     });
@@ -110,7 +115,7 @@ test("successful account discovery does not warn about public-only newer models"
 test("live version candidates keep their warning when the GitHub catalog is unavailable", async () => {
   const id = await seed();
   globalThis.fetch = async (url) =>
-    String(url).includes("raw.githubusercontent.com")
+    matchesFetchHostname(url, "raw.githubusercontent.com")
       ? new Response("fixture unavailable", { status: 503 })
       : Response.json({ models: [compatible, future] });
   const body = await get(id);
@@ -126,7 +131,7 @@ test("live version candidates keep their warning when the GitHub catalog is unav
 test("all-too-new live inventory stays empty and explains the required version", async () => {
   const id = await seed();
   globalThis.fetch = async (url) =>
-    String(url).includes("raw.githubusercontent.com")
+    matchesFetchHostname(url, "raw.githubusercontent.com")
       ? Response.json({ models: [compatible] })
       : Response.json({ models: [future] });
   const body = await get(id);
@@ -138,7 +143,7 @@ test("all-too-new live inventory stays empty and explains the required version",
 test("GitHub fallback explains version candidates without warning about retired or unsupported entries", async () => {
   const id = await seed();
   globalThis.fetch = async (url) =>
-    String(url).includes("raw.githubusercontent.com")
+    matchesFetchHostname(url, "raw.githubusercontent.com")
       ? Response.json({
           models: [
             future,
@@ -163,7 +168,7 @@ test("GitHub TTL cache diagnostics are recomputed after the effective version ch
   const id = await seed();
   let githubRequests = 0;
   globalThis.fetch = async (url) => {
-    if (!String(url).includes("raw.githubusercontent.com"))
+    if (!matchesFetchHostname(url, "raw.githubusercontent.com"))
       return new Response("fixture unavailable", { status: 503 });
     githubRequests += 1;
     return Response.json({ models: [future] }, { headers: { etag: '"fixture-catalog"' } });
@@ -184,7 +189,7 @@ test("GitHub TTL cache diagnostics are recomputed after the effective version ch
 test("cached account inventory retains precedence over a public-only future model", async () => {
   const id = await seed();
   globalThis.fetch = async (url) =>
-    String(url).includes("raw.githubusercontent.com")
+    matchesFetchHostname(url, "raw.githubusercontent.com")
       ? Response.json({ models: [future] })
       : Response.json({ models: [compatible] });
   assert.equal((await get(id)).models.length, 1);
@@ -207,11 +212,11 @@ test("route discovery refreshes the client version before classifying and warnin
   t.after(() => setSafeOutboundPinnedFetchTestOverride(undefined));
   let registryRequests = 0;
   globalThis.fetch = async (url) => {
-    if (String(url).includes("registry.npmjs.org")) {
+    if (matchesFetchHostname(url, "registry.npmjs.org")) {
       registryRequests += 1;
       return Response.json({ name: "@openai/codex", version: "0.999.0" });
     }
-    if (String(url).includes("raw.githubusercontent.com"))
+    if (matchesFetchHostname(url, "raw.githubusercontent.com"))
       return new Response("fixture unavailable", { status: 503 });
     assert.equal(new URL(String(url)).searchParams.get("client_version"), "0.999.0");
     return Response.json({ models: [{ ...future, minimal_client_version: "0.999.1" }] });
@@ -242,4 +247,35 @@ test("warning uses the highest numeric version and bounds the displayed model li
     catalog.warning || "",
     /Installing Codex CLI is only relevant to the separate codex-app-server provider/
   );
+});
+
+// #15306: the same matcher used by route mocks must not recognize hostnames in URL data.
+for (const hostname of ["raw.githubusercontent.com", "registry.npmjs.org"]) {
+  test(`fetch fixture recognizes the exact ${hostname} host for every fetch input`, () => {
+    const url = `https://${hostname}/fixture.json`;
+    for (const input of [url, new URL(url), new Request(url)]) {
+      assert.equal(matchesFetchHostname(input, hostname), true);
+    }
+  });
+
+  for (const url of [
+    `https://${hostname}.evil.invalid/fixture.json`,
+    `https://evil-${hostname}/fixture.json`,
+    `https://evil.invalid/${hostname}/fixture.json`,
+    `https://evil.invalid/?next=${hostname}`,
+    `https://${hostname}@evil.invalid/fixture.json`,
+  ]) {
+    test(`fetch fixture rejects a hostname embedded in ${url}`, () => {
+      const parsed = new URL(url);
+      const inputs: Parameters<typeof fetch>[0][] = [url, parsed];
+      if (!parsed.username && !parsed.password) inputs.push(new Request(url));
+      for (const input of inputs) {
+        assert.equal(matchesFetchHostname(input, hostname), false);
+      }
+    });
+  }
+}
+
+test("fetch fixture fails explicitly for malformed URLs", () => {
+  assert.throws(() => matchesFetchHostname("not a URL", "raw.githubusercontent.com"), TypeError);
 });

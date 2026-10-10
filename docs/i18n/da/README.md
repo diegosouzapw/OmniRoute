@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funktioner</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinationer</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Udbydere</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Udbydere</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI og MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ af din shell-historik. → [CLI-integrationer](docs/guides/CLI-INTEGRATIONS.md)
 
 <div align="center">
 
-## 🌐 357 AI-udbydere — 152 katalogmarkerede som gratis
+## 🌐 372 AI-udbydere — 154 katalogmarkerede som gratis
 
 </div>
 

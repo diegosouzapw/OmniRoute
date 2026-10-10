@@ -1,0 +1,1 @@
+- fix(auto): unpriced models no longer default to a flat $1/M in auto-combo scoring; they take the priced-pool median cost (neutral), and namespaced ids retry the bare model-name pricing lookup (#15546, complements #15813)

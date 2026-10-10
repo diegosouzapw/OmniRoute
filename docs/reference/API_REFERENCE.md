@@ -1092,13 +1092,15 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 
 ### Internal / System APIs
 
-| Endpoint                 | Method | Description                                          |
-| ------------------------ | ------ | ---------------------------------------------------- |
-| `/api/init`              | GET    | Application initialization check (used on first run) |
-| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`           | POST   | Trigger graceful server restart                      |
-| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
-| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| Endpoint                 | Method | Description                                            |
+| ------------------------ | ------ | ------------------------------------------------------ |
+| `/api/init`              | GET    | Application initialization check (used on first run)   |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)      |
+| `/api/restart`           | POST   | Trigger graceful server restart                        |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                       |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables            |
+| `/api/system/version`    | GET    | Current/latest version, update status, release channel |
+| `/api/system/version`    | POST   | Start a deployment-aware update to the latest version  |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
 
@@ -1122,6 +1124,43 @@ Repairs missing or corrupted OAuth environment variables for a specific provider
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Version and Release Channel
+
+```bash
+GET /api/system/version
+```
+
+Loopback-only management route (admin auth). Returns the running version, the latest
+published version and the auto-update status. `releaseChannel` and `channels` are additive
+fields (rail 3.8.54); `channel` keeps its meaning — the deployment mode the dashboard updater
+uses (`npm`, `source` or `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — npm channel of the running build: `nightly` for `-nightly.*` versions,
+  `next` for other pre-releases (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` for a stable version of an
+  older major than `channels.latest`, otherwise `latest`. Same rules as
+  `scripts/release/dist-tag.mjs`, which picks the npm dist-tag at publish time.
+- `channels` — published head of each dist-tag, from `npm view omniroute dist-tags` (registry
+  HTTP fallback), cached with the same 10-minute TTL as `latest`. `latest` is always present
+  (falls back to the `latest` field, then `"unavailable"`); `next`, `nightly` and `lts` appear
+  only when that dist-tag exists. A `Cache-Control: no-cache` request refreshes both lookups.
+
+The channel model (`latest` = v3 until the 4.0 GA, `next` = rc, `nightly` = `develop` builds,
+`lts` = v3 patches after the 4.0 GA) is described in `docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

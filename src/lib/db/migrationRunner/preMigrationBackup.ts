@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
 
+import { resolveBackupFile } from "../backupPaths";
 import type { SqliteAdapter } from "../adapters/types";
 import { tryOpenSync } from "../adapters/driverFactory";
 import { migrationConsole as console } from "./logger";
@@ -51,6 +52,7 @@ function getReusablePreMigrationBackup(
   candidatePath: string,
   expectedSha256: string
 ): PreMigrationBackupReceipt | null {
+  candidatePath = resolveBackupFile(path.dirname(candidatePath), path.basename(candidatePath));
   if (!fs.existsSync(candidatePath)) return null;
 
   const before = fs.lstatSync(candidatePath);
@@ -74,12 +76,15 @@ function getReusablePreMigrationBackup(
   return { path: candidatePath, sha256: expectedSha256 };
 }
 
-function publishSnapshotWithoutOverwrite(tempPath: string, destination: string): void {
-  // link() publishes a complete same-filesystem image atomically and, unlike rename(),
-  // fails with EEXIST instead of overwriting a path created by another process. There is
-  // deliberately no copy/rename fallback: filesystems without this primitive fail closed
-  // instead of exposing a partial canonical `.sqlite` file after a crash.
-  fs.linkSync(tempPath, destination);
+function publishSnapshotWithoutOverwrite(tempPath: string, destination: string): string {
+  try {
+    fs.linkSync(tempPath, destination);
+  } catch (error: unknown) {
+    const code = (error as NodeJS.ErrnoException | null)?.code ?? "";
+    if (!["EACCES", "EPERM", "ENOTSUP", "EOPNOTSUPP", "EXDEV", "ENOSYS"].includes(code))
+      throw error;
+    destination = publishSnapshotDirectory(tempPath, destination);
+  }
   const publishedFd = fs.openSync(destination, "r+");
   try {
     // Flush through the published name as well as the already-fsynced temp handle.
@@ -90,6 +95,33 @@ function publishSnapshotWithoutOverwrite(tempPath: string, destination: string):
     fs.closeSync(publishedFd);
   }
   fsyncDirectoryEntry(path.dirname(destination));
+  return destination;
+}
+
+/**
+ * Directory rename cannot replace a complete (nonempty) backup. Node has no general
+ * rename-no-replace primitive: reject an existing empty directory too, but require
+ * trusted DATA_DIR ownership against hostile ancestor/empty-directory replacement.
+ */
+function publishSnapshotDirectory(tempPath: string, destination: string): string {
+  const tempDir = path.dirname(tempPath);
+  const directory = `${destination}.snapshot`;
+  fsyncDirectoryEntry(tempDir);
+  if (fs.lstatSync(directory, { throwIfNoEntry: false })) {
+    throw Object.assign(new Error("Snapshot directory already exists"), { code: "EEXIST" });
+  }
+  try {
+    fs.renameSync(tempDir, directory);
+  } catch (error: unknown) {
+    // POSIX returns ENOTEMPTY for a concurrent complete directory; Windows may use EPERM.
+    const code = (error as NodeJS.ErrnoException | null)?.code ?? "";
+    if (["EEXIST", "ENOTEMPTY", "EPERM", "EACCES"].includes(code) && fs.existsSync(directory)) {
+      throw Object.assign(new Error("Concurrent snapshot publication"), { code: "EEXIST" });
+    }
+    throw error;
+  }
+  fsyncDirectoryEntry(path.dirname(directory));
+  return path.join(directory, "snapshot.sqlite");
 }
 
 function fsyncReusableSnapshot(snapshotPath: string): void {
@@ -99,6 +131,7 @@ function fsyncReusableSnapshot(snapshotPath: string): void {
   } finally {
     fs.closeSync(fd);
   }
+  fsyncDirectoryEntry(path.dirname(snapshotPath));
 }
 
 type SqlJsSnapshotClone = {
@@ -185,6 +218,16 @@ function cleanupOwnedSnapshotTemp(tempDir: string | null, tempPath: string | nul
   }
 }
 
+function ensureBackupDirectory(backupDir: string): void {
+  if (!fs.existsSync(backupDir)) {
+    fs.mkdirSync(backupDir, { recursive: true });
+    fsyncDirectoryEntry(path.dirname(backupDir));
+  }
+  if (!fs.lstatSync(backupDir).isDirectory()) {
+    throw new Error("Backup directory must not be a symlink or non-directory");
+  }
+}
+
 /**
  * Create a synchronous pre-migration snapshot.
  *
@@ -194,9 +237,9 @@ function cleanupOwnedSnapshotTemp(tempDir: string | null, tempPath: string | nul
  * canonical `db_<snapshot-id>_<reason>.sqlite` shape, preserving reason parsing while
  * making unchanged retries an O(1) lookup even with tens of thousands of old backups.
  * Work happens inside an exclusively-created
- * temp directory, so failure cleanup has exact ownership. Publication uses an atomic,
- * no-overwrite hard link. If the filesystem cannot provide that primitive, the caller
- * fails closed instead of exposing a partial canonical `.sqlite` file. A content hash
+ * temp directory, so failure cleanup has exact ownership. Publication uses a no-overwrite
+ * hard link, or atomically publishes the nonempty directory when links are unavailable.
+ * Failure of both publication strategies or synchronization fails closed. A content hash
  * reuses an identical prior snapshot, so repeated zero-progress startups retain one
  * restore point for that database state without ever deleting a published backup.
  */
@@ -210,10 +253,7 @@ export function createPreMigrationBackup(db: SqliteAdapter): PreMigrationBackupR
     if (!sqliteFile || sqliteFile === ":memory:") return null;
 
     const backupDir = path.join(path.dirname(sqliteFile), "db_backups");
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-      fsyncDirectoryEntry(path.dirname(backupDir));
-    }
+    ensureBackupDirectory(backupDir);
 
     tempDir = fs.mkdtempSync(path.join(backupDir, ".migration-snapshot-"));
     tempPath = path.join(tempDir, "snapshot.sqlite");
@@ -257,7 +297,7 @@ export function createPreMigrationBackup(db: SqliteAdapter): PreMigrationBackupR
     }
 
     try {
-      publishSnapshotWithoutOverwrite(tempPath, backupPath);
+      backupPath = publishSnapshotWithoutOverwrite(tempPath, backupPath);
     } catch (error: unknown) {
       if ((error as NodeJS.ErrnoException | null)?.code !== "EEXIST") throw error;
       const racedReusable = getReusablePreMigrationBackup(backupPath, sha256);
@@ -285,7 +325,7 @@ export function createPreMigrationBackup(db: SqliteAdapter): PreMigrationBackupR
     throw new Error(
       `[Migration] Refusing to migrate an existing database without a durable snapshot. ` +
         `Snapshot creation failed: ${message}. The DATA_DIR filesystem must support atomic ` +
-        `no-overwrite hard links, durable file synchronization, and directory synchronization ` +
+        `hard links or directory rename, durable file synchronization, and directory synchronization ` +
         `where the platform exposes it.`,
       { cause: error instanceof Error ? error : undefined }
     );

@@ -42,6 +42,11 @@
   "plugins": ["@stryker-mutator/tap-runner"],
   "tap": {
     "testFiles": [
+      "tests/unit/responses-refusal-preservation.test.ts",
+      "tests/unit/codex-overload-scope.test.ts",
+      "tests/unit/responses-keepalive-error-frame-nested.test.ts",
+      "tests/unit/search-internal-error-sanitization-15159.test.ts",
+      "tests/unit/combo/quota-weighted-model-window.test.ts",
       "tests/unit/codex-claude-signature-provenance-15534.test.ts",
       "tests/unit/provider-breaker-combo-probe-slot-consumed-15698.test.ts",
       "tests/unit/provider-breaker-local-cooldown-refusal-15690.test.ts",

@@ -254,6 +254,7 @@
     "log": "Gosi ndekọ sava ozugbo",
     "no_recovery": "Gbanyụọ mmalitegharị akpaka mgbe ọ dara (ọnọdụ debugging)",
     "max_restarts": "Ọnụọgụ mmalitegharị kachasị elu mgbe ọ dara n'ime 30s tupu ịkwụsị mbọ (ndabara: 2)",
+    "headless": "Na-agba naanị injin proxy: agbanyụrụ dashboard (404), a na-awụfe sistemu nta nhọrọ (na-esetịpụ OMNIROUTE_HEADLESS=1)",
     "tray": "Malite na tray sistemụ (naanị na desktọpụ, ma ọ bụrụ na ahọrọ ya)",
     "no_tray": "Gbanyụọ akara ngosi tray sistemụ",
     "ready_timeout": "Oge njedebe nyocha ịdị njikere na ms (yana OMNIROUTE_READY_TIMEOUT_MS, ndabara bụ 60000)",

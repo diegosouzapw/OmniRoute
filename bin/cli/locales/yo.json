@@ -254,6 +254,7 @@
     "log": "Ṣàfihàn àwọn log server níbẹ̀",
     "no_recovery": "Pa ìtunbẹ̀rẹ̀ aládàáṣe lẹ́yìn ìkọ̀lù (ipò debugging)",
     "max_restarts": "Iye ìtunbẹ̀rẹ̀ lẹ́yìn ìkọ̀lù tó pọ̀ jù láàárín 30s kí ó tó jáwọ́ (àìyípadà: 2)",
+    "headless": "Ṣiṣẹ ẹ̀rọ proxy nìkan: dashboard ti wà ní pípa (404), a fo àwọn ètò kékeré àṣàyàn (ó ṣètò OMNIROUTE_HEADLESS=1)",
     "tray": "Bẹ̀rẹ̀ nínú atẹ eto (dẹ́sítọ́ọ̀pù nìkan, àṣàyàn ni)",
     "no_tray": "Pa àmì atẹ eto rẹ́",
     "ready_timeout": "Àkókò ìdádúró tó pọ̀ jù fún àyẹ̀wò ìmúrasílẹ̀ ní ms (bákan náà OMNIROUTE_READY_TIMEOUT_MS, àìyípadà 60000)",

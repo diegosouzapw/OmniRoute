@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ அம்சங்கள்</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 சேர்க்கைகள்</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 வழங்குநர்கள்</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 வழங்குநர்கள்</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -673,7 +673,7 @@ omniroute configure codex          # மேலும்: claude opencode qwen ai
 
 <div align="center">
 
-## 🌐 357 AI வழங்குநர்கள் — 152 பட்டியலில் இலவசமாகக் குறிக்கப்பட்டவை
+## 🌐 372 AI வழங்குநர்கள் — 154 பட்டியலில் இலவசமாகக் குறிக்கப்பட்டவை
 
 </div>
 

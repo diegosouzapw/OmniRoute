@@ -352,6 +352,9 @@ jobs:
           DIGEST_BUN_WEB: ${{ steps.build-bun-web.outputs.digest }}
         run: |
           set -euo pipefail
+          # Self-hosted runners keep /tmp across runs: start empty so digests of
+          # earlier runs are never uploaded (#15184).
+          rm -rf /tmp/digests
           mkdir -p /tmp/digests/base /tmp/digests/web /tmp/digests/bun-base /tmp/digests/bun-web
           touch "/tmp/digests/base/${DIGEST_BASE#sha256:}"
           touch "/tmp/digests/web/${DIGEST_WEB#sha256:}"
@@ -480,6 +483,18 @@ jobs:
           pattern: digests-bun-web-*
           path: /tmp/digests/bun-web
           merge-multiple: true
+
+      - name: Guard against stale digests
+        run: |
+          set -euo pipefail
+          # One digest per arch (amd64 + arm64) at most; more means stale digests leaked in (#15184).
+          for dir in base web bun-base bun-web; do
+            count=$(find "/tmp/digests/$dir" -type f 2>/dev/null | wc -l)
+            if [ "$count" -gt 2 ]; then
+              echo "digests in $dir: found $count, expected at most 2 (stale digests leaked in)" >&2
+              exit 1
+            fi
+          done
 
       - name: Create Docker Hub version manifests
         run: |

@@ -96,6 +96,8 @@ Regresijas aizsardzība: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Aizsardzība pret vienlaicīgu pieprasījumu lavīnu:** novērš situāciju, kurā vienlaicīgas kļūmes pārmērīgi pagarina atdzišanas periodu vai divreiz palielina `backoffLevel`.
 
+Kiro binārie `reasoningContentEvent` kadri ar netukšu parakstu saglabā spriešanas aktivitāti caur izpildītāju kā tukšu `reasoning_content` deltu. Paraksts netiek pārsūtīts. Metadati, nepilnīgi kadri un tukši paraksti nesāk no jauna saturam atvēlēto laiku; neatkarīgais aktīvās plūsmas ilguma ierobežojums un klienta atcelšana joprojām darbojas. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Terminālie stāvokļi (NAV atdzišanas periodi):**
 
 - `banned` — tiek iestatīts, konstatējot aizliegtu atslēgvārdu/konta aizliegumu (skatiet [BAN_DETECTION](../security/BAN_DETECTION.md)), kā arī pēc trim secīgiem augšupstraumes atteikumiem atsevišķiem pieprasījumiem (`request_rejected`, piem., Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); viens atteikums savienojumam tikai aktivizē atdzišanas periodu

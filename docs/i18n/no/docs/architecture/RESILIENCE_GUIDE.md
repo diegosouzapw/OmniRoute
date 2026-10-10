@@ -96,6 +96,8 @@ Regresjonsvern: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Beskyttelse mot «thundering herd»:** hindrer at samtidige feil forlenger ventetiden for mye eller øker `backoffLevel` dobbelt.
 
+Kiros binære `reasoningContentEvent`-rammer med en ikke-tom signatur bevarer resonneringsaktiviteten gjennom eksekutoren som en tom `reasoning_content`-delta. Signaturen videresendes ikke. Metadata, ufullstendige rammer og tomme signaturer starter ikke tidsbudsjettet for innhold på nytt; den uavhengige tidsgrensen for den aktive strømmen og klientens avbrytelse gjelder fortsatt. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Terminaltilstander (IKKE ventetider):**
 
 - `banned` — angis ved oppdagelse av forbudte nøkkelord / kontosperring (se [BAN_DETECTION](../security/BAN_DETECTION.md)), og ved tre påfølgende avvisninger per forespørsel fra oppstrømstjenesten (`request_rejected`, f.eks. Anthropic OAuth 403 «Request not allowed» — `open-sse/services/requestRejectedStreak.ts`); én enkelt avvisning setter bare tilkoblingen på vent

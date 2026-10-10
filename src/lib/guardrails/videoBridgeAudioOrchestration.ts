@@ -102,7 +102,9 @@ function classifyStepFailure(
 }
 
 function cacheKeyFor(ref: string, sttModel: string): string {
-  return bridgeCacheKey(ref, "video-audio-transcription", sttModel);
+  return bridgeCacheKey(ref, "video-audio-transcription", sttModel, {
+    policyVersion: "video-audio-transcription-v1",
+  });
 }
 
 function readCache(
@@ -110,9 +112,9 @@ function readCache(
   sttModel: string
 ): CachedOrchestration | null {
   if (!options.cache || !options.cacheKeyRef) return null;
-  const entry = options.cache.getEntry(cacheKeyFor(options.cacheKeyRef, sttModel));
-  if (!entry) return null;
   try {
+    const entry = options.cache.getEntry(cacheKeyFor(options.cacheKeyRef, sttModel));
+    if (!entry) return null;
     const parsed = JSON.parse(entry.value) as Partial<CachedOrchestration>;
     if (!parsed.track || !Array.isArray(parsed.track.observations)) return null;
     if (parsed.timingPrecision !== "coarse" && parsed.timingPrecision !== "exact") return null;
@@ -128,9 +130,13 @@ function writeCache(
   value: CachedOrchestration
 ): void {
   if (!options.cache || !options.cacheKeyRef) return;
-  options.cache.setEntry(cacheKeyFor(options.cacheKeyRef, sttModel), {
-    value: JSON.stringify(value),
-  });
+  try {
+    options.cache.setEntry(cacheKeyFor(options.cacheKeyRef, sttModel), {
+      value: JSON.stringify(value),
+    });
+  } catch {
+    // An optional, ephemeral cache must never discard the successful transcription.
+  }
 }
 
 async function runExtraction(
@@ -167,7 +173,11 @@ async function runTranscription(
     shape: "input_audio",
   };
   try {
-    const value = await transcribe(audioPart, { model: sttModel, timeoutMs: options.timeoutMs });
+    const value = await transcribe(audioPart, {
+      model: sttModel,
+      signal: options.signal,
+      timeoutMs: options.timeoutMs,
+    });
     return { ok: true, value };
   } catch (error) {
     const outcome = classifyStepFailure(error, options.signal, /timed out/i);
@@ -223,23 +233,70 @@ export async function orchestrateVideoAudioTranscription(
 ): Promise<VideoAudioOrchestrationResult> {
   if (!options.operatorOptIn) return optedOut("OPERATOR_OPT_OUT");
   if (!options.requestOptIn) return optedOut("REQUEST_OPT_OUT");
+  if (options.signal?.aborted) return failed("ABORTED", null);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), Math.max(0, options.timeoutMs));
+  const signal = options.signal
+    ? AbortSignal.any([options.signal, controller.signal])
+    : controller.signal;
+  let onAbort: () => void;
+  try {
+    return await Promise.race([
+      new Promise<VideoAudioOrchestrationResult>((resolve) => {
+        onAbort = () => resolve(failed(options.signal?.aborted ? "ABORTED" : "TIMEOUT", null));
+        signal.addEventListener("abort", onAbort, { once: true });
+      }),
+      runVideoAudioSteps({ ...options, signal }),
+    ]);
+  } catch {
+    return failed("TRANSCRIPTION_FAILED", null);
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener("abort", onAbort!);
+  }
+}
+
+async function runVideoAudioSteps(
+  options: VideoAudioOrchestrationOptions
+): Promise<VideoAudioOrchestrationResult> {
+  const deadline = Date.now() + options.timeoutMs;
 
   const selectModel = options.selectModel ?? selectAudioBridgeModel;
-  const sttModel = await selectModel(options.model, options.hasUsableCredentials);
+  let sttModel: string | null;
+  try {
+    sttModel = await selectModel(options.model, options.hasUsableCredentials);
+  } catch {
+    return failed("PROVIDER_UNAVAILABLE", null);
+  }
   if (!sttModel) return failed("PROVIDER_UNAVAILABLE", null);
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
 
   const cached = readCache(options, sttModel);
   if (cached) {
-    return { attempted: true, sttModel, timingPrecision: cached.timingPrecision, track: cached.track };
+    return {
+      attempted: true,
+      sttModel,
+      timingPrecision: cached.timingPrecision,
+      track: cached.track,
+    };
   }
 
-  const extraction = await runExtraction(options, sttModel);
-  if (!extraction.ok) return extraction.result;
+  const remaining = () => ({ ...options, timeoutMs: Math.max(0, deadline - Date.now()) });
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
+  if (remaining().timeoutMs === 0) return failed("TIMEOUT", sttModel);
+  const extraction = await runExtraction(remaining(), sttModel);
+  if (extraction.ok === false) return extraction.result;
 
-  const transcription = await runTranscription(options, sttModel, extraction.value);
-  if (!transcription.ok) return transcription.result;
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
+  if (remaining().timeoutMs === 0) return failed("TIMEOUT", sttModel);
+  const transcription = await runTranscription(remaining(), sttModel, extraction.value);
+  if (transcription.ok === false) return transcription.result;
+  if (options.signal?.aborted) return failed("ABORTED", sttModel);
 
-  const { observations, timingPrecision } = buildObservations(extraction.value, transcription.value);
+  const { observations, timingPrecision } = buildObservations(
+    extraction.value,
+    transcription.value
+  );
   const track: FusionTrack = { observations };
   writeCache(options, sttModel, { timingPrecision, track });
   return { attempted: true, sttModel, timingPrecision, track };

@@ -102,6 +102,7 @@ export interface VideoPart {
   transcript?: unknown;
   audioTranscript?: unknown;
   contactSheet?: boolean;
+  audioTranscription?: boolean;
 }
 
 /**
@@ -169,6 +170,7 @@ export function extractVideoParts(body: VideoRequestBody): VideoPart[] {
       const contactSheet = objects.find(
         (object) => object.contactSheet !== undefined
       )?.contactSheet;
+      const audioTranscription = objects.some((object) => object.audioTranscription === true);
       return {
         container,
         ...(startSeconds === undefined && endSeconds === undefined
@@ -181,6 +183,7 @@ export function extractVideoParts(body: VideoRequestBody): VideoPart[] {
         ...(transcript === undefined ? {} : { transcript }),
         ...(audioTranscript === undefined ? {} : { audioTranscript }),
         ...(contactSheet === undefined ? {} : { contactSheet: contactSheet === true }),
+        ...(audioTranscription ? { audioTranscription: true } : {}),
       };
     });
 }
@@ -217,6 +220,8 @@ export interface DescribeVideoOptions {
 }
 
 export interface DescribeVideoDependencies {
+  /** Server-owned adapter output; never read from request JSON. */
+  serverAudioTranscript?: unknown;
   extractFrames?: (
     bytes: Uint8Array,
     options: BrokerExtractionOptions
@@ -627,7 +632,7 @@ export async function describeVideoPart(
     // without re-running `fuseVideoAndAudio` (which has side effects and must
     // execute exactly once per part).
     let renderInterleavedTranscript: ((redact: boolean) => string[]) | undefined;
-    if (part.audioTranscript !== undefined) {
+    if (deps.serverAudioTranscript !== undefined || part.audioTranscript !== undefined) {
       let normalizedFusionTranscriptCues: VideoTranscriptCue[] = [];
       // Audio validation runs inside the fusion's audio branch on purpose: an
       // invalid audioTranscript must surface as a partial fusion (video kept,
@@ -635,7 +640,7 @@ export async function describeVideoPart(
       const fused = await fuseVideoAndAudio({
         audio: async () => {
           normalizedFusionTranscriptCues = normalizeVideoTranscript(
-            part.audioTranscript,
+            deps.serverAudioTranscript ?? part.audioTranscript,
             extracted.durationSeconds,
             // Structural trust seam: whatever the caller supplies in the
             // dedicated audioTranscript field is always labeled "audio-bridge"

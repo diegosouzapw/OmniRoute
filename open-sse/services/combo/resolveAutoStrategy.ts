@@ -22,6 +22,7 @@ import { supportsToolCalling } from "../modelCapabilities.ts";
 import type { ResilienceSettings } from "../../../src/lib/resilience/settings";
 import { parseAutoConfig } from "./autoConfig.ts";
 import { dedupeTargetsByExecutionKey } from "./comboData.ts";
+import { restoreIncomingOrder } from "./rungOrder.ts";
 import {
   getModelContextLimitForModelString,
   providerSupportsEmulatedToolCalling,
@@ -134,7 +135,8 @@ export async function evaluateAutoCandidates(options: EvaluateAutoCandidatesOpti
 /**
  * Resolve target ordering for the `auto` combo strategy.
  *
- * Extracted verbatim from `handleComboChat`'s `if (strategy === "auto")` branch:
+ * Extracted verbatim from `handleComboChat`'s auto-strategy branch (now selected by the
+ * `ordering: "auto"` trait in strategyRegistry.ts):
  * tool-calling + context-window pre-filters, intent classification, candidate
  * building (quota cutoff), explicit-router vs rules selection, complexity-aware
  * scoring and final dedup ordering. Behavior is byte-identical to the previous
@@ -458,8 +460,14 @@ export async function resolveAutoStrategyOrder(
     // routable ranked ones (and, when the cutoff is OFF, makes this identical to
     // the pre-cutoff behavior), but a quota-blocked target still survives as a
     // final fallback instead of vanishing — the hard cutoff only de-prioritizes.
+    const preserveRungOrder =
+      (combo as { autoConfig?: { preserveRungOrder?: unknown } })?.autoConfig?.preserveRungOrder ===
+      true;
+    const headTargets = preserveRungOrder
+      ? restoreIncomingOrder(rankedTargets, eligibleTargets)
+      : [selectedTarget, ...rankedTargets];
     orderedTargets = dedupeTargetsByExecutionKey(
-      [selectedTarget, ...rankedTargets, ...eligibleTargets].filter(
+      [...headTargets, ...eligibleTargets].filter(
         (entry): entry is ResolvedComboTarget => entry !== undefined && entry !== null
       )
     );
