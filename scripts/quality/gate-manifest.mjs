@@ -2,9 +2,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { CHANGE_DOMAINS } from "./classify-pr-changes.mjs";
 
 const VALIDATION_ALIAS = /^(check(?::|$)|test(?::|$)|quality:|lint(?::|$)|typecheck:)/;
 const DISPOSITIONS = new Set(["separately-invoked", "maintenance"]);
+const isRecord = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 
 // Inventory membership does not imply execution, requiredness or acceptance.
 // Profiles select executable aliases; other aliases remain explicitly separate.
@@ -56,6 +58,37 @@ export function validateManifest(manifest, scripts) {
   return errors;
 }
 
+function validateAdmissionProfile(profile, name) {
+  if (!isRecord(profile?.jobs) || !Object.keys(profile.jobs).length) {
+    return [`invalid admission jobs: ${name}`];
+  }
+  return Object.entries(profile.jobs).flatMap(([id, rule]) => {
+    const domains = rule?.domains;
+    if (!Array.isArray(domains) || !domains.length) return [`missing domains: ${name}/${id}`];
+    if (
+      new Set(domains).size !== domains.length ||
+      domains.some((domain) => !CHANGE_DOMAINS.includes(domain))
+    ) {
+      return [`invalid domains: ${name}/${id}`];
+    }
+    return [];
+  });
+}
+
+// Domains annotate existing job groups; admission still uses its legacy conditions.
+function validateAdmissionDomains(policy) {
+  if (
+    policy?.schemaVersion !== 1 ||
+    !isRecord(policy.profiles) ||
+    Object.keys(policy.profiles).sort().join(",") !== "ci,quality"
+  ) {
+    return ["invalid admission policy profiles/schema"];
+  }
+  return Object.entries(policy.profiles).flatMap(([name, profile]) =>
+    validateAdmissionProfile(profile, name)
+  );
+}
+
 export function readManifest(root = process.cwd()) {
   const manifest = JSON.parse(
     readFileSync(resolve(root, "config/quality/gate-manifest.json"), "utf8")
@@ -63,6 +96,12 @@ export function readManifest(root = process.cwd()) {
   const { scripts } = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
   const errors = validateManifest(manifest, scripts);
   if (errors.length) throw new Error(errors.join("\n"));
+  if (manifest.admissionPolicy !== "config/quality/admission-policy.json") {
+    throw new Error("invalid admission policy reference");
+  }
+  const policy = JSON.parse(readFileSync(resolve(root, manifest.admissionPolicy), "utf8"));
+  const domainErrors = validateAdmissionDomains(policy);
+  if (domainErrors.length) throw new Error(domainErrors.join("\n"));
   return { manifest, scripts };
 }
 

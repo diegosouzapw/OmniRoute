@@ -1,0 +1,1 @@
+- Declare protection domains for existing CI job groups and reject missing or invalid declarations before dependency installation. Preserve current job scheduling and required checks while preparing the unified-policy transition. Refs #16075.
