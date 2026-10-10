@@ -71,21 +71,15 @@ export interface FreeTierContractAttempt {
  *
  *   1. **Known free models** — models explicitly listed in the noauth
  *      `opencode` provider registry (`open-sse/config/providers/registry/opencode/index.ts`).
- *      These are the canonical free models. `deepseek-v4-flash-free` appears in both
- *      the noauth AND the zen registry (it is free on both tiers).
+ *      These are the canonical free models. Only non-`-free` ids are load-bearing here
+ *      (e.g. `big-pickle`); `-free` ids are already covered by the suffix rule below,
+ *      but are kept in the set as documentation of the current free roster.
  *   2. **`-free` suffix** — any model whose id ends in `-free`. This automatically
  *      covers upstream free-tier additions without a code deploy.
  *
  * For `opencode-go`, there is no free tier — ALL models require an API key.
  */
-const OPENCODE_FREE_MODELS = new Set([
-  "big-pickle",
-  "deepseek-v4-flash-free",
-  "mimo-v2.5-free",
-  "hy3-free",
-  "nemotron-3-ultra-free",
-  "north-mini-code-free",
-]);
+const OPENCODE_FREE_MODELS = new Set(["big-pickle", "nemotron-3-ultra-free"]);
 
 /**
  * Determine whether a model requires an API key on the given opencode provider.

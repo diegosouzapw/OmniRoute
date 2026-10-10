@@ -59,7 +59,7 @@ test("bare big-pickle routes to an opencode-family provider when an opencode con
   assert.equal(info.model, "big-pickle");
 });
 
-test("bare deepseek-v4-flash-free (-free suffix) routes to an opencode-family provider when active", async () => {
+test("bare nemotron-3-ultra-free (-free suffix) routes to an opencode-family provider when active", async () => {
   await providersDb.createProviderConnection({
     provider: "opencode",
     authType: "apikey",
@@ -68,12 +68,16 @@ test("bare deepseek-v4-flash-free (-free suffix) routes to an opencode-family pr
     testStatus: "unknown",
   });
 
-  const info = await getModelInfoCore("deepseek-v4-flash-free", null);
+  // Was deepseek-v4-flash-free until the model was delisted upstream (401, 2026-10-08)
+  // and removed from the opencode/zen registries — a removed id is no longer cataloged
+  // anywhere, so the short-circuit correctly declines to route it. The suffix path is
+  // pinned with a live free-tier model instead.
+  const info = await getModelInfoCore("nemotron-3-ultra-free", null);
   assert.ok(
     info.provider === "opencode" || info.provider === "opencode-zen",
     `expected an opencode-family provider, got ${info.provider}`
   );
-  assert.equal(info.model, "deepseek-v4-flash-free");
+  assert.equal(info.model, "nemotron-3-ultra-free");
 });
 
 test("big-pickle still resolves to opencode when BOTH opencode + opencode-zen connections are active but their synced catalogs are stale and omit big-pickle [core regression]", async () => {

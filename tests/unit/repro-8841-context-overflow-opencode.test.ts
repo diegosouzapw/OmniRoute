@@ -51,8 +51,8 @@ function upstreamContextOverflowResponse() {
 }
 
 test("#8841 advertised vs compat-filter limit agree", () => {
-  const advertised = getTokenLimit("opencode-zen", "mimo-v2.5-free");
-  const caps = getResolvedModelCapabilities("opencode/mimo-v2.5-free");
+  const advertised = getTokenLimit("opencode-zen", "nemotron-3-ultra-free");
+  const caps = getResolvedModelCapabilities("opencode/nemotron-3-ultra-free");
   assert.ok(advertised > 0);
   assert.ok(
     caps.contextWindow != null && caps.contextWindow > 0,
@@ -69,8 +69,8 @@ test("#8841 real upstream context overflow remains a fatal 400 after dispatch", 
       name: "pro-coding-repro-8841",
       strategy: "priority",
       models: [
-        { model: "opencode/north-mini-code-free" },
-        { model: "opencode/north-mini-code-free" },
+        { model: "opencode/nemotron-3-ultra-free" },
+        { model: "opencode/nemotron-3-ultra-free" },
       ],
     },
     handleSingleModel: async () => {

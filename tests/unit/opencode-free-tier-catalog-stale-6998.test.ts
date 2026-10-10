@@ -1,9 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { opencodeProvider } = await import(
-  "../../open-sse/config/providers/registry/opencode/index.ts"
-);
+const { opencodeProvider } =
+  await import("../../open-sse/config/providers/registry/opencode/index.ts");
 
 function modelIds(): string[] {
   return (opencodeProvider.models ?? []).map((m) => m.id);
@@ -16,19 +15,29 @@ const DELISTED_FREE_MODELS = [
   "trinity-large-preview-free",
   "nemotron-3-super-free",
   "qwen3.6-plus-free",
+  // 2026-10-08 rotation — each verified 401 "Model X is not supported" live against
+  // https://opencode.ai/zen/v1/chat/completions on 2026-10-08:
+  "deepseek-v4-flash-free",
+  "mimo-v2.5-free",
+  "hy3-free",
+  "north-mini-code-free",
 ];
 
 const LIVE_FREE_MODELS_MISSING_FROM_CATALOG = [
-  "mimo-v2.5-free",
-  "hy3-free",
+  // Verified live on 2026-10-08 (present in /zen/v1/models; answers real requests).
+  // Upstream currently serves more free ids than this (jev-1.13-free, exo-free,
+  // mimo-v2.6-flash-free, ...) — they are deliberately NOT pinned here until their
+  // context lengths are verified for the registry.
   "nemotron-3-ultra-free",
-  "north-mini-code-free",
 ];
 
 test("issue #6998: oc registry does not advertise delisted free-tier models", () => {
   const ids = modelIds();
   for (const delisted of DELISTED_FREE_MODELS) {
-    assert.ok(!ids.includes(delisted), `oc registry still advertises delisted upstream model "${delisted}"`);
+    assert.ok(
+      !ids.includes(delisted),
+      `oc registry still advertises delisted upstream model "${delisted}"`
+    );
   }
 });
 

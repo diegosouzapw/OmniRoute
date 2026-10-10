@@ -50,31 +50,31 @@ test.after(async () => {
 });
 
 test("#7620: a no-auth model hidden via the eye icon (isHidden:true) must be ABSENT from the auto-combo candidate pool", async () => {
-  modelsDb.setModelIsHidden("opencode", "mimo-v2.5-free", true);
+  modelsDb.setModelIsHidden("opencode", "nemotron-3-ultra-free", true);
 
   const hiddenMap = modelsDb.getHiddenModelsByProvider();
-  const hidden = [...hiddenMap.values()].some((ids) => ids.has("mimo-v2.5-free"));
+  const hidden = [...hiddenMap.values()].some((ids) => ids.has("nemotron-3-ultra-free"));
   assert.equal(
     hidden,
     true,
-    "sanity: getHiddenModelsByProvider() must report mimo-v2.5-free as hidden"
+    "sanity: getHiddenModelsByProvider() must report nemotron-3-ultra-free as hidden"
   );
 
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
 
   const modelStrings = combo.models.map((m: { model: string }) => m.model);
   assert.ok(
-    !modelStrings.some((model: string) => model.endsWith("/mimo-v2.5-free")),
-    "BUG #7620: the eye-hidden model 'mimo-v2.5-free' must not appear in the auto-combo " +
+    !modelStrings.some((model: string) => model.endsWith("/nemotron-3-ultra-free")),
+    "BUG #7620: the eye-hidden model 'nemotron-3-ultra-free' must not appear in the auto-combo " +
       `candidate pool, but it did. Pool: ${JSON.stringify(modelStrings)}`
   );
 });
 
-test("#7620 baseline: with nothing hidden, opencode/mimo-v2.5-free is present in the pool", async () => {
+test("#7620 baseline: with nothing hidden, opencode/nemotron-3-ultra-free is present in the pool", async () => {
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);
   const modelStrings = combo.models.map((m: { model: string }) => m.model);
   assert.ok(
-    modelStrings.some((model: string) => model.endsWith("/mimo-v2.5-free")),
-    `baseline: with nothing hidden, mimo-v2.5-free must be present. Pool: ${JSON.stringify(modelStrings)}`
+    modelStrings.some((model: string) => model.endsWith("/nemotron-3-ultra-free")),
+    `baseline: with nothing hidden, nemotron-3-ultra-free must be present. Pool: ${JSON.stringify(modelStrings)}`
   );
 });
