@@ -20,6 +20,9 @@ import {
 } from "./errorClassifier.ts";
 import { getRegistryEntry } from "../config/providerRegistry.ts";
 import { isModelSelectable } from "./modelLifecycle.ts";
+import { getHiddenModelsByProvider } from "../../src/lib/db/models";
+import { isModelLocked } from "./accountFallback.ts";
+import { isComboModelVisible } from "./combo/comboVisibility.ts";
 
 // ── Model Family Definitions ─────────────────────────────────────────────────
 
@@ -308,6 +311,63 @@ export function getNextFamilyFallback(
   return null; // family exhausted
 }
 
+function isFamilyFallbackCandidateEligible(
+  provider: string,
+  candidate: string,
+  connectionId: string,
+  hiddenModelsByProvider: ReturnType<typeof getHiddenModelsByProvider>
+): boolean {
+  const candidateModel = parseModel(candidate).model || candidate;
+  return (
+    isComboModelVisible(candidate, provider, hiddenModelsByProvider) &&
+    !isModelLocked(provider, connectionId, candidateModel)
+  );
+}
+
+export function isFamilyFallbackEligible(
+  candidate: string,
+  provider: string,
+  connectionId: string
+): boolean {
+  return isFamilyFallbackCandidateEligible(
+    provider,
+    candidate,
+    connectionId,
+    getHiddenModelsByProvider()
+  );
+}
+
+/**
+ * Get the next same-connection family fallback that passes the routing
+ * visibility and resilience gates used by combo targets.
+ */
+export function getNextEligibleFamilyFallback(
+  currentModel: string,
+  triedModels: Set<string>,
+  providerHint: string | null | undefined,
+  connectionId: string
+): string | null {
+  const resolved = resolveProviderFamilyCandidates(currentModel, providerHint);
+  if (!resolved) return null;
+
+  const hiddenModelsByProvider = getHiddenModelsByProvider();
+  for (const candidate of resolved.candidates) {
+    if (wasCandidateTried(candidate, resolved.provider, triedModels)) continue;
+    const fallbackModel = `${resolved.outputPrefix}${candidate}`;
+    if (
+      isFamilyFallbackCandidateEligible(
+        resolved.provider,
+        fallbackModel,
+        connectionId,
+        hiddenModelsByProvider
+      )
+    ) {
+      return fallbackModel;
+    }
+  }
+  return null;
+}
+
 /**
  * Check if a model belongs to any registered family.
  */
@@ -323,6 +383,29 @@ export function getModelFamily(model: string, providerHint?: string | null): str
   const resolved = resolveProviderFamilyCandidates(model, providerHint);
   if (!resolved) return [model];
   return [model, ...resolved.candidates.map((candidate) => `${resolved.outputPrefix}${candidate}`)];
+}
+
+/** Get same-family siblings that remain eligible on the current connection. */
+export function getEligibleModelFamily(
+  model: string,
+  providerHint: string | null | undefined,
+  connectionId: string
+): string[] {
+  const resolved = resolveProviderFamilyCandidates(model, providerHint);
+  if (!resolved) return [model];
+
+  const hiddenModelsByProvider = getHiddenModelsByProvider();
+  const candidates = resolved.candidates
+    .map((candidate) => `${resolved.outputPrefix}${candidate}`)
+    .filter((candidate) =>
+      isFamilyFallbackCandidateEligible(
+        resolved.provider,
+        candidate,
+        connectionId,
+        hiddenModelsByProvider
+      )
+    );
+  return [model, ...candidates];
 }
 
 /**
