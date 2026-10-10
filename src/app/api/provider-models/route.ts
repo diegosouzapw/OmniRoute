@@ -137,7 +137,7 @@ export async function GET(request) {
 
 /**
  * POST /api/provider-models
- * Body: { provider, modelId, modelName? }
+ * Body: { provider, modelId, modelName?, contextWindowOverride? }
  */
 export async function POST(request) {
   const authError = await requireManagementAuth(request);
