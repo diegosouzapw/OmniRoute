@@ -91,8 +91,7 @@ import {
   retryHintBypassesMaxCooldownMs,
   isProviderModelUnsupported400,
 } from "@omniroute/open-sse/services/accountFallback.ts";
-import { areCopilotConnectionsRejected } from "@omniroute/open-sse/services/copilotModelRejections.ts";
-import { lockCopilotModelNotSupported } from "./copilotModelNotSupportedLock";
+import { copilotRejectionFlag, lockCopilotModelNotSupported } from "./copilotModelNotSupportedLock";
 import { isSharedWalletCredits402 } from "@omniroute/open-sse/services/accountFallback/sharedWalletCredits.ts";
 import { postOutputFailureReachesLockout } from "@omniroute/open-sse/services/accountFallback/postOutputFailureStreak.ts";
 import { isOpencodeFreeTierRefusalForProvider } from "@omniroute/open-sse/executors/opencodeGeoBlock.ts";
@@ -1646,16 +1645,7 @@ export async function getProviderCredentials(
           lastErrorCode: allBlockedByModelCooldown ? 429 : earliestConn?.errorCode || null,
           cooldownScope: allBlockedByModelCooldown ? "model" : "connection",
           cooldownModel: allBlockedByModelCooldown ? requestedModel : null,
-          modelNotSupported: areCopilotConnectionsRejected(
-            provider,
-            requestedModel,
-            connections.filter(
-              (connection) =>
-                !["excluded", "modelExcluded", "modelNotAdvertised", "terminalStatus"].includes(
-                  connectionFilterStatus.get(connection.id) ?? ""
-                )
-            )
-          ),
+          ...copilotRejectionFlag(provider, requestedModel, connections, connectionFilterStatus),
           connectionsCount: connections.length,
         };
       }
@@ -2719,13 +2709,12 @@ export async function markAccountUnavailable(
     // #10460: model-unsupported 400 — the PROVIDER does not serve this model, not this
     // account; rotating accounts wastes an upstream call (shared catalog). Return
     // shouldFallback: false so the combo layer advances. #15634: Copilot gets a model lock.
-    // Uses isProviderModelUnsupported400() — the SAME disambiguation
-    // (AUTH_CREDENTIAL_ERROR_PATTERNS exclusion) checkFallbackError's 400 branch
-    // applies, narrowed further to exclude the broader/ambiguous
-    // MODEL_ACCESS_DENIED_PATTERNS access-/permission-phrased matches (e.g. "does not
-    // have permission to access this model"), which can be an ACCOUNT-scoped
-    // entitlement gap (PRO vs free tier) rather than a provider-wide unsupported
-    // model — those must keep rotating to other accounts normally.
+    // Uses isProviderModelUnsupported400() — the SAME disambiguation (AUTH_CREDENTIAL_ERROR_PATTERNS
+    // exclusion) checkFallbackError's 400 branch applies, narrowed further to exclude the
+    // broader/ambiguous MODEL_ACCESS_DENIED_PATTERNS access-/permission-phrased matches (e.g.
+    // "does not have permission to access this model"), which can be an ACCOUNT-scoped
+    // entitlement gap (PRO vs free tier) rather than a provider-wide unsupported model — those
+    // must keep rotating to other accounts normally.
     if (isProviderModelUnsupported400(status, errorText)) {
       lockCopilotModelNotSupported(provider, connectionId, model, errorText);
       log.info(

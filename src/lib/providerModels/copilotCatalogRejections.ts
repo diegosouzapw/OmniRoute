@@ -1,4 +1,7 @@
-import { getCopilotModelRejections } from "@omniroute/open-sse/services/copilotModelRejections.ts";
+import {
+  getCopilotModelRejections,
+  normalizeRejectedModel,
+} from "@omniroute/open-sse/services/copilotModelRejections.ts";
 import {
   hasEligibleConnectionForModel,
   isModelAdvertisedByConnection,
@@ -35,7 +38,9 @@ export async function createCatalogConnectionExclusionFilter(
     const connections = getConnections(provider, alias, providerKey);
     if (connections.length === 0) return false; // noAuth / no DB row: keep
     if (!hasEligibleConnectionForModel(connections, model)) return true;
-    const rejectedConnections = rejected.get(JSON.stringify([provider, model]));
+    const rejectedConnections = rejected.get(
+      JSON.stringify([provider, normalizeRejectedModel(model)])
+    );
     if (!rejectedConnections || connections.length === 0) return false;
     return !connections.some(
       (connection) =>
