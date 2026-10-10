@@ -6739,7 +6739,16 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "quotaRefreshCurrent": "Sabunta iyakar amfani ta yanzu",
+    "quotaRefreshCurrentHint": "Yana duba iyakar amfani ta wannan asusun ta yanzu ba tare da kashe maki na sake saiti ba.",
+    "quotaRefreshing": "Ana duba iyakar amfani…",
+    "quotaRefreshFresh": "An duba iyakar amfani. Sabar ce ke tantance samuwar asusun.",
+    "quotaRefreshFailed": "An kasa duba iyakar amfani. Bayanai na baya ba su canza ba.",
+    "quotaRefreshStale": "Sabar ta dawo da tsoffin bayanan iyakar amfani. Wannan ba sabon bayani ba ne.",
+    "quotaRefreshPartial": "Wani ɓangare na bayanan iyakar amfani kaɗai yake samuwa.",
+    "quotaWindowUnavailable": "Babu bayanin iyakar amfani na {window}",
+    "quotaConnectionRefreshFailed": "An gama duba iyakar amfani, amma an kasa sabunta jerin asusu."
   },
   "settings": {
     "title": "Saituna",

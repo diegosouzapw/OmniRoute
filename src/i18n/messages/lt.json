@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Atnaujinti dabartinę kvotą",
+    "quotaRefreshCurrentHint": "Užklausia dabartinės šios paskyros kvotos nenaudojant nustatymo iš naujo kreditų.",
+    "quotaRefreshing": "Tikrinama kvota…",
+    "quotaRefreshFresh": "Kvota patikrinta. Paskyros prieinamumą nustato serveris.",
+    "quotaRefreshFailed": "Kvotos patikrinti nepavyko. Ankstesni duomenys nepakeisti.",
+    "quotaRefreshStale": "Serveris grąžino senus kvotos duomenis. Tai nėra naujas stebėjimas.",
+    "quotaRefreshPartial": "Pasiekiama tik dalis kvotos duomenų.",
+    "quotaWindowUnavailable": "{window} kvota nepasiekiama",
+    "quotaConnectionRefreshFailed": "Kvotos tikrinimas baigtas, bet paskyrų sąrašo atnaujinti nepavyko."
   },
   "settings": {
     "title": "Nustatymai",

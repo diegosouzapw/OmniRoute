@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Värskenda praegust kvooti",
+    "quotaRefreshCurrentHint": "Pärib selle konto praeguse kvoodi ilma lähtestuskrediiti kulutamata.",
+    "quotaRefreshing": "Kvoodi kontrollimine…",
+    "quotaRefreshFresh": "Kvoot on kontrollitud. Konto saadavuse määrab server.",
+    "quotaRefreshFailed": "Kvoodi kontrollimine ebaõnnestus. Varasemad andmed jäid muutmata.",
+    "quotaRefreshStale": "Server tagastas vanad kvoodiandmed. See ei ole uus vaatlus.",
+    "quotaRefreshPartial": "Saadaval on ainult osa kvoodiandmetest.",
+    "quotaWindowUnavailable": "Kvoot ajavahemikule {window} pole saadaval",
+    "quotaConnectionRefreshFailed": "Kvoodi kontrollimine lõppes, kuid kontode loendit ei saanud värskendada."
   },
   "settings": {
     "title": "Seaded",

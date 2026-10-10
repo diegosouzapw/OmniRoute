@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Actualizează cota curentă",
+    "quotaRefreshCurrentHint": "Verifică cota curentă a acestui cont fără a consuma credite de resetare.",
+    "quotaRefreshing": "Se verifică cota…",
+    "quotaRefreshFresh": "Cota a fost verificată. Serverul stabilește disponibilitatea contului.",
+    "quotaRefreshFailed": "Verificarea cotei a eșuat. Datele anterioare nu s-au schimbat.",
+    "quotaRefreshStale": "Serverul a returnat date vechi despre cotă. Aceasta nu este o observație nouă.",
+    "quotaRefreshPartial": "Este disponibilă doar o parte din datele cotei.",
+    "quotaWindowUnavailable": "Cota pentru {window} nu este disponibilă",
+    "quotaConnectionRefreshFailed": "Verificarea cotei s-a încheiat, dar lista conturilor nu a putut fi actualizată."
   },
   "settings": {
     "title": "Setări",

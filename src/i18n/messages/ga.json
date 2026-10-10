@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Athnuaigh an cuóta reatha",
+    "quotaRefreshCurrentHint": "Fiosraíonn sé cuóta reatha an chuntais seo gan creidmheasanna athshocraithe a chaitheamh.",
+    "quotaRefreshing": "An cuóta á sheiceáil…",
+    "quotaRefreshFresh": "Seiceáladh an cuóta. Is é an freastalaí a chinneann infhaighteacht an chuntais.",
+    "quotaRefreshFailed": "Theip ar sheiceáil an chuóta. Níl aon athrú ar na sonraí roimhe seo.",
+    "quotaRefreshStale": "Sheol an freastalaí seanshonraí cuóta ar ais. Ní breathnóireacht nua í seo.",
+    "quotaRefreshPartial": "Níl ach cuid den chuóta ar fáil.",
+    "quotaWindowUnavailable": "Níl cuóta {window} ar fáil",
+    "quotaConnectionRefreshFailed": "Tá seiceáil an chuóta críochnaithe, ach níorbh fhéidir liosta na gcuntas a athnuachan."
   },
   "settings": {
     "title": "Socruithe",

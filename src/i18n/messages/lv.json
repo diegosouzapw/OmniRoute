@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Atjaunināt pašreizējo kvotu",
+    "quotaRefreshCurrentHint": "Pieprasa šī konta pašreizējo kvotu, netērējot atiestatīšanas kredītus.",
+    "quotaRefreshing": "Pārbauda kvotu…",
+    "quotaRefreshFresh": "Kvota pārbaudīta. Konta pieejamību nosaka serveris.",
+    "quotaRefreshFailed": "Kvotas pārbaude neizdevās. Iepriekšējie dati nav mainīti.",
+    "quotaRefreshStale": "Serveris atgrieza vecus kvotas datus. Tas nav jauns novērojums.",
+    "quotaRefreshPartial": "Pieejama tikai daļa kvotas datu.",
+    "quotaWindowUnavailable": "Kvota periodam {window} nav pieejama",
+    "quotaConnectionRefreshFailed": "Kvotas pārbaude ir pabeigta, bet kontu sarakstu neizdevās atjaunināt."
   },
   "settings": {
     "title": "Iestatījumi",

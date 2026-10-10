@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Aġġorna l-kwota attwali",
+    "quotaRefreshCurrentHint": "Jiċċekkja l-kwota attwali ta’ dan il-kont mingħajr ma jonfoq krediti tar-risettjar.",
+    "quotaRefreshing": "Qed tiġi ċċekkjata l-kwota…",
+    "quotaRefreshFresh": "Il-kwota ġiet iċċekkjata. Is-server jiddetermina d-disponibbiltà tal-kont.",
+    "quotaRefreshFailed": "Il-verifika tal-kwota falliet. Id-data preċedenti ma nbidlitx.",
+    "quotaRefreshStale": "Is-server irritorna data antika tal-kwota. Din mhijiex osservazzjoni ġdida.",
+    "quotaRefreshPartial": "Parti biss mid-data tal-kwota hija disponibbli.",
+    "quotaWindowUnavailable": "Il-kwota għal {window} mhijiex disponibbli",
+    "quotaConnectionRefreshFailed": "Il-verifika tal-kwota ntemmet, iżda l-lista tal-kontijiet ma setgħetx tiġi aġġornata."
   },
   "settings": {
     "title": "Issettjar",

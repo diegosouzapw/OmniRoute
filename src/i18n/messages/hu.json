@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Aktuális kvóta frissítése",
+    "quotaRefreshCurrentHint": "Lekéri a fiók aktuális kvótáját a visszaállítási kreditek felhasználása nélkül.",
+    "quotaRefreshing": "Kvóta ellenőrzése…",
+    "quotaRefreshFresh": "A kvóta ellenőrizve. A fiók elérhetőségét a szerver határozza meg.",
+    "quotaRefreshFailed": "A kvóta ellenőrzése sikertelen. A korábbi adatok nem változtak.",
+    "quotaRefreshStale": "A szerver régi kvótaadatokat adott vissza. Ez nem új megfigyelés.",
+    "quotaRefreshPartial": "A kvótaadatoknak csak egy része érhető el.",
+    "quotaWindowUnavailable": "A(z) {window} kvótája nem érhető el",
+    "quotaConnectionRefreshFailed": "A kvóta ellenőrzése befejeződött, de a fióklistát nem sikerült frissíteni."
   },
   "settings": {
     "title": "Beállítások elemre",

@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Kostenpflichtige Codex-Credits deaktiviert",
     "failedUpdateCodexPaidCredits": "Codex-Richtlinie für kostenpflichtige Credits konnte nicht aktualisiert werden",
     "allowCodexPaidCreditsLabel": "Kostenpflichtige Codex-Credits zulassen",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Aktuelles Kontingent aktualisieren",
+    "quotaRefreshCurrentHint": "Fragt das aktuelle Kontingent dieses Kontos ab, ohne Guthaben zum Zurücksetzen zu verbrauchen.",
+    "quotaRefreshing": "Kontingent wird geprüft…",
+    "quotaRefreshFresh": "Kontingent geprüft. Der Server bestimmt die Verfügbarkeit des Kontos.",
+    "quotaRefreshFailed": "Kontingentprüfung fehlgeschlagen. Die bisherigen Daten bleiben unverändert.",
+    "quotaRefreshStale": "Der Server hat alte Kontingentdaten zurückgegeben. Dies ist keine neue Abfragebeobachtung.",
+    "quotaRefreshPartial": "Nur ein Teil der Kontingentdaten ist verfügbar.",
+    "quotaWindowUnavailable": "Kontingent für {window} nicht verfügbar",
+    "quotaConnectionRefreshFailed": "Die Kontingentprüfung ist abgeschlossen, aber die Kontoliste konnte nicht aktualisiert werden."
   },
   "settings": {
     "title": "Einstellungen",

@@ -190,7 +190,7 @@ export interface UseProviderConnectionsReturn {
   setProviderNode: (node: any) => void;
 
   // Connection fetch
-  fetchConnections: () => Promise<void>;
+  fetchConnections: () => Promise<boolean>;
   fetchProxyConfig: () => Promise<void>;
   refreshProxyState: () => Promise<void>;
 
@@ -346,14 +346,21 @@ export function useProviderConnections(
     if (map) setConnProxyMap(map);
   }, []);
 
+  const connectionsGeneration = useRef(0);
   const fetchConnections = useCallback(async () => {
+    const generation = ++connectionsGeneration.current;
     const result = await loadProviderConnectionsData(providerId, isCompatible);
+    if (generation !== connectionsGeneration.current) return false;
     if (result) {
       if (result.connections) setConnections(result.connections);
       if (result.nodeResolved) setProviderNode(result.node);
     }
     setLoading(false);
+    return result?.connections !== null && result?.connections !== undefined;
   }, [providerId, isCompatible]);
+  const refreshConnectionsWithoutResult = useCallback(async () => {
+    await fetchConnections();
+  }, [fetchConnections]);
 
   // ── effects ──────────────────────────────────────────────────────────────
   // The async work is defined INSIDE each effect (a component-scope loader
@@ -362,12 +369,7 @@ export function useProviderConnections(
 
   useEffect(() => {
     const run = async () => {
-      const result = await loadProviderConnectionsData(providerId, isCompatible);
-      if (result) {
-        if (result.connections) setConnections(result.connections);
-        if (result.nodeResolved) setProviderNode(result.node);
-      }
-      setLoading(false);
+      await fetchConnections();
     };
     void run();
     const runProxyConfig = async () => {
@@ -375,7 +377,10 @@ export function useProviderConnections(
       if (result) setProxyConfig(result.config);
     };
     void runProxyConfig();
-  }, [providerId, isCompatible]);
+    return () => {
+      connectionsGeneration.current += 1;
+    };
+  }, [fetchConnections]);
 
   // Per-connection proxy (handles registry assignments)
   useEffect(() => {
@@ -434,7 +439,7 @@ export function useProviderConnections(
   // Single-connection handlers
   // ────────────────────────────────────────────────────────────────────────
 
-  const deleteConfirm = useConnectionDeleteConfirm(fetchConnections, notify);
+  const deleteConfirm = useConnectionDeleteConfirm(refreshConnectionsWithoutResult, notify);
 
   const handleUpdateConnectionStatus = async (id: string, isActive: boolean) => {
     try {
@@ -834,7 +839,7 @@ export function useProviderConnections(
   const { reorderingByAvailability, handleReorderByAvailability } = useReorderByAvailability({
     connections,
     setConnections,
-    fetchConnections,
+    fetchConnections: refreshConnectionsWithoutResult,
     notify,
     t,
   });

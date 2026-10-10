@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Créditos pagos do Codex desativados",
     "failedUpdateCodexPaidCredits": "Falha ao atualizar a política de créditos pagos do Codex",
     "allowCodexPaidCreditsLabel": "Permitir créditos pagos do Codex",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Atualizar quota atual",
+    "quotaRefreshCurrentHint": "Consulta a quota atual desta conta sem gastar créditos de reposição.",
+    "quotaRefreshing": "A consultar quota…",
+    "quotaRefreshFresh": "Quota consultada. O servidor determina a disponibilidade da conta.",
+    "quotaRefreshFailed": "Não foi possível consultar a quota. Os dados anteriores foram mantidos.",
+    "quotaRefreshStale": "O servidor devolveu dados antigos de quota. Esta não é uma observação nova.",
+    "quotaRefreshPartial": "Apenas parte dos dados de quota está disponível.",
+    "quotaWindowUnavailable": "Quota de {window} indisponível",
+    "quotaConnectionRefreshFailed": "A consulta de quota terminou, mas não foi possível atualizar a lista de contas."
   },
   "settings": {
     "title": "Configurações",

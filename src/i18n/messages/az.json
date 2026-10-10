@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Cari kvotanı yenilə",
+    "quotaRefreshCurrentHint": "Sıfırlama kreditlərini xərcləmədən bu hesabın cari kvotasını sorğulayır.",
+    "quotaRefreshing": "Kvota yoxlanılır…",
+    "quotaRefreshFresh": "Kvota yoxlanıldı. Hesabın əlçatanlığını server müəyyən edir.",
+    "quotaRefreshFailed": "Kvotanı yoxlamaq alınmadı. Əvvəlki məlumatlar dəyişməyib.",
+    "quotaRefreshStale": "Server köhnə kvota məlumatları qaytardı. Bu, yeni müşahidə deyil.",
+    "quotaRefreshPartial": "Kvota məlumatlarının yalnız bir hissəsi mövcuddur.",
+    "quotaWindowUnavailable": "{window} kvotası mövcud deyil",
+    "quotaConnectionRefreshFailed": "Kvota yoxlanıldı, lakin hesab siyahısını yeniləmək alınmadı."
   },
   "settings": {
     "title": "Parametrlər",

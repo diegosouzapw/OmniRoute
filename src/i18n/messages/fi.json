@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Päivitä nykyinen kiintiö",
+    "quotaRefreshCurrentHint": "Hakee tämän tilin nykyisen kiintiön kuluttamatta nollauskrediittejä.",
+    "quotaRefreshing": "Tarkistetaan kiintiötä…",
+    "quotaRefreshFresh": "Kiintiö tarkistettu. Palvelin määrittää tilin käytettävyyden.",
+    "quotaRefreshFailed": "Kiintiön tarkistus epäonnistui. Aiemmat tiedot säilyivät ennallaan.",
+    "quotaRefreshStale": "Palvelin palautti vanhoja kiintiötietoja. Tämä ei ole uusi havainto.",
+    "quotaRefreshPartial": "Vain osa kiintiötiedoista on saatavilla.",
+    "quotaWindowUnavailable": "Kiintiö ajanjaksolle {window} ei ole saatavilla",
+    "quotaConnectionRefreshFailed": "Kiintiön tarkistus päättyi, mutta tililuetteloa ei voitu päivittää."
   },
   "settings": {
     "title": "Asetukset",

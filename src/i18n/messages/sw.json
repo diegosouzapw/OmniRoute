@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Sasisha mgao wa sasa",
+    "quotaRefreshCurrentHint": "Hukagua mgao wa sasa wa akaunti hii bila kutumia salio la kuweka upya.",
+    "quotaRefreshing": "Inakagua mgao…",
+    "quotaRefreshFresh": "Mgao umekaguliwa. Seva huamua upatikanaji wa akaunti.",
+    "quotaRefreshFailed": "Ukaguzi wa mgao umeshindikana. Data ya awali haijabadilika.",
+    "quotaRefreshStale": "Seva imerudisha data ya zamani ya mgao. Huu si uchunguzi mpya.",
+    "quotaRefreshPartial": "Sehemu tu ya data ya mgao inapatikana.",
+    "quotaWindowUnavailable": "Mgao wa {window} haupatikani",
+    "quotaConnectionRefreshFailed": "Ukaguzi wa mgao umekamilika, lakini orodha ya akaunti haikuweza kusasishwa."
   },
   "settings": {
     "title": "Mipangilio",

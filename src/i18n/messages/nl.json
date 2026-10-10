@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Huidig quotum vernieuwen",
+    "quotaRefreshCurrentHint": "Vraagt het huidige quotum van dit account op zonder resetcredits te verbruiken.",
+    "quotaRefreshing": "Quotum controleren…",
+    "quotaRefreshFresh": "Quotum gecontroleerd. De server bepaalt de beschikbaarheid van het account.",
+    "quotaRefreshFailed": "Quotumcontrole mislukt. De eerdere gegevens zijn ongewijzigd.",
+    "quotaRefreshStale": "De server heeft oude quotumgegevens teruggegeven. Dit is geen nieuwe waarneming.",
+    "quotaRefreshPartial": "Slechts een deel van de quotumgegevens is beschikbaar.",
+    "quotaWindowUnavailable": "Quotum voor {window} niet beschikbaar",
+    "quotaConnectionRefreshFailed": "De quotumcontrole is voltooid, maar de accountlijst kon niet worden vernieuwd."
   },
   "settings": {
     "title": "Instellingen",

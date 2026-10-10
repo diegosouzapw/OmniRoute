@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Muat semula kuota semasa",
+    "quotaRefreshCurrentHint": "Menyemak kuota semasa akaun ini tanpa menggunakan kredit tetapan semula.",
+    "quotaRefreshing": "Menyemak kuota…",
+    "quotaRefreshFresh": "Kuota telah disemak. Ketersediaan akaun ditentukan oleh pelayan.",
+    "quotaRefreshFailed": "Semakan kuota gagal. Data terdahulu tidak berubah.",
+    "quotaRefreshStale": "Pelayan mengembalikan data kuota lama. Ini bukan pemerhatian baharu.",
+    "quotaRefreshPartial": "Hanya sebahagian data kuota tersedia.",
+    "quotaWindowUnavailable": "Kuota {window} tidak tersedia",
+    "quotaConnectionRefreshFailed": "Semakan kuota selesai, tetapi senarai akaun tidak dapat dimuat semula."
   },
   "settings": {
     "title": "tetapan",

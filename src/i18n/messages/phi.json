@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "I-refresh ang kasalukuyang quota",
+    "quotaRefreshCurrentHint": "Sinusuri ang kasalukuyang quota ng account na ito nang hindi gumagastos ng mga credit sa pag-reset.",
+    "quotaRefreshing": "Sinusuri ang quota…",
+    "quotaRefreshFresh": "Nasuri ang quota. Ang server ang tumutukoy kung magagamit ang account.",
+    "quotaRefreshFailed": "Hindi nasuri ang quota. Hindi nagbago ang dating data.",
+    "quotaRefreshStale": "Lumang data ng quota ang ibinalik ng server. Hindi ito bagong obserbasyon.",
+    "quotaRefreshPartial": "Bahagi lang ng data ng quota ang available.",
+    "quotaWindowUnavailable": "Hindi available ang quota para sa {window}",
+    "quotaConnectionRefreshFailed": "Tapos na ang pagsusuri ng quota, pero hindi na-refresh ang listahan ng mga account."
   },
   "settings": {
     "title": "Mga setting",

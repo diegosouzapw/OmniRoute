@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Odśwież bieżący limit",
+    "quotaRefreshCurrentHint": "Sprawdza bieżący limit tego konta bez zużywania kredytów resetowania.",
+    "quotaRefreshing": "Sprawdzanie limitu…",
+    "quotaRefreshFresh": "Limit sprawdzony. O dostępności konta decyduje serwer.",
+    "quotaRefreshFailed": "Sprawdzenie limitu nie powiodło się. Poprzednie dane pozostały bez zmian.",
+    "quotaRefreshStale": "Serwer zwrócił stare dane limitu. To nie jest nowy odczyt.",
+    "quotaRefreshPartial": "Dostępna jest tylko część danych limitu.",
+    "quotaWindowUnavailable": "Limit dla {window} jest niedostępny",
+    "quotaConnectionRefreshFailed": "Sprawdzanie limitu zakończono, ale nie udało się odświeżyć listy kont."
   },
   "settings": {
     "title": "Ustawienia",

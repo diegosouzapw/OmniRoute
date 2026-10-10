@@ -6739,7 +6739,16 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "quotaRefreshCurrent": "Osvježi trenutnu kvotu",
+    "quotaRefreshCurrentHint": "Provjerava trenutnu kvotu ovog računa bez trošenja kredita za resetovanje.",
+    "quotaRefreshing": "Provjera kvote…",
+    "quotaRefreshFresh": "Kvota je provjerena. Server određuje dostupnost računa.",
+    "quotaRefreshFailed": "Provjera kvote nije uspjela. Prethodni podaci nisu promijenjeni.",
+    "quotaRefreshStale": "Server je vratio stare podatke o kvoti. Ovo nije novo očitanje.",
+    "quotaRefreshPartial": "Dostupan je samo dio podataka o kvoti.",
+    "quotaWindowUnavailable": "Kvota za {window} nije dostupna",
+    "quotaConnectionRefreshFailed": "Provjera kvote je završena, ali lista računa nije mogla biti osvježena."
   },
   "settings": {
     "title": "Postavke",

@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Obnoviť aktuálnu kvótu",
+    "quotaRefreshCurrentHint": "Zistí aktuálnu kvótu tohto účtu bez spotreby kreditov na resetovanie.",
+    "quotaRefreshing": "Kontrola kvóty…",
+    "quotaRefreshFresh": "Kvóta bola skontrolovaná. Dostupnosť účtu určuje server.",
+    "quotaRefreshFailed": "Kontrola kvóty zlyhala. Predchádzajúce údaje sa nezmenili.",
+    "quotaRefreshStale": "Server vrátil staré údaje o kvóte. Nejde o nové zistenie.",
+    "quotaRefreshPartial": "K dispozícii je iba časť údajov o kvóte.",
+    "quotaWindowUnavailable": "Kvóta pre {window} nie je dostupná",
+    "quotaConnectionRefreshFailed": "Kontrola kvóty sa skončila, ale zoznam účtov sa nepodarilo obnoviť."
   },
   "settings": {
     "title": "Nastavenia",

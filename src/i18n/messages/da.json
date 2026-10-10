@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Opdater den aktuelle kvote",
+    "quotaRefreshCurrentHint": "Henter denne kontos aktuelle kvote uden at bruge nulstillingskreditter.",
+    "quotaRefreshing": "Kontrollerer kvoten…",
+    "quotaRefreshFresh": "Kvoten er kontrolleret. Serveren afgør, om kontoen er tilgængelig.",
+    "quotaRefreshFailed": "Kvoten kunne ikke kontrolleres. De tidligere data er uændrede.",
+    "quotaRefreshStale": "Serveren returnerede gamle kvotedata. Dette er ikke en ny aflæsning.",
+    "quotaRefreshPartial": "Kun en del af kvotedataene er tilgængelige.",
+    "quotaWindowUnavailable": "Kvoten for {window} er ikke tilgængelig",
+    "quotaConnectionRefreshFailed": "Kvotekontrollen er afsluttet, men kontolisten kunne ikke opdateres."
   },
   "settings": {
     "title": "Indstillinger",

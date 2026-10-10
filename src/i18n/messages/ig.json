@@ -6739,7 +6739,16 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "quotaRefreshCurrent": "Melite oke ojiji dị ugbu a",
+    "quotaRefreshCurrentHint": "Na-enyocha oke ojiji akaụntụ a dị ugbu a na-ejighị kredit nrụgharị.",
+    "quotaRefreshing": "A na-enyocha oke ojiji…",
+    "quotaRefreshFresh": "A nyochala oke ojiji. Sava na-ekpebi ma akaụntụ dị njikere.",
+    "quotaRefreshFailed": "Nnyocha oke ojiji dara. Data gara aga agbanwebeghị.",
+    "quotaRefreshStale": "Sava weghachiri data oke ojiji ochie. Nke a abụghị nlele ọhụrụ.",
+    "quotaRefreshPartial": "Naanị akụkụ data oke ojiji dị.",
+    "quotaWindowUnavailable": "Oke ojiji {window} adịghị",
+    "quotaConnectionRefreshFailed": "Nnyocha oke ojiji agwụla, mana enweghị ike imelite ndepụta akaụntụ."
   },
   "settings": {
     "title": "Ntọala",

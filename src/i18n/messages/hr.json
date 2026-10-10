@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Osvježi trenutačnu kvotu",
+    "quotaRefreshCurrentHint": "Dohvaća trenutačnu kvotu ovog računa bez trošenja kredita za poništavanje.",
+    "quotaRefreshing": "Provjera kvote…",
+    "quotaRefreshFresh": "Kvota je provjerena. Poslužitelj određuje dostupnost računa.",
+    "quotaRefreshFailed": "Provjera kvote nije uspjela. Prethodni podaci nisu promijenjeni.",
+    "quotaRefreshStale": "Poslužitelj je vratio stare podatke o kvoti. Ovo nije novo očitanje.",
+    "quotaRefreshPartial": "Dostupan je samo dio podataka o kvoti.",
+    "quotaWindowUnavailable": "Kvota za {window} nije dostupna",
+    "quotaConnectionRefreshFailed": "Provjera kvote je završena, ali popis računa nije bilo moguće osvježiti."
   },
   "settings": {
     "title": "Postavke",

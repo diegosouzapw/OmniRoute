@@ -6739,7 +6739,16 @@
     "codexPaidCreditsDisabled": "Codex paid credits disabled",
     "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
     "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled.",
+    "quotaRefreshCurrent": "Güncel kotayı yenile",
+    "quotaRefreshCurrentHint": "Sıfırlama kredisi harcamadan bu hesabın güncel kotasını sorgular.",
+    "quotaRefreshing": "Kota kontrol ediliyor…",
+    "quotaRefreshFresh": "Kota kontrol edildi. Hesabın kullanılabilirliğini sunucu belirler.",
+    "quotaRefreshFailed": "Kota kontrolü başarısız oldu. Önceki veriler değişmedi.",
+    "quotaRefreshStale": "Sunucu eski kota verilerini döndürdü. Bu yeni bir gözlem değildir.",
+    "quotaRefreshPartial": "Kota verilerinin yalnızca bir kısmı mevcut.",
+    "quotaWindowUnavailable": "{window} kotası kullanılamıyor",
+    "quotaConnectionRefreshFailed": "Kota kontrolü tamamlandı, ancak hesap listesi yenilenemedi."
   },
   "settings": {
     "title": "Ayarlar",
