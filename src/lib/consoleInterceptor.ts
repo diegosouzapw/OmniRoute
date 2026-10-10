@@ -97,23 +97,66 @@ function ensureDir() {
 // cannot be imported today.
 const LEVEL_TOKENS = new Set(["DEBUG", "INFO", "WARN", "WARNING", "ERROR", "FATAL", "TRACE"]);
 
+// A clock prefix carries no routing information: the entry already travels with its own
+// timestamp field. Matches the two getTimeString() emitters
+// (open-sse/utils/usageTracking.ts, open-sse/utils/streamHandler.ts), which both format
+// the clock as HH:MM:SS. Strict on purpose: a real component shaped like a clock does not
+// exist, and a loose shape would swallow one.
+const CLOCK_TOKEN_RE = /^\d{2}:\d{2}:\d{2}$/;
+
+// Local copy of the ANSI escape pattern from open-sse/utils/streamHelpers.ts
+// (ANSI_ESCAPE_RE, ReDoS-safe: bounded classes, no nested quantifiers). Importing that
+// module here would pull the translator formats and the provider registry into the
+// startup path, so the pattern is duplicated and kept in sync by the parity test in
+// tests/unit/console-interceptor-message-fidelity.test.ts.
+const ANSI_PATTERN_RE =
+  /\x1b(?:\[[0-9;?]*[A-Za-z]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[A-Z\[\]\\^_`])|[\x00-\x08\x0b\x0c\x0e-\x1f]/;
+
+function stripAnsi(text: string): string {
+  return text.replace(new RegExp(ANSI_PATTERN_RE.source, "g"), "");
+}
+
+/**
+ * Skip the decoration between two brackets on a working copy without escape codes.
+ *
+ * Emitters wrap the component in an emoji and color codes
+ * (`[19:29:32] 📊 \x1b[32m[USAGE]`), and the escape itself holds a bracket (`[32m`),
+ * so scanning the raw message would stop on the wrong bracket. Runs on the stripped
+ * copy, advances over spaces and non-alphanumeric marks, and stops at the first
+ * letter, digit, or bracket. Bounded so a text segment never scans the whole message.
+ */
+function skipDecoration(stripped: string, from: number): number {
+  let pos = from;
+  const limit = Math.min(stripped.length, from + 32);
+  while (pos < limit) {
+    const ch = stripped[pos];
+    if (ch === "[" || ch === "]") break;
+    if (/[A-Za-z0-9]/.test(ch)) break;
+    pos++;
+  }
+  return pos;
+}
+
 /**
  * Try to extract component name from message patterns like [COMPONENT] or [component].
  *
  * The tagged logger emits `[LEVEL] [TAG] message` (open-sse/utils/logger.ts), so taking the
  * first bracket recorded the level as the component and dropped the real one — the log stopped
  * being filterable by component, which is the point of the field. Level tokens are skipped; the
- * level already travels in the entry's own `level` field.
+ * level already travels in the entry's own `level` field. Clock prefixes (`HH:MM:SS`, already
+ * in the entry's `timestamp` field) are skipped the same way.
  */
 function extractComponent(msg: string): string {
-  let rest = msg;
-  // Bounded: a message never legitimately carries more than a level plus a tag.
+  let stripped = stripAnsi(msg);
+  // Bounded: a message never legitimately carries more than a clock, a level, and a tag.
   for (let depth = 0; depth < 3; depth++) {
-    const match = rest.match(/^\s*\[([^\]]+)\]/);
+    const match = stripped.match(/^\s*\[([^\]]+)\]/);
     if (!match) break;
     const token = match[1].trim();
-    if (!LEVEL_TOKENS.has(token.toUpperCase())) return token;
-    rest = rest.slice(match[0].length);
+    const isSkipped = LEVEL_TOKENS.has(token.toUpperCase()) || CLOCK_TOKEN_RE.test(token);
+    if (!isSkipped) return token;
+    stripped = stripped.slice(match[0].length);
+    if (depth < 2) stripped = stripped.slice(skipDecoration(stripped, 0));
   }
   return "app";
 }
@@ -226,13 +269,19 @@ function emitMissingDirNoticeOnce(): void {
  */
 function writeEntry(level: string, args: unknown[]) {
   try {
-    const message = argsToMessage(args);
+    const rawMessage = argsToMessage(args);
+    // The terminal keeps the colors: original(...args) below receives the arguments
+    // untouched. The file entry (and the error dedup key, which is one logical line
+    // per color variant) uses the stripped message so text search and the log viewer
+    // read plain text. The viewer (ConsoleLogViewer) and the log API
+    // (src/app/api/logs/console/route.ts) strip nothing on display.
+    const message = stripAnsi(rawMessage);
     if (level === "error" && shouldSuppressErrorEntry(message)) return;
 
     const entry = {
       timestamp: new Date().toISOString(),
       level,
-      component: extractComponent(message),
+      component: extractComponent(rawMessage),
       message,
     };
     const line = JSON.stringify(entry) + "\n";

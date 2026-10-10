@@ -1,0 +1,1 @@
+- **fix(app-log):** clock-prefixed lines now file under the real component and file messages drop terminal color codes ([#16270](https://github.com/diegosouzapw/OmniRoute/pull/16270)) — thanks @maxmad64bis
