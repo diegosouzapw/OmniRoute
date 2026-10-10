@@ -1,0 +1,1 @@
+- Preserve Slack, Discord, and Telegram payloads for unknown programmatic webhook events with a generic description. Ignore inherited description and color keys, retain the original event in custom deliveries and audit records, and keep successful wildcard deliveries from accumulating failures. Fixes #16201.

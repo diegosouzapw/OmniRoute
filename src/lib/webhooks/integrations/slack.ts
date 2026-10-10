@@ -1,5 +1,5 @@
 import type { WebhookEvent } from "../eventDescriptions";
-import { EVENT_DESCRIPTIONS } from "../eventDescriptions";
+import { resolveEventDescription } from "../resolveEventDescription";
 
 export interface SlackPayload {
   text: string;
@@ -10,7 +10,7 @@ export function buildSlackPayload(
   event: WebhookEvent,
   data: Record<string, unknown>
 ): SlackPayload {
-  const desc = EVENT_DESCRIPTIONS[event];
+  const desc = resolveEventDescription(event);
   const model = typeof data.model === "string" ? data.model : null;
   const provider = typeof data.provider === "string" ? data.provider : null;
   const error = typeof data.error === "string" ? data.error : null;

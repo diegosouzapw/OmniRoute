@@ -318,10 +318,11 @@ test("buildTelegramPayload/Url: Markdown-escaped lines; malformed bot token thro
   });
 });
 
-test("characterization: payload builders currently throw a TypeError on an unknown event", () => {
-  // The event is only typed, never validated at runtime: EVENT_DESCRIPTIONS[event] is undefined.
+test("payload builders provide a generic description for an unknown event", () => {
   const unknown = "nope.event" as "test.ping";
-  assert.throws(() => slack.buildSlackPayload(unknown, {}), TypeError);
-  assert.throws(() => discord.buildDiscordPayload(unknown, {}), TypeError);
-  assert.throws(() => telegram.buildTelegramPayload(unknown, {}, "1"), TypeError);
+  assert.equal(slack.buildSlackPayload(unknown, {}).text, "🔔 *Webhook Event*");
+  assert.equal(discord.buildDiscordPayload(unknown, {}).embeds?.[0].title, "🔔 Webhook Event");
+  assert.ok(
+    telegram.buildTelegramPayload(unknown, {}, "1").text.startsWith("🔔 *Webhook Event*\n")
+  );
 });

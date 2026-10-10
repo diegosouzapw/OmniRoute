@@ -1,6 +1,7 @@
-import type { WebhookEvent } from "../eventDescriptions";
-import { EVENT_DESCRIPTIONS } from "../eventDescriptions";
 import { getAccountDisplayName } from "@/lib/display/names";
+
+import type { WebhookEvent } from "../eventDescriptions";
+import { resolveEventDescription } from "../resolveEventDescription";
 
 export interface TelegramSendMessagePayload {
   chat_id: string;
@@ -29,7 +30,7 @@ export function buildTelegramPayload(
   data: Record<string, unknown>,
   chatId: string
 ): TelegramSendMessagePayload {
-  const desc = EVENT_DESCRIPTIONS[event];
+  const desc = resolveEventDescription(event);
   const model = typeof data.model === "string" ? escapeMd(data.model) : null;
   const error = typeof data.error === "string" ? escapeMd(data.error) : null;
   const provider = typeof data.provider === "string" ? escapeMd(data.provider) : null;
@@ -40,8 +41,7 @@ export function buildTelegramPayload(
       : null;
   const accountId = typeof data.accountId === "string" ? data.accountId.trim() : null;
   const accountDisplay =
-    account ||
-    (accountId ? escapeMd(getAccountDisplayName({ id: accountId, name: null })) : null);
+    account || (accountId ? escapeMd(getAccountDisplayName({ id: accountId, name: null })) : null);
   const latencyMs =
     typeof data.latencyMs === "number" && Number.isFinite(data.latencyMs) ? data.latencyMs : null;
   const fallbackCount =
