@@ -599,7 +599,17 @@ export function sanitizeReasoningEffortForProvider(
       isOpencodeGoProvider(provider) ||
       MAX_TIER_REASONING_MODEL_PATTERN.test(modelStr));
 
-  if (isMaxTierTarget && effortStr === "xhigh") {
+  // When OmniRoute has already learned this provider+model's accepted set and
+  // it lacks `max` (e.g. a custom OpenAI-compatible host serving deepseek-v4-*
+  // with a {..., high, xhigh} menu), the static rewrite would 400 forever:
+  // skip it and let the learned set decide (port of decolua/9router#3939).
+  const maxTierLearnedSet =
+    isMaxTierTarget && effortStr === "xhigh" ? getLearnedReasoningEffort(provider, modelStr) : null;
+  const learnedRejectsMax =
+    maxTierLearnedSet !== null && maxTierLearnedSet.size > 0 && !maxTierLearnedSet.has("max");
+  if (learnedRejectsMax && maxTierLearnedSet.has("xhigh")) return body;
+
+  if (isMaxTierTarget && effortStr === "xhigh" && !learnedRejectsMax) {
     log?.info?.(
       "REASONING_SANITIZE",
       `${provider}/${modelStr}: normalized reasoning_effort xhigh → max`
