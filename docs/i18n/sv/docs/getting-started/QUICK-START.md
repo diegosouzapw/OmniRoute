@@ -4,7 +4,7 @@
 
 ---
 
-> **Kort sagt**: Installera → Anslut en kostnadsfri leverantör → Konfigurera din IDE att använda OmniRoute. Klart.
+> **Kort sagt**: Installera → Anslut en behörig leverantör → Peka din IDE mot OmniRoute. Klart.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute startar på `http://localhost:20128`. Kontrollpanelen öppnas automati
 
 ---
 
-## Steg 3: Anslut en kostnadsfri leverantör
+## Steg 3: Anslut en behörig leverantör
 
-Du kan använda OmniRoute **helt kostnadsfritt** genom att ansluta en kostnadsfri leverantör.
+Välj en leverantör vars villkor och kvoter passar dina behov. Anslut ditt eget konto eller din API-nyckel under **Kontrollpanel → Leverantörer** och testa sedan anslutningen. Gratis åtkomst och tillgänglighet utan nyckel garanteras inte.
 
-### Alternativ A: Kiro (kostnadsfri Claude — inget kreditkort)
-
-1. Öppna kontrollpanelen på `http://localhost:20128`
-2. Gå till **Leverantörer** → **Lägg till leverantör**
-3. Välj **Kiro AI**
-4. Klicka på **Anslut** (ingen API-nyckel krävs!)
-5. Klart! Du har nu kostnadsfri åtkomst till Claude-modeller.
-
-### Alternativ B: OpenCode Free (ingen autentisering)
-
-1. Öppna kontrollpanelen på `http://localhost:20128`
-2. Gå till **Leverantörer** → **Lägg till leverantör**
-3. Välj **OpenCode Free**
-4. Klicka på **Anslut** (ingen API-nyckel krävs!)
-5. Klart! Du har nu kostnadsfri åtkomst till flera modeller.
-
-### Alternativ C: Pollinations (ingen nyckel krävs)
-
-1. Öppna kontrollpanelen på `http://localhost:20128`
-2. Gå till **Leverantörer** → **Lägg till leverantör**
-3. Välj **Pollinations**
-4. Klicka på **Anslut** (ingen API-nyckel krävs!)
-5. Klart! Du har nu kostnadsfri åtkomst till GPT-5, Claude, Gemini med flera.
+`auto` utesluter som standard leverantörer märkta `tos: avoid`, däribland Kiro och OpenCode Free. Att ansluta ett konto ändrar inte denna policy. Tillvalet under **Kontrollpanel → Combos** gäller för alla automatiska combos. Läs [Guide till kostnadsfria nivåer](./FREE-TIERS-GUIDE.md) innan du väljer en leverantör.
 
 ---
 
@@ -154,7 +132,7 @@ Du kan se information om förfrågan genom att klicka på [Övervakning/loggar](
 
 - **[Guide till Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Låt OmniRoute välja den bästa AI:n åt dig
 - **[Leverantörsguide](./PROVIDERS-GUIDE.md)** — Anslut fler leverantörer (kostnadsfria och betalda)
-- **[Guide till kostnadsfria nivåer](./FREE-TIERS-GUIDE.md)** — Få kostnadsfri AI utan kreditkort
+- **[Guide till kostnadsfria nivåer](./FREE-TIERS-GUIDE.md)** — Granska leverantörernas villkor och gränserna för gratisnivåer
 - **[Felsökning](../guides/TROUBLESHOOTING.md)** — Lös vanliga problem
 
 ---
@@ -163,7 +141,7 @@ Du kan se information om förfrågan genom att klicka på [Övervakning/loggar](
 
 ### ”Behöver jag en API-nyckel?”
 
-**Nej!** Du kan använda kostnadsfria leverantörer (Kiro, OpenCode Free, Pollinations) utan någon API-nyckel. Anslut dem bara i kontrollpanelen.
+OmniRoutes API-nyckel autentiserar dina verktyg. Inloggningsuppgifterna för den bakomliggande tjänsten beror på leverantören: vissa kräver en API-nyckel eller kontoinloggning. Gratis åtkomst garanteras inte.
 
 ### ”Vad är `auto`?”
 

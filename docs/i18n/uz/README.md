@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 Oyiga ~1.62B bepul token
+## 💰 Uchinchi tomonlarning bepul tariflari bo‘yicha oyiga jami ~1.62B token
 
 </div>
 
+> **O‘z provayder hisoblaringizdan foydalaning.** Bu alohida muvofiqlik shartlariga ega uchinchi tomon bepul tariflarining taxminiy yig‘indisi, OmniRoute ajratgan tokenlar emas. Ro‘yxatdan o‘ting, zarur kirish ma’lumotlarini oling va foydalana oladigan provayderlarni ulang; har bir provayder o‘z cheklovlari, mavjudligi va shartlarini belgilaydi.
+>
 > Bepul tariflarni qoʻlda birlashtirish juda mashaqqatli — oʻnlab SDKlar, oʻnlab tezlik cheklovlari va aslida qancha resursingiz borligi nomaʼlum. OmniRoute **35 ta takrorlanuvchi pul kaliti boʻyicha 489 ta bepul tarif yozuvini** kataloglashtiradi va tokenlar boʻyicha asosiy koʻrsatkichni **eʼlon qilingan musbat oylik budjetga ega 17 ta pul hamda har bir model uchun beshta Groq limitidan** hisoblaydi, bunda umumiy pullar takroriy hisoblanmaydi. Faqat mintaqaviy shaxsni tasdiqlashdan keyin ochiladigan kvotalar (hozirda: ModelScope) alohida koʻrsatiladi: mintaqaviy shaxsni tasdiqlash ortida +~6M, va ular hech qachon asosiy koʻrsatkichga qoʻshilmaydi. Natija boshqaruv panelida (`/dashboard/free-tiers`) doimo koʻrinib turadi.
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute bepul tarif budjeti kartasi: oyiga barqaror ~1.62B bepul token, roʻyxatdan oʻtish kreditlari bilan birinchi oyda ~2.22B gacha, bitta endpoint ortida kataloglashtirilgan 489 ta bepul tarif yozuvini qamrab oluvchi hujjatlashtirilgan 35 ta takrorlanuvchi pul kalitidan. Pullar boʻyicha takrorlarni chiqarib tashlagan halol hisob-kitob — har bir umumiy pul faqat bir marta hisoblanadi, jumladan eʼlon qilingan musbat oylik token budjetiga ega 17 ta takrorlanuvchi pul hamda har bir model uchun beshta Groq limiti; shartlar xavfi katalogida 13 ta provayder «chetlab oʻtish» deb belgilangan, shuning uchun qarorni siz qabul qilasiz. Budjet paneli Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (har bir model uchun beshta limit) va kichikroq pullarni oʻz ichiga oladi; bundan tashqari, birinchi oydagi roʻyxatdan oʻtish kreditlari hamda doimiy bepul, token cheklovisiz provayderlar alohida koʻrsatiladi, shuning uchun ular asosiy koʻrsatkichni hech qachon sunʼiy ravishda oshirmaydi. Joriy sarflangan/qolgan miqdor /dashboard/free-tiers sahifasida."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Boshlash</b></td>
     <td align="center"><a href="#-quick-start">🚀 Tezkor boshlash</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Oʻrnatish</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Sozlamalarsiz</a></td>
+    <td align="center"><a href="#first-run">🆓 Provayderni ulang</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Oʻrganish</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Oʻrnatishingiz bilanoq ishlaydi — kalitlar, konfiguratsiya yoʻq
+<a id="first-run"></a>
+
+## 🆓 O‘rnating, provayderni ulang va bitta yakuniy nuqta orqali yo‘naltiring
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oʻrnatishingiz bilanoq ishlaydi — nol konfiguratsiya. Uch qadam: 1. Oʻrnatish — npm i -g omniroute, server localhost:20128 da ishga tushadi. 2. Asbobingizni http://localhost:20128/v1 ga yoʻnaltiring — har qanday OpenAI-mos asbob (Claude Code, Cursor, Cline). 3. U javob beradi — API kalitisiz, roʻyxatdan oʻtmasdan, konfiguratsiyasiz tezkor javob olish uchun model auto ni chaqiring. Kalitsiz provayder OpenCode Free auto kombinatsiyasiga oldindan ulangan, shuning uchun yangi oʻrnatish qutidan tashqarida javob beradi."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Uch qadam: OmniRoute-ni o‘rnating va ishga tushiring, o‘z hisobingiz yoki API kalitingiz bilan mos provayderni ulang, so‘ng OmniRoute API kaliti va auto modeli orqali vositani localhost:20128/v1 manziliga yo‘naltiring. Yo‘naltirish mavjud mos ulanishlar va provayder cheklovlariga bog‘liq."/>
 
 ```bash
-# Yangi oʻrnatish, nol hisobga olish maʼlumotlari — `auto` allaqachon ishlaydi:
+# Provayderni ulagach, OmniRoute kalitingizni Boshqaruv paneli → Endpoints bo‘limidan nusxalang:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Maʼlum bir bepul backendni afzal koʻrasizmi? `oc/…` (OpenCode Free) ni toʻgʻridan-toʻgʻri chaqiring. Keyin `auto` ga oʻting va OmniRoute tanlashiga ruxsat bering.</sub>
+<sub>`auto` uchun mos yo‘nalish kerak. Yangi o‘rnatmada mos kalitsiz maqsadlar bo‘lmasligi mumkin; kalitsiz provayder esa uchinchi tomon mijozlarini rad etishi mumkin. `auto` odatda Kiro va OpenCode Free kabi `tos: avoid` bilan belgilangan provayderlarni chiqarib tashlaydi. Hisobni ulash bu siyosatni o‘zgartirmaydi. Provayder tanlashdan oldin [Bepul tariflar qoʻllanmasi](docs/getting-started/FREE-TIERS-GUIDE.md) qo‘llanmasini o‘qing.</sub>
 
 <sub>📦 **Python, Node.js, PHP va cURL** uchun tezkor ishga tushirish skriptlarini nusxalash-joylashtirish → [`examples/quickstart/`](examples/quickstart/)</sub>
 

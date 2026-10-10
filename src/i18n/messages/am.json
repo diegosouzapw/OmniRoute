@@ -3384,6 +3384,10 @@
     "comboRefMember": "ጥምረት → {name}"
   },
   "combos": {
+    "autoTosLoadError": "የአገልግሎት ውሎች ፖሊሲ መጫን አልተቻለም። ከመቀየርዎ በፊት እንደገና ይሞክሩ።",
+    "autoTosSaveError": "የአገልግሎት ውሎች ፖሊሲ ማስቀመጥ አልተቻለም። ያለፈው ቅንብር አሁንም ይታያል። እንደገና ይሞክሩ።",
+    "autoTosIncludeLabel": "ToS: avoid ተብለው የተሰየሙ አቅራቢዎችን በauto ውስጥ ያካትቱ",
+    "autoTosDescription": "በነባሪ ጠፍቷል። ለሁሉም የauto ጥምረቶች ይሠራል፣ ለአንድ መለያ ብቻ አይደለም። አቅራቢን ማገናኘት ይህን አማራጭ አያበራም።",
     "title": "ጥምረቶች",
     "description": "ክብደት ያለው ማስተላለፊያ እና የመጠባበቂያ ድጋፍ ያላቸው የሞዴል ጥምረቶችን ይፍጠሩ",
     "autoCatalogTitle": "የራስ-ሰር ማስተላለፊያ ካታሎግ",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ይህ አቅራቢ በነባሪ ከauto ተገልሏል",
+    "tosAvoidNoticeDescription": "የአገልግሎት ውሎች ሁኔታው avoid ተብሎ ተሰይሟል። መለያ ማገናኘት ይህን ፖሊሲ አይቀይርም። ለሁሉም የauto ጥምረቶች የጋራ ፈቃድ ከማብራትዎ በፊት የአቅራቢውን ውሎች ይከልሱ።",
+    "tosAvoidNoticeAction": "የauto ፖሊሲን ይከልሱ",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

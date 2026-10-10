@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinācija → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Neizdevās ielādēt pakalpojuma noteikumu politiku. Pirms tās maiņas mēģiniet vēlreiz.",
+    "autoTosSaveError": "Neizdevās saglabāt pakalpojuma noteikumu politiku. Joprojām tiek rādīts iepriekšējais iestatījums. Mēģiniet vēlreiz.",
+    "autoTosIncludeLabel": "Iekļaut auto pakalpojumu sniedzējus ar atzīmi ToS: avoid",
+    "autoTosDescription": "Pēc noklusējuma izslēgts. Attiecas uz visām auto kombinācijām, ne tikai vienu kontu. Pakalpojuma sniedzēja pievienošana neieslēdz šo iespēju.",
     "title": "Kombinācijas",
     "description": "Izveidojiet modeļu kombinācijas ar svērtu maršrutēšanu un rezerves variantu atbalstu",
     "autoCatalogTitle": "Automātiskās maršrutēšanas katalogs",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Šis pakalpojumu sniedzējs pēc noklusējuma ir izslēgts no auto",
+    "tosAvoidNoticeDescription": "Tā pakalpojuma noteikumu statuss ir atzīmēts kā avoid. Konta pievienošana nemaina šo politiku. Pirms kopīgās atļaujas ieslēgšanas visām auto kombinācijām pārskatiet pakalpojuma sniedzēja noteikumus.",
+    "tosAvoidNoticeAction": "Pārskatīt auto politiku",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

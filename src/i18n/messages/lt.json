@@ -3384,6 +3384,10 @@
     "comboRefMember": "Derinys → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Nepavyko įkelti paslaugų teikimo sąlygų politikos. Prieš keisdami bandykite dar kartą.",
+    "autoTosSaveError": "Nepavyko išsaugoti paslaugų teikimo sąlygų politikos. Vis dar rodoma ankstesnė nuostata. Bandykite dar kartą.",
+    "autoTosIncludeLabel": "Į auto įtraukti teikėjus, pažymėtus ToS: avoid",
+    "autoTosDescription": "Pagal numatytuosius nustatymus išjungta. Taikoma visiems auto deriniams, ne tik vienai paskyrai. Teikėjo prijungimas šios parinkties neįjungia.",
     "title": "Kombinacijos",
     "description": "Kurkite modelių kombinacijas su svertiniu maršrutizavimu ir perėjimo prie atsarginio modelio palaikymu",
     "autoCatalogTitle": "Automatinio maršrutizavimo katalogas",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Šis teikėjas pagal numatytuosius nustatymus neįtrauktas į auto",
+    "tosAvoidNoticeDescription": "Jo paslaugų teikimo sąlygų būsena pažymėta avoid. Paskyros prijungimas šios politikos nekeičia. Prieš įjungdami bendrą leidimą visiems auto deriniams, peržiūrėkite teikėjo sąlygas.",
+    "tosAvoidNoticeAction": "Peržiūrėti auto politiką",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

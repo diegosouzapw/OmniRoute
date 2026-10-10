@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mld tasuta tokenit kuus
+## 💰 ~1.62B tokenit kuus kolmandate osapoolte tasuta pakettide peale kokku
 
 </div>
 
+> **Kasuta oma teenusepakkujakontosid.** See on eraldi kasutustingimustega kolmandate osapoolte tasuta pakettide hinnanguline kogusumma, mitte OmniRoute'i jagatav tokenikvoot. Registreeru, hangi vajaduse korral pääsuandmed ja ühenda teenusepakkujad, keda saad kasutada; iga teenusepakkuja määrab ise oma piirangud, kättesaadavuse ja tingimused.
+>
 > Tasuta pakettide käsitsi kombineerimine on vaevaline — kümned SDK-d, kümned mahupiirangud ja puudub ülevaade, kui palju sul tegelikult kasutada on. OmniRoute kataloogib **489 tasuta paketi kirjet 35 korduva kogumivõtme lõikes** ning arvutab tokenite põhinäitaja **17 kogumi põhjal, millel on avaldatud positiivne kuueelarve, lisades viis mudelipõhist Groqi ülempiiri** ja eemaldades jagatud kogumite duplikaadid. Kvoodid, mis avanevad alles pärast piirkondlikku isikusamasuse kontrolli (praegu: ModelScope), kuvatakse eraldi — +~6 mln pärast piirkondlikku isikusamasuse kontrolli — ning neid ei liideta kunagi põhinäitajale. Tulemus on alati juhtpaneelil nähtav (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute’i tasuta pakettide eelarvekaart: püsivalt ~1,62 mld tasuta tokenit kuus, registreerumiskrediitidega esimesel kuul kuni ~2,22 mld, 35 dokumenteeritud korduvast kogumivõtmest, mis hõlmavad 489 kataloogitud tasuta paketi kirjet ühe lõpp-punkti taga. Aus, kogumite duplikaate eemaldav arvutus — iga jagatud kogumit arvestatakse üks kord, sealhulgas 17 korduvat kogumit, millel on avaldatud positiivne tokenite kuueelarve, ja viis mudelipõhist Groqi ülempiiri; 13 teenusepakkujat on tingimuste riskikataloogis märgitud välditavaks, et saaksid ise otsustada. Eelarveriba sisaldab Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (viis mudelipõhist ülempiiri) ja väiksemaid kogumeid; lisaks kuvatakse eraldi esimese kuu registreerumiskrediidid ning püsivalt tasuta, tokenipiiranguta teenusepakkujad, et need ei paisutaks kunagi põhinäitajat. Reaalajas kasutatud/järelejäänud maht lehel /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Alustamine</b></td>
     <td align="center"><a href="#-quick-start">🚀 Kiirstart</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Paigaldamine</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Konfiguratsioonivaba</a></td>
+    <td align="center"><a href="#first-run">🆓 Ühenda teenusepakkuja</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Tutvustus</b></td>
@@ -215,20 +217,23 @@
 
 <div align="center">
 
-## 🆓 Töötab kohe pärast installimist — võtmeid ega seadistamist pole vaja
+<a id="first-run"></a>
+
+## 🆓 Paigalda, ühenda teenusepakkuja ja suuna päringud läbi ühe lõpp-punkti
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Töötab kohe pärast installimist — nullseadistus. Kolm sammu: 1. Installige — npm i -g omniroute, server käivitub aadressil localhost:20128. 2. Suunake oma tööriist aadressile http://localhost:20128/v1 — sobib iga OpenAI-ga ühilduv tööriist (Claude Code, Cursor, Cline). 3. See vastab — kohese vastuse saamiseks kasutage mudelit auto, ilma API-võtme, registreerumise või seadistamiseta. Võtmeta teenusepakkuja OpenCode Free on juba auto-kombinatsiooniga ühendatud, seega vastab värske install kohe."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Kolm sammu: paigalda ja käivita OmniRoute, ühenda sobiv teenusepakkuja oma konto või API-võtmega ning suuna tööriist aadressile localhost:20128/v1, kasutades OmniRoute&#x27;i API-võtit ja mudelit auto. Marsruutimine sõltub saadaolevatest sobivatest ühendustest ja teenusepakkujate piirangutest."/>
 
 ```bash
-# Värske install, ilma sisselogimisandmeteta — `auto` juba töötab:
+# Pärast teenusepakkuja ühendamist kopeeri OmniRoute'i võti kohast Juhtpaneel → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Eelistate kindlat tasuta taustateenust? Kasutage otse `oc/…` (OpenCode Free). Seejärel minge üle mudelile `auto` ja laske OmniRoute'il valida.</sub>
+<sub>`auto` vajab sobivat marsruuti. Uuel paigaldusel ei pruugi olla sobivaid võtmeta sihtkohti ja võtmeta teenusepakkuja võib kolmanda osapoole kliendid tagasi lükata. `auto` jätab vaikimisi välja teenusepakkujad märkega `tos: avoid`, sealhulgas Kiro ja OpenCode Free. Konto ühendamine seda poliitikat ei muuda. Enne teenusepakkuja valimist loe [Tasuta pakettide juhend](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Kopeeritavad kiirstardiskriptid **Pythonile, Node.js-ile, PHP-le ja cURL-ile** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

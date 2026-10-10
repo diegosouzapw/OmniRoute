@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 milijarde brezplačnih žetonov na mesec
+## 💰 ~1.62B žetonov mesečno v brezplačnih paketih tretjih oseb
 
 </div>
 
+> **Uporabite svoje račune pri ponudnikih.** To je ocenjena vsota brezplačnih paketov tretjih oseb z ločenimi pogoji upravičenosti, ne dodelitev žetonov s strani OmniRoute. Registrirajte se, pridobite zahtevane poverilnice in povežite ponudnike, ki jih lahko uporabljate; vsak ponudnik določa svoje omejitve, razpoložljivost in pogoje.
+>
 > Ročno združevanje brezplačnih ravni je naporno — na desetine SDK-jev, na desetine omejitev hitrosti in nobenega jasnega pregleda nad tem, koliko jih dejansko imate. OmniRoute katalogizira **489 vnosov brezplačnih ravni v 35 ključih ponavljajočih se skladov** in izračuna skupno število žetonov iz **17 skladov z objavljenim pozitivnim mesečnim proračunom ter petih omejitev Groq za posamezne modele**, pri čemer odstrani podvojitve skupnih skladov. Kvote, ki so na voljo šele po regionalnem preverjanju identitete (trenutno: ModelScope), so prikazane ločeno kot dodatnih ~6 milijonov za regionalnim preverjanjem identitete in niso nikoli vključene v skupno vrednost. Rezultat je vedno viden na nadzorni plošči (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Kartica proračuna brezplačnih ravni OmniRoute: stalno ~1,62 milijarde brezplačnih žetonov na mesec oziroma do ~2,22 milijarde v prvem mesecu z dobroimetjem ob registraciji, iz 35 dokumentiranih ključev ponavljajočih se skladov, ki pokrivajo 489 katalogiziranih vnosov brezplačnih ravni za eno končno točko. Pošten izračun z odstranitvijo podvojitev skladov — vsak skupni sklad je upoštevan samo enkrat, vključno s 17 ponavljajočimi se skladi z objavljenim pozitivnim mesečnim proračunom žetonov ter petimi omejitvami Groq za posamezne modele; 13 ponudnikov je v katalogu tveganj pogojev označenih kot ponudniki, ki se jim je priporočljivo izogniti, odločitev pa je vaša. Proračunski stolpec vključuje Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (pet omejitev za posamezne modele) in manjše sklade, poleg tega pa so dobroimetja ob registraciji za prvi mesec in trajno brezplačni ponudniki brez omejitve žetonov prikazani ločeno, zato nikoli ne napihujejo skupne vrednosti. Sprotna poraba/preostanek na /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Začetek</b></td>
     <td align="center"><a href="#-quick-start">🚀 Hitri začetek</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Namestitev</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Brez konfiguracije</a></td>
+    <td align="center"><a href="#first-run">🆓 Povežite ponudnika</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Spoznajte</b></td>
@@ -215,20 +217,23 @@
 
 <div align="center">
 
-## 🆓 Deluje takoj po namestitvi — brez ključev in konfiguracije
+<a id="first-run"></a>
+
+## 🆓 Namestite, povežite ponudnika in usmerjajte prek ene končne točke
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Deluje takoj po namestitvi — brez konfiguracije. Trije koraki: 1. Namestite — npm i -g omniroute, strežnik se zažene na localhost:20128. 2. Svoje orodje usmerite na http://localhost:20128/v1 — katero koli orodje, združljivo z OpenAI (Claude Code, Cursor, Cline). 3. Odgovori — za takojšen odgovor pokličite model auto, brez ključa API, registracije ali konfiguracije. Ponudnik brez ključev OpenCode Free je vnaprej povezan s kombinacijo auto, zato sveža namestitev deluje takoj."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Trije koraki: namestite in zaženite OmniRoute, povežite ustreznega ponudnika s svojim računom ali ključem API ter usmerite orodje na localhost:20128/v1 s ključem API OmniRoute in modelom auto. Usmerjanje je odvisno od razpoložljivih ustreznih povezav in omejitev ponudnikov."/>
 
 ```bash
-# Sveža namestitev, brez poverilnic — `auto` že deluje:
+# Po povezavi ponudnika kopirajte ključ OmniRoute iz Nadzorna plošča → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Želite določen brezplačen zaledni sistem? Pokličite `oc/…` (OpenCode Free) neposredno. Nato preidite na `auto` in prepustite izbiro OmniRoute.</sub>
+<sub>`auto` potrebuje ustrezno pot. Nova namestitev morda nima ustreznih ciljev brez ključa, ponudnik brez ključa pa lahko zavrne odjemalce tretjih oseb. `auto` privzeto izključuje ponudnike z oznako `tos: avoid`, vključno s Kiro in OpenCode Free. Povezava računa te politike ne spremeni. Pred izbiro ponudnika preberite [Vodnik po brezplačnih paketih](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Skripti za hiter začetek s kopiranjem in lepljenjem za **Python, Node.js, PHP in cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

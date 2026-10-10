@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 월 ~1.62B 무료 토큰
+## 💰 타사 무료 등급을 합산한 월 ~1.62B 토큰
 
 </div>
 
+> **본인의 제공업체 계정을 사용하세요.** 이 수치는 각각 별도의 이용 자격이 적용되는 타사 무료 등급의 추정 합계이며, OmniRoute가 지급하는 토큰이 아닙니다. 가입하고 필요한 인증 정보를 확보한 뒤 이용할 수 있는 제공업체를 연결하세요. 각 제공업체가 제한, 가용성, 약관을 관리합니다.
+>
 > 무료 티어를 직접 조합하는 일은 고통스럽습니다. 수십 개의 SDK, 수십 개의 사용량 제한이 있는 데다 실제로 얼마나 사용할 수 있는지조차 알기 어렵습니다. OmniRoute는 **35개의 반복 풀 키에 걸친 489개의 무료 티어 항목**을 분류하고, **공개된 월간 예산이 0보다 큰 17개 풀과 모델별 Groq 한도 5개**를 바탕으로 토큰 수치를 계산하며, 공유 풀은 중복 계산하지 않습니다. 지역 신원 확인을 거쳐야만 사용할 수 있는 할당량(현재: ModelScope)은 별도로 표시되며, 지역 신원 확인 후 제공되는 +~6M은 주요 수치에 절대 합산하지 않습니다. 결과는 대시보드(`/dashboard/free-tiers`)에서 계속 확인할 수 있습니다.
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute 무료 티어 예산 카드: 매월 안정적으로 ~1.62B개의 무료 토큰, 가입 크레딧을 포함하면 첫 달에는 최대 ~2.22B개를 하나의 엔드포인트에서 이용할 수 있으며, 문서화된 35개의 반복 풀 키가 분류된 489개의 무료 티어 항목을 포괄합니다. 공유 풀마다 한 번만 계산하는 정직한 풀 중복 제거 방식 — 공개된 월간 토큰 예산이 0보다 큰 17개의 반복 풀과 모델별 Groq 한도 5개를 포함합니다. 약관 위험 카탈로그에서 13개 제공업체는 회피 대상으로 표시되므로 사용 여부는 직접 결정할 수 있습니다. 예산 막대에는 Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M(모델별 한도 5개) 및 더 작은 풀들이 포함됩니다. 또한 첫 달 가입 크레딧과 토큰 한도가 없는 영구 무료 제공업체는 주요 수치를 부풀리지 않도록 별도로 표시됩니다. /dashboard/free-tiers에서 실시간 사용량/잔여량을 확인할 수 있습니다."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 시작</b></td>
     <td align="center"><a href="#-quick-start">🚀 빠른 시작</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 설치</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 설정 불필요</a></td>
+    <td align="center"><a href="#first-run">🆓 제공업체 연결</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 알아보기</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 설치하는 즉시 작동 — 키도, 설정도 필요 없습니다
+<a id="first-run"></a>
+
+## 🆓 설치하고 제공업체를 연결한 뒤 하나의 엔드포인트로 라우팅하세요
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="설치하는 즉시 작동 — 제로 설정. 세 단계: 1. 설치 — npm i -g omniroute, 서버가 localhost:20128에서 부팅됩니다. 2. 도구를 http://localhost:20128/v1로 연결 — 모든 OpenAI 호환 도구(Claude Code, Cursor, Cline). 3. 응답 — API 키, 가입, 설정 없이 즉시 응답을 위해 모델 auto를 호출합니다. 키리스 제공업체 OpenCode Free는 auto 콤보에 미리 연결되어 있어, 새로 설치하면 바로 작동합니다."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="세 단계: OmniRoute를 설치하고 실행한 뒤 본인 계정이나 API 키로 이용 조건을 충족하는 제공업체를 연결하고, OmniRoute API 키와 auto 모델을 사용해 도구의 주소를 localhost:20128/v1로 설정합니다. 라우팅은 사용 가능한 적격 연결과 제공업체 제한에 따라 달라집니다."/>
 
 ```bash
-# 새로 설치, 자격 증명 없음 — `auto`는 이미 작동합니다:
+# 제공업체를 연결한 뒤 대시보드 → Endpoints에서 OmniRoute 키를 복사하세요:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>특정 무료 백엔드를 선호하시나요? `oc/…` (OpenCode Free)를 직접 호출하세요. 그런 다음 `auto`로 전환하여 OmniRoute가 선택하도록 하세요.</sub>
+<sub>`auto`에는 이용 조건을 충족하는 경로가 필요합니다. 새 설치에는 적격한 키 없는 대상이 없을 수 있으며, 키가 필요 없는 제공업체도 타사 클라이언트를 거부할 수 있습니다. `auto`는 Kiro와 OpenCode Free를 포함해 `tos: avoid`로 표시된 제공업체를 기본적으로 제외합니다. 계정을 연결해도 이 정책은 바뀌지 않습니다. 제공업체를 선택하기 전에 [무료 티어 가이드](docs/getting-started/FREE-TIERS-GUIDE.md)를 확인하세요.</sub>
 
 <sub>📦 **Python, Node.js, PHP, cURL**용 빠른 시작 스크립트 복사-붙여넣기 → [`examples/quickstart/`](examples/quickstart/)</sub>
 

@@ -4,7 +4,7 @@
 
 ---
 
-> **Röviden**: Telepítés → Ingyenes szolgáltató csatlakoztatása → Az IDE beállítása az OmniRoute használatára. Kész.
+> **Röviden**: Telepítés → Jogosult szolgáltató csatlakoztatása → Az IDE átirányítása az OmniRoute-ra. Kész.
 
 ---
 
@@ -47,33 +47,11 @@ Az OmniRoute a `http://localhost:20128` címen indul el. Az irányítópult auto
 
 ---
 
-## 3. lépés: Ingyenes szolgáltató csatlakoztatása
+## 3. lépés: Jogosult szolgáltató csatlakoztatása
 
-Az OmniRoute-ot **fizetés nélkül** is használhatod egy ingyenes szolgáltató csatlakoztatásával.
+Válasszon olyan szolgáltatót, amelynek feltételei és kvótái megfelelnek az igényeinek. A **Vezérlőpult → Szolgáltatók** alatt csatlakoztassa saját fiókját vagy API-kulcsát, majd tesztelje a kapcsolatot. Az ingyenes hozzáférés és a kulcs nélküli elérhetőség nem garantált.
 
-### A lehetőség: Kiro (ingyenes Claude — bankkártya nélkül)
-
-1. Nyisd meg az irányítópultot a `http://localhost:20128` címen
-2. Lépj a **Providers** → **Add Provider** menüpontra
-3. Válaszd a **Kiro AI** lehetőséget
-4. Kattints a **Connect** gombra (nincs szükség API-kulcsra!)
-5. Kész! Mostantól ingyenesen hozzáférhetsz a Claude-modellekhez.
-
-### B lehetőség: OpenCode Free (hitelesítés nélkül)
-
-1. Nyisd meg az irányítópultot a `http://localhost:20128` címen
-2. Lépj a **Providers** → **Add Provider** menüpontra
-3. Válaszd az **OpenCode Free** lehetőséget
-4. Kattints a **Connect** gombra (nincs szükség API-kulcsra!)
-5. Kész! Mostantól ingyenesen hozzáférhetsz több modellhez.
-
-### C lehetőség: Pollinations (nincs szükség kulcsra)
-
-1. Nyisd meg az irányítópultot a `http://localhost:20128` címen
-2. Lépj a **Providers** → **Add Provider** menüpontra
-3. Válaszd a **Pollinations** lehetőséget
-4. Kattints a **Connect** gombra (nincs szükség API-kulcsra!)
-5. Kész! Mostantól ingyenesen hozzáférhetsz a GPT-5, Claude, Gemini és további modellekhez.
+Az `auto` alapértelmezés szerint kizárja a `tos: avoid` jelölésű szolgáltatókat, köztük a Kiro és az OpenCode Free szolgáltatást. Egy fiók csatlakoztatása nem változtat ezen a szabályon. A **Vezérlőpult → Kombók** alatti engedélyezés minden automatikus kombóra érvényes. Szolgáltató választása előtt olvassa el ezt: [Ingyenes csomagok útmutatója](./FREE-TIERS-GUIDE.md).
 
 ---
 
@@ -154,7 +132,7 @@ A kérés részleteit a bal oldali oldalsáv [Monitoring/Logs](http://localhost:
 
 - **[Auto-Combo útmutató](./AUTO-COMBO-GUIDE.md)** — Hagyd, hogy az OmniRoute válassza ki számodra a legjobb MI-t
 - **[Szolgáltatói útmutató](./PROVIDERS-GUIDE.md)** — További szolgáltatók csatlakoztatása (ingyenes és fizetős)
-- **[Ingyenes csomagok útmutatója](./FREE-TIERS-GUIDE.md)** — Ingyenes MI bankkártya nélkül
+- **[Ingyenes csomagok útmutatója](./FREE-TIERS-GUIDE.md)** — Tekintse át a szolgáltatók feltételeit és az ingyenes csomagok korlátait
 - **[Hibaelhárítás](../guides/TROUBLESHOOTING.md)** — Gyakori problémák megoldása
 
 ---
@@ -163,7 +141,7 @@ A kérés részleteit a bal oldali oldalsáv [Monitoring/Logs](http://localhost:
 
 ### „Szükségem van API-kulcsra?”
 
-**Nem!** Az ingyenes szolgáltatókat (Kiro, OpenCode Free, Pollinations) API-kulcs nélkül is használhatod. Egyszerűen csatlakoztasd őket az irányítópulton.
+Az OmniRoute API-kulcsa az eszközeit hitelesíti. A háttérszolgáltatás hitelesítő adatai a szolgáltatótól függenek: egyesek API-kulcsot vagy fiókbejelentkezést kérnek. Az ingyenes hozzáférés nem garantált.
 
 ### „Mi az az `auto`?”
 

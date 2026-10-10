@@ -3384,6 +3384,10 @@
     "comboRefMember": "Համակցություն → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Չհաջողվեց բեռնել ծառայության պայմանների քաղաքականությունը։ Փոխելուց առաջ կրկին փորձեք։",
+    "autoTosSaveError": "Չհաջողվեց պահպանել ծառայության պայմանների քաղաքականությունը։ Դեռ ցուցադրվում է նախորդ կարգավորումը։ Կրկին փորձեք։",
+    "autoTosIncludeLabel": "auto-ում ներառել ToS: avoid նշումով մատակարարներին",
+    "autoTosDescription": "Լռելյայն անջատված է։ Կիրառվում է բոլոր auto համակցությունների, ոչ միայն մեկ հաշվի համար։ Մատակարարին միացնելը չի միացնում այս ընտրանքը։",
     "title": "Կոմբինացիաներ",
     "description": "Ստեղծեք մոդելների կոմբինացիաներ՝ կշռված երթուղավորմամբ և պահուստային անցման աջակցությամբ",
     "autoCatalogTitle": "Ավտոմատ երթուղավորման կատալոգ",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Այս մատակարարը լռելյայն բացառված է auto-ից",
+    "tosAvoidNoticeDescription": "Նրա ծառայության պայմանների կարգավիճակը նշված է avoid։ Հաշիվ միացնելը չի փոխում այս քաղաքականությունը։ Բոլոր auto համակցությունների ընդհանուր թույլտվությունը միացնելուց առաջ վերանայեք մատակարարի պայմանները։",
+    "tosAvoidNoticeAction": "Վերանայել auto-ի քաղաքականությունը",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

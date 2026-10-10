@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinatsioon → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Teenustingimuste reegleid ei saanud laadida. Enne nende muutmist proovige uuesti.",
+    "autoTosSaveError": "Teenustingimuste reegleid ei saanud salvestada. Kuvatakse endiselt eelmine säte. Proovige uuesti.",
+    "autoTosIncludeLabel": "Kaasa auto-valikusse pakkujad märkega ToS: avoid",
+    "autoTosDescription": "Vaikimisi välja lülitatud. Kehtib kõigile auto-kombinatsioonidele, mitte ainult ühele kontole. Pakkuja ühendamine seda valikut ei lülita sisse.",
     "title": "Kombinatsioonid",
     "description": "Loo kaalutud marsruutimise ja varuvalikute toega mudelikombinatsioone",
     "autoCatalogTitle": "Automaatse marsruutimise kataloog",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "See pakkuja on vaikimisi auto-valikust välja jäetud",
+    "tosAvoidNoticeDescription": "Tema teenustingimuste olek on märgitud avoid. Konto ühendamine neid reegleid ei muuda. Enne kõigi auto-kombinatsioonide jaoks üldise nõusoleku andmist vaadake pakkuja tingimused üle.",
+    "tosAvoidNoticeAction": "Vaata auto reegleid",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

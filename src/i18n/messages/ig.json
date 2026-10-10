@@ -3384,6 +3384,10 @@
     "comboRefMember": "Ngwakọta → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Enweghị ike ibunye iwu usoro ọrụ. Nwaa ọzọ tupu ị gbanwee ya.",
+    "autoTosSaveError": "Enweghị ike ichekwa iwu usoro ọrụ. A ka na-egosi ntọala gara aga. Nwaa ọzọ.",
+    "autoTosIncludeLabel": "Tinye ndị na-enye ọrụ nwere akara ToS: avoid na auto",
+    "autoTosDescription": "A gbanyụrụ ya na ndabara. Ọ na-emetụta ngwakọta auto niile, ọ bụghị naanị otu akaụntụ. Ijikọta onye na-enye ọrụ anaghị agbanwu nhọrọ a.",
     "title": "Ngwakọta",
     "description": "Mepụta ngwakọta model nwere ntụgharị ụzọ dabere n'ịdị arọ na nkwado fallback",
     "autoCatalogTitle": "Katalọgụ ntụgharị ụzọ akpaaka",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "A na-ewepụ onye na-enye ọrụ a na auto na ndabara",
+    "tosAvoidNoticeDescription": "Akara ọnọdụ usoro ọrụ ya bụ avoid. Ijikọta akaụntụ anaghị agbanwe iwu a. Nyochaa usoro onye na-enye ọrụ tupu ị gbanye nkwenye zuru ụwa ọnụ maka ngwakọta auto niile.",
+    "tosAvoidNoticeAction": "Nyochaa iwu auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

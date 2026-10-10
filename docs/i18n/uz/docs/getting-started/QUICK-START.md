@@ -4,7 +4,7 @@
 
 ---
 
-> **Qisqacha**: Oʻrnating → Bepul provayderni ulang → IDE’ingizni OmniRoute’ga yoʻnaltiring. Tayyor.
+> **Qisqacha**: O‘rnating → Mos provayderni ulang → IDE-ni OmniRoute-ga yo‘naltiring. Tayyor.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute `http://localhost:20128` manzilida ishga tushadi. Boshqaruv paneli avt
 
 ---
 
-## 3-qadam: Bepul provayderni ulash
+## 3-qadam: Mos provayderni ulang
 
-Bepul provayderni ulash orqali OmniRoute’dan **hech qanday toʻlovsiz** foydalanishingiz mumkin.
+Shartlari va kvotalari ehtiyojlaringizga mos provayderni tanlang. **Boshqaruv paneli → Provayderlar** bo‘limida o‘z hisobingiz yoki API kalitingizni ulang, so‘ng ulanishni sinang. Bepul kirish va kalitsiz foydalanish imkoniyati kafolatlanmaydi.
 
-### A variant: Kiro (Bepul Claude — Kredit karta talab qilinmaydi)
-
-1. `http://localhost:20128` manzilidagi boshqaruv panelini oching
-2. **Provayderlar** → **Provayder qoʻshish** boʻlimiga oʻting
-3. **Kiro AI**’ni tanlang
-4. **Ulash** tugmasini bosing (API kaliti kerak emas!)
-5. Tayyor! Endi Claude modellaridan bepul foydalanishingiz mumkin.
-
-### B variant: OpenCode Free (Autentifikatsiyasiz)
-
-1. `http://localhost:20128` manzilidagi boshqaruv panelini oching
-2. **Provayderlar** → **Provayder qoʻshish** boʻlimiga oʻting
-3. **OpenCode Free**’ni tanlang
-4. **Ulash** tugmasini bosing (API kaliti kerak emas!)
-5. Tayyor! Endi bir nechta modeldan bepul foydalanishingiz mumkin.
-
-### C variant: Pollinations (Kalit talab qilinmaydi)
-
-1. `http://localhost:20128` manzilidagi boshqaruv panelini oching
-2. **Provayderlar** → **Provayder qoʻshish** boʻlimiga oʻting
-3. **Pollinations**’ni tanlang
-4. **Ulash** tugmasini bosing (API kaliti kerak emas!)
-5. Tayyor! Endi GPT-5, Claude, Gemini va boshqa modellardan bepul foydalanishingiz mumkin.
+`auto` odatda Kiro va OpenCode Free kabi `tos: avoid` bilan belgilangan provayderlarni chiqarib tashlaydi. Hisobni ulash bu siyosatni o‘zgartirmaydi. **Boshqaruv paneli → Kombolar** bo‘limidagi qo‘shishga rozilik barcha avtomatik kombolarga tatbiq etiladi. Provayder tanlashdan oldin [Bepul tariflar qoʻllanmasi](./FREE-TIERS-GUIDE.md) qo‘llanmasini o‘qing.
 
 ---
 
@@ -154,7 +132,7 @@ Chap yon paneldagi [Monitoring/Jurnallar](http://localhost:20128/dashboard/logs)
 
 - **[Auto-Combo qoʻllanmasi](./AUTO-COMBO-GUIDE.md)** — OmniRoute siz uchun eng yaxshi sunʼiy intellektni tanlasin
 - **[Provayderlar qoʻllanmasi](./PROVIDERS-GUIDE.md)** — Koʻproq provayderlarni ulang (bepul va pulli)
-- **[Bepul tariflar qoʻllanmasi](./FREE-TIERS-GUIDE.md)** — Kredit kartasiz bepul sunʼiy intellektdan foydalaning
+- **[Bepul tariflar qoʻllanmasi](./FREE-TIERS-GUIDE.md)** — Provayder shartlari va bepul tarif cheklovlarini ko‘rib chiqing
 - **[Nosozliklarni bartaraf etish](../guides/TROUBLESHOOTING.md)** — Keng tarqalgan muammolarni hal qiling
 
 ---
@@ -163,7 +141,7 @@ Chap yon paneldagi [Monitoring/Jurnallar](http://localhost:20128/dashboard/logs)
 
 ### "Menga API kaliti kerakmi?"
 
-**Yoʻq!** Bepul provayderlardan (Kiro, OpenCode Free, Pollinations) hech qanday API kalitisiz foydalanishingiz mumkin. Ularni shunchaki boshqaruv panelida ulang.
+OmniRoute API kaliti vositalaringizni autentifikatsiya qiladi. Yuqori xizmatning kirish ma’lumotlari provayderga bog‘liq: ayrimlari API kaliti yoki hisobga kirishni talab qiladi. Bepul kirish kafolatlanmaydi.
 
 ### "`auto` nima?"
 

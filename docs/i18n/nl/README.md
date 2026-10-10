@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B gratis tokens / maand
+## 💰 ~1.62B tokens per maand via gratis abonnementen van derden
 
 </div>
 
+> **Gebruik je eigen accounts bij aanbieders.** Dit is een geschat totaal van gratis abonnementen van derden waarvoor afzonderlijke toelatingsvoorwaarden gelden, geen toekenning van tokens door OmniRoute. Registreer je, verkrijg waar nodig toegangsgegevens en verbind de aanbieders die je kunt gebruiken; elke aanbieder bepaalt zijn eigen limieten, beschikbaarheid en voorwaarden.
+>
 > Het handmatig combineren van gratis niveaus is frustrerend — tientallen SDK's, tientallen snelheidslimieten en geen idee hoeveel je daadwerkelijk hebt. OmniRoute catalogiseert **489 vermeldingen van gratis niveaus verdeeld over 35 terugkerende poolsleutels** en berekent het totale aantal tokens op basis van de **17 pools met een gepubliceerd positief maandelijks budget plus vijf Groq-limieten per model**, waarbij gedeelde pools worden gededupliceerd. Quota die pas beschikbaar worden na een regionale identiteitscontrole (momenteel: ModelScope), worden afzonderlijk weergegeven als +~6M achter regionale identiteitsverificatie en worden nooit bij het totaal opgeteld. Het resultaat blijft zichtbaar op het dashboard (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute-budgetkaart voor gratis niveaus: structureel ~1.62B gratis tokens per maand, oplopend tot ~2.22B in de eerste maand dankzij aanmeldtegoeden, afkomstig van 35 gedocumenteerde terugkerende poolsleutels die 489 gecatalogiseerde vermeldingen van gratis niveaus achter één endpoint omvatten. Eerlijke berekening met gededupliceerde pools — elke gedeelde pool wordt één keer meegeteld, inclusief 17 terugkerende pools met een gepubliceerd positief maandelijks tokenbudget plus vijf Groq-limieten per model; 13 providers zijn in de catalogus met voorwaardenrisico's gemarkeerd als te vermijden, zodat jij beslist. De budgetbalk omvat Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (vijf limieten per model) en kleinere pools, plus aanmeldtegoeden voor de eerste maand en permanent gratis providers zonder tokenlimiet die afzonderlijk worden weergegeven, zodat ze het totaal nooit kunstmatig verhogen. Live verbruik/resterend op /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Aan de slag</b></td>
     <td align="center"><a href="#-quick-start">🚀 Snel aan de slag</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Installeren</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Geen configuratie</a></td>
+    <td align="center"><a href="#first-run">🆓 Een aanbieder verbinden</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Ontdekken</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Werkt zodra je het installeert — geen sleutels, geen configuratie
+<a id="first-run"></a>
+
+## 🆓 Installeer, verbind een aanbieder en routeer via één endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Werkt zodra je het installeert — nul configuratie. Drie stappen: 1. Installeren — npm i -g omniroute, server start op localhost:20128. 2. Richt je tool op http://localhost:20128/v1 — elke OpenAI-compatibele tool (Claude Code, Cursor, Cline). 3. Het antwoordt — roep model auto aan voor een direct antwoord, zonder API-sleutel, zonder aanmelding, zonder configuratie. Sleutelloze provider OpenCode Free is vooraf bedraad in de auto-combinatie, dus een verse installatie reageert direct."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Drie stappen: installeer en start OmniRoute, verbind een geschikte aanbieder met je eigen account of API-sleutel en richt je tool op localhost:20128/v1 met een OmniRoute-API-sleutel en het model auto. Routering hangt af van beschikbare geschikte verbindingen en de limieten van aanbieders."/>
 
 ```bash
-# Verse installatie, nul referenties — `auto` werkt al:
+# Kopieer na het verbinden van een aanbieder je OmniRoute-sleutel uit Dashboard → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Liever een specifieke gratis backend? Roep `oc/…` (OpenCode Free) direct aan. Stap dan over op `auto` en laat OmniRoute kiezen.</sub>
+<sub>`auto` heeft een geschikte route nodig. Een nieuwe installatie kan geen geschikte doelen zonder sleutel hebben, en een aanbieder zonder sleutel kan clients van derden weigeren. `auto` sluit aanbieders met de aanduiding `tos: avoid`, waaronder Kiro en OpenCode Free, standaard uit. Een account verbinden verandert dit beleid niet. Lees [Handleiding voor gratis abonnementen](docs/getting-started/FREE-TIERS-GUIDE.md) voordat je een aanbieder kiest.</sub>
 
 <sub>📦 Kopieer-plak quickstart scripts voor **Python, Node.js, PHP, en cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

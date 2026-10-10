@@ -3384,6 +3384,10 @@
     "comboRefMember": "કૉમ્બો → {name}"
   },
   "combos": {
+    "autoTosLoadError": "સેવાની શરતોની નીતિ લોડ થઈ શકી નથી. તેને બદલતા પહેલાં ફરી પ્રયાસ કરો.",
+    "autoTosSaveError": "સેવાની શરતોની નીતિ સાચવી શકાઈ નથી. અગાઉની સેટિંગ હજી દેખાય છે. ફરી પ્રયાસ કરો.",
+    "autoTosIncludeLabel": "ToS: avoid તરીકે ચિહ્નિત પ્રદાતાઓને auto માં સામેલ કરો",
+    "autoTosDescription": "ડિફૉલ્ટ રૂપે બંધ છે. માત્ર એક ખાતા માટે નહીં, બધી auto સંયોજન માટે લાગુ પડે છે. પ્રદાતાને જોડવાથી આ વિકલ્પ ચાલુ થતો નથી.",
     "title": "કોમ્બોઝ",
     "description": "ભારાંકિત રૂટિંગ અને ફૉલબૅક સપોર્ટ સાથે મોડેલ કોમ્બોઝ બનાવો",
     "autoCatalogTitle": "સ્વતઃ-રાઉટીંગ કેટલોગ",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "આ પ્રદાતા ડિફૉલ્ટ રૂપે auto માંથી બાકાત છે",
+    "tosAvoidNoticeDescription": "તેની સેવાની શરતોની સ્થિતિ avoid તરીકે ચિહ્નિત છે. ખાતું જોડવાથી આ નીતિ બદલાતી નથી. બધી auto સંયોજન માટે વૈશ્વિક મંજૂરી ચાલુ કરતા પહેલાં પ્રદાતાની શરતો વાંચો.",
+    "tosAvoidNoticeAction": "auto નીતિની સમીક્ષા કરો",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

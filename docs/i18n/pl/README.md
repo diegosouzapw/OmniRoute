@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mld darmowych tokenów / miesiąc
+## 💰 ~1.62B tokenów miesięcznie w bezpłatnych planach podmiotów trzecich
 
 </div>
 
+> **Korzystaj z własnych kont u dostawców.** To szacunkowa suma bezpłatnych planów podmiotów trzecich, z których każdy ma odrębne warunki dostępu, a nie przydział tokenów od OmniRoute. Zarejestruj się, uzyskaj dane dostępowe tam, gdzie są wymagane, i połącz dostawców, z których możesz korzystać; każdy dostawca określa własne limity, dostępność i warunki.
+>
 > Ręczne łączenie darmowych planów jest uciążliwe — dziesiątki zestawów SDK, dziesiątki limitów szybkości i brak wiedzy o tym, ile faktycznie masz do dyspozycji. OmniRoute kataloguje **489 wpisów darmowych planów w ramach 35 cyklicznych kluczy pul** i oblicza prezentowaną liczbę tokenów na podstawie **17 pul z opublikowanym dodatnim miesięcznym budżetem oraz pięciu limitów Groq dla poszczególnych modeli**, eliminując duplikaty wynikające ze współdzielonych pul. Limity, które stają się dostępne dopiero po regionalnej weryfikacji tożsamości (obecnie: ModelScope), są przedstawiane oddzielnie — dodatkowe ~6 mln za regionalną weryfikacją tożsamości — i nigdy nie są wliczane do głównej wartości. Wynik pozostaje widoczny w panelu (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Karta budżetu darmowego planu OmniRoute: stale ~1,62 mld darmowych tokenów miesięcznie, a w pierwszym miesiącu nawet ~2,22 mld dzięki kredytom rejestracyjnym, z 35 udokumentowanych cyklicznych kluczy pul obejmujących 489 skatalogowanych wpisów darmowych planów dostępnych za pośrednictwem jednego punktu końcowego. Rzetelne obliczenia z deduplikacją pul — każda współdzielona pula jest liczona tylko raz, w tym 17 cyklicznych pul z opublikowanym dodatnim miesięcznym budżetem tokenów oraz pięć limitów Groq dla poszczególnych modeli; 13 dostawców oznaczono w katalogu ryzyka warunków jako tych, których należy unikać, aby decyzja należała do Ciebie. Pasek budżetu obejmuje Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (pięć limitów dla poszczególnych modeli) i mniejsze pule, a także kredyty rejestracyjne na pierwszy miesiąc oraz stale bezpłatnych dostawców bez limitu tokenów, prezentowanych oddzielnie, aby nigdy nie zawyżali głównej wartości. Bieżące wykorzystanie i pozostały limit na /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Start</b></td>
     <td align="center"><a href="#-quick-start">🚀 Szybki start</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Instalacja</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Bez konfiguracji</a></td>
+    <td align="center"><a href="#first-run">🆓 Połącz dostawcę</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Informacje</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Działa od razu po instalacji — bez kluczy, bez konfiguracji
+<a id="first-run"></a>
+
+## 🆓 Zainstaluj, połącz dostawcę i kieruj ruch przez jeden endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Działa od razu po instalacji — zero konfiguracji. Trzy kroki: 1. Zainstaluj — npm i -g omniroute, serwer uruchamia się na localhost:20128. 2. Skieruj swoje narzędzie na http://localhost:20128/v1 — dowolne narzędzie kompatybilne z OpenAI (Claude Code, Cursor, Cline). 3. Odpowiada — wywołaj model auto, aby uzyskać natychmiastową odpowiedź, bez klucza API, bez rejestracji, bez konfiguracji. Bezkluczowy dostawca OpenCode Free jest wstępnie podłączony do kombinacji auto, więc świeża instalacja odpowiada od razu po wyjęciu z pudełka."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Trzy kroki: zainstaluj i uruchom OmniRoute, połącz uprawnionego dostawcę za pomocą własnego konta lub klucza API, a następnie skieruj narzędzie do localhost:20128/v1, używając klucza API OmniRoute i modelu auto. Routing zależy od dostępnych uprawnionych połączeń i limitów dostawców."/>
 
 ```bash
-# Świeża instalacja, zero poświadczeń — `auto` już działa:
+# Po połączeniu dostawcy skopiuj klucz OmniRoute z Panel → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Wolisz konkretny darmowy backend? Wywołaj `oc/…` (OpenCode Free) bezpośrednio. Następnie przejdź na `auto` i pozwól OmniRoute wybrać.</sub>
+<sub>`auto` potrzebuje odpowiedniej trasy. Nowa instalacja może nie mieć uprawnionych celów bez klucza, a dostawca niewymagający klucza może odrzucać klientów innych firm. `auto` domyślnie wyklucza dostawców oznaczonych `tos: avoid`, w tym Kiro i OpenCode Free. Połączenie konta nie zmienia tej zasady. Przed wyborem dostawcy przeczytaj [Przewodnik po darmowych planach](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Skrypty szybkiego startu do kopiowania i wklejania dla **Python, Node.js, PHP i cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

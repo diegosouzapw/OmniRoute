@@ -3384,6 +3384,10 @@
     "comboRefMember": "Συνδυασμός → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Δεν ήταν δυνατή η φόρτωση της πολιτικής όρων χρήσης. Δοκιμάστε ξανά πριν την αλλάξετε.",
+    "autoTosSaveError": "Δεν ήταν δυνατή η αποθήκευση της πολιτικής όρων χρήσης. Εμφανίζεται ακόμη η προηγούμενη ρύθμιση. Δοκιμάστε ξανά.",
+    "autoTosIncludeLabel": "Συμπερίληψη παρόχων με ένδειξη ToS: avoid στο auto",
+    "autoTosDescription": "Απενεργοποιημένο από προεπιλογή. Ισχύει για όλους τους συνδυασμούς auto, όχι μόνο για έναν λογαριασμό. Η σύνδεση παρόχου δεν ενεργοποιεί αυτή την επιλογή.",
     "title": "Συνδυασμοί",
     "description": "Δημιουργήστε συνδυασμούς μοντέλων με σταθμισμένη δρομολόγηση και υποστήριξη εφεδρικών επιλογών",
     "autoCatalogTitle": "Κατάλογος αυτόματης δρομολόγησης",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Αυτός ο πάροχος εξαιρείται από το auto από προεπιλογή",
+    "tosAvoidNoticeDescription": "Η κατάσταση των όρων χρήσης του έχει την ένδειξη avoid. Η σύνδεση λογαριασμού δεν αλλάζει αυτή την πολιτική. Ελέγξτε τους όρους του παρόχου πριν ενεργοποιήσετε την καθολική συγκατάθεση για όλους τους συνδυασμούς auto.",
+    "tosAvoidNoticeAction": "Έλεγχος πολιτικής auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Incluir no auto fornecedores marcados como ToS: avoid",
+    "autoTosDescription": "Desativado por predefinição. Aplica-se a todos os combos auto, não apenas a uma conta. Ligar um fornecedor não ativa esta opção.",
+    "autoTosSaveError": "Não foi possível guardar a política de ToS. A definição anterior continua visível. Tente novamente.",
+    "autoTosLoadError": "Não foi possível carregar a política de ToS. Tente novamente antes de a alterar.",
     "title": "Combinações",
     "description": "Crie combinações de modelos com roteamento ponderado e suporte substituto",
     "autoCatalogTitle": "Catálogo de roteamento automático",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Este fornecedor é excluído do auto por predefinição",
+    "tosAvoidNoticeDescription": "O seu estado de ToS está marcado como avoid. Ligar uma conta não altera esta política. Consulte os termos do fornecedor antes de ativar a opção global para todos os combos auto.",
+    "tosAvoidNoticeAction": "Consultar a política do auto",
     "codexReleaseCooldown": "Limpar cooldown local",
     "codexReleaseCooldownHint": "Permite tentar novamente esta conta do Codex. Não resgata um crédito de reposição nem altera os limites do fornecedor.",
     "codexReleasingCooldown": "Clearing…",

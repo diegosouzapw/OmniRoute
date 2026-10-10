@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mld. de jetoane gratuite / lună
+## 💰 ~1.62B tokenuri pe lună cumulate din planurile gratuite ale terților
 
 </div>
 
+> **Folosiți propriile conturi la furnizori.** Acesta este un total estimat al planurilor gratuite ale terților, fiecare cu criterii de eligibilitate separate, nu o alocare de tokenuri de la OmniRoute. Înregistrați-vă, obțineți date de acces unde sunt necesare și conectați furnizorii pe care îi puteți utiliza; fiecare furnizor își stabilește limitele, disponibilitatea și condițiile.
+>
 > Combinarea manuală a nivelurilor gratuite este dificilă — zeci de SDK-uri, zeci de limite de rată și nicio idee despre cât ai de fapt la dispoziție. OmniRoute cataloghează **489 de intrări de nivel gratuit în 35 de chei de pool recurente** și calculează totalul de jetoane pe baza celor **17 pool-uri cu un buget lunar pozitiv publicat, plus cinci limite Groq per model**, eliminând duplicatele asociate pool-urilor comune. Cotele care devin disponibile numai după o verificare regională a identității (în prezent: ModelScope) sunt afișate separat, +~6M după verificarea regională a identității, și nu sunt incluse niciodată în totalul principal. Rezultatul rămâne vizibil în panoul de control (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Cardul de buget pentru nivelurile gratuite OmniRoute: ~1,62 mld. de jetoane gratuite pe lună în mod constant, până la ~2,22 mld. în prima lună cu creditele de înscriere, din 35 de chei de pool recurente documentate care acoperă 489 de intrări de nivel gratuit catalogate în spatele unui singur endpoint. Calcule transparente, cu eliminarea duplicatelor per pool — fiecare pool comun este numărat o singură dată, inclusiv 17 pool-uri recurente cu un buget lunar pozitiv de jetoane publicat, plus cinci limite Groq per model; 13 furnizori sunt marcați cu avoid în catalogul riscurilor privind termenii, astfel încât tu să decizi. Bara de buget include Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (cinci limite per model) și pool-uri mai mici, plus credite de înscriere pentru prima lună și furnizori permanent gratuiți, fără limită de jetoane, afișați separat pentru a nu mări artificial totalul principal. Utilizarea și soldul rămase în timp real la /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Începeți</b></td>
     <td align="center"><a href="#-quick-start">🚀 Pornire rapidă</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Instalare</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Fără configurare</a></td>
+    <td align="center"><a href="#first-run">🆓 Conectați un furnizor</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Aflați mai multe</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Funcționează imediat după instalare — fără chei, fără configurare
+<a id="first-run"></a>
+
+## 🆓 Instalați, conectați un furnizor și rutați printr-un singur endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funcționează imediat după instalare — zero configurare. Trei pași: 1. Instalare — npm i -g omniroute, serverul pornește pe localhost:20128. 2. Îndreptați instrumentul dvs. către http://localhost:20128/v1 — orice instrument compatibil OpenAI (Claude Code, Cursor, Cline). 3. Răspunde — apelați modelul auto pentru un răspuns instantaneu, fără cheie API, fără înregistrare, fără configurare. Furnizorul fără cheie OpenCode Free este pre-conectat la combinația auto, astfel încât o instalare proaspătă răspunde imediat."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Trei pași: instalați și porniți OmniRoute, conectați un furnizor eligibil cu propriul cont sau propria cheie API, apoi direcționați instrumentul către localhost:20128/v1 folosind o cheie API OmniRoute și modelul auto. Rutarea depinde de conexiunile eligibile disponibile și de limitele furnizorilor."/>
 
 ```bash
-# Instalare proaspătă, zero credențiale — `auto` funcționează deja:
+# După conectarea unui furnizor, copiați cheia OmniRoute din Panou de control → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Preferi un backend gratuit specific? Apeleză `oc/…` (OpenCode Free) direct. Apoi treci la `auto` și lasă OmniRoute să aleagă.</sub>
+<sub>`auto` are nevoie de o rută eligibilă. O instalare nouă poate să nu aibă destinații eligibile fără cheie, iar un furnizor fără cheie poate respinge clienții terți. `auto` exclude implicit furnizorii marcați `tos: avoid`, inclusiv Kiro și OpenCode Free. Conectarea unui cont nu modifică această politică. Consultați [Ghidul nivelurilor gratuite](docs/getting-started/FREE-TIERS-GUIDE.md) înainte de a alege un furnizor.</sub>
 
 <sub>📦 Scripturi de pornire rapidă copy-paste pentru **Python, Node.js, PHP și cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

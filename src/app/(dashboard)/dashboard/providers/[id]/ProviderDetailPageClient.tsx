@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Card, Button, CardSkeleton } from "@/shared/components";
+import ProviderTosNotice from "@/shared/components/ProviderTosNotice";
 import {
   NOAUTH_PROVIDERS,
   getProviderAlias,
@@ -575,6 +576,8 @@ export default function ProviderDetailPageClient() {
         t={t}
         isReferralLink={isReferralLink}
       />
+
+      <ProviderTosNotice providerId={providerId} />
 
       {providerId === "zed" && (
         <ZedImportCard fetchConnections={fetchConnections} notify={notify} />

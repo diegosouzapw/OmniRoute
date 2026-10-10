@@ -4,7 +4,7 @@
 
 ---
 
-> **Fil-qosor**: Installa → Qabbad fornitur bla ħlas → Orjenta l-IDE tiegħek lejn OmniRoute. Lest.
+> **Fil-qosor**: Installa → Qabbad fornitur eliġibbli → Ipponta l-IDE lejn OmniRoute. Lest.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute jibda fuq `http://localhost:20128`. Id-dashboard jinfetaħ awtomatikam
 
 ---
 
-## Pass 3: Qabbad Fornitur Bla Ħlas
+## Pass 3: Qabbad Fornitur Eliġibbli
 
-Tista' tuża OmniRoute **mingħajr ma tħallas xejn** billi tqabbad fornitur bla ħlas.
+Agħżel fornitur li t-termini u l-kwoti tiegħu jaqblu mal-ħtiġijiet tiegħek. F'**Dashboard → Fornituri**, qabbad il-kont jew iċ-ċavetta API tiegħek stess, imbagħad ittestja l-konnessjoni. Aċċess b'xejn u disponibbiltà mingħajr ċavetta mhumiex garantiti.
 
-### Għażla A: Kiro (Claude Bla Ħlas — Mingħajr Karta ta' Kreditu)
-
-1. Iftaħ id-dashboard fuq `http://localhost:20128`
-2. Mur f'**Fornituri** → **Żid Fornitur**
-3. Agħżel **Kiro AI**
-4. Ikklikkja **Qabbad** (ma teħtieġ l-ebda ċavetta tal-API!)
-5. Lest! Issa għandek aċċess bla ħlas għall-mudelli Claude.
-
-### Għażla B: OpenCode Free (Mingħajr Awtentikazzjoni)
-
-1. Iftaħ id-dashboard fuq `http://localhost:20128`
-2. Mur f'**Fornituri** → **Żid Fornitur**
-3. Agħżel **OpenCode Free**
-4. Ikklikkja **Qabbad** (ma teħtieġ l-ebda ċavetta tal-API!)
-5. Lest! Issa għandek aċċess bla ħlas għal diversi mudelli.
-
-### Għażla C: Pollinations (Ma Teħtieġx Ċavetta)
-
-1. Iftaħ id-dashboard fuq `http://localhost:20128`
-2. Mur f'**Fornituri** → **Żid Fornitur**
-3. Agħżel **Pollinations**
-4. Ikklikkja **Qabbad** (ma teħtieġ l-ebda ċavetta tal-API!)
-5. Lest! Issa għandek aċċess bla ħlas għal GPT-5, Claude, Gemini, u aktar.
+B'mod awtomatiku, `auto` jeskludi fornituri mmarkati `tos: avoid`, inklużi Kiro u OpenCode Free. Il-konnessjoni ta' kont ma tbiddilx din il-politika. L-għażla ta' inklużjoni f'**Dashboard → Combos** tapplika għall-combos awtomatiċi kollha. Aqra [Gwida għall-Livelli Bla Ħlas](./FREE-TIERS-GUIDE.md) qabel tagħżel fornitur.
 
 ---
 
@@ -154,7 +132,7 @@ Tista' tara d-dettalji tat-talba billi tikklikkja [Monitoraġġ/Logs](http://loc
 
 - **[Gwida għal Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Ħalli lil OmniRoute jagħżel l-aħjar AI għalik
 - **[Gwida għall-Fornituri](./PROVIDERS-GUIDE.md)** — Qabbad aktar fornituri (bla ħlas u bi ħlas)
-- **[Gwida għall-Livelli Bla Ħlas](./FREE-TIERS-GUIDE.md)** — Ikseb AI bla ħlas mingħajr karta ta' kreditu
+- **[Gwida għall-Livelli Bla Ħlas](./FREE-TIERS-GUIDE.md)** — Iċċekkja t-termini tal-fornituri u l-limiti tal-livelli b'xejn
 - **[Soluzzjoni tal-Problemi](../guides/TROUBLESHOOTING.md)** — Irranġa problemi komuni
 
 ---
@@ -163,7 +141,7 @@ Tista' tara d-dettalji tat-talba billi tikklikkja [Monitoraġġ/Logs](http://loc
 
 ### "Għandi bżonn ċavetta tal-API?"
 
-**Le!** Tista' tuża fornituri bla ħlas (Kiro, OpenCode Free, Pollinations) mingħajr l-ebda ċavetta tal-API. Sempliċement qabbadhom fid-dashboard.
+Iċ-ċavetta API ta' OmniRoute tawtentika l-għodod tiegħek. Il-kredenzjali tas-servizz upstream jiddependu fuq il-fornitur: xi wħud jeħtieġu ċavetta API jew dħul f'kont. Aċċess b'xejn mhuwiex garantit.
 
 ### "X'inhu `auto`?"
 

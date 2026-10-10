@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Token Efughị Ego / Ọnwa
+## 💰 Ngụkọta ~1.62B Token kwa Ọnwa n'Atụmatụ Efu nke Ndị Ọzọ
 
 </div>
 
+> **Jiri akaụntụ ndị na-eweta ọrụ nke gị.** Nke a bụ atụmatụ ngụkọta atụmatụ efu nke ndị ọzọ nwere usoro ntozu dị iche iche, ọ bụghị token OmniRoute na-enye. Debanye aha, nweta ozi nbanye ebe achọrọ ya, ma jikọọ ndị na-eweta ọrụ ị nwere ike iji; onye ọ bụla na-achị oke ojiji, nnweta na usoro nke ya.
+>
 > Iji aka jikọta ọkwa efughị ego dị iche iche na-agwụ ike — ọtụtụ iri SDK, ọtụtụ iri oke ọnụego, ma ị maghị kpọmkwem ole i nwere. OmniRoute na-edekọ **ntinye ọkwa efughị ego 489 n'ofe igodo ọdọ mmiri na-emegharị ugboro 35** ma na-agbakọ ọnụ ọgụgụ token bụ isi site na **ọdọ mmiri 17 nwere mmefu ego kwa ọnwa dị mma e bipụtara tinyere oke Groq ise maka ụdị nke ọ bụla**, na-ewepụgụ oyiri dịka ọdọ mmiri ha na-ekekọrịta si dị. A na-egosi oke ndị na-emeghe naanị mgbe enyochaara njirimara mpaghara (taa: ModelScope) iche, +~6M dị n'azụ nkwenye njirimara mpaghara, a naghịkwa etinye ha n'ọnụ ọgụgụ bụ isi. Nsonaazụ ahụ na-anọgide na-apụta na dashboard (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Kaadị mmefu ego ọkwa efughị ego OmniRoute: ihe dịka token efughị ego 1.62B kwa ọnwa mgbe niile, ruo ihe dịka 2.22B n'ọnwa mbụ site na kredit ndebanye, sitere na igodo ọdọ mmiri na-emegharị ugboro 35 edekọtara nke na-ekpuchi ntinye ọkwa efughị ego 489 e depụtara n'azụ otu endpoint. Mgbakọ ziri ezi nke na-ewepụ oyiri ọdọ mmiri — a na-agụ ọdọ mmiri ọ bụla a na-ekekọrịta naanị otu ugboro, gụnyere ọdọ mmiri na-emegharị ugboro 17 nwere mmefu ego token kwa ọnwa dị mma e bipụtara tinyere oke Groq ise maka ụdị nke ọ bụla; akara ndị na-enye ọrụ 13 dịka ndị a ga-ezere n'ime katalọgụ ihe ize ndụ nke usoro ojiji ka i wee kpebie. Ogwe mmefu ego gụnyere Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (oke ise maka ụdị nke ọ bụla) na ọdọ mmiri ndị pere mpe, tinyere kredit ndebanye ọnwa mbụ na ndị na-enye ọrụ efughị ego na-adịgide adịgide na-enweghị oke token, nke e gosipụtara iche ka ha ghara ịkwalite ọnụ ọgụgụ bụ isi n'ụzọ na-ezighi ezi. Ọnụ ọgụgụ ejirila/nke fọdụrụ ozugbo na /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Bido</b></td>
     <td align="center"><a href="#-quick-start">🚀 Mmalite Ngwa Ngwa</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Wụnye</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Enweghị Nhazi</a></td>
+    <td align="center"><a href="#first-run">🆓 Jikọọ onye na-eweta ọrụ</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Mụta</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Ọ na-arụ ọrụ ozugbo ị wụnye ya — enweghị igodo, enweghị nhazi
+<a id="first-run"></a>
+
+## 🆓 Wụnye, jikọọ onye na-eweta ọrụ, wee duzie arịrịọ site n'otu endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ọ na-arụ ọrụ ozugbo ị wụnye ya — enweghị nhazi ọ bụla. Nzọụkwụ atọ: 1. Wụnye — npm i -g omniroute, ihe nkesa na-amalite na localhost:20128. 2. Tụnye ngwaọrụ gị na http://localhost:20128/v1 — ngwaọrụ ọ bụla dakọtara na OpenAI (Claude Code, Cursor, Cline). 3. Ọ na-aza — kpọọ model auto maka nzaghachi ozugbo, na-enweghị igodo API, enweghị ndebanye aha, enweghị nhazi. Onye na-enye ọrụ na-enweghị igodo OpenCode Free ejikọtawo n'ime ngwakọta auto, yabụ ntinye ọhụrụ na-aza ozugbo."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Nzọụkwụ atọ: wụnye ma malite OmniRoute, jiri akaụntụ ma ọ bụ igodo API nke gị jikọọ onye na-eweta ọrụ tozuru etozu, wee tụgharịa ngwaọrụ gị na localhost:20128/v1 site n&#x27;igodo API nke OmniRoute na ụdị auto. Ịduzi arịrịọ na-adabere na njikọ tozuru etozu dị na oke ndị na-eweta ọrụ."/>
 
 ```bash
-# Ntinye ọhụrụ, enweghị asambodo ọ bụla — `auto` na-arụ ọrụ ugbua:
+# Mgbe ijikọchara onye na-eweta ọrụ, detuo igodo OmniRoute gị na Dashboard → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Ị masịrị azụ azụ n'efu akọwapụtara? Kpọọ `oc/…` (OpenCode Free) ozugbo. Mgbe ahụ gaa na `auto` ma hapụ OmniRoute ka ọ họrọ.</sub>
+<sub>`auto` chọrọ ụzọ tozuru etozu. Nwụnye ọhụrụ nwere ike ghara inwe ebe aga tozuru etozu na-enweghị igodo, onye na-eweta ọrụ na-achọghị igodo nwekwara ike ịjụ ngwa ndị ọzọ. Na ntọala mbụ, `auto` na-ewepụ ndị na-eweta ọrụ nwere akara `tos: avoid`, gụnyere Kiro na OpenCode Free. Ijikọ akaụntụ anaghị agbanwe iwu a. Gụọ [Ntuziaka Free Tiers](docs/getting-started/FREE-TIERS-GUIDE.md) tupu ịhọrọ onye na-eweta ọrụ.</sub>
 
 <sub>📦 Detuo-mado edemede mmalite ngwa ngwa maka **Python, Node.js, PHP, na cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

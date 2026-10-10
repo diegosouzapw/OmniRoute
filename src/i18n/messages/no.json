@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinasjon → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Inkluder leverandører merket ToS: avoid i auto",
+    "autoTosDescription": "Av som standard. Gjelder alle auto-kombinasjoner, ikke bare én konto. Tilkobling av en leverandør slår ikke på dette valget.",
+    "autoTosSaveError": "Kunne ikke lagre ToS-policyen. Den forrige innstillingen vises fortsatt. Prøv igjen.",
+    "autoTosLoadError": "Kunne ikke laste ToS-policyen. Prøv igjen før du endrer den.",
     "title": "Kombinasjoner",
     "description": "Lag modellkombinasjoner med vektet ruting og reservestøtte",
     "autoCatalogTitle": "Automatisk rutekatalog",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Denne leverandøren er som standard utelatt fra auto",
+    "tosAvoidNoticeDescription": "ToS-statusen er merket avoid. Tilkobling av en konto endrer ikke denne policyen. Les leverandørens vilkår før du aktiverer det globale valget for alle auto-kombinasjoner.",
+    "tosAvoidNoticeAction": "Se auto-policyen",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Token Percuma / Bulan
+## 💰 ~1.62B Token Sebulan Merentas Pelan Percuma Pihak Ketiga
 
 </div>
 
+> **Gunakan akaun penyedia anda sendiri.** Ini ialah anggaran jumlah pelan percuma pihak ketiga yang mempunyai syarat kelayakan berasingan, bukan pemberian token daripada OmniRoute. Daftar, dapatkan bukti kelayakan apabila diperlukan dan sambungkan penyedia yang boleh anda gunakan; setiap penyedia mengawal had, ketersediaan dan syaratnya sendiri.
+>
 > Menggabungkan peringkat percuma secara manual amat menyusahkan — berpuluh-puluh SDK, berpuluh-puluh had kadar, dan anda tidak tahu jumlah sebenar yang anda miliki. OmniRoute mengkatalogkan **489 entri peringkat percuma merentasi 35 kunci himpunan berulang** dan mengira angka token utama daripada **17 himpunan dengan bajet bulanan positif yang diterbitkan serta lima had Groq bagi setiap model**, dinyahduplikasi mengikut himpunan dikongsi. Kuota yang hanya dibuka selepas semakan identiti serantau (kini: ModelScope) dipaparkan secara berasingan, +~6M di sebalik pengesahan identiti serantau, dan tidak pernah dijumlahkan ke dalam angka utama. Hasilnya sentiasa dipaparkan pada papan pemuka (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Kad bajet peringkat percuma OmniRoute: ~1.62B token percuma sebulan secara berterusan, sehingga ~2.22B pada bulan pertama dengan kredit pendaftaran, daripada 35 kunci himpunan berulang yang didokumentasikan dan merangkumi 489 entri peringkat percuma yang dikatalogkan di sebalik satu titik akhir. Pengiraan jujur yang dinyahduplikasi mengikut himpunan — setiap himpunan dikongsi dikira sekali sahaja, termasuk 17 himpunan berulang dengan bajet token bulanan positif yang diterbitkan serta lima had Groq bagi setiap model; 13 penyedia ditandai untuk dielakkan dalam katalog risiko terma supaya anda boleh membuat keputusan. Bar bajet merangkumi Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (lima had bagi setiap model) dan himpunan yang lebih kecil, serta kredit pendaftaran bulan pertama dan penyedia percuma secara kekal tanpa had token yang dipaparkan secara berasingan supaya ia tidak menaikkan angka utama. Penggunaan/baki langsung pada /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Mula</b></td>
     <td align="center"><a href="#-quick-start">🚀 Mula Pantas</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Pasang</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Tanpa konfigurasi</a></td>
+    <td align="center"><a href="#first-run">🆓 Sambungkan penyedia</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Pelajari</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Berfungsi sebaik sahaja anda memasangnya — tiada kunci, tiada konfigurasi
+<a id="first-run"></a>
+
+## 🆓 Pasang, sambungkan penyedia dan halakan melalui satu titik akhir
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Berfungsi sebaik sahaja anda memasangnya — konfigurasi sifar. Tiga langkah: 1. Pasang — npm i -g omniroute, pelayan bermula pada localhost:20128. 2. Halakan alat anda ke http://localhost:20128/v1 — mana-mana alat yang serasi dengan OpenAI (Claude Code, Cursor, Cline). 3. Ia menjawab — panggil model auto untuk balasan segera, tanpa kunci API, tanpa pendaftaran, tanpa konfigurasi. Pembekal tanpa kunci OpenCode Free telah dipasang siap ke dalam kombo auto, jadi pemasangan baharu akan bertindak balas serta-merta."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Tiga langkah: pasang dan mulakan OmniRoute, sambungkan penyedia yang layak dengan akaun atau kunci API anda sendiri, kemudian halakan alat ke localhost:20128/v1 menggunakan kunci API OmniRoute dan model auto. Penghalaan bergantung pada sambungan yang tersedia dan layak serta had penyedia."/>
 
 ```bash
-# Pemasangan baharu, sifar kelayakan — `auto` sudah berfungsi:
+# Selepas menyambungkan penyedia, salin kunci OmniRoute anda daripada Papan Pemuka → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Lebih suka backend percuma yang spesifik? Panggil `oc/…` (OpenCode Free) secara langsung. Kemudian tingkatkan kepada `auto` dan biarkan OmniRoute memilih.</sub>
+<sub>`auto` memerlukan laluan yang layak. Pemasangan baharu mungkin tidak mempunyai sasaran tanpa kunci yang layak, dan penyedia tanpa kunci boleh menolak klien pihak ketiga. Secara lalai, `auto` mengecualikan penyedia bertanda `tos: avoid`, termasuk Kiro dan OpenCode Free. Menyambungkan akaun tidak mengubah dasar ini. Baca [Panduan Peringkat Percuma](docs/getting-started/FREE-TIERS-GUIDE.md) sebelum memilih penyedia.</sub>
 
 <sub>📦 Skrip permulaan pantas salin-tampal untuk **Python, Node.js, PHP, dan cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B ingyenes token / hónap
+## 💰 ~1.62B token havonta külső szolgáltatók ingyenes csomagjaiból összesen
 
 </div>
 
+> **Használja saját szolgáltatói fiókjait.** Ez külön jogosultsági feltételekkel rendelkező külső ingyenes csomagok becsült összege, nem az OmniRoute által kiosztott tokenkeret. Regisztráljon, szerezze be a szükséges hitelesítő adatokat, és csatlakoztassa az Ön által használható szolgáltatókat; minden szolgáltató maga szabja meg korlátait, elérhetőségét és feltételeit.
+>
 > Az ingyenes csomagok kézi halmozása fájdalmas — több tucat SDK, több tucat sebességkorlát, és fogalmad sincs, valójában mennyi áll rendelkezésedre. Az OmniRoute **489 ingyenes csomagbejegyzést tart nyilván 35 ismétlődő készletkulcshoz**, és a tokenek főösszegét abból a **17 készletből számítja ki, amelyek közzétett, pozitív havi kerettel rendelkeznek, valamint öt modellenkénti Groq-korlátból**, a megosztott készleteket deduplikálva. A csak regionális személyazonosság-ellenőrzés után elérhető kvóták (jelenleg: ModelScope) külön jelennek meg, +~6M a regionális személyazonosság-ellenőrzés mögött, és soha nem számítanak bele a főösszegbe. Az eredmény folyamatosan látható az irányítópulton (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute ingyenes csomag keretkártyája: stabilan ~1.62B ingyenes token havonta, a regisztrációs kreditekkel pedig akár ~2.22B az első hónapban, 35 dokumentált, ismétlődő készletkulcsból, amelyek 489 katalogizált ingyenes csomagbejegyzést fednek le egyetlen végpont mögött. Őszinte, készletek szerint deduplikált számítás — minden megosztott készlet csak egyszer számít, beleértve 17 ismétlődő készletet közzétett, pozitív havi tokenkerettel, valamint öt modellenkénti Groq-korlátot; 13 szolgáltató kerülendőként van megjelölve a használati feltételek kockázati katalógusában, így te dönthetsz. A keretsáv tartalmazza a Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (öt modellenkénti korlát) és kisebb készleteket, továbbá az első havi regisztrációs krediteket és a tartósan ingyenes, tokenkorlát nélküli szolgáltatókat külön jeleníti meg, így azok soha nem növelik mesterségesen a főösszeget. Élő felhasznált/fennmaradó mennyiség: /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Kezdés</b></td>
     <td align="center"><a href="#-quick-start">🚀 Gyors kezdés</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Telepítés</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Konfigurációmentes</a></td>
+    <td align="center"><a href="#first-run">🆓 Szolgáltató csatlakoztatása</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Ismerkedés</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Azonnal működik a telepítés után — nincs kulcs, nincs konfiguráció
+<a id="first-run"></a>
+
+## 🆓 Telepítsen, csatlakoztasson szolgáltatót, majd irányítsa a kéréseket egy végponton át
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Azonnal működik a telepítés után — nulla konfiguráció. Három lépés: 1. Telepítés — npm i -g omniroute, a szerver elindul a localhost:20128 címen. 2. Irányítsa eszközét a http://localhost:20128/v1 címre — bármely OpenAI-kompatibilis eszköz (Claude Code, Cursor, Cline). 3. Válaszol — hívja meg az auto modellt azonnali válaszért, API kulcs, regisztráció és konfiguráció nélkül. A kulcs nélküli OpenCode Free szolgáltató előre be van kötve az auto kombinációba, így egy friss telepítés azonnal válaszol."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Három lépés: telepítse és indítsa el az OmniRoute-ot, csatlakoztasson jogosult szolgáltatót saját fiókjával vagy API-kulcsával, majd állítsa az eszközt a localhost:20128/v1 címre OmniRoute API-kulccsal és az auto modellel. Az útválasztás az elérhető jogosult kapcsolatoktól és a szolgáltatói korlátoktól függ."/>
 
 ```bash
-# Friss telepítés, nulla hitelesítő adat — az `auto` már működik:
+# A szolgáltató csatlakoztatása után másolja ki OmniRoute-kulcsát innen: Vezérlőpult → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Inkább egy specifikus ingyenes backendet szeretne? Hívja közvetlenül az `oc/…` (OpenCode Free) szolgáltatót. Ezután térjen át az `auto` módra, és hagyja, hogy az OmniRoute válasszon.</sub>
+<sub>Az `auto` jogosult útvonalat igényel. Egy friss telepítésben nem feltétlenül vannak jogosult, kulcs nélküli célpontok, és egy kulcs nélküli szolgáltató elutasíthatja a külső klienseket. Az `auto` alapértelmezés szerint kizárja a `tos: avoid` jelölésű szolgáltatókat, köztük a Kiro és az OpenCode Free szolgáltatást. Egy fiók csatlakoztatása nem változtat ezen a szabályon. Szolgáltató választása előtt olvassa el ezt: [Ingyenes csomagok útmutatója](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Másolható-beilleszthető gyorsindító szkriptek **Pythonhoz, Node.js-hez, PHP-hoz és cURL-hez** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

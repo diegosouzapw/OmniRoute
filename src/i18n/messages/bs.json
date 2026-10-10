@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinacija → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Nije moguće učitati pravila uslova korištenja. Pokušajte ponovo prije izmjene.",
+    "autoTosSaveError": "Nije moguće sačuvati pravila uslova korištenja. I dalje je prikazana prethodna postavka. Pokušajte ponovo.",
+    "autoTosIncludeLabel": "Uključi u auto pružaoce označene sa ToS: avoid",
+    "autoTosDescription": "Podrazumijevano je isključeno. Važi za sve auto kombinacije, ne samo za jedan račun. Povezivanje pružaoca ne uključuje ovu opciju.",
     "title": "Kombinacije",
     "description": "Kreirajte kombinacije modela sa ponderisanim rutiranjem i podrškom za fallback",
     "autoCatalogTitle": "Katalog auto-rutiranja",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Ovaj pružalac je podrazumijevano isključen iz auto",
+    "tosAvoidNoticeDescription": "Njegov status uslova korištenja označen je kao avoid. Povezivanje računa ne mijenja ova pravila. Pregledajte uslove pružaoca prije davanja zajedničke saglasnosti za sve auto kombinacije.",
+    "tosAvoidNoticeAction": "Pregledaj pravila za auto",
     "codexReleaseCooldown": "Ukloni lokalno vrijeme čekanja",
     "codexReleaseCooldownHint": "Dozvoli ponovni pokušaj korištenja ovog Codex računa. Ovo ne koristi kredit za resetovanje niti mijenja ograničenja nadređenog sistema.",
     "codexReleasingCooldown": "Uklanjanje…",

@@ -4,7 +4,7 @@
 
 ---
 
-> **Özet**: Kurun → Ücretsiz bir sağlayıcı bağlayın → IDE'nizi OmniRoute'a yönlendirin. Hepsi bu.
+> **Özet**: Kurun → Uygun bir sağlayıcı bağlayın → IDE'nizi OmniRoute'a yönlendirin. Tamam.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute, `http://localhost:20128` adresinde başlatılır. Kontrol paneli otom
 
 ---
 
-## 3. Adım: Ücretsiz Bir Sağlayıcı Bağlayın
+## 3. Adım: Uygun Bir Sağlayıcı Bağlayın
 
-Ücretsiz bir sağlayıcı bağlayarak OmniRoute'u **hiçbir ücret ödemeden** kullanabilirsiniz.
+Koşulları ve kotaları ihtiyaçlarınıza uyan bir sağlayıcı seçin. **Kontrol Paneli → Sağlayıcılar** bölümünde kendi hesabınızı veya API anahtarınızı bağlayın, ardından bağlantıyı test edin. Ücretsiz erişim ve anahtarsız kullanılabilirlik garanti edilmez.
 
-### Seçenek A: Kiro (Ücretsiz Claude — Kredi Kartı Gerektirmez)
-
-1. `http://localhost:20128` adresindeki kontrol panelini açın
-2. **Providers** → **Add Provider** bölümüne gidin
-3. **Kiro AI** seçeneğini belirleyin
-4. **Connect** düğmesine tıklayın (API anahtarı gerekmez!)
-5. Tamamdır! Artık Claude modellerine ücretsiz erişiminiz var.
-
-### Seçenek B: OpenCode Free (Kimlik Doğrulama Gerektirmez)
-
-1. `http://localhost:20128` adresindeki kontrol panelini açın
-2. **Providers** → **Add Provider** bölümüne gidin
-3. **OpenCode Free** seçeneğini belirleyin
-4. **Connect** düğmesine tıklayın (API anahtarı gerekmez!)
-5. Tamamdır! Artık birden fazla modele ücretsiz erişiminiz var.
-
-### Seçenek C: Pollinations (Anahtar Gerektirmez)
-
-1. `http://localhost:20128` adresindeki kontrol panelini açın
-2. **Providers** → **Add Provider** bölümüne gidin
-3. **Pollinations** seçeneğini belirleyin
-4. **Connect** düğmesine tıklayın (API anahtarı gerekmez!)
-5. Tamamdır! Artık GPT-5, Claude, Gemini ve daha fazlasına ücretsiz erişiminiz var.
+`auto`, Kiro ve OpenCode Free dahil `tos: avoid` işaretli sağlayıcıları varsayılan olarak hariç tutar. Hesap bağlamak bu politikayı değiştirmez. **Kontrol Paneli → Kombolar** bölümündeki dahil etme onayı tüm otomatik kombolara uygulanır. Sağlayıcı seçmeden önce [Ücretsiz Katmanlar Kılavuzu](./FREE-TIERS-GUIDE.md) belgesini inceleyin.
 
 ---
 
@@ -154,7 +132,7 @@ Sol kenar çubuğundaki [Monitoring/Logs](http://localhost:20128/dashboard/logs)
 
 - **[Auto-Combo Kılavuzu](./AUTO-COMBO-GUIDE.md)** — OmniRoute'un sizin için en iyi yapay zekâyı seçmesini sağlayın
 - **[Sağlayıcılar Kılavuzu](./PROVIDERS-GUIDE.md)** — Daha fazla sağlayıcı bağlayın (ücretsiz ve ücretli)
-- **[Ücretsiz Katmanlar Kılavuzu](./FREE-TIERS-GUIDE.md)** — Kredi kartı olmadan ücretsiz yapay zekâ erişimi elde edin
+- **[Ücretsiz Katmanlar Kılavuzu](./FREE-TIERS-GUIDE.md)** — Sağlayıcı koşullarını ve ücretsiz katman sınırlarını inceleyin
 - **[Sorun Giderme](../guides/TROUBLESHOOTING.md)** — Yaygın sorunları düzeltin
 
 ---
@@ -163,7 +141,7 @@ Sol kenar çubuğundaki [Monitoring/Logs](http://localhost:20128/dashboard/logs)
 
 ### "Bir API anahtarına ihtiyacım var mı?"
 
-**Hayır!** Ücretsiz sağlayıcıları (Kiro, OpenCode Free, Pollinations) herhangi bir API anahtarı olmadan kullanabilirsiniz. Bunları kontrol panelinden bağlamanız yeterlidir.
+OmniRoute API anahtarı araçlarınızın kimliğini doğrular. Üst hizmetin kimlik bilgileri sağlayıcıya bağlıdır: bazıları API anahtarı veya hesapla giriş ister. Ücretsiz erişim garanti edilmez.
 
 ### "`auto` nedir?"
 

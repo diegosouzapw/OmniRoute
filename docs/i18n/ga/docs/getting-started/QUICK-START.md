@@ -4,7 +4,7 @@
 
 ---
 
-> **Go hachomair**: Suiteáil → Ceangail soláthraí saor in aisce → Dírigh d’IDE ar OmniRoute. Sin é.
+> **Go hachomair**: Suiteáil → Ceangail soláthraí incháilithe → Dírigh d'IDE ar OmniRoute. Sin é.
 
 ---
 
@@ -47,33 +47,11 @@ Tosaíonn OmniRoute ag `http://localhost:20128`. Osclaítear an deais go huathoi
 
 ---
 
-## Céim 3: Ceangail Soláthraí Saor in Aisce
+## Céim 3: Ceangail Soláthraí Incháilithe
 
-Is féidir leat OmniRoute a úsáid **gan aon rud a íoc** ach soláthraí saor in aisce a cheangal.
+Roghnaigh soláthraí a bhfuil a théarmaí agus a chuótaí oiriúnach do do riachtanais. Faoi **Deais → Soláthraithe**, ceangail do chuntas féin nó d'eochair API féin, ansin tástáil an nasc. Ní ráthaítear rochtain saor in aisce ná infhaighteacht gan eochair.
 
-### Rogha A: Kiro (Claude Saor in Aisce — Gan Cárta Creidmheasa)
-
-1. Oscail an deais ag `http://localhost:20128`
-2. Téigh chuig **Soláthraithe** → **Cuir Soláthraí Leis**
-3. Roghnaigh **Kiro AI**
-4. Cliceáil **Ceangail** (níl eochair API ag teastáil!)
-5. Sin é! Tá rochtain saor in aisce agat anois ar shamhlacha Claude.
-
-### Rogha B: OpenCode Free (Gan Fíordheimhniú)
-
-1. Oscail an deais ag `http://localhost:20128`
-2. Téigh chuig **Soláthraithe** → **Cuir Soláthraí Leis**
-3. Roghnaigh **OpenCode Free**
-4. Cliceáil **Ceangail** (níl eochair API ag teastáil!)
-5. Sin é! Tá rochtain saor in aisce agat anois ar roinnt samhlacha.
-
-### Rogha C: Pollinations (Níl Eochair de Dhíth)
-
-1. Oscail an deais ag `http://localhost:20128`
-2. Téigh chuig **Soláthraithe** → **Cuir Soláthraí Leis**
-3. Roghnaigh **Pollinations**
-4. Cliceáil **Ceangail** (níl eochair API ag teastáil!)
-5. Sin é! Tá rochtain saor in aisce agat anois ar GPT-5, Claude, Gemini, agus tuilleadh.
+Eisiann `auto` soláthraithe marcáilte `tos: avoid` de réir réamhshocraithe, Kiro agus OpenCode Free san áireamh. Ní athraíonn ceangal cuntais an polasaí seo. Baineann an rogha liostála isteach faoi **Deais → Combónna** le gach combó uathoibríoch. Léigh [Treoir do Shraitheanna Saor in Aisce](./FREE-TIERS-GUIDE.md) sula roghnaíonn tú soláthraí.
 
 ---
 
@@ -154,7 +132,7 @@ Is féidir leat sonraí an iarratais a fheiceáil trí [Monatóireacht/Logaí](h
 
 - **[Treoir Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Lig do OmniRoute an IS is fearr a roghnú duit
 - **[Treoir do Sholáthraithe](./PROVIDERS-GUIDE.md)** — Ceangail tuilleadh soláthraithe (saor in aisce agus íoctha)
-- **[Treoir do Shraitheanna Saor in Aisce](./FREE-TIERS-GUIDE.md)** — Faigh IS saor in aisce gan cárta creidmheasa
+- **[Treoir do Shraitheanna Saor in Aisce](./FREE-TIERS-GUIDE.md)** — Seiceáil téarmaí na soláthraithe agus teorainneacha na sraitheanna saor in aisce
 - **[Fabhtcheartú](../guides/TROUBLESHOOTING.md)** — Réitigh fadhbanna coitianta
 
 ---
@@ -163,7 +141,7 @@ Is féidir leat sonraí an iarratais a fheiceáil trí [Monatóireacht/Logaí](h
 
 ### "An bhfuil eochair API de dhíth orm?"
 
-**Níl!** Is féidir leat soláthraithe saor in aisce (Kiro, OpenCode Free, Pollinations) a úsáid gan aon eochair API. Níl le déanamh agat ach iad a cheangal sa deais.
+Fíordheimhníonn eochair API OmniRoute d'uirlisí. Braitheann dintiúir na seirbhíse réamhtheachtaí ar an soláthraí: éilíonn cuid acu eochair API nó logáil isteach i gcuntas. Ní ráthaítear rochtain saor in aisce.
 
 ### "Cad é `auto`?"
 

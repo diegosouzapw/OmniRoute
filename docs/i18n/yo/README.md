@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Tókènì Ọ̀fẹ́ / Oṣù
+## 💰 Àpapọ̀ ~1.62B Token Lóṣooṣù nínú Àwọn Ètò Ọ̀fẹ́ Ẹni-kẹta
 
 </div>
 
+> **Lo àwọn àkọọlẹ̀ olùpèsè tirẹ.** Èyí jẹ́ ìṣírò àpapọ̀ àwọn ètò ọ̀fẹ́ ẹni-kẹta tí ọ̀kọ̀ọ̀kan ní àdéhùn yíyẹ tirẹ, kì í ṣe token tí OmniRoute ń fún ọ. Forúkọsílẹ̀, gba ẹ̀rí ìwọlé níbi tí a bá nílò rẹ̀, kí o sì so àwọn olùpèsè tí o lè lò pọ̀; olùpèsè kọ̀ọ̀kan ń ṣàkóso ààlà, wíwà àti àdéhùn tirẹ.
+>
 > Ṣíṣàkójọ àwọn ìpele ọ̀fẹ́ lọ́wọ́ máa ńnira — ọ̀pọ̀lọpọ̀ SDK, ọ̀pọ̀lọpọ̀ ààlà ìwọ̀n lílò, kò sì sí ọ̀nà láti mọ iye tí o ní ní tòótọ́. OmniRoute ṣàkójọ **àwọn àkọsílẹ̀ ìpele ọ̀fẹ́ 489 láàárín àwọn kọ́kọ́rọ́ àkójọpọ̀ tó ń tún wá 35** ó sì ṣe ìṣirò àkòrí tókènì láti inú **àkójọpọ̀ 17 tó ní ìnáwó oṣooṣù rere tí a tẹ̀ jáde, pẹ̀lú ààlà Groq márùn-ún fún ẹ̀yà àwòṣe kọ̀ọ̀kan**, nípa yíyọ àtúnṣe kúrò gẹ́gẹ́ bí àkójọpọ̀ tí wọ́n pín pọ̀. Àwọn ìpín lílò tí yóò ṣí lẹ́yìn àyẹ̀wò ìdánimọ̀ agbègbè nìkan (ní báyìí: ModelScope) ni a fi hàn lọ́tọ̀, +~6M lẹ́yìn ìjẹ́rìí ìdánimọ̀ agbègbè, a kò sì ka wọ́n pọ̀ mọ́ àkòrí náà láé. Àbájáde náà ṣì hàn lórí pánẹ́ẹ̀lì (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Káàdì ìnáwó ìpele ọ̀fẹ́ OmniRoute: ~1.62B tókènì ọ̀fẹ́ lóṣooṣù ní ìdúróṣinṣin, tó lè dé ~2.22B ní oṣù àkọ́kọ́ pẹ̀lú kírẹ́díìtì ìforúkọsílẹ̀, láti inú àwọn kọ́kọ́rọ́ àkójọpọ̀ tó ń tún wá 35 tí a kọ sínú àkọsílẹ̀, tí wọ́n bo àwọn àkọsílẹ̀ ìpele ọ̀fẹ́ 489 tí a ṣàkójọ lẹ́yìn ibi ìwọlé kan. Ìṣirò òtítọ́ tí a yọ àtúnṣe àkójọpọ̀ kúrò nínú rẹ̀ — a ka àkójọpọ̀ tí wọ́n pín pọ̀ kọ̀ọ̀kan lẹ́ẹ̀kan ṣoṣo, tó fi mọ́ àkójọpọ̀ tó ń tún wá 17 tí ó ní ìnáwó tókènì oṣooṣù rere tí a tẹ̀ jáde, pẹ̀lú ààlà Groq márùn-ún fún ẹ̀yà àwòṣe kọ̀ọ̀kan; a sàmì sí olùpèsè 13 gẹ́gẹ́ bí ohun tó yẹ ká yẹra fún nínú àkójọ ewu àwọn òfin kí ìwọ lè pinnu. Ọ̀pá ìnáwó náà ní Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (ààlà márùn-ún fún ẹ̀yà àwòṣe kọ̀ọ̀kan) àti àwọn àkójọpọ̀ kéékèèké mìíràn, pẹ̀lú kírẹ́díìtì ìforúkọsílẹ̀ oṣù àkọ́kọ́ àti àwọn olùpèsè ọ̀fẹ́ títí láé tí kò ní ààlà tókènì, tí a fi hàn lọ́tọ̀ kí wọ́n má bàa mú àkòrí náà pọ̀ ju òtítọ́ lọ láé. Ìlò àti iye tó kù ní àkókò gidi lórí /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Bẹ̀rẹ̀</b></td>
     <td align="center"><a href="#-quick-start">🚀 Ìbẹ̀rẹ̀ Kíákíá</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Fi Sórí Ẹ̀rọ</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Kò nílò àtúnṣe</a></td>
+    <td align="center"><a href="#first-run">🆓 So olùpèsè pọ̀</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Kọ́ Ẹ̀kọ́</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Ó máa ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá ti fi sori ẹrọ — kò sí kókó, kò sí ìṣètò
+<a id="first-run"></a>
+
+## 🆓 Fi sori ẹrọ, so olùpèsè pọ̀, kí o sì darí ìbéèrè nípasẹ̀ endpoint kan
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ó máa ń ṣiṣẹ́ lẹ́sẹ̀kẹsẹ̀ tí o bá ti fi sori ẹrọ — kò sí ìṣètò. Ìgbésẹ̀ mẹ́ta: 1. Fífi sori ẹrọ — npm i -g omniroute, olupin náà bẹ̀rẹ̀ lori localhost:20128. 2. Tọ́ka ohun èlò rẹ sí http://localhost:20128/v1 — ohun èlò èyíkéyìí tí ó bá bá OpenAI mu (Claude Code, Cursor, Cline). 3. Ó dáhùn — pe àwòṣe auto fún ìdáhùn lẹ́sẹ̀kẹsẹ̀, láìsí kókó API, láìsí ìforúkọsílẹ̀, láìsí ìṣètò. Olùpèsè láìsí kókó OpenCode Free ti wà nínú àpapọ̀ auto tẹ́lẹ̀, nítorí náà, fífi sori ẹrọ tuntun máa ń dáhùn lẹ́sẹ̀kẹsẹ̀."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ìgbésẹ̀ mẹ́ta: fi OmniRoute sori ẹrọ kí o sì bẹ̀rẹ̀ rẹ̀, so olùpèsè tó yẹ pọ̀ pẹ̀lú àkọọlẹ̀ tàbí kọ́kọ́rọ́ API tirẹ, kí o sì darí irinṣẹ́ rẹ sí localhost:20128/v1 pẹ̀lú kọ́kọ́rọ́ API OmniRoute àti àwòṣe auto. Ìdarí ìbéèrè dá lórí àwọn ìsopọ̀ tó yẹ tí ó wà àti ààlà àwọn olùpèsè."/>
 
 ```bash
-# Fífi sori ẹrọ tuntun, kò sí ìdánimọ̀ — auto ti ń ṣiṣẹ́ tẹ́lẹ̀:
+# Lẹ́yìn tí o bá so olùpèsè pọ̀, da kọ́kọ́rọ́ OmniRoute rẹ kọ láti Pátákó Ìṣàkóso → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Ṣé o fẹ́ àtìlẹ́yìn ọ̀fẹ́ kan pàtó? Pe `oc/…` (OpenCode Free) tààrà. Lẹ́yìn náà, lọ sí `auto` kí o sì jẹ́ kí OmniRoute yàn.</sub>
+<sub>`auto` nílò ọ̀nà tó yẹ. Fífi sori ẹrọ tuntun lè má ní ibi-afẹ́ tó yẹ tí kò nílò kọ́kọ́rọ́, olùpèsè tí kò nílò kọ́kọ́rọ́ sì lè kọ àwọn oníbàárà ẹni-kẹta. Ní ètò àkọ́kọ́, `auto` yọ àwọn olùpèsè tí a samisi `tos: avoid` kúrò, pẹ̀lú Kiro àti OpenCode Free. Sísopọ̀ àkọọlẹ̀ kò yí ìlànà yìí padà. Ka [Ìtọ́sọ́nà Àwọn Ìpele Ọ̀fẹ́](docs/getting-started/FREE-TIERS-GUIDE.md) kí o tó yan olùpèsè.</sub>
 
 <sub>📦 Da àwọn àkọsílẹ̀ ìbẹ̀rẹ̀-pẹ̀lú-kánkán kọ síbẹ̀ fún **Python, Node.js, PHP, àti cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

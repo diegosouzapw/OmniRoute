@@ -4,7 +4,7 @@
 
 ---
 
-> **Na nkenke**: Wụnye → Jikọọ onye na-eweta ọrụ efu → Tụnye IDE gị aka na OmniRoute. Emechaala.
+> **Na nkenke**: Wụnye → Jikọọ onye na-eweta ọrụ tozuru etozu → Tụgharịa IDE gị na OmniRoute. Emechala.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute na-amalite na `http://localhost:20128`. Dashboard ga-emeghe na-akpagh�
 
 ---
 
-## Nzọụkwụ 3: Jikọọ Onye Na-eweta Ọrụ Efu
+## Nzọụkwụ 3: Jikọọ Onye Na-eweta Ọrụ Tozuru Etozu
 
-Ị nwere ike iji OmniRoute **n'akwụghị ụgwọ ọ bụla** site na ijikọ onye na-eweta ọrụ efu.
+Họrọ onye na-eweta ọrụ nke usoro na oke ojiji ya dabara mkpa gị. Na **Dashboard → Ndị Na-eweta Ọrụ**, jikọọ akaụntụ ma ọ bụ igodo API nke gị, wee nwalee njikọ ahụ. A naghị ekwe nkwa ịnweta ọrụ n'efu ma ọ bụ iji ya na-enweghị igodo.
 
-### Nhọrọ A: Kiro (Claude Efu — Achọghị Kaadị Ebe E Si Enweta Ego)
-
-1. Mepee dashboard na `http://localhost:20128`
-2. Gaa na **Ndị Na-eweta Ọrụ** → **Tinye Onye Na-eweta Ọrụ**
-3. Họrọ **Kiro AI**
-4. Pịa **Jikọọ** (achọghị API key!)
-5. Emechaala! Ị nwerezi ohere efu iji ụdị Claude.
-
-### Nhọrọ B: OpenCode Free (Achọghị Nyocha Njirimara)
-
-1. Mepee dashboard na `http://localhost:20128`
-2. Gaa na **Ndị Na-eweta Ọrụ** → **Tinye Onye Na-eweta Ọrụ**
-3. Họrọ **OpenCode Free**
-4. Pịa **Jikọọ** (achọghị API key!)
-5. Emechaala! Ị nwerezi ohere efu iji ọtụtụ ụdị.
-
-### Nhọrọ C: Pollinations (Achọghị Key)
-
-1. Mepee dashboard na `http://localhost:20128`
-2. Gaa na **Ndị Na-eweta Ọrụ** → **Tinye Onye Na-eweta Ọrụ**
-3. Họrọ **Pollinations**
-4. Pịa **Jikọọ** (achọghị API key!)
-5. Emechaala! Ị nwerezi ohere efu iji GPT-5, Claude, Gemini, na ndị ọzọ.
+Na ntọala mbụ, `auto` na-ewepụ ndị na-eweta ọrụ nwere akara `tos: avoid`, gụnyere Kiro na OpenCode Free. Ijikọ akaụntụ anaghị agbanwe iwu a. Nhọrọ ikwenye ka e tinye ha na **Dashboard → Combo** metụtara combo akpaka niile. Gụọ [Ntuziaka Free Tiers](./FREE-TIERS-GUIDE.md) tupu ịhọrọ onye na-eweta ọrụ.
 
 ---
 
@@ -154,7 +132,7 @@ Otu command a na-amalitekwa CLI ndị ọzọ site na generic launcher — `omni
 
 - **[Ntuziaka Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Kwe ka OmniRoute họrọ AI kacha mma maka gị
 - **[Ntuziaka Ndị Na-eweta Ọrụ](./PROVIDERS-GUIDE.md)** — Jikọọ ndị na-eweta ọrụ ndị ọzọ (efu na ndị a na-akwụ ụgwọ)
-- **[Ntuziaka Free Tiers](./FREE-TIERS-GUIDE.md)** — Nweta AI efu na-enweghị kaadị ebe e si enweta ego
+- **[Ntuziaka Free Tiers](./FREE-TIERS-GUIDE.md)** — Lelee usoro ndị na-eweta ọrụ na oke atụmatụ efu
 - **[Nchọpụta na Ndozi Nsogbu](../guides/TROUBLESHOOTING.md)** — Dozie nsogbu ndị a na-ahụkarị
 
 ---
@@ -163,7 +141,7 @@ Otu command a na-amalitekwa CLI ndị ọzọ site na generic launcher — `omni
 
 ### "Achọrọ m API key?"
 
-**Mba!** Ị nwere ike iji ndị na-eweta ọrụ efu (Kiro, OpenCode Free, Pollinations) na-enweghị API key ọ bụla. Naanị jikọọ ha na dashboard.
+Igodo API nke OmniRoute na-akwado njirimara ngwaọrụ gị. Ozi nbanye nke ọrụ isi na-adabere n'onye na-eweta ya: ụfọdụ chọrọ igodo API ma ọ bụ ịbanye n'akaụntụ. A naghị ekwe nkwa ịnweta ọrụ n'efu.
 
 ### "Gịnị bụ `auto`?"
 

@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosLoadError": "No se pudo cargar la política de condiciones de servicio. Vuelve a intentarlo antes de cambiarla.",
+    "autoTosSaveError": "No se pudo guardar la política de condiciones de servicio. Se sigue mostrando la configuración anterior. Vuelve a intentarlo.",
+    "autoTosIncludeLabel": "Incluir en auto los proveedores marcados como ToS: avoid",
+    "autoTosDescription": "Desactivado de forma predeterminada. Se aplica a todas las combinaciones auto, no solo a una cuenta. Conectar un proveedor no activa esta opción.",
     "title": "combos",
     "description": "Cree combinaciones de modelos con enrutamiento ponderado y soporte alternativo",
     "autoCatalogTitle": "Catálogo de enrutamiento automático",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Este proveedor está excluido de auto de forma predeterminada",
+    "tosAvoidNoticeDescription": "Su estado de condiciones de servicio está marcado como avoid. Conectar una cuenta no cambia esta política. Revisa las condiciones del proveedor antes de activar la autorización global para todas las combinaciones auto.",
+    "tosAvoidNoticeAction": "Revisar la política de auto",
     "codexReleaseCooldown": "Borrar enfriamiento local",
     "codexReleaseCooldownHint": "Permite volver a probar esta cuenta de Codex. No canjea un crédito de restablecimiento ni cambia los límites del proveedor.",
     "codexReleasingCooldown": "Clearing…",

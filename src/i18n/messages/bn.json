@@ -3384,6 +3384,10 @@
     "comboRefMember": "কম্বো → {name}"
   },
   "combos": {
+    "autoTosLoadError": "পরিষেবার শর্তাবলির নীতি লোড করা যায়নি। পরিবর্তন করার আগে আবার চেষ্টা করুন।",
+    "autoTosSaveError": "পরিষেবার শর্তাবলির নীতি সংরক্ষণ করা যায়নি। আগের সেটিংটিই দেখানো হচ্ছে। আবার চেষ্টা করুন।",
+    "autoTosIncludeLabel": "ToS: avoid হিসেবে চিহ্নিত প্রদানকারীদের auto-তে অন্তর্ভুক্ত করুন",
+    "autoTosDescription": "ডিফল্টভাবে বন্ধ। এটি শুধু একটি অ্যাকাউন্টের জন্য নয়, সব auto কম্বোর জন্য প্রযোজ্য। কোনো প্রদানকারীকে সংযুক্ত করলে এই বিকল্প চালু হয় না।",
     "title": "কম্বোসমূহ",
     "description": "ওজনভিত্তিক রাউটিং ও ফলব্যাক সমর্থনসহ মডেল কম্বো তৈরি করুন",
     "autoCatalogTitle": "স্বয়ংক্রিয়-রাউটিং ক্যাটালগ",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "এই প্রদানকারী ডিফল্টভাবে auto থেকে বাদ থাকে",
+    "tosAvoidNoticeDescription": "এর পরিষেবার শর্তাবলির অবস্থা avoid হিসেবে চিহ্নিত। একটি অ্যাকাউন্ট সংযুক্ত করলে এই নীতি পরিবর্তন হয় না। সব auto কম্বোর জন্য সম্মিলিত অনুমতি চালু করার আগে প্রদানকারীর শর্তাবলি পর্যালোচনা করুন।",
+    "tosAvoidNoticeAction": "auto নীতি পর্যালোচনা করুন",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

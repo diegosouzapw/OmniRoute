@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 Ayda ~1.62B Pulsuz Token
+## 💰 Üçüncü tərəflərin pulsuz tarifləri üzrə ayda ümumilikdə ~1.62B token
 
 </div>
 
+> **Öz provayder hesablarınızı istifadə edin.** Bu, ayrı uyğunluq şərtləri olan üçüncü tərəf pulsuz tariflərinin təxmini cəmidir, OmniRoute tərəfindən verilən token payı deyil. Qeydiyyatdan keçin, lazım olduqda giriş məlumatları alın və istifadə edə bildiyiniz provayderləri qoşun; hər provayder öz limitlərini, əlçatanlığını və şərtlərini müəyyənləşdirir.
+>
 > Pulsuz səviyyələri əl ilə birləşdirmək əziyyətlidir — onlarla SDK, onlarla sürət limiti və əslində nə qədər resursunuz olduğuna dair heç bir təsəvvür yoxdur. OmniRoute **35 təkrarlanan hovuz açarı üzrə 489 pulsuz səviyyə qeydini** kataloqlaşdırır və token göstəricisini **dərc edilmiş müsbət aylıq büdcəsi olan 17 hovuz, üstəgəl model üzrə beş Groq limiti** əsasında hesablayır; ortaq hovuzlar təkrarlanmır. Yalnız regional şəxsiyyət yoxlamasından sonra açılan kvotalar (hazırda: ModelScope) ayrıca göstərilir — regional şəxsiyyət təsdiqinin arxasında +~6M — və heç vaxt əsas göstəriciyə əlavə edilmir. Nəticə idarəetmə panelində (`/dashboard/free-tiers`) görünən olaraq qalır.
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute pulsuz səviyyə büdcəsi kartı: ayda sabit ~1.62B pulsuz token, qeydiyyat kreditləri ilə ilk ayda ~2.22B-dək; bir son nöqtənin arxasında kataloqlaşdırılmış 489 pulsuz səviyyə qeydini əhatə edən 35 sənədləşdirilmiş təkrarlanan hovuz açarından. Dürüst, hovuz üzrə təkrarsız hesablamalar — hər ortaq hovuz yalnız bir dəfə hesablanır; buraya dərc edilmiş müsbət aylıq token büdcəsi olan 17 təkrarlanan hovuz, üstəgəl model üzrə beş Groq limiti daxildir; şərtlərlə bağlı risk kataloqunda 13 provayderdən çəkinmək tövsiyə olunur, qərarı siz verirsiniz. Büdcə zolağına Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (model üzrə beş limit) və daha kiçik hovuzlar daxildir; həmçinin ilk ay üçün qeydiyyat kreditləri və daimi pulsuz, token limiti olmayan provayderlər ayrıca göstərilir ki, əsas göstəricini heç vaxt şişirtməsinlər. /dashboard/free-tiers səhifəsində canlı istifadə olunan/qalan miqdar."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Başlanğıc</b></td>
     <td align="center"><a href="#-quick-start">🚀 Sürətli başlanğıc</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Quraşdırma</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Konfiqurasiyasız</a></td>
+    <td align="center"><a href="#first-run">🆓 Provayder qoşun</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Öyrənin</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Quraşdırdığınız saniyədə işləyir — açarsız, konfiqurasiyasız
+<a id="first-run"></a>
+
+## 🆓 Quraşdırın, provayder qoşun və bir son nöqtə üzərindən yönləndirin
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Works the second you install it — zero config. Three steps: 1. Install — npm i -g omniroute, server boots on localhost:20128. 2. Point your tool at http://localhost:20128/v1 — any OpenAI-compatible tool (Claude Code, Cursor, Cline). 3. It answers — call model auto for an instant reply, with no API key, no signup, no configuration. Keyless provider OpenCode Free is pre-wired into the auto combo, so a fresh install responds out of the box."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Üç addım: OmniRoute-u quraşdırıb başladın, öz hesabınız və ya API açarınızla uyğun provayderi qoşun, sonra OmniRoute API açarı və auto modeli ilə alətinizi localhost:20128/v1 ünvanına yönəldin. Yönləndirmə mövcud uyğun bağlantılardan və provayder limitlərindən asılıdır."/>
 
 ```bash
-# Fresh install, zero credentials — `auto` already works:
+# Provayderi qoşduqdan sonra OmniRoute açarınızı İdarə paneli → Endpoints bölməsindən köçürün:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Müəyyən pulsuz backendə üstünlük verirsiniz? Birbaşa `oc/…` (OpenCode Free) çağırın. Sonra `auto`-ya keçin və OmniRoute-un seçməsinə icazə verin.</sub>
+<sub>`auto` uyğun marşrut tələb edir. Yeni quraşdırmada uyğun açarsız hədəflər olmaya bilər və açarsız provayder üçüncü tərəf müştərilərini rədd edə bilər. `auto` standart olaraq Kiro və OpenCode Free daxil olmaqla `tos: avoid` işarəli provayderləri istisna edir. Hesab qoşmaq bu siyasəti dəyişmir. Provayder seçməzdən əvvəl [Pulsuz tariflər üzrə təlimat](docs/getting-started/FREE-TIERS-GUIDE.md) sənədini oxuyun.</sub>
 
 <sub>📦 **Python, Node.js, PHP və cURL** üçün sürətli start skriptlərini kopyalayıb-yapışdırın → [`examples/quickstart/`](examples/quickstart/)</sub>
 

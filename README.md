@@ -94,7 +94,7 @@
     <td align="right"><b>🚀 Start</b></td>
     <td align="center"><a href="#-quick-start">🚀 Quick Start</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Install</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Zero-config</a></td>
+    <td align="center"><a href="#first-run">🆓 Connect a provider</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Learn</b></td>
@@ -212,6 +212,8 @@
 <br/>
 
 <div align="center">
+
+<a id="first-run"></a>
 
 ## 🆓 Install, connect a provider, then route through one endpoint
 

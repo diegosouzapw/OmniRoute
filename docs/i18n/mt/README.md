@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Token B’Xejn / Xahar
+## 💰 ~1.62B Tokens fix-Xahar fost Livelli B'Xejn ta' Partijiet Terzi
 
 </div>
 
+> **Uża l-kontijiet tiegħek stess mal-fornituri.** Dan huwa total stmat ta' livelli b'xejn ta' partijiet terzi b'rekwiżiti ta' eliġibbiltà separati, mhux għotja ta' tokens minn OmniRoute. Irreġistra, ikseb il-kredenzjali fejn meħtieġa u qabbad il-fornituri li tista' tuża; kull fornitur jikkontrolla l-limiti, id-disponibbiltà u t-termini tiegħu.
+>
 > L-akkumulazzjoni manwali tal-livelli bla ħlas hija tedjanti — għexieren ta’ SDKs, għexieren ta’ limiti tar-rata, u ebda idea ta’ kemm fil-fatt għandek. OmniRoute jikkataloga **489 entrata ta’ livelli bla ħlas mifruxa fuq 35 ċavetta ta’ pools rikorrenti** u jikkalkula ċ-ċifra ewlenija tat-tokens mis-**17-il pool b’baġit mensili pożittiv ippubblikat flimkien ma’ ħames limiti Groq għal kull mudell**, bid-duplikati eliminati skont il-pool kondiviż. Il-kwoti li jinfetħu biss wara verifika reġjonali tal-identità (illum: ModelScope) jintwerew separatament, +~6M wara verifika reġjonali tal-identità, u qatt ma jingħaddu fiċ-ċifra ewlenija. Ir-riżultat jibqa’ viżibbli fid-dashboard (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Kard tal-baġit tal-livelli bla ħlas ta’ OmniRoute: ~1.62B token bla ħlas fix-xahar b’mod stabbli, sa ~2.22B fl-ewwel xahar bi krediti tar-reġistrazzjoni, minn 35 ċavetta dokumentata ta’ pools rikorrenti li jkopru 489 entrata kkatalogata ta’ livelli bla ħlas wara endpoint wieħed. Kalkolu onest bid-duplikati tal-pools eliminati — kull pool kondiviż jingħadd darba biss, inklużi 17-il pool rikorrenti b’baġit mensili pożittiv ippubblikat tat-tokens flimkien ma’ ħames limiti Groq għal kull mudell; 13-il fornitur huma mmarkati biex jiġu evitati fil-katalgu tar-riskji tat-termini sabiex tiddeċiedi int. Il-barra tal-baġit tinkludi Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (ħames limiti għal kull mudell) u pools iżgħar, flimkien ma’ krediti tar-reġistrazzjoni għall-ewwel xahar u fornituri bla ħlas b’mod permanenti u mingħajr limitu ta’ tokens, murija separatament sabiex qatt ma jkabbru b’mod artifiċjali ċ-ċifra ewlenija. Użu u bilanċ li jifdal f’ħin reali fuq /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Ibda</b></td>
     <td align="center"><a href="#-quick-start">🚀 Bidu Mgħaġġel</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Installa</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Mingħajr Konfigurazzjoni</a></td>
+    <td align="center"><a href="#first-run">🆓 Qabbad fornitur</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Tgħallem</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Jaħdem mill-ewwel li tinstallah — l-ebda ċwievet, l-ebda konfigurazzjoni
+<a id="first-run"></a>
+
+## 🆓 Installa, qabbad fornitur, u għaddi t-talbiet minn endpoint wieħed
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Jaħdem mill-ewwel li tinstallah — konfigurazzjoni żero. Tliet passi: 1. Installa — npm i -g omniroute, is-server jibda fuq localhost:20128. 2. Ipponta l-għodda tiegħek lejn http://localhost:20128/v1 — kwalunkwe għodda kompatibbli mal-OpenAI (Claude Code, Cursor, Cline). 3. Tweġiba — ċempel il-mudell auto għal tweġiba immedjata, mingħajr ċavetta API, mingħajr reġistrazzjoni, mingħajr konfigurazzjoni. Il-fornitur mingħajr ċavetta OpenCode Free huwa diġà konness mal-combo auto, għalhekk installazzjoni ġdida tirrispondi mill-ewwel."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Tliet passi: installa u ibda OmniRoute, qabbad fornitur eliġibbli bil-kont jew biċ-ċavetta API tiegħek stess, u pponta l-għodda lejn localhost:20128/v1 b&#x27;ċavetta API ta&#x27; OmniRoute u l-mudell auto. Ir-routing jiddependi fuq konnessjonijiet eliġibbli disponibbli u l-limiti tal-fornituri."/>
 
 ```bash
-# Installazzjoni ġdida, żero kredenzjali — `auto` diġà jaħdem:
+# Wara li tqabbad fornitur, ikkopja ċ-ċavetta OmniRoute minn Dashboard → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Tippreferi backend speċifiku b'xejn? Ċempel `oc/…` (OpenCode Free) direttament. Imbagħad aġġorna għal `auto` u ħalli OmniRoute jagħżel.</sub>
+<sub>`auto` jeħtieġ rotta eliġibbli. Installazzjoni ġdida jista' ma jkollhiex destinazzjonijiet eliġibbli mingħajr ċavetta, u fornitur mingħajr ċavetta jista' jirrifjuta klijenti ta' partijiet terzi. B'mod awtomatiku, `auto` jeskludi fornituri mmarkati `tos: avoid`, inklużi Kiro u OpenCode Free. Il-konnessjoni ta' kont ma tbiddilx din il-politika. Aqra [Gwida għall-Livelli Bla Ħlas](docs/getting-started/FREE-TIERS-GUIDE.md) qabel tagħżel fornitur.</sub>
 
 <sub>📦 Skripts ta' quickstart biex tikkopja u tippejstja għal **Python, Node.js, PHP, u cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

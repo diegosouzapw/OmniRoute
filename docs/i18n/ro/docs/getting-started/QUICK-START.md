@@ -4,7 +4,7 @@
 
 ---
 
-> **Pe scurt**: Instalați → Conectați un furnizor gratuit → Direcționați IDE-ul către OmniRoute. Gata.
+> **Pe scurt**: Instalați → Conectați un furnizor eligibil → Direcționați IDE-ul către OmniRoute. Gata.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute pornește la `http://localhost:20128`. Panoul de control se deschide a
 
 ---
 
-## Pasul 3: Conectați un furnizor gratuit
+## Pasul 3: Conectați un furnizor eligibil
 
-Puteți utiliza OmniRoute **fără să plătiți nimic**, conectând un furnizor gratuit.
+Alegeți un furnizor ale cărui condiții și cote corespund nevoilor dvs. În **Panou de control → Furnizori**, conectați propriul cont sau propria cheie API, apoi testați conexiunea. Accesul gratuit și disponibilitatea fără cheie nu sunt garantate.
 
-### Opțiunea A: Kiro (Claude gratuit — Fără card de credit)
-
-1. Deschideți panoul de control la `http://localhost:20128`
-2. Accesați **Furnizori** → **Adăugați un furnizor**
-3. Selectați **Kiro AI**
-4. Faceți clic pe **Conectare** (nu este necesară nicio cheie API!)
-5. Gata! Acum aveți acces gratuit la modelele Claude.
-
-### Opțiunea B: OpenCode Free (Fără autentificare)
-
-1. Deschideți panoul de control la `http://localhost:20128`
-2. Accesați **Furnizori** → **Adăugați un furnizor**
-3. Selectați **OpenCode Free**
-4. Faceți clic pe **Conectare** (nu este necesară nicio cheie API!)
-5. Gata! Acum aveți acces gratuit la mai multe modele.
-
-### Opțiunea C: Pollinations (Nu este necesară nicio cheie)
-
-1. Deschideți panoul de control la `http://localhost:20128`
-2. Accesați **Furnizori** → **Adăugați un furnizor**
-3. Selectați **Pollinations**
-4. Faceți clic pe **Conectare** (nu este necesară nicio cheie API!)
-5. Gata! Acum aveți acces gratuit la GPT-5, Claude, Gemini și multe altele.
+`auto` exclude implicit furnizorii marcați `tos: avoid`, inclusiv Kiro și OpenCode Free. Conectarea unui cont nu modifică această politică. Opțiunea de includere din **Panou de control → Combinații** se aplică tuturor combinațiilor automate. Consultați [Ghidul nivelurilor gratuite](./FREE-TIERS-GUIDE.md) înainte de a alege un furnizor.
 
 ---
 
@@ -154,7 +132,7 @@ Puteți vedea detaliile solicitării făcând clic pe [Monitorizare/Jurnale](htt
 
 - **[Ghidul Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Permiteți OmniRoute să aleagă cel mai bun AI pentru dumneavoastră
 - **[Ghidul furnizorilor](./PROVIDERS-GUIDE.md)** — Conectați mai mulți furnizori (gratuiți și contra cost)
-- **[Ghidul nivelurilor gratuite](./FREE-TIERS-GUIDE.md)** — Obțineți acces gratuit la AI fără card de credit
+- **[Ghidul nivelurilor gratuite](./FREE-TIERS-GUIDE.md)** — Consultați condițiile furnizorilor și limitele planurilor gratuite
 - **[Depanare](../guides/TROUBLESHOOTING.md)** — Remediați problemele frecvente
 
 ---
@@ -163,7 +141,7 @@ Puteți vedea detaliile solicitării făcând clic pe [Monitorizare/Jurnale](htt
 
 ### „Am nevoie de o cheie API?”
 
-**Nu!** Puteți utiliza furnizori gratuiți (Kiro, OpenCode Free, Pollinations) fără nicio cheie API. Trebuie doar să îi conectați în panoul de control.
+Cheia API OmniRoute vă autentifică instrumentele. Datele de acces pentru serviciul din amonte depind de furnizor: unii solicită o cheie API sau autentificarea într-un cont. Accesul gratuit nu este garantat.
 
 ### „Ce este `auto`?”
 

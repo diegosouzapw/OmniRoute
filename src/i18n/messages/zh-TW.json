@@ -3384,6 +3384,10 @@
     "comboRefMember": "組合 → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "在 auto 中納入標記為 ToS: avoid 的供應商",
+    "autoTosDescription": "預設關閉。適用於所有 auto 組合，而非單一帳戶。連線至供應商不會啟用此選項。",
+    "autoTosSaveError": "無法儲存 ToS 政策。仍顯示先前的設定，請重試。",
+    "autoTosLoadError": "無法載入 ToS 政策。請重試後再進行變更。",
     "title": "組合",
     "description": "建立支援權重路由與故障回退的模型組合",
     "autoCatalogTitle": "自動路由目錄",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "此供應商預設排除在 auto 之外",
+    "tosAvoidNoticeDescription": "其 ToS 狀態標記為 avoid。連線帳戶不會改變此政策。在為所有 auto 組合啟用全域選項之前，請查閱供應商的條款。",
+    "tosAvoidNoticeAction": "查看 auto 政策",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

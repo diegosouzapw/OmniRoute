@@ -3384,6 +3384,10 @@
     "comboRefMember": "Комбинација → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Укључи у auto добављаче означене као ToS: avoid",
+    "autoTosDescription": "Подразумевано искључено. Важи за све auto комбинације, не само за један налог. Повезивање добављача не укључује ову опцију.",
+    "autoTosSaveError": "Није могуће сачувати ToS правила. И даље се приказује претходно подешавање. Покушајте поново.",
+    "autoTosLoadError": "Није могуће учитати ToS правила. Покушајте поново пре измене.",
     "title": "Комбинације",
     "description": "Креирајте комбинације модела са пондерисаним рутирањем и подршком за резервне опције",
     "autoCatalogTitle": "Каталог аутоматског рутирања",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Овај добављач је подразумевано искључен из auto",
+    "tosAvoidNoticeDescription": "Његов ToS статус је означен као avoid. Повезивање налога не мења ова правила. Прочитајте услове добављача пре укључивања глобалне опције за све auto комбинације.",
+    "tosAvoidNoticeAction": "Погледајте auto правила",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

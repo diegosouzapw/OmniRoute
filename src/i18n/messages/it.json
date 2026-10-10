@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Impossibile caricare la politica sui termini di servizio. Riprova prima di modificarla.",
+    "autoTosSaveError": "Impossibile salvare la politica sui termini di servizio. È ancora visualizzata l’impostazione precedente. Riprova.",
+    "autoTosIncludeLabel": "Includi in auto i provider contrassegnati ToS: avoid",
+    "autoTosDescription": "Disattivato per impostazione predefinita. Si applica a tutte le combinazioni auto, non solo a un account. Collegare un provider non attiva questa opzione.",
     "title": "Combinazioni",
     "description": "Crea combinazioni di modelli con routing ponderato e supporto fallback",
     "autoCatalogTitle": "Catalogo dell'autorouting",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Questo provider è escluso da auto per impostazione predefinita",
+    "tosAvoidNoticeDescription": "Il suo stato dei termini di servizio è contrassegnato come avoid. Collegare un account non modifica questa politica. Consulta i termini del provider prima di attivare il consenso globale per tutte le combinazioni auto.",
+    "tosAvoidNoticeAction": "Consulta la politica di auto",
     "codexReleaseCooldown": "Azzera cooldown locale",
     "codexReleaseCooldownHint": "Consente di riprovare questo account Codex. Non riscatta un credito di ripristino né modifica i limiti del fornitore.",
     "codexReleasingCooldown": "Clearing…",

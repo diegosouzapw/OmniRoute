@@ -3384,6 +3384,10 @@
     "comboRefMember": "კომბინაცია → {name}"
   },
   "combos": {
+    "autoTosLoadError": "მომსახურების პირობების პოლიტიკის ჩატვირთვა ვერ მოხერხდა. შეცვლამდე ხელახლა სცადეთ.",
+    "autoTosSaveError": "მომსახურების პირობების პოლიტიკის შენახვა ვერ მოხერხდა. კვლავ წინა პარამეტრი ჩანს. ხელახლა სცადეთ.",
+    "autoTosIncludeLabel": "auto-ში ToS: avoid ნიშნით მონიშნული პროვაიდერების ჩართვა",
+    "autoTosDescription": "ნაგულისხმევად გამორთულია. ვრცელდება ყველა auto კომბინაციაზე და არა მხოლოდ ერთ ანგარიშზე. პროვაიდერის დაკავშირება ამ პარამეტრს არ რთავს.",
     "title": "კომბინაციები",
     "description": "შექმენით მოდელების კომბინაციები შეწონილი მარშრუტიზაციითა და სარეზერვო ვარიანტის მხარდაჭერით",
     "autoCatalogTitle": "ავტომარშრუტიზაციის კატალოგი",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ეს პროვაიდერი ნაგულისხმევად გამორიცხულია auto-დან",
+    "tosAvoidNoticeDescription": "მისი მომსახურების პირობების სტატუსი მონიშნულია avoid-ით. ანგარიშის დაკავშირება ამ პოლიტიკას არ ცვლის. ყველა auto კომბინაციისთვის საერთო ნებართვის ჩართვამდე გადახედეთ პროვაიდერის პირობებს.",
+    "tosAvoidNoticeAction": "auto-ს პოლიტიკის ნახვა",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

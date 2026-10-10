@@ -3384,6 +3384,10 @@
     "comboRefMember": "Комбінація → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Включати до auto провайдерів із позначкою ToS: avoid",
+    "autoTosDescription": "Типово вимкнено. Застосовується до всіх комбінацій auto, а не лише до одного облікового запису. Підключення провайдера не вмикає цю опцію.",
+    "autoTosSaveError": "Не вдалося зберегти політику ToS. Досі відображається попереднє налаштування. Спробуйте ще раз.",
+    "autoTosLoadError": "Не вдалося завантажити політику ToS. Спробуйте ще раз перед зміною.",
     "title": "Комбо",
     "description": "Створюйте комбінації моделей із зваженою маршрутизацією та підтримкою резервного варіанту",
     "autoCatalogTitle": "Каталог автомаршрутизації",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Цього провайдера типово виключено з auto",
+    "tosAvoidNoticeDescription": "Його статус ToS позначено як avoid. Підключення облікового запису не змінює цю політику. Перегляньте умови провайдера, перш ніж увімкнути загальну опцію для всіх комбінацій auto.",
+    "tosAvoidNoticeAction": "Переглянути політику auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

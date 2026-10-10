@@ -3384,6 +3384,10 @@
     "comboRefMember": "ಕಾಂಬೊ → {name}"
   },
   "combos": {
+    "autoTosLoadError": "ಸೇವಾ ನಿಯಮಗಳ ನೀತಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಬದಲಾಯಿಸುವ ಮೊದಲು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "autoTosSaveError": "ಸೇವಾ ನಿಯಮಗಳ ನೀತಿಯನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಹಿಂದಿನ ಸೆಟ್ಟಿಂಗ್ ಇನ್ನೂ ತೋರಿಸಲಾಗುತ್ತಿದೆ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+    "autoTosIncludeLabel": "ToS: avoid ಎಂದು ಗುರುತಿಸಲಾದ ಪೂರೈಕೆದಾರರನ್ನು auto ದಲ್ಲಿ ಸೇರಿಸಿ",
+    "autoTosDescription": "ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ಆಫ್ ಆಗಿದೆ. ಇದು ಒಂದು ಖಾತೆಗೆ ಮಾತ್ರವಲ್ಲ, ಎಲ್ಲಾ auto ಸಂಯೋಜನೆಗಳಿಗೂ ಅನ್ವಯಿಸುತ್ತದೆ. ಪೂರೈಕೆದಾರರನ್ನು ಸಂಪರ್ಕಿಸುವುದರಿಂದ ಈ ಆಯ್ಕೆ ಆನ್ ಆಗುವುದಿಲ್ಲ.",
     "title": "ಸಂಯೋಜನೆಗಳು",
     "description": "ತೂಕಾಧಾರಿತ ರೌಟಿಂಗ್ ಮತ್ತು ಫಾಲ್ಬ್ಯಾಕ್ ಬೆಂಬಲದೊಂದಿಗೆ ಮಾದರಿ ಸಂಯೋಜನೆಗಳನ್ನು ರಚಿಸಿ",
     "autoCatalogTitle": "ಸ್ವಯಂಚಾಲಿತ ರೌಟಿಂಗ್ ಕ್ಯಾಟಲಾಗ್",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ಈ ಪೂರೈಕೆದಾರರನ್ನು ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ auto ದಿಂದ ಹೊರಗಿಡಲಾಗಿದೆ",
+    "tosAvoidNoticeDescription": "ಇದರ ಸೇವಾ ನಿಯಮಗಳ ಸ್ಥಿತಿಯನ್ನು avoid ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ. ಖಾತೆಯನ್ನು ಸಂಪರ್ಕಿಸುವುದರಿಂದ ಈ ನೀತಿ ಬದಲಾಗುವುದಿಲ್ಲ. ಎಲ್ಲಾ auto ಸಂಯೋಜನೆಗಳಿಗಾಗಿ ಸಾಮಾನ್ಯ ಅನುಮತಿಯನ್ನು ಆನ್ ಮಾಡುವ ಮೊದಲು ಪೂರೈಕೆದಾರರ ನಿಯಮಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
+    "tosAvoidNoticeAction": "auto ನೀತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

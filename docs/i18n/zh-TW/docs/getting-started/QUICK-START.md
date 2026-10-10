@@ -4,7 +4,7 @@
 
 ---
 
-> **簡而言之**：安裝 → 連接免費提供者 → 將 IDE 指向 OmniRoute。完成。
+> **簡而言之**：安裝 → 連接符合資格的供應商 → 將 IDE 指向 OmniRoute。完成。
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute 會在 `http://localhost:20128` 啟動。儀表板將自動開啟。
 
 ---
 
-## 步驟 3：連接免費提供者
+## 步驟 3：連接符合資格的供應商
 
-您可以連接免費提供者，**無須支付任何費用**即可使用 OmniRoute。
+選擇條款與配額符合您需求的供應商。在**儀表板 → 供應商**中連接您自己的帳戶或 API 金鑰，然後測試連線。不保證免費存取，也不保證無需金鑰即可使用。
 
-### 選項 A：Kiro（免費 Claude — 無須信用卡）
-
-1. 在 `http://localhost:20128` 開啟儀表板
-2. 前往 **提供者** → **新增提供者**
-3. 選取 **Kiro AI**
-4. 按一下 **連接**（無須 API 金鑰！）
-5. 完成！您現在可以免費使用 Claude 模型。
-
-### 選項 B：OpenCode Free（無須驗證）
-
-1. 在 `http://localhost:20128` 開啟儀表板
-2. 前往 **提供者** → **新增提供者**
-3. 選取 **OpenCode Free**
-4. 按一下 **連接**（無須 API 金鑰！）
-5. 完成！您現在可以免費使用多種模型。
-
-### 選項 C：Pollinations（無須金鑰）
-
-1. 在 `http://localhost:20128` 開啟儀表板
-2. 前往 **提供者** → **新增提供者**
-3. 選取 **Pollinations**
-4. 按一下 **連接**（無須 API 金鑰！）
-5. 完成！您現在可以免費使用 GPT-5、Claude、Gemini 等模型。
+`auto` 預設排除標記為 `tos: avoid` 的供應商，包括 Kiro 和 OpenCode Free。連接帳戶不會改變此政策。 **儀表板 → 組合**中的自願啟用選項適用於所有自動組合。 選擇供應商前，請閱讀[免費方案指南](./FREE-TIERS-GUIDE.md)。
 
 ---
 
@@ -154,7 +132,7 @@ omniroute launch-codex --model auto
 
 - **[Auto-Combo 指南](./AUTO-COMBO-GUIDE.md)** — 讓 OmniRoute 為您選擇最佳 AI
 - **[提供者指南](./PROVIDERS-GUIDE.md)** — 連接更多提供者（免費及付費）
-- **[免費方案指南](./FREE-TIERS-GUIDE.md)** — 無須信用卡即可免費使用 AI
+- **[免費方案指南](./FREE-TIERS-GUIDE.md)** — 查看供應商條款與免費方案限制
 - **[疑難排解](../guides/TROUBLESHOOTING.md)** — 修正常見問題
 
 ---
@@ -163,7 +141,7 @@ omniroute launch-codex --model auto
 
 ### 「我需要 API 金鑰嗎？」
 
-**不需要！** 您可以使用免費提供者（Kiro、OpenCode Free、Pollinations），無須任何 API 金鑰。只需在儀表板中連接它們即可。
+OmniRoute API 金鑰用於驗證您的工具。上游憑證取決於供應商：有些需要 API 金鑰或帳戶登入。不保證免費存取。
 
 ### 「`auto` 是什麼？」
 

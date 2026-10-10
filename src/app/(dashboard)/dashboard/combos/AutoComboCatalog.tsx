@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card } from "@/shared/components";
 import { AUTO_COMBO_TEMPLATES, type AutoComboTemplate } from "@/domain/assessment/types";
+import AutoComboTosControl from "./AutoComboTosControl";
 
 // Informational catalog of zero-config auto-routing combos.
 // Auto combos are resolved at request time by the chat handler based on the
@@ -220,6 +221,11 @@ export default function AutoComboCatalog({
   const [duplicatingName, setDuplicatingName] = useState<string | null>(null);
   const [liveItems, setLiveItems] = useState<CatalogItem[] | null>(null);
   const catalogRequestedRef = useRef(false);
+  const [catalogRevision, setCatalogRevision] = useState(0);
+  const refreshCatalog = useCallback(() => {
+    catalogRequestedRef.current = false;
+    setCatalogRevision((revision) => revision + 1);
+  }, []);
 
   // Lazy-load the live catalog the first time the panel expands so the list
   // reflects every built-in auto combo (incl. model families) with live
@@ -245,7 +251,7 @@ export default function AutoComboCatalog({
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, [open, catalogRevision]);
 
   const handleDuplicateEntry = useCallback(
     async (item: CatalogItem) => {
@@ -321,6 +327,8 @@ export default function AutoComboCatalog({
           {open ? "expand_less" : "expand_more"}
         </span>
       </button>
+
+      <AutoComboTosControl onPolicyChange={refreshCatalog} />
 
       {open && items.length === 0 && (
         <p className="mt-4 text-xs text-text-muted">{t("autoCatalogNoCandidates")}</p>

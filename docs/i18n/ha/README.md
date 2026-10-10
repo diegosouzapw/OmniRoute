@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Tokens Kyauta / Wata
+## 💰 Jimillar ~1.62B Token a Wata daga Tsare-tsaren Kyauta na Wasu Kamfanoni
 
 </div>
 
+> **Yi amfani da asusunka na masu samarwa.** Wannan kiyasin jimillar tsare-tsaren kyauta na wasu kamfanoni ne masu sharuɗɗan cancanta daban-daban, ba rabon token daga OmniRoute ba. Yi rajista, sami bayanan shiga inda ake buƙata, kuma haɗa masu samarwa da za ka iya amfani da su; kowane mai samarwa yana sarrafa iyakokinsa, samuwarsa da sharuɗɗansa.
+>
 > Tara matakan kyauta da hannu yana da wahala — SDK da dama, iyakokin amfani da dama, kuma ba ka san ainihin adadin da kake da shi ba. OmniRoute yana tattara **shigarwar matakin kyauta guda 489 a cikin maɓallan rumbun maimaituwa guda 35** kuma yana ƙididdige jimillar tokens daga **rumbuna 17 masu tabbataccen kasafin tokens na wata da aka wallafa, tare da iyakokin Groq guda biyar na kowane model**, bayan cire maimaitawa bisa rumbun da ake rabawa. Ana nuna kasafin da ke buɗewa ne kawai bayan tabbatar da shaidar yanki (a yau: ModelScope) dabam, +~6M bayan tabbatar da shaidar yanki, kuma ba a taɓa haɗa shi cikin jimillar kanun labari ba. Sakamakon yana ci gaba da bayyana a dashboard (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Katin kasafin matakin kyauta na OmniRoute: kusan tokens kyauta biliyan 1.62 a kowane wata akai-akai, har zuwa kusan biliyan 2.22 a watan farko tare da credits na rajista, daga maɓallan rumbun maimaituwa guda 35 da aka rubuta waɗanda suka ƙunshi shigarwar matakin kyauta guda 489 da aka tattara a bayan endpoint guda ɗaya. Ƙididdiga ta gaskiya bayan cire maimaitawar rumbuna — ana ƙirga kowane rumbun da ake rabawa sau ɗaya kawai, ciki har da rumbunan maimaituwa guda 17 masu tabbataccen kasafin tokens na wata da aka wallafa tare da iyakokin Groq guda biyar na kowane model; an yiwa providers guda 13 alamar a guje su a kundin haɗarin sharuɗɗa domin kai ne za ka yanke shawara. Sandar kasafin ta haɗa da Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (iyakoki guda biyar na kowane model) da ƙananan rumbuna, tare da credits na rajistar watan farko da providers masu kyauta na dindindin waɗanda ba su da iyakar tokens da ake nuna su dabam don kada su taɓa ƙara yawan jimillar kanun labari. Adadin da aka yi amfani da shi/ya rage kai tsaye a /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Farawa</b></td>
     <td align="center"><a href="#-quick-start">🚀 Farawa Cikin Sauri</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Shigarwa</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Babu Saitawa</a></td>
+    <td align="center"><a href="#first-run">🆓 Haɗa mai samarwa</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Koyo</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Yana aiki da zarar ka shigar da shi — babu makullai, babu saiti
+<a id="first-run"></a>
+
+## 🆓 Shigar, haɗa mai samarwa, sannan ka tura buƙatu ta endpoint guda
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Yana aiki da zarar ka shigar da shi — babu saiti. Matakai uku: 1. Shigar — npm i -g omniroute, sabar tana tashi a localhost:20128. 2. Nuna kayan aikin ka zuwa http://localhost:20128/v1 — kowane kayan aiki mai dacewa da OpenAI (Claude Code, Cursor, Cline). 3. Yana amsawa — kira model auto don amsa nan take, ba tare da maɓallin API ba, babu rajista, babu saiti. Mai ba da sabis na kyauta na OpenCode Free an riga an haɗa shi cikin haɗin auto, don haka sabon shigarwa yana amsawa nan take."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Matakai uku: shigar da fara OmniRoute, haɗa mai samarwa da ya cancanta ta asusunka ko maɓallin API naka, sannan ka nuna kayan aikinka zuwa localhost:20128/v1 da maɓallin API na OmniRoute da samfurin auto. Tura buƙatu ya dogara da haɗin da ya cancanta kuma yake samuwa da kuma iyakokin masu samarwa."/>
 
 ```bash
-# Sabon shigarwa, babu takardun shaida — `auto` yana aiki:
+# Bayan haɗa mai samarwa, kwafi maɓallin OmniRoute naka daga Allon Kulawa → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Ka fi son takamaiman backend na kyauta? Kira `oc/…` (OpenCode Free) kai tsaye. Sannan ka koma `auto` kuma ka bar OmniRoute ya zaɓa.</sub>
+<sub>`auto` yana buƙatar hanya da ta cancanta. Sabon shigarwa zai iya rasa wuraren aika buƙata marasa maɓalli da suka cancanta, kuma mai samarwa marar maɓalli na iya ƙin manhajojin ɓangare na uku. A saitin farko, `auto` yana ware masu samarwa masu alamar `tos: avoid`, ciki har da Kiro da OpenCode Free. Haɗa asusu ba ya canza wannan manufa. Karanta [Jagorar Matakan Kyauta](docs/getting-started/FREE-TIERS-GUIDE.md) kafin zaɓar mai samarwa.</sub>
 
 <sub>📦 Kwafi-liƙa rubutun farawa mai sauri don **Python, Node.js, PHP, da cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

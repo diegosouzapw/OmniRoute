@@ -4,7 +4,7 @@
 
 ---
 
-> **Lühidalt**: Installi → Ühenda tasuta teenusepakkuja → Suuna oma IDE OmniRoute'i kasutama. Valmis.
+> **Lühidalt**: Paigalda → Ühenda sobiv teenusepakkuja → Suuna IDE OmniRoute'i. Valmis.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute käivitub aadressil `http://localhost:20128`. Juhtpaneel avaneb automa
 
 ---
 
-## 3. samm: ühenda tasuta teenusepakkuja
+## 3. samm: Ühenda sobiv teenusepakkuja
 
-Saad OmniRoute'i kasutada **täiesti tasuta**, ühendades tasuta teenusepakkuja.
+Vali teenusepakkuja, kelle tingimused ja kvoodid sobivad sinu vajadustega. Ühenda **Juhtpaneel → Teenusepakkujad** all oma konto või API-võti ja testi ühendust. Tasuta ligipääs ja võtmeta kasutamise võimalus ei ole tagatud.
 
-### Variant A: Kiro (tasuta Claude — krediitkaarti pole vaja)
-
-1. Ava juhtpaneel aadressil `http://localhost:20128`
-2. Ava **Teenusepakkujad** → **Lisa teenusepakkuja**
-3. Vali **Kiro AI**
-4. Klõpsa **Ühenda** (API-võtit pole vaja!)
-5. Valmis! Nüüd on sul tasuta juurdepääs Claude'i mudelitele.
-
-### Variant B: OpenCode Free (autentimist pole vaja)
-
-1. Ava juhtpaneel aadressil `http://localhost:20128`
-2. Ava **Teenusepakkujad** → **Lisa teenusepakkuja**
-3. Vali **OpenCode Free**
-4. Klõpsa **Ühenda** (API-võtit pole vaja!)
-5. Valmis! Nüüd on sul tasuta juurdepääs mitmele mudelile.
-
-### Variant C: Pollinations (võtit pole vaja)
-
-1. Ava juhtpaneel aadressil `http://localhost:20128`
-2. Ava **Teenusepakkujad** → **Lisa teenusepakkuja**
-3. Vali **Pollinations**
-4. Klõpsa **Ühenda** (API-võtit pole vaja!)
-5. Valmis! Nüüd on sul tasuta juurdepääs GPT-5-le, Claude'ile, Geminile ja teistele mudelitele.
+`auto` jätab vaikimisi välja teenusepakkujad märkega `tos: avoid`, sealhulgas Kiro ja OpenCode Free. Konto ühendamine seda poliitikat ei muuda. **Juhtpaneel → Kombod** all tehtud kaasamisvalik kehtib kõigi automaatsete kombode kohta. Enne teenusepakkuja valimist loe [Tasuta pakettide juhend](./FREE-TIERS-GUIDE.md).
 
 ---
 
@@ -154,7 +132,7 @@ Päringu üksikasju saad vaadata, klõpsates vasakul külgribal valikut [Jälgim
 
 - **[Auto-Combo juhend](./AUTO-COMBO-GUIDE.md)** — lase OmniRoute'il valida enda jaoks parim tehisintellekt
 - **[Teenusepakkujate juhend](./PROVIDERS-GUIDE.md)** — ühenda rohkem teenusepakkujaid (tasuta ja tasulisi)
-- **[Tasuta pakettide juhend](./FREE-TIERS-GUIDE.md)** — kasuta tasuta tehisintellekti ilma krediitkaardita
+- **[Tasuta pakettide juhend](./FREE-TIERS-GUIDE.md)** — Vaata teenusepakkujate tingimusi ja tasuta pakettide piiranguid
 - **[Tõrkeotsing](../guides/TROUBLESHOOTING.md)** — lahenda levinud probleemid
 
 ---
@@ -163,7 +141,7 @@ Päringu üksikasju saad vaadata, klõpsates vasakul külgribal valikut [Jälgim
 
 ### „Kas mul on vaja API-võtit?”
 
-**Ei!** Saad kasutada tasuta teenusepakkujaid (Kiro, OpenCode Free, Pollinations) ilma ühegi API-võtmeta. Ühenda need lihtsalt juhtpaneelil.
+OmniRoute'i API-võti autendib sinu tööriistu. Välise teenuse pääsuandmed sõltuvad teenusepakkujast: mõni nõuab API-võtit või kontole sisselogimist. Tasuta ligipääs ei ole tagatud.
 
 ### „Mis on `auto`?”
 

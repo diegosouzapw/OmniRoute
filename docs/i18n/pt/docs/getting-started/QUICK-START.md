@@ -4,7 +4,7 @@
 
 ---
 
-> **TL;DR**: Instale → Ligue um fornecedor gratuito → Aponte o seu IDE para o OmniRoute. Está feito.
+> **TL;DR**: Instale → Ligue um fornecedor elegível → Aponte o seu IDE para o OmniRoute. Pronto.
 
 ---
 
@@ -47,33 +47,11 @@ O OmniRoute é iniciado em `http://localhost:20128`. O painel abre automaticamen
 
 ---
 
-## Passo 3: Ligar um Fornecedor Gratuito
+## Passo 3: Ligue um fornecedor elegível
 
-Pode utilizar o OmniRoute **sem pagar nada**, ligando um fornecedor gratuito.
+Escolha um fornecedor cujos termos e quotas se adequem às suas necessidades. Em **Painel → Fornecedores**, ligue a sua própria conta ou chave de API e teste a ligação. O acesso gratuito e a disponibilidade sem chave não são garantidos.
 
-### Opção A: Kiro (Claude Gratuito — Sem Cartão de Crédito)
-
-1. Abra o painel em `http://localhost:20128`
-2. Aceda a **Fornecedores** → **Adicionar Fornecedor**
-3. Selecione **Kiro AI**
-4. Clique em **Ligar** (não é necessária uma chave de API!)
-5. Está feito! Agora tem acesso gratuito aos modelos Claude.
-
-### Opção B: OpenCode Free (Sem Autenticação)
-
-1. Abra o painel em `http://localhost:20128`
-2. Aceda a **Fornecedores** → **Adicionar Fornecedor**
-3. Selecione **OpenCode Free**
-4. Clique em **Ligar** (não é necessária uma chave de API!)
-5. Está feito! Agora tem acesso gratuito a vários modelos.
-
-### Opção C: Pollinations (Não É Necessária uma Chave)
-
-1. Abra o painel em `http://localhost:20128`
-2. Aceda a **Fornecedores** → **Adicionar Fornecedor**
-3. Selecione **Pollinations**
-4. Clique em **Ligar** (não é necessária uma chave de API!)
-5. Está feito! Agora tem acesso gratuito ao GPT-5, Claude, Gemini e muito mais.
+O `auto` exclui por predefinição os fornecedores marcados como `tos: avoid`, incluindo Kiro e OpenCode Free. Ligar uma conta não altera esta política. A opção de inclusão em **Painel → Combos** aplica-se a todos os combos automáticos. Consulte [Guia de Planos Gratuitos](./FREE-TIERS-GUIDE.md) antes de escolher um fornecedor.
 
 ---
 
@@ -154,7 +132,7 @@ Pode ver os detalhes do pedido clicando em [Monitorização/Registos](http://loc
 
 - **[Guia do Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Deixe o OmniRoute escolher a melhor IA por si
 - **[Guia de Fornecedores](./PROVIDERS-GUIDE.md)** — Ligue mais fornecedores (gratuitos e pagos)
-- **[Guia de Planos Gratuitos](./FREE-TIERS-GUIDE.md)** — Obtenha IA gratuita sem cartão de crédito
+- **[Guia de Planos Gratuitos](./FREE-TIERS-GUIDE.md)** — Consulte os termos dos fornecedores e os limites dos planos gratuitos
 - **[Resolução de Problemas](../guides/TROUBLESHOOTING.md)** — Resolva problemas comuns
 
 ---
@@ -163,7 +141,7 @@ Pode ver os detalhes do pedido clicando em [Monitorização/Registos](http://loc
 
 ### "Preciso de uma chave de API?"
 
-**Não!** Pode utilizar fornecedores gratuitos (Kiro, OpenCode Free, Pollinations) sem qualquer chave de API. Basta ligá-los no painel.
+A chave de API do OmniRoute autentica as suas ferramentas. As credenciais do serviço a montante dependem do fornecedor: alguns exigem uma chave de API ou o início de sessão numa conta. O acesso gratuito não é garantido.
 
 ### "O que é `auto`?"
 

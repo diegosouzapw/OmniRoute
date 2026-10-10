@@ -4,7 +4,7 @@
 
 ---
 
-> **Kwa ufupi**: Sakinisha → Unganisha mtoa huduma wa bure → Elekeza IDE yako kwa OmniRoute. Imekamilika.
+> **Kwa ufupi**: Sakinisha → Unganisha mtoa huduma anayestahiki → Elekeza IDE yako kwa OmniRoute. Imekamilika.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute huanza kwenye `http://localhost:20128`. Dashibodi hufunguka kiotomatik
 
 ---
 
-## Hatua ya 3: Unganisha Mtoa Huduma wa Bure
+## Hatua ya 3: Unganisha Mtoa Huduma Anayestahiki
 
-Unaweza kutumia OmniRoute **bila kulipa chochote** kwa kuunganisha mtoa huduma wa bure.
+Chagua mtoa huduma ambaye masharti na mgao wake vinafaa mahitaji yako. Katika **Dashibodi → Watoa Huduma**, unganisha akaunti yako au ufunguo wako wa API, kisha ujaribu muunganisho. Ufikiaji wa bure na upatikanaji bila ufunguo havijahakikishwa.
 
-### Chaguo A: Kiro (Claude ya Bure — Hakuna Kadi ya Malipo)
-
-1. Fungua dashibodi kwenye `http://localhost:20128`
-2. Nenda kwenye **Watoa Huduma** → **Ongeza Mtoa Huduma**
-3. Chagua **Kiro AI**
-4. Bofya **Unganisha** (ufunguo wa API hauhitajiki!)
-5. Imekamilika! Sasa unaweza kutumia modeli za Claude bila malipo.
-
-### Chaguo B: OpenCode Free (Hakuna Uthibitishaji)
-
-1. Fungua dashibodi kwenye `http://localhost:20128`
-2. Nenda kwenye **Watoa Huduma** → **Ongeza Mtoa Huduma**
-3. Chagua **OpenCode Free**
-4. Bofya **Unganisha** (ufunguo wa API hauhitajiki!)
-5. Imekamilika! Sasa unaweza kutumia modeli nyingi bila malipo.
-
-### Chaguo C: Pollinations (Ufunguo Hauhitajiki)
-
-1. Fungua dashibodi kwenye `http://localhost:20128`
-2. Nenda kwenye **Watoa Huduma** → **Ongeza Mtoa Huduma**
-3. Chagua **Pollinations**
-4. Bofya **Unganisha** (ufunguo wa API hauhitajiki!)
-5. Imekamilika! Sasa unaweza kutumia GPT-5, Claude, Gemini na nyingine zaidi bila malipo.
+Kwa chaguo-msingi, `auto` huwaondoa watoa huduma walio na alama `tos: avoid`, wakiwemo Kiro na OpenCode Free. Kuunganisha akaunti hakubadilishi sera hii. Chaguo la kuruhusu ujumuishaji katika **Dashibodi → Combo** linatumika kwa combo zote za kiotomatiki. Soma [Mwongozo wa Viwango vya Bure](./FREE-TIERS-GUIDE.md) kabla ya kuchagua mtoa huduma.
 
 ---
 
@@ -154,7 +132,7 @@ Unaweza kuona maelezo ya ombi kwa kubofya [Ufuatiliaji/Kumbukumbu](http://localh
 
 - **[Mwongozo wa Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Ruhusu OmniRoute ikuchagulie AI bora zaidi
 - **[Mwongozo wa Watoa Huduma](./PROVIDERS-GUIDE.md)** — Unganisha watoa huduma zaidi (wa bure na wa kulipia)
-- **[Mwongozo wa Viwango vya Bure](./FREE-TIERS-GUIDE.md)** — Pata AI ya bure bila kadi ya malipo
+- **[Mwongozo wa Viwango vya Bure](./FREE-TIERS-GUIDE.md)** — Kagua masharti ya watoa huduma na mipaka ya vifurushi vya bure
 - **[Utatuzi](../guides/TROUBLESHOOTING.md)** — Rekebisha matatizo ya kawaida
 
 ---
@@ -163,7 +141,7 @@ Unaweza kuona maelezo ya ombi kwa kubofya [Ufuatiliaji/Kumbukumbu](http://localh
 
 ### "Je, ninahitaji ufunguo wa API?"
 
-**Hapana!** Unaweza kutumia watoa huduma wa bure (Kiro, OpenCode Free, Pollinations) bila ufunguo wowote wa API. Waunganishe tu kwenye dashibodi.
+Ufunguo wa API wa OmniRoute huthibitisha zana zako. Taarifa za kuingia katika huduma ya chanzo hutegemea mtoa huduma: baadhi huhitaji ufunguo wa API au kuingia katika akaunti. Ufikiaji wa bure haujahakikishwa.
 
 ### "`auto` ni nini?"
 

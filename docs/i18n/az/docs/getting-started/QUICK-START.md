@@ -4,7 +4,7 @@
 
 ---
 
-> **Qısa xülasə**: Quraşdırın → Pulsuz provayder qoşun → IDE-nizi OmniRoute-a yönləndirin. Hazırdır.
+> **Qısa xülasə**: Quraşdırın → Uyğun provayderi qoşun → IDE-ni OmniRoute-a yönəldin. Hazırdır.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute `http://localhost:20128` ünvanında işə düşür. İdarə paneli av
 
 ---
 
-## Addım 3: Pulsuz provayder qoşun
+## Addım 3: Uyğun provayderi qoşun
 
-Pulsuz provayder qoşaraq OmniRoute-dan **heç bir ödəniş etmədən** istifadə edə bilərsiniz.
+Şərtləri və kvotaları ehtiyaclarınıza uyğun provayder seçin. **İdarə paneli → Provayderlər** bölməsində öz hesabınızı və ya API açarınızı qoşun, sonra bağlantını yoxlayın. Pulsuz giriş və açarsız istifadə imkanı zəmanətli deyil.
 
-### Seçim A: Kiro (Pulsuz Claude — Kredit kartı tələb olunmur)
-
-1. `http://localhost:20128` ünvanında idarə panelini açın
-2. **Providers** → **Add Provider** bölməsinə keçin
-3. **Kiro AI** seçin
-4. **Connect** düyməsinə klikləyin (API açarı tələb olunmur!)
-5. Hazırdır! İndi Claude modellərinə pulsuz girişiniz var.
-
-### Seçim B: OpenCode Free (Autentifikasiya tələb olunmur)
-
-1. `http://localhost:20128` ünvanında idarə panelini açın
-2. **Providers** → **Add Provider** bölməsinə keçin
-3. **OpenCode Free** seçin
-4. **Connect** düyməsinə klikləyin (API açarı tələb olunmur!)
-5. Hazırdır! İndi bir neçə modelə pulsuz girişiniz var.
-
-### Seçim C: Pollinations (Açar tələb olunmur)
-
-1. `http://localhost:20128` ünvanında idarə panelini açın
-2. **Providers** → **Add Provider** bölməsinə keçin
-3. **Pollinations** seçin
-4. **Connect** düyməsinə klikləyin (API açarı tələb olunmur!)
-5. Hazırdır! İndi GPT-5, Claude, Gemini və digər modellərə pulsuz girişiniz var.
+`auto` standart olaraq Kiro və OpenCode Free daxil olmaqla `tos: avoid` işarəli provayderləri istisna edir. Hesab qoşmaq bu siyasəti dəyişmir. **İdarə paneli → Kombolar** bölməsindəki daxil etmə seçimi bütün avtomatik kombolara aiddir. Provayder seçməzdən əvvəl [Pulsuz tariflər üzrə təlimat](./FREE-TIERS-GUIDE.md) sənədini oxuyun.
 
 ---
 
@@ -154,7 +132,7 @@ Sol yan paneldə [Monitoring/Logs](http://localhost:20128/dashboard/logs) bölm�
 
 - **[Auto-Combo təlimatı](./AUTO-COMBO-GUIDE.md)** — OmniRoute-un sizin üçün ən yaxşı süni intellekti seçməsinə imkan verin
 - **[Provayderlər üzrə təlimat](./PROVIDERS-GUIDE.md)** — Daha çox provayder qoşun (pulsuz və ödənişli)
-- **[Pulsuz tariflər üzrə təlimat](./FREE-TIERS-GUIDE.md)** — Kredit kartı olmadan pulsuz süni intellekt əldə edin
+- **[Pulsuz tariflər üzrə təlimat](./FREE-TIERS-GUIDE.md)** — Provayder şərtlərini və pulsuz tariflərin limitlərini yoxlayın
 - **[Nasazlıqların aradan qaldırılması](../guides/TROUBLESHOOTING.md)** — Ümumi problemləri həll edin
 
 ---
@@ -163,7 +141,7 @@ Sol yan paneldə [Monitoring/Logs](http://localhost:20128/dashboard/logs) bölm�
 
 ### "API açarına ehtiyacım varmı?"
 
-**Xeyr!** Pulsuz provayderlərdən (Kiro, OpenCode Free, Pollinations) heç bir API açarı olmadan istifadə edə bilərsiniz. Sadəcə onları idarə panelində qoşun.
+OmniRoute API açarı alətlərinizi autentifikasiya edir. Yuxarı xidmətin giriş məlumatları provayderdən asılıdır: bəziləri API açarı və ya hesaba giriş tələb edir. Pulsuz girişə zəmanət verilmir.
 
 ### "`auto` nədir?"
 

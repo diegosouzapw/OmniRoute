@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mrd. ilmaista tokenia / kuukausi
+## 💰 ~1.62B tokenia kuukaudessa kolmansien osapuolten maksuttomilta tasoilta
 
 </div>
 
+> **Käytä omia palveluntarjoajatilejäsi.** Tämä on arvioitu yhteismäärä kolmansien osapuolten maksuttomilta tasoilta, joilla on erilliset kelpoisuusehdot, eikä OmniRouten myöntämä token-erä. Rekisteröidy, hanki tarvittavat tunnistetiedot ja yhdistä palveluntarjoajat, joita voit käyttää; kukin palveluntarjoaja määrää omat rajansa, saatavuutensa ja ehtonsa.
+>
 > Ilmaistasojen pinoaminen käsin on työlästä — kymmeniä SDK:ita, kymmeniä nopeusrajoituksia eikä mitään käsitystä siitä, kuinka paljon kapasiteettia sinulla todellisuudessa on. OmniRoute luetteloi **489 ilmaistason merkintää 35 toistuvan pooliavaimen alla** ja laskee tokenien kokonaismäärän **17 poolista, joille on julkaistu positiivinen kuukausibudjetti, sekä viidestä mallikohtaisesta Groq-rajasta**, ja poistaa jaettujen poolien päällekkäisyydet. Kiintiöt, jotka avautuvat vasta alueellisen henkilöllisyyden tarkistuksen jälkeen (tällä hetkellä ModelScope), näytetään erikseen: +~6M alueellisen henkilöllisyyden vahvistamisen takana, eikä niitä koskaan lasketa mukaan kokonaismäärään. Tulos pysyy näkyvissä hallintapaneelissa (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRouten ilmaistasobudjettikortti: jatkuvasti ~1,62 mrd. ilmaista tokenia kuukaudessa ja rekisteröitymiskrediittien ansiosta jopa ~2,22 mrd. ensimmäisen kuukauden aikana, 35 dokumentoidusta toistuvasta pooliavaimesta, jotka kattavat 489 luetteloitua ilmaistason merkintää yhden päätepisteen takana. Rehellinen, poolien päällekkäisyydet poistava laskenta — jokainen jaettu pooli lasketaan vain kerran, mukaan lukien 17 toistuvaa poolia, joille on julkaistu positiivinen kuukausittainen tokenbudjetti, sekä viisi mallikohtaista Groq-rajaa; 13 palveluntarjoajaa on merkitty avoid-merkinnällä käyttöehtoriskien luettelossa, jotta voit päättää itse. Budjettipalkki sisältää Mistral 1B:n, Nara 210M:n, LLM7 150M:n, xKiro 150M:n, Groq 30M:n (viisi mallikohtaista rajaa) ja pienemmät poolit. Lisäksi ensimmäisen kuukauden rekisteröitymiskrediitit ja pysyvästi ilmaiset palveluntarjoajat, joilla ei ole tokenrajaa, esitetään erikseen, jotta ne eivät koskaan kasvata kokonaismäärää keinotekoisesti. Reaaliaikainen käytetty/jäljellä oleva määrä sivulla /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Aloita</b></td>
     <td align="center"><a href="#-quick-start">🚀 Pika-aloitus</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Asennus</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Ei määrityksiä</a></td>
+    <td align="center"><a href="#first-run">🆓 Yhdistä palveluntarjoaja</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Opi</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Toimii heti asennuksen jälkeen – ei avaimia, ei asetuksia
+<a id="first-run"></a>
+
+## 🆓 Asenna, yhdistä palveluntarjoaja ja reititä yhden päätepisteen kautta
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Toimii heti asennuksen jälkeen – ei asetuksia. Kolme vaihetta: 1. Asenna – npm i -g omniroute, palvelin käynnistyy osoitteessa localhost:20128. 2. Osoita työkalusi osoitteeseen http://localhost:20128/v1 – mikä tahansa OpenAI-yhteensopiva työkalu (Claude Code, Cursor, Cline). 3. Se vastaa – kutsu mallia auto saadaksesi välittömän vastauksen, ilman API-avainta, rekisteröitymistä tai asetuksia. Avaimeton palveluntarjoaja OpenCode Free on valmiiksi kytketty auto-yhdistelmään, joten tuore asennus vastaa heti käyttövalmiina."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Kolme vaihetta: asenna ja käynnistä OmniRoute, yhdistä kelvollinen palveluntarjoaja omalla tililläsi tai API-avaimellasi ja ohjaa työkalusi osoitteeseen localhost:20128/v1 OmniRouten API-avaimella ja auto-mallilla. Reititys riippuu saatavilla olevista kelvollisista yhteyksistä ja palveluntarjoajien rajoista."/>
 
 ```bash
-# Tuore asennus, ei tunnuksia – `auto` toimii jo:
+# Kun palveluntarjoaja on yhdistetty, kopioi OmniRoute-avaimesi kohdasta Hallintapaneeli → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Haluatko mieluummin tietyn ilmaisen taustaohjelman? Kutsu `oc/…` (OpenCode Free) suoraan. Siirry sitten `auto`-tilaan ja anna OmniRouten valita.</sub>
+<sub>`auto` tarvitsee kelvollisen reitin. Uudessa asennuksessa ei välttämättä ole kelvollisia avaimettomia kohteita, ja avaimeton palveluntarjoaja voi hylätä kolmannen osapuolen asiakkaat. `auto` sulkee oletusarvoisesti pois `tos: avoid` -merkityt palveluntarjoajat, kuten Kiron ja OpenCode Freen. Tilin yhdistäminen ei muuta tätä käytäntöä. Lue [Maksuttomien käyttöpakettien opas](docs/getting-started/FREE-TIERS-GUIDE.md) ennen palveluntarjoajan valintaa.</sub>
 
 <sub>📦 Kopioi ja liitä pika-aloitusskriptit **Pythonille, Node.js:lle, PHP:lle ja cURLille** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

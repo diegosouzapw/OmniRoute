@@ -3384,6 +3384,10 @@
     "comboRefMember": "କମ୍ବୋ → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid ଭାବେ ଚିହ୍ନିତ ପ୍ରଦାନକାରୀଙ୍କୁ auto ରେ ସାମିଲ କରନ୍ତୁ",
+    "autoTosDescription": "ଡିଫଲ୍ଟ ଭାବେ ବନ୍ଦ। କେବଳ ଗୋଟିଏ ଆକାଉଣ୍ଟ ନୁହେଁ, ସମସ୍ତ auto କମ୍ବୋରେ ଲାଗୁ ହୁଏ। ପ୍ରଦାନକାରୀଙ୍କୁ ସଂଯୋଗ କଲେ ଏହି ବିକଳ୍ପ ସକ୍ରିୟ ହୁଏ ନାହିଁ।",
+    "autoTosSaveError": "ToS ନୀତି ସଞ୍ଚୟ ହୋଇପାରିଲା ନାହିଁ। ପୂର୍ବ ସେଟିଂ ଏବେ ବି ଦେଖାଯାଉଛି। ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
+    "autoTosLoadError": "ToS ନୀତି ଲୋଡ୍ ହୋଇପାରିଲା ନାହିଁ। ବଦଳାଇବା ପୂର୍ବରୁ ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
     "title": "କମ୍ବୋଗୁଡ଼ିକ",
     "description": "ଓଜନ-ଆଧାରିତ ରାଉଟିଂ ଏବଂ ଫଲ୍ବ୍ୟାକ୍ ସମର୍ଥନ ସହିତ ମଡେଲ୍ କମ୍ବୋ ତିଆରି କରନ୍ତୁ",
     "autoCatalogTitle": "ସ୍ୱୟଂଚାଳିତ ରାଉଟିଂ କ୍ୟାଟାଲଗ୍",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ଏହି ପ୍ରଦାନକାରୀଙ୍କୁ ଡିଫଲ୍ଟ ଭାବେ auto ରୁ ବାଦ୍ ଦିଆଯାଇଛି",
+    "tosAvoidNoticeDescription": "ଏହାର ToS ସ୍ଥିତି avoid ଭାବେ ଚିହ୍ନିତ। ଆକାଉଣ୍ଟ ସଂଯୋଗ କଲେ ଏହି ନୀତି ବଦଳେ ନାହିଁ। ସମସ୍ତ auto କମ୍ବୋ ପାଇଁ ସାର୍ବଜନୀନ ବିକଳ୍ପ ସକ୍ରିୟ କରିବା ପୂର୍ବରୁ ପ୍ରଦାନକାରୀଙ୍କ ସର୍ତ୍ତ ପଢ଼ନ୍ତୁ।",
+    "tosAvoidNoticeAction": "auto ନୀତି ଦେଖନ୍ତୁ",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

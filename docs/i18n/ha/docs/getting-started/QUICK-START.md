@@ -4,7 +4,7 @@
 
 ---
 
-> **A taƙaice**: Shigar → Haɗa mai samarwa na kyauta → Nuna wa IDE ɗinka OmniRoute. An gama.
+> **A taƙaice**: Shigar → Haɗa mai samarwa da ya cancanta → Nuna IDE ɗinka zuwa OmniRoute. An gama.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute yana farawa a `http://localhost:20128`. Dashboard zai buɗe ta atomati
 
 ---
 
-## Mataki na 3: Haɗa Mai Samarwa na Kyauta
+## Mataki na 3: Haɗa Mai Samarwa da Ya Cancanta
 
-Za ka iya amfani da OmniRoute **ba tare da biyan komai ba** ta hanyar haɗa mai samarwa na kyauta.
+Zaɓi mai samarwa wanda sharuɗɗansa da kason amfaninsa suka dace da bukatunka. A **Allon Kulawa → Masu Samarwa**, haɗa asusunka ko maɓallin API naka, sannan ka gwada haɗin. Ba a tabbatar da samun dama kyauta ko samuwa ba tare da maɓalli ba.
 
-### Zaɓi na A: Kiro (Claude na Kyauta — Ba a Buƙatar Katin Kuɗi)
-
-1. Buɗe dashboard a `http://localhost:20128`
-2. Je zuwa **Masu Samarwa** → **Ƙara Mai Samarwa**
-3. Zaɓi **Kiro AI**
-4. Danna **Haɗa** (ba a buƙatar API key!)
-5. An gama! Yanzu kana da damar amfani da models na Claude kyauta.
-
-### Zaɓi na B: OpenCode Free (Ba a Buƙatar Tantancewa)
-
-1. Buɗe dashboard a `http://localhost:20128`
-2. Je zuwa **Masu Samarwa** → **Ƙara Mai Samarwa**
-3. Zaɓi **OpenCode Free**
-4. Danna **Haɗa** (ba a buƙatar API key!)
-5. An gama! Yanzu kana da damar amfani da models da yawa kyauta.
-
-### Zaɓi na C: Pollinations (Ba a Buƙatar Key)
-
-1. Buɗe dashboard a `http://localhost:20128`
-2. Je zuwa **Masu Samarwa** → **Ƙara Mai Samarwa**
-3. Zaɓi **Pollinations**
-4. Danna **Haɗa** (ba a buƙatar API key!)
-5. An gama! Yanzu kana da damar amfani da GPT-5, Claude, Gemini, da sauransu kyauta.
+A saitin farko, `auto` yana ware masu samarwa masu alamar `tos: avoid`, ciki har da Kiro da OpenCode Free. Haɗa asusu ba ya canza wannan manufa. Zaɓin amincewa da haɗawa a **Allon Kulawa → Combo** ya shafi duk combo na atomatik. Karanta [Jagorar Matakan Kyauta](./FREE-TIERS-GUIDE.md) kafin zaɓar mai samarwa.
 
 ---
 
@@ -154,7 +132,7 @@ Za ka iya ganin bayanan buƙatar ta hanyar danna [Sa-ido/Logs](http://localhost:
 
 - **[Jagorar Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Bari OmniRoute ya zaɓa maka AI mafi kyau
 - **[Jagorar Masu Samarwa](./PROVIDERS-GUIDE.md)** — Haɗa ƙarin masu samarwa (na kyauta da na biya)
-- **[Jagorar Matakan Kyauta](./FREE-TIERS-GUIDE.md)** — Samu AI kyauta ba tare da katin kuɗi ba
+- **[Jagorar Matakan Kyauta](./FREE-TIERS-GUIDE.md)** — Duba sharuɗɗan masu samarwa da iyakokin tsare-tsaren kyauta
 - **[Gyaran Matsaloli](../guides/TROUBLESHOOTING.md)** — Gyara matsalolin da aka saba fuskanta
 
 ---
@@ -163,7 +141,7 @@ Za ka iya ganin bayanan buƙatar ta hanyar danna [Sa-ido/Logs](http://localhost:
 
 ### "Ina buƙatar API key?"
 
-**A'a!** Za ka iya amfani da masu samarwa na kyauta (Kiro, OpenCode Free, Pollinations) ba tare da wani API key ba. Kawai haɗa su a cikin dashboard.
+Maɓallin API na OmniRoute yana tabbatar da kayan aikinka. Bayanan shiga sabis na asali sun dogara da mai samarwa: wasu suna buƙatar maɓallin API ko shiga asusu. Ba a tabbatar da samun dama kyauta ba.
 
 ### "Mene ne `auto`?"
 

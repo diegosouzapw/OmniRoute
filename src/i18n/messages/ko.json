@@ -3384,6 +3384,10 @@
     "comboRefMember": "조합 → {name}"
   },
   "combos": {
+    "autoTosLoadError": "서비스 약관 정책을 불러오지 못했습니다. 변경하기 전에 다시 시도하세요.",
+    "autoTosSaveError": "서비스 약관 정책을 저장하지 못했습니다. 이전 설정이 계속 표시됩니다. 다시 시도하세요.",
+    "autoTosIncludeLabel": "ToS: avoid로 표시된 제공자를 auto에 포함",
+    "autoTosDescription": "기본적으로 꺼져 있습니다. 한 계정뿐 아니라 모든 auto 콤보에 적용됩니다. 제공자를 연결해도 이 옵션은 활성화되지 않습니다.",
     "title": "콤보",
     "description": "가중치 기반 라우팅 및 폴백 지원을 통해 모델 콤보 생성",
     "autoCatalogTitle": "자동 라우팅 카탈로그",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "이 제공자는 기본적으로 auto에서 제외됩니다",
+    "tosAvoidNoticeDescription": "서비스 약관 상태가 avoid로 표시되어 있습니다. 계정을 연결해도 이 정책은 바뀌지 않습니다. 모든 auto 콤보에 대한 전역 허용을 활성화하기 전에 제공자의 약관을 검토하세요.",
+    "tosAvoidNoticeAction": "auto 정책 검토",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

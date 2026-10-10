@@ -3384,6 +3384,10 @@
     "comboRefMember": "Yhdistelmä → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Käyttöehtokäytäntöä ei voitu ladata. Yritä uudelleen ennen sen muuttamista.",
+    "autoTosSaveError": "Käyttöehtokäytäntöä ei voitu tallentaa. Aiempi asetus näkyy edelleen. Yritä uudelleen.",
+    "autoTosIncludeLabel": "Sisällytä ToS: avoid -merkityt palveluntarjoajat auto-valintaan",
+    "autoTosDescription": "Oletuksena pois käytöstä. Koskee kaikkia auto-yhdistelmiä, ei vain yhtä tiliä. Palveluntarjoajan yhdistäminen ei ota tätä asetusta käyttöön.",
     "title": "Yhdistelmät",
     "description": "Luo mallikomboja painotetulla reitityksellä ja varatuella",
     "autoCatalogTitle": "Automaattinen reititysluettelo",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Tämä palveluntarjoaja on oletuksena suljettu pois auto-valinnasta",
+    "tosAvoidNoticeDescription": "Sen käyttöehtotilaksi on merkitty avoid. Tilin yhdistäminen ei muuta tätä käytäntöä. Tarkista palveluntarjoajan ehdot ennen kaikille auto-yhdistelmille yhteisen suostumuksen antamista.",
+    "tosAvoidNoticeAction": "Tarkista auto-käytäntö",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

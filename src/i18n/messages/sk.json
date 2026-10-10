@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinácia → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Zahrnúť do auto poskytovateľov označených ToS: avoid",
+    "autoTosDescription": "Predvolene vypnuté. Platí pre všetky kombinácie auto, nielen pre jeden účet. Pripojenie poskytovateľa túto možnosť nezapne.",
+    "autoTosSaveError": "Pravidlá ToS sa nepodarilo uložiť. Stále sa zobrazuje predchádzajúce nastavenie. Skúste to znova.",
+    "autoTosLoadError": "Pravidlá ToS sa nepodarilo načítať. Pred ich zmenou to skúste znova.",
     "title": "kombá",
     "description": "Vytvárajte kombinácie modelov s váženým smerovaním a záložnou podporou",
     "autoCatalogTitle": "Katalóg automatického smerovania",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Tento poskytovateľ je predvolene vylúčený z auto",
+    "tosAvoidNoticeDescription": "Jeho stav ToS je označený ako avoid. Pripojenie účtu tieto pravidlá nemení. Pred zapnutím globálnej možnosti pre všetky kombinácie auto si prečítajte podmienky poskytovateľa.",
+    "tosAvoidNoticeAction": "Zobraziť pravidlá auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

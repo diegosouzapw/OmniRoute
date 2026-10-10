@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinacija → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Vključi ponudnike z oznako ToS: avoid v auto",
+    "autoTosDescription": "Privzeto izklopljeno. Velja za vse kombinacije auto, ne le za en račun. Povezava ponudnika te možnosti ne vklopi.",
+    "autoTosSaveError": "Pravil ToS ni bilo mogoče shraniti. Še vedno je prikazana prejšnja nastavitev. Poskusite znova.",
+    "autoTosLoadError": "Pravil ToS ni bilo mogoče naložiti. Pred spremembo poskusite znova.",
     "title": "Kombinacije",
     "description": "Ustvarite kombinacije modelov z uteženim usmerjanjem in podporo za nadomestne možnosti",
     "autoCatalogTitle": "Katalog samodejnega usmerjanja",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Ta ponudnik je privzeto izključen iz auto",
+    "tosAvoidNoticeDescription": "Njegovo stanje ToS je označeno kot avoid. Povezava računa teh pravil ne spremeni. Pred vklopom globalne možnosti za vse kombinacije auto preberite pogoje ponudnika.",
+    "tosAvoidNoticeAction": "Oglejte si pravila auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",
