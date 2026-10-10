@@ -1,0 +1,1 @@
+- **fix(sse):** count refused requests on the grok-web executor as upstream 4xx/5xx instead of transport failures ([#16194](https://github.com/diegosouzapw/OmniRoute/pull/16194)) — thanks @maxmad64bis

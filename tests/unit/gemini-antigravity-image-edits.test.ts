@@ -152,3 +152,58 @@ test("handleImageGeneration forwards inlineData parts for Antigravity Gemini ima
     globalThis.fetch = originalFetch;
   }
 });
+
+test("handleImageGeneration forwards inlineData parts for Antigravity Gemini image edits with body.image", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured: CapturedGeminiImageRequest | undefined;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+
+    return new Response(
+      JSON.stringify({
+        response: {
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    inlineData: { mimeType: "image/jpeg", data: "YmFzZTY0LWpzb24=" },
+                  },
+                ],
+              },
+            },
+          ],
+          modelVersion: "gemini-3.1-flash-image",
+        },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const dataUri = "data:image/jpeg;base64,aW1hZ2UtZmllbGQtZGF0YQ==";
+    const result = await handleImageGeneration({
+      body: {
+        model: "antigravity/gemini-3.1-flash-image-preview",
+        prompt: "change clothing to uniform",
+        image: dataUri,
+      },
+      credentials: { accessToken: "ag-token", projectId: "project-123" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    const parts = captured.body.request.contents[0].parts;
+    assert.equal(parts.length, 2);
+    assert.equal(parts[0].inlineData.mimeType, "image/jpeg");
+    assert.equal(parts[0].inlineData.data, "aW1hZ2UtZmllbGQtZGF0YQ==");
+    assert.equal(parts[1].text, "change clothing to uniform");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
