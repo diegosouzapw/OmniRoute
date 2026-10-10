@@ -51,6 +51,7 @@ type QoderCliFailure = {
   status: number;
   message: string;
   code: string;
+  retryAfterSeconds?: number;
 };
 
 function asRecord(value: unknown): JsonRecord {
@@ -707,16 +708,37 @@ export function parseQoderCliFailure(stderrText: string, stdoutText = ""): Qoder
   // 502 upstream_error parked the connection on the long failure cooldown, so a
   // brief upstream hiccup made whole PAT pools look dead. 503 maps to the short
   // serviceUnavailable cooldown, which lets routing retry or fail over at once.
-  if (
-    normalized.includes("10605") ||
-    normalized.includes("queued") ||
-    normalized.includes("is busy") ||
-    normalized.includes("server busy")
-  ) {
+  if (isQoderUpstreamBusy(combined)) {
     return { status: 503, message: combined, code: "upstream_busy" };
   }
 
   return { status: 502, message: combined, code: "upstream_error" };
+}
+
+/**
+ * True when a Qoder error text is the temporary queued/busy throttle (upstream
+ * code 10605) rather than an auth/quota failure. Shared by the CLI failure
+ * parser and the HTTP SSE envelope unwrapper so both classify it the same way.
+ */
+export function isQoderUpstreamBusy(text: string): boolean {
+  const normalized = String(text || "").toLowerCase();
+  return (
+    normalized.includes("10605") ||
+    normalized.includes("queued") ||
+    normalized.includes("is busy") ||
+    normalized.includes("server busy")
+  );
+}
+
+/**
+ * Extracts `retryAfterSeconds` from a (possibly multiply JSON-escaped) Qoder
+ * queue-throttle body. Returns undefined when absent or not a positive number.
+ */
+export function parseQoderRetryAfterSeconds(text: string): number | undefined {
+  const match = /retryAfterSeconds[\\"]*\s*:\s*(\d+)/.exec(String(text || ""));
+  if (!match) return undefined;
+  const seconds = Number(match[1]);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined;
 }
 
 export function createQoderErrorResponse(failure: QoderCliFailure): Response {
@@ -732,6 +754,7 @@ export function createQoderErrorResponse(failure: QoderCliFailure): Response {
       status: failure.status,
       headers: {
         "Content-Type": "application/json",
+        ...(failure.retryAfterSeconds ? { "Retry-After": String(failure.retryAfterSeconds) } : {}),
       },
     }
   );
