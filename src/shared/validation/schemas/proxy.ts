@@ -165,6 +165,7 @@ export const updateProxyRegistrySchema = partialWithoutDefaults(proxyRegistryFie
   .extend({
     id: z.string().trim().min(1, "id is required"),
     assignment: inlineProxyAssignmentSchema.optional(),
+    subscriptionId: z.string().trim().min(1).nullable().optional(),
   })
   .strict();
 
