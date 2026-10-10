@@ -2,7 +2,7 @@
 
 // src/app/(dashboard)/dashboard/playground/components/StudioConfigPane.tsx
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslations } from "next-intl";
 import ParamSliders, { type PlaygroundParams } from "./ParamSliders";
 import type { PlaygroundEndpoint } from "@/lib/playground/codeExport";
@@ -33,9 +33,11 @@ export interface ConfigState {
   reasoning?: ReasoningControlSpec;
 }
 
+export type ConfigStateSetter = Dispatch<SetStateAction<ConfigState>>;
+
 interface StudioConfigPaneProps {
   configState: ConfigState;
-  setConfigState: (s: ConfigState) => void;
+  setConfigState: ConfigStateSetter;
 }
 
 const ENDPOINT_OPTIONS: Array<{ value: PlaygroundEndpoint; labelKey: string }> = [
@@ -116,25 +118,27 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
   // so the active model stayed empty and the chat failed with "Set a model". Auto-select
   // the first available model once the list resolves (mirrors the provider-detail chat).
   useEffect(() => {
-    const next = pickDefaultModel(configState.model, availableModels);
-    if (next !== null) setConfigState({ ...configState, model: next });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availableModels, configState.model]);
+    setConfigState((current) => {
+      const next = pickDefaultModel(current.model, availableModels);
+      return next === null ? current : { ...current, model: next };
+    });
+  }, [availableModels, configState.model, setConfigState]);
 
   // #6241: keep the resolved reasoning spec on configState so the tabs (ChatTab) can gate the
   // `effort`/`thinking` request fields on models that support thinking. Sync only when it changes.
   useEffect(() => {
-    const current = configState.reasoning;
-    const changed =
-      !current ||
-      current.show !== reasoningSpec.show ||
-      current.effortOptions.join(",") !== reasoningSpec.effortOptions.join(",");
-    if (changed) setConfigState({ ...configState, reasoning: reasoningSpec });
+    setConfigState((current) => {
+      const changed =
+        !current.reasoning ||
+        current.reasoning.show !== reasoningSpec.show ||
+        current.reasoning.effortOptions.join(",") !== reasoningSpec.effortOptions.join(",");
+      return changed ? { ...current, reasoning: reasoningSpec } : current;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reasoningSpec.show, reasoningSpec.effortOptions.join(",")]);
+  }, [reasoningSpec.show, reasoningSpec.effortOptions.join(","), setConfigState]);
 
   function update<K extends keyof ConfigState>(key: K, value: ConfigState[K]) {
-    setConfigState({ ...configState, [key]: value });
+    setConfigState((current) => ({ ...current, [key]: value }));
   }
 
   if (collapsed) {
@@ -202,9 +206,13 @@ export default function StudioConfigPane({ configState, setConfigState }: Studio
           <select
             value={provider}
             onChange={(e) => {
-              setProvider(e.target.value);
-              update("provider", e.target.value);
-              update("model", "");
+              const nextProvider = e.target.value;
+              setProvider(nextProvider);
+              setConfigState((current) => ({
+                ...current,
+                provider: nextProvider,
+                model: "",
+              }));
             }}
             disabled={loadingProviders}
             className="w-full text-xs bg-surface border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"

@@ -6,6 +6,10 @@ import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import MarkdownMessage from "../MarkdownMessage";
 import TokenCostCounter from "../TokenCostCounter";
+import ImageResultsInline, {
+  extractPlaygroundImageResults,
+  type PlaygroundImageResult,
+} from "../ImageResultsInline";
 import { useStreamMetrics } from "../../hooks/useStreamMetrics";
 import { getModelPricing } from "@/lib/playground/types";
 import type { ConfigState } from "../StudioConfigPane";
@@ -24,6 +28,7 @@ import {
 interface Message {
   role: "system" | "user" | "assistant";
   content: string;
+  images?: PlaygroundImageResult[];
   metrics?: StreamMetrics;
 }
 
@@ -69,7 +74,11 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
     }
     out.push(
       ...chatMessages
-        .filter((m) => m.role !== "system")
+        .filter(
+          (m) =>
+            m.role !== "system" &&
+            !(m.role === "assistant" && m.images?.length && !m.content.trim())
+        )
         .map((m) => ({
           role: m.role,
           content: m.content,
@@ -186,10 +195,22 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
 
       if (!chatEndpoint && !nativeCodex) {
         const rawText = await res.text();
+        let images: PlaygroundImageResult[] = [];
+        if (configState.endpoint === "images") {
+          try {
+            images = extractPlaygroundImageResults(JSON.parse(rawText));
+          } catch {
+            // Preserve the raw response below when the image payload is not valid JSON.
+          }
+        }
         setMessages((prev) => {
           const next = [...prev];
           const idx = appendIndex !== undefined ? appendIndex : next.length - 1;
-          next[idx] = { ...next[idx], content: formatNonChatResponse(rawText) };
+          next[idx] = {
+            ...next[idx],
+            content: images.length > 0 ? "" : formatNonChatResponse(rawText),
+            images: images.length > 0 ? images : undefined,
+          };
           return next;
         });
         setResponseDuration(Date.now() - startTime);
@@ -410,7 +431,9 @@ export default function ChatTab({ configState, onMetricsUpdate }: ChatTabProps) 
                     : "bg-bg-alt border border-border text-text-main rounded-tl-sm"
                 }`}
               >
-                {msg.role === "assistant" ? (
+                {msg.images?.length ? (
+                  <ImageResultsInline images={msg.images} />
+                ) : msg.role === "assistant" ? (
                   <MarkdownMessage content={msg.content} />
                 ) : (
                   <span className="whitespace-pre-wrap">{msg.content}</span>

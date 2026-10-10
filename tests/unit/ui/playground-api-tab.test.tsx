@@ -28,13 +28,7 @@ vi.mock("next/dynamic", () => ({
 }));
 
 vi.mock("@/shared/components/MonacoEditor", () => ({
-  default: ({
-    value,
-    onChange,
-  }: {
-    value?: string;
-    onChange?: (v: string) => void;
-  }) => (
+  default: ({ value, onChange }: { value?: string; onChange?: (v: string) => void }) => (
     <textarea
       data-testid="monaco-editor"
       value={value}
@@ -76,7 +70,9 @@ vi.mock("@/shared/components", () => ({
       ))}
     </select>
   ),
-  Badge: ({ children }: { children: React.ReactNode }) => <span data-testid="badge">{children}</span>,
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span data-testid="badge">{children}</span>
+  ),
 }));
 
 vi.mock("@/shared/constants/providers", () => ({
@@ -97,9 +93,8 @@ vi.stubGlobal("fetch", mockFetch);
 
 // ── Import under test ──────────────────────────────────────────────────────────
 
-const { default: ApiTab } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab"
-);
+const { default: ApiTab } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab");
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -128,8 +123,9 @@ async function waitFor(fn: () => boolean, timeout = 3000): Promise<void> {
 
 describe("ApiTab", () => {
   beforeEach(() => {
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
-      .IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
 
     // Default fetch mock: models + providers return empty
     mockFetch.mockImplementation(async (url: string) => {
@@ -214,9 +210,7 @@ describe("ApiTab", () => {
 
     // The badge should reflect the new endpoint
     const badges = el.querySelectorAll("[data-testid='badge']");
-    const endpointBadge = Array.from(badges).find((b) =>
-      b.textContent?.includes("/v1/")
-    );
+    const endpointBadge = Array.from(badges).find((b) => b.textContent?.includes("/v1/"));
     expect(endpointBadge?.textContent).toContain("embeddings");
   });
 
@@ -263,8 +257,8 @@ describe("ApiTab", () => {
     });
 
     // Find Send button
-    const sendBtn = Array.from(el.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("send")
+    const sendBtn = Array.from(el.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("send")
     ) as HTMLButtonElement | undefined;
 
     // Selecting a model + the auto-populated request body must enable Send —
@@ -286,6 +280,61 @@ describe("ApiTab", () => {
     const editors = el.querySelectorAll("[data-testid='monaco-editor']");
     const responseEditor = editors[1] as HTMLTextAreaElement;
     expect(responseEditor.value).toContain("Hello!");
+  });
+
+  it("keeps the image response preview after the shared renderer extraction", async () => {
+    mockFetch.mockImplementation(async (url: string) => {
+      if (typeof url === "string" && url.includes("/v1/models")) {
+        return new Response(JSON.stringify({ data: [{ id: "image-provider/model-image" }] }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (typeof url === "string" && url.includes("/api/providers/client")) {
+        return new Response(JSON.stringify({ connections: [] }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return new Response(
+        JSON.stringify({
+          data: [
+            { b64_json: "QUJDRA==", revised_prompt: "Synthetic image" },
+            { url: "javascript:alert(1)", revised_prompt: "Unsafe image" },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    });
+    const el = renderApiTab();
+    await waitFor(() => el.querySelectorAll("select").length >= 3);
+    const [endpointSelect, , modelSelect] = Array.from(
+      el.querySelectorAll<HTMLSelectElement>("select")
+    );
+    await waitFor(() => modelSelect.options.length > 0);
+
+    act(() => {
+      endpointSelect.value = "images";
+      endpointSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    act(() => {
+      modelSelect.value = "image-provider/model-image";
+      modelSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const sendBtn = Array.from(el.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("send")
+    ) as HTMLButtonElement | undefined;
+    expect(sendBtn?.disabled).toBe(false);
+
+    await act(async () => {
+      sendBtn?.click();
+    });
+    await waitFor(() => el.querySelector("img") !== null);
+
+    const image = el.querySelector("img") as HTMLImageElement;
+    expect(el.querySelectorAll("img")).toHaveLength(1);
+    expect(image.getAttribute("src")).toBe("data:image/png;base64,QUJDRA==");
+    expect(image.alt).toBe("Synthetic image");
+    expect(el.querySelector('a[href^="javascript:"]')).toBeNull();
+    expect(el.querySelector("a[download]")?.className).toContain("focus-visible:opacity-100");
   });
 
   it("shows info banner", async () => {

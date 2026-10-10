@@ -4,6 +4,8 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ConfigStateSetter } from "../../../src/app/(dashboard)/dashboard/playground/components/StudioConfigPane";
+
 // #4086: the raw Playground model <select> had no search/filter, forcing users to scroll
 // a flat list (e.g. 50+ OpenRouter models). Regression guard for the search box added to
 // StudioConfigPane's model picker.
@@ -35,12 +37,10 @@ vi.mock("@/app/(dashboard)/dashboard/translator/hooks/useProviderOptions", () =>
   }),
 }));
 
-const { default: StudioConfigPane } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/StudioConfigPane"
-);
-const { DEFAULT_PARAMS } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/ParamSliders"
-);
+const { default: StudioConfigPane } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/StudioConfigPane");
+const { DEFAULT_PARAMS } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/ParamSliders");
 
 const containers: Array<{ root: ReturnType<typeof createRoot>; el: HTMLDivElement }> = [];
 
@@ -56,18 +56,13 @@ function makeConfig() {
 
 function renderPane(
   configState: ReturnType<typeof makeConfig>,
-  setConfigState: (s: ReturnType<typeof makeConfig>) => void
+  setConfigState: ConfigStateSetter
 ): HTMLDivElement {
   const el = document.createElement("div");
   document.body.appendChild(el);
   const root = createRoot(el);
   act(() => {
-    root.render(
-      <StudioConfigPane
-        configState={configState}
-        setConfigState={setConfigState as (s: typeof configState) => void}
-      />
-    );
+    root.render(<StudioConfigPane configState={configState} setConfigState={setConfigState} />);
   });
   containers.push({ root, el });
   return el;
@@ -84,8 +79,9 @@ function setInputValue(input: HTMLInputElement, value: string) {
 
 describe("StudioConfigPane model search (#4086)", () => {
   beforeEach(() => {
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
-      .IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
   });
 
   afterEach(() => {

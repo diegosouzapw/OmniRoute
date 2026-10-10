@@ -5,11 +5,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useImprovePrompt } from "../hooks/useImprovePrompt";
-import type { ConfigState } from "./StudioConfigPane";
+import type { ConfigState, ConfigStateSetter } from "./StudioConfigPane";
 
 interface ImprovePromptButtonProps {
   configState: ConfigState;
-  setConfigState: (s: ConfigState) => void;
+  setConfigState: ConfigStateSetter;
 }
 
 /**
@@ -49,14 +49,10 @@ export default function ImprovePromptButton({
       return;
     }
 
-    // Apply improved versions if returned
-    const next = { ...configState };
-
-    if (result.improvedSystem != null) {
-      next.systemPrompt = result.improvedSystem;
+    const improvedSystem = result.improvedSystem;
+    if (improvedSystem != null) {
+      setConfigState((current) => ({ ...current, systemPrompt: improvedSystem }));
     }
-
-    setConfigState(next);
   }
 
   const isDisabled = loading || !configState.model.trim();

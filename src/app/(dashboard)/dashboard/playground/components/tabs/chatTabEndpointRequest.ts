@@ -6,8 +6,8 @@
 // request, which has no notion of search-provider credentials and 404s.
 //
 // This module gives ChatTab a small, testable seam for routing non-chat endpoints
-// (currently "search" and "web.fetch") to their real path with a query-shaped body,
-// instead of the chat.completions messages/SSE shape.
+// to their real path with an endpoint-shaped body instead of the chat.completions
+// messages/SSE shape.
 
 import { endpointToPath, type PlaygroundEndpoint } from "@/lib/playground/codeExport";
 
@@ -90,8 +90,7 @@ export function resolveChatTabRequestPath(endpoint: PlaygroundEndpoint | undefin
 }
 
 /**
- * Builds the request body for a non-chat endpoint from the user's free-text query.
- * "search" and "web.fetch" both take a single string field instead of a messages array.
+ * Builds the request body for a non-chat endpoint from the user's free-text input.
  */
 export function buildNonChatRequestBody(
   endpoint: PlaygroundEndpoint | undefined,
@@ -101,7 +100,7 @@ export function buildNonChatRequestBody(
   if (endpoint === "web.fetch") {
     return { url: query };
   }
-  const body: Record<string, unknown> = { query };
+  const body: Record<string, unknown> = endpoint === "images" ? { prompt: query } : { query };
   if (model) body.model = model;
   return body;
 }

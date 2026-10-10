@@ -1,0 +1,1 @@
+- **fix(playground):** Preserve selected provider/model and concurrent Config edits, send image-generation prompts in the required `prompt` field, and render image results with safe download links instead of raw JSON ([#16006](https://github.com/diegosouzapw/OmniRoute/pull/16006)) — thanks @D4rk4

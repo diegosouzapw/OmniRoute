@@ -12,6 +12,10 @@ import { ALIAS_TO_ID } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import dynamic from "next/dynamic";
+import ImageResultsInline, {
+  extractPlaygroundImageResults,
+  type PlaygroundImageResult,
+} from "../ImageResultsInline";
 
 // Monaco editor lazy-loaded (ssr: false) to avoid SSR issues (F10 requirement)
 const Editor = dynamic(() => import("@/shared/components/MonacoEditor"), { ssr: false });
@@ -141,46 +145,6 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
-function ImageResultsInline({ data }: { data: unknown }) {
-  const t = useTranslations("playground");
-  const typed = data as {
-    data?: Array<{ url?: string; b64_json?: string; revised_prompt?: string }>;
-  };
-  const images = typed?.data || [];
-  if (images.length === 0) return null;
-  return (
-    <div className="p-4 space-y-3">
-      <p className="text-xs text-text-muted font-medium uppercase tracking-wider">
-        {t("imagesGenerated", { count: images.length })}
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {images.map((img, i) => {
-          const src = img.url || (img.b64_json ? `data:image/png;base64,${img.b64_json}` : null);
-          if (!src) return null;
-          return (
-            <div key={i} className="relative group rounded-lg overflow-hidden border border-border">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={img.revised_prompt || t("generatedImage", { index: i + 1 })}
-                className="w-full"
-              />
-              <a
-                href={src}
-                download={`image-${i + 1}.png`}
-                className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
-              >
-                <span className="material-symbols-outlined text-[13px]">download</span>
-                {t("save")}
-              </a>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 interface ApiTabProps {
   // configState is received but ApiTab manages its own JSON state (D14)
   configState?: unknown;
@@ -220,7 +184,7 @@ export default function ApiTab(_props: ApiTabProps) {
   const [requestBody, setRequestBody] = useState("");
   const [responseBody, setResponseBody] = useState("");
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [imageData, setImageData] = useState<unknown>(null);
+  const [imageData, setImageData] = useState<PlaygroundImageResult[] | null>(null);
   const [transcriptionText, setTranscriptionText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [responseStatus, setResponseStatus] = useState<number | null>(null);
@@ -461,8 +425,9 @@ export default function ApiTab(_props: ApiTabProps) {
       } else {
         const data = (await res.json()) as Record<string, unknown>;
         setResponseBody(JSON.stringify(data, null, 2));
-        if (isImageEndpoint && data?.data && Array.isArray(data.data) && res.ok) {
-          setImageData(data);
+        if (isImageEndpoint && res.ok) {
+          const images = extractPlaygroundImageResults(data);
+          if (images.length > 0) setImageData(images);
         }
         if (isTranscriptionEndpoint && typeof (data as { text?: string })?.text === "string") {
           setTranscriptionText(
@@ -827,7 +792,7 @@ export default function ApiTab(_props: ApiTabProps) {
                   </a>
                 </div>
               ) : imageData ? (
-                <ImageResultsInline data={imageData} />
+                <ImageResultsInline images={imageData} />
               ) : transcriptionText !== null ? (
                 <div className="p-4 space-y-2">
                   <p className="text-xs text-text-muted font-medium uppercase tracking-wider">

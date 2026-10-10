@@ -5,11 +5,11 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePresets } from "../hooks/usePresets";
-import type { ConfigState } from "./StudioConfigPane";
+import type { ConfigState, ConfigStateSetter } from "./StudioConfigPane";
 
 interface PresetPickerProps {
   configState: ConfigState;
-  setConfigState: (s: ConfigState) => void;
+  setConfigState: ConfigStateSetter;
 }
 
 /**
@@ -35,16 +35,16 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
     const preset = presets.find((p) => p.id === presetId);
     if (!preset) return;
 
-    setConfigState({
-      ...configState,
+    setConfigState((current) => ({
+      ...current,
       endpoint: preset.endpoint as ConfigState["endpoint"],
       model: preset.model,
-      systemPrompt: preset.system ?? configState.systemPrompt,
+      systemPrompt: preset.system ?? current.systemPrompt,
       params: {
-        ...configState.params,
+        ...current.params,
         ...(typeof preset.params === "object" && preset.params != null ? preset.params : {}),
       },
-    });
+    }));
   }
 
   async function handleSave() {
@@ -110,7 +110,11 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
             aria-label={t("loadPreset")}
           >
             <option value="" disabled>
-              {loading ? t("loadingPresets") : presets.length === 0 ? t("noPresets") : t("loadPresetPlaceholder")}
+              {loading
+                ? t("loadingPresets")
+                : presets.length === 0
+                  ? t("noPresets")
+                  : t("loadPresetPlaceholder")}
             </option>
             {presets.map((preset) => (
               <option key={preset.id} value={preset.id}>
@@ -186,9 +190,7 @@ export default function PresetPicker({ configState, setConfigState }: PresetPick
                 className="text-xs bg-bg-alt border border-border rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary text-text-main"
               />
 
-              {saveError && (
-                <p className="text-xs text-destructive">{saveError}</p>
-              )}
+              {saveError && <p className="text-xs text-destructive">{saveError}</p>}
 
               <div className="flex items-center justify-end gap-2">
                 <button
