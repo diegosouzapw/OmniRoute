@@ -298,6 +298,36 @@ describe("modelsDevSync — transformModelsDevToCapabilities", () => {
     assert.equal(JSON.parse(gpt4o.modalities_output).length, 1);
   });
 
+  it("keeps the effort tiers models.dev lists for a reasoning model", () => {
+    const data = {
+      anthropic: {
+        id: "anthropic",
+        models: {
+          "claude-haiku-5-5": {
+            id: "claude-haiku-5-5",
+            name: "Claude Haiku 5.5",
+            reasoning: true,
+            reasoning_options: [
+              { type: "toggle" },
+              { type: "effort", values: ["minimal", "low", "medium", "high", "xhigh", "max", "turbo"] },
+            ],
+            tool_call: true,
+            release_date: "2026-10-01",
+            last_updated: "2026-10-01",
+            open_weights: false,
+            limit: { context: 200000, output: 64000 },
+            modalities: { input: ["text"], output: ["text"] },
+          },
+        },
+      },
+    };
+
+    const caps = transformModelsDevToCapabilities(data);
+    const haiku = caps.anthropic["claude-haiku-5-5"];
+    assert.equal(haiku.reasoning, true);
+    assert.deepEqual(haiku.reasoning_efforts, ["minimal", "low", "medium", "high", "xhigh", "max"]);
+  });
+
   it("handles interleaved reasoning field", () => {
     const dataWithInterleaved = {
       testprovider: {

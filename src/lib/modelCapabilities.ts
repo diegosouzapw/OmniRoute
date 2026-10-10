@@ -998,7 +998,10 @@ export function getResolvedModelCapabilities(
     reasoning: supportsThinking ?? heuristicReasoning(lookupKey),
     supportsThinking,
     supportedThinkingEfforts:
-      reasoningEffortsOverride ?? registryModel?.supportedThinkingEfforts ?? null,
+      reasoningEffortsOverride ??
+      registryModel?.supportedThinkingEfforts ??
+      synced?.reasoning_efforts ??
+      null,
     reasoningEffortsOverride: reasoningEffortsOverride !== null,
     supportsTools,
     supportsVision,

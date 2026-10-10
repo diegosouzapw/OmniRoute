@@ -149,8 +149,9 @@ export function getConnectionScopedEffortTiers(
   if (matching.some((model) => model === undefined)) return [];
 
   const efforts = matching.map((model) => {
-    const resolved = model?.supportedThinkingEfforts?.length
-      ? model.supportedThinkingEfforts
+    const declared = model?.supportedThinkingEfforts;
+    const resolved = Array.isArray(declared)
+      ? [...declared]
       : model?.supportsThinking === true && fallbackThinkingEfforts
         ? [...fallbackThinkingEfforts]
         : [];
@@ -175,12 +176,17 @@ export function getThinkingCapabilityFields(
 ): Record<string, boolean | string[]> {
   const supportsThinking = resolvedThinking;
   if (typeof supportsThinking !== "boolean") return {};
-  const hasDeclaredTiers = supportedThinkingEfforts && supportedThinkingEfforts.length > 0;
+  // An empty array is a declaration of no tiers (GLM, ZCode). Only an
+  // absent list falls through to the synced tiers.
+  const declaredNone = Array.isArray(supportedThinkingEfforts) && supportedThinkingEfforts.length === 0;
+  const hasDeclaredTiers = Array.isArray(supportedThinkingEfforts) && supportedThinkingEfforts.length > 0;
   const syncedEfforts =
-    !hasDeclaredTiers && syncedReasoningEfforts && syncedReasoningEfforts.length > 0
+    !hasDeclaredTiers && !declaredNone && syncedReasoningEfforts && syncedReasoningEfforts.length > 0
       ? [...syncedReasoningEfforts]
       : null;
-  const tiers = hasDeclaredTiers
+  const tiers = declaredNone
+    ? []
+    : hasDeclaredTiers
     ? [...supportedThinkingEfforts!]
     : syncedEfforts
       ? syncedEfforts
@@ -192,7 +198,7 @@ export function getThinkingCapabilityFields(
   return {
     thinking: supportsThinking,
     supportsThinking,
-    ...(supportsThinking && (hasDeclaredTiers || syncedEfforts || !skipCanonicalEffortFallback)
+    ...(supportsThinking && !declaredNone && (hasDeclaredTiers || syncedEfforts || !skipCanonicalEffortFallback)
       ? { effort_tiers: tiers }
       : {}),
   };
