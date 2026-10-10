@@ -191,6 +191,7 @@ test("build-next-isolated sibling imports are allowed in the published package",
     "scripts/build/assembleStandalone.mjs",
     "scripts/build/backendOnlyPages.mjs",
     "scripts/build/build-tproxy-native.mjs",
+    "scripts/i18n/generate-global-error-messages.mjs",
   ];
 
   const unexpectedPaths = findUnexpectedArtifactPaths(buildDependencies, {
@@ -199,6 +200,14 @@ test("build-next-isolated sibling imports are allowed in the published package",
   });
 
   assert.deepEqual(unexpectedPaths, []);
+
+  assert.deepEqual(
+    findUnexpectedArtifactPaths(["scripts/i18n/private-catalog.mjs"], {
+      exactPaths: PACK_ARTIFACT_ALLOWED_EXACT_PATHS,
+      prefixPaths: PACK_ARTIFACT_ALLOWED_PATH_PREFIXES,
+    }),
+    ["scripts/i18n/private-catalog.mjs"]
+  );
 });
 
 test("webdav-handler.mjs is allowed in staging dist/ (server-ws.mjs dependency, missed in 3.8.22 build)", () => {

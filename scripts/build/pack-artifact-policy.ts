@@ -160,6 +160,7 @@ export const PACK_ARTIFACT_ROOT_ALLOWED_EXACT_PATHS: string[] = [
   "scripts/build/backendOnlyPages.mjs",
   "scripts/build/build-tproxy-native.mjs",
   "scripts/build/build-next-isolated.mjs",
+  "scripts/i18n/generate-global-error-messages.mjs",
   "scripts/check/check-supported-node-runtime.ts",
   "scripts/build/native-binary-compat.mjs",
   "scripts/build/wreqJsNative.mjs",
