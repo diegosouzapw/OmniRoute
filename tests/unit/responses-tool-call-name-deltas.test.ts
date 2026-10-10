@@ -40,7 +40,8 @@ const chunk = (input, finish = null) => ({
   choices: [{ index: 0, delta: input, finish_reason: finish }],
 });
 
-const NAME_ONLY = (name) => chunk({ tool_calls: [{ index: 0, id: "call_1", type: "function", function: { name } }] });
+const NAME_ONLY = (name) =>
+  chunk({ tool_calls: [{ index: 0, id: "call_1", type: "function", function: { name } }] });
 const ARGS_ONLY = (name, args) =>
   chunk({
     tool_calls: [{ index: 0, id: "call_1", type: "function", function: { name, arguments: args } }],
@@ -63,11 +64,14 @@ const doneItems = (events) =>
   events.filter((e) => e.event === "response.output_item.done").map((e) => e.data.item);
 
 test("OpenAI -> Responses: a name split across deltas is accumulated before classification", () => {
-  const events = collectEvents([NAME_ONLY("functions__"), ARGS_ONLY("exec", EXEC_ARGS), FINISH, null], {
-    customToolNames: functionsExecCustom,
-    toolSchemas: new Map([["functions__exec", functionsExecSchema]]),
-    identityMap: functionsExecIdentity,
-  });
+  const events = collectEvents(
+    [NAME_ONLY("functions__"), ARGS_ONLY("exec", EXEC_ARGS), FINISH, null],
+    {
+      customToolNames: functionsExecCustom,
+      toolSchemas: new Map([["functions__exec", functionsExecSchema]]),
+      identityMap: functionsExecIdentity,
+    }
+  );
 
   const items = doneItems(events);
   const custom = items.find((item) => item.type === "custom_tool_call");
@@ -111,7 +115,10 @@ test("OpenAI -> Responses: an ambiguous bare leaf stays a plain function_call", 
   assert.ok(call, "expected a function_call item");
   assert.equal(call.name, "exec");
   assert.equal(call.namespace, undefined);
-  assert.equal(items.some((item) => item.type === "custom_tool_call"), false);
+  assert.equal(
+    items.some((item) => item.type === "custom_tool_call"),
+    false
+  );
 });
 
 test("OpenAI -> Responses: an explicit flat declaration of the bare name keeps its identity", () => {
@@ -131,5 +138,8 @@ test("OpenAI -> Responses: an explicit flat declaration of the bare name keeps i
   assert.ok(call, "expected a function_call item for the flat declaration");
   assert.equal(call.name, "exec");
   assert.equal(call.namespace, undefined);
-  assert.equal(items.some((item) => item.type === "custom_tool_call"), false);
+  assert.equal(
+    items.some((item) => item.type === "custom_tool_call"),
+    false
+  );
 });

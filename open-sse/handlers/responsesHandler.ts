@@ -9,6 +9,7 @@ import { convertResponsesApiFormat } from "../translator/helpers/responsesApiHel
 import { collectResponsesCustomToolNames } from "../translator/request/openai-responses/additionalTools.ts";
 import { createResponsesApiTransformStream } from "../transformer/responsesTransformer.ts";
 import { createSseHeartbeatTransform, HEARTBEAT_SHAPES } from "../utils/sseHeartbeat.ts";
+import { extractToolSchemaMap } from "../translator/response/openai-responses/toolSchemas.ts";
 import { SSE_HEARTBEAT_INTERVAL_MS } from "../config/constants.ts";
 
 /**
@@ -55,6 +56,8 @@ export async function handleResponsesCore({
     (convertedBody as { _namespaceToolIdentityMap?: Map<string, unknown> })
       ._namespaceToolIdentityMap ?? null;
 
+  const toolSchemas = extractToolSchemaMap(convertedBody);
+
   // Ensure stream is enabled
   convertedBody.stream = true;
 
@@ -97,6 +100,7 @@ export async function handleResponsesCore({
   const transformStream = createResponsesApiTransformStream(null, undefined, {
     customToolNames,
     requestToolIdentityMap,
+    toolSchemas,
   });
   const transformedBody = response.body.pipeThrough(transformStream).pipeThrough(
     createSseHeartbeatTransform({

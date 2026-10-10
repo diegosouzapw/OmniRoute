@@ -53,7 +53,11 @@ function toNameSet(values: Iterable<string> | null | undefined): Set<string> {
  * fragment (`functions__exec` then `exec`), and a genuine split
  * (`functions__` + `exec`).
  */
-export function appendToolCallNameDelta(current: unknown, incoming: unknown): string {
+export function appendToolCallNameDelta(
+  current: unknown,
+  incoming: unknown,
+  declaredNames?: Iterable<string> | null
+): string {
   const previous = typeof current === "string" ? current.trim() : "";
   const delta = typeof incoming === "string" ? incoming.trim() : "";
   if (!delta) return previous;
@@ -61,6 +65,14 @@ export function appendToolCallNameDelta(current: unknown, incoming: unknown): st
   if (delta === previous) return previous;
   // Progressive accumulation: a provider re-sending the longer spelling.
   if (delta.startsWith(previous)) return delta;
+  // Before publication, prefer a continuation that still fits a declaration,
+  // even if the current name also names a shorter declared tool. A suffix resend
+  // and a genuine repeated character are indistinguishable in that case; this
+  // is a deterministic continuation policy, not evidence of provider intent.
+  // Without declarations, preserve the suffix-resend fallback below.
+  const declared = toNameSet(declaredNames);
+  const combined = previous + delta;
+  if ([...declared].some((name) => name.startsWith(combined))) return combined;
   // A provider re-sending a fragment we already hold.
   if (previous.endsWith(delta)) return previous;
   return previous + delta;

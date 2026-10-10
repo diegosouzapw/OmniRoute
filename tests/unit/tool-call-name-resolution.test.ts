@@ -1,11 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const {
-  appendToolCallNameDelta,
-  resolveDeclaredToolName,
-  matchesCustomToolDeclaration,
-} = await import("../../open-sse/utils/toolCallName.ts");
+const { appendToolCallNameDelta, resolveDeclaredToolName, matchesCustomToolDeclaration } =
+  await import("../../open-sse/utils/toolCallName.ts");
 
 // ── Streamed name accumulation ──────────────────────────────────────────────
 // A provider may split `function.name` across deltas, re-send the whole name, or
