@@ -1,0 +1,1 @@
+- **fix(sse):** `server_tool_use` blocks with non-Anthropic ids (e.g. z.ai `call_…`) and their paired results are dropped before a request reaches Anthropic, so a mixed combo no longer 400s on every following turn ([#16293](https://github.com/diegosouzapw/OmniRoute/pull/16293)) — thanks @f-liva
