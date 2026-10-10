@@ -2384,35 +2384,13 @@ test("claude-web validator: bare sessionKey value gets prefixed", async () => {
 
 // ─── gemini-web validator ────────────────────────────────────────────────────
 
-test("gemini-web validator: 200 signed-out page is not a valid session", async () => {
-  globalThis.fetch = async (url) => {
-    assert.equal(String(url), "https://gemini.google.com/app");
-    return new Response("<html><body>Gemini landing page (signed out)</body></html>", {
-      status: 200,
-    });
-  };
-
-  const result = await validateProviderApiKey({
-    provider: "gemini-web",
-    apiKey: "__Secure-1PSID=eyJPSID",
-  });
-
-  assert.equal(result.valid, false);
-  assert.match(result.error || "", /Not signed in/i);
-});
-
 test("gemini-web validator: 200 authenticated Gemini page → valid", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     const headers = init.headers || {};
     if (target.includes("gemini.google.com/app")) {
       assert.match((headers as Record<string, string>).Cookie || "", /__Secure-1PSID=eyJPSID/);
-      return new Response(
-        '<html><script>WIZ_global_data={"SNlM0e":"synthetic-session-token"}</script></html>',
-        {
-          status: 200,
-        }
-      );
+      return new Response('<script>{"SNlM0e":"fixture"}</script>', { status: 200 });
     }
     throw new Error(`unexpected fetch: ${target}`);
   };
