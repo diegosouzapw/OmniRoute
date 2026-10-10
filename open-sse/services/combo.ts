@@ -137,6 +137,7 @@ import { evaluateExecuteTargetGates } from "./combo/executeTargetGates.ts";
 import { executeTargetAttempt } from "./combo/executeTargetAttempt.ts";
 import type { AttemptLoopDeps, AttemptLoopState } from "./combo/attemptLoopTypes.ts";
 import { clearStaleLKGP } from "./combo/staleLkgpClear.ts";
+import { getStrategyTraits } from "./combo/strategyRegistry.ts";
 
 // Native Codex auto-resume (#13180) rejection reasons that mean the turn either carries
 // state unsafe to hand to an untested alternate model (pending tool calls, opaque
@@ -854,7 +855,7 @@ async function handleComboChatInner({
   // Route new round-robin turns to the specialized handler. A native Codex
   // continuation with an established provider/account pin must use the common
   // target pipeline below so it cannot rotate between tool rounds.
-  if (strategy === "round-robin" && !activeNativeTurnPin) {
+  if (getStrategyTraits(strategy).usesRoundRobinLoop && !activeNativeTurnPin) {
     const { handleRoundRobinCombo } = await import("./combo/roundRobinCombo.ts");
     return handleRoundRobinCombo({
       body,
@@ -1174,7 +1175,8 @@ async function handleComboChatInner({
   };
 
   const quotaShareConcurrencyEnabled =
-    strategy === "quota-share" && resilienceSettings.quotaShareConcurrencyLimit.enabled;
+    getStrategyTraits(strategy).quotaShareConcurrencySlot &&
+    resilienceSettings.quotaShareConcurrencyLimit.enabled;
 
   // FASE 2.1: acquire the per-connection concurrency slot for the selected
   // quota-share target once, around the whole dispatch (including any
