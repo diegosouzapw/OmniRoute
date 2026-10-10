@@ -471,7 +471,7 @@ test("getStatus(jules): a pull-request output wins → completed with result", a
   }
 });
 
-test("characterization: base mapStatus currently checks 'pending' before 'approval'", async () => {
+test("base mapStatus prioritizes approval over a generic pending status", async () => {
   // Devin routes its raw status through CloudAgentBase.mapStatus (substring matcher).
   const cases: Array<[string, string]> = [
     ["completed", "completed"],
@@ -481,7 +481,7 @@ test("characterization: base mapStatus currently checks 'pending' before 'approv
     ["executing", "running"],
     ["waiting", "queued"],
     ["needs plan review", "awaiting_approval"],
-    ["pending approval", "queued"], // 'pending' matches first — never awaiting_approval
+    ["pending approval", "awaiting_approval"],
     ["something-else", "queued"],
   ];
   const seen: Array<[string, string]> = [];
