@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
     "qdrantCollection": "Collection",
+    "catalogVisibilityHint": "Hidden model IDs remain callable with the same access permissions.",
     "catalogScopeTitle": "Models API listing",
     "catalogScopeDesc": "What GET /v1/models advertises for this key. Narrowing the list never changes what the key can call.",
     "catalogScopeAll": "Both",

@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "පෝට් එක",
     "qdrantHost": "සත්කාරකය",
     "qdrantCollection": "එකතුව",
+    "catalogVisibilityHint": "සඟවා ඇති මාදිලි ID එම ප්‍රවේශ අවසර සමඟ තවමත් ඇමතිය හැක.",
     "catalogScopeTitle": "Models API ලැයිස්තුගත කිරීම",
     "catalogScopeDesc": "මෙම යතුර සඳහා GET /v1/models මඟින් ප්රචාරය කරන දේ. ලැයිස්තුව සීමා කිරීමෙන් යතුරට ඇමතිය හැකි දේ කිසිවිටෙක වෙනස් නොවේ.",
     "catalogScopeAll": "දෙකම",

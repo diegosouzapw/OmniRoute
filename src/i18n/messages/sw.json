@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Bandari",
     "qdrantHost": "Mwenyeji",
     "qdrantCollection": "Mkusanyiko",
+    "catalogVisibilityHint": "Vitambulisho vya miundo vilivyofichwa bado vinaweza kuitwa kwa ruhusa zilezile za ufikiaji.",
     "catalogScopeTitle": "Orodha ya API ya Models",
     "catalogScopeDesc": "Kile ambacho GET /v1/models hutangaza kwa ufunguo huu. Kupunguza orodha hakubadilishi kamwe kile ambacho ufunguo unaweza kuita.",
     "catalogScopeAll": "Zote mbili",

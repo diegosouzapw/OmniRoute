@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
     "qdrantCollection": "Koleksi",
+    "catalogVisibilityHint": "ID model yang disembunyikan tetap dapat dipanggil dengan izin akses yang sama.",
     "catalogScopeTitle": "Daftar Models API",
     "catalogScopeDesc": "Yang ditampilkan oleh GET /v1/models untuk kunci ini. Mempersempit daftar tidak akan mengubah model yang dapat dipanggil oleh kunci tersebut.",
     "catalogScopeAll": "Keduanya",

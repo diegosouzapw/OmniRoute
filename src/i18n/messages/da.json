@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Port",
     "qdrantHost": "Vært",
     "qdrantCollection": "Samling",
+    "catalogVisibilityHint": "Skjulte model-id’er kan stadig kaldes med de samme adgangsrettigheder.",
     "catalogScopeTitle": "Modelliste i API'et",
     "catalogScopeDesc": "Hvad GET /v1/models viser for denne nøgle. En begrænsning af listen ændrer aldrig, hvad nøglen kan kalde.",
     "catalogScopeAll": "Begge",

@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Bağlantı Noktası",
     "qdrantHost": "Ana Bilgisayar",
     "qdrantCollection": "Koleksiyon",
+    "catalogVisibilityHint": "Gizlenen model kimlikleri aynı erişim izinleriyle çağrılmaya devam edebilir.",
     "catalogScopeTitle": "Models API listelemesi",
     "catalogScopeDesc": "GET /v1/models uç noktasının bu anahtar için gösterdiği modeller. Listeyi daraltmak, anahtarın çağırabileceği modelleri değiştirmez.",
     "catalogScopeAll": "Her ikisi",

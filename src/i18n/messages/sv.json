@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Port",
     "qdrantHost": "Värd",
     "qdrantCollection": "Samling",
+    "catalogVisibilityHint": "Dolda modell-ID:n kan fortfarande anropas med samma åtkomstbehörigheter.",
     "catalogScopeTitle": "Modellista i API:et",
     "catalogScopeDesc": "Vad GET /v1/models visar för denna nyckel. Att begränsa listan ändrar aldrig vad nyckeln kan anropa.",
     "catalogScopeAll": "Båda",

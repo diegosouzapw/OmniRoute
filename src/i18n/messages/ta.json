@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "போர்ட்",
     "qdrantHost": "விருந்தினர்",
     "qdrantCollection": "கலெக்ஷன்",
+    "catalogVisibilityHint": "மறைக்கப்பட்ட மாதிரி ID-களை அதே அணுகல் அனுமதிகளுடன் தொடர்ந்து அழைக்கலாம்.",
     "catalogScopeTitle": "Models API பட்டியல்",
     "catalogScopeDesc": "இந்த விசைக்காக GET /v1/models எவற்றை அறிவிக்கிறது. பட்டியலைக் குறைப்பது, இந்த விசை எவற்றை அழைக்க முடியும் என்பதை ஒருபோதும் மாற்றாது.",
     "catalogScopeAll": "இரண்டும்",

@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Port",
     "qdrantHost": "Host",
     "qdrantCollection": "Kogumik",
+    "catalogVisibilityHint": "Peidetud mudelite ID-sid saab endiselt kutsuda samade juurdepääsuõigustega.",
     "catalogScopeTitle": "Models API loend",
     "catalogScopeDesc": "Mida GET /v1/models selle võtme kohta avaldab. Loendi kitsendamine ei muuda kunagi seda, milliseid mudeleid võti saab kutsuda.",
     "catalogScopeAll": "Mõlemad",

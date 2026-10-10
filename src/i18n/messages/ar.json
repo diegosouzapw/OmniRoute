@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "منفذ",
     "qdrantHost": "مضيف",
     "qdrantCollection": "مجموعة",
+    "catalogVisibilityHint": "تظل معرّفات النماذج المخفية قابلة للاستدعاء بصلاحيات الوصول نفسها.",
     "catalogScopeTitle": "قائمة Models API",
     "catalogScopeDesc": "ما تعرضه GET /v1/models لهذا المفتاح. لا يؤدي تضييق القائمة مطلقًا إلى تغيير ما يمكن للمفتاح استدعاؤه.",
     "catalogScopeAll": "كلاهما",

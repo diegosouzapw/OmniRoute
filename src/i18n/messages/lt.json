@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Prievadas",
     "qdrantHost": "Pagrindinis kompiuteris",
     "qdrantCollection": "Rinkinys",
+    "catalogVisibilityHint": "Paslėptus modelių ID ir toliau galima iškviesti turint tas pačias prieigos teises.",
     "catalogScopeTitle": "Models API sąrašas",
     "catalogScopeDesc": "Ką GET /v1/models nurodo šiam raktui. Sąrašo susiaurinimas niekada nekeičia, ką raktas gali iškviesti.",
     "catalogScopeAll": "Abu",

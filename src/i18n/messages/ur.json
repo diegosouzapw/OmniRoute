@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "پورٹ",
     "qdrantHost": "میزبان",
     "qdrantCollection": "اجتماع",
+    "catalogVisibilityHint": "چھپے ہوئے ماڈل ID کو انہی رسائی اجازتوں کے ساتھ اب بھی کال کیا جا سکتا ہے۔",
     "catalogScopeTitle": "Models API کی فہرست",
     "catalogScopeDesc": "یہ کلید GET /v1/models میں کیا ظاہر کرتی ہے۔ فہرست محدود کرنے سے کبھی بھی اس بات پر اثر نہیں پڑتا کہ کلید کن ماڈلز کو کال کر سکتی ہے۔",
     "catalogScopeAll": "دونوں",

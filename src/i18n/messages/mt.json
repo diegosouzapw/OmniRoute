@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Port",
     "qdrantHost": "Ospitant",
     "qdrantCollection": "Kollezzjoni",
+    "catalogVisibilityHint": "L-IDs tal-mudelli moħbija jibqgħu jistgħu jissejħu bl-istess permessi ta’ aċċess.",
     "catalogScopeTitle": "Elenkar tal-Models API",
     "catalogScopeDesc": "Dak li GET /v1/models jiddikjara għal din iċ-ċavetta. It-tidjiq tal-lista qatt ma jibdel dak li ċ-ċavetta tista' ssejjaħ.",
     "catalogScopeAll": "It-tnejn",

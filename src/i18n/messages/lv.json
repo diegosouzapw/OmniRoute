@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Ports",
     "qdrantHost": "Resursdators",
     "qdrantCollection": "Kolekcija",
+    "catalogVisibilityHint": "Slēptos modeļu ID joprojām var izsaukt ar tām pašām piekļuves atļaujām.",
     "catalogScopeTitle": "Models API saraksts",
     "catalogScopeDesc": "Ko GET /v1/models uzrāda šai atslēgai. Saraksta sašaurināšana nekad nemaina to, ko atslēga var izsaukt.",
     "catalogScopeAll": "Abi",

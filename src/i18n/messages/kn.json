@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "ಪೋರ್ಟ್",
     "qdrantHost": "ಹೋಸ್ಟ್",
     "qdrantCollection": "ಸಂಗ್ರಹ",
+    "catalogVisibilityHint": "ಮರೆಮಾಡಿದ ಮಾದರಿ ID ಗಳನ್ನು ಅದೇ ಪ್ರವೇಶ ಅನುಮತಿಗಳೊಂದಿಗೆ ಇನ್ನೂ ಕರೆಯಬಹುದು.",
     "catalogScopeTitle": "Models API ಪಟ್ಟಿ",
     "catalogScopeDesc": "ಈ ಕೀಲಿಗಾಗಿ GET /v1/models ಏನನ್ನು ಪ್ರದರ್ಶಿಸುತ್ತದೆ. ಪಟ್ಟಿಯನ್ನು ಸೀಮಿತಗೊಳಿಸುವುದರಿಂದ ಕೀಲಿಯು ಯಾವುದನ್ನು ಕರೆ ಮಾಡಬಹುದು ಎಂಬುದು ಎಂದಿಗೂ ಬದಲಾಗುವುದಿಲ್ಲ.",
     "catalogScopeAll": "ಎರಡೂ",

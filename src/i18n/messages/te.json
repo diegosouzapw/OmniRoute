@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "పోర్ట్",
     "qdrantHost": "హోస్ట్",
     "qdrantCollection": "సేకరణ",
+    "catalogVisibilityHint": "దాచిన మోడల్ IDలను అదే యాక్సెస్ అనుమతులతో ఇప్పటికీ పిలవవచ్చు.",
     "catalogScopeTitle": "Models API జాబితా",
     "catalogScopeDesc": "ఈ కీ కోసం GET /v1/models చూపించేవి. జాబితాను పరిమితం చేయడం వల్ల ఈ కీ కాల్ చేయగలిగేవి ఎప్పటికీ మారవు.",
     "catalogScopeAll": "రెండూ",

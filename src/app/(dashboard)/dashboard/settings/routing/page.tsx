@@ -10,6 +10,7 @@ import FallbackChainsEditor from "../components/FallbackChainsEditor";
 import ModelAliasesUnified from "../components/ModelAliasesUnified";
 import BackgroundDegradationTab from "../components/BackgroundDegradationTab";
 import RoutingEntryLink from "@/shared/components/routing/RoutingEntryLink";
+import CatalogVisibilityCard from "../components/CatalogVisibilityCard";
 
 export default function SettingsRoutingPage() {
   const t = useTranslations("settings");
@@ -19,6 +20,7 @@ export default function SettingsRoutingPage() {
       <RoutingStrategyCard />
       <QuotaPreflightCard />
       <ComboDefaultsTab />
+      <CatalogVisibilityCard />
       <RoutingEntryLink />
       <ModelAliasesUnified />
       <FallbackChainsEditor />

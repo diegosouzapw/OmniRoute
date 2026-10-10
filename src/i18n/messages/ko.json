@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "포트",
     "qdrantHost": "호스트",
     "qdrantCollection": "컬렉션",
+    "catalogVisibilityHint": "숨겨진 모델 ID도 동일한 접근 권한으로 계속 호출할 수 있습니다.",
     "catalogScopeTitle": "Models API 목록",
     "catalogScopeDesc": "GET /v1/models가 이 키에 대해 표시하는 항목입니다. 목록을 제한해도 키가 호출할 수 있는 대상은 변경되지 않습니다.",
     "catalogScopeAll": "둘 다",

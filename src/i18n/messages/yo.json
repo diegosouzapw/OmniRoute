@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Pọ́ọ̀tì",
     "qdrantHost": "Olùgbàlejò",
     "qdrantCollection": "Àkójọpọ̀",
+    "catalogVisibilityHint": "A ṣì lè pe ID àwòṣe tí a fi pamọ́ pẹ̀lú àwọn àṣẹ ìwọlé kan náà.",
     "catalogScopeTitle": "Àkójọ àwòṣe API",
     "catalogScopeDesc": "Ohun tí GET /v1/models fi hàn fún kọ́kọ́rọ́ yìí. Dídín àkójọ náà kù kì í yí ohun tí kọ́kọ́rọ́ náà lè pè padà.",
     "catalogScopeAll": "Méjèèjì",

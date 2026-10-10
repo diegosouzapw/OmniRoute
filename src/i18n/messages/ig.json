@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Ọdụ ụgbọ mmiri",
     "qdrantHost": "Onye nnabata",
     "qdrantCollection": "Nchịkọta",
+    "catalogVisibilityHint": "A ka nwere ike ịkpọ ID ụdị ndị ezoro ezo site na otu ikike nnweta ahụ.",
     "catalogScopeTitle": "Ndepụta Models API",
     "catalogScopeDesc": "Ihe GET /v1/models na-egosi maka igodo a. Ibelata ndepụta ahụ anaghị agbanwe ụdịdị igodo ahụ nwere ike ịkpọ.",
     "catalogScopeAll": "Ha abụọ",

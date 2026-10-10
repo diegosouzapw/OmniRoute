@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "埠",
     "qdrantHost": "主機",
     "qdrantCollection": "集合",
+    "catalogVisibilityHint": "隱藏的模型 ID 仍可使用相同的存取權限呼叫。",
     "catalogScopeTitle": "Models API 列表",
     "catalogScopeDesc": "GET /v1/models 針對此金鑰所列出的內容。縮小列表範圍絕不會變更此金鑰可呼叫的模型。",
     "catalogScopeAll": "兩者",

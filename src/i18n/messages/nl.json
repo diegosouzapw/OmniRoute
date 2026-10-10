@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Haven",
     "qdrantHost": "Host",
     "qdrantCollection": "Verzameling",
+    "catalogVisibilityHint": "Verborgen model-ID’s kunnen nog steeds worden aangeroepen met dezelfde toegangsrechten.",
     "catalogScopeTitle": "Vermelding in Models API",
     "catalogScopeDesc": "Wat GET /v1/models voor deze sleutel weergeeft. Het beperken van de lijst verandert nooit welke modellen met de sleutel kunnen worden aangeroepen.",
     "catalogScopeAll": "Beide",

@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "پورت",
     "qdrantHost": "میزبان",
     "qdrantCollection": "مجموعه",
+    "catalogVisibilityHint": "شناسه‌های مدل پنهان همچنان با همان مجوزهای دسترسی قابل فراخوانی هستند.",
     "catalogScopeTitle": "فهرست Models API",
     "catalogScopeDesc": "مواردی که GET /v1/models برای این کلید اعلام میکند. محدود کردن فهرست هرگز مدلهایی را که کلید میتواند فراخوانی کند تغییر نمیدهد.",
     "catalogScopeAll": "هر دو",

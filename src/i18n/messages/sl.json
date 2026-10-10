@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Vrata",
     "qdrantHost": "Gostitelj",
     "qdrantCollection": "Zbirka",
+    "catalogVisibilityHint": "Skrite ID-je modelov je še vedno mogoče klicati z enakimi dovoljenji za dostop.",
     "catalogScopeTitle": "Seznam API-ja modelov",
     "catalogScopeDesc": "Kaj GET /v1/models prikazuje za ta ključ. Omejitev seznama nikoli ne spremeni, kaj lahko ključ kliče.",
     "catalogScopeAll": "Oboje",

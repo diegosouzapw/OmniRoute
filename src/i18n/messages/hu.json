@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Port",
     "qdrantHost": "Gazda",
     "qdrantCollection": "Gyűjtemény",
+    "catalogVisibilityHint": "A rejtett modellazonosítók továbbra is hívhatók ugyanazokkal a hozzáférési jogosultságokkal.",
     "catalogScopeTitle": "A Models API listája",
     "catalogScopeDesc": "Amit a GET /v1/models ennél a kulcsnál elérhetőként jelez. A lista szűkítése soha nem módosítja, hogy a kulcs mely modelleket hívhatja meg.",
     "catalogScopeAll": "Mindkettő",

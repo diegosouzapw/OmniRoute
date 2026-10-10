@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Порт",
     "qdrantHost": "Хост",
     "qdrantCollection": "Колекція",
+    "catalogVisibilityHint": "Приховані ідентифікатори моделей і далі можна викликати з тими самими правами доступу.",
     "catalogScopeTitle": "Список Models API",
     "catalogScopeDesc": "Що GET /v1/models показує для цього ключа. Звуження списку ніколи не змінює того, які моделі може викликати ключ.",
     "catalogScopeAll": "Обидва",

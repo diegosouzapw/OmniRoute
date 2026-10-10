@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "พอร์ต",
     "qdrantHost": "โฮสต์",
     "qdrantCollection": "การรวบรวม",
+    "catalogVisibilityHint": "ยังเรียกใช้รหัสโมเดลที่ซ่อนไว้ได้ด้วยสิทธิ์การเข้าถึงเดิม",
     "catalogScopeTitle": "รายการ Models API",
     "catalogScopeDesc": "สิ่งที่ GET /v1/models แสดงสำหรับคีย์นี้ การจำกัดรายการให้แคบลงจะไม่เปลี่ยนแปลงสิ่งที่คีย์สามารถเรียกใช้ได้",
     "catalogScopeAll": "ทั้งสองอย่าง",

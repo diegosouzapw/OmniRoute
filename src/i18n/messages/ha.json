@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Tashar jiragen ruwa",
     "qdrantHost": "Uwar garke",
     "qdrantCollection": "Tarin",
+    "catalogVisibilityHint": "Har yanzu ana iya kiran ID na samfurori da aka ɓoye da izinin shiga iri ɗaya.",
     "catalogScopeTitle": "Jerin Models API",
     "catalogScopeDesc": "Abin da GET /v1/models ke nuna wa wannan maɓalli. Taƙaita jerin ba ya taɓa canza abin da maɓallin zai iya kira.",
     "catalogScopeAll": "Duka biyun",

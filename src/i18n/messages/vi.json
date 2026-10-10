@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Cổng",
     "qdrantHost": "Máy chủ",
     "qdrantCollection": "Bộ Sưu Tập",
+    "catalogVisibilityHint": "Vẫn có thể gọi các ID mô hình bị ẩn bằng cùng quyền truy cập.",
     "catalogScopeTitle": "Danh sách API mô hình",
     "catalogScopeDesc": "Những gì GET /v1/models hiển thị cho khóa này. Thu hẹp danh sách không làm thay đổi những gì khóa có thể gọi.",
     "catalogScopeAll": "Cả hai",

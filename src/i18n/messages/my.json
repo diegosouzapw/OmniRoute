@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "ပို့တ်",
     "qdrantHost": "ဟို့စ်",
     "qdrantCollection": "စုစည်းမှု",
+    "catalogVisibilityHint": "ဖျောက်ထားသော မော်ဒယ် ID များကို တူညီသော ဝင်ရောက်ခွင့်များဖြင့် ဆက်လက်ခေါ်ဆိုနိုင်သည်။",
     "catalogScopeTitle": "Models API စာရင်း",
     "catalogScopeDesc": "ဤ key အတွက် GET /v1/models က ဖော်ပြပေးသည့်အရာ။ စာရင်းကို ကျဉ်းမြောင်းစေခြင်းသည် key က ခေါ်ဆိုနိုင်သည့်အရာကို မည်သည့်အခါမျှ ပြောင်းလဲစေမည်မဟုတ်ပါ။",
     "catalogScopeAll": "နှစ်မျိုးလုံး",

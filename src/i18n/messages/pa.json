@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "ਪੋਰਟ",
     "qdrantHost": "ਹੋਸਟ",
     "qdrantCollection": "ਕਲੈਕਸ਼ਨ",
+    "catalogVisibilityHint": "ਲੁਕਾਏ ਮਾਡਲ ID ਨੂੰ ਉਹੀ ਪਹੁੰਚ ਇਜਾਜ਼ਤਾਂ ਨਾਲ ਅਜੇ ਵੀ ਕਾਲ ਕੀਤਾ ਜਾ ਸਕਦਾ ਹੈ।",
     "catalogScopeTitle": "Models API ਸੂਚੀ",
     "catalogScopeDesc": "ਇਸ ਕੁੰਜੀ ਲਈ GET /v1/models ਕੀ ਦਰਸਾਉਂਦਾ ਹੈ। ਸੂਚੀ ਨੂੰ ਸੀਮਤ ਕਰਨ ਨਾਲ ਇਹ ਕਦੇ ਨਹੀਂ ਬਦਲਦਾ ਕਿ ਕੁੰਜੀ ਕਿਹੜੇ ਮਾਡਲ ਨੂੰ ਕਾਲ ਕਰ ਸਕਦੀ ਹੈ।",
     "catalogScopeAll": "ਦੋਵੇਂ",

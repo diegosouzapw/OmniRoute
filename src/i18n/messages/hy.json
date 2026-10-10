@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "Պորտ",
     "qdrantHost": "Հոսթ",
     "qdrantCollection": "Հավաքածու",
+    "catalogVisibilityHint": "Թաքցված մոդելների նույնացուցիչները շարունակում են հասանելի լինել կանչերի համար նույն մուտքի թույլտվություններով։",
     "catalogScopeTitle": "Models API-ի ցանկ",
     "catalogScopeDesc": "Ինչ է GET /v1/models-ը ցուցադրում այս բանալիի համար։ Ցանկի սահմանափակումը երբեք չի փոխում այն, թե ինչ կարող է կանչել բանալին։",
     "catalogScopeAll": "Երկուսն էլ",

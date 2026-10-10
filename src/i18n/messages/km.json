@@ -8683,6 +8683,7 @@
     "cliproxyapiPort": "ច្រក",
     "qdrantHost": "ម៉ាស៊ីនមេ",
     "qdrantCollection": "បណ្តុំ",
+    "catalogVisibilityHint": "លេខសម្គាល់ម៉ូដែលដែលបានលាក់នៅតែអាចហៅបានដោយប្រើសិទ្ធិចូលប្រើដដែល។",
     "catalogScopeTitle": "បញ្ជី Models API",
     "catalogScopeDesc": "អ្វីដែល GET /v1/models បង្ហាញសម្រាប់សោនេះ។ ការបង្រួមបញ្ជីមិនផ្លាស់ប្តូរអ្វីដែលសោនេះអាចហៅប្រើបានឡើយ។",
     "catalogScopeAll": "ទាំងពីរ",
