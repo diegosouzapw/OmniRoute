@@ -103,6 +103,21 @@ test("/v1/models does not advertise auto/* ids without candidates", async () => 
   for (const emptyId of EMPTY_FAMILY_IDS) {
     assert.ok(!ids.has(emptyId), `${emptyId} has an empty pool — must not be advertised`);
   }
+  // The derived ids obey the same announced-iff-materializable contract:
+  // advertised exactly when their pool is non-empty.
+  const advertisedAuto = await import("../../src/app/api/v1/models/autoCatalogIds.ts");
+  for (const derivedId of ["auto", "auto/lkgp"]) {
+    const virtual = await advertisedAuto.materializeAdvertisedAutoCombo(
+      derivedId,
+      derivedId.replace(/^auto\/?/, ""),
+      undefined
+    );
+    assert.equal(
+      ids.has(derivedId),
+      virtual.models.length > 0,
+      `${derivedId} must be advertised iff it has candidates (pool=${virtual.models.length})`
+    );
+  }
 });
 
 test("seeded pool: every listed combo has candidates, empty families stay hidden", async () => {

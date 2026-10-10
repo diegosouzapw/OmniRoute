@@ -55,7 +55,7 @@ test("hideAutoCombos=true removes auto/* ids from /v1/models", async () => {
     isActive: true,
   });
 
-  const isAutoId = (m: { id: string }) => m.id.startsWith("auto/");
+  const isAutoId = (m: { id: string }) => m.id === "auto" || m.id.startsWith("auto/");
 
   await settingsDb.updateSettings({ hideAutoCombos: false, hideNoThinkVariants: false });
   const off = await fetchCatalog();
@@ -63,7 +63,11 @@ test("hideAutoCombos=true removes auto/* ids from /v1/models", async () => {
   assert.equal(
     autoWhenOff.length > 0,
     true,
-    `expected auto/* ids when toggle off, got ${autoWhenOff.length}`
+    `expected auto ids when toggle off, got ${autoWhenOff.length}`
+  );
+  assert.ok(
+    autoWhenOff.includes("auto"),
+    "the bare auto id must be advertised when the toggle is off"
   );
 
   await settingsDb.updateSettings({ hideAutoCombos: true, hideNoThinkVariants: false });
@@ -133,10 +137,9 @@ test("hideNoThinkVariants=true removes no-think/* ids from /v1/models", async ()
   );
 });
 
-test("both toggles on: neither auto/* nor no-think/* appear; original models present", async () => {
-  const isAutoId = (m: { id: string }) => m.id.startsWith("auto/");
+test("both toggles on: neither auto nor no-think/* appear; original models present", async () => {
+  const isAutoId = (m: { id: string }) => m.id === "auto" || m.id.startsWith("auto/");
   const isNoThinkId = (m: { id: string }) => m.id.startsWith("no-think/");
-
   await settingsDb.updateSettings({ hideAutoCombos: true, hideNoThinkVariants: true });
   const on = await fetchCatalog();
   const autoLeaked = on.filter(isAutoId).map((m) => m.id);

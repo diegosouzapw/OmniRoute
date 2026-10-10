@@ -35,7 +35,7 @@ async function fetchCatalog(): Promise<Array<{ id: string }>> {
   return body.data;
 }
 
-const isAutoId = (m: { id: string }) => m.id.startsWith("auto/");
+const isAutoId = (m: { id: string }) => m.id === "auto" || m.id.startsWith("auto/");
 
 test.after(() => {
   core.resetDbInstance();
@@ -55,14 +55,18 @@ test("autoRoutingEnabled=false removes auto/* ids from /v1/models", async () => 
     isActive: true,
   });
 
-  // Baseline: routing on, ids advertised.
+  // Baseline: routing on, ids advertised (including the bare default id).
   await settingsDb.updateSettings({ autoRoutingEnabled: true, hideAutoCombos: false });
   const on = await fetchCatalog();
   const autoWhenOn = on.filter(isAutoId).map((m) => m.id);
   assert.equal(
     autoWhenOn.length > 0,
     true,
-    `expected auto/* ids while auto routing is enabled, got ${autoWhenOn.length}`
+    `expected auto ids while auto routing is enabled, got ${autoWhenOn.length}`
+  );
+  assert.ok(
+    autoWhenOn.includes("auto"),
+    "the bare auto id must be advertised while routing is enabled"
   );
 
   // Routing off: none may remain.
@@ -72,7 +76,7 @@ test("autoRoutingEnabled=false removes auto/* ids from /v1/models", async () => 
   assert.deepEqual(
     leaked,
     [],
-    `auto/* ids leaked while auto routing is disabled: ${leaked.join(", ")}`
+    `auto ids leaked while auto routing is disabled: ${leaked.join(", ")}`
   );
 
   // Everything else must survive — this is a filter, not a catalog wipe.
@@ -93,6 +97,10 @@ test("re-enabling auto routing brings auto/* ids back (cache key varies on the f
   assert.equal(
     back.filter(isAutoId).length > 0,
     true,
-    "auto/* ids must return once auto routing is re-enabled — a stale cached catalog would fail here"
+    "auto ids must return once auto routing is re-enabled — a stale cached catalog would fail here"
+  );
+  assert.ok(
+    back.some((m) => m.id === "auto"),
+    "the bare auto id must return once auto routing is re-enabled"
   );
 });
