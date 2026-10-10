@@ -1,0 +1,1 @@
+- Align three nightly test contracts with the integrated Docker, correlation, and vision behavior: exercise the native rebuild shell boundaries, inspect real correlation sender calls while allowing structured error options, and require lossless vision reroute to block when no usable target exists. This changes tests only; it does not certify a Docker build or all nightly jobs.
