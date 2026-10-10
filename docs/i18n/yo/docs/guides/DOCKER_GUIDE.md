@@ -4,34 +4,35 @@
 
 ---
 
-> Àkójọ ìtọ́kasí pípé fún ìmúṣiṣẹ́ Docker. Fún ìbẹ̀rẹ̀ kíákíá, wo [abala Docker inú README](../README.md#-docker).
+> Ìtọ́kasí pípé fún ìmúṣiṣẹ́ Docker. Fún ìbẹ̀rẹ̀ kíákíá, wo [abala Docker nínú README](../README.md#-docker).
 
-## Àtòjọ Àwọn Àkóónú
+## Àkójọ Àwọn Àkóónú
 
-- [Ìmúṣiṣẹ́ Kíákíá](#quick-run)
+- [Ṣíṣe Kíákíá](#quick-run)
 - [Pẹ̀lú Fáìlì Àyíká](#with-environment-file)
 - [Docker Compose](#docker-compose)
-- [Àwọn Profaili Tó Wà](#available-profiles)
+- [Àwọn Profile Tó Wà](#available-profiles)
 - [Ṣíṣètò àwọn irinṣẹ́ CLI olùgbàlejò nígbà tí OmniRoute ń ṣiṣẹ́ nínú Docker](#configuring-host-cli-tools-when-omniroute-runs-in-docker)
 - [Redis Sidecar](#redis-sidecar)
-- [Compose Fún Ìmújáde](#production-compose)
+- [Compose Fún Production](#production-compose)
 - [Àwọn Ìpele Dockerfile](#dockerfile-stages)
-- [Àwọn Àyípadà Àyíká Pàtàkì](#critical-environment-variables)
+- [Àwọn Variable Àyíká Pàtàkì](#critical-environment-variables)
 - [Docker Compose pẹ̀lú Caddy (HTTPS)](#docker-compose-with-caddy-https-auto-tls)
 - [Cloudflare Quick Tunnel](#cloudflare-quick-tunnel)
-- [Àwọn Táàgì Àwòrán](#image-tags)
-- [Wíwà-nílẹ̀: SQLite àiyípé jẹ́ ti ẹ̀dà kan ṣoṣo](#availability-default-sqlite-is-single-replica)
+- [Àwọn Tag Image](#image-tags)
+- [Wíwà-nílẹ̀: SQLite àiyipada jẹ́ replica kan ṣoṣo](#availability-default-sqlite-is-single-replica)
+- [Àwọn àṣìṣe agbègbè Gemini nínú Docker](#gemini-regional-errors-inside-docker)
 - [Àwọn Àkíyèsí Pàtàkì](#important-notes)
 
 ---
 
-## Ìṣiṣẹ́ Kíákíá
+## Ṣíṣe Kíákíá
 
 > **Ṣe o fẹ́ gbàlejò fúnra rẹ pẹ̀lú àṣẹ kan ṣoṣo?** Wo
-> [Ìtọ́sọ́nà Ìgbàlejò Ara-ẹni](../getting-started/SELF_HOST_GUIDE.md) —
-> `docker compose -f docker-compose.selfhost.yml up -d` (àwòrán tí a tẹ̀jáde +
-> Redis, loopback-nìkan, kò sí yíyan prófáìlì). Ìṣiṣẹ́ Kíákíá tó wà nísàlẹ̀ ni
-> ọ̀nà container kan ṣoṣo fún àwọn olùlò tí wọ́n ti ń ṣiṣẹ́ Redis níbòmíràn.
+> [Ìtọ́sọ́nà Self-Host](../getting-started/SELF_HOST_GUIDE.md) —
+> `docker compose -f docker-compose.selfhost.yml up -d` (image tí a ti tẹ̀ jáde +
+> Redis, loopback-nìkan, kò sí yíyan profile). Ṣíṣe Kíákíá tó wà nísàlẹ̀ jẹ́
+> ọ̀nà container kan ṣoṣo fún àwọn oníṣe tí wọ́n ti ń ṣiṣẹ́ Redis níbòmíràn.
 
 ```bash
 docker run -d \
@@ -46,7 +47,7 @@ docker run -d \
 ## Pẹ̀lú Fáìlì Àyíká
 
 ```bash
-# Kọ́kọ́ ṣàdàkọ kí o sì ṣàtúnṣe .env
+# Kọ́kọ́ ṣe àdàkọ .env kí o sì ṣàtúnṣe rẹ̀
 cp .env.example .env
 
 docker run -d \
@@ -62,68 +63,68 @@ docker run -d \
 ## Docker Compose
 
 ```bash
-# Prófáìlì ìpìlẹ̀ (kò sí àwọn irinṣẹ́ CLI)
+# Profile ìpìlẹ̀ (kò sí àwọn irinṣẹ́ CLI)
 docker compose --profile base up -d
 
-# Prófáìlì CLI (Claude Code, Codex, OpenClaw tí a fi sínú rẹ̀)
+# Profile CLI (Claude Code, Codex, OpenClaw wà nínú rẹ̀)
 docker compose --profile cli up -d
 
-# Prófáìlì olùgbàlejò (Linux ní àkọ́kọ́; ó so àwọn fáìlì aláṣẹ CLI ti olùgbàlejò mọ́ ọn ní ipò kíkà-nìkan)
+# Profile olùgbàlejò (Linux ní àkọ́kọ́; ó máa ń mount àwọn binary CLI olùgbàlejò gẹ́gẹ́ bí kíkà-nìkan)
 docker compose --profile host up -d
 
-# Prófáìlì wẹ́ẹ̀bù (Chromium/Playwright fún àwọn olùpèsè ìgbà wẹ́ẹ̀bù)
+# Profile wẹ́ẹ̀bù (Chromium/Playwright fún àwọn olùpèsè web-session)
 docker compose --profile web up -d
 
-# Darapọ̀ CLI + iṣẹ́ alágbẹ̀gbẹ́ CLIProxyAPI
+# Darapọ̀ CLI + CLIProxyAPI sidecar
 docker compose --profile cli --profile cliproxyapi up -d
 ```
 
-## Àwọn Profaili Tó Wà
+## Àwọn Profile Tó Wà
 
-OmniRoute ní àwọn profaili Compose fún àwọn ìrísí ìmúlò pàtàkì. Yan èyí tó bá àyíká rẹ mu.
+OmniRoute ní àwọn profile Compose fún àwọn ìrísí ìmúṣiṣẹ́ pàtàkì. Yan èyí tó bá àyíká rẹ mu.
 
-| Profaili          | Iṣẹ́              | Ìgbà tí o yẹ kí o lò ó                                                                                                                                             | Àṣẹ                                          |
-| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| `base` (àìyípadà) | `omniroute-base` | Sẹ́fà tí kò ní ìfarahàn / àkókò ìṣiṣẹ́ tó kéré jù, kò sí àwọn CLI olùpèsè tí a kó sínú rẹ                                                                            | `docker compose --profile base up -d`        |
-| `cli`             | `omniroute-cli`  | Àwọn ìṣàn iṣẹ́ aṣojú tó ń pe `omniroute providers/setup/doctor` àti àwọn CLI tí a kó sínú rẹ (Codex, Claude Code, Droid, OpenClaw)                                  | `docker compose --profile cli up -d`         |
-| `host`            | `omniroute-host` | Àwọn ogun Linux tó fẹ́ ìráyè tó dà bí `network_mode` sí àwọn CLI ogun nípa fífi `~/.local/bin`, `~/.codex`, `~/.claude`, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ gùn mọ́ ọn ní ipò kíkà-nìkan | `docker compose --profile host up -d`        |
-| `cliproxyapi`     | `cliproxyapi`    | Ṣiṣẹ́ [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) gẹ́gẹ́ bí sidecar lórí port `8317` fún aṣojú CLI upstream                                           | `docker compose --profile cliproxyapi up -d` |
-| `web`             | `omniroute-web`  | Àwọn olùpèsè ìjókòó wẹ́ẹ̀bù tó nílò aṣàwákiri: `gemini-web`, `claude-web`, `claude-turnstile` (ń kọ́ `runner-web`, Chromium wà nínú rẹ)                               | `docker compose --profile web up -d`         |
+| Profile           | Service          | Ìgbà tó yẹ kí o lò ó                                                                                                                                                     | Àṣẹ                                          |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| `base` (àiyipada) | `omniroute-base` | Server aláìní ìṣàfihàn / runtime tó kéré jù, kò sí àwọn CLI olùpèsè tí a fi sínú rẹ̀                                                                                      | `docker compose --profile base up -d`        |
+| `cli`             | `omniroute-cli`  | Àwọn workflow agentic tó ń pe `omniroute providers/setup/doctor` àti àwọn CLI tí a fi sínú rẹ̀ (Codex, Claude Code, Droid, OpenClaw)                                      | `docker compose --profile cli up -d`         |
+| `host`            | `omniroute-host` | Àwọn olùgbàlejò Linux tó fẹ́ irú ààyè ìwọlé `network_mode` sí àwọn CLI olùgbàlejò nípa mímount `~/.local/bin`, `~/.codex`, `~/.claude`, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ gẹ́gẹ́ bí kíkà-nìkan | `docker compose --profile host up -d`        |
+| `cliproxyapi`     | `cliproxyapi`    | Ṣiṣẹ́ [CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI) sidecar lórí port `8317` fún proxying CLI upstream                                                      | `docker compose --profile cliproxyapi up -d` |
+| `web`             | `omniroute-web`  | Àwọn olùpèsè web-session tó nílò browser: `gemini-web`, `claude-web`, `claude-turnstile` (ó kọ́ `runner-web`, Chromium wà nínú rẹ̀)                                        | `docker compose --profile web up -d`         |
 
-> A lè da ọ̀pọ̀ profaili pọ̀: `docker compose --profile cli --profile cliproxyapi up -d`.
+> A lè darapọ̀ ọ̀pọ̀ profile: `docker compose --profile cli --profile cliproxyapi up -d`.
 
-## Ṣíṣètò àwọn irinṣẹ́ CLI ti ẹ̀rọ olùgbàlejò nígbà tí OmniRoute ń ṣiṣẹ́ nínú Docker
+## Ṣíṣètò àwọn irinṣẹ́ CLI olùgbàlejò nígbà tí OmniRoute ń ṣiṣẹ́ nínú Docker
 
 `omniroute setup-codex`, `setup-claude`, `config set <tool>` àti bọ́tìnì
-**Fi ìṣètò pamọ́** ti dashboard gbogbo wọn máa ń kọ àwọn fáìlì bí `~/.codex/*.config.toml`. Àwọn ipa ọ̀nà wọ̀nyẹn
-ní ìtumọ̀ kìkì lórí ẹ̀rọ tí CLI náà ti ń ṣiṣẹ́ ní ti gidi. Tí o bá ṣiṣẹ́ wọn nínú
+**Fi ìṣètò pamọ́** lórí pátákó ìṣàkóso, gbogbo wọn ni wọ́n ń kọ àwọn fáìlì bí `~/.codex/*.config.toml`. Àwọn ipa-ọ̀nà yẹn
+ní ìtumọ̀ kìkì lórí ẹ̀rọ tí CLI náà ti ń ṣiṣẹ́ gan-an. Tí o bá ṣiṣẹ́ wọn nínú
 container, ohun tí a kọ yóò lọ sí home ti container náà fúnra rẹ̀ (`/home/node` —
-image náà ń ṣiṣẹ́ pẹ̀lú `USER node`), níbi tí CLI ẹ̀rọ olùgbàlejò kankan kò ti ní kà á láéláé, tí a sì máa
+image náà ń ṣiṣẹ́ pẹ̀lú `USER node`), níbi tí CLI olùgbàlejò kankan kò ti ní kà á láé àti níbi tí a ó ti
 pa á rẹ́ ní kété tí a bá tún container náà ṣẹ̀dá.
 
-OmniRoute máa ń ṣàwárí èyí, yóò sì kọ̀ láti kọ fáìlì náà, yóò sì fún ọ ní ìtọ́nisọ́nà dípò
-jíjábọ̀ àṣeyọrí tí o kò lè lò: CLI náà yóò jáde pẹ̀lú `2`, API náà yóò sì dáhùn `422`
-pẹ̀lú `containerEphemeralTarget: true`.
+OmniRoute máa ń ṣàwárí èyí, yóò sì kọ̀ láti kọ fáìlì náà, pẹ̀lú àwọn ìtọ́nisọ́nà dípò
+kí ó jẹ́rìí àṣeyọrí tí o kò lè lò: CLI náà máa jáde pẹ̀lú `2`, API náà sì máa dáhùn pẹ̀lú `422`
+àti `containerEphemeralTarget: true`.
 
-### Ìṣeduro: ṣiṣẹ́ CLI lórí ẹ̀rọ olùgbàlejò, kí OmniRoute sì ṣiṣẹ́ nínú Docker
+### Èyí tí a dámọ̀ràn: ṣiṣẹ́ CLI lórí olùgbàlejò, kí OmniRoute sì ṣiṣẹ́ nínú Docker
 
-Container náà ń pèsè API; CLI náà ń ṣètò àwọn irinṣẹ́ ẹ̀rọ olùgbàlejò rẹ.
+Container náà ń pèsè API; CLI náà sì ń ṣètò àwọn irinṣẹ́ olùgbàlejò rẹ.
 
 ```bash
 docker compose --profile base up -d
 
 npm install -g omniroute
 omniroute connect http://localhost:20128   # darí CLI sí container náà
-omniroute setup-codex                      # kọ ~/.codex gidi sí ẹ̀rọ olùgbàlejò rẹ
+omniroute setup-codex                      # kọ ~/.codex gidi sórí olùgbàlejò rẹ
 ```
 
 Èyí ni yíyan tó tọ́ nígbà tí Codex, Claude Code, Cursor tàbí irú wọn bá ń ṣiṣẹ́ lórí
 laptop rẹ — èyí sì ni ìṣètò tí ó wọ́pọ̀.
 
-### Ọ̀nà mìíràn: ṣe bind-mount àwọn àpò ìṣètò ẹ̀rọ olùgbàlejò (profaili `host`)
+### Ọ̀nà mìíràn: fi bind-mount so àwọn àpò-ọ̀nà ìṣètò olùgbàlejò (`host` profile)
 
-Tí o bá fẹ́ kí container náà fúnra rẹ̀ kọ ìṣètò ẹ̀rọ olùgbàlejò rẹ, mount àwọn
-àpò náà sínú rẹ̀, kí o sì darí `CLI_CONFIG_HOME` sí gbòǹgbò mount náà. Profaili `host`
+Tí o bá fẹ́ kí container náà fúnra rẹ̀ kọ ìṣètò olùgbàlejò rẹ, fi mount so
+àwọn àpò-ọ̀nà náà sínú rẹ̀, kí o sì darí `CLI_CONFIG_HOME` sí gbòǹgbò mount náà. `host` profile
 ti ṣe èyí tẹ́lẹ̀:
 
 ```yaml
@@ -135,118 +136,118 @@ volumes:
   - ~/.claude:/host-home/.claude:rw
 ```
 
-Bind mount ni ohun tí ó mú kí ipa ọ̀nà náà ṣeé gbẹ́kẹ̀ lé: OmniRoute ń ka
-`/proc/self/mountinfo`, ó sì ń gba kí a kọ sí àwọn ipa ọ̀nà tí a mount (àti sí àwọn àpò
-tí àwọn ọmọ àpò wọn jẹ́ mount, èyí tí ó jẹ́ bí `/host-home` ṣe rí lókè gan-an), nígbà tí ó ṣì
-ń kọ̀ láti kọ sí àwọn tí a kò mount.
+Bind mount ni ohun tó mú kí ipa-ọ̀nà náà ṣeé gbẹ́kẹ̀ lé: OmniRoute máa ń ka
+`/proc/self/mountinfo`, yóò sì gba kí a kọ sí àwọn ipa-ọ̀nà tí a ti mount (àti sí àwọn àpò-ọ̀nà
+tí àwọn ọmọ wọn jẹ́ mount, èyí tí ó bá ìrísí `/host-home` lókè mu gan-an), nígbà tí yóò
+ṣì máa kọ àwọn tí a kò mount.
 
-### Ọ̀nà àbáyọ: ṣètò àwọn CLI inú container fúnra rẹ̀ (má ṣe lò ó ju bó ṣe yẹ lọ)
+### Ọ̀nà àbájáde pàjáwìrì: ṣètò àwọn CLI ti container fúnra rẹ̀ (má ṣe lò ó ju bó ṣe yẹ lọ)
 
-Nígbà tí àwọn CLI bá ń gbé nínú container náà ní ti gidi (profaili `cli`), kíkọ náà
-jẹ́ ohun tí a mọ̀ọ́mọ̀ ṣe. Fi `--allow-container-write` ránṣẹ́ sí èyíkéyìí nínú àwọn àṣẹ `setup-*`, tàbí ṣètò
-`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` fún server náà. Kíkọ náà yóò tẹ̀síwájú
+Nígbà tí àwọn CLI bá wà nínú container náà gan-an (`cli` profile), ìkọ̀wé náà
+jẹ́ èyí tí a mọ̀ọ́mọ̀ ṣe. Fi `--allow-container-write` ránṣẹ́ sí èyíkéyìí nínú àwọn àṣẹ `setup-*`, tàbí ṣètò
+`OMNIROUTE_ALLOW_CONTAINER_CONFIG_WRITE=true` fún server náà. Ìkọ̀wé náà yóò tẹ̀síwájú
 pẹ̀lú ìkìlọ̀ pé kò ní yè lẹ́yìn container náà.
 
-> **Ìkìlọ̀ ààbò — profaili `cli` + mount `docker.sock`.**
-> Profaili `cli` ń ṣe bind-mount `/var/run/docker.sock` kí auto-updater inú container
-> lè tún stack náà ṣẹ̀dá láti ọ̀dọ̀ daemon ẹ̀rọ olùgbàlejò
-> (`src/lib/system/autoUpdate.ts` ń ṣàyẹ̀wò socket yẹn, ó sì fo ipa ọ̀nà
-> Docker nígbà tí kò bá sí). Socket yẹn jẹ́ **ààlà ìgbẹ́kẹ̀lé root ti ẹ̀rọ
-> olùgbàlejò**: ohunkóhun tó bá lè dé ọ̀dọ̀ rẹ̀ lè darí daemon Docker ẹ̀rọ olùgbàlejò gẹ́gẹ́ bí
-> root — ó lè ṣẹ̀dá, ṣàyẹ̀wò, dá dúró, àti yọ container èyíkéyìí kúrò lórí ẹ̀rọ olùgbàlejò.
-> Àwọn ohun tí èyí túmọ̀ sí:
+> **Ìkìlọ̀ ààbò — `cli` profile + `docker.sock` mount.**
+> `cli` profile náà máa ń fi bind-mount so `/var/run/docker.sock`, kí auto-updater inú container
+> lè tún stack náà ṣẹ̀dá láti ọ̀dọ̀ daemon olùgbàlejò
+> (`src/lib/system/autoUpdate.ts` máa ń yẹ socket náà wò, yóò sì foju kọ
+> ipa-ọ̀nà Docker nígbà tí kò bá sí). Socket yẹn jẹ́ **ààlà ìgbẹ́kẹ̀lé root
+> olùgbàlejò**: ohunkóhun tó bá lè dé ọ̀dọ̀ rẹ̀ lè darí Docker daemon olùgbàlejò gẹ́gẹ́ bí
+> root — ó lè ṣẹ̀dá, ṣàyẹ̀wò, dá dúró àti yọ container èyíkéyìí kúrò lórí olùgbàlejò.
+> Àwọn àbájáde rẹ̀ ni:
 >
-> 1. **Má ṣe fi port profaili `cli` hàn sí nẹ́tíwọ̀ọ̀kì láéláé.** Ṣe àtẹ̀jáde
->    rẹ̀ lórí `127.0.0.1` (`ports: "127.0.0.1:${DASHBOARD_PORT:-20128}:..."`)
->    — profaili `cli` tí LAN lè dé yóò sọ RCE èyíkéyìí ní ìpele dashboard di
->    ìfọ́wọ́bà ẹ̀rọ olùgbàlejò ní kíkún.
-> 2. **Má ṣe bind àfikún àpò ẹ̀rọ olùgbàlejò kankan sínú profaili `cli`.**
->    Socket Docker pẹ̀lú mount mìíràn yóò fún container náà ní agbára kíkà/kíkọ ní kíkún
->    sí filesystem àti ìṣètò ẹ̀rọ olùgbàlejò rẹ. Tí o bá nílò kí irinṣẹ́ kan
->    rí project kan, ṣiṣẹ́ ẹ̀ ní agbègbè rẹ pẹ̀lú binary CLI — má ṣe mount rẹ̀
->    sínú container `cli`.
+> 1. **Má ṣe fi port ti `cli` profile hàn sí network láé.** Ṣe publish rẹ̀
+>    lórí `127.0.0.1` (`ports: "127.0.0.1:${DASHBOARD_PORT:-20128}:..."`)
+>    — `cli` profile tí LAN lè dé yóò sọ RCE ipele pátákó ìṣàkóso èyíkéyìí di
+>    ìpalára olùgbàlejò ní kíkún.
+> 2. **Má ṣe fi bind so àpò-ọ̀nà olùgbàlejò míì kankan sínú `cli` profile.**
+>    Docker socket pẹ̀lú mount míì yóò fún container náà ní àṣẹ kíkà àti
+>    kíkọ ní kíkún sí filesystem àti ìṣètò olùgbàlejò rẹ. Tí o bá nílò kí irinṣẹ́ kan
+>    rí project kan, ṣiṣẹ́ ẹ ní agbègbè rẹ pẹ̀lú binary CLI — má ṣe mount rẹ
+>    sínú `cli` container.
 >
-> Tí o kò bá nílò auto-update inú container, má ṣe tan profaili `cli`
-> (`COMPOSE_PROFILES=core,redis` tàbí ohun tó kúrú sí i). Àwọn profaili yòókù kò
-> mount socket Docker.
+> Tí o kò bá nílò auto-update inú container, má tan `cli` profile
+> (`COMPOSE_PROFILES=core,redis` tàbí èyí tó kúrú sí i). Àwọn profile yòókù kì í
+> mount Docker socket.
 >
-> Wo `docs/security/MITM-TPROXY-DECRYPT.md` (git; a kò compile rẹ̀ sínú `/docs`) fún threat model tó jọmọ́
-> MITM, àti `docs/security/SUPPLY_CHAIN.md` fún
+> Wo `docs/security/MITM-TPROXY-DECRYPT.md` (git; a kò compile rẹ̀ sínú `/docs`) fún threat model tó ní í ṣe
+> pẹ̀lú MITM, àti `docs/security/SUPPLY_CHAIN.md` fún
 > provenance chain binary `codex`/`claude-code`/`droid`/`openclaw`.
 
-## Sidecar Redis
+## Redis Sidecar
 
-OmniRoute gbára lé Redis láti ṣe àtìlẹ́yìn fún olùdíwọ̀n ìwọ̀n-ìbéèrè tí a pín káàkiri àti àpamọ́ alábàápín. Iṣẹ́ `redis` jẹ́ **títúmọ̀ nígbà gbogbo** nínú `docker-compose.yml` (kò ní ìdènà prófáìlì) ó sì máa ń bẹ̀rẹ̀ pẹ̀lú prófáìlì èyíkéyìí mìíràn.
+OmniRoute gbára lé Redis láti ṣe àtìlẹ́yìn fún olùdíwọ̀n ìwọ̀n lílò tí a pín káàkiri àti cache àjọpín. Iṣẹ́ `redis` jẹ́ **èyí tí a máa ń ṣàlàyé nígbà gbogbo** nínú `docker-compose.yml` (kò ní ìdènà profile kankan), ó sì máa ń bẹ̀rẹ̀ pẹ̀lú profile èyíkéyìí mìíràn.
 
-| Àlàyé              | Iye                                             |
-| ------------------ | ----------------------------------------------- |
-| Àwòrán             | `redis:7-alpine`                                |
-| Orúkọ container    | `omniroute-redis`                               |
-| Port inú           | `6379`                                          |
-| Port host (àtúnṣe) | `REDIS_PORT` (iye àìyípadà ni `6379`)           |
-| Ìso host (àtúnṣe)  | `REDIS_BIND_HOST` (iye àìyípadà ni `127.0.0.1`) |
-| Volume             | `omniroute-redis-data` → `/data`                |
-| Àyẹ̀wò ìlera        | `redis-cli ping` (àárín àkókò 10s)              |
+| Àlàyé              | Iye                                         |
+| ------------------ | ------------------------------------------- |
+| Image              | `redis:7-alpine`                            |
+| Orúkọ container    | `omniroute-redis`                           |
+| Port inú           | `6379`                                      |
+| Port host (àtúnṣe) | `REDIS_PORT` (ìpìlẹ̀ rẹ̀ ni `6379`)           |
+| Bind host (àtúnṣe) | `REDIS_BIND_HOST` (ìpìlẹ̀ rẹ̀ ni `127.0.0.1`) |
+| Volume             | `omniroute-redis-data` → `/data`            |
+| Àyẹ̀wò ìlera        | `redis-cli ping` (àárín àkókò 10s)          |
 
-Àwọn environment variable tó ní í ṣe pẹ̀lú rẹ̀:
+Àwọn environment variable tó jọmọ́ rẹ̀:
 
-- `REDIS_URL` — okun ìsopọ̀ tí a fi sínú app náà (`redis://redis:6379` gẹ́gẹ́ bí iye àìyípadà).
-- `REDIS_PORT` — ìṣàmúlò port ẹ̀gbẹ́ host fún container Redis.
-- `REDIS_BIND_HOST` — interface host tí a tẹ port náà jáde sí. Iye àìyípadà rẹ̀ ni `127.0.0.1`.
+- `REDIS_URL` — ọ̀nà àsopọ̀ tí a fi sínú app náà (`redis://redis:6379` ní ìpìlẹ̀).
+- `REDIS_PORT` — ìṣètò port ní ẹ̀gbẹ́ host fún container Redis.
+- `REDIS_BIND_HOST` — interface host tí a tẹ port náà jáde sí. Ìpìlẹ̀ rẹ̀ ni `127.0.0.1`.
 
-> **Ìdí tí loopback fi jẹ́ iye àìyípadà:** sidecar náà ń ṣiṣẹ́ láìsí `requirepass`, àwọn
-> container app sì ń wọlé sí i lórí nẹ́tíwọ́ọ̀kì compose (`redis:6379`) — port tí a tẹ̀ jáde
-> wà fún àwọn irinṣẹ́ ẹ̀gbẹ́ host nìkan (`redis-cli`, `npm run dev` ti agbègbè). Títẹ̀ ẹ́ jáde lórí
+> **Ìdí tí loopback fi jẹ́ ìpìlẹ̀:** sidecar náà ń ṣiṣẹ́ láìsí `requirepass`, àwọn
+> container app sì ń dé ọ̀dọ̀ rẹ̀ lórí nẹ́tíwọ́ọ̀kì compose (`redis:6379`) — port tí a tẹ̀ jáde
+> wà fún àwọn irinṣẹ́ ní ẹ̀gbẹ́ host nìkan (`redis-cli`, `npm run dev` ti agbègbè). Títẹ̀ jáde lórí
 > `0.0.0.0` yóò ṣí Redis tí kò ní ìfàṣẹ̀sí sí gbogbo host lórí LAN rẹ. Tí o bá ṣètò
-> `REDIS_BIND_HOST=0.0.0.0`, tún fi `--requirepass` kún `command:` iṣẹ́ náà.
+> `REDIS_BIND_HOST=0.0.0.0`, tún fi `--requirepass` kun `command:` iṣẹ́ náà.
 
-A kò gba ọ́ níyànjú láti **pa Redis** (olùdíwọ̀n ìwọ̀n-ìbéèrè yóò dín kù sí fallback inú-memory). Tí o bá ní láti ṣe bẹ́ẹ̀, yọ tàbí fi àmì comment sí block iṣẹ́ `redis:` nínú `docker-compose.yml`, tàbí scale rẹ̀ sí òdo:
+A kò dámọ̀ràn **pípà Redis** (olùdíwọ̀n ìwọ̀n lílò yóò yí padà sí àtìlẹ́yìn inú memory tí kò lágbára tó). Tí o bá gbọ́dọ̀ ṣe bẹ́ẹ̀, yọ/kọ àmì comment sí block iṣẹ́ `redis:` nínú `docker-compose.yml` tàbí dín un sí òdo:
 
 ```bash
 docker compose up -d --scale redis=0
 ```
 
-## Compose Fún Iṣelọpọ
+## Compose Fún Production
 
-Fún snapshot iṣelọpọ tó ya sọ́tọ̀ tí ń ṣiṣẹ́ lẹ́gbẹ̀ẹ́ dev, lo `docker-compose.prod.yml`.
+Fún snapshot production tí a yà sọ́tọ̀ tí yóò ṣiṣẹ́ lẹ́gbẹ̀ẹ́ dev, lo `docker-compose.prod.yml`.
 
-| Àlàyé                   | Iye                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------ |
-| Fáìlì                   | `docker-compose.prod.yml`                                                            |
-| Port dashboard àìyípadà | `PROD_DASHBOARD_PORT=20130` (tí a so mọ́ `${DASHBOARD_PORT:-20128}` inú)              |
-| Port API àìyípadà       | `PROD_API_PORT=20131`                                                                |
-| Àwòrán                  | `omniroute:prod` (tí a kọ láti target `runner-cli`)                                  |
-| Container Redis         | `omniroute-redis-prod` (`redis:8.6.2`, volume `redis-prod-data` ìyàsọ́tọ̀)             |
-| Volume dátà             | `omniroute-prod-data` (tó ní orúkọ, tí a tọ́jú kọjá àwọn àtúnkọ́)                      |
-| Àwọn àyẹ̀wò ìlera        | `node healthcheck.mjs` + `redis-cli ping`, pẹ̀lú `depends_on` tí ìlera Redis ń ṣàkóso |
+| Àlàyé                | Iye                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| Fáìlì                | `docker-compose.prod.yml`                                                            |
+| Port dashboard ìpìlẹ̀ | `PROD_DASHBOARD_PORT=20130` (a so mọ́ `${DASHBOARD_PORT:-20128}` ti inú)              |
+| Port API ìpìlẹ̀       | `PROD_API_PORT=20131`                                                                |
+| Image                | `omniroute:prod` (tí a kọ láti target `runner-cli`)                                  |
+| Container Redis      | `omniroute-redis-prod` (`redis:8.6.2`, volume `redis-prod-data` tí a yà sọ́tọ̀)        |
+| Volume data          | `omniroute-prod-data` (tí a dárúkọ, tí ó wà lẹ́yìn àwọn àtúnkọ́)                       |
+| Àwọn àyẹ̀wò ìlera     | `node healthcheck.mjs` + `redis-cli ping`, pẹ̀lú `depends_on` tí ìlera Redis ń ṣàkóso |
 
 Bí a ṣe ń lò ó:
 
 ```bash
-# Kọ́ kí o sì bẹ̀rẹ̀ stack iṣelọpọ náà
+# Kọ́ kí o sì bẹ̀rẹ̀ stack production náà
 docker compose -f docker-compose.prod.yml up -d --build
 
-# Ṣàn àwọn log
+# Ṣe àfihàn àwọn log ní tààrà
 docker compose -f docker-compose.prod.yml logs -f
 
-# Pa á rẹ́ (tọ́jú àwọn volume)
+# Dá a dúró (tọ́jú àwọn volume)
 docker compose -f docker-compose.prod.yml down
 ```
 
-Stack prod náà ń ṣiṣẹ́ ní afiwe pẹ̀lú compose dev (àwọn orúkọ container, port, àti volume wọn yàtọ̀), nítorí náà o lè máa tẹ̀síwájú láti ṣàtúnṣe ní agbègbè rẹ nígbà tí iṣelọpọ ṣì ń ṣiṣẹ́.
+Stack prod náà ń ṣiṣẹ́ ní ìgbà kan náà pẹ̀lú compose dev (àwọn orúkọ container, port, àti volume wọn yàtọ̀), nítorí náà o lè máa bá ìdàgbàsókè lọ ní agbègbè rẹ nígbà tí production ṣì ń ṣiṣẹ́.
 
 ## Àwọn Ìpele Dockerfile
 
-Ibi ìpamọ́ náà ní Dockerfile aláìpele-púpọ̀ (`Dockerfile`). Ìpele mẹ́rin ló wà fún lílò; yan `target` tó yẹ fún ọ̀nà ìlò rẹ.
+Ilé-ipamọ́ náà ní Dockerfile aláwọn-ìpele-púpọ̀ (`Dockerfile`). Ìpele mẹ́rin ni a ṣí sílẹ̀; yan `target` tó tọ́ fún ìlò rẹ.
 
-| Ìpele         | Àwòrán ìpìlẹ̀          | Ète                                                                                                                                                                                                                                                                                        |
-| ------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `builder`     | `node:26-trixie-slim` | Ó ń fi àwọn àfikún sílẹ̀ (`npm ci --legacy-peer-deps`), ó sì ń ṣiṣẹ́ `npm run build` (Turbopack ni àìyípadà — wo Àwọn ohun àmúlò àkókò ìkọ́lé ní ìsàlẹ̀)                                                                                                                                       |
-| `runner-base` | `node:26-trixie-slim` | Àyíká ìṣiṣẹ́ iṣelọpọ pẹ̀lú àbájáde standalone ti Next.js. **Kò ní àwọn CLI olupèsè kankan nínú.**                                                                                                                                                                                            |
-| `runner-cli`  | `runner-base`         | Ó ṣàfikún `git`, `docker.io`, `docker-compose` àti àwọn CLI àgbáyé: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Yan èyí fún àwọn ìṣàn-iṣẹ́ aṣojú.**                                                                                                                |
-| `runner-web`  | `runner-base`         | Ó ṣàfikún Playwright + aṣàwákiri Chromium kan (`--with-deps`) fún àwọn olupèsè sáà wẹ́ẹ̀bù: `gemini-web`, `claude-web`, `claude-turnstile`. **Yan èyí nígbà tí o bá ń lo àwọn olupèsè wọ̀nyẹn** — àwòrán lásán máa kuna ní àkókò ìbéèrè láìsí i (wo àkíyèsí `-web` lábẹ́ Àwọn Ikànnì Ìtújáde). |
+| Ìpele         | Àwòrán ìpìlẹ̀          | Ète                                                                                                                                                                                                                                                                                          |
+| ------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `builder`     | `node:26-trixie-slim` | Ó ń fi àwọn dependency sílẹ̀ (`npm ci --legacy-peer-deps`) ó sì ń ṣiṣẹ́ `npm run build` (Turbopack ni àìyípadà — wo Àwọn ohun àmúlò àkókò ìkọ́lé ní ìsàlẹ̀)                                                                                                                                      |
+| `runner-base` | `node:26-trixie-slim` | Àyíká ìṣiṣẹ́ production pẹ̀lú àbájáde standalone ti Next.js. **Kò ní àwọn CLI olupèsè nínú rẹ̀.**                                                                                                                                                                                               |
+| `runner-cli`  | `runner-base`         | Ó ṣàfikún `git`, `docker.io`, `docker-compose` àti àwọn CLI àgbáyé: `@openai/codex`, `@anthropic-ai/claude-code`, `droid`, `openclaw`. **Yan èyí fún àwọn ìṣàn-iṣẹ́ agentic.**                                                                                                                |
+| `runner-web`  | `runner-base`         | Ó ṣàfikún Playwright + aṣàwákiri Chromium kan (`--with-deps`) fún àwọn olupèsè ìpàdé wẹ́ẹ̀bù: `gemini-web`, `claude-web`, `claude-turnstile`. **Yan èyí nígbà tí o bá ń lo àwọn olupèsè wọ̀nyẹn** — àwòrán lásán máa kuna ní àkókò ìbéèrè láìsí i (wo àkọsílẹ̀ `-web` lábẹ́ Àwọn Ikanni Ìtújáde). |
 
-Kọ́ target kan pàtó lọ́nà ọwọ́:
+Kọ́ target kan pàtó pẹ̀lú ọwọ́:
 
 ```bash
 docker build --target runner-base -t omniroute:base .
@@ -256,40 +257,40 @@ docker build --target runner-web  -t omniroute:web  .
 
 ### Àwọn ohun àmúlò àkókò ìkọ́lé
 
-Àwọn build arg mẹ́ta ló ń darí iye ohun àmúlò tí ìpele `builder` máa ná. Wọ́n jẹ́ ti àkókò ìkọ́lé nìkan —
-`OMNIROUTE_MEMORY_MB` (ní ìsàlẹ̀) jẹ́ ìṣàkóso ọ̀tọ̀ fún àkókò ìṣiṣẹ́.
+Build args mẹ́ta ló ń ṣàkóso iye ohun àmúlò tí ìpele `builder` máa lò. Wọ́n wà fún àkókò ìkọ́lé nìkan —
+`OMNIROUTE_MEMORY_MB` (ní ìsàlẹ̀) jẹ́ ìṣàkóso runtime ọ̀tọ̀.
 
-| Build arg                   | Àìyípadà | Ipa                                                                                         |
-| --------------------------- | -------- | ------------------------------------------------------------------------------------------- |
-| `OMNIROUTE_USE_TURBOPACK`   | `0`      | `0` ń kọ́ pẹ̀lú webpack: iranti tó pọ̀ jù ní ìpele kékeré, ṣùgbọ́n ó lọra. `1` ń yan Turbopack. |
-| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | Òpin heap V8 (`--max-old-space-size`) fún `next build` tí a dá sílẹ̀.                        |
-| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Ó ń pèsè `CIRCLE_NODE_TOTAL`; Next ń ṣe ìṣirò `workers = N - 1` fún ìkójọpọ̀ dátà ojú-ewé.   |
+| Build arg                   | Àìyípadà | Ipa                                                                                              |
+| --------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `OMNIROUTE_USE_TURBOPACK`   | `0`      | `0` ń kọ́ pẹ̀lú webpack: memory tó ga jù lọ dín kù, ṣùgbọ́n ó lọra. `1` ń yan Turbopack.            |
+| `OMNIROUTE_BUILD_MEMORY_MB` | `6144`   | Òpin heap V8 (`--max-old-space-size`) fún `next build` tí a dá sílẹ̀.                             |
+| `OMNIROUTE_BUILD_WORKERS`   | `2`      | Ó ń fi iye ránṣẹ́ sí `CIRCLE_NODE_TOTAL`; Next ń yọ `workers = N - 1` jáde fún ìkójọpọ̀ page-data. |
 
 `OMNIROUTE_BUILD_WORKERS` ni ohun tí o yẹ kí o gbé sókè lórí builder ńlá, ó sì tún ni ohun
-tí o yẹ kí o fura sí nígbà tí ìkọ́lé kan tó ní àwọn ohun àmúlò díẹ̀ bá kú **lẹ́yìn**
-`✓ Compiled successfully`. Worker dátà ojú-ewé kọ̀ọ̀kan jẹ́ process tirẹ̀, bẹ́ẹ̀ náà
-ni `next build` òbí fúnra rẹ̀; àtúnṣe ìṣẹ̀lẹ̀ lórí VPS gidi kan (ìṣòro #7518) wọn
-RSS tó ga jù fún process kọ̀ọ̀kan sí ~4.5 GB láìka àsìá heap `NODE_OPTIONS` sí
-(Turbopack ń ṣàkójọ nínú iranti native/Rust níta heap V8). Àìyípadà `2` (→ worker 1,
-process 2 lápapọ̀) ni a ṣe láti bá àwọn runner 16 GB / 4 vCPU tí GitHub gbàlejò,
-èyí tí pipeline ìtẹ̀jáde ń lò, mu. Ní `8` (→ worker 7), iranti runner náà tán,
-buildkit sì jẹ́ kí ìgbésẹ̀ náà kuna pẹ̀lú `ResourceExhausted: ... cannot allocate memory`;
-`3` (→ worker 2) kò tíì bá a mu lẹ́yìn tí a wọn RSS fún process kọ̀ọ̀kan
-tààrà dípò ṣíṣe àfojúsùn rẹ̀. `tests/unit/docker-build-memory-budget.test.ts`
-ń ṣe ìṣirò náà pẹ̀lú iye tí a wọn, ó sì máa kuna bí èyíkéyìí nínú àwọn ìṣàkóso
-méjèèjì bá kọjá agbára runner náà.
+tí o yẹ kí o fura sí nígbà tí ìkọ́lé tí ohun àmúlò rẹ̀ ní ààlà bá dáwọ́ dúró **lẹ́yìn** `✓ Compiled successfully`. Worker
+page-data kọ̀ọ̀kan jẹ́ process tirẹ̀, bẹ́ẹ̀ sì ni parent `next build` fúnra rẹ̀;
+àtúnṣe ìṣòro náà lórí VPS gidi kan (issue #7518) wọn RSS tó ga jù lọ ti process kọ̀ọ̀kan sí
+~4.5 GB láìka flag heap `NODE_OPTIONS` sí (Turbopack ń compile sínú
+memory native/Rust tó wà lẹ́yìn odi heap V8). Àìyípadà `2` (→ worker 1, process 2
+lápapọ̀) ni a ṣe ní ìwọ̀n tó bá runner 16 GB / 4 vCPU tí GitHub gbàlejò mu, èyí tí
+pipeline ìtẹ̀jáde ń lò. Ní `8` (→ worker 7), memory runner yẹn tán,
+buildkit sì kuna ní ìgbésẹ̀ náà pẹ̀lú `ResourceExhausted: ... cannot allocate memory`;
+`3` (→ worker 2) kò tíì tó àyè lẹ́yìn tí a wọn RSS process kọ̀ọ̀kan
+ní tààrà dípò ṣíṣe àfojúsùn rẹ̀. `tests/unit/docker-build-memory-budget.test.ts`
+ń ṣe ìṣirò náà lòdì sí iye tí a wọn, ó sì máa kuna bí ọ̀kan lára àwọn ìṣàkóso
+méjèèjì bá kọjá agbára runner.
 
-Turbopack ń ṣàkójọ nínú iranti Rust native tó wà **níta** heap V8, nítorí náà
-`OMNIROUTE_BUILD_MEMORY_MB` kò lè fi ààlà sí i. Lórí host tó ní òpin iranti,
-OOM killer máa fi SIGKILL pa ìkọ́lé náà láìsí ọ̀rọ̀ àṣìṣe kankan — ó kàn máa
-dúró láàárín `Creating an optimized production build`, èyí tó dà bíi pé ó ti
-di dípò pé iranti ti tán. Ìdí nìyẹn tí `Dockerfile` fi ń lo webpack gẹ́gẹ́ bí
-àìyípadà (`OMNIROUTE_USE_TURBOPACK=0`), yàtọ̀ sí `npm run dev` / `npm run build`,
-níbi tí Turbopack ti jẹ́ àìyípadà kóòdù: `docker build .` lásán láìsí build arg
-(èyí tí Railway àti àwọn host tẹ̀-lẹẹ̀kan míì ń ṣiṣẹ́) kò gbọ́dọ̀ kú ní ìdákẹ́jẹ
-lórí builder tó ní òpin iranti. Àwọn àwòrán tí a tẹ̀ jáde ti ń fi
-`OMNIROUTE_USE_TURBOPACK=0` ránṣẹ́ ní kedere nínú `docker-publish.yml`.
-Lórí builder tó ní RAM púpọ̀, yan Turbopack fún ìkọ́lé tó yára sí i:
+Turbopack ń compile sínú memory Rust native tó wà **lẹ́yìn odi** heap V8, nítorí náà
+`OMNIROUTE_BUILD_MEMORY_MB` kò fi ààlà sí i. Lórí host tó ní òpin memory,
+OOM killer máa fi SIGKILL dá ìkọ́lé náà dúró láìfi ọ̀rọ̀ àṣìṣe kankan hàn — ó máa kàn
+dáwọ́ dúró láàrín `Creating an optimized production build`, èyí tó dà bí ẹni pé ó há
+dípò pé memory ti tán. Ìdí nìyẹn tí `Dockerfile` fi ń lo webpack gẹ́gẹ́ bí àìyípadà
+(`OMNIROUTE_USE_TURBOPACK=0`), yàtọ̀ sí `npm run dev` / `npm run build`, níbi tí
+Turbopack ti jẹ́ àìyípadà inú code: `docker build .` lásán tí kò ní build args (èyí tí
+Railway àti àwọn host one-click mìíràn ń ṣiṣẹ́) kò gbọ́dọ̀ kú ní ìdákẹ́jẹ lórí builder
+tó ní òpin memory. Àwọn àwòrán tí a tẹ̀ jáde ti ń fi `OMNIROUTE_USE_TURBOPACK=0`
+ránṣẹ́ ní kedere nínú `docker-publish.yml`. Lórí builder tó ní RAM púpọ̀, yan
+Turbopack fún ìkọ́lé tó yára sí i:
 
 ```bash
 docker build --target runner-base \
@@ -297,44 +298,43 @@ docker build --target runner-base \
   -t omniroute:base .
 ```
 
-A ti mú `webpackBuildWorker` ṣiṣẹ́, nítorí náà `next build` ń ṣiṣẹ́ process òbí
-**àti** process worker kan, ọ̀kọ̀ọ̀kan wọn sì ń tẹ̀lé `OMNIROUTE_BUILD_MEMORY_MB`
-lọ́tọ̀ọ̀tọ̀. Ṣètò òpin container sí iye tó lé ní ìlọ́po méjì iye yẹn ní àfojúsùn,
-kì í ṣe ìlọ́po kan.
+A ti mú `webpackBuildWorker` ṣiṣẹ́, nítorí náà `next build` ń ṣiṣẹ́ parent kan **àti** process
+worker kan, ọ̀kọ̀ọ̀kan wọn sì ń tẹ̀lé `OMNIROUTE_BUILD_MEMORY_MB` lọ́tọ̀ọ̀tọ̀. Ṣètò òpin
+container sí iye tó lé díẹ̀ ju ìlọ́po méjì iye yẹn lọ, kì í ṣe ìlọ́po kan.
 
-Àwọn ìwọ̀n lórí igi yìí (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
+Àwọn ìwọ̀n lórí tree yìí (`--target runner-base`, `OMNIROUTE_BUILD_MEMORY_MB=6144`):
 
-| Bundler   | Òpin container | Àbájáde                         |
-| --------- | -------------- | ------------------------------- |
-| Turbopack | 8 GiB / 16 GiB | OOM pa á ní méjèèjì, ní ìdákẹ́jẹ |
-| webpack   | 8 GiB          | SIGKILL pa build worker         |
-| webpack   | 12 GiB         | ó ṣàṣeyọrí, ó ga jù ní 11.1 GiB |
+| Bundler   | Òpin container | Àbájáde                              |
+| --------- | -------------- | ------------------------------------ |
+| Turbopack | 8 GiB / 16 GiB | OOM pa á ní méjèèjì, láìfi àṣìṣe hàn |
+| webpack   | 8 GiB          | SIGKILL pa build worker náà          |
+| webpack   | 12 GiB         | ó ṣàṣeyọrí, ó ga jù lọ ní 11.1 GiB   |
 
-### Àwọn àìyípadà àkókò ìṣiṣẹ́
+### Àwọn àìyípadà runtime
 
-Àwọn àìyípadà tí `runner-base` ń ṣàgbéjáde: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
+Àwọn àìyípadà tí `runner-base` ń export: `PORT=20128`, `HOSTNAME=0.0.0.0`, `OMNIROUTE_MEMORY_MB=1024`, `NODE_OPTIONS=--max-old-space-size=1024`, `DATA_DIR=/app/data`, `OMNIROUTE_MIGRATIONS_DIR=/app/migrations`.
 
-Ìhùwàsí iranti nínú Docker:
+Ìhùwàsí memory nínú Docker:
 
-- Àwòrán náà ṣètò `OMNIROUTE_MEMORY_MB=1024`, ó sì ń ṣe àyọrí `NODE_OPTIONS=--max-old-space-size=1024` láti inú rẹ̀.
-- Olùṣíṣe olupin gangan ni olùpilẹ̀ṣẹ̀ adádúró ń bẹ̀rẹ̀; ó máa ń ka `OMNIROUTE_MEMORY_MB`, ó sì ń fi `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` kún un.
-- Node máa ń lo iye `--max-old-space-size` tí ó kẹ́yìn nínú àwọn iye tí a tún sọ, nítorí náà ṣíṣètò `OMNIROUTE_MEMORY_MB` ló ń ṣàkóso ààlà heap Docker tó ń ṣiṣẹ́ ní tòótọ́.
-- Nítorí pé àwòrán náà máa ń ṣètò rẹ̀ ní gbogbo ìgbà, àṣàyàn àfẹ́yinti olùpilẹ̀ṣẹ̀ fúnra rẹ̀ tí a ṣe ìbámu rẹ̀ pẹ̀lú RAM kì í ṣiṣẹ́ lábẹ́ Docker. Gbé e sókè ní kedere fún ẹrù iṣẹ́ náà (tábìlì ní ìsàlẹ̀). `2048` ṣì kéré jù fún `/v1/responses` ti aṣojú ìkọ́ kóòdù.
+- Àwòrán náà ṣètò `OMNIROUTE_MEMORY_MB=1024`, ó sì ń ṣe àfàlà `NODE_OPTIONS=--max-old-space-size=1024` láti inú rẹ̀.
+- Olùṣàlẹ̀ adádúró ni ó ń bẹ̀rẹ̀ ìlànà olupin gangan; ó ń ka `OMNIROUTE_MEMORY_MB`, ó sì ń fi `--max-old-space-size=<OMNIROUTE_MEMORY_MB>` kún un.
+- Node máa ń lo iye `--max-old-space-size` tó kẹ́yìn nínú àwọn iye tó tún ara wọn ṣe, nítorí náà ṣíṣètò `OMNIROUTE_MEMORY_MB` ló ń darí ààlà heap Docker tó ń ṣiṣẹ́ gangan.
+- Nítorí pé àwòrán náà máa ń ṣètò rẹ̀ ní gbogbo ìgbà, àṣàyàn ìpamọ́ olùṣàlẹ̀ tí a ṣàmúlò sí RAM kò ṣiṣẹ́ lábẹ́ Docker. Gbé e ga ní tààrà fún iṣẹ́ náà (tábìlì ní ìsàlẹ̀). `2048` ṣì kéré jù fún `/v1/responses` ti aṣojú ìkọ-kóòdù.
 
-### RAM àsìkò-ṣiṣe fún àwọn aṣojú ìkọ́ kóòdù
+### RAM àsìkò-ṣiṣe fún àwọn aṣojú ìkọ-kóòdù
 
-Àṣàyàn àìyípadà Docker 1 GiB jẹ́ ìwọ̀n ìbẹ̀rẹ̀ fún pánẹ́ẹ̀lì ìṣàkóso/ìfọ̀rọ̀wérọ̀ fẹ́ẹ́rẹ́, kì í ṣe ìwọ̀n fún ìlò gidi. Àwọn ara `POST /v1/responses` gígùn (ọgọ́rọ̀ọ̀rún ìfiránṣẹ́, ọ̀pọ̀ mẹ́wàá irinṣẹ́) máa ń pa ọ̀pọ̀ àwòrán-ẹ̀ka inú ìrántí mọ́ nígbà ìfúnpọ̀. Àwọn ìbéèrè méjì tó ṣe pọ̀ mọ́ra, ọ̀kọ̀ọ̀kan tó tó ~3 MiB / ~750k-token, ti mú kí V8 dá iṣẹ́ dúró ní old-space **12 GiB** (`FATAL ERROR: Reached heap limit`), wọ́n sì tún ti dé OOM cgroup 16 GiB. Wo [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
+Àìṣe-déédé 1 GiB Docker jẹ́ ìwọ̀n ìbẹ̀rẹ̀ fún dashboard/ìfọ̀rọ̀wérọ̀ kékeré, kì í ṣe ìwọ̀n fún iṣẹ́ àmújáde. Àwọn body `POST /v1/responses` gígùn (ọgọ́rọ̀ọ̀rún àwọn ìfiránṣẹ́, ọ̀pọ̀ mẹ́wàá àwọn irinṣẹ́) máa ń pa ọ̀pọ̀ àwòrán-ìbáṣepọ̀ inú-ìrántí mọ́ nígbà ìfúnpọ̀. Àwọn ìbéèrè méjì tó bára wọn ṣánlẹ̀, tí ọ̀kọ̀ọ̀kan tó ~3 MiB / ~750k-token, ti mú kí V8 dá iṣẹ́ dúró ní old-space **12 GiB** (`FATAL ERROR: Reached heap limit`), wọ́n sì tún ti dé OOM cgroup 16 GiB. Wo [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849).
 
-Ṣètò ìwọ̀n **cgroup `--memory` sí òkè ju heap lọ** — àwọn buffer abinibi, SQLite, àti àwọn àbájáde àárín ìfúnpọ̀ wà níta V8.
+Ṣètò ìwọ̀n **cgroup `--memory` sí iye tó ga ju heap lọ** — àwọn buffer abinibi, SQLite, àti àwọn àbájáde àárín ìfúnpọ̀ wà níta V8.
 
-| Ẹrù iṣẹ́                                         | `OMNIROUTE_MEMORY_MB`           | Container / cgroup             | Àwọn àkíyèsí                                                                                    |
-| ----------------------------------------------- | ------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------- |
-| Pánẹ́ẹ̀lì ìṣàkóso, ìfọ̀rọ̀wérọ̀ fẹ́ẹ́rẹ́ kan            | `1024` (àṣàyàn àìyípadà àwòrán) | ≥2 GiB                         |                                                                                                 |
-| Aṣojú ìkọ́ kóòdù kan (Claude/Codex/Grok)         | `8192`                          | ≥10 GiB                        | `/v1/responses` fún sáà kan ṣoṣo tí ó wọ́pọ̀                                                      |
-| Àwọn `/v1/responses` gígùn méjì lẹ́ẹ̀kan náà      | `10240`–`12288`                 | ≥12–16 GiB                     | A ṣe àkíyèsí ìdádúró V8 ní heap ~12 GiB                                                         |
-| Àwọn àyíká gígùn mẹ́ta tàbí jù bẹ́ẹ̀ lọ lẹ́ẹ̀kan náà | má ṣe lórí olùṣíṣe kan          | tò wọ́n lẹ́sẹẹsẹ / RAM púpọ̀ sí i | Ààlà àìyípadà fún iṣẹ́ wuwo jẹ́ 1 tó ń ṣiṣẹ́; gbígbé e sókè láìsí RAM máa ń mú ìdádúró náà padà wá |
+| Iṣẹ́                                                 | `OMNIROUTE_MEMORY_MB`      | Container / cgroup              | Àwọn àkíyèsí                                                                                          |
+| --------------------------------------------------- | -------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Dashboard, ìfọ̀rọ̀wérọ̀ kékeré kan                     | `1024` (àìṣe-déédé àwòrán) | ≥2 GiB                          |                                                                                                       |
+| Aṣojú ìkọ-kóòdù kan (Claude/Codex/Grok)             | `8192`                     | ≥10 GiB                         | `/v1/responses` ìgbà-kan tí ó wọ́pọ̀                                                                    |
+| `/v1/responses` gígùn méjì lẹ́ẹ̀kan náà               | `10240`–`12288`            | ≥12–16 GiB                      | A wọn ìdádúró V8 ní heap ~12 GiB                                                                      |
+| Àwọn àyíká-ọ̀rọ̀ gígùn mẹ́ta tàbí jù bẹ́ẹ̀ lọ lẹ́ẹ̀kan náà | má ṣe lórí ìlànà kan       | ṣe wọn lọ́kọ̀ọ̀kan / fi RAM kún un | Àìṣe-déédé ìgbàwọlé iṣẹ́ wúwo jẹ́ iṣẹ́ 1 tó ń lọ lọ́wọ́; gbígbé e ga láìsí RAM yóò tún mú ìdádúró náà padà |
 
-`omniroute serve` lórí ẹ̀rọ gangan máa ń ṣàmúlò ìwọ̀n tó tó ~35% ti RAM (tí a fi ààlà `[512, 4096]` sí) nígbà tí a kò bá ṣètò `OMNIROUTE_MEMORY_MB`. Docker máa ń ṣètò `1024` ní gbogbo ìgbà, nítorí náà ìṣàmúlò ìwọ̀n yẹn kì í ṣiṣẹ́ nínú àwòrán ìṣiṣẹ́ náà.
+`omniroute serve` lórí bare metal máa ń ṣàmúlò ara rẹ̀ sí ~35% ti RAM (ní ààlà `[512, 4096]`) nígbà tí a **kò bá ṣètò** `OMNIROUTE_MEMORY_MB`. Docker máa ń ṣètò `1024` ní gbogbo ìgbà, nítorí náà ìṣàmúlò yẹn kì í ṣiṣẹ́ nínú àwòrán àṣẹ́fẹ́.
 
 ```bash
 docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
@@ -344,41 +344,41 @@ docker run -d --name omniroute --restart unless-stopped --stop-timeout 40 \
 
 ## Àwọn Àyípadà Àyíká Pàtàkì
 
-Ní àfikún sí àwọn iye àìyípadà tí a ṣàkọsílẹ̀ sínú [ENVIRONMENT.md](../reference/ENVIRONMENT.md), àwọn àyípadà wọ̀nyí ló ṣe pàtàkì jù lọ nígbà tí a bá ń ṣiṣẹ́ lábẹ́ Docker:
+Ní àfikún sí àwọn iye àìyípadà tí a ṣàkọsílẹ̀ nínú [ENVIRONMENT.md](../reference/ENVIRONMENT.md), àwọn àyípadà wọ̀nyí ṣe pàtàkì jù lọ nígbà tí a bá ń ṣiṣẹ́ lábẹ́ Docker:
 
-| Àyípadà                       | Ìdí                                                                                                                                                                                                                                                      | Iye àìyípadà                  |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| `OMNIROUTE_WS_BRIDGE_SECRET`  | Àṣírí tí a pín fún afárá WebSocket. **Ó pọn dandan ní production** — ṣètò rẹ̀ sí ọ̀rọ̀ aláìlétò tó lágbára.                                                                                                                                                 | kò tíì ṣètò (a gbọ́dọ̀ pèsè rẹ̀) |
-| `REDIS_URL`                   | Ọ̀rọ̀ àsopọ̀ fún rate limiter / ẹ̀yìn cache                                                                                                                                                                                                                  | `redis://redis:6379`          |
-| `REDIS_PORT`                  | Port ẹ̀gbẹ́ host fún container Redis tí a kó mọ́ra                                                                                                                                                                                                          | `6379`                        |
-| `REDIS_BIND_HOST`             | Interface host tí a tẹ̀jáde port Redis tí a kó mọ́ra sí (loopback àyàfi tí o bá fi AUTH kún un)                                                                                                                                                            | `127.0.0.1`                   |
-| `AUTO_UPDATE_HOST_REPO_DIR`   | Path host tí a mount sínú profile `cli` ní `/workspace/omniroute` fún àwọn ìṣàn iṣẹ́ ìmúdójúìwọ̀n ara-ẹni                                                                                                                                                  | `.` (directory lọ́wọ́lọ́wọ́)      |
-| `OMNIROUTE_MEMORY_MB`         | Òpin heap Node ní àkókò iṣẹ́ fún server Docker standalone; ó borí iye àìyípadà image tó wà lókè. Àwọn agent ìkọ̀ kóòdù: `8192`+ (wo [RAM àkókò iṣẹ́](#runtime-ram-for-coding-agents)).                                                                      | `1024`                        |
-| `DASHBOARD_PORT` / `API_PORT` | Borí àwọn port tí a ṣí síta fún dashboard (20128) àti API (20129)                                                                                                                                                                                        | `20128` / `20129`             |
-| `APP_BIND_HOST`               | Interface host tí docker-compose ti tẹ̀jáde àwọn port dashboard/API/live-WS sí. Pẹ̀lú `REQUIRE_API_KEY=false` (iye àìyípadà), `0.0.0.0` ń ṣí aṣojú `/v1` aláìlórúkọ sí LAN — jẹ́ kí ó gbòòrò nìkan pẹ̀lú `REQUIRE_API_KEY=true` tàbí aṣojú-àyípadà ní iwájú. | `127.0.0.1`                   |
-| `CLIPROXY_BIND_HOST`          | Interface host tí docker-compose ti tẹ̀jáde sidecar `cliproxyapi` sí — volume data rẹ̀ ń tọ́jú àwọn ẹ̀rí ìdánimọ̀ provider.                                                                                                                                   | `127.0.0.1`                   |
-| `OMNIROUTE_PLUGINS_DIR`       | Directory tí scanner plugin ní àkókò iṣẹ́ ń kà, tí ó sì ń fi àwọn plugin sí. Ṣètò rẹ̀ nígbà tí a bá bind-mount àwọn plugin: iye àìyípadà ń tẹ̀lé `HOME`, èyí tí image kan lè má ṣe export.                                                                  | `~/.omniroute/plugins`        |
-| `OMNIROUTE_BASE_PATH`         | Subpath URL nígbà tí a bá tẹ̀jáde app lẹ́yìn aṣojú-àyípadà (fún àpẹẹrẹ, `/omniroute`)                                                                                                                                                                      | _(òfìfo = root)_              |
-| `NEXT_PUBLIC_BASE_URL`        | Origin browser gbogbogbò tí ó ní subpath nínú (fún àpẹẹrẹ, `https://host/omniroute`)                                                                                                                                                                     | kò tíì ṣètò                   |
-| `PROD_DASHBOARD_PORT`         | Port dashboard ẹ̀gbẹ́ host fún `docker-compose.prod.yml`                                                                                                                                                                                                   | `20130`                       |
-| `CLIPROXYAPI_PORT`            | Port ẹ̀gbẹ́ host fún sidecar `cliproxyapi`                                                                                                                                                                                                                 | `8317`                        |
+| Àyípadà                       | Ète                                                                                                                                                                                                                                                             | Iye àìyípadà                  |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `OMNIROUTE_WS_BRIDGE_SECRET`  | Aṣírí àjọpín fún afárá WebSocket. **Ó pọndandan ní production** — ṣètò rẹ̀ sí ọ̀rọ̀ aláìlẹ́sẹẹsẹ tó lágbára.                                                                                                                                                        | kò tíì ṣètò (a gbọ́dọ̀ pèsè rẹ̀) |
+| `REDIS_URL`                   | Ọ̀rọ̀ àsopọ̀ fún rate limiter / backend cache                                                                                                                                                                                                                      | `redis://redis:6379`          |
+| `REDIS_PORT`                  | Port ní ẹ̀gbẹ́ host fún container Redis tó wà nínú àkójọpọ̀                                                                                                                                                                                                        | `6379`                        |
+| `REDIS_BIND_HOST`             | Interface host tí a tẹ̀jáde port Redis tó wà nínú àkójọpọ̀ sí (loopback àyàfi tí o bá fi AUTH kún un)                                                                                                                                                             | `127.0.0.1`                   |
+| `AUTO_UPDATE_HOST_REPO_DIR`   | Path host tí a mount sínú profile `cli` ní `/workspace/omniroute` fún àwọn workflow ìmúdójúìwọ̀n ara-ẹni                                                                                                                                                         | `.` (directory lọ́wọ́lọ́wọ́)      |
+| `OMNIROUTE_MEMORY_MB`         | Ààlà gíga heap Node nígbà ìṣiṣẹ́ fún server standalone Docker; ó borí iye àìyípadà image tó wà lókè. Àwọn agent tó ń kọ kóòdù: `8192`+ (wo [RAM nígbà ìṣiṣẹ́](#runtime-ram-for-coding-agents)).                                                                   | `1024`                        |
+| `DASHBOARD_PORT` / `API_PORT` | Rọ́pò àwọn port tí a ṣí síta fún dashboard (20128) àti API (20129)                                                                                                                                                                                               | `20128` / `20129`             |
+| `APP_BIND_HOST`               | Interface host tí docker-compose tẹ̀jáde àwọn port dashboard/API/live-WS sí. Pẹ̀lú `REQUIRE_API_KEY=false` (iye àìyípadà), `0.0.0.0` ṣí proxy `/v1` aláìlórúkọ sí LAN — má ṣe mú ààyè rẹ̀ gbòòrò àyàfi pẹ̀lú `REQUIRE_API_KEY=true` tàbí reverse proxy ní iwájú rẹ̀. | `127.0.0.1`                   |
+| `CLIPROXY_BIND_HOST`          | Interface host tí docker-compose tẹ̀jáde sidecar `cliproxyapi` sí — volume data rẹ̀ ni àwọn credential provider wà.                                                                                                                                               | `127.0.0.1`                   |
+| `OMNIROUTE_PLUGINS_DIR`       | Directory tí scanner plugin nígbà ìṣiṣẹ́ ń kà, tí ó sì ń fi àwọn plugin sí. Ṣètò rẹ̀ nígbà tí a bá fi bind-mount àwọn plugin: iye àìyípadà ń tẹ̀lé `HOME`, èyí tí image kan lè má export.                                                                          | `~/.omniroute/plugins`        |
+| `OMNIROUTE_BASE_PATH`         | Subpath URL nígbà tí a tẹ̀jáde app lẹ́yìn reverse proxy (fún àpẹẹrẹ `/omniroute`)                                                                                                                                                                                 | _(òfo = root)_                |
+| `NEXT_PUBLIC_BASE_URL`        | Origin browser gbogbogbòò tó ní subpath nínú (fún àpẹẹrẹ `https://host/omniroute`)                                                                                                                                                                              | kò tíì ṣètò                   |
+| `PROD_DASHBOARD_PORT`         | Port dashboard ní ẹ̀gbẹ́ host fún `docker-compose.prod.yml`                                                                                                                                                                                                       | `20130`                       |
+| `CLIPROXYAPI_PORT`            | Port ní ẹ̀gbẹ́ host fún sidecar `cliproxyapi`                                                                                                                                                                                                                     | `8317`                        |
 
-## Reverse Proxy lórí Ọ̀nà-Abẹ́ (Traefik / nginx)
+## Aṣojú Ìyípadà lórí Ọ̀nà-Abẹ́ (Traefik / nginx)
 
-Next.js `basePath` jẹ́ ohun tí a kó sínú standalone bundle. OmniRoute ń ṣàkọsílẹ̀ iye tí a ti kó sínú rẹ̀
+Next.js `basePath` ni a ṣàkójọ sínú ìdìpọ̀ standalone. OmniRoute máa ń ṣàkọsílẹ̀ iye tí a ti fi sínú rẹ̀
 nínú fáìlì sentinel kan ní gbòǹgbò app náà (tí a kọ nígbà `npm run build`; tí
-`scripts/docker/ensure-docker-base-path.mjs` sì ń kà), ó sì ń fi wé
+`scripts/docker/ensure-docker-base-path.mjs` sì máa ń kà) ó sì máa ń fi wé
 `OMNIROUTE_BASE_PATH` nígbà tí container bá bẹ̀rẹ̀. Nígbà tí wọ́n bá yàtọ̀ tí a sì
-kọ image náà fún gbòǹgbò domain, entrypoint náà yóò tún standalone manifests kọ,
-àwọn literal `basePath`/`assetPrefix` tí a fi sínú rẹ̀ (Next 16 ń ṣe àwọn URL asset SSR láti inú
-`assetPrefix` nìkan — patcher náà ń ṣe àdàkọ ọ̀nà-abẹ́ náà sínú rẹ̀), àwọn URL asset
-`/_next/static` tí a ti kó sínú rẹ̀ (client-reference manifests, media imports, prerendered
-error pages), àti client `process.env` shim kí `node dev/run-standalone.mjs`
-tó ṣiṣẹ́.
+kọ image náà fún gbòǹgbò domain, entrypoint máa ń tún àwọn manifest standalone kọ,
+àwọn literal `basePath`/`assetPrefix` tí a fi sínú rẹ̀ (Next 16 máa ń ṣe àwọn URL asset SSR láti inú
+`assetPrefix` nìkan — patcher náà máa ń da ọ̀nà-abẹ́ náà sínú rẹ̀), àwọn URL asset
+`/_next/static` tí a ti fi sínú rẹ̀ (àwọn manifest client-reference, àwọn import media, àwọn ojú-ìwé
+àṣìṣe tí a ti prerender) àti shim `process.env` ti client kí
+`node dev/run-standalone.mjs` tó ṣiṣẹ́.
 
-### Ìkọ́lé Compose (a ṣe àgbàmọ̀)
+### Kíkọ́ pẹ̀lú Compose (a dámọ̀ràn rẹ̀)
 
-Ṣètò àwọn variable méjèèjì nínú `.env`, lẹ́yìn náà tún un kọ́ kí image àti runtime lè bára mu:
+Ṣètò àwọn variable méjèèjì nínú `.env`, lẹ́yìn náà tún un kọ kí image àti runtime lè bára mu:
 
 ```bash
 # .env
@@ -390,14 +390,14 @@ NEXT_PUBLIC_BASE_URL=https://myhostname.example.com/omniroute
 docker compose --profile base up -d --build
 ```
 
-`docker-compose.yml` ń fi `OMNIROUTE_BASE_PATH` ránṣẹ́ gẹ́gẹ́ bí Docker build-arg àti gẹ́gẹ́ bí
-runtime environment variable.
+`docker-compose.yml` máa ń fi `OMNIROUTE_BASE_PATH` ránṣẹ́ gẹ́gẹ́ bí Docker build-arg àti gẹ́gẹ́ bí
+variable environment runtime.
 
 ### Image gbòǹgbò tí a ti kọ tẹ́lẹ̀ + ọ̀nà-abẹ́ runtime
 
-Àwọn image `diegosouzapw/omniroute:*` tí a tẹ̀ jáde ni a kọ́ fún gbòǹgbò domain. O ṣì lè
-ṣètò `OMNIROUTE_BASE_PATH` ní runtime; container náà yóò patch bundle náà lẹ́ẹ̀kan nígbà ìbẹ̀rẹ̀.
-So ó pọ̀ mọ́ public origin tó bá a mu:
+Àwọn image `diegosouzapw/omniroute:*` tí a tẹ̀ jáde ni a kọ fún gbòǹgbò domain. O ṣì lè
+ṣètò `OMNIROUTE_BASE_PATH` ní runtime; container náà máa ń patch ìdìpọ̀ náà lẹ́ẹ̀kan nígbà ìbẹ̀rẹ̀.
+So ó pọ̀ mọ́ origin gbangba tó bá a mu:
 
 ```yaml
 services:
@@ -408,37 +408,37 @@ services:
       NEXT_PUBLIC_BASE_URL: https://myhostname.example.com/omniroute
 ```
 
-Ṣètò reverse proxy náà láti fi **gbogbo** ọ̀nà òde ránṣẹ́ síwájú (má ṣe yọ
-prefix náà kúrò). Traefik gbọ́dọ̀ darí `PathPrefix(`/omniroute`)` sí container náà láìsí
+Ṣètò aṣojú ìyípadà náà láti fi **gbogbo** ọ̀nà ìta ránṣẹ́ síwájú (má ṣe yọ
+prefix náà kúrò). Traefik gbọ́dọ̀ darí `PathPrefix(`/omniroute`)` sí container láìsí
 `StripPrefix`, kí Next.js lè gba `/omniroute/...` kí ó sì pèsè àwọn asset láti
 `/omniroute/_next/...`.
 
-Docker healthcheck ń ṣe àyẹ̀wò endpoint lifecycle `/healthz` tó fẹ́ẹ́rẹ́, tí a fi
-`OMNIROUTE_BASE_PATH` tó ń ṣiṣẹ́ sí níwájú. `/api/monitoring/health` ṣì wà fún
-àwọn àyẹ̀wò ìṣòro ti ènìyàn/dashboard; láti darí HEALTHCHECK container padà sí i (fún àpẹẹrẹ
+Docker healthcheck máa ń dán endpoint lifecycle `/healthz` tó fẹ́ẹ́rẹ́ wò, pẹ̀lú
+`OMNIROUTE_BASE_PATH` tó ń ṣiṣẹ́ gẹ́gẹ́ bí prefix. `/api/monitoring/health` ṣì wà fún
+àwọn àyẹ̀wò ènìyàn/dashboard; láti darí HEALTHCHECK container padà síbẹ̀ (fún àpẹẹrẹ
 fún fífi àyẹ̀wò ìlera jíjinlẹ̀ múlẹ̀), ṣètò `OMNIROUTE_HEALTHCHECK_PATH=/api/monitoring/health`.
 Ọ̀nà yẹn jẹ́ àyẹ̀wò **jíjinlẹ̀** (DB + àkótán monitoring) — ó yẹ fún
-`HEALTHCHECK` Docker tí kì í sábà ṣẹlẹ̀ bí o bá yàn láti tún lò ó, ṣùgbọ́n **kò** yẹ fún àkókò-àárín
+`HEALTHCHECK` Docker tí kì í sábàá ṣẹlẹ̀ bí o bá yàn láti tún lò ó, ṣùgbọ́n **kò** yẹ fún àwọn àkókò
 `livenessProbe` Kubernetes.
 
-Fún àwọn orchestrator (Kubernetes, Nomad, àti bẹ́ẹ̀ bẹ́ẹ̀ lọ):
+Fún àwọn orchestrator (Kubernetes, Nomad, abbl.):
 
-| Probe           | Ohun tí ó dára láti lò                                                 | Ohun tí a yẹra fún                                            |
-| --------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Liveness        | HTTP `GET /livez`, tàbí TCP lórí port àkọ́kọ́ (`PORT`, àìyípadà `20128`) | `/api/monitoring/health` gẹ́gẹ́ bí liveness                     |
-| Readiness       | HTTP `GET /healthz`                                                    | Àwọn timeout kúkúrú tó ka event-loop tó dí gẹ́gẹ́ bí ohun tó kú |
-| Deep / blackbox | `/api/monitoring/health`                                               | —                                                             |
+| Probe              | Ohun tí a yàn láàyò                                                   | Ohun tí a yẹra fún                                           |
+| ------------------ | --------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Liveness           | HTTP `GET /livez`, tàbí TCP lórí port àkọ́kọ́ (`PORT`, default `20128`) | `/api/monitoring/health` gẹ́gẹ́ bí liveness                    |
+| Readiness          | HTTP `GET /healthz`                                                   | Àwọn timeout kúkúrú tó ka event-loop tó dí gẹ́gẹ́ bí èyí tó kú |
+| Jíjinlẹ̀ / blackbox | `/api/monitoring/health`                                              | —                                                            |
 
-`/healthz` ń ṣàfihàn lifecycle process (`ok` / `starting` / `stopping`). `/livez` jẹ́
-fún mímọ̀ pé process wà láàyè nìkan (200 nígbàkigbà tí handler bá lè ṣiṣẹ́; kò dúró de
-readiness). Àwọn méjèèjì ṣì ń ṣiṣẹ́ lórí Node event loop kan náà pẹ̀lú request handling, nítorí náà
-catalog tó ń lo CPU púpọ̀ tàbí iṣẹ́ compression lè mú wọn pẹ́ — dí ≠ kú. Yan TCP
-liveness bí àwọn probe HTTP bá ń timeout. Ìtọ́sọ́nà probe kíkún:
+`/healthz` máa ń ṣàfihàn lifecycle process (`ok` / `starting` / `stopping`). `/livez` jẹ́
+process-alive nìkan (200 nígbà gbogbo tí handler bá lè ṣiṣẹ́; kì í dúró de
+readiness). Àwọn méjèèjì ṣì ń ṣiṣẹ́ lórí Node event loop kan náà pẹ̀lú mímú request ṣiṣẹ́, nítorí náà
+iṣẹ́ catalog tàbí compression tó di CPU lè mú wọn pẹ́ — dí ≠ kú. Yan TCP
+liveness bí àwọn probe HTTP bá timeout. Ìtọ́sọ́nà probe ní kíkún:
 [Ìtọ́sọ́nà monitoring — àwọn àbá probe Kubernetes](../ops/MONITORING_GUIDE.md#kubernetes-probe-recommendations).
 
 ## Docker Compose pẹ̀lú Caddy (HTTPS Auto-TLS)
 
-A lè ṣí OmniRoute síta láìléwu nípa lílo ìpèsè SSL aládàáṣe ti Caddy. Rí i dájú pé àkọsílẹ̀ DNS A ti domain rẹ ń tọ́ka sí IP olupin rẹ.
+A lè ṣí OmniRoute síta láìléwu nípa lílo ìpèsè SSL aládàáṣiṣẹ́ ti Caddy. Rí i dájú pé àkọsílẹ̀ DNS A ti domain rẹ ń tọ́ka sí IP server rẹ.
 
 ```yaml
 services:
@@ -450,9 +450,9 @@ services:
       - omniroute-data:/app/data
     environment:
       - PORT=20128
-      # Orísun tí aṣàwákiri ń rí fún àwọn ìpèpadà OAuth, àwọn àsopọ̀ dashboard, àti àwọn URL gbangba tí a ṣẹ̀dá.
+      # Origin tí browser ń lò fún àwọn callback OAuth, àwọn link dashboard, àti àwọn URL gbangba tí a ṣẹ̀dá.
       - NEXT_PUBLIC_BASE_URL=https://your-domain.com
-      # URL abẹ́nú láti olupin-sí-olupin fún àwọn iṣẹ́ tí a ṣètò / àwọn ìbéèrè sí ara rẹ̀.
+      # URL inú server-sí-server fún àwọn iṣẹ́ tí a ṣètò / àwọn ìbéèrè sí ara rẹ̀.
       - BASE_URL=http://omniroute:20128
       - AUTH_COOKIE_SECURE=true
 
@@ -469,71 +469,71 @@ volumes:
   omniroute-data:
 ```
 
-Caddy ń ṣètò àwọn àkọlé ìfiránṣẹ́-síwájú boṣewa fún container òkè. OmniRoute ń lo
-`NEXT_PUBLIC_BASE_URL` gẹ́gẹ́ bí orísun gbangba pàtàkì fún àwọn ìpèpadà OAuth àti àwọn àsopọ̀ gbangba
-tí a ṣẹ̀dá; àwọn ìkọ̀wé dashboard tí a ti fìdí ìdánimọ̀ wọn múlẹ̀ ń lo àwọn ìbéèrè orísun-kan-náà pẹ̀lú
-ààbò CSRF tí a so mọ́ session. Ṣí `OMNIROUTE_TRUST_PROXY` ṣiṣẹ́ fún àwọn ìmúṣiṣẹ́ tó ti ní ìlọsíwájú
-nìkan, níbi tí o ti mọ̀ọ́mọ̀ fẹ́ kí OmniRoute gba orísun gbangba láti inú àwọn àkọlé ìfiránṣẹ́-síwájú
-tí a fọkàn tán dípò àtúnṣe tó ṣe kedere.
+Caddy ń ṣètò àwọn header ìfiránṣẹ́ síwájú boṣewa fún container upstream. OmniRoute ń lo
+`NEXT_PUBLIC_BASE_URL` gẹ́gẹ́ bí origin gbangba àṣẹ fún àwọn callback OAuth àti àwọn link gbangba
+tí a ṣẹ̀dá; àwọn ìkọ̀wé dashboard tí a ti fìdí rẹ̀ múlẹ̀ ń lo àwọn ìbéèrè same-origin pẹ̀lú ààbò CSRF
+tí a so mọ́ session. Mú `OMNIROUTE_TRUST_PROXY` ṣiṣẹ́ fún àwọn ìmúṣiṣẹ́ tó ti ní ìlọsíwájú nìkan, níbi tí o ti mọ̀ọ́mọ̀
+fẹ́ kí OmniRoute yọ origin gbangba jáde láti inú àwọn header ìfiránṣẹ́ síwájú tí a fọkàn tán dípò
+àtúnṣe tó ṣe kedere.
 
 ## Cloudflare Quick Tunnel
 
-Àtìlẹ́yìn dashboard fún àwọn ìmúṣiṣẹ́ Docker ní **Cloudflare Quick Tunnel** tí a lè bẹ̀rẹ̀ pẹ̀lú ìtẹ̀ ẹ̀ẹ̀kan ní `Dashboard → Endpoints`. Ìṣíṣiṣẹ́ àkọ́kọ́ máa ń ṣe ìgbàsílẹ̀ `cloudflared` nígbà tí a bá nílò rẹ̀ nìkan, ó máa ń bẹ̀rẹ̀ tunnel ìgbà díẹ̀ sí endpoint `/v1` rẹ lọwọlọwọ, ó sì máa ń fi URL `https://*.trycloudflare.com/v1` tí a ṣẹ̀dá hàn ní tààrà lábẹ́ URL gbangba rẹ déédéé.
+Àtìlẹ́yìn dashboard fún àwọn ìmúṣiṣẹ́ Docker ní **Cloudflare Quick Tunnel** tí a lè ṣiṣẹ́ pẹ̀lú títẹ̀ ẹ̀kan ní `Dashboard → Endpoints`. Nígbà mímú ṣiṣẹ́ àkọ́kọ́, ó máa gba `cloudflared` sílẹ̀ nígbà tí a bá nílò rẹ̀ nìkan, yóò bẹ̀rẹ̀ tunnel ìgbà díẹ̀ sí endpoint `/v1` rẹ lọ́wọ́lọ́wọ́, yóò sì fi URL `https://*.trycloudflare.com/v1` tí a ṣẹ̀dá hàn ní tààrà lábẹ́ URL gbangba rẹ deede.
 
-A lè fi àwọn pánẹ́ẹ̀lì tunnel endpoint (Cloudflare, Tailscale, ngrok) hàn tàbí fi wọ́n pamọ́ láti `Settings → Appearance` láìyí ipò tunnel tó ń ṣiṣẹ́ padà.
+A lè fi àwọn panel tunnel endpoint (Cloudflare, Tailscale, ngrok) hàn tàbí fi wọ́n pamọ́ láti `Settings → Appearance` láìyí ipò tunnel tó ń ṣiṣẹ́ padà.
 
 ### Àwọn Àkíyèsí Tunnel
 
-- Àwọn URL Quick Tunnel jẹ́ ti ìgbà díẹ̀, wọ́n sì máa ń yí padà lẹ́yìn gbogbo ìbẹ̀rẹ̀.
-- A kì í mú àwọn Quick Tunnel padà bọ̀ sípò láìfọwọ́ṣe lẹ́yìn ìbẹ̀rẹ̀ OmniRoute tàbí container. Tún ṣí wọn ṣiṣẹ́ láti dashboard nígbà tí o bá nílò wọn.
-- Ìfisílẹ̀ tí a ń ṣàkóso ń ṣètìlẹ́yìn fún Linux, macOS, àti Windows lórí `x64` / `arm64` lọ́wọ́lọ́wọ́.
-- Àwọn Quick Tunnel tí a ń ṣàkóso máa ń lo ìgbéga HTTP/2 gẹ́gẹ́ bí àiyépadà láti yẹra fún àwọn ìkìlọ̀ búfà QUIC UDP aláriwo nínú àwọn àyíká container tí ohun àmúṣọrọ̀ wọn ní ààlà. Ṣètò `CLOUDFLARED_PROTOCOL=quic` tàbí `auto` bí o bá fẹ́ ìgbéga mìíràn.
-- Àwọn image Docker ní àwọn gbòǹgbò CA ti ètò nínú, wọ́n sì ń fi wọ́n ránṣẹ́ sí `cloudflared` tí a ń ṣàkóso, èyí tó ń yẹra fún ìkùnà ìfọkàntán TLS nígbà tí tunnel bá ń bẹ̀rẹ̀ nínú container.
-- Ṣètò `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` bí o bá fẹ́ kí OmniRoute lo binary tó ti wà tẹ́lẹ̀ dípò ṣíṣe ìgbàsílẹ̀ tuntun.
+- Àwọn URL Quick Tunnel jẹ́ ti ìgbà díẹ̀, wọ́n sì máa ń yí padà lẹ́yìn gbogbo restart.
+- A kì í dá àwọn Quick Tunnel padà láìfọwọ́yí lẹ́yìn restart OmniRoute tàbí container. Tún mú wọn ṣiṣẹ́ láti dashboard nígbà tí o bá nílò wọn.
+- Fífì sori ẹrọ tí a ń ṣàkóso ń ṣe àtìlẹ́yìn fún Linux, macOS, àti Windows lórí `x64` / `arm64` lọ́wọ́lọ́wọ́.
+- Àwọn Quick Tunnel tí a ń ṣàkóso máa ń lo ìgbékalẹ̀ HTTP/2 gẹ́gẹ́ bí àìyípadà láti yẹra fún àwọn ìkìlọ̀ buffer QUIC UDP aláriwo nínú àwọn àyíká container tó ní ààlà. Ṣètò `CLOUDFLARED_PROTOCOL=quic` tàbí `auto` bí o bá fẹ́ ìgbékalẹ̀ mìíràn.
+- Àwọn image Docker ní àwọn root CA ti system nínú, wọ́n sì ń fi wọ́n ránṣẹ́ sí `cloudflared` tí a ń ṣàkóso, èyí tó ń dènà ìkùnà ìgbẹ́kẹ̀lé TLS nígbà tí tunnel bá ń bẹ̀rẹ̀ nínú container.
+- Ṣètò `CLOUDFLARED_BIN=/absolute/path/to/cloudflared` bí o bá fẹ́ kí OmniRoute lo binary tó ti wà tẹ́lẹ̀ dípò gbígbà ọ̀kan sílẹ̀.
 
-## Àwọn Táàgì Àwòrán
+## Àwọn Tag Image
 
-| Àwòrán                   | Táàgì    | Ìwọ̀n   | Àpèjúwe                                                                  |
-| ------------------------ | -------- | ------ | ------------------------------------------------------------------------ |
-| `diegosouzapw/omniroute` | `latest` | ~250MB | SemVer dídúróṣinṣin tó ga jù lọ tí a ti **tẹ̀ jáde** (kì í ṣe git `main`) |
-| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Di irú táàgì yìí mú fún GitOps                                           |
+| Image                    | Tag      | Ìwọ̀n   | Àpèjúwe                                                            |
+| ------------------------ | -------- | ------ | ------------------------------------------------------------------ |
+| `diegosouzapw/omniroute` | `latest` | ~250MB | SemVer stable tó ga jù lọ tí a ti **tẹ̀ jáde** (kì í ṣe git `main`) |
+| `diegosouzapw/omniroute` | `3.8.0`  | ~250MB | Di ẹ̀ka tag yìí mú fún GitOps                                       |
 
-Àfihàn onípẹpẹ-púpọ̀: `linux/amd64` + `linux/arm64` àbínibí (Apple Silicon, AWS Graviton, Raspberry Pi). Docker máa ń yan faaji tó bá a mu láìfọwọ́ṣe; fi `--platform linux/amd64` ránṣẹ́ bí o bá nílò láti fi ipa mú àfarawé AMD64 lórí àwọn olùgbàlejò ARM.
+Manifest oní-platform púpọ̀: `linux/amd64` + `linux/arm64` abinibi (Apple Silicon, AWS Graviton, Raspberry Pi). Docker máa ń yan architecture tó bá a mu láìfọwọ́yí; fi `--platform linux/amd64` kọjá bí o bá nílò láti fi ipá mú emulation AMD64 ṣiṣẹ́ lórí àwọn host ARM.
 
-### Àwọn Ìkànnì Ìtújáde
+### Àwọn Channel Release
 
-OmniRoute ń tẹ àwọn ìkànnì Docker ọ̀tọ̀ọ̀tọ̀ jáde fún àwọn ìtújáde dídúróṣinṣin, ìdánwò ẹ̀ka-ìtújáde tó ń ṣiṣẹ́, àti àwọn ẹ̀dà ìdàgbàsókè.
+OmniRoute ń tẹ̀ àwọn channel Docker ọ̀tọ̀ọ̀tọ̀ jáde fún àwọn release stable, ìdánwò release-branch tó ń lọ lọ́wọ́, àti àwọn build ìdàgbàsókè.
 
-| Ìkànnì                          | Orísun                                              | Agbára láti yí padà                | Ìlò tí a dámọ̀ràn                                                                                                                     |
-| ------------------------------- | --------------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `:<version>` / `:<version>-web` | Ìtújáde tí a fọwọ́ sí/tí ó ní ẹ̀yà                    | Kò lè yí padà                      | Ìgbékalẹ̀ iṣelọpọ tó di ìtújáde pàtó kan mú                                                                                           |
-| `:latest` / `:latest-web`       | SemVer dídúróṣinṣin tó ga jù lọ tí a ti **tẹ̀ jáde** | Atọ́ka dídúróṣinṣin tó lè yí padà   | Tẹ̀lé àwọn ìtújáde dídúróṣinṣin **lẹ́yìn** iṣẹ́ ìtẹ̀jáde SemVer — kì í tọpinpin `main` tàbí àwọn commit `release/v*` tí a kò tíì tú jáde |
-| `:next` / `:next-web`           | Ẹ̀ka `release/v*` àìyẹsẹ̀ lọ́wọ́lọ́wọ́                    | Atọ́ka ìṣáájú-ìtújáde tó lè yí padà | Ìdánwò àwọn àtúnṣe tí ó ti dé sórí ẹ̀ka ìtújáde tó ń ṣiṣẹ́ ṣùgbọ́n tí kò tíì wà nínú ìtújáde dídúróṣinṣin                               |
-| `:main` / `:main-web`           | Ẹ̀ka `main`                                          | Atọ́ka ìdàgbàsókè tó lè yí padà     | Fún ìdàgbàsókè àti ìdánwò ìṣọ̀kan nìkan                                                                                               |
+| Channel                         | Orísun                                        | Àyípadà                         | Ìlò tí a dámọ̀ràn                                                                                                                 |
+| ------------------------------- | --------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `:<version>` / `:<version>-web` | Release tí a fọwọ́ sí/tí a fún ní version      | Kò lè yí padà                   | Àwọn ìmúṣiṣẹ́ production tí ó di release pàtó kan mú                                                                              |
+| `:latest` / `:latest-web`       | SemVer stable tó ga jù lọ tí a ti **tẹ̀ jáde** | Atọ́ka stable tó lè yí padà      | Ń tẹ̀lé àwọn release stable **lẹ́yìn** iṣẹ́ ìtẹ̀jáde SemVer — kì í tọpinpin `main` tàbí àwọn commit `release/v*` tí a kò tíì tẹ̀ jáde |
+| `:next` / `:next-web`           | Branch `release/v*` àìyípadà lọ́wọ́lọ́wọ́         | Atọ́ka pre-release tó lè yí padà | Ìdánwò àwọn àtúnṣe tí ó ti dé sórí branch release tó ń ṣiṣẹ́ ṣùgbọ́n tí kò tíì sí nínú release stable kan                          |
+| `:main` / `:main-web`           | Branch `main`                                 | Atọ́ka ìdàgbàsókè tó lè yí padà  | Fún ìdàgbàsókè àti ìdánwò integration nìkan                                                                                      |
 
-#### Àwọn olùpèsè àkókò-web: àwọn àwòrán `-web`
+#### Àwọn provider web-session: àwọn image `-web`
 
-Gbogbo ìkànnì tó wà lókè tún ní táàgì `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), tí a kọ láti ìpele `runner-web` — àwòrán kan náà pẹ̀lú Playwright àti aṣàwákiri Chromium. Àwòrán lásán wá **láìsí** Chromium; `gemini-web`, `claude-web` àti `claude-turnstile` nílò rẹ̀.
+Gbogbo channel tó wà lókè tún ní tag `-web` (`:latest-web`, `:<version>-web`, `:next-web`, `:main-web`), tí a kọ́ láti stage `runner-web` — image kan náà pẹ̀lú Playwright àti browser Chromium. Image lasan wá **láìsí** Chromium; `gemini-web`, `claude-web` àti `claude-turnstile` nílò rẹ̀.
 
-A sún ìkùnà náà síwájú, kì í ṣẹlẹ̀ ní àkókò ìbẹ̀rẹ̀: àwọn olùpèsè wọ̀nyẹn máa ń ṣàkójọ àwọn model wọn, wọ́n sì máa ń hàn bí èyí tó ti sopọ̀ nínú dashboard, ìbéèrè àkọ́kọ́ nìkan ló sì máa kùnà pẹ̀lú
+A máa sun ìkùnà náà síwájú, kì í ṣẹlẹ̀ ní àkókò startup: àwọn provider wọ̀nyẹn máa ń ṣe àkójọ àwọn model wọn, wọ́n sì máa ń hàn bí ẹni pé wọ́n ti sopọ̀ nínú dashboard, ìbéèrè àkọ́kọ́ nìkan ló sì máa kùnà pẹ̀lú
 
 ```
 [500]: Failed to load external module playwright: Error: Cannot find module
 '/app/node_modules/playwright/node_modules/playwright-core/browsers.json'
 ```
 
-Bí o bá ń lo àwọn olùpèsè wọ̀nyẹn, fa táàgì `-web` ti ìkànnì tí o ti ń lò — kò sí ohun mìíràn tó yí padà. Lórí ìfiṣètò npm/CLI (láìsí àwòrán Docker), ohun tó bá a dọ́gba tí ó sọnù ni binary aṣàwákiri: ṣiṣẹ́ `npx playwright install chromium` lórí olùgbàlejò náà.
+Bí o bá ń lo àwọn provider wọ̀nyẹn, fa tag `-web` ti channel tí o wà lórí rẹ̀ — kò sí ohun mìíràn tó yí padà. Lórí fífì npm/CLI sori ẹrọ (láìsí image Docker), ohun tó dọ́gba tí kò sí ni binary browser: ṣiṣẹ́ `npx playwright install chromium` lórí host.
 
-#### Lílo ìkànnì ìṣáájú-ìtújáde
+#### Lílo channel pre-release
 
-A máa tún ìkànnì `next` kọ ní gbogbo ìgbà tí a bá push sí ẹ̀ka `release/v*` àìyẹsẹ̀ lọ́wọ́lọ́wọ́, a sì máa ń tẹ̀ ẹ́ jáde fún AMD64 àti ARM64. Àwọn ẹ̀ka ìtọ́jú àtijọ́ kò lè kọ lé e lórí. Ìkànnì náà ń pèsè àwòrán tí a lè fà fún àwọn àtúnṣe tí a ti merge sínú ẹ̀ka ìtújáde tó ń ṣiṣẹ́ kí a tó gé táàgì dídúróṣinṣin tó kàn.
+A máa tún channel `next` kọ́ ní gbogbo ìgbà tí a bá ṣe push sí ẹ̀ka `release/v*` àìyípadà lọ́wọ́lọ́wọ́, a sì máa ń ṣe àtẹ̀jáde rẹ̀ fún AMD64 àti ARM64. Àwọn ẹ̀ka ìtọ́jú àtijọ́ kò lè kọ lé e lórí. Channel náà ń pèsè image tí a lè pull fún àwọn àtúnṣe tí a ti merge sínú ẹ̀ka release tó ń ṣiṣẹ́ kí a tó dá tag stable tó tẹ̀ lé e.
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker pull diegosouzapw/omniroute:next-web
 ```
 
-Fún Docker Compose, rọ́pò táàgì àwòrán tí profile tí a yàn ń lò, lẹ́yìn náà fa iṣẹ́ náà kí o sì tún un dá:
+Fún Docker Compose, kọjá tag image tí profile tí a yàn ń lò, lẹ́yìn náà pull kí o sì tún service náà ṣẹ̀dá:
 
 ```yaml
 services:
@@ -546,54 +546,54 @@ docker compose pull
 docker compose up -d
 ```
 
-#### Ààbò àti ìpadàsẹ́yìn
+#### Ààbò àti rollback
 
-`next` jẹ́ ìkànnì ìṣáájú-ìtújáde tí ń léfòó. Ó lè yí padà ní gbogbo push sí ẹ̀ka ìtújáde tó ń ṣiṣẹ́, a kò sì **ṣe àtìlẹ́yìn rẹ̀ fún ìlò iṣelọpọ**. Di digest àwòrán náà mú nígbà tí o bá ń ṣe àyẹ̀wò ẹ̀dà pàtó kan:
+`next` jẹ́ channel pre-release tó ń yí padà. Ó lè yí padà ní gbogbo push sí ẹ̀ka release tó ń ṣiṣẹ́, a sì **kò ṣe àtìlẹ́yìn fún lílò ó ní production**. Pin digest image náà nígbà tí o bá ń ṣe àyẹ̀wò build kan pàtó:
 
 ```bash
 docker pull diegosouzapw/omniroute:next
 docker image inspect diegosouzapw/omniroute:next --format '{{index .RepoDigests 0}}'
 ```
 
-Kí o tó ṣe ìdánwò, ṣe àfẹ́yìntì volume dátà OmniRoute tàbí àkójọ dátà tí a so mọ́ pẹ̀lú bind mount. Láti padà sẹ́yìn, mú ẹ̀yà dídúróṣinṣin tàbí digest tí a lò tẹ́lẹ̀ padà, kí o sì tún container náà dá:
+Kí o tó bẹ̀rẹ̀ ìdánwò, ṣe backup volume data OmniRoute tàbí directory data tí a fi bind mount. Láti ṣe rollback, dá stable version tàbí digest tí o lò tẹ́lẹ̀ padà, kí o sì tún container náà ṣẹ̀dá:
 
 ```bash
 docker pull diegosouzapw/omniroute:<stable-version>
 docker compose up -d
 ```
 
-Ẹ̀dà ẹ̀ka-ìtújáde kò lè gbé `latest` lọ láé; ẹ̀yà semantic dídúróṣinṣin tó bófin mu nìkan ló lè gbé atọ́ka dídúróṣinṣin náà ga. Àwọn àwòrán `next` ṣì ní àyẹ̀wò àwòrán ìtújáde àti ẹnu-ọ̀nà ìdènà ailagbara CRITICAL.
+Build ẹ̀ka release kò lè gbé `latest` láé; stable semantic version tó yẹ nìkan ló lè gbé pointer stable náà ga. Àwọn image `next` ṣì ní àyẹ̀wò image release àti ìdènà ailagbara CRITICAL.
 
-**`latest` kì í ṣe ìdánilójú pé yóò bá git mu lọ́wọ́lọ́wọ́.** Àwọn àtúnṣe tí a merge sórí `main` tàbí sórí ẹ̀ka `release/v*` tó ń ṣiṣẹ́ kò **sí** nínú `:latest` títí tí a ó fi tẹ àwòrán SemVer dídúróṣinṣin jáde, tí iṣẹ́ ìtẹ̀jáde yóò sì gbé `:latest` ga (digest kan náà bí SemVer yẹn). Bí `latest` bá dà bí ẹni pé ó dúró ṣinṣin nígbà tí GitHub ti ń fi àtúnṣe náà hàn, fa `:next` láti dán ẹ̀ka ìtújáde náà wò tàbí dúró de táàgì SemVer.
+**`latest` kì í ṣe ìdánilójú pé git jẹ́ tuntun.** Àwọn àtúnṣe tí a merge sí `main` tàbí sí ẹ̀ka `release/v*` tó ń ṣiṣẹ́ **kò sí** nínú `:latest` títí tí a ó fi ṣe àtẹ̀jáde image SemVer stable kan tí iṣẹ́ publish yóò sì gbé `:latest` ga (digest kan náà pẹ̀lú SemVer yẹn). Tí `latest` bá dà bí ẹni pé ó dúró ṣinṣin nígbà tí GitHub ti fi àtúnṣe náà hàn, pull `:next` láti dán ẹ̀ka release náà wò tàbí dúró de tag SemVer.
 
-| Ohun tí o fẹ́                                                                      | Ohun tí o yẹ kí o lò                    |
-| --------------------------------------------------------------------------------- | --------------------------------------- |
-| GitOps / iṣelọpọ tí kò gbọdọ̀ yí kúrò ní ipò rẹ̀                                    | Di `:X.Y.Z` mú (tàbí digest àwòrán náà) |
-| Tẹ̀lé àwọn ìtújáde dídúróṣinṣin tí a tẹ̀ jáde, kí o sì gba àtúndá ní ìtújáde kọ̀ọ̀kan | `:latest`                               |
-| Dán àwọn commit `release/v*` tí a kò tíì tú jáde wò                               | `:next` (kì í ṣe fún iṣelọpọ)           |
-| Dán `main` wò                                                                     | `:main` (kì í ṣe fún iṣelọpọ)           |
+| Ohun tí o fẹ́                                                            | Ohun tí o yẹ kí o lò                 |
+| ----------------------------------------------------------------------- | ------------------------------------ |
+| GitOps / production tí kò gbọ́dọ̀ yí kúrò ní ipò rẹ̀                       | Pin `:X.Y.Z` (tàbí digest image náà) |
+| Tẹ̀lé àwọn stable tí a tẹ̀ jáde, kí o sì gba àtúndásílẹ̀ ní gbogbo release | `:latest`                            |
+| Dán àwọn commit `release/v*` tí a kò tíì tẹ̀ jáde wò                     | `:next` (kì í ṣe fún production)     |
+| Dán `main` wò                                                           | `:main` (kì í ṣe fún production)     |
 
-## Wíwà-lárọ̀ọ́wọ́tó: SQLite àiyipada jẹ́ ẹ̀dà kan ṣoṣo
+## Wíwà nílẹ̀: SQLite àìyípadà ní ẹ̀dà kan ṣoṣo
 
-Docker / Kubernetes OmniRoute àkọ́kọ́ jẹ́ **ìlànà Node kan + akọ̀wé SQLite kan**. Wíwà-lárọ̀ọ́wọ́tó gíga **kò ní àtìlẹ́yìn** lórí ètò ìṣètò yẹn.
+Docker / Kubernetes OmniRoute boṣewa jẹ́ **ìlànà Node kan + olùkọ SQLite kan**. Wíwà nílẹ̀ gíga **kò ní àtìlẹ́yìn** lórí ìṣètò yìí.
 
-| Ìdíwọ́                                  | Àbájáde                                                                                                                                                                                                                                                                                                                      |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Akọ̀wé kan ṣoṣo                         | **Má ṣe** ṣiṣẹ́ ẹ̀dà púpọ̀ pẹ̀lú fáìlì SQLite kan náà. Ìyẹn yóò ba DB jẹ́.                                                                                                                                                                                                                                                        |
-| Àtúnṣẹ̀dá / àtúnṣiṣẹ́ / pípa HEALTHCHECK | **Ìdádúró iṣẹ́ pátápátá** fún SSE tó ń lọ lọ́wọ́, àwọn àkókò dashboard, àti ipò inú ìrántí. Gbogbo client tó sopọ̀ yóò já. Àwọn ìbéèrè tuntun ní àkókò tí endpoint kò sí yóò gba **`502 Bad Gateway: Unknown error`** láti ọ̀dọ̀ reverse-proxy, kì í ṣe OmniRoute JSON — àwọn client kò lè fi èyí yàtọ̀ sí ìkùnà provider (#11015). |
-| Event loop kan náà bí `/healthz`       | Catalog tó dí tàbí ìgbésẹ̀ compression lè fa ìdádúró fún probe; timeout kúkúrú yóò sì tún ẹ̀dà **kan ṣoṣo** náà bẹ̀rẹ̀.                                                                                                                                                                                                          |
+| Ìdíwọ́                                  | Àbájáde                                                                                                                                                                                                                                                                                                                  |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Olùkọ kan ṣoṣo                         | **Má ṣe** ṣiṣẹ́ ọ̀pọ̀ ẹ̀dà lórí fáìlì SQLite kan náà. Ìyẹn máa ba DB jẹ́.                                                                                                                                                                                                                                                     |
+| Àtúnṣẹ̀dá / àtúnṣiṣẹ́ / pípa HEALTHCHECK | **Ìdádúró pátápátá** fún SSE tí ó ń lọ lọ́wọ́, àwọn ìjókòó dashboard, àti ipò inú-memory. Gbogbo client tí ó sopọ̀ yóò já kúrò. Àwọn ìbéèrè tuntun ní àkókò tí endpoint ṣófo yóò gba reverse-proxy **`502 Bad Gateway: Unknown error`**, kì í ṣe JSON OmniRoute — àwọn client kò lè fi èyí yàtọ̀ sí ìkùnà provider (#11015). |
+| Ìyípo ìṣẹ̀lẹ̀ kan náà bí `/healthz`      | Catalog tí ó dí tàbí ìgbésẹ̀ compression lè mú kí àwọn àyẹ̀wò pẹ́; timeout kúkúrú yóò sì tún ẹ̀dà **kan ṣoṣo** náà bẹ̀rẹ̀.                                                                                                                                                                                                     |
 
-**Àtẹ ìṣètò probe** (tún wo [àwọn àbá probe Kubernetes](../ops/MONITORING_GUIDE.md#kubernetes-probe-recommendations)):
+**Tábìlì àwọn àyẹ̀wò** (wo pẹ̀lú [àwọn àbá àyẹ̀wò Kubernetes](../ops/MONITORING_GUIDE.md#kubernetes-probe-recommendations)):
 
-| Probe           | Àfojúsùn                                                                 | Má ṣe lò                                             |
-| --------------- | ------------------------------------------------------------------------ | ---------------------------------------------------- |
-| Liveness        | TCP lórí `PORT` (àiyipada `20128`), tàbí HTTP `/healthz` tí kò le gan-an | `/api/monitoring/health`                             |
-| Readiness       | HTTP `GET /healthz`                                                      | Àwọn timeout tó kúrú tí ó ka event-loop tó dí sí òkú |
-| Ìjìnlẹ̀ / ènìyàn | `/api/monitoring/health`                                                 | Liveness kubelet aládàáṣiṣẹ́                          |
+| Àyẹ̀wò           | Ohun tí a ń yẹ̀wò                                              | Má ṣe lò                                      |
+| --------------- | ------------------------------------------------------------- | --------------------------------------------- |
+| Wíwà láàyè      | TCP lórí `PORT` (àìyípadà `20128`), tàbí HTTP rírọ̀ `/healthz` | `/api/monitoring/health`                      |
+| Ìmúrasílẹ̀       | HTTP `GET /healthz`                                           | Timeout tó há tí ó ka event-loop tó dí sí òkú |
+| Ìjìnlẹ̀ / ènìyàn | `/api/monitoring/health`                                      | Àyẹ̀wò wíwà láàyè kubelet aládàáṣiṣẹ́           |
 
-**Àwọn ìgbésókè:** retí pé gbogbo session yóò já. Yọ àwọn client kúrò díẹ̀díẹ̀ bí o bá lè ṣe bẹ́ẹ̀; kò sí rolling update lórí SQLite àiyipada. Compose `restart: unless-stopped` pẹ̀lú Docker `HEALTHCHECK` yóò tún rọ́pò ìlànà kan ṣoṣo náà nígbà tí container bá wà ní ipò Unhealthy — ìpalára tó dé ibi kan náà ni.
+**Àwọn ìgbéga ẹ̀yà:** retí pé gbogbo ìjókòó yóò já. Yọ àwọn client kúrò díẹ̀díẹ̀ bí o bá lè ṣe bẹ́ẹ̀; kò sí rolling update lórí SQLite àìyípadà. Compose `restart: unless-stopped` pẹ̀lú Docker `HEALTHCHECK` yóò tún rọ́pò ìlànà kan ṣoṣo náà nígbà tí container bá di Unhealthy — ìwọ̀n ipa ìpalára kan náà ni.
 
-Àpẹẹrẹ Kubernetes fún **ẹ̀dà kan ṣoṣo** (Recreate jẹ́ dandan; má ṣe mú `replicas` pọ̀ sí i lórí fáìlì SQLite kan):
+Àpẹẹrẹ kékeré Kubernetes fún **ẹ̀dà kan ṣoṣo** (Recreate jẹ́ dandan; má ṣe mú `replicas` pọ̀ sí i lórí fáìlì SQLite kan):
 
 ```yaml
 spec:
@@ -620,29 +620,29 @@ spec:
             periodSeconds: 20
 ```
 
-Ìdúró `preStop` jẹ́ kí kube yọ àwọn endpoint Service kúrò kí SIGTERM tó dé, kí ìṣàn iṣẹ́ **tuntun** má bàa máa dé ọ̀dọ̀ ìlànà tó ń kú. SSE `/v1/responses` tó ń lọ lọ́wọ́ ni a ó jẹ́ kí ó parí títí dé `SHUTDOWN_TIMEOUT_MS` (àiyipada 30s) nípasẹ̀ àwọn heavyweight admission lease (#11015). Àwọn ìbéèrè tuntun tí ó ṣì dé ọ̀dọ̀ ìlànà náà yóò gba `503` + `Retry-After: 5`. Àkókò àlàfo Recreate tí endpoint kò sí títí tí arọ́pò yóò fi di Ready ṣì jẹ́ ìdádúró iṣẹ́ gidi — ètò ìṣètò SQLite ló fa èyí, kì í ṣe àṣìṣe ìṣètò probe.
+Ìsùn `preStop` ń jẹ́ kí kube yọ àwọn endpoint Service kúrò kí SIGTERM tó dé, kí ìrìnàjò **tuntun** má bàa tún dé ọ̀dọ̀ ìlànà tó ń kú. SSE `/v1/responses` tí ó ń lọ lọ́wọ́ ni a máa jẹ́ kí ó parí títí dé `SHUTDOWN_TIMEOUT_MS` (àìyípadà 30s) nípasẹ̀ heavyweight admission leases (#11015). Àwọn ìbéèrè tuntun tí ó ṣì dé ọ̀dọ̀ ìlànà náà yóò gba `503` + `Retry-After: 5`. Àlàfo endpoint ṣófo ti Recreate títí tí arọ́pò yóò fi di Ready ṣì jẹ́ ìdádúró líle — ìṣètò SQLite ló fa ìyẹn, kì í ṣe àṣìṣe ìṣètò àyẹ̀wò.
 
-Postgres ìta / HA akọ̀wé-púpọ̀ **kì í ṣe** ọ̀nà àkọ́kọ́ tí a ti ṣe àkọsílẹ̀ rẹ̀. Tí o bá nílò HA, lo ẹ̀dà kan ṣoṣo tàbí ṣiṣẹ́ ètò ìṣètò tí project náà ti dánwò tí ó sì ti ṣe àkọsílẹ̀ rẹ̀ lọ́tọ̀. Iṣẹ́ Postgres/MySQL wà nínú [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075). Títí tí èyí yóò fi jáde, ọ̀nà kan ṣoṣo tí a ṣe àtìlẹ́yìn fún láti mú agbára `/v1/responses` **ńlá** pọ̀ sí i ni àwọn ìlànà olómìnira N (abala tó kàn), kì í ṣe `replicas > 1` lórí volume kan.
+Postgres ìta / HA olùkọ-púpọ̀ **kì í ṣe** ọ̀nà boṣewa tí a ti ṣe àkọsílẹ̀ rẹ̀. Tí o bá nílò HA, pa ẹ̀dà kan ṣoṣo mọ́ tàbí ṣiṣẹ́ ìṣètò tí iṣẹ́ náà ti dánwò tí ó sì ti ṣe àkọsílẹ̀ rẹ̀ lọ́tọ̀. Iṣẹ́ Postgres/MySQL wà nínú [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075). Títí tí ìyẹn yóò fi jáde, ọ̀nà kan ṣoṣo tí a ṣe àtìlẹ́yìn fún láti mú agbára `/v1/responses` **ńlá** pọ̀ sí i ni àwọn ìlànà olómìnira N (apá tó kàn), kì í ṣe `replicas > 1` lórí volume kan.
 
-## Ìmúgbòòrò síta: Àwọn process N tó dá dúró
+## Ìmúgbòòrò jáde: àwọn process olómìnira N
 
-Process Node kan jẹ́ **heap V8 kan**. Àwọn `POST /v1/responses` coding-agent méjì (RTK + Caveman) tó ń ṣiṣẹ́ ní àkókò kan náà, tí ọ̀kọ̀ọ̀kan wọn jẹ́ ~3 MiB / ~750k-token, máa ń mú heap náà dáwọ́ dúró ní nǹkan bí ~12 Gi (`FATAL ERROR: Reached heap limit`), wọ́n sì lè fa OOM nínú cgroup 16 Gi kan. Wo [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849). Ìwọ̀n yẹn jẹ́ ìkìlọ̀ nípa **ìṣúná memory**, kì í ṣe òpin gíga ọja tó sọ pé àwọn `/v1/responses` gígùn méjì péré ló lè ṣiṣẹ́ ní àkókò kan náà. Ìgbàwọlé chat tó wuwo ni a ń ṣàkóso pẹ̀lú ìṣúná byte ingest tí a ṣàyọ láìfọwọ́ṣe (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, `src/shared/middleware/admissionBudget.ts`), tí a ṣètò ìwọ̀n rẹ̀ láti inú òpin V8/cgroup kan náà — fífi iye tó ga jù kọ iye náà (tàbí ṣíṣètò òpin iye request àtijọ́ `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) lórí process tí a ti ṣètò ìwọ̀n rẹ̀ yóò tún fa ìdáwọ́-dúró náà padà. Àwọn chat kéékèèké, `/healthz`, `/v1/models`, àti MCP **kò** sí lábẹ́ òpin yẹn.
+Process Node kan jẹ́ **heap V8 kan**. Àwọn coding-agent `POST /v1/responses` (RTK + Caveman) méjì tí wọ́n ń ṣiṣẹ́ ní àkókò kan, tí ọ̀kọ̀ọ̀kan tó ~3 MiB / ~750k-token, máa ń mú kí heap náà dáwọ́ dúró ní nǹkan bí ~12 Gi (`FATAL ERROR: Reached heap limit`), wọ́n sì lè fa OOM nínú cgroup 16 Gi kan. Wo [#7849](https://github.com/diegosouzapw/OmniRoute/issues/7849). Ìwọ̀n yẹn jẹ́ ìkìlọ̀ nípa **ìpín ìrántí**, kì í ṣe òpin gíga líle ti ọjà pé `/v1/responses` gígùn méjì péré ló lè ṣiṣẹ́ ní àkókò kan. Gbigba chat aláwọ̀n-wúwo wọlé ni a ń ṣàkóso pẹ̀lú ìpín byte ingest tí a ń ṣe ìṣírò rẹ̀ láìfọwọ́ṣe (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES`, `src/shared/middleware/admissionBudget.ts`), tí a ṣètò ìwọ̀n rẹ̀ láti inú ààlà V8/cgroup kan náà — fífi iye tó ga ju bẹ́ẹ̀ lọ rọ́pò rẹ̀ (tàbí ṣíṣètò òpin iye request àtijọ́ `OMNIROUTE_CHAT_MAX_HEAVY_IN_FLIGHT`) lórí process tí a ti ṣètò ìwọ̀n rẹ̀ tẹ́lẹ̀ yóò tún fa ìdádúró náà padà. Àwọn chat kéékèèké, `/healthz`, `/v1/models`, àti MCP **kò** sí lábẹ́ òpin yẹn.
 
 ### Process kan: ju `/v1/responses` gígùn méjì lọ
 
-Process tó **wà ní ìlera** (heap tó wà ní ìsàlẹ̀ `OMNIROUTE_CHAT_ADMISSION_HEAP_SHED_RATIO`, default `0.75`) **lè** ṣiṣẹ́ àwọn `POST /v1/responses` gígùn tó ju méjì lọ ní àkókò kan náà nígbà tí àyè ṣì wà nínú ìṣúná byte inflight káàkiri process (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` / #10110). Àwọn body tó tó tàbí tó ju `OMNIROUTE_CHAT_LARGE_BODY_BYTES` (default 256 KiB) lọ máa ń gba lease heavyweight kan náà bí àwọn request tó ní structure tó pọ̀, wọ́n sì ń lo ọ̀nà àbáyọ [#10437](https://github.com/diegosouzapw/OmniRoute/pull/10437) `tryAcquireHealthyHeadroom` kan náà (`OMNIROUTE_CHAT_ADMISSION_HEALTHY_HEADROOM`). Ṣíṣiṣẹ́ ọ̀pọ̀lọpọ̀ client SSE gígùn ní àkókò kan náà (àwọn operator sábà máa ń nílò 40–50) jẹ́ ìbéèrè **ìṣúná memory** — ṣètò ìwọ̀n heap + àwọn slot primary/headroom + `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — kì í ṣe òpin ọja líle tó jẹ́ “ó pọ̀ jù sí 2”. Heap tó wà lábẹ́ ìfúnpá ṣì máa ń kọ request sílẹ̀ pẹ̀lú `503` tí a lè tún gbìyànjú, kí #7849 má bàa padà.
+Process tí ó **ní ìlera** (heap tó wà ní ìsàlẹ̀ `OMNIROUTE_CHAT_ADMISSION_HEAP_SHED_RATIO`, àiyipada `0.75`) **lè** ṣiṣẹ́ àwọn `POST /v1/responses` gígùn tó ju méjì lọ ní àkókò kan nígbà tí àyè ṣì wà nínú ìpín byte inflight káàkiri process náà (`OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` / #10110). Àwọn body tó tó tàbí tó ju `OMNIROUTE_CHAT_LARGE_BODY_BYTES` lọ (àiyipada 256 KiB) máa ń gba lease aláwọ̀n-wúwo kan náà bí àwọn request tó ní structure púpọ̀, wọ́n sì ń lo ọ̀nà àsálà `tryAcquireHealthyHeadroom` kan náà ti [#10437](https://github.com/diegosouzapw/OmniRoute/pull/10437) (`OMNIROUTE_CHAT_ADMISSION_HEALTHY_HEADROOM`). Ọ̀pọ̀lọpọ̀ client SSE gígùn tí wọ́n ń ṣiṣẹ́ ní àkókò kan (àwọn operator sábà máa ń nílò 40–50) jẹ́ ìbéèrè nípa **ìpín ìrántí** — ṣètò ìwọ̀n heap + àwọn slot primary/headroom + `OMNIROUTE_CHAT_MAX_INFLIGHT_BYTES` — kì í ṣe òpin líle ọjà pé “ó pọ̀ jù sí 2”. Heap tí ó wà lábẹ́ ìfúnpọ̀ ṣì máa ń kọ àwọn request sílẹ̀ pẹ̀lú `503` tí a lè tún gbìyànjú, kí #7849 má bàa padà.
 
-Láti **sọ àwọn heap di púpọ̀** (àwọn old-space V8 tó dá dúró) **ní báyìí**:
+Láti **sọ àwọn heap di púpọ̀** (àwọn old-space V8 olómìnira) **lọ́wọ́lọ́wọ́**:
 
-| Ṣe                                                                                                                                  | Má ṣe                                                   |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Ṣiṣẹ́ **container/pod N**, kí ọ̀kọ̀ọ̀kan ní `DATA_DIR` / volume **tirẹ̀**                                                                | Ṣètò `replicas > 1` sí SQLite file kan náà              |
-| Ṣètò ìwọ̀n heavy in-flight + healthy-headroom láti inú heap / ìṣúná byte inflight; 1–2 ni default ìṣọ́ra #7849, kì í ṣe òpin ọja líle | Fún process kan ní RAM 8× àti òpin iye tí kò ní ààlà    |
-| Àṣàyàn: `QUOTA_STORE_DRIVER=redis` + `QUOTA_STORE_REDIS_URL` fún **àwọn counter quota tí a pín pọ̀**                                 | Ka Redis sí SQLite tí a pín pọ̀ — kì í ṣe bẹ́ẹ̀            |
-| Ṣe àdàkọ àwọn secret provider sínú instance kọ̀ọ̀kan (tàbí gba àwọn dashboard tí a pín sọ́tọ̀)                                          | Retí dashboard kan / call-log kan káàkiri àwọn instance |
-| Fi load balancer èyíkéyìí sí iwájú; sticky nípasẹ̀ API key tàbí session ti tó                                                        | Béèrè middleware size-aware kan tó jẹ́ ti vendor pàtó    |
+| Ṣe                                                                                                                               | Má ṣe                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Ṣiṣẹ́ **container/pod N**, kí ọ̀kọ̀ọ̀kan ní `DATA_DIR` / volume **tirẹ̀**                                                             | Ṣètò `replicas > 1` sí SQLite file kan náà               |
+| Ṣètò heavy in-flight + healthy-headroom láti inú heap / ìpín inflight-byte; 1–2 ni àiyipada #7849 tó ṣọ́ra, kì í ṣe òpin líle ọjà | Fún process kan ní RAM 8× àti òpin iye tí kò ní ààlà     |
+| Bí o bá fẹ́: `QUOTA_STORE_DRIVER=redis` + `QUOTA_STORE_REDIS_URL` fún **àwọn counter quota tí a pín**                             | Ka Redis sí SQLite tí a pín — kì í ṣe bẹ́ẹ̀                |
+| Ṣe àdàkọ àwọn secret provider sínú instance kọ̀ọ̀kan (tàbí gba pé àwọn dashboard yóò pínyà)                                        | Retí dashboard kan / call-log kan láàárín àwọn instance  |
+| Fi load balancer èyíkéyìí sí iwájú; sticky nípasẹ̀ API key tàbí session ti tó                                                     | Béèrè fún middleware size-aware kan tó jẹ́ ti vendor pàtó |
 
-Hardware: iye àwọn `/v1/responses` gígùn tó lè ṣiṣẹ́ ní àkókò kan náà fún instance kọ̀ọ̀kan jẹ́ ìbéèrè **ìṣúná memory** (heap + inflight-byte / #10110). Àwọn `DATA_DIR` N tó dá dúró ṣì máa ń sọ àwọn heap di púpọ̀: RAM host gbọ́dọ̀ tó fún `N × cgroup`, kì í ṣe “pod 16 Gi kan pẹ̀lú N=8.” Má ṣe lo `replicas > 1` lórí SQLite file kan náà láé.
+Hardware: iye `/v1/responses` gígùn tí instance kọ̀ọ̀kan lè ṣiṣẹ́ ní àkókò kan jẹ́ ìbéèrè nípa **ìpín ìrántí** (heap + inflight-byte / #10110). Àwọn `DATA_DIR` olómìnira N ṣì máa ń sọ àwọn heap di púpọ̀: RAM host gbọ́dọ̀ lè gba `N × cgroup`, kì í ṣe “pod 16 Gi kan pẹ̀lú N=8.” Má ṣe lo `replicas > 1` lórí SQLite file kan láé.
 
 Àwòrán Compose (heap méjì, volume méjì — kì í ṣe `deploy.replicas: 2`):
 
@@ -671,17 +671,100 @@ volumes:
   omniroute-b-data:
 ```
 
-Ìwọ̀n ìrùgbọ̀kú inú process (compression kúrò lórí isolate HTTP) wà ní [#11023](https://github.com/diegosouzapw/OmniRoute/issues/11023). Cluster logical kan lórí state durable tí a pín pọ̀ wà ní [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075).
+Ìṣọ̀pọ̀ tó pọ̀ sínú process (pẹ̀lú compression tí a yọ kúrò lórí HTTP isolate) wà ní [#11023](https://github.com/diegosouzapw/OmniRoute/issues/11023). Cluster logical kan lórí state durable tí a pín wà ní [#8075](https://github.com/diegosouzapw/OmniRoute/issues/8075).
+
+## Àwọn àṣìṣe ẹkùn Gemini nínú Docker
+
+Google AI Studio / Gemini API lè dá HTTP 400 padà pẹ̀lú FAILED_PRECONDITION àti
+`User location is not supported for the API use.` Ìbéèrè tó ṣàṣeyọrí lórí host
+kò fi hàn pé container náà ń lo ipa ọ̀nà àbájáde kan náà. Ètò DNS,
+àsopọ̀ IPv4/IPv6, ipa ọ̀nà VPN àti àwọn proxy tí a ṣètò lè yàtọ̀. Ṣàyẹ̀wò
+[àwọn ẹkùn tí Google ṣe àtìlẹ́yìn fún](https://ai.google.dev/gemini-api/docs/available-regions)
+àti ipa ọ̀nà àsopọ̀ gangan; àṣìṣe yìí nìkan kò fi hàn pé API key kò dára.
+
+### Yan proxy kan pàtó fún àsopọ̀
+
+Lo [ètò proxy fún àsopọ̀ kọ̀ọ̀kan](../ops/PROXY_GUIDE.md#4-level-proxy-system)
+ti OmniRoute fún àsopọ̀ Gemini tí ọ̀ràn náà kàn, lẹ́yìn náà tún **Test Connection** ṣe
+àti ìbéèrè kékeré kan pẹ̀lú model kan náà. Èyí ń jẹ́ kí àyípadà ipa ọ̀nà náà ní ipa
+lórí àsopọ̀ yẹn nìkan. Jẹ́rìí pé container lè dé ọ̀dọ̀ proxy náà, àti pé àsopọ̀ náà
+yan án ní tòótọ́. Yíyí ipa ọ̀nà padà kò ṣe ìdánilójú pé iṣẹ́ upstream yóò gba ẹkùn náà.
+
+### Ṣe àfiwé nẹ́tíwọ́ọ̀kì host àti container
+
+Jẹ́ kí key, model àti ìbéèrè jẹ́ ọ̀kan náà nígbà tí o bá ń ṣe àfiwé àwọn èsì tí a ti
+jẹ́rìí ìdánimọ̀ wọn; má ṣe lẹ àwọn ẹ̀rí ìwọlé, ọ̀rọ̀ aṣínà proxy tàbí authorization
+headers kíkún sínú issue kan láé. Kọ́kọ́ ṣàyẹ̀wò àwọn address families tí OS resolver
+ń pèsè, ní lílo command kan náà lórí host àti nínú container:
+
+```bash
+node -e 'require("node:dns").lookup("generativelanguage.googleapis.com", {all: true}, (error, addresses) => { if (error) { console.error(error.code); process.exitCode = 1; return; } console.log(addresses.map(({family}) => family)); })'
+docker compose exec omniroute node -e 'require("node:dns").lookup("generativelanguage.googleapis.com", {all: true}, (error, addresses) => { if (error) { console.error(error.code); process.exitCode = 1; return; } console.log(addresses.map(({family}) => family)); })'
+```
+
+Rọ́pò `omniroute` pẹ̀lú service tí o ń ṣiṣẹ́ (fún àpẹẹrẹ, `omniroute-web`). Àwọn
+command wọ̀nyí ń tẹ address families jáde láìsí ẹ̀rí ìwọlé tàbí IP addresses. `6`
+tí a dá padà fi èsì IPv6 DNS hàn nìkan: kò **fi hàn** pé ipa ọ̀nà IPv6 tó ṣeé lò
+tàbí ààyè sí API wà. Níbi tí a ti fi `curl` sí, ṣe àfiwé
+`curl -4 -I https://generativelanguage.googleapis.com` pẹ̀lú
+`curl -6 -I https://generativelanguage.googleapis.com` nínú àwọn environment méjèèjì.
+Èsì HTTP fi ìsopọ̀ hàn fún ìdánwò yẹn, kódà bí ó bá jẹ́ àṣìṣe tí kò ní ìjẹ́rìísí
+ìdánimọ̀; ìbéèrè model tí a ti jẹ́rìí ìdánimọ̀ rẹ̀ nìkan ló ń dán ìtẹ́wọ́gbà Gemini wò.
+
+### Àṣàyàn ní ìpele host: IPv6 tó ń ṣiṣẹ́ àti ìlànà resolver
+
+Olùjábọ̀ ti [#12762](https://github.com/diegosouzapw/OmniRoute/issues/12762) mú ààyè
+padà bọ̀ sípò nínú environment wọn nípa mímú IPv6 container ṣiṣẹ́ àti yíyí bí glibc
+ṣe ń yan address padà. Ka èyí sí àṣàyàn tó jẹ́ pàtó sí environment. Jẹ́rìí pé IPv6
+host ń ṣiṣẹ́, pé egress/ipa ọ̀nà container dára, àti pé àwọn òfin firewall tọ́ kí o
+tó ṣàtúnṣe àwọn ààyò resolver. ULA address aládàáni kan nìkan kò fi hàn pé àsopọ̀
+IPv6 gbogbogbò ń ṣiṣẹ́.
+
+Fún àwọn service tí a ti so mọ́ default network ti Compose, àjákù yìí ń mú IPv6
+ṣiṣẹ́ lórí network náà; pa ìyókù service, ports, volumes àti configuration rẹ mọ́:
+
+```yaml
+networks:
+  default:
+    enable_ipv6: true
+```
+
+Fún network tí a dárúkọ, mú un ṣiṣẹ́ lórí network tí service náà darapọ̀ mọ́ ní tòótọ́.
+Docker lè pín ULA subnet; yan subnet pàtó tí kò ní kọjá lórí omiì nígbà tí network rẹ
+bá béèrè rẹ̀ nìkan. Wo [nẹ́tíwọ́ọ̀kì Docker IPv6](https://docs.docker.com/engine/daemon/ipv6/)
+àti [àwọn àṣàyàn network Compose](https://docs.docker.com/reference/compose-file/networks/#enable_ipv6).
+
+Lórí **image tó dá lórí glibc**, `/etc/gai.conf` lè yí bí a ṣe ń yan address padà.
+Dockerfile repository lọ́wọ́lọ́wọ́ ń lo Debian; àwọn image àkànṣe tó dá lórí musl
+kò lo ọ̀nà yìí. Àtúnṣe tí a jábọ̀ yí label ULA padà láti `label fc00::/7 6` sí
+`label fc00::/7 1`. Bẹ̀rẹ̀ láti inú policy table kíkún ti image náà kí o sì pa àwọn
+entry rẹ̀ yòókù mọ́: fífi entry `label` tàbí `precedence` kún un ń rọ́pò default table
+yẹn, nítorí náà file tí ó ní line tí a yí padà nìkan kò tó.
+[Ìtọ́kasí configuration glibc](https://github.com/bminor/glibc/blob/master/posix/gai.conf)
+ṣàlàyé àwọn ìlànà wọ̀nyẹn. Ṣe bind-mount file tí a ti ṣàyẹ̀wò náà gẹ́gẹ́ bí read-only
+sí `/etc/gai.conf`, kí o sì tún service náà ṣẹ̀dá láti fi í sílò.
+
+Èyí ń yí bí OS ṣe ń yan address padà fún **gbogbo outbound traffic nínú container yẹn**.
+Kò fipá mú gbogbo application láti yan IPv6: ètò DNS ti Node àti bí a ṣe ń yan àsopọ̀
+náà ṣe pàtàkì. Ní pàtàkì, `--dns-result-order=ipv4first` ń fi IPv4 síwájú, kò sì jẹ́
+ojútùú fún ìkùnà tó ṣẹlẹ̀ lórí IPv4 nìkan. Wo
+[ètò DNS Node](https://nodejs.org/api/dns.html#dnssetdefaultresultorderorder).
+
+Tún Gemini àti àwọn provider rẹ yòókù dán wò lẹ́yìn àyípadà èyíkéyìí ní ìpele host.
+Láti dá a padà, yọ mount `gai.conf` àkànṣe náà kúrò, dá configuration network tẹ́lẹ̀
+padà, kí o sì tún service/network tí ọ̀ràn náà kàn ṣẹ̀dá lákòókò ìtọ́jú. Ṣíṣẹ̀dá
+network kan padà lè dá àwọn container mìíràn tí a so mọ́ ọn dúró; má ṣe pa persistent
+data volume rẹ́.
 
 ## Àwọn Àkíyèsí Pàtàkì
 
-- **Ipo WAL SQLite:** Ó yẹ kí a jẹ́ kí `docker stop` parí kí OmniRoute lè ṣe checkpoint àwọn ìyípadà tuntun padà sínú `storage.sqlite`. Àwọn fáìlì Compose tí a ṣàkójọ mọ́ ọn ti ṣètò àkókò àánú ìdádúró sí 40s tẹ́lẹ̀. Tí o bá ń ṣiṣẹ́ image náà ní tààrà, fi `--stop-timeout 40` sílẹ̀.
-- **`DISABLE_SQLITE_AUTO_BACKUP`:** Ṣètò rẹ̀ sí `true` tí àwọn backup déédéé/tó máa ń wáyé ṣáájú kíkọ bá jẹ́ èyí tí a ń ṣàkóso níta. Àwọn migration fún database tó ti wà ṣì nílò safety snapshot tó lè pé àti mass-migration guard tiwọn.
-- **Ìfipamọ́ Data Tí Kò Ní Ṣòfò:** Máa mount volume kan sí `/app/data` ní gbogbo ìgbà láti tọ́jú database, àwọn key, àti àwọn configuration rẹ láàárín àwọn ìtunbẹ̀rẹ̀ container.
-- **Ìṣètò Port:** Override environment variable `PORT` láti yí port àiyipada `20128` padà.
+- **Ipo WAL SQLite:** Ó yẹ kí a jẹ́ kí `docker stop` parí kí OmniRoute lè ṣe checkpoint àwọn àyípadà tuntun padà sínú `storage.sqlite`. Àwọn fáìlì Compose tí a kó mọ́ ọ ti ṣètò àkókò ààyè ìdádúró sí 40s tẹ́lẹ̀. Tí o bá ń ṣiṣẹ́ image náà ní tààrà, jẹ́ kí `--stop-timeout 40` wà.
+- **`DISABLE_SQLITE_AUTO_BACKUP`:** Ṣètò sí `true` tí a bá ń ṣàkóso àwọn backup ìgbà-dé-ìgbà/tí ó ṣáájú kíkọ láti ìta. Àwọn migration database tó ti wà ṣì nílò snapshot ààbò tó lágbára tiwọn àti ìdènà fún migration ọ̀pọ̀lọpọ̀.
+- **Ìtọ́jú Data:** Máa mount volume kan sí `/app/data` ní gbogbo ìgbà láti tọ́jú database, àwọn key, àti àwọn configuration rẹ láàárín àwọn ìtúnrẹ̀rẹ̀ container.
+- **Ìṣètò Port:** Override environment variable `PORT` láti yí port àìyípadà `20128` padà.
 
-## Tún Wo
+## Wo Bákan Náà
 
 - [Ìtọ́sọ́nà Deployment VM](../ops/VM_DEPLOYMENT_GUIDE.md) — Ìṣètò VM + nginx + Cloudflare
-- [Ìtọ́sọ́nà Deployment Fly.io](../ops/FLY_IO_DEPLOYMENT_GUIDE.md) — Ṣe deployment sí Fly.io
-- [Ìṣètò Environment](../reference/ENVIRONMENT.md) — Ìtọ́kasí `.env` tó péye
+- [Ìtọ́sọ́nà Deployment Fly.io](../ops/FLY_IO_DEPLOYMENT_GUIDE.md) — Ṣe deploy sí Fly.io
+- [Config Environment](../reference/ENVIRONMENT.md) — Reference `.env` tó péye
