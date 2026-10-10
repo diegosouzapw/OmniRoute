@@ -55,11 +55,13 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules
-        key: node-modules-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ steps.npm.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs', 'scripts/build/betterSqlitePrebuildTarget.mjs', 'scripts/ci/verify-ci-install.mjs') }}
+        key: node-modules-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ steps.npm.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs', 'scripts/build/betterSqlitePrebuildTarget.mjs', 'scripts/ci/verify-ci-install.mjs', '.github/actions/npm-ci-retry/action.yml') }}
 
     - name: npm ci (with retry)
       if: steps.node-modules.outputs.cache-hit != 'true'
       shell: bash
+      env:
+        ONNXRUNTIME_NODE_INSTALL: "skip"
       run: |
         set -euo pipefail
 

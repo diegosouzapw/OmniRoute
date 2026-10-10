@@ -93,6 +93,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
         env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
           NPM_CONFIG_LEGACY_PEER_DEPS: true
 
       - name: Build Next.js standalone
@@ -179,6 +180,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
         env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
           NPM_CONFIG_LEGACY_PEER_DEPS: true
 
       # The Linux leg produces x64 + arm64 installers from one x64 runner. npm

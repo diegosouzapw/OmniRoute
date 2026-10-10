@@ -43,6 +43,8 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
 
       - name: Build Next.js app & CLI bundle
         run: |

@@ -1,0 +1,1 @@
+- Set `ONNXRUNTIME_NODE_INSTALL=skip` explicitly for the shared dependency-install action and direct checkout install steps, include the action policy in the dependency cache identity, and document local shell usage. The legacy `.npmrc` key remains for compatibility; published-package consumer installs are outside this checkout policy.

@@ -32,6 +32,8 @@ jobs:
             echo "OMNIROUTE_PLUGINS_DIR=$data_dir/plugins"
           } >> "$GITHUB_ENV"
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - name: Build CLI bundle
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation

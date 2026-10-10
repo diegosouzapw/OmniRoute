@@ -49,6 +49,8 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - name: Run Stryker (disableBail)
         env:
           BATCH_MUTATE: ${{ matrix.batch.mutate }}
