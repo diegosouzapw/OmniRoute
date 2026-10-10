@@ -72,6 +72,7 @@ import {
   shouldUseNativeOpenAICompatibleResponsesPassthrough,
   stampNativeResponsesPassthroughBody,
   redactPassthroughThinkingSignatures,
+  dropForeignServerToolUseBlocks,
   stripClaudeRejectedTopLevelFields,
   isClaudeCodeSemanticPassthroughRequest,
 } from "./chatCore/passthroughHelpers.ts";
@@ -2384,6 +2385,10 @@ async function handleChatCoreInner({
         translatedBody.messages = redactPassthroughThinkingSignatures(
           translatedBody.messages,
           DEFAULT_THINKING_CLAUDE_SIGNATURE
+        ) as typeof translatedBody.messages;
+        // Foreign server_tool_use ids (z.ai `call_…`) fail Anthropic's ^srvtoolu_ check (9router#3685).
+        translatedBody.messages = dropForeignServerToolUseBlocks(
+          translatedBody.messages
         ) as typeof translatedBody.messages;
 
         stripClaudeRejectedTopLevelFields(translatedBody, clientRawRequest?.headers);
