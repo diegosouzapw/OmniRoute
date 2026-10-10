@@ -78,6 +78,10 @@ import {
   getAntigravityEnvelopeUserAgent,
   getAntigravitySessionId,
 } from "../services/antigravityIdentity.ts";
+import {
+  isGeminiTrailingModelTurnRejectingModel,
+  stripTrailingGeminiModelTurns,
+} from "../translator/helpers/geminiTrailingModelTurn.ts";
 
 const MAX_RETRY_AFTER_MS = 60_000;
 const LONG_RETRY_THRESHOLD_MS = 60_000;
@@ -481,12 +485,7 @@ function stripTrailingAntigravityAssistantTurn(
     return request;
   }
 
-  while (
-    contents.length > 1 &&
-    (contents[contents.length - 1] as AntigravityContent)?.role === "model"
-  ) {
-    contents.pop();
-  }
+  stripTrailingGeminiModelTurns(contents);
 
   return request;
 }
@@ -498,11 +497,7 @@ function stripTrailingAntigravityAssistantTurn(
  * of the rejection evidence for #10104.
  */
 function isAntigravityGeminiChatModel(upstreamModel: string): boolean {
-  const normalizedModel = upstreamModel.toLowerCase();
-  if (/(?:^|-)image(?:-|$)/.test(normalizedModel)) {
-    return false;
-  }
-  return /^gemini-(?:3(?:\.\d+)?(?:-[a-z0-9-]+)?|pro-agent)$/.test(normalizedModel);
+  return isGeminiTrailingModelTurnRejectingModel(upstreamModel);
 }
 
 // Test-only export so the unit suite can exercise the strip logic directly.
