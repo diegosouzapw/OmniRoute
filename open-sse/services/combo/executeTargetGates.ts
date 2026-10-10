@@ -124,10 +124,12 @@ export async function evaluateExecuteTargetGates(opts: {
       cause,
     });
 
-  // Lift-as-is from combo.ts executeTarget: only count a fallback when
-  // this is not the first ordered target. Do not change the condition.
+  // Every skipped ordered target is a fallback, the first one included: the
+  // counter has to match the index of the target that ends up serving the
+  // request — the same value stamped on the target as `fallbackAttempts` and
+  // exposed as `X-OmniRoute-Fallback-Attempts`.
   const bumpFallback = () => {
-    if (i > 0) state.fallbackCount++;
+    state.fallbackCount++;
   };
 
   const openBreaker = findOpenCircuitBreaker(provider, target.connectionId);

@@ -821,3 +821,136 @@ test("quality fail without provider does not hop", async () => {
   assert.equal(seen.length, 1);
   assert.equal(result, null);
 });
+
+/**
+ * Fallback counting. `state.fallbackCount` is the per-set-try number of ordered
+ * targets abandoned before the one that serves the request: it is snapshotted
+ * into every combo record (`fallbackCount: state.fallbackCount`) and drives
+ * `totalFallbacks` / `fallbackRate` in /api/combos/metrics, and it must equal
+ * the index of the target that wins (the value exposed to clients as
+ * `X-OmniRoute-Fallback-Attempts`). Abandoning the FIRST target *is* the first
+ * fallback, so it has to count.
+ */
+test("a retryable failure of the first ordered target counts one fallback", async () => {
+  const { executeTargetAttempt } =
+    await import("../../../open-sse/services/combo/executeTargetAttempt.ts");
+  const target = modelTarget({ connectionId: "c-fail" });
+  const deps = baseDeps({
+    maxRetries: 0,
+    handleSingleModelWithTimeout: async () => new Response("upstream exploded", { status: 500 }),
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    abortControllers: new Map([[0, new AbortController()]]),
+  });
+  const result = await executeTargetAttempt({
+    index: 0,
+    state,
+    deps,
+    targetForAttempt: target,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(result, null, "a retryable failure must hand over to the next target");
+  assert.equal(state.fallbackCount, 1);
+});
+
+test("a first-target fallback reaches totalFallbacks, not just the counter", async () => {
+  const { executeTargetAttempt } =
+    await import("../../../open-sse/services/combo/executeTargetAttempt.ts");
+  const { getComboMetrics, resetComboMetrics } =
+    await import("../../../open-sse/services/comboMetrics.ts");
+  const comboName = `t-fallback-metrics-${Date.now()}`;
+  resetComboMetrics(comboName);
+  const first = modelTarget({ executionKey: "ek-0", stepId: "s0", connectionId: "c-dead" });
+  const second = modelTarget({
+    executionKey: "ek-1",
+    stepId: "s1",
+    connectionId: "c-live",
+    provider: "anthropic",
+    modelStr: "anthropic/claude-sonnet-4",
+  });
+  let calls = 0;
+  const deps = baseDeps({
+    maxRetries: 0,
+    combo: { name: comboName, models: [] },
+    handleSingleModelWithTimeout: async () => {
+      calls += 1;
+      if (calls === 1) return new Response("upstream exploded", { status: 500 });
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const state = emptyState({
+    orderedTargets: [first, second],
+    abortControllers: new Map([
+      [0, new AbortController()],
+      [1, new AbortController()],
+    ]),
+  });
+
+  // Target 0 dies; null means "combo, try the next ordered target".
+  const attempt0 = await executeTargetAttempt({
+    index: 0,
+    state,
+    deps,
+    targetForAttempt: first,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(attempt0, null);
+  assert.equal(state.fallbackCount, 1);
+
+  // Target 1 serves the request: its record carries the fallback that bought it.
+  const attempt1 = await executeTargetAttempt({
+    index: 1,
+    state,
+    deps,
+    targetForAttempt: second,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(attempt1?.ok, true);
+  assert.equal(state.fallbackCount, 1);
+
+  const metrics = getComboMetrics(comboName);
+  assert.equal(metrics?.totalFallbacks, 1, "one first-target fallback must be visible in metrics");
+  assert.equal(metrics?.totalFailures, 1);
+  assert.equal(metrics?.totalSuccesses, 1);
+});
+
+test("a same-target retry that succeeds is not a fallback", async () => {
+  const { executeTargetAttempt } =
+    await import("../../../open-sse/services/combo/executeTargetAttempt.ts");
+  const target = modelTarget({ connectionId: "c-retry" });
+  let calls = 0;
+  const deps = baseDeps({
+    maxRetries: 1,
+    config: { retryDelayMs: 0 },
+    handleSingleModelWithTimeout: async () => {
+      calls += 1;
+      if (calls === 1) return new Response("upstream exploded", { status: 500 });
+      return new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    },
+  });
+  const state = emptyState({
+    orderedTargets: [target],
+    abortControllers: new Map([[0, new AbortController()]]),
+  });
+  const result = await executeTargetAttempt({
+    index: 0,
+    state,
+    deps,
+    targetForAttempt: target,
+    profile: {},
+    protectedPriorityTarget: false,
+  });
+  assert.equal(result?.ok, true);
+  assert.equal(calls, 2, "the retry must hit the same target again");
+  assert.equal(state.fallbackCount, 0, "retrying the same target is not a fallback");
+});

@@ -61,4 +61,27 @@ describe("round-robin extract guards", () => {
       "#6692 quality/exhaustion path must still release the sticky pin"
     );
   });
+
+  it("counts an abandoned first model as a fallback (injection: re-adding the guard goes red)", () => {
+    // t_f348e188: `if (offset > 0) fallbackCount++` conflated "not the first
+    // target" with "is a fallback", so the first fallback (primary -> secondary)
+    // was never counted and totalFallbacks stayed 0 for every 2-target combo.
+    // Every abandoned target counts, whatever its offset/index.
+    const rr = readFileSync(rrPath, "utf8");
+    assert.equal(
+      /if\s*\(\s*offset\s*>\s*0\s*\)\s*fallbackCount\+\+/.test(rr),
+      false,
+      "roundRobinCombo.ts must not reintroduce the offset > 0 fallback guard"
+    );
+    assert.ok(rr.includes("fallbackCount++"), "round-robin must still count fallbacks");
+    const attemptSrc = readFileSync(
+      join(root, "open-sse/services/combo/executeTargetAttempt.ts"),
+      "utf8"
+    );
+    assert.equal(
+      /if\s*\(\s*i\s*>\s*0\s*\)\s*state\.fallbackCount\+\+/.test(attemptSrc),
+      false,
+      "executeTargetAttempt.ts must not reintroduce the i > 0 fallback guard"
+    );
+  });
 });
