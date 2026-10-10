@@ -63,14 +63,16 @@
 
 <div align="center">
 
-|                           | v3.8.49 |        **v3.8.50**        | `v3.8.51+`  |
-| ------------------------- | :-----: | :-----------------------: | :---------: |
-| 🌐 Providers              |   290   |          **357**          | more queued |
-| 🧠 Unique chat model IDs  |  1185   |         **1312**          |      —      |
-| 🖼️ Modality Bridge        |    —    | 🆕 vision + audio + video |      —      |
-| 📡 Radar free catalog     |    —    |         🆕 opt-in         |      —      |
-| ⚖️ Quota-aware scheduling |    —    |      🆕 Quota-Share       |      —      |
-| 📊 Quota telemetry        |    —    |          🆕 live          |      —      |
+|                           |          v3.8.50          | **v3.8.51** |      `v3.8.52+`       |
+| ------------------------- | :-----------------------: | :---------: | :-------------------: |
+| 🌐 Providers              |            352            |   **358**   |          372          |
+| 🧠 Unique chat model IDs  |           1320            |  **1374**   |         1443          |
+| 🖼️ Modality Bridge        | 🆕 vision + audio + video |      ✓      |           ✓           |
+| 📡 Radar free catalog     |         🆕 opt-in         |      ✓      |           ✓           |
+| ⚖️ Quota-aware scheduling |      🆕 Quota-Share       |      ✓      |           ✓           |
+| 📊 Quota telemetry        |          🆕 live          |      ✓      |           ✓           |
+| 🧰 Headless mode          |             —             |      —      | 🆕 `serve --headless` |
+| 🛤️ LTS rail infra         |             —             |      —      |  🆕 release channels  |
 
 **→ [Roadmap](ROADMAP.md) — riding the rail to `v3.9.0 LTS`**
 
