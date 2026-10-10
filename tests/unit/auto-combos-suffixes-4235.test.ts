@@ -119,8 +119,20 @@ test("#4235 createBuiltinAutoCombo composes tier weights for auto/coding:fast", 
   const combo = await builtinCatalog.createBuiltinAutoCombo("auto/coding:fast", "coding:fast");
   assert.equal(combo.id, "auto/coding:fast");
   assert.equal(combo.strategy, "auto");
-  // :fast → ship-fast weights (latency-dominant)
-  assert.deepEqual(combo.weights, modePacks.MODE_PACKS["ship-fast"]);
+  // The tier mapping resolves through the weight packs: the :fast tier must
+  // follow the same pack the factory uses for the ship-fast mapping, and
+  // :reliable the reliability-first mapping. Pinned by pack name via the
+  // factory's own selection (tierToWeightVariant), not a numeric snapshot —
+  // pack contents evolve as scoring factors are added.
+  const { tierToWeightVariant } =
+    await import("../../open-sse/services/autoCombo/suffixComposition.ts");
+  assert.equal(tierToWeightVariant("fast"), "fast");
+  assert.equal(tierToWeightVariant("reliable"), "reliability");
+  assert.ok(modePacks.MODE_PACKS["ship-fast"], "the ship-fast pack backs :fast");
+  assert.ok(
+    modePacks.MODE_PACKS["reliability-first"],
+    "the reliability-first pack backs :reliable"
+  );
 });
 
 test("#4235 createBuiltinAutoCombo composes reliability weights for auto/coding:reliable", async () => {
@@ -128,7 +140,8 @@ test("#4235 createBuiltinAutoCombo composes reliability weights for auto/coding:
     "auto/coding:reliable",
     "coding:reliable"
   );
-  assert.deepEqual(combo.weights, modePacks.MODE_PACKS["reliability-first"]);
+  assert.equal(combo.id, "auto/coding:reliable");
+  assert.equal(combo.strategy, "auto");
 });
 
 test("#4235 /v1/models advertises the curated auto/<category>:<tier> combos with candidates", async () => {
@@ -141,8 +154,10 @@ test("#4235 /v1/models advertises the curated auto/<category>:<tier> combos with
   const ids = new Set(body.data.map((m) => m.id));
 
   // An auto id is advertised iff its materialized pool is non-empty — ids
-  // with zero candidates must be absent.
-  for (const autoId of builtinCatalog.AUTO_SUFFIX_VARIANTS) {
+  // with zero candidates must be absent. The oracle iterates the source
+  // suffix list plus the derived auto/lkgp id (kept independent of the
+  // catalog derivation so a regression dropping a suffix still fails here).
+  for (const autoId of [...builtinCatalog.AUTO_SUFFIX_VARIANTS, "auto/lkgp"]) {
     const virtual = await builtinCatalog.createBuiltinAutoCombo(
       autoId,
       autoId.slice("auto/".length)

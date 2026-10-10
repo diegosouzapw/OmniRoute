@@ -21,6 +21,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 process.env.API_KEY_SECRET = process.env.API_KEY_SECRET || "catalog-11947-secret";
 
 const core = await import("../../src/lib/db/core.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const catalog = await import("../../src/app/api/v1/models/catalog.ts");
 
 type CatalogEntry = {
@@ -48,17 +50,32 @@ test.after(() => {
   if (ORIGINAL_DATA_DIR) process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
 
-test("#11947 auto/* entries include capabilities object (baseline)", async () => {
-  // Baseline: every auto/* entry must at minimum carry a capabilities object
+test("#11947 auto entries include capabilities object (baseline)", async () => {
+  // Baseline: every auto entry must at minimum carry a capabilities object
   // with the hardcoded baseline fields. This is the pre-existing behavior from
   // #4189 — the fix must not regress it.
+  await settingsDb.updateSettings({ requireLogin: false });
+  for (const provider of ["openai", "anthropic", "gemini", "groq", "deepseek", "mistral"]) {
+    await providersDb.createProviderConnection({
+      provider,
+      authType: "apikey",
+      apiKey: `sk-test-11947-${provider}`,
+      name: `test-11947-${provider}`,
+      isActive: true,
+    });
+  }
   const response = await catalog.getUnifiedModelsResponse(
     new Request("http://localhost/api/v1/models")
   );
   assert.equal(response.status, 200);
   const body = (await response.json()) as { data: CatalogEntry[] };
-  const autoEntries = body.data.filter((m) => m.id.startsWith("auto/"));
-  assert.ok(autoEntries.length > 0, "sanity: at least one auto/* entry listed");
+  const isAutoId = (id: string) => id === "auto" || id.startsWith("auto/");
+  const autoEntries = body.data.filter((m) => isAutoId(m.id));
+  assert.ok(autoEntries.length > 0, "sanity: at least one auto entry listed");
+  assert.ok(
+    autoEntries.some((m) => m.id === "auto"),
+    "the bare auto id is advertised with the same baseline block"
+  );
 
   for (const entry of autoEntries) {
     assert.ok(
@@ -159,10 +176,7 @@ test("#11947 user-defined combo with vision targets includes modalities in catal
   const combo = body.data.find((m) => m.id === "test-vision-combo-11947");
 
   assert.ok(combo, "the user-defined vision combo must be listed");
-  assert.ok(
-    combo.capabilities?.vision === true,
-    "combo capabilities must include vision: true"
-  );
+  assert.ok(combo.capabilities?.vision === true, "combo capabilities must include vision: true");
   assert.ok(
     Array.isArray(combo.input_modalities) && combo.input_modalities.includes("image"),
     "combo must include 'image' in input_modalities"
