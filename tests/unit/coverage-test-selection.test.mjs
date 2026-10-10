@@ -59,6 +59,7 @@ function fixture(t) {
     "tests/unit/serial/state.test.ts",
     "open-sse/mcp-server/__tests__/tool.test.ts",
     "tests/unit/ui/view.test.tsx",
+    "tests/unit/.hidden/view.test.tsx",
     "src/shared/hooks/__tests__/hook.test.tsx",
     "src/app/(dashboard)/dashboard/test/__tests__/view.test.tsx",
     "tests/e2e/not-in-unit.test.ts",
@@ -125,6 +126,12 @@ test("independent policy plans all three Node segments and both Vitest lanes bef
       .find((part) => part.lane === "vitest-node")
       .files.includes("src/app/(dashboard)/dashboard/test/__tests__/view.test.tsx"),
     "match the actual Vitest glob semantics, not Node's literal parentheses"
+  );
+  assert.ok(
+    plan.partitions
+      .find((part) => part.lane === "vitest-ui")
+      .files.includes("tests/unit/.hidden/view.test.tsx"),
+    "Vitest globProjectFiles enables dot:true"
   );
 });
 

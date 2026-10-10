@@ -41,7 +41,7 @@ function canonical(value) {
 function validatePolicy(policy) {
   if (
     policy?.schemaVersion !== 1 ||
-    policy.policyVersion !== "coverage-test-selection/2" ||
+    policy.policyVersion !== "coverage-test-selection/3" ||
     policy.profile !== "ci-coverage-shadow" ||
     !Array.isArray(policy.partitions) ||
     policy.partitions.length !== REQUIRED.size
@@ -163,11 +163,11 @@ export function createCoverageTestPlan(root, sha) {
     const includes =
       specification.lane === "node"
         ? (path) => specification.include.some((pattern) => matchesGlob(path, pattern))
-        : picomatch(specification.include, { dot: false, posix: true });
+        : picomatch(specification.include, { dot: true, posix: true });
     const excludes =
       specification.lane === "node"
         ? (path) => specification.exclude.some((pattern) => matchesGlob(path, pattern))
-        : picomatch(specification.exclude, { dot: false, posix: true });
+        : picomatch(specification.exclude, { dot: true, posix: true });
     const selected = tracked
       .filter((entry) => includes(entry.path) && !excludes(entry.path))
       .sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
