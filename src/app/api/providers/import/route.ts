@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import {
   getProviderAuditTarget,
@@ -81,7 +82,8 @@ function isKnownImportProvider(provider: string): boolean {
 
 async function importOneEntry(
   entry: ImportEntry,
-  validateKeys: boolean
+  validateKeys: boolean,
+  allowLocalSpawn: boolean
 ): Promise<{ created: Record<string, unknown> } | { error: string }> {
   // Reject unknown providers per-row, preserving the partial-failure contract of /bulk.
   if (!isKnownImportProvider(entry.provider)) {
@@ -110,6 +112,7 @@ async function importOneEntry(
         provider: entry.provider,
         apiKey: entry.apiKey,
         providerSpecificData: providerSpecificData || undefined,
+        allowLocalSpawn,
       })
     );
     testStatus = probe?.valid ? "active" : "failed";
@@ -225,7 +228,11 @@ export async function POST(request: Request) {
   for (let i = 0; i < resolvedEntries.length; i++) {
     const entry = resolvedEntries[i];
     try {
-      const result = await importOneEntry(entry, !!validateKeys);
+      const result = await importOneEntry(
+        entry,
+        !!validateKeys,
+        getRequestPeerLocality(request) !== "remote"
+      );
       if ("error" in result) {
         errors.push({
           index: i,

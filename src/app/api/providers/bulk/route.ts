@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
 import {
   getProviderAuditTarget,
@@ -107,6 +108,9 @@ export async function POST(request: Request) {
   // instead of round-tripping through /api/providers/validate over HTTP. Direct
   // invocation avoids SSRF risk from `new URL(request.url).origin` being driven
   // by a spoofable Host header (CodeQL js/request-forgery #243).
+  // S-01 (#15159): the Devin CLI fallback spawns a process, so only a local caller may trigger it.
+  const allowLocalSpawn = getRequestPeerLocality(request) !== "remote";
+
   const proxyToUse = validateKeys
     ? (await resolveProxyForProvider(provider)) ||
       (await getProxyForLevel("provider", provider)) ||
@@ -149,6 +153,7 @@ export async function POST(request: Request) {
             provider,
             apiKey: entry.apiKey,
             providerSpecificData: entryProviderSpecificData,
+            allowLocalSpawn,
           })
         );
         testStatus = probe?.valid ? "active" : "failed";

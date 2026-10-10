@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRequestPeerLocality } from "@/shared/utils/apiAuth";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/errorSanitization.ts";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
 import { getAuditRequestContext, logAuditEvent } from "@/lib/compliance/index";
@@ -131,6 +132,8 @@ export async function POST(request) {
           provider,
           apiKey,
           providerSpecificData,
+          // S-01 (#15159): the Devin CLI fallback spawns a process, so only a local caller may trigger it.
+          allowLocalSpawn: getRequestPeerLocality(request) !== "remote",
         })
       )
     );

@@ -129,14 +129,11 @@ export const LOCAL_ONLY_API_PATTERNS: ReadonlyArray<RegExp> = [
   /^\/api\/providers\/volcengine-plan\/connect(\/.*)?$/, // manual headful flow + session-based phone/SMS auto-login (both spawn Playwright)
   /^\/api\/providers\/[^/]+\/refresh-cursor\/?$/,
   /^\/api\/providers\/[^/]+\/chatgpt-web-codex-doctor\/?$/,
-  // S-01 (#15159): spawn(bin, ["acp", "--agent-type", "summarizer"], …) in
-  // src/lib/providers/validation/webProvidersB.ts:535 — fixed binary list + fixed argv (not
-  // caller-controlled RCE) but Hard Rules #15 + #17 still require loopback enforcement before
-  // any auth check. Exact paths only: the rest of /api/providers/ CRUD must stay
-  // remote-reachable. NOTE: keep this justification on its OWN line — a trailing `//` comment
-  // makes the pattern invisible to check-openapi-security-tiers.mjs, whose `//.*$` strip cannot
-  // match past a CRLF line ending.
-  /^\/api\/providers\/(validate|import|bulk)\/?$/,
+  // S-01 (#15159): POST /api/providers/{validate,import,bulk} are deliberately NOT path-locked. They
+  // are how a tunnel-served dashboard verifies, saves and bulk-adds an API key, so a path lock answers
+  // every remote admin with 403 LOCAL_ONLY. The one spawn they can reach (the Devin CLI fallback in
+  // src/lib/providers/validation/webProvidersB.ts) is gated at its call site instead: each route passes
+  // `allowLocalSpawn` derived from the trusted peer locality, exactly like /api/providers/{id}/test.
   // S-01 (#15159) second hop is deliberately NOT a path pattern: /api/providers/{id}/models
   // resolves `{id}` to an arbitrary CONNECTION id, and the spawn
   // (src/lib/providerModels/cursorAgent.ts:17, via fetchCursorAgentModels) only runs on the

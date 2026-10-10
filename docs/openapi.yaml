@@ -2321,8 +2321,7 @@ paths:
     post:
       tags: [Providers]
       summary: Validate provider credentials
-      description: "Spawns a fixed ACP summarizer binary to validate credentials — loopback-only (Hard Rules #15/#17, audit #15159 S-01)."
-      x-loopback-only: true
+      description: "Validates provider credentials. Remote-reachable; the Devin CLI fallback (a fixed ACP summarizer binary) only runs for a non-remote caller (Hard Rules #15/#17, audit #15159 S-01)."
       responses:
         "200":
           description: Validation result
@@ -11167,8 +11166,7 @@ paths:
       tags:
         - Providers
       summary: "POST providers › bulk"
-      description: "Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01)."
-      x-loopback-only: true
+      description: "Remote-reachable; validates keys through the same validator as /api/providers/validate, whose Devin CLI fallback only runs for a non-remote caller (audit #15159 S-01)."
       responses:
         "200":
           description: OK
@@ -11320,8 +11318,7 @@ paths:
       tags:
         - Providers
       summary: "POST providers › import"
-      description: "Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01)."
-      x-loopback-only: true
+      description: "Remote-reachable; validates keys through the same validator as /api/providers/validate, whose Devin CLI fallback only runs for a non-remote caller (audit #15159 S-01)."
       responses:
         "200":
           description: OK
