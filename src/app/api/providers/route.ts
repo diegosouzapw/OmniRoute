@@ -156,7 +156,14 @@ export async function GET(request: Request) {
         refreshToken: undefined,
         idToken: undefined,
         providerSpecificData,
-        rateLimitAutoProtected: isConnectionAutoProtected(c, requestQueueSettings),
+        rateLimitAutoProtected: isConnectionAutoProtected(
+          {
+            provider: String(c.provider),
+            isActive: c.isActive === true,
+            rateLimitProtection: c.rateLimitProtection === true,
+          },
+          requestQueueSettings
+        ),
         ...(c.provider === "codex"
           ? {
               codexAccountPool: projectCodexAccountPoolWithRoutingQuota(
