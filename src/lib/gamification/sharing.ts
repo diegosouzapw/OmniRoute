@@ -5,6 +5,7 @@
  */
 
 import crypto from "crypto";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error.ts";
 
 /**
  * Transfer tokens from one API key to another.
@@ -20,7 +21,7 @@ export async function transferTokens(
   if (fromApiKeyId === toApiKeyId) {
     return { success: false, idempotencyKey: "", error: "Cannot transfer to yourself" };
   }
-  if (amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     return { success: false, idempotencyKey: "", error: "Amount must be positive" };
   }
 
@@ -35,7 +36,7 @@ export async function transferTokens(
     return { success: true, idempotencyKey: key };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    return { success: false, idempotencyKey: key, error: message };
+    return { success: false, idempotencyKey: key, error: sanitizeErrorMessage(message) };
   }
 }
 

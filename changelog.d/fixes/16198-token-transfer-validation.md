@@ -1,0 +1,1 @@
+- **Gamification:** Reject non-finite token-transfer amounts before ledger access and sanitize unexpected transfer errors through the canonical error boundary, preserving fractional amounts, idempotency and balance checks. Fixes #16198.
