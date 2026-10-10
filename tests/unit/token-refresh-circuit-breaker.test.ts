@@ -10,6 +10,8 @@ import assert from "node:assert/strict";
 const { isProviderBlocked, getCircuitBreakerStatus, refreshWithRetry } =
   await import("../../open-sse/services/tokenRefresh/circuitBreaker.ts");
 
+const { NO_REFRESH_NEEDED } = await import("../../open-sse/services/tokenRefresh/shared.ts");
+
 const silentLog = {
   info() {},
   warn() {},
@@ -173,4 +175,92 @@ test("refreshWithRetry defaults: maxRetries=3, provider='unknown'", async () => 
   });
   assert.equal(attempts, 3);
   assert.ok(getCircuitBreakerStatus()["unknown"], "default provider is 'unknown'");
+});
+
+test("skips retries and records no failure when there is nothing to refresh", async () => {
+  const provider = "cb-nothing-" + Math.random().toString(36).slice(2);
+  const log = makeLog();
+  let attempts = 0;
+  const started = Date.now();
+  const result = await refreshWithRetry(
+    async () => {
+      attempts++;
+      return NO_REFRESH_NEEDED;
+    },
+    3,
+    log,
+    provider
+  );
+  assert.equal(result, null);
+  assert.equal(attempts, 1);
+  assert.equal(getCircuitBreakerStatus()[provider], undefined);
+  assert.ok(
+    !log.entries.some((e) => e.level === "error"),
+    "no failure is logged when there is nothing to refresh"
+  );
+  assert.ok(Date.now() - started < 1000, "skip returns without retry delays");
+});
+
+test("retries a refused oauth refresh three times then records a failure", async () => {
+  const provider = "cb-refused-" + Math.random().toString(36).slice(2);
+  let attempts = 0;
+  const result = await refreshWithRetry(
+    async () => {
+      attempts++;
+      return null;
+    },
+    3,
+    silentLog,
+    provider
+  );
+  assert.equal(result, null);
+  assert.equal(attempts, 3);
+  assert.equal(getCircuitBreakerStatus()[provider].failures, 1);
+});
+
+test("returns a renewed token as today on oauth success", async () => {
+  const provider = "cb-renewed-" + Math.random().toString(36).slice(2);
+  await refreshWithRetry(async () => null, 1, silentLog, provider);
+  assert.equal(getCircuitBreakerStatus()[provider].failures, 1);
+  const result = await refreshWithRetry(
+    async () => ({ accessToken: "ok" }),
+    3,
+    silentLog,
+    provider
+  );
+  assert.equal(result.accessToken, "ok");
+  assert.equal(getCircuitBreakerStatus()[provider], undefined, "success resets the breaker");
+});
+
+test("still retries a null after a real roundtrip", async () => {
+  const provider = "cb-roundtrip-" + Math.random().toString(36).slice(2);
+  const log = makeLog();
+  let attempts = 0;
+  const started = Date.now();
+  const result = await refreshWithRetry(
+    async () => {
+      attempts++;
+      await new Promise((r) => setTimeout(r, 5));
+      return null;
+    },
+    3,
+    log,
+    provider
+  );
+  assert.equal(result, null);
+  assert.equal(attempts, 3);
+  assert.equal(getCircuitBreakerStatus()[provider].failures, 1);
+  assert.ok(Date.now() - started < 10000);
+});
+
+test("does not mistake a token payload for the sentinel", async () => {
+  const provider = "cb-payload-" + Math.random().toString(36).slice(2);
+  const result = await refreshWithRetry(
+    async () => ({ accessToken: "x", error: undefined }),
+    3,
+    silentLog,
+    provider
+  );
+  assert.equal(result.accessToken, "x");
+  assert.equal(getCircuitBreakerStatus()[provider], undefined);
 });

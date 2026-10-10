@@ -18,6 +18,7 @@ import { serializeRefresh } from "./refreshSerializer.ts";
 import {
   extractOAuthErrorCode,
   isUnrecoverableRefreshError,
+  NO_REFRESH_NEEDED,
   type RefreshLogger,
 } from "./tokenRefresh/shared.ts";
 import {
@@ -79,6 +80,7 @@ export {
   refreshCopilotToken,
   extractOAuthErrorCode,
   isUnrecoverableRefreshError,
+  NO_REFRESH_NEEDED,
   isProviderBlocked,
   getCircuitBreakerStatus,
   refreshWithRetry,
