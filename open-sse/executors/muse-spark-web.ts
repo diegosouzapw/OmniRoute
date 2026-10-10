@@ -11,7 +11,24 @@ import {
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
 import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
-import { acquireBrowserContext, openPage } from "../services/browserPool.ts";
+import {
+  _fetchFreshAccessTokenDispatch,
+  type AccessTokenResult,
+} from "./muse-spark-web/fresh-access-token.ts";
+import {
+  META_WS_CHAT_TEMPLATE_B64,
+  META_WS_HOME_TEMPLATE_B64,
+} from "./muse-spark-web/ws-templates.ts";
+import { buildWsPromptFrame, writeU24Le } from "./muse-spark-web/ws-frame.ts";
+
+export {
+  __fetchFreshAccessTokenForTesting,
+  __resetMuseSparkTokenCacheForTesting,
+  __setMuseSparkBrowserPoolForTesting,
+  __setMuseSparkFreshTokenFetcherForTesting,
+} from "./muse-spark-web/fresh-access-token.ts";
+export { META_WS_CHAT_TEMPLATE_B64, META_WS_HOME_TEMPLATE_B64 };
+export { buildWsPromptFrame, parseProtoFields } from "./muse-spark-web/ws-frame.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 // Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
@@ -27,8 +44,6 @@ const META_AI_DEFAULT_COOKIE = "ecto_1_sess";
 // GraphQL endpoint still accepts it over POST and streams the response.
 const META_AI_WARMUP_DOC_ID = "e7f802582dbfed8e181b012e010993eb";
 const META_AI_MODE_SWITCH_DOC_ID = "c32bbe999c48e64e855dc63177d5153f";
-// doc_id for the Heisenberg check that refreshes ecto_1_sess cookie
-const META_AI_HEISENBERG_DOC_ID = "954e9b193487fa4af750af87906e4313";
 const META_WS_APP_ID = "1522763855472543";
 const META_WS_APP_VERSION = "1.0.0";
 const META_WS_AUTHTYPE = "15:0";
@@ -36,8 +51,6 @@ const META_WS_DGW_VERSION = "5";
 const META_WS_DGW_UUID = "0";
 const META_WS_TIER = "prod";
 const META_WS_INTRO_FRAME_TYPE = 0x0f;
-const META_WS_PROMPT_FRAME_TYPE = 0x0d;
-const META_WS_PROMPT_FRAME_FLAG = 0x80;
 const META_AI_ROOT_BRANCH_PATH = "0";
 const META_AI_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
@@ -615,176 +628,6 @@ function getOpenAiMessages(body: unknown): Array<Record<string, unknown>> | null
   return messages as Array<Record<string, unknown>>;
 }
 
-// ─── Protobuf WS templates ──────────────────────────────────────────────────────
-// Base64-encoded protobuf templates captured from Meta AI web client.
-// These are mutated at specific field paths to inject conversation-id,
-// prompt text, timestamps, and message IDs per conversation.
-//
-// Updated 2026-09-05 (issue #10727 fix): Replaced stale templates with fresh
-// browser-captured ones. Critical structural changes vs old templates:
-//   - field 1.1.12 (mode): now includes mode_thinking string (was bare varint 1000)
-//   - field 1.7: now has flags {12:1, 13:1} (was empty bytes)
-//   - field 1.26: new varint 0 (was absent)
-//   - field 1.1.19.2: fixed32 1.0 vs old 2.0
-//   - OS/UA: Windows Chrome 152 vs old Mac Chrome 146
-// These changes fix the persistent WS timeout where gateway sent 4 messages then
-// went silent. Root cause: gateway now validates mode_thinking presence.
-//
-// VERIFIED against live meta.ai WS captures from TWO independent accounts
-// (2026-07-19). The following fields are confirmed STATIC (app-level
-// constants sent by Meta's own client, not per-user secrets):
-//   - 64-hex session token (3e64e7b0c282fb56... replaces old e2b88f98...)
-//   - Actor numeric ID (867051314767696)
-//   - Locale (zh-CN in live capture, but patching maintains flexibility)
-//   - App ID (1522763855472543)
-// The only user-variable field is the timezone (system TZ), which is
-// low-signal for anti-fraud. No fingerprint randomization is warranted.
-
-// Updated 2026-09-05: Replaced with browser-captured template that includes:
-// - field 1.1.12 with mode_thinking string (was missing)
-// - field 1.7 with flags {12:1, 13:1} (was empty)
-// - field 1.26 varint 0 (was absent)
-// These structural changes fix the persistent WS timeout (issue #10727).
-export const META_WS_HOME_TEMPLATE_B64 =
-  "CsAGCswDCiBLQURBQlJBX19IT01FX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokNWIxMzk4YmEtZDdmYi00ZjczLWI5MTYtY2JhMzE4ODBjODVmMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliGBoSCOkHEg1tb2RlX3RoaW5raW5nIgIIAWoHV2luZG93c3IKdXNlcl9pbnB1dHpvTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1Mi4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQDNlNjRlN2IwYzI4MmZiNTY3NzI0ODIxNTljZjAzMTcxNjkxYWQxYjM0ODBkNjk5M2E4NDJiMDQwMjIxZTM4YzEVAACAPxIUCPSTqtzR+oYCEPSTqtzR+oYCGAIaAiABIgAqDgip9tKHhzQY5/XSh4c0MiQ3NWExMDhlZS1hZjFiLTQyZTUtOTFhMi1jYjVkZmNhOTEwOTA6BGABaAFKBxIFemgtQ05ScgokZTc4ZWFhZjUtZTY3MC00MjczLWE1NjktZjgwMTkyNDc4MTNhGiRjZjQ4N2QyNi05MDBhLTQ3ZjYtODhjMS1iMmNkMGEwNjM4NWQiJDViMTM5OGJhLWQ3ZmItNGY3My1iOTE2LWNiYTMxODgwYzg1ZnoMIgpBc2lhL1Rva3lvggEDsAEBkgEMCgZzdG9ja3MSAggBkgENCgd3ZWF0aGVyEgIIAZIBJAoebWV0YV9rbm93bGVkZ2Vfc2VhcmNoX2Nhcm91c2VsEgIIAZIBIgocbWV0YV9jYXRhbG9nX3NlYXJjaF9jYXJvdXNlbBICCAGSARMKDW1lZGlhX2dhbGxlcnkSAggBogEBA9ABABJsCmEKJDM4NzlmMDJlLWZkNDUtNGJjNS04YjgyLTlhNDkxMDFkYjRjNhI3CiQ1YjEzOThiYS1kN2ZiLTRmNzMtYjkxNi1jYmEzMTg4MGM4NWYQqvbSh4c0GJ3ApOrrpY+OaCgBEgJIaSIDCgEw";
-// Updated 2026-09-05: Derived from working HOME template (same structural fixes).
-export const META_WS_CHAT_TEMPLATE_B64 =
-  "CsAGCswDCiBLQURBQlJBX19DSEFUX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokNWIxMzk4YmEtZDdmYi00ZjczLWI5MTYtY2JhMzE4ODBjODVmMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliGBoSCOkHEg1tb2RlX3RoaW5raW5nIgIIAWoHV2luZG93c3IKdXNlcl9pbnB1dHpvTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE1Mi4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQDNlNjRlN2IwYzI4MmZiNTY3NzI0ODIxNTljZjAzMTcxNjkxYWQxYjM0ODBkNjk5M2E4NDJiMDQwMjIxZTM4YzEVAACAPxIUCPSTqtzR+oYCEPSTqtzR+oYCGAIaAiABIgAqDgip9tKHhzQY5/XSh4c0MiQ3NWExMDhlZS1hZjFiLTQyZTUtOTFhMi1jYjVkZmNhOTEwOTA6BGABaAFKBxIFemgtQ05ScgokZTc4ZWFhZjUtZTY3MC00MjczLWE1NjktZjgwMTkyNDc4MTNhGiRjZjQ4N2QyNi05MDBhLTQ3ZjYtODhjMS1iMmNkMGEwNjM4NWQiJDViMTM5OGJhLWQ3ZmItNGY3My1iOTE2LWNiYTMxODgwYzg1ZnoMIgpBc2lhL1Rva3lvggEDsAEBkgEMCgZzdG9ja3MSAggBkgENCgd3ZWF0aGVyEgIIAZIBJAoebWV0YV9rbm93bGVkZ2Vfc2VhcmNoX2Nhcm91c2VsEgIIAZIBIgocbWV0YV9jYXRhbG9nX3NlYXJjaF9jYXJvdXNlbBICCAGSARMKDW1lZGlhX2dhbGxlcnkSAggBogEBA9ABABJsCmEKJDM4NzlmMDJlLWZkNDUtNGJjNS04YjgyLTlhNDkxMDFkYjRjNhI3CiQ1YjEzOThiYS1kN2ZiLTRmNzMtYjkxNi1jYmEzMTg4MGM4NWYQqvbSh4c0GJ3ApOrrpY+OaCgBEgJIaSIDCgEw";
-
-// ─── Proto helpers ─────────────────────────────────────────────────────────────
-
-type ProtoField = {
-  number: number;
-  wireType: number;
-  value: Uint8Array | number | bigint;
-};
-
-function encodeVarint(value: number): Uint8Array {
-  // Use BigInt arithmetic to avoid 32-bit truncation from bitwise operators.
-  let v = BigInt(value);
-  const out: number[] = [];
-  while (v >= 0x80n) {
-    out.push(Number((v & 0x7fn) | 0x80n));
-    v >>= 7n;
-  }
-  out.push(Number(v & 0x7fn));
-  return new Uint8Array(out);
-}
-
-function decodeVarint(data: Uint8Array, offset: number): [number, number] {
-  let shift = 0;
-  let value = 0;
-  let off = offset;
-  while (true) {
-    const byte = data[off++];
-    value |= (byte & 0x7f) << shift;
-    if (!(byte & 0x80)) return [value >>> 0, off];
-    shift += 7;
-    if (shift > 63) throw new Error("Varint too long");
-  }
-}
-
-export function parseProtoFields(data: Uint8Array): ProtoField[] {
-  const fields: ProtoField[] = [];
-  let offset = 0;
-  while (offset < data.length) {
-    const [tag, next] = decodeVarint(data, offset);
-    offset = next;
-    const number = tag >> 3;
-    const wireType = tag & 0x07;
-    if (wireType === 0) {
-      const [value, n] = decodeVarint(data, offset);
-      offset = n;
-      fields.push({ number, wireType, value });
-    } else if (wireType === 1) {
-      const view = new DataView(data.buffer, data.byteOffset + offset, 8);
-      fields.push({ number, wireType, value: view.getBigUint64(0, true) });
-      offset += 8;
-    } else if (wireType === 2) {
-      const [len, n] = decodeVarint(data, offset);
-      offset = n;
-      fields.push({ number, wireType, value: data.slice(offset, offset + len) });
-      offset += len;
-    } else if (wireType === 5) {
-      const view = new DataView(data.buffer, data.byteOffset + offset, 4);
-      fields.push({ number, wireType, value: view.getUint32(0, true) });
-      offset += 4;
-    } else {
-      throw new Error(`Unsupported wire type: ${wireType}`);
-    }
-  }
-  return fields;
-}
-
-function serializeProtoFields(fields: ProtoField[]): Uint8Array {
-  const parts: Uint8Array[] = [];
-  for (const f of fields) {
-    const tag = (f.number << 3) | f.wireType;
-    parts.push(encodeVarint(tag));
-    if (f.wireType === 0) {
-      parts.push(encodeVarint(Number(f.value)));
-    } else if (f.wireType === 1) {
-      const buf = new Uint8Array(8);
-      if (f.value instanceof Uint8Array) {
-        throw new Error(
-          `serializeProtoFields: wire type 1 field ${f.number} has non-numeric value`
-        );
-      }
-      new DataView(buf.buffer).setBigUint64(0, BigInt(f.value), true);
-      parts.push(buf);
-    } else if (f.wireType === 2) {
-      const raw =
-        f.value instanceof Uint8Array ? f.value : new TextEncoder().encode(String(f.value));
-      parts.push(encodeVarint(raw.length));
-      parts.push(raw);
-    } else if (f.wireType === 5) {
-      const buf = new Uint8Array(4);
-      new DataView(buf.buffer).setUint32(0, Number(f.value), true);
-      parts.push(buf);
-    }
-  }
-  const total = parts.reduce((s, p) => s + p.length, 0);
-  const result = new Uint8Array(total);
-  let offset = 0;
-  for (const p of parts) {
-    result.set(p, offset);
-    offset += p.length;
-  }
-  return result;
-}
-
-function findProtoField(fields: ProtoField[], number: number): ProtoField | undefined {
-  return fields.find((f) => f.number === number);
-}
-
-function traverseAndMutate(
-  fields: ProtoField[],
-  path: number[],
-  mutator: (field: ProtoField) => void
-): boolean {
-  if (path.length === 0) return false;
-  const field = findProtoField(fields, path[0]);
-  if (!field || !(field.value instanceof Uint8Array)) return false;
-  if (path.length === 1) {
-    mutator(field);
-    return true;
-  }
-  const nested = parseProtoFields(field.value);
-  if (traverseAndMutate(nested, path.slice(1), mutator)) {
-    field.value = serializeProtoFields(nested);
-    return true;
-  }
-  return false;
-}
-
-// ─── WS frame builders ─────────────────────────────────────────────────────────
-
-function writeU24Le(value: number, arr: Uint8Array, offset: number): void {
-  arr[offset] = value & 0xff;
-  arr[offset + 1] = (value >> 8) & 0xff;
-  arr[offset + 2] = (value >> 16) & 0xff;
-}
-
 function buildWsIntroFrame(conversationId: string): Uint8Array {
   const payload = new TextEncoder().encode(
     JSON.stringify({
@@ -801,110 +644,6 @@ function buildWsIntroFrame(conversationId: string): Uint8Array {
   result.set(header);
   result.set(payload, header.length);
   return result;
-}
-
-export function buildWsPromptFrame(
-  prompt: string,
-  conversationId: string,
-  opts: {
-    templateB64: string;
-    requestId?: string;
-    userMessageId?: string;
-    submittedMs?: number;
-    uniqueMessageId?: number;
-    subSessionIdx?: number;
-    messageSeq?: number;
-  }
-): Uint8Array {
-  const requestId = opts.requestId || crypto.randomUUID();
-  const userMessageId = opts.userMessageId || crypto.randomUUID();
-  const submittedMs = opts.submittedMs ?? Date.now();
-  const uniqueMessageId =
-    opts.uniqueMessageId ??
-    Number(`${submittedMs}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`);
-
-  const raw = Buffer.from(opts.templateB64, "base64");
-  const protoFields = parseProtoFields(raw);
-
-  // Patch conversationId at [1,1,5] — field 5 is a double-wrapped nested
-  // proto: [1,1,5] → field 5 → field 1 → uuid string. Patch the innermost
-  // field 1 so both envelopes survive (uuid is 36 bytes, same as the
-  // original, so the frame stays byte-length-identical). Overwriting the
-  // envelope wholesale corrupts the payload and the gateway rejects the
-  // frame with 0x0e — #10727.
-  traverseAndMutate(protoFields, [1, 1, 5, 5, 1], (f) => {
-    f.value = new TextEncoder().encode(conversationId);
-  });
-  // Patch userMessageId at [2,1,1]
-  traverseAndMutate(protoFields, [2, 1], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field1 = findProtoField(nested, 1);
-    if (field1) field1.value = new TextEncoder().encode(userMessageId);
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch convId + timestamps at [2,1,2]
-  traverseAndMutate(protoFields, [2, 1, 2], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const f1 = findProtoField(nested, 1);
-    const f2 = findProtoField(nested, 2);
-    const f3 = findProtoField(nested, 3);
-    if (f1) f1.value = new TextEncoder().encode(conversationId);
-    if (f2) f2.value = submittedMs;
-    if (f3) f3.value = uniqueMessageId;
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch prompt text at [2,2]
-  traverseAndMutate(protoFields, [2], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field2 = findProtoField(nested, 2);
-    if (field2) field2.value = new TextEncoder().encode(prompt);
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch timestamps at [1,5]
-  traverseAndMutate(protoFields, [1, 5], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const f1 = findProtoField(nested, 1);
-    const f3 = findProtoField(nested, 3);
-    if (f1) f1.value = submittedMs + 1;
-    if (f3) f3.value = submittedMs;
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch requestId at [1,6]
-  traverseAndMutate(protoFields, [1], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field6 = findProtoField(nested, 6);
-    if (field6) field6.value = new TextEncoder().encode(requestId);
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch conversationId at [1,10,4]
-  traverseAndMutate(protoFields, [1, 10], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field4 = findProtoField(nested, 4);
-    if (field4) field4.value = new TextEncoder().encode(conversationId);
-    f.value = serializeProtoFields(nested);
-  });
-
-  const updatedB64 = Buffer.from(serializeProtoFields(protoFields)).toString("base64");
-  const outer = JSON.stringify({ "req-id": requestId, payload: updatedB64 });
-  const inner = new TextEncoder().encode(outer);
-  const subSessionIdx = opts.subSessionIdx || 0;
-  const messageSeq = opts.messageSeq || 0;
-
-  const msgBody = new Uint8Array(2 + inner.length);
-  msgBody[0] = messageSeq;
-  msgBody[1] = META_WS_PROMPT_FRAME_FLAG;
-  msgBody.set(inner, 2);
-
-  const header = new Uint8Array(6);
-  header[0] = META_WS_PROMPT_FRAME_TYPE;
-  header[1] = subSessionIdx & 0xff;
-  header[2] = (subSessionIdx >> 8) & 0xff;
-  writeU24Le(msgBody.length, header, 3);
-
-  const frame = new Uint8Array(header.length + msgBody.length);
-  frame.set(header);
-  frame.set(msgBody, header.length);
-  return frame;
 }
 
 // ─── WS URL builder + GraphQL helper + b64 helpers ─────────────────────────────
@@ -978,168 +717,6 @@ async function graphqlPost(
     };
   }
 }
-
-// ─── Fresh WS access token fetcher ──────────────────────────────────────────
-// Meta's gateway rejects stale ecto1 tokens with a 0x0e frame after 4 messages
-// (#10727). The browser gets a fresh accessToken embedded in the page HTML on
-// every load. Plain fetch to meta.ai returns 403 (JS challenge), so we use
-// the shared browserPool to load the page in headless Chromium and extract the
-// token from the rendered DOM — exactly what a real browser does.
-//
-// The browser context is keyed per cookie (hashed) so multiple Meta AI
-// connections with different accounts don't collide. The pool handles
-// lifecycle, reuse, and idle eviction.
-
-type AccessTokenResult =
-  { ok: true; token: string; updatedCookie?: string } | { ok: false; error: string };
-
-const ACCESS_TOKEN_RE = /accessToken[\\"]+:\s*[\\"]+ecto1:([A-Za-z0-9_-]+)[\\"]+/;
-
-// Simple in-memory cache: one fresh token per cookie hash, TTL 4 minutes.
-// Meta tokens last ~5 min; refreshing at 4 avoids using one right at expiry.
-const META_TOKEN_CACHE = new Map<string, { token: string; expiresAt: number }>();
-const META_TOKEN_TTL_MS = 4 * 60 * 1000;
-
-async function fetchFreshAccessToken(
-  cookieHeader: string,
-  signal?: AbortSignal | null
-): Promise<AccessTokenResult> {
-  // Check cache first — avoid launching a browser on every request.
-  const cacheKey = createHash("sha256").update(cookieHeader).digest("hex").slice(0, 16);
-  const cached = META_TOKEN_CACHE.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
-    return { ok: true, token: cached.token };
-  }
-
-  try {
-    // Step 0: Heisenberg check refreshes the ecto_1_sess cookie via GraphQL
-    // (this endpoint accepts plain fetch — no JS challenge).
-    const heisenbergResponse = await fetch(META_AI_GRAPHQL_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Cookie: cookieHeader,
-        "User-Agent": META_AI_USER_AGENT,
-        Origin: "https://meta.ai",
-      },
-      body: JSON.stringify({ doc_id: META_AI_HEISENBERG_DOC_ID, variables: {} }),
-      signal: signal ?? undefined,
-    });
-
-    let updatedCookie: string | undefined;
-    const setCookie = heisenbergResponse.headers.get("set-cookie") || "";
-    const sessMatch = setCookie.match(/ecto_1_sess=([^;]+)/);
-    if (sessMatch && sessMatch[1] && sessMatch[1] !== "") {
-      updatedCookie = cookieHeader.replace(/ecto_1_sess=[^;]+/, `ecto_1_sess=${sessMatch[1]}`);
-    }
-    const effectiveCookie = updatedCookie || cookieHeader;
-
-    // Step 1: Load meta.ai in headless Chromium via browserPool.
-    // The page embeds a fresh accessToken in an inline <script> (RSC payload).
-    // Plain fetch returns 403 (JS challenge), so a real browser is required.
-    const poolKey = `meta-ai-token:${cacheKey}`;
-    const acquire = _metaTokenBrowserPoolForTesting?.acquire || acquireBrowserContext;
-    const pooled = await acquire(poolKey, {
-      cookieDomain: ".meta.ai",
-      cookieString: effectiveCookie,
-      warmupUrl: null,
-      userAgent: META_AI_USER_AGENT,
-    });
-
-    let page: import("playwright").Page | null = null;
-    try {
-      const open = _metaTokenBrowserPoolForTesting?.openPage || openPage;
-      page = await open(pooled);
-
-      // Race the page load against the caller's abort signal.
-      // Use networkidle — meta.ai serves a JS challenge page on the initial
-      // response (HTTP 200, tiny HTML with executeChallenge()). The challenge
-      // runs inline JS that sets a cookie and reloads. domcontentloaded fires
-      // on the challenge page before the real page loads; networkidle waits
-      // for the reload + full render to complete.
-      const navPromise = page.goto("https://www.meta.ai/", {
-        waitUntil: "networkidle",
-        timeout: 30000,
-      });
-      if (signal) {
-        const abortPromise = new Promise<never>((_, reject) => {
-          signal.addEventListener("abort", () => reject(signal.reason), { once: true });
-        });
-        await Promise.race([navPromise, abortPromise]);
-      } else {
-        await navPromise;
-      }
-
-      // Extract the token from page content (inline script / RSC payload).
-      const html = await page.content();
-      const match = html.match(ACCESS_TOKEN_RE);
-      if (!match) {
-        return { ok: false, error: "accessToken not found in meta.ai page (browser)" };
-      }
-
-      const token = `ecto1:${match[1]}`;
-      META_TOKEN_CACHE.set(cacheKey, { token, expiresAt: Date.now() + META_TOKEN_TTL_MS });
-      return { ok: true, token, updatedCookie };
-    } finally {
-      await page?.close().catch(() => {});
-    }
-  } catch (err) {
-    return {
-      ok: false,
-      error: `fetchFreshAccessToken failed: ${sanitizeErrorMessage(
-        err instanceof Error ? err.message : String(err)
-      )}`,
-    };
-  }
-}
-
-// Test hook: override fetchFreshAccessToken in unit tests to avoid launching
-// a real browser. Set to a function to override, undefined to use the real impl.
-let _fetchFreshAccessTokenOverride:
-  ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>) | undefined;
-
-export function __setMuseSparkFreshTokenFetcherForTesting(
-  fn:
-    ((cookieHeader: string, signal?: AbortSignal | null) => Promise<AccessTokenResult>) | undefined
-): void {
-  _fetchFreshAccessTokenOverride = fn;
-}
-
-// Test hook for the real fetchFreshAccessToken body: swap only the browserPool
-// seams (acquire/openPage) so the cache, cookie-refresh and token-extraction
-// logic runs under test without launching Chromium. undefined = real pool.
-let _metaTokenBrowserPoolForTesting:
-  { acquire?: typeof acquireBrowserContext; openPage?: typeof openPage } | undefined;
-
-export function __setMuseSparkBrowserPoolForTesting(
-  seams: typeof _metaTokenBrowserPoolForTesting
-): void {
-  _metaTokenBrowserPoolForTesting = seams;
-}
-
-// Test hook: drop all cached WS tokens so each test starts cold.
-export function __resetMuseSparkTokenCacheForTesting(): void {
-  META_TOKEN_CACHE.clear();
-}
-
-// Test hook: exercise the real fetchFreshAccessToken (cache, cookie refresh,
-// browserPool token extraction) without a static-token override.
-export function __fetchFreshAccessTokenForTesting(
-  cookieHeader: string,
-  signal?: AbortSignal | null
-): Promise<AccessTokenResult> {
-  return fetchFreshAccessToken(cookieHeader, signal);
-}
-
-// Wrapper that delegates to the override if set.
-const _fetchFreshAccessTokenDispatch = (
-  cookieHeader: string,
-  signal?: AbortSignal | null
-): Promise<AccessTokenResult> =>
-  _fetchFreshAccessTokenOverride
-    ? _fetchFreshAccessTokenOverride(cookieHeader, signal)
-    : fetchFreshAccessToken(cookieHeader, signal);
 
 // ─── WS response parser ────────────────────────────────────────────────────────
 
