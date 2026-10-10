@@ -126,10 +126,8 @@ export async function validateAnthropicLikeProvider({
     // A 400 usually means the key passed auth and the probe payload was refused (relays reject
     // the probe model or max_tokens:1), so it stays valid. Two Anthropic 400s are about the
     // key itself, though: every real request would fail the same way.
-    if (chatResponse.status === 400) {
-      const keyError = classifyAnthropicKeyError(await chatResponse.text().catch(() => ""));
-      if (keyError) return { valid: false, error: keyError, statusCode: 400 };
-    }
+    const keyError = await anthropicKeyErrorFrom400(chatResponse);
+    if (keyError) return { valid: false, error: keyError, statusCode: 400 };
 
     return { valid: true, error: null };
   } catch (error: any) {
@@ -139,15 +137,54 @@ export async function validateAnthropicLikeProvider({
 
 const CREDIT_BALANCE_TOO_LOW = /credit balance is too low|credit_balance_too_low/i;
 const WORKSPACE_REQUIRED = /not scoped to a workspace/i;
+const KEY_ERROR_BODY_MAX_BYTES = 8 * 1024;
+const KEY_ERROR_BODY_TIMEOUT_MS = 3000;
 
-function classifyAnthropicKeyError(body: string): string | null {
+/**
+ * For a 400 probe answer, return a message when the body is one of the two Anthropic errors
+ * about the key itself, else null. The body read is bounded in size and time: the fetch
+ * timeout stops at the headers, and a relay could trickle or never close a 400 body.
+ */
+async function anthropicKeyErrorFrom400(response: Response): Promise<string | null> {
+  if (response.status !== 400) return null;
+  const body = await readBodyPrefix(response, KEY_ERROR_BODY_MAX_BYTES, KEY_ERROR_BODY_TIMEOUT_MS);
   if (CREDIT_BALANCE_TOO_LOW.test(body)) {
-    return "Anthropic credit balance is too low for this key";
+    return "Upstream reports the credit balance is too low for this key";
   }
   if (WORKSPACE_REQUIRED.test(body)) {
     return "This key is not scoped to a workspace: add an anthropic-workspace-id custom header to the connection";
   }
   return null;
+}
+
+async function readBodyPrefix(
+  response: Response,
+  maxBytes: number,
+  timeoutMs: number
+): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  let text = "";
+  let received = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), timeoutMs);
+  });
+  try {
+    while (received < maxBytes) {
+      const chunk = await Promise.race([reader.read(), timedOut]);
+      if (!chunk || chunk.done) break;
+      received += chunk.value.byteLength;
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+  } catch {
+    // a broken body is just "not a recognised key error"
+  } finally {
+    clearTimeout(timer);
+    reader.cancel().catch(() => {});
+  }
+  return text.slice(0, maxBytes);
 }
 
 /**
@@ -276,6 +313,11 @@ export async function validateAnthropicCompatibleProvider({
     if (messagesRes.status === 401 || messagesRes.status === 403) {
       return { valid: false, error: "Invalid API key" };
     }
+
+    // Same two key-level Anthropic 400s as validateAnthropicLikeProvider (a compatible node
+    // can point at api.anthropic.com itself).
+    const keyError = await anthropicKeyErrorFrom400(messagesRes);
+    if (keyError) return { valid: false, error: keyError, statusCode: 400 };
 
     // Any other response (200, 400, 422, etc.) means auth passed
     return { valid: true, error: null };

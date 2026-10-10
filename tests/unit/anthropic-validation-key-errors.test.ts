@@ -100,3 +100,57 @@ test("without custom headers the probe headers are unchanged", async () => {
   assert.ok(!Object.keys(seen[0]).some((k) => k.toLowerCase() === "anthropic-workspace-id"));
   assert.equal(seen[0]["x-api-key"], KEY);
 });
+
+test("a 400 body that never ends does not hang the test", async () => {
+  globalThis.fetch = async (url: string | URL | Request) => {
+    if (String(url) !== PROBE_URL) return new Response("{}", { status: 404 });
+    const stalled = new ReadableStream<Uint8Array>({ start() {} });
+    return new Response(stalled, { status: 400 });
+  };
+  const started = Date.now();
+  const result = await validateProviderApiKey({ provider: "anthropic", apiKey: KEY });
+  assert.equal(result.valid, true);
+  assert.ok(Date.now() - started < 10_000);
+});
+
+test("only the first KB of a huge 400 body are read", async () => {
+  globalThis.fetch = async (url: string | URL | Request) => {
+    if (String(url) !== PROBE_URL) return new Response("{}", { status: 404 });
+    const filler = new TextEncoder().encode("x".repeat(16 * 1024));
+    const tail = new TextEncoder().encode(anthropicError("Your credit balance is too low"));
+    // never closes: if the reader ignored the cap it would wait for the timeout
+    const huge = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(filler);
+        controller.enqueue(tail);
+      },
+    });
+    return new Response(huge, { status: 400 });
+  };
+  const started = Date.now();
+  const result = await validateProviderApiKey({ provider: "anthropic", apiKey: KEY });
+  assert.equal(result.valid, true);
+  assert.ok(Date.now() - started < 2_000);
+});
+
+test("an anthropic-compatible node pointed at Anthropic gets the same key errors", async () => {
+  globalThis.fetch = async (url: string | URL | Request) => {
+    const target = String(url);
+    if (target.endsWith("/models")) {
+      return new Response(anthropicError("not scoped to a workspace"), { status: 400 });
+    }
+    return new Response(
+      anthropicError(
+        "This API key is not scoped to a workspace, so this request must include the anthropic-workspace-id header"
+      ),
+      { status: 400 }
+    );
+  };
+  const result = await validateProviderApiKey({
+    provider: "anthropic-compatible-fixture",
+    apiKey: KEY,
+    providerSpecificData: { baseUrl: "https://api.anthropic.com/v1" },
+  });
+  assert.equal(result.valid, false);
+  assert.match(String(result.error), /anthropic-workspace-id/);
+});
