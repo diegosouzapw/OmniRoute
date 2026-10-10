@@ -102,7 +102,9 @@ export default function ConnectionsHeaderToolbar({
   t,
 }: ConnectionsHeaderToolbarProps) {
   return (
-    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      className={`mb-4 flex flex-col gap-3 ${providerId === "codex" ? "" : "sm:flex-row sm:items-center sm:justify-between"}`}
+    >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
         <h2 className="text-lg font-semibold">{t("connections")}</h2>
         {providerId === "claude" && (
@@ -165,7 +167,7 @@ export default function ConnectionsHeaderToolbar({
         )}
         {providerId === "codex" && (
           <div
-            className="inline-flex items-center gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-2 py-1 text-xs font-medium text-text-muted"
+            className="inline-flex max-w-full flex-wrap items-center gap-2 rounded-lg border border-border bg-bg-subtle px-2 py-1 text-xs font-medium text-text-muted"
             title={providerText(
               t,
               "providerDetailServiceModeTooltip",
@@ -180,7 +182,7 @@ export default function ConnectionsHeaderToolbar({
               }
               disabled={savingCodexGlobalServiceMode || !codexSettingsLoaded}
               aria-label={providerText(t, "globalCodexServiceMode", "Global Codex service mode")}
-              className="rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-main outline-none transition-colors focus:border-primary disabled:opacity-60"
+              className="min-w-0 max-w-full rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-main outline-none transition-colors focus:border-primary disabled:opacity-60"
             >
               {codexGlobalServiceModeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -228,7 +230,9 @@ export default function ConnectionsHeaderToolbar({
             : t("providerProxy")}
         </button>
       </div>
-      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+      <div
+        className={`flex flex-wrap items-center gap-2 ${providerId === "codex" ? "justify-start" : "shrink-0 justify-end"}`}
+      >
         {connections.length > 0 && (
           <DistributeProxiesButton
             onDistribute={async () => {
