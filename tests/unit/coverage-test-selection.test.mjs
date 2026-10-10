@@ -25,6 +25,8 @@ function fixture(t) {
     "package.json",
     JSON.stringify({
       scripts: {
+        "test:vitest": "vitest run --config vitest.mcp.config.ts",
+        "test:vitest:ui": "vitest run --config vitest.config.ts",
         "test:unit:ci:shard": selection.partitions
           .filter((part) => part.lane === "node")
           .map(
@@ -34,6 +36,10 @@ function fixture(t) {
           .join(" && "),
       },
     })
+  );
+  write(
+    ".github/workflows/ci.yml",
+    "jobs:\n  test-unit:\n    strategy:\n      matrix:\n        shard: [1, 2, 3, 4, 5, 6, 7, 8]\n"
   );
   for (const [id, path] of [
     ["vitest-node", "vitest.mcp.config.ts"],
@@ -188,6 +194,15 @@ test("runner selector or exclude drift cannot silently certify a smaller suite",
     `export default {test:{include:computeIncludes(),exclude:${JSON.stringify(configuration.exclude)}}};`
   );
   assert.throws(() => createCoverageTestPlan(root, commit()), /literal string array/);
+});
+
+test("the eight-shard policy refuses a changed CI matrix instead of certifying stale partitions", (t) => {
+  const { root, write, commit } = fixture(t);
+  write(
+    ".github/workflows/ci.yml",
+    "jobs:\n  test-unit:\n    strategy:\n      matrix:\n        shard: [1, 2, 3, 4]\n"
+  );
+  assert.throws(() => createCoverageTestPlan(root, commit()), /CI shard matrix policy drift/);
 });
 
 test("CLI freezes one exact Git selection and refuses to overwrite an existing plan", (t) => {

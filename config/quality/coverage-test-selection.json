@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "policyVersion": "coverage-test-selection/1",
+  "profile": "ci-coverage-shadow",
   "partitions": [
     {
       "id": "node-main",

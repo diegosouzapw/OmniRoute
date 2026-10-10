@@ -6,6 +6,7 @@ import { matchesGlob, posix, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import ts from "typescript";
+import { load } from "js-yaml";
 import { parseVitestExcludes } from "./quarantine-contract.mjs";
 
 const POLICY_PATH = "config/quality/coverage-test-selection.json";
@@ -40,6 +41,7 @@ function validatePolicy(policy) {
   if (
     policy?.schemaVersion !== 1 ||
     policy.policyVersion !== "coverage-test-selection/1" ||
+    policy.profile !== "ci-coverage-shadow" ||
     !Array.isArray(policy.partitions) ||
     policy.partitions.length !== REQUIRED.size
   )
@@ -88,6 +90,16 @@ function vitestIncludes(source) {
 
 function verifyRunnerPolicy(root, sha, policy) {
   const manifest = JSON.parse(git(root, "show", `${sha}:package.json`));
+  const ci = load(git(root, "show", `${sha}:.github/workflows/ci.yml`));
+  if (
+    !isDeepStrictEqual(ci?.jobs?.["test-unit"]?.strategy?.matrix?.shard, [1, 2, 3, 4, 5, 6, 7, 8])
+  )
+    fail("CI shard matrix policy drift");
+  if (
+    manifest.scripts?.["test:vitest"] !== "vitest run --config vitest.mcp.config.ts" ||
+    manifest.scripts?.["test:vitest:ui"] !== "vitest run --config vitest.config.ts"
+  )
+    fail("Vitest entrypoint policy drift");
   const command = manifest.scripts?.["test:unit:ci:shard"];
   if (typeof command !== "string") fail("missing Node CI runner");
   const segments = command.split(/\s+&&\s+/);
@@ -174,6 +186,7 @@ export function createCoverageTestPlan(root, sha) {
     sha,
     tree: git(root, "rev-parse", `${sha}^{tree}`).trim(),
     policyVersion: policy.policyVersion,
+    profile: policy.profile,
     policyHash: hash(policyBytes),
     shardAssignment: "explicit-files-round-robin/v1",
     partitions,
