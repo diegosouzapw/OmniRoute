@@ -73,10 +73,7 @@ import {
 import { CODEX_ULTRA_ALIAS_MODELS, splitCodexReasoningSuffix } from "./codex/reasoningSuffix.ts";
 import { applyCodexReasoningSelection } from "./codex/reasoningPolicy.ts";
 import { repairMissingCodexToolCallOutputs } from "./codex/toolCallRepair.ts";
-import {
-  CODEX_REASONING_REPLAY_ERROR_CODE,
-  readCodexReasoningReplayRejection,
-} from "./codex/reasoningReplayRejection.ts";
+import { recoverCodexReasoningReplayRejection } from "./codex/reasoningReplayRejection.ts";
 import { resolveAppServerConfig } from "./codex/appServerConfig.ts";
 import { getResponsesSubpath } from "./codex/responsesSubpath.ts";
 import { CodexAppServerExecutor } from "./codex-app-server.ts";
@@ -822,7 +819,14 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     if (!isCodexResponsesWebSocketRequired(nextInput.model, nextInput.credentials)) {
-      const httpResult = await super.execute(nextInput);
+      const replay = await recoverCodexReasoningReplayRejection(
+        await super.execute(nextInput),
+        nextInput.body,
+        (body) => super.execute({ ...nextInput, body }),
+        input.log
+      );
+      const httpResult = replay.result;
+      if (replay.rejected) return httpResult;
       if (codexDropNonstandardEvents()) {
         const resp = (httpResult as { response?: Response }).response;
         if (resp?.body) {
@@ -830,19 +834,6 @@ export class CodexExecutor extends BaseExecutor {
         }
       }
       const resp = (httpResult as { response?: Response }).response;
-      if (resp && !resp.ok) {
-        const replayRejection = await readCodexReasoningReplayRejection(resp);
-        if (replayRejection) {
-          input.log?.warn?.("CODEX", "upstream rejected a replayed reasoning item");
-          await resp.body?.cancel().catch(() => undefined);
-          (httpResult as { response: Response }).response = errorResponse(
-            HTTP_STATUS.BAD_REQUEST,
-            replayRejection.message,
-            { type: "invalid_request_error", code: CODEX_REASONING_REPLAY_ERROR_CODE }
-          );
-          return httpResult;
-        }
-      }
       if (resp) {
         const peek = await peekCodexSseTransientError(resp);
         if (peek.matched) {
