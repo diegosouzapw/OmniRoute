@@ -6,9 +6,12 @@ import {
   getSyncedAvailableModels,
 } from "@/lib/db/models";
 import { getProviderConnections } from "@/lib/db/providers";
+import { getSettings } from "@/lib/db/settings";
 import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import { getSyncedCapabilities } from "@/lib/modelsDevSync";
+import { getProviderPrefixIndex } from "@/lib/providerNodePrefixes";
 import { mergeCustomModelMetadata } from "@/lib/providers/modelMetadataPrecedence";
+import { getModelCatalogAuthRejection } from "../../v1/models/catalogRequest";
 
 /**
  * Build the set of provider keys (raw id + alias) that have at least one active/validated
@@ -50,14 +53,18 @@ export async function OPTIONS() {
  * GET /v1beta/models - Gemini compatible models list
  * Returns models in Gemini API format with real token limits when available.
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const rejection = await getModelCatalogAuthRejection(request, await getSettings(), {});
+    if (rejection) return rejection;
+
     getSyncedCapabilities();
     const models = [];
     const existingNames = new Set<string>();
 
     // Only list models whose provider has an active/validated connection (#2483).
     const activeKeys = await getActiveProviderKeys();
+    const { compatibleNodeIds, eligibleNodeIds, nodeToPrefix } = await getProviderPrefixIndex();
 
     // Built-in models (hardcoded defaults)
     for (const [provider, providerModels] of Object.entries(PROVIDER_MODELS)) {
@@ -120,9 +127,11 @@ export async function GET() {
         if (providerId === "gemini") continue;
         if (!activeKeys.has(providerId)) continue;
         if (!Array.isArray(syncedModels)) continue;
+        if (compatibleNodeIds.has(providerId) && !eligibleNodeIds.has(providerId)) continue;
+        const publicProvider = nodeToPrefix.get(providerId) ?? providerId;
         for (const m of syncedModels) {
           if (!m || typeof m.id !== "string") continue;
-          const name = `models/${providerId}/${m.id}`;
+          const name = `models/${publicProvider}/${m.id}`;
           if (existingNames.has(name)) continue;
           const resolved = getResolvedModelCapabilities({
             provider: providerId,
@@ -162,6 +171,8 @@ export async function GET() {
         // Skip Gemini — handled by syncedAvailableModels above
         if (providerId === "gemini") continue;
         if (!activeKeys.has(providerId)) continue;
+        if (compatibleNodeIds.has(providerId) && !eligibleNodeIds.has(providerId)) continue;
+        const publicProvider = nodeToPrefix.get(providerId) ?? providerId;
         for (const model of rawModels) {
           if (!model || typeof model !== "object" || typeof (model as any).id !== "string")
             continue;
@@ -171,7 +182,7 @@ export async function GET() {
             provider: providerId,
             model: String(m.id),
           });
-          const name = `models/${providerId}/${m.id}`;
+          const name = `models/${publicProvider}/${m.id}`;
           const customEntry = {
             name,
             displayName: m.name || m.id,

@@ -1,0 +1,1 @@
+- Require the existing model-catalog authentication policy on `GET /v1beta/models`, preserving authenticated access and the configured local/opt-out exceptions (#16208). Publish compatible-node models under their configured routable prefix instead of internal node IDs, retaining metadata and omitting nodes without an eligible public prefix (#16207).
