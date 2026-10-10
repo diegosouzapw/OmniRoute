@@ -196,6 +196,16 @@ export function buildRequestSummary(
 // object yields "" (no caller passes plain objects — verified: 35 callers use
 // strings and Error only). Deliberate deviation from design §4 ("objet →
 // JSON.stringify"): a stringified object carries no classifier signal.
+// Statuses the journal names when the routing classifier abstains. The
+// classifier's verdict drives pauses and locks, so it stays silent on some
+// refusals; the journal drives none, so a bare status is enough to name the
+// family. Bounded to statuses no ambiguous code can join: a code that can
+// mean several things (400, 404 of a resource, 499) stays "unknown".
+const CALL_LOG_STATUS_FALLBACK: Record<number, ErrorTypeContract> = {
+  403: "forbidden",
+  410: "model_not_found",
+};
+
 export function classifyCallLogError(
   status: number,
   error: unknown,
@@ -203,7 +213,9 @@ export function classifyCallLogError(
 ): ErrorTypeContract | null {
   const errorText = typeof error === "string" ? error : error instanceof Error ? error.message : "";
   if (status === 0 ? errorText.length === 0 : status < 400) return null;
-  return classifyProviderError(status, errorText, provider) ?? "unknown";
+  const verdict = classifyProviderError(status, errorText, provider);
+  if (verdict !== null) return verdict;
+  return CALL_LOG_STATUS_FALLBACK[status] ?? "unknown";
 }
 
 // #13441: defense in depth at the `call_logs.error_type` write boundary. The
