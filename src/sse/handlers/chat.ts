@@ -87,7 +87,6 @@ import { comboCheckProvider, ghComboGate } from "./chat/githubLiveCatalogFilter.
 import { markEmergencyFallback } from "./emergencyFallbackHeader.ts";
 import { evaluateComboTargetPreflight } from "./chat/comboTargetKeyPolicy.ts";
 import * as resolvedPolicy from "./chat/resolvedModelPolicy.ts";
-import { withHiddenModelGate } from "./chat/hiddenModelGate.ts";
 import { recordGateRejection, recordQuotaParkedSkip } from "./quotaParkedSkipUsage";
 import { getCombos } from "@/lib/db/combos";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
@@ -1647,17 +1646,15 @@ async function handleSingleModelChat(
     if (modelStr.startsWith(runtimeOptions.providerId + "/")) return resolvedProvider;
     return runtimeOptions.providerId;
   })();
-  const resolvedModelGate = withHiddenModelGate(
-    resolvedPolicy.createResolvedModelGate({
-      apiKeyInfo,
-      apiKey: extractApiKey(request),
-      contextModel: runtimeOptions.authorizationContextModel,
-      comboGrantsTargets: runtimeOptions.comboGrantsTargets,
-      provider,
-      model,
-      modelStr,
-    })
-  );
+  const resolvedModelGate = resolvedPolicy.createVisibleResolvedModelGate({
+    apiKeyInfo,
+    apiKey: extractApiKey(request),
+    contextModel: runtimeOptions.authorizationContextModel,
+    comboGrantsTargets: runtimeOptions.comboGrantsTargets,
+    provider,
+    model,
+    modelStr,
+  });
   const modelPolicyRejection = await resolvedModelGate([`${provider}/${model}`]);
   if (modelPolicyRejection) return modelPolicyRejection;
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
