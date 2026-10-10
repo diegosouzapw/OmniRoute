@@ -844,6 +844,7 @@ async function buildUnifiedModelsResponseCore(
           prefixMode,
           aliasToProviderId,
           hideNoThinkVariants: settings.hideNoThinkVariants === true,
+          blockedProviders: settings.blockedProviders,
         });
         return finalizeCatalogResponse(request, quotaFinal, () => undefined, {
           ...corsHeaders,
@@ -2060,6 +2061,7 @@ async function buildUnifiedModelsResponseCore(
       prefixMode,
       aliasToProviderId,
       hideNoThinkVariants: settings.hideNoThinkVariants === true,
+      blockedProviders: settings.blockedProviders,
     });
 
     const getDefaultContextFallback = (model: any): number | undefined => {

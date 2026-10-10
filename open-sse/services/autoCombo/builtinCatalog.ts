@@ -182,6 +182,23 @@ export function resolveBuiltinAutoSpec(modelStr: string, suffix: string): Builti
   return { variant: undefined };
 }
 
+/**
+ * True iff `createBuiltinAutoCombo` will materialize `modelStr` instead of
+ * throwing "Unknown built-in auto combo". Mirrors its four acceptance branches
+ * in order (category/tier, variant, AUTO_TEMPLATE_VARIANTS key, valid family).
+ * Keep in lockstep with `createBuiltinAutoCombo`; the mirror uses this so it
+ * never advertises an id the request path rejects.
+ */
+export function isResolvableBuiltinAutoId(modelStr: string): boolean {
+  const suffix = modelStr.startsWith("auto/") ? modelStr.slice("auto/".length) : null;
+  if (suffix === null) return false;
+  const spec = resolveBuiltinAutoSpec(modelStr, suffix);
+  if ("category" in spec) return true;
+  if ("variant" in spec && spec.variant !== undefined) return true;
+  if (Object.prototype.hasOwnProperty.call(AUTO_TEMPLATE_VARIANTS, modelStr)) return true;
+  return isValidModelFamily(suffix);
+}
+
 export async function prepareBuiltinAutoComboInputs(
   resolutionSnapshot?: ModelCapabilityResolutionSnapshot
 ): Promise<PreparedVirtualAutoComboInputs> {

@@ -5,6 +5,7 @@ import {
   CC_DISCOVERY_PREFIX,
   CC_DISCOVERY_COMBO_PREFIX,
   appendCcDiscoveryAliases,
+  isCcDiscoveryAlias,
 } from "../../open-sse/utils/ccDiscoveryAliases.ts";
 
 interface CatalogEntry {
@@ -68,15 +69,55 @@ test("never re-mirrors ids that already start with claude or anthropic", () => {
   assert.equal(out[out.length - 1].id, "claude/claudeish/not-actually-claude");
 });
 
-test("never aliases no-think/ ids or effort-suffixed ids", () => {
+test("tags each alias so later catalog passes can recognise it", () => {
+  const models: CatalogEntry[] = [{ id: "kimi/kimi-k2.6", owned_by: "kimi" }];
+  const out = appendCcDiscoveryAliases(models, () => true);
+  assert.equal(isCcDiscoveryAlias(out[0]), false);
+  assert.equal(isCcDiscoveryAlias(out[1]), true);
+  assert.equal(
+    Object.keys(out[1]).some((k) => k.includes("ccDiscovery")),
+    false,
+    "the tag must not serialize into the /v1/models payload"
+  );
+});
+
+test("never aliases no-think/ ids or ids already in the claude namespace", () => {
   const models: CatalogEntry[] = [
     { id: "no-think/claude/claude-fable-5", owned_by: "claude" },
+    { id: "no-think/kimi/kimi-k2.6", owned_by: "kimi" },
     { id: "claude/claude-fable-5-high", owned_by: "claude" },
     { id: "claude/claude-fable-5-xhigh", owned_by: "claude" },
-    { id: "kimi/kimi-k2.6-medium", owned_by: "kimi" },
   ];
   const out = appendCcDiscoveryAliases(models, alwaysEnabled);
   assert.equal(out, models);
+});
+
+test("mirrors reasoning-effort variants like any other id (all effort tiers reachable)", () => {
+  // Registered effort variants (codex/gpt-6-sol-low … -ultra) are routable ids; the
+  // mirror must cover every tier, not only -max/-ultra, or Claude Code discovery
+  // can pick gpt-6-sol-max but never gpt-6-sol-low.
+  const models: CatalogEntry[] = [
+    { id: "codex/gpt-6-sol", owned_by: "codex", name: "GPT 6 Sol" },
+    { id: "codex/gpt-6-sol-low", owned_by: "codex", name: "GPT 6 Sol (Low)" },
+    { id: "codex/gpt-6-sol-xhigh", owned_by: "codex", name: "GPT 6 Sol (xHigh)" },
+    { id: "codex/gpt-6-sol-max", owned_by: "codex", name: "GPT 6 Sol (Max)" },
+    { id: "kimi/kimi-k2.6-medium", owned_by: "kimi" },
+  ];
+  const out = appendCcDiscoveryAliases(models, alwaysEnabled);
+  const mirrors = out.slice(models.length);
+  assert.deepEqual(
+    mirrors.map((m) => m.id),
+    [
+      "claude/codex/gpt-6-sol",
+      "claude/codex/gpt-6-sol-low",
+      "claude/codex/gpt-6-sol-xhigh",
+      "claude/codex/gpt-6-sol-max",
+      "claude/kimi/kimi-k2.6-medium",
+    ]
+  );
+  const low = mirrors.find((m) => m.id === "claude/codex/gpt-6-sol-low");
+  assert.equal(low?.root, "gpt-6-sol-low", "root keeps the suffix the request path dispatches on");
+  assert.equal(low?.display_name, "GPT 6 Sol (Low) (OmniRoute)");
 });
 
 test("mirrors combo entries under claude/combo/", () => {
@@ -117,11 +158,11 @@ test("skips disabled entries and returns the same array reference when nothing i
   assert.equal(out, models);
 });
 
-test("mirrors built-in auto/* combos alongside DB combos", () => {
-  // contract changed by #15301: built-in auto/* combos used to be skipped because the
-  // request path could not resolve them; ccDiscoveryAliasResolve now materializes
-  // `claude/combo/auto/<suffix>` through createBuiltinAutoCombo, so they are mirrored
-  // like any other combo (resolve side covered in cc-discovery-alias-resolve.test.ts).
+test("mirrors only built-in auto/* combos the request path resolves", () => {
+  // createBuiltinAutoCombo accepts category/tier (auto/glm, auto/best-vision), valid
+  // variants/families and AUTO_TEMPLATE_VARIANTS keys, and throws "Unknown built-in"
+  // for the rest (auto/pro:pro, auto/nonsense). Mirror must advertise exactly the
+  // resolvable ones, so claude/combo/* never points at an id the request path rejects.
   const models: CatalogEntry[] = [
     { id: "auto/glm", owned_by: "combo", name: "Auto GLM" },
     { id: "auto/pro:pro", owned_by: "combo", name: "Auto Pro" },
@@ -129,13 +170,7 @@ test("mirrors built-in auto/* combos alongside DB combos", () => {
   ];
   const out = appendCcDiscoveryAliases(models, alwaysEnabled);
   const aliasIds = out.filter((m) => String(m.id).startsWith("claude/")).map((m) => m.id);
-  assert.deepEqual(aliasIds, [
-    "claude/combo/auto/glm",
-    "claude/combo/auto/pro:pro",
-    "claude/combo/real-combo",
-  ]);
-  const glm = out.find((m) => m.id === "claude/combo/auto/glm");
-  assert.equal(glm?.root, "auto/glm", "auto combo root stays the full name verbatim");
+  assert.deepEqual(aliasIds, ["claude/combo/auto/glm", "claude/combo/real-combo"]);
 });
 
 test("returns the same array reference when the input is empty", () => {

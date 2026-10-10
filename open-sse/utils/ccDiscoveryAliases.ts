@@ -18,30 +18,47 @@
  * `claudeEffortVariants.ts` and `noThinkingAlias.ts`: pure synthesis over the
  * already key-filtered catalog list, no I/O, no mutation of the input array.
  *
+ * Reasoning-effort variants already present in the list (e.g. the registered
+ * `codex/gpt-6-sol-low` … `-xhigh` entries) are mirrored like any other id: the
+ * request path strips `claude/` and the provider's own suffix handling applies,
+ * so `claude/codex/gpt-6-sol-low` routes exactly like `codex/gpt-6-sol-low`.
+ * Skipping them left Claude Code able to pick `-max`/`-ultra` but not
+ * `-low`…`-xhigh` of the same model.
+ *
  * Never aliased:
  *  - ids that already start with `claude` or `anthropic` (with or without a
  *    following `/`, case-insensitive) — would double-prefix or shadow the base id.
- *  - `no-think/…` aliases and reasoning-effort variants (`-low`/`-medium`/`-high`/
- *    `-xhigh` suffix) — v1 only mirrors base ids; effort/no-think discovery is a
- *    separate concern.
+ *  - `no-think/…` aliases — no-think discovery is a separate concern.
  *  - entries the caller's `isEnabled` predicate rejects.
  */
+
+import { isResolvableBuiltinAutoId } from "../services/autoCombo/builtinCatalog.ts";
 
 export const CC_DISCOVERY_PREFIX = "claude/";
 export const CC_DISCOVERY_COMBO_PREFIX = "claude/combo/";
 
 // Ids that already live under the claude/anthropic namespace — never re-mirror them.
 const ALREADY_CLAUDE_RE = /^(?:claude|anthropic)(?:\/|$)/i;
-// Ids that already carry a reasoning-effort suffix — v1 only mirrors base ids.
-const CLAUDE_EFFORT_SUFFIX_RE = /-(?:xhigh|high|medium|low)$/i;
 const NO_THINKING_PREFIX = "no-think/";
+
+const CC_DISCOVERY_ALIAS = Symbol("ccDiscoveryAlias");
 
 interface CcDiscoveryCatalogEntry {
   id?: unknown;
   owned_by?: unknown;
   name?: unknown;
   root?: unknown;
+  [CC_DISCOVERY_ALIAS]?: true;
   [key: string]: unknown;
+}
+
+/**
+ * True for an entry synthesized by {@link appendCcDiscoveryAliases}. Later catalog
+ * passes use it to avoid re-mirroring a mirror: the alias only resolves through
+ * OmniRoute's own `claude/` strip, so no upstream provider can route it.
+ */
+export function isCcDiscoveryAlias(model: CcDiscoveryCatalogEntry): boolean {
+  return model?.[CC_DISCOVERY_ALIAS] === true;
 }
 
 /**
@@ -54,14 +71,14 @@ interface CcDiscoveryCatalogEntry {
  */
 /**
  * Ids the mirror must never cover: already claude/anthropic (would double-prefix
- * or shadow the base id), `no-think/…` aliases, and reasoning-effort variants —
- * v1 mirrors base ids only.
+ * or shadow the base id) and `no-think/…` aliases. Built-in `auto/*` ids are
+ * only mirrored when the request path will actually resolve them.
  */
 function isMirrorableId(id: string): boolean {
   if (id.length === 0) return false;
   if (ALREADY_CLAUDE_RE.test(id)) return false;
-  if (id.startsWith(NO_THINKING_PREFIX)) return false;
-  return !CLAUDE_EFFORT_SUFFIX_RE.test(id);
+  if ((id === "auto" || id.startsWith("auto/")) && !isResolvableBuiltinAutoId(id)) return false;
+  return !id.startsWith(NO_THINKING_PREFIX);
 }
 
 /** Strip a `<provider>/` prefix to get the bare model name, matching the convention in
@@ -95,6 +112,7 @@ export function appendCcDiscoveryAliases<T extends CcDiscoveryCatalogEntry>(
       // the "/" stripped down to the bare model name.
       root: isCombo ? id : bareModelName(id),
       display_name: `${label} (OmniRoute)`,
+      [CC_DISCOVERY_ALIAS]: true,
     } as T);
   }
 

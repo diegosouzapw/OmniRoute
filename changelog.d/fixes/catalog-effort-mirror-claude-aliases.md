@@ -1,0 +1,1 @@
+- **fix(api):** reasoning-effort variants (e.g. `codex/gpt-6-sol-high`) get `claude/` discovery mirrors; mirrors match the id the gateway receives and skip blocked gateways, so Claude Code no longer sees model ids the gateway rejects.
