@@ -70,6 +70,11 @@
       "configSource": "<custom-config>",
       "provider": "blackbox-web"
     },
+    "cbai": {
+      "className": "CodeBuddyIntlExecutor",
+      "configSource": "codebuddy-intl",
+      "provider": "codebuddy-intl"
+    },
     "cbcn": {
       "className": "CodeBuddyCnExecutor",
       "configSource": "codebuddy-cn",
@@ -99,6 +104,11 @@
       "className": "ChatGptWebCodexExecutor",
       "configSource": "<custom-config>",
       "provider": "chatgpt-web-codex"
+    },
+    "chatplayground": {
+      "className": "ChatPlaygroundExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatplayground"
     },
     "cheaperinference": {
       "className": "CheaperInferenceExecutor",
@@ -150,6 +160,11 @@
       "configSource": "codebuddy-cn",
       "provider": "codebuddy-cn"
     },
+    "codebuddy-intl": {
+      "className": "CodeBuddyIntlExecutor",
+      "configSource": "codebuddy-intl",
+      "provider": "codebuddy-intl"
+    },
     "codex": {
       "className": "CodexExecutor",
       "configSource": "codex",
@@ -189,6 +204,11 @@
       "className": "CliproxyapiExecutor",
       "configSource": "<custom-config>",
       "provider": "cliproxyapi"
+    },
+    "cpl": {
+      "className": "ChatPlaygroundExecutor",
+      "configSource": "<custom-config>",
+      "provider": "chatplayground"
     },
     "cu": {
       "className": "CursorExecutor",
@@ -445,10 +465,20 @@
       "configSource": "<custom-config>",
       "provider": "notion-web"
     },
+    "notrack-web": {
+      "className": "NotrackWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "notrack-web"
+    },
     "nr": {
       "className": "NineRouterExecutor",
       "configSource": "<custom-config>",
       "provider": "9router"
+    },
+    "ntw": {
+      "className": "NotrackWebExecutor",
+      "configSource": "<custom-config>",
+      "provider": "notrack-web"
     },
     "nw": {
       "className": "NotionWebExecutor",
@@ -515,6 +545,16 @@
       "configSource": "qoder",
       "provider": "qoder"
     },
+    "stx": {
+      "className": "SyntxExecutor",
+      "configSource": "<custom-config>",
+      "provider": "syntx"
+    },
+    "syntx": {
+      "className": "SyntxExecutor",
+      "configSource": "<custom-config>",
+      "provider": "syntx"
+    },
     "t3-web": {
       "className": "T3ChatWebExecutor",
       "configSource": "<custom-config>",
@@ -545,10 +585,20 @@
       "configSource": "<custom-config>",
       "provider": "tinycms-web"
     },
+    "tm": {
+      "className": "TwinmindExecutor",
+      "configSource": "<custom-config>",
+      "provider": "twinmind"
+    },
     "trae": {
       "className": "TraeExecutor",
       "configSource": "trae",
       "provider": "trae"
+    },
+    "twinmind": {
+      "className": "TwinmindExecutor",
+      "configSource": "<custom-config>",
+      "provider": "twinmind"
     },
     "uc": {
       "className": "UcExecutor",
@@ -656,6 +706,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 131,
+  "keyCount": 141,
   "sharedInstances": []
 }

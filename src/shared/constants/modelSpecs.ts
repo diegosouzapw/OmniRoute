@@ -105,6 +105,16 @@ const AUTHORITATIVE_PROVIDER_CONTEXT_WINDOWS = new Map<string, number>([
   ["opencode-go/glm-5.2", 1000000],
   ["zenmux/z-ai/glm-5.2", 1000000],
   ["zenmux/z-ai/glm-5.2-free", 1000000],
+  // models.dev under-reports Opencode's free Xiaomi MiMo rows at 200000 while
+  // its own non-free siblings (mimo-v2.5, mimo-v2.6-flash) and its other free
+  // row (mimo-v2-pro-free) all declare 1048576. The upstream serves the full
+  // 1M window (sessions observed running past 718K), so the stale sync row
+  // must not cap the advertised context at 200K.
+  ["opencode/mimo-v2.5-free", 1048576],
+  ["opencode-zen/mimo-v2.5-free", 1048576],
+  ["opencode/mimo-v2.6-flash-free", 1048576],
+  ["opencode-zen/mimo-v2.6-flash-free", 1048576],
+  ["opencode-go/mimo-v2.6-flash-free", 1048576],
 ]);
 
 const GPT_5_6_MODEL_SPEC = {
@@ -128,6 +138,11 @@ const GEMINI_36_FLASH_MODEL_SPEC = {
 } satisfies ModelSpec;
 
 export const MODEL_SPECS: Record<string, ModelSpec> = {
+  // Public API limits; Codex's smaller window lives in its provider registry.
+  "gpt-6.1-sol": {
+    ...GPT_5_6_MODEL_SPEC,
+    aliases: ["openai/gpt-6.1-sol"],
+  },
   // Public model limits; the Codex registry supplies its smaller OAuth window.
   // https://developers.openai.com/api/docs/models/gpt-6-astra
   "gpt-6-astra": {
@@ -146,7 +161,6 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-6-luna"],
   },
-  "gpt-6.1-sol": GPT_5_6_MODEL_SPEC,
   "gpt-5.6": {
     ...GPT_5_6_MODEL_SPEC,
     aliases: ["openai/gpt-5.6"],
@@ -415,6 +429,21 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsVision: true,
     adaptiveThinkingOnly: true,
     aliases: BEDROCK_CLAUDE_ALIASES("claude-sonnet-5"),
+  },
+
+  // ── Claude Haiku 5.5 ────────────────────────────────────────────
+  // Adaptive-thinking-only, like Sonnet 5.5: `thinking.type:"enabled"` returns
+  // 400 ("use thinking.type.adaptive and output_config.effort"). Haiku 4.5 and
+  // earlier still accept manual budgets, so this spec must NOT be widened to
+  // the /haiku/ family. Limits from the gateway catalog (context 1M, output 128K).
+  "claude-haiku-5-5": {
+    maxOutputTokens: 128000,
+    contextWindow: 1000000,
+    supportsThinking: true,
+    supportsTools: true,
+    supportsVision: true,
+    adaptiveThinkingOnly: true,
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-haiku-5-5"),
   },
 
   // ── Claude Sonnet 5.5 ───────────────────────────────────────────

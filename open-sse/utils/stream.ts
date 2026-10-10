@@ -2,6 +2,7 @@ import { translateResponse, initState } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
 import { appendRequestLog } from "@/lib/usageDb";
 import { clearPendingRequestOnce } from "./pendingRequestCleanup.ts";
+import { resolveTrailingUsageSummary } from "./passthroughTrailingUsage.ts";
 import { createByteLengthQueueStrategies } from "./byteQueueStrategy.ts";
 import {
   extractUsage,
@@ -885,6 +886,7 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughBufferedTextualToolCallContent = "";
   /** Passthrough: whether a usage block was already forwarded to the client (prevents double). */
   let passthroughForwardedUsage = false;
+  let passthroughForwardedUsageSummary = false;
   /** Translate: usage already reached the client, or no trailing usage chunk applies. */
   let translateForwardedUsage = sourceFormat !== FORMATS.OPENAI || !shouldEmitDoneTerminator;
   // Passthrough Responses SSE: snapshots of items seen via `response.output_item.done`,
@@ -1963,33 +1965,16 @@ export function createSSEStream(options: StreamOptions = {}) {
                         !parsed.choices[0]?.finish_reason))
                   ) {
                     const emptyChoicesUsage = extractUsage(parsed) ?? parsed.usage;
-                    if (hasValidUsage(emptyChoicesUsage) && !passthroughForwardedUsage) {
-                      // Some upstreams (e.g. Ollama Cloud) emit prompt_tokens: 0
-                      // even when input was sent — they simply don't count input
-                      // tokens.  When we have a non-zero output but zero input,
-                      // estimate the real input token count from the request body.
-                      if (
-                        emptyChoicesUsage &&
-                        typeof emptyChoicesUsage === "object" &&
-                        !Array.isArray(emptyChoicesUsage) &&
-                        emptyChoicesUsage.completion_tokens > 0
-                      ) {
-                        const pt = emptyChoicesUsage.prompt_tokens ?? 0;
-                        if (pt === 0) {
-                          const estimated = estimateUsage(
-                            body,
-                            totalContentLength,
-                            sourceFormat || FORMATS.OPENAI
-                          );
-                          if (estimated?.prompt_tokens > 0) {
-                            emptyChoicesUsage.prompt_tokens = estimated.prompt_tokens;
-                            emptyChoicesUsage.total_tokens =
-                              (emptyChoicesUsage.total_tokens ?? 0) + estimated.prompt_tokens;
-                          }
-                        }
-                      }
-                      usage = emptyChoicesUsage;
+                    if (hasValidUsage(emptyChoicesUsage) && !passthroughForwardedUsageSummary) {
+                      usage = resolveTrailingUsageSummary(
+                        emptyChoicesUsage,
+                        usage,
+                        body,
+                        totalContentLength,
+                        sourceFormat || FORMATS.OPENAI
+                      );
                       passthroughForwardedUsage = true;
+                      passthroughForwardedUsageSummary = true;
                       output = `data: ${JSON.stringify(parsed)}\n\n`;
                       injectedUsage = true;
                       clientPayload = parsed;
@@ -2000,7 +1985,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     }
 
                     // If we already forwarded usage, drop any trailing empty-choices valid usage
-                    if (passthroughForwardedUsage && hasValidUsage(emptyChoicesUsage)) {
+                    if (passthroughForwardedUsageSummary && hasValidUsage(emptyChoicesUsage)) {
                       continue;
                     }
 

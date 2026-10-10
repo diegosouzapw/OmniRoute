@@ -2414,9 +2414,41 @@ paths:
     get:
       tags: [Provider Nodes]
       summary: List provider models
+      description: >-
+        With a provider query parameter, includes modelOutputOverrides for manual
+        output-token caps, including synced models without a custom-model row.
       responses:
         "200":
           description: Provider model list
+    put:
+      tags: [Provider Nodes]
+      summary: Update model metadata or per-model overrides
+      description: >-
+        Requires management authentication. maxOutputTokenOverride sets a manual
+        max_output_tokens capability without creating a custom-model row when it
+        is the only change. A null value clears that override. Existing metadata
+        fields remain available on this operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, modelId]
+              properties:
+                provider:
+                  type: string
+                modelId:
+                  type: string
+                maxOutputTokenOverride:
+                  type: integer
+                  minimum: 1
+                  nullable: true
+      responses:
+        "200":
+          description: Model settings saved
+        "400":
+          description: Invalid model target or override value
 
   /api/provider-models/validate-and-add:
     post:
@@ -5930,6 +5962,145 @@ paths:
         "500":
           description: Import failed
 
+  /api/services/llmlingua/install:
+    post:
+      tags: [Embedded Services]
+      summary: Install LLMLingua
+      description: >-
+        Installs `@atjsh/llmlingua-2` (real LLMLingua-2 ONNX prompt-compression
+        package) plus its `@huggingface/transformers`/`js-tiktoken` peers under
+        DATA_DIR/services/llmlingua/, and writes the sidecar server script.
+        Accepts an optional `version` field (semver or `latest`).
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  default: latest
+      responses:
+        "200":
+          description: Installation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  installedVersion:
+                    type: string
+                  installPath:
+                    type: string
+                  durationMs:
+                    type: number
+
+  /api/services/llmlingua/start:
+    post:
+      tags: [Embedded Services]
+      summary: Start LLMLingua
+      description: Starts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after start
+        "409":
+          description: LLMLingua is not installed
+
+  /api/services/llmlingua/stop:
+    post:
+      tags: [Embedded Services]
+      summary: Stop LLMLingua
+      description: Stops the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after stop
+
+  /api/services/llmlingua/restart:
+    post:
+      tags: [Embedded Services]
+      summary: Restart LLMLingua
+      description: Restarts the supervised LLMLingua sidecar process. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Service status after restart
+        "409":
+          description: LLMLingua is not installed
+
+  /api/services/llmlingua/update:
+    post:
+      tags: [Embedded Services]
+      summary: Update LLMLingua
+      description: >-
+        Updates LLMLingua to the latest npm version. Stops the running process,
+        installs the new version, and restarts if it was previously running.
+        **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: Update result
+
+  /api/services/llmlingua/status:
+    get:
+      tags: [Embedded Services]
+      summary: Get LLMLingua status
+      description: Returns live and DB status for the supervised LLMLingua service. **LOCAL_ONLY** — loopback only.
+      responses:
+        "200":
+          description: LLMLingua service status
+
+  /api/services/llmlingua/auto-start:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle LLMLingua auto-start
+      description: >-
+        When enabled, LLMLingua starts automatically on the next OmniRoute boot.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Auto-start flag updated
+        "400":
+          description: Invalid request body
+
+  /api/services/llmlingua/auto-restart-adopted:
+    post:
+      tags: [Embedded Services]
+      summary: Toggle LLMLingua auto-restart-when-adopted
+      description: >-
+        When enabled, an externally-adopted (not OmniRoute-spawned) LLMLingua
+        process is restarted under OmniRoute's own supervisor on the next
+        health-check cycle instead of being left as adopted-only.
+        **LOCAL_ONLY** — loopback only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "204":
+          description: Flag updated
+        "400":
+          description: Invalid request body
+        "500":
+          description: Update failed
+
   /api/services/{name}/logs:
     get:
       tags: [Embedded Services]
@@ -5945,7 +6116,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [9router, cliproxy]
+            enum: [9router, cliproxy, mux, bifrost, dario, openwa, llmlingua]
         - name: tail
           in: query
           schema:
@@ -10376,6 +10547,16 @@ paths:
       tags:
         - Logs
       summary: "GET logs › export"
+      description: >-
+        Streams a JSON log export. The initial estimatedCount and the
+        X-OmniRoute-Export-Count header are preflight estimates;
+        X-OmniRoute-Export-Count-Kind is estimate. The final count is the number
+        of rows actually emitted in logs, including on mid-stream failure.
+        Failures also append emitted and a sanitized error. Cap metadata is
+        available before row iteration. This is a live, best-effort export:
+        concurrent changes may remove call-log IDs before hydration, and proxy-log
+        LIMIT/OFFSET pages may repeat or omit rows when inserts/deletes shift pages.
+        Neither the export nor totalAvailable represents a transactional snapshot.
       x-always-protected: true
       responses:
         "200":
@@ -11468,6 +11649,30 @@ paths:
       responses:
         "200":
           description: OK
+  /api/resilience/cooldowns:
+    get:
+      tags:
+        - Resilience
+      summary: "GET resilience › cooldowns"
+      description: >-
+        Every connection with its cooldown, model lockouts and terminal state, for the
+        Cooldown Manager page. Never includes credentials. Optional `provider` query filter.
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - Resilience
+      summary: "POST resilience › cooldowns"
+      description: >-
+        Clears connection cooldowns and model lockouts for `connectionIds`, or for every
+        connection when `all` is true (optionally within `provider`). Terminal states
+        (banned, expired, credits_exhausted) are skipped.
+      responses:
+        "200":
+          description: "`{ ok, cleared, unchanged, skippedTerminal, lockoutsCleared }`"
+        "400":
+          description: Neither connectionIds nor all was provided
   /api/routing/decisions/{requestId}:
     get:
       tags:
@@ -13151,7 +13356,10 @@ paths:
       summary: "GET combos"
       responses:
         "200":
-          description: OK
+          description: >-
+            OK. When capabilities are included, each `model` step in `models[]` carries
+            `supportsVision` (`true`, `false`, or `null` when no capability source knows),
+            and `capabilities.multimodal` is true exactly when every member reports `true`.
   /api/v1/completions:
     post:
       tags:

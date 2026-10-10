@@ -4,7 +4,6 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch, Agent } from "undici";
 import {
   buildVercelRelayHeaders,
-  clearDispatcherCache,
   createProxyDispatcher,
   getDefaultDispatcher,
   getProxyRetryDispatcher,
@@ -16,6 +15,7 @@ import {
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
+import { maybeReapDispatcherPool } from "./proxyDispatcherReap.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { stampOwnListenerSelfHop } from "./selfHop.ts";
@@ -24,6 +24,7 @@ import { describeFallbackFailure, redactProxyDetailsInMessage } from "./proxyFet
 import { recordFinalTransportOutcome, recordProxiedSuccess } from "./proxyTransportOutcome.ts";
 import { sanitizeTransportError } from "./proxyTransportError.ts";
 import { isProxyReachable } from "@/lib/proxyHealth";
+import { isDirectBypassHost } from "./proxyDirectBypass.ts";
 import {
   isControlPlaneProxyDirectFallbackEnabled,
   isFeatureFlagEnabled,
@@ -387,7 +388,7 @@ function isTlsRequestEligible(
   return Object.keys(options).every((key) => TLS_ALLOWED_OPTION_KEYS[key] === true);
 }
 
-function isTlsFallbackReplaySafe(
+function isAmbiguousFailureReplaySafe(
   input: RequestInfo | URL,
   options: FetchWithDispatcherOptions
 ): boolean {
@@ -523,10 +524,8 @@ function noProxyMatch(targetUrl) {
 }
 
 /**
- * True loopback only — NOT the broader private-network set `isLocalAddress`
- * covers. A LAN peer (192.168.x, a local Ollama box) is still reached over a
- * real network and keeps the outbound bound-and-replay policy; a loopback
- * target is this very process.
+ * A loopback target is this process. Private-network peers are not loopback:
+ * they must retain the outbound bound-and-replay policy.
  */
 function isLoopbackHost(hostname: string): boolean {
   const host = hostname
@@ -535,28 +534,6 @@ function isLoopbackHost(hostname: string): boolean {
     .replace(/^::ffff:/i, "")
     .toLowerCase();
   return host === "localhost" || host === "::1" || host === "127.0.0.1" || host.startsWith("127.");
-}
-
-function isLocalAddress(hostname: string): boolean {
-  const host = hostname
-    .replace(/^\[/, "")
-    .replace(/\]$/, "")
-    .replace(/^::ffff:/i, "");
-  if (host === "localhost" || host === "0.0.0.0" || host === "127.0.0.1" || host === "::1") {
-    return true;
-  }
-  if (host.endsWith(".local") || host.endsWith(".lan") || host.endsWith(".internal")) return true;
-  // RFC1918 + loopback + link-local (169.254, incl. cloud metadata 169.254.169.254)
-  // + CGNAT (100.64/10). 127/8 covers all loopback, not just 127.0.0.1.
-  if (host.startsWith("192.168.")) return true;
-  if (host.startsWith("10.")) return true;
-  if (host.startsWith("127.")) return true;
-  if (host.startsWith("169.254.")) return true;
-  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(host)) return true;
-  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(host)) return true;
-  // IPv6 ULA (fc00::/7 → fc/fd prefix) and link-local (fe80::/10)
-  if (/^f[cd][0-9a-f]*:/i.test(host) || host.startsWith("fe80:")) return true;
-  return false;
 }
 
 function resolveEnvProxyUrl(targetUrl) {
@@ -592,8 +569,8 @@ export function resolveProxyForRequest(targetUrl) {
     target = null;
   }
 
-  // Always bypass proxy for local/LAN addresses
-  if (target && isLocalAddress(target.hostname.toLowerCase())) {
+  // Always bypass proxy for local/LAN addresses and operator-listed provider-node hosts
+  if (target && isDirectBypassHost(target.hostname)) {
     return { source: "direct", proxyUrl: null };
   }
 
@@ -796,6 +773,7 @@ export function hasAmbientProxyContext(): boolean {
   const store = proxyContext.getStore();
   return Boolean(store) && store !== DIRECT_PROXY_CONTEXT;
 }
+export const isDirectFetchContext = () => proxyContext.getStore() === DIRECT_PROXY_CONTEXT;
 
 /**
  * Like {@link runWithProxyContext}, but if the assigned proxy is unreachable or fails
@@ -878,7 +856,7 @@ async function patchedFetchUnrecorded(
           typeof error === "object" &&
           "sessionHadCookies" in error &&
           error.sessionHadCookies === true;
-        if (!isTlsFallbackReplaySafe(input, options) || sessionHadCookies) {
+        if (!isAmbiguousFailureReplaySafe(input, options) || sessionHadCookies) {
           throw sanitizeTransportError(
             error,
             sessionHadCookies
@@ -903,23 +881,19 @@ async function patchedFetchUnrecorded(
       return _nativeFetch(input, options);
     }
     // Direct undici path: bound response-start, fresh-socket retry, and body guard.
+    const directOptions = { ...options, signal: getEffectiveSignal(input, options) };
     const hasNonReplayableBody = requestHasNonReplayableBody(input, options);
+    // Method gating covers response-start ambiguity; connection-error retries remain below.
+    const canReplayResponseStartTimeout = isAmbiguousFailureReplaySafe(input, options);
     const maxAttempts = hasNonReplayableBody ? 1 : 2;
     const _undiciDirect =
       deps.undiciFetch ?? (undiciFetch as unknown as (...args: unknown[]) => Promise<Response>);
     const _nativeFallback =
       (deps.nativeFetch as FetchWithDispatcher | undefined) ?? originalFetchWithDispatcher;
 
-    // A loopback self-request (model sync, auto-discovery, internal routes) must
-    // NOT inherit the outbound-egress policy below. That policy bounds
-    // response-start and then REPLAYS the request on a fresh no-keep-alive
-    // dispatcher, which is designed for a dead keep-alive socket to a remote
-    // host (#10214). Against our own listener there is no such socket to
-    // detect: the replay just doubles how long a slow internal request occupies
-    // one of our OWN inbound slots (30s bound + 30s replay). When a provider
-    // stalls, those self-requests pile up against the chat admission limit and
-    // starve live traffic until Cloudflare cuts the client at its 120s proxy
-    // read timeout (HTTP 524). Send loopback straight through the native fetch.
+    // Loopback self-requests must not inherit remote-egress response-start replay:
+    // replaying against our own listener only doubles inbound-slot occupancy and
+    // can starve live traffic until Cloudflare's 120s read timeout (#10214).
     let isLoopbackTarget = false;
     try {
       isLoopbackTarget = isLoopbackHost(new URL(targetUrl).hostname);
@@ -931,7 +905,7 @@ async function patchedFetchUnrecorded(
     }
 
     let lastDispatcherError: unknown = null;
-    const timeoutFor = directHeadersTimeoutResolver(options, targetUrl);
+    const timeoutFor = directHeadersTimeoutResolver(directOptions, targetUrl);
     let targetHostForLogs = "";
     try {
       targetHostForLogs = new URL(targetUrl).host;
@@ -947,18 +921,19 @@ async function patchedFetchUnrecorded(
         return await directFetchWithBoundedResponseStart(
           input,
           {
-            ...options,
+            ...directOptions,
             dispatcher:
               attempt === 0
                 ? getDefaultDispatcher(hostnameForDispatcher)
                 : getRetryDispatcher(hostnameForDispatcher),
           },
           _undiciDirect,
-          timeoutFor(attempt)
+          timeoutFor(attempt === 0 && canReplayResponseStartTimeout ? 0 : 1)
         );
       } catch (dispatcherError) {
+        if (isCallerAbort(dispatcherError, directOptions.signal)) throw dispatcherError;
         if (isDirectResponseStartTimeout(dispatcherError)) {
-          if (attempt === 0 && maxAttempts > 1) {
+          if (attempt === 0 && maxAttempts > 1 && canReplayResponseStartTimeout) {
             console.warn(
               `[ProxyFetch] Direct response-start timeout (${timeoutFor(0)}ms) on pooled dispatcher — retrying on fresh no-keep-alive dispatcher: ${targetHostForLogs}`
             );
@@ -1041,17 +1016,10 @@ async function patchedFetchUnrecorded(
           console.warn(
             `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${describeFetchCause(dispatcherError)}`
           );
-          // On PROXY_UNREACHABLE for local-egress hostnames (host.docker.internal,
-          // *.internal, *.local), drop the cached dispatcher pool: Docker
-          // Desktop's NAT silently drops idle keep-alive sockets inside the
-          // round-robin pool's keepAliveMaxTimeout window, and the pool never
-          // reaps them on PROXY_UNREACHABLE, so the next request must rebuild
-          // with fresh sockets (#4252-style stale-socket burst mitigation).
-          if (
-            isLocalEgressHostname(targetHostForLogs) &&
-            isProxyUnreachableError(dispatcherError)
-          ) {
-            clearDispatcherCache();
+          // Reap the failed pool on PROXY_UNREACHABLE so the next request
+          // rebuilds it with fresh sockets.
+          if (isProxyUnreachableError(dispatcherError)) {
+            maybeReapDispatcherPool(targetHostForLogs, isLocalEgressHostname(targetHostForLogs));
           }
           try {
             return await _nativeFallback(input, options);
@@ -1217,7 +1185,7 @@ async function patchedFetchUnrecorded(
         typeof error === "object" &&
         "sessionHadCookies" in error &&
         error.sessionHadCookies === true;
-      if (!isTlsFallbackReplaySafe(input, options) || sessionHadCookies) {
+      if (!isAmbiguousFailureReplaySafe(input, options) || sessionHadCookies) {
         throw sanitizeTransportError(
           error,
           sessionHadCookies

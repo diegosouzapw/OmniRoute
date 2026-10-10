@@ -114,6 +114,7 @@ export type SsePassthroughResult = {
   url: string;
   headers: Record<string, string>;
   transformedBody: unknown;
+  upstreamDiagnostic?: Record<string, unknown>;
 };
 
 /**

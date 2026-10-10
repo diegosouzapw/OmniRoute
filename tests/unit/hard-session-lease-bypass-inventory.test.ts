@@ -52,7 +52,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // removed as dead redundant code, 6->5. #12653 added combo target
     // resolution with the same shape as imageCombo, 5->6.
     // #15513: added Antigravity/Gemini image edits support branch, 6->7.
-    "src/app/api/v1/images/edits/route.ts": 7,
+    // #14269: SYNTX.ai image edits branch, same quota-preflight credential lookup
+    // shape as the sibling provider branches, 7->8.
+    "src/app/api/v1/images/edits/route.ts": 8,
     "src/app/api/v1/images/generations/route.ts": 3,
     "src/app/api/v1/images/upscale/route.ts": 1,
     "src/app/api/v1/messages/count_tokens/route.ts": 1,
@@ -66,6 +68,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     "src/app/api/v1/segment/route.ts": 1,
     "src/app/api/v1/session-leases/route.ts": 1,
     "src/app/api/v1/videos/generations/route.ts": 2,
+    // #13788: Codex native web search (/v1/alpha/search) — same quota-preflight credential
+    // lookup as web/fetch (class B).
+    "src/app/api/v1/alpha/search/route.ts": 1,
     "src/app/api/v1/web/fetch/route.ts": 1,
     // #15703: Firecrawl Map endpoint, same quota-preflight credential lookup as web/fetch (class B).
     "src/app/api/v1/web/map/route.ts": 1,
@@ -73,7 +78,9 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // credentials through getProviderCredentials with the connection allowlist
     // from resolveLocalSyncedEndpointRoute, and handles allRateLimited, so it is
     // fenced the same way as the two pre-existing sites.
-    "src/lib/embeddings/service.ts": 3,
+    // #15761: local embeddings resolve credentials through the serving-connection allowlist
+    // (getProviderCredentials(provider, null, servingIds)) — one more site (3 -> 4).
+    "src/lib/embeddings/service.ts": 4,
     // PR #11390: second site is the generic derived-provider listing fallback —
     // read-only key presence probe used to decide whether a configured chat
     // provider may appear in the memory embedding-source dropdown.
@@ -130,8 +137,16 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // persisted-cooldown gate's connection read moved here byte-identically
     // (readConnectionForCooldownGate), so this is the same site, renamed.
     "open-sse/services/combo/executeTargetGates.ts": 1,
-    "open-sse/services/combo/providerWildcard.ts": 1,
+    // #15927: providerWildcard.ts no longer queries connections itself — the Alibaba
+    // free-tier drained-model filter now reads through getCachedProviderPoolConnections()
+    // (open-sse/services/providerConnectionPool.ts), which goes through the shared
+    // getCachedProviderConnections() read cache (its getProviderConnections site is the one
+    // already inventoried under src/lib/db/readCache.ts). Read-only state lookup, no dispatch, 1->0.
     "open-sse/services/tokenRefresh.ts": 1,
+    // #15138: per-account test message config/send — reads the row for its stored test model
+    // and active flag; dispatch goes through runSingleModelTest, which refuses managed-lease
+    // connections itself (class C).
+    "src/app/api/providers/[id]/test-message/route.ts": 3,
     "src/lib/providers/volcPlanAutoSyncBackfill.ts": 1,
     "src/lib/providers/volcenginePlanBinding.ts": 1,
     "src/app/(dashboard)/dashboard/tools/agent-bridge/page.tsx": 1,
@@ -239,7 +254,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // #11495: verify-only sweep queries oauth + cookie connections
     // #13874: the health check re-reads the row inside the refresh lane to see whether
     // a Layer 2 refresh already rotated the token before it POSTs a consumed one (2 -> 3).
-    "src/lib/tokenHealthCheck.ts": 3,
+    // #15891: after a successful refresh, getRefreshRecoveryUpdate() re-reads the row's
+    // rateLimitedUntil so it does not clear an active cooldown's diagnostics — a state
+    // read, not connection selection or dispatch, class C like its siblings (3 -> 4).
+    "src/lib/tokenHealthCheck.ts": 4,
     "src/lib/tokenHealthCheckCopilot.ts": 1,
     "src/lib/usage/callLogs.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
@@ -293,7 +311,6 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
         "open-sse/services/alibabaFreeTier.ts",
         "open-sse/services/alibabaFreeTierQuotaFetcher.ts",
         "open-sse/services/combo/executeTargetGates.ts",
-        "open-sse/services/combo/providerWildcard.ts",
         "open-sse/services/tokenRefresh.ts",
         "src/app/api/translator/send/route.ts",
         "src/lib/credentialHealth/scheduler.ts",

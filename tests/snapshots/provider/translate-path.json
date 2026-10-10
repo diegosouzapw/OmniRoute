@@ -349,20 +349,20 @@
     "headers": {
       "apiKey": {
         "Accept": "text/event-stream",
-        "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
+        "Anthropic-Beta": "interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
         "x-api-key": "<CRED>"
       },
       "nonStream": {
-        "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
+        "Anthropic-Beta": "interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
         "x-api-key": "<CRED>"
       },
       "oauth": {
         "Accept": "text/event-stream",
-        "Anthropic-Beta": "claude-code-20250219,interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
+        "Anthropic-Beta": "interleaved-thinking-2025-05-14,context-management-2025-06-27,prompt-caching-scope-2026-01-05,advanced-tool-use-2025-11-20,effort-2025-11-24,structured-outputs-2025-12-15,fast-mode-2026-02-01,redact-thinking-2026-02-12,token-efficient-tools-2026-03-28,advisor-tool-2026-03-01,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07,code-execution-2025-08-25",
         "Anthropic-Version": "2023-06-01",
         "Content-Type": "application/json",
         "x-api-key": "<CRED>"
@@ -449,6 +449,29 @@
     "url": {
       "nonStream": "https://api.airforce/v1/chat/completions",
       "stream": "https://api.airforce/v1/chat/completions"
+    }
+  },
+  "apmix": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.apmix.ai/v1/chat/completions",
+      "stream": "https://api.apmix.ai/v1/chat/completions"
     }
   },
   "arcee-ai": {
@@ -661,6 +684,29 @@
       "stream": "https://bazaarlink.ai/api/v1/chat/completions"
     }
   },
+  "beatapi": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.beatapi.io/v1/chat/completions",
+      "stream": "https://api.beatapi.io/v1/chat/completions"
+    }
+  },
   "bedrock": {
     "format": "openai",
     "headers": {
@@ -680,6 +726,29 @@
       }
     },
     "url": {}
+  },
+  "bigmodel": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "stream": "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+    }
   },
   "blackbox": {
     "format": "openai",
@@ -932,6 +1001,29 @@
     "url": {
       "nonStream": "https://chatgpt.com",
       "stream": "https://chatgpt.com"
+    }
+  },
+  "chatplayground": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://app.chatplayground.ai/api/chat",
+      "stream": "https://app.chatplayground.ai/api/chat"
     }
   },
   "cheaperinference": {
@@ -1301,6 +1393,47 @@
     "url": {
       "nonStream": "https://copilot.tencent.com/v2/chat/completions",
       "stream": "https://copilot.tencent.com/v2/chat/completions"
+    }
+  },
+  "codebuddy-intl": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.codebuddy.ai/v2/chat/completions",
+      "stream": "https://www.codebuddy.ai/v2/chat/completions"
     }
   },
   "codestral": {
@@ -4307,6 +4440,29 @@
       "stream": "https://app.notion.com/api/v3/runInferenceTranscript"
     }
   },
+  "notrack-web": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://notrack.ai/api/dispatch",
+      "stream": "https://notrack.ai/api/dispatch"
+    }
+  },
   "nous-research": {
     "format": "openai",
     "headers": {
@@ -5596,6 +5752,29 @@
       "stream": "https://api.synthetic.new/openai/v1/chat/completions"
     }
   },
+  "syntx": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.syntx.ai/api/v1",
+      "stream": "https://api.syntx.ai/api/v1"
+    }
+  },
   "t3-web": {
     "format": "openai",
     "headers": {
@@ -5760,6 +5939,29 @@
       "stream": "https://agent-router.gaib.ai/v1/chat/completions"
     }
   },
+  "tokenmarket": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.tokensmarket.ai/v1/chat/completions",
+      "stream": "https://api.tokensmarket.ai/v1/chat/completions"
+    }
+  },
   "tokenreply": {
     "format": "openai",
     "headers": {
@@ -5827,6 +6029,29 @@
     "url": {
       "nonStream": "https://core-normal.trae.ai/api/remote/v1",
       "stream": "https://core-normal.trae.ai/api/remote/v1"
+    }
+  },
+  "twinmind": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api2.twinmind.com/api/v3",
+      "stream": "https://api2.twinmind.com/api/v3"
     }
   },
   "typhoon": {
@@ -5942,6 +6167,29 @@
     "url": {
       "nonStream": "https://hermes.ai.unturf.com/v1/chat/completions",
       "stream": "https://hermes.ai.unturf.com/v1/chat/completions"
+    }
+  },
+  "unifically": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json"
+      }
+    },
+    "url": {
+      "nonStream": "https://api.unifically.com/v1/chat/completions",
+      "stream": "https://api.unifically.com/v1/chat/completions"
     }
   },
   "unorouter": {
@@ -6267,6 +6515,32 @@
     "url": {
       "nonStream": "https://api.inference.wandb.ai/v1/chat/completions",
       "stream": "https://api.inference.wandb.ai/v1/chat/completions"
+    }
+  },
+  "workbuddy": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Product": "SaaS"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Product": "SaaS"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "X-Product": "SaaS"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.workbuddy.ai/v2/chat/completions",
+      "stream": "https://www.workbuddy.ai/v2/chat/completions"
     }
   },
   "writer": {

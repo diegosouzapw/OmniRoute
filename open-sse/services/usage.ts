@@ -55,12 +55,14 @@ import { getLlmgatewayUsage } from "./usage/llmgateway.ts";
 import { getLyceumUsage } from "./usage/lyceum.ts";
 import { getOllamaCloudUsage } from "./opencodeOllamaUsage.ts";
 import { getCodeBuddyCnUsage } from "./usage/codebuddy-cn.ts";
+import { getCodeBuddyIntlUsage } from "./usage/codebuddy-intl.ts";
 import { getPromptQlUsage } from "./usage/promptql.ts";
 import { getHyperAgentUsage } from "./usage/hyperagent.ts";
 import { getGitHubUsage, formatGitHubQuotaSnapshot, inferGitHubPlanName } from "./usage/github.ts";
 import { getCrofUsage } from "./usage/crof.ts";
 import { getClinepassUsage } from "./usage/clinepass.ts";
 import { getNanoGptUsage } from "./usage/nanogpt.ts";
+import { getApmixUsage } from "./usage/apmix.ts";
 import { getQoderUsage, parseQoderUserStatusUsage } from "./usage/qoder.ts";
 // Re-exported para o teste qoder-usage-quota (importa parseQoderUserStatusUsage de services/usage).
 export { parseQoderUserStatusUsage } from "./usage/qoder.ts";
@@ -72,6 +74,7 @@ import {
   isMoonshotOpenPlatformConnection,
 } from "./usage/moonshotOpenPlatform.ts";
 import { getDevinCliUsage } from "./usage/devinCli.ts";
+import { getAnthropicApiKeyUsage } from "./usage/anthropicApiKey.ts";
 import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
 import { getVertexUsage } from "./usage/vertex.ts";
 import { getXiaomiMimoUsage } from "./usage/xiaomi-mimo.ts";
@@ -86,8 +89,10 @@ import { getVolcenginePlanUsage } from "./usage/volcenginePlan.ts";
 import { getCommandCodeUsage } from "./usage/command-code.ts";
 import { getQwenTokenPlanUsage } from "./usage/qwen-token-plan.ts";
 import { getConolUsage } from "./conolUsage.ts";
+import { getSyntxUsage } from "./usage/syntx.ts";
 import { getAgentrouterUsage } from "./usage/agentrouter.ts";
 import { getKilocodeUsage } from "./usage/kilocode.ts";
+import { getChatPlaygroundUsage } from "./usage/chatplayground.ts";
 
 type JsonRecord = Record<string, unknown>;
 type UsageProviderConnection = JsonRecord & {
@@ -204,6 +209,8 @@ export async function getUsageForProvider(
       return await getQwenTokenPlanUsage(id || "", apiKey || "", providerSpecificData);
     case "nanogpt":
       return await getNanoGptUsage(apiKey || "");
+    case "apmix":
+      return await getApmixUsage(apiKey || "");
     case "deepseek":
       return await getDeepseekUsage(id || "", apiKey || "");
     case "moonshot":
@@ -231,6 +238,9 @@ export async function getUsageForProvider(
       return await getGrokCliUsage(accessToken);
     case "codebuddy-cn":
       return await getCodeBuddyCnUsage(accessToken, apiKey, providerSpecificData);
+    case "codebuddy-intl":
+    case "cbai":
+      return await getCodeBuddyIntlUsage(accessToken, apiKey, providerSpecificData);
     case "promptql":
     case "pql":
       // DDN lux JWTs carry projectId only in JWT aud; connection.projectId may be set by sync.
@@ -262,6 +272,9 @@ export async function getUsageForProvider(
     case "conol-web":
     case "cnl":
       return await getConolUsage(apiKey || accessToken, providerSpecificData);
+    case "syntx":
+    case "stx":
+      return await getSyntxUsage(apiKey || accessToken, providerSpecificData);
     case "agentrouter":
       return await getAgentrouterUsage(id, connection);
     case "kilocode":
@@ -269,6 +282,11 @@ export async function getUsageForProvider(
     case "devin-cli":
       // Devin CLI tokens live in `accessToken` (oauth import) or `apiKey`.
       return await getDevinCliUsage(apiKey || accessToken);
+    case "anthropic":
+      return await getAnthropicApiKeyUsage(apiKey);
+    case "chatplayground":
+    case "cpl":
+      return await getChatPlaygroundUsage(apiKey || accessToken, providerSpecificData);
     default:
       return { message: `Usage API not implemented for ${provider}` };
   }

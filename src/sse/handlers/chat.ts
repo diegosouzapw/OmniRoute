@@ -1,5 +1,8 @@
+import { intersectAllowedConnectionIds } from "./chat/connectionConstraints.ts";
+import { hasQoderCallerTools } from "@omniroute/open-sse/services/qoderCapabilities";
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { getComboCredentialAvailability } from "./comboCredentialAvailability.ts";
 import * as chatAdmission from "./chatAdmission.ts";
 import { buildClientRawRequest, resolveDispatchClientRawRequest } from "./chat/clientRawRequest.ts";
 export { buildClientRawRequest, resolveDispatchClientRawRequest };
@@ -82,7 +85,8 @@ import { dispatchChatWithAffinityEviction } from "./chatDispatch";
 import { getCachedSettings, getCombosCacheVersion } from "@/lib/db/readCache";
 import { comboCheckProvider, ghComboGate } from "./chat/githubLiveCatalogFilter.ts";
 import { markEmergencyFallback } from "./emergencyFallbackHeader.ts";
-import { comboTargetPassesKeyModelPolicy } from "./chat/comboTargetKeyPolicy.ts";
+import { evaluateComboTargetPreflight } from "./chat/comboTargetKeyPolicy.ts";
+import * as resolvedPolicy from "./chat/resolvedModelPolicy.ts";
 import { recordGateRejection, recordQuotaParkedSkip } from "./quotaParkedSkipUsage";
 import { getCombos } from "@/lib/db/combos";
 import { resolveModelLockoutSettings } from "@/lib/resilience/modelLockoutSettings";
@@ -325,25 +329,6 @@ async function getCombosCachedForChat(): Promise<ComboLike[]> {
   combosCacheVersionSnapshot = getCombosCacheVersion();
   combosCachePromise = getCombos().catch(() => []) as Promise<ComboLike[]>;
   return combosCachePromise;
-}
-
-function normalizeAllowedConnectionIds(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const ids = value.filter(
-    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0
-  );
-  return ids.length > 0 ? ids : null;
-}
-
-function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): string[] | null {
-  const first = normalizeAllowedConnectionIds(primary);
-  const second = normalizeAllowedConnectionIds(secondary);
-
-  if (first && second) {
-    return first.filter((id) => second.includes(id));
-  }
-
-  return first || second || null;
 }
 
 /** Shape of the videoBridgeLog param threaded to executeChatWithBreaker -> handleChatCore (#12150 P1b). */
@@ -1132,8 +1117,8 @@ async function handleChatImplementation(
       `Combo "${modelStr}" [${combo.strategy || "priority"}] with ${combo.models.length} models`
     );
 
-    // Pre-check function used by combo routing. For explicit combo live tests,
-    // avoid pre-skipping so each model gets a real execution attempt.
+    // Pre-check function used by combo routing. A live-test marker may skip
+    // availability only after target authorization succeeds.
     const comboPreselectedCredentials = new Map<string, any>();
     const getComboCredentialCacheKey = (
       modelString: string,
@@ -1149,20 +1134,16 @@ async function handleChatImplementation(
         providerId?: string | null;
       }
     ) => {
-      if (isComboLiveTest) return true;
-      // #12886: combo-name allow-list must not skip inner targets (#9057 still
-      // checks auto/* / disableNonPublic via comboTargetPassesKeyModelPolicy).
-      if (
-        !(await comboTargetPassesKeyModelPolicy({
-          apiKey,
-          apiKeyInfo,
-          requestedModelStr: resolvedModelStr,
-          targetModelStr: modelString,
-          isModelAllowedForKey,
-        }))
-      ) {
-        return false;
-      }
+      const preflightDecision = await evaluateComboTargetPreflight({
+        apiKey,
+        apiKeyInfo,
+        requestedModelStr: resolvedModelStr,
+        targetModelStr: modelString,
+        isComboLiveTest,
+        isModelAllowedForKey,
+      });
+      if (preflightDecision === "deny") return false;
+      if (preflightDecision === "bypass-availability") return true;
 
       // Use getModelInfo to resolve custom prefixes, but prefer the combo
       // target's providerId when available — the model string's provider
@@ -1209,6 +1190,7 @@ async function handleChatImplementation(
         allowedConnections,
         resolvedModel,
         {
+          requireToolCalling: hasQoderCallerTools(body),
           sessionKey: sessionAffinityKey,
           ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
@@ -1216,12 +1198,8 @@ async function handleChatImplementation(
           ...(managedLease ? { lease: credentialLease(managedLease) } : {}),
         }
       );
-      if (
-        !creds ||
-        ("allRateLimited" in creds && creds.allRateLimited) ||
-        ("waitingForCapacity" in creds && creds.waitingForCapacity)
-      )
-        return false;
+      const availability = getComboCredentialAvailability(creds);
+      if (availability !== true) return availability;
 
       // OAuth selection must happen atomically with occupancy reservation in the
       // actual dispatch. Availability preflight may finish well before a combo
@@ -1295,6 +1273,7 @@ async function handleChatImplementation(
             sessionId,
             sessionAffinityKey,
             forceLiveComboTest: isComboLiveTest,
+            ...resolvedPolicy.comboAuthorizationOptions(apiKeyInfo, resolvedModelStr),
             forcedConnectionId: target?.connectionId ?? null,
             allowedConnectionIds: target?.allowedConnectionIds ?? null,
             comboStepId: target?.stepId || null,
@@ -1538,6 +1517,8 @@ async function handleSingleModelChat(
     reasoningIntent?: ExtractedReasoningIntent | null;
     reasoningRequestTags?: string[];
     reasoningTransportFallback?: "skip" | "drop";
+    authorizationContextModel?: string | null; // admitted combo/alias (resolvedModelPolicy.ts)
+    comboGrantsTargets?: boolean; // server-computed allowedCombos grant (#14197)
     managedLease?: ManagedLeaseDispatchContext | null;
     /** #12150 P1b: video-bridge log/Memory shadow — undefined on every non-video request. */
     videoBridgeLog?: VideoBridgeLog;
@@ -1612,6 +1593,7 @@ async function handleSingleModelChat(
           {
             sessionId: "", // safety-net redirect doesn't have session context
             forceLiveComboTest: false,
+            authorizationContextModel: runtimeOptions.authorizationContextModel ?? modelStr,
             forcedConnectionId: runtimeOptions?.forcedConnectionId ?? null,
             allowedConnectionIds: null,
             comboStepId: null,
@@ -1664,6 +1646,17 @@ async function handleSingleModelChat(
     if (modelStr.startsWith(runtimeOptions.providerId + "/")) return resolvedProvider;
     return runtimeOptions.providerId;
   })();
+  const resolvedModelGate = resolvedPolicy.createResolvedModelGate({
+    apiKeyInfo,
+    apiKey: extractApiKey(request),
+    contextModel: runtimeOptions.authorizationContextModel,
+    comboGrantsTargets: runtimeOptions.comboGrantsTargets,
+    provider,
+    model,
+    modelStr,
+  });
+  const modelPolicyRejection = await resolvedModelGate([`${provider}/${model}`]);
+  if (modelPolicyRejection) return modelPolicyRejection;
   const forceLiveComboTest = runtimeOptions.forceLiveComboTest === true;
   const budgetRejection = rejectIfMeteredBudgetExceeded(apiKeyInfo?.id, provider, modelStr);
   if (budgetRejection) return budgetRejection;
@@ -1805,6 +1798,7 @@ async function handleSingleModelChat(
               effectiveAllowedConnections,
               model,
               {
+                requireToolCalling: hasQoderCallerTools(body),
                 sessionKey: occupancySessionKey,
                 reserveOAuthSession: true,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
@@ -1895,7 +1889,7 @@ async function handleSingleModelChat(
             requestRetryBudgetLeftMs = Math.max(0, requestRetryBudgetLeftMs - retryDecision.waitMs);
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt + 1}/${retrySettings.maxRetries}`
+              `${provider}/${model} cooldown elapsed — restarting request (retry ${requestRetryAttempt}/${retrySettings.maxRetries})`
             );
             continue requestAttemptLoop;
           }
@@ -2012,6 +2006,20 @@ async function handleSingleModelChat(
           return connectionRouting.response;
         }
         requestBody = connectionRouting.body;
+      }
+      // Connection defaults / reasoning rules can swap the admitted model: recheck pre-dispatch.
+      const effectivePolicyRejection = await resolvedModelGate(
+        resolvedPolicy.effectivePolicyTargets(
+          provider,
+          effectiveModel,
+          requestBody.model,
+          body?.model
+        )
+      );
+      if (effectivePolicyRejection) {
+        releaseOAuthSession();
+        agyLease.release(leaseId);
+        return effectivePolicyRejection;
       }
       let injectedHandoff = null;
       if (
@@ -2633,6 +2641,7 @@ async function handleSingleModelChat(
               ),
               isCombo,
               headers: result.response.headers,
+              structuredError: { code: result.errorCode, type: result.errorType },
             })
           );
 

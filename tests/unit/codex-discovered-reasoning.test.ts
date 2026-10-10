@@ -89,7 +89,9 @@ test("dashboard and public catalog expose future model wire tiers without client
       tier
     );
   assert.ok(!listing.some((m) => m.id === `${modelId}-ultra`));
-  assert.ok(listing.some((m) => m.id === "gpt-5.6-sol-ultra"));
+  // #15132: the account's live inventory is authoritative for Codex, so a static
+  // registry row it does not advertise is no longer listed next to it.
+  assert.ok(!listing.some((m) => m.id === "gpt-5.6-sol-ultra"));
   assert.equal(new Set(listing.map((m) => m.id)).size, listing.length);
   const response = await getUnifiedModelsResponse(new Request("http://localhost/api/v1/models"));
   const catalog = await response.json();

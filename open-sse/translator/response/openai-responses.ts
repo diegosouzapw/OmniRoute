@@ -1390,8 +1390,11 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
     return null;
   }
 
-  // Response completed
-  if (eventType === "response.completed") {
+  // Response completed (or ended incomplete: max_output_tokens / content_filter, #15489)
+  if (eventType === "response.completed" || eventType === "response.incomplete") {
+    if (eventType === "response.incomplete") {
+      state.incompleteReason = data.response?.incomplete_details?.reason;
+    }
     // Extract usage from response.completed event
     const responseUsage = data.response?.usage;
     if (responseUsage && typeof responseUsage === "object") {

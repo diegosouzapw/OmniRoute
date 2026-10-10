@@ -614,6 +614,11 @@
       "disposition": "separately-invoked"
     },
     {
+      "name": "test:services:int",
+      "command": "cross-env RUN_SERVICES_INT=1 DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 \"tests/integration/services/*.test.ts\"",
+      "disposition": "separately-invoked"
+    },
+    {
       "name": "test:system",
       "command": "cross-env DISABLE_SQLITE_AUTO_BACKUP=true node --import tsx/esm --import ./open-sse/utils/setupPolyfill.ts --import ./tests/_setup/isolateDataDir.ts --test --test-force-exit --test-concurrency=1 tests/e2e/system-failover.test.ts",
       "disposition": "separately-invoked"
@@ -705,7 +710,7 @@
         "check:test-discovery",
         "check:test-masking",
         "check:duplication",
-        "check:cycles"
+        "check:cycles:ratchet"
       ]
     },
     "quality-scan-fast": {

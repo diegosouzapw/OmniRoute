@@ -1,0 +1,1 @@
+- **feat(providers):** add the CodeBuddy International (`codebuddy.ai`) provider as `codebuddy-intl` (alias `cbai`), sharing the device-auth flow, executor, token refresh and quota fetcher with `codebuddy-cn` by realm ([#15799](https://github.com/diegosouzapw/OmniRoute/pull/15799), closes [#15173](https://github.com/diegosouzapw/OmniRoute/issues/15173)) — thanks @Junior-HJ

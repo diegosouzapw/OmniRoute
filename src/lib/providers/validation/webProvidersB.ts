@@ -12,7 +12,13 @@ import {
 } from "./transport";
 import { SafeOutboundFetchError } from "@/shared/network/safeOutboundFetch";
 import { normalizeSessionCookieHeader } from "@/lib/providers/webCookieAuth";
-import { normalizeGeminiCookieInput } from "@omniroute/open-sse/utils/geminiCookies.ts";
+import { normalizeGeminiValidationCookie } from "@omniroute/open-sse/utils/geminiCookies.ts";
+import {
+  looksLikeJwt,
+  resolveSyntxToken,
+  syntxAuthHeaders,
+} from "@omniroute/open-sse/services/syntxAuth.ts";
+import { SYNTX_MODELS_URL } from "@omniroute/open-sse/services/syntxModels.ts";
 import { buildJulesApiUrl } from "@/lib/cloudAgent/julesApi.ts";
 import {
   META_AI_ASBD_ID,
@@ -216,7 +222,15 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
     }
 
     // Accept full cookie blob, bare value, or browser-export JSON.
-    const cookieHeader = normalizeGeminiCookieInput(raw);
+    // #15387: reject credentials without a __Secure-1PSID cookie before any network call.
+    const cookieHeader = normalizeGeminiValidationCookie(raw);
+    if (!cookieHeader) {
+      return {
+        valid: false,
+        error:
+          "No __Secure-1PSID cookie found — paste it from gemini.google.com DevTools → Cookies",
+      };
+    }
 
     const response = await validationRead("https://gemini.google.com/app", {
       headers: applyCustomUserAgent(
@@ -238,7 +252,17 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
       };
     }
 
-    // 200/302 = valid, anything < 500 that isn't auth failure is acceptable
+    // #15387: a 200 is only a signed-in session when the page carries the SNlM0e token;
+    // a signed-out landing page also answers 200 for any junk cookie value.
+    if (response.status === 200) {
+      const body = await response.text().catch(() => "");
+      if (/"SNlM0e"\s*:\s*"[^"]+"/.test(body)) return { valid: true, error: null };
+      return {
+        valid: false,
+        error:
+          "Not signed in — the cookie was not accepted by gemini.google.com. Re-paste __Secure-1PSID from DevTools → Cookies",
+      };
+    }
     if (response.status < 500) {
       return { valid: true, error: null };
     }
@@ -280,7 +304,15 @@ export async function validateGeminiWebProvider({ apiKey, providerSpecificData =
           warning: "Cookie accepted. Full verification requires browser test on first chat.",
         };
       }
-      return { valid: true, error: null };
+      // #15387: only Google-owned redirect targets are acceptable; anything else is not a
+      // Gemini session signal.
+      if (/^https:\/\/([a-z0-9-]+\.)*google\.com(\/|$)/i.test(location)) {
+        return { valid: true, error: null };
+      }
+      return {
+        valid: false,
+        error: "Unexpected redirect from gemini.google.com — cookie not verified",
+      };
     }
     return toValidationErrorResult(error);
   }
@@ -776,6 +808,41 @@ export async function validateTinyCmsWebProvider({ apiKey, providerSpecificData 
     }
 
     return { valid: true, error: null };
+  } catch (error: any) {
+    return toValidationErrorResult(error);
+  }
+}
+
+export async function validateSyntxProvider({
+  apiKey,
+  providerSpecificData = {},
+  accessToken,
+}: any) {
+  try {
+    const token = resolveSyntxToken({ apiKey, accessToken, providerSpecificData });
+    if (!looksLikeJwt(token)) {
+      return {
+        valid: false,
+        error: "Paste your SYNTX.ai Bearer JWT from syntx.ai DevTools -> Network -> api.syntx.ai",
+      };
+    }
+
+    const response = await validationRead(SYNTX_MODELS_URL, {
+      method: "GET",
+      headers: applyCustomUserAgent(syntxAuthHeaders(token), providerSpecificData),
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        valid: false,
+        error: "Invalid or expired SYNTX JWT — re-paste Authorization Bearer from syntx.ai",
+      };
+    }
+    if (response.status >= 500) {
+      return { valid: false, error: `SYNTX unavailable (${response.status})` };
+    }
+    if (response.ok) return { valid: true, error: null };
+    return { valid: false, error: `SYNTX validation failed (${response.status})` };
   } catch (error: any) {
     return toValidationErrorResult(error);
   }

@@ -47,7 +47,7 @@ Repository map and Reference Documentation sections below.
 
 ## Project at a Glance
 
-**OmniRoute** — unified AI proxy/router. One endpoint, 360 LLM providers, auto-fallback.
+**OmniRoute** — unified AI proxy/router. One endpoint, 372 LLM providers, auto-fallback.
 
 | Layer         | Location                | Purpose                                                                                                                                                                   |
 | ------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -57,7 +57,7 @@ Repository map and Reference Documentation sections below.
 | Translators   | `open-sse/translator/`  | Format conversion (OpenAI↔Claude↔Gemini)                                                                                                                                  |
 | Transformer   | `open-sse/transformer/` | Responses API ↔ Chat Completions                                                                                                                                          |
 | Services      | `open-sse/services/`    | Combo routing, rate limits, caching, etc                                                                                                                                  |
-| Database      | `src/lib/db/`           | SQLite domain modules (200 migrations)                                                                                                                                    |
+| Database      | `src/lib/db/`           | SQLite domain modules (202 migrations)                                                                                                                                    |
 | Domain/Policy | `src/domain/`           | Policy engine, cost rules, fallback logic                                                                                                                                 |
 | MCP Server    | `open-sse/mcp-server/`  | 110 tools (45 canonical + memory/skill/GitHub/pool/gamification/plugin/Notion/Obsidian/local-corpus/RTK modules), 3 transports (stdio / SSE / Streamable HTTP), 33 scopes |
 | A2A Server    | `src/lib/a2a/`          | JSON-RPC 2.0 agent protocol                                                                                                                                               |
@@ -351,6 +351,12 @@ Documentation must describe verified behavior, not plausible behavior.
 4. Add OAuth config in `src/lib/oauth/constants/oauth.ts` if OAuth-based — if the upstream CLI ships a public client_id/secret, embed via `resolvePublicCred()` (see `docs/security/PUBLIC_CREDS.md`), **never** as a literal
 5. Register models in `open-sse/config/providerRegistry.ts`
 6. Write tests in `tests/unit/` (include the publicCreds shape assertion if you added a new embedded default)
+
+### Enabling Dual Auth (Multiple API Keys) for a Provider
+
+1. Add the provider's ID to the `DUAL_AUTH_PROVIDER_IDS` set in `src/shared/constants/providers.ts`. This flags the frontend to render the multi-key textarea input instead of a single-line password input.
+2. Update the `authHint` for the provider (in `src/shared/constants/providers.ts` or `src/shared/constants/providers/oauth.ts`) to inform users that they can provide multiple keys separated by commas.
+3. Each key is stored as its own provider connection row (the bulk-add flow parses one key per line via `parseBulkApiKeys()` in `src/shared/utils/bulkApiKeyParser.ts`). At request time, `getProviderCredentials()` in `src/sse/services/auth.ts` automatically selects and rotates/falls back between a provider's connections — see "Connection Cooldown" above for the fallback mechanics.
 
 ### Adding a New API Route
 

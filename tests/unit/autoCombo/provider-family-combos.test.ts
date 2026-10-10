@@ -19,6 +19,7 @@ import {
   buildFamilyCandidateFilter,
   isValidModelFamily,
   AUTO_FAMILY_IDS,
+  MODEL_FAMILIES,
 } from "../../../open-sse/services/autoCombo/modelFamily";
 
 // First-touch DB migrations run once per worker and can exceed vitest's 5s
@@ -79,7 +80,7 @@ describe("detectModelFamily (pure)", () => {
     assert.equal(detectModelFamily("zai-glm-5.2"), null);
   });
 
-  it("isValidModelFamily accepts exactly the 11 advertised families", () => {
+  it("isValidModelFamily accepts exactly the advertised families", () => {
     for (const family of [
       "glm",
       "minimax",
@@ -92,6 +93,9 @@ describe("detectModelFamily (pure)", () => {
       "qwen",
       "deepseek",
       "gpt",
+      "claude-opus",
+      "claude-sonnet",
+      "claude-haiku",
     ]) {
       assert.equal(isValidModelFamily(family), true);
     }
@@ -250,19 +254,7 @@ describe("auto/<family> materialization (#6453)", () => {
   });
 
   it("isRecognizedBuiltinAuto recognizes every auto/<family> id", () => {
-    for (const family of [
-      "glm",
-      "minimax",
-      "mimo",
-      "zai",
-      "gemma",
-      "llama",
-      "gemini",
-      "kimi",
-      "qwen",
-      "deepseek",
-      "gpt",
-    ]) {
+    for (const family of MODEL_FAMILIES) {
       assert.equal(builtinCatalog.isRecognizedBuiltinAuto(`auto/${family}`, family), true);
     }
     assert.equal(builtinCatalog.isRecognizedBuiltinAuto("auto/unknownfam", "unknownfam"), false);
@@ -368,5 +360,63 @@ describe("additional auto-routing families (#13214)", () => {
         family: suffix,
       });
     }
+  });
+
+  it("detects Claude tier names across real-world model id shapes", () => {
+    for (const [model, family] of [
+      ["claude-opus-4.8", "claude-opus"],
+      ["claude-opus-5", "claude-opus"],
+      ["anthropic/claude-3-opus-20240229", "claude-opus"],
+      ["us.anthropic.claude-opus-4-1", "claude-opus"],
+      ["claude-sonnet-4-5", "claude-sonnet"],
+      ["anthropic/claude-3-5-sonnet-20241022", "claude-sonnet"],
+      ["claude-haiku-4-5-20251001", "claude-haiku"],
+      ["anthropic.claude-haiku-4-5", "claude-haiku"],
+    ]) {
+      assert.equal(detectModelFamily(model), family, model);
+    }
+    // Non-tier Claude ids and unrelated models must not match any Claude family.
+    assert.equal(detectModelFamily("claude-fable-5"), null);
+    assert.equal(detectModelFamily("aion-3.0"), null);
+    // The \b boundary keeps substring lookalikes out.
+    assert.equal(detectModelFamily("octopus-v2"), null);
+  });
+
+  it("auto/claude-opus pool contains only *opus* models (#15675 repro)", async () => {
+    // Reproduces the issue: a connected cheaperinference serving aion-3.0 must
+    // NOT be routable through auto/claude-opus, while its real claude-opus-*
+    // catalog models legitimately are.
+    await providersDb.createProviderConnection({
+      provider: "cheaperinference",
+      authType: "apikey",
+      name: "CheaperInference",
+      apiKey: "sk-test-cinf",
+      defaultModel: "aion-3.0",
+    });
+    await providersDb.createProviderConnection({
+      provider: "claude",
+      authType: "apikey",
+      name: "Claude",
+      apiKey: "sk-test-claude",
+      defaultModel: "claude-opus-5",
+    });
+
+    const combo = await builtinCatalog.createBuiltinAutoCombo("auto/claude-opus", "claude-opus");
+
+    assert.equal(combo.id, "auto/claude-opus");
+    assert.equal(combo.strategy, "auto");
+    assert.ok(combo.models.length > 0, "auto/claude-opus must materialize candidates");
+    assert.ok(
+      combo.models.every((m) => detectModelFamily(m.model) === "claude-opus"),
+      "every auto/claude-opus candidate must be an *opus* model"
+    );
+    assert.ok(
+      combo.models.every((m) => !m.model.toLowerCase().includes("aion")),
+      "the issue's aion-3.0 target must never enter the opus pool"
+    );
+    assert.ok(
+      combo.models.some((m) => m.providerId === "claude"),
+      "the connected Claude provider must contribute opus candidates"
+    );
   });
 });

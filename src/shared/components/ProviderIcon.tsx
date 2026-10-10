@@ -160,6 +160,7 @@ const KNOWN_SVGS = new Set([
   "nebius",
   "nlpcloud",
   "nomic",
+  "notrack-web",
   "novita",
   "nube",
   "nvidia",
@@ -220,6 +221,7 @@ const KNOWN_SVGS = new Set([
 ]);
 
 const LOCAL_SVG_ALIASES: Record<string, string> = {
+  bigmodel: "zhipu",
   "cursor-api": "cursor",
   "qwen-cloud": "qwencloud",
   "qwen-cloud-token-plan": "qwencloud",

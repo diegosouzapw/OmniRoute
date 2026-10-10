@@ -19,6 +19,7 @@ import {
   ensureBase64ImagesForClaudeWire,
 } from "./visionBridgeHelpers";
 import { fetch as undiciFetch } from "undici";
+import { detectMediaParts } from "@omniroute/open-sse/utils/mediaParts";
 import {
   getVisionBridgeConfig,
   isVisionBridgeForcedModel,
@@ -102,6 +103,29 @@ async function resolveComboRefVisionCapability(
   }
 
   return hasLeaf ? tally : fallback;
+}
+
+/**
+ * Count images nested in Responses tool outputs. `extractImageParts` deliberately
+ * excludes nested media because description replacement only knows how to splice
+ * top-level content parts; whole-request rerouting has no such restriction and
+ * must still notice these images so the raw Responses body can reach a native
+ * vision target unchanged.
+ */
+function countNestedToolOutputImages(items: unknown[]): number {
+  let count = 0;
+  for (const item of items) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+    const record = item as Record<string, unknown>;
+    if (record.type !== "function_call_output" && record.type !== "custom_tool_call_output") {
+      continue;
+    }
+    if (!Array.isArray(record.output)) continue;
+    count += detectMediaParts([{ content: record.output }]).filter(
+      (part) => part.kind === "image"
+    ).length;
+  }
+  return count;
 }
 
 export function resolveVisionComboName(mapping: Record<string, unknown>): string | null {
@@ -359,9 +383,13 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       return { block: false };
     }
 
-    // 8. Check for images using helper (extractImageParts returns empty if no images)
+    // 8. Check for images. Description mode can only replace top-level parts,
+    // while reroute mode preserves the entire body and therefore also supports
+    // images nested inside Responses function_call_output items.
     const imageParts = extractImageParts(messages as Parameters<typeof extractImageParts>[0]);
-    if (imageParts.length === 0) {
+    const nestedToolImageCount = countNestedToolOutputImages(messages as unknown[]);
+    const detectedImageCount = imageParts.length + nestedToolImageCount;
+    if (detectedImageCount === 0) {
       return { block: false };
     }
 
@@ -429,17 +457,19 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
       );
     }
     const rerouteEligible =
+      runtime.mode === "reroute" ||
       rerouteTextOnly ||
       (!bareIdUnknownVision &&
-        ((comboVisionBridgeDecision === "not-combo" ||
+        (comboVisionBridgeDecision === "not-combo" ||
           comboVisionBridgeDecision === "no-vision" ||
           isAuto) &&
-          !forceVisionBridge));
+        !forceVisionBridge);
     // Forced modes short-circuit BEFORE the auto heuristic (#6640/#7204 untouched):
     // - "describe" skips the whole reroute block → straight to the describe path.
     // - "reroute" skips only the keep-credentialed-model guard; the reroute-target
-    //   credential guard still applies, and with no usable target it falls through
-    //   to describe (raw images must never reach a text-only backend — #8430).
+    //   credential guard still applies, and with no usable target the request is
+    //   blocked below instead of described (raw images must never reach a
+    //   text-only backend — #8430).
     if (rerouteEligible && runtime.mode !== "describe") {
       const checkCreds = this.deps.hasUsableCredentials ?? hasUsableCredentialsForModel;
       const originalUsable = runtime.mode === "reroute" ? false : await checkCreds(model);
@@ -503,7 +533,7 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
             // even when it succeeds. The report was that it happened silently.
             context.log?.warn?.(
               "VISION_BRIDGE",
-              `Whole-request vision reroute ${model} -> ${bestModel} for ${imageParts.length} image(s)`
+              `Whole-request vision reroute ${model} -> ${bestModel} for ${detectedImageCount} image(s)`
             );
             return {
               block: false,
@@ -512,13 +542,29 @@ export class VisionBridgeGuardrail extends BaseGuardrail {
                 rerouted: true,
                 fromModel: model,
                 toModel: bestModel,
-                imagesKept: imageParts.length,
+                imagesKept: detectedImageCount,
               },
             };
           }
         }
       }
       // Fall through: describe images as text (or no-op if describe path can't run)
+    }
+
+    // Reroute mode is a lossless policy: a request with an image must reach a
+    // usable vision-capable model. Falling through to description would violate
+    // that contract, especially for nested tool-output images that description
+    // mode cannot splice back into the Responses payload.
+    if (runtime.mode === "reroute") {
+      return {
+        block: true,
+        message: "No usable vision-capable model is available for this image request",
+        meta: {
+          imagesDetected: detectedImageCount,
+          rerouteFailed: true,
+          requestedModel: model,
+        },
+      };
     }
 
     // 10. Get configuration — fed from the resolved runtime values so the new

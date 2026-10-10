@@ -57,6 +57,7 @@ import {
   unmarkQuotaHealthy,
   isQuotaHealthy,
 } from "./quotaCacheState";
+import { isCodexPaidCreditsEnabled } from "@/lib/providers/codexPaidCredits";
 
 // Keep markQuotaHealthy's public import path; the remaining leaf state stays internal.
 export { markQuotaHealthy } from "./quotaCacheState";
@@ -295,6 +296,14 @@ function resolveAntigravityQuotaWindowsForModel(
   return selectAntigravityQuotaWindowNames(quotaNames, requestedModel);
 }
 
+// Automatic exhaustion is not the operator's optional usage cutoff — but Antigravity's
+// own remaining-fraction math can land a fully-used window at e.g. 0.0000017% instead
+// of an exact 0 (floating-point noise), so the "fully depleted" line sits a hair below
+// 100% used rather than exactly at it. This must stay far below the smallest boundary
+// `agy-quota-exhaustion-threshold.test.ts` asserts is NOT automatic exhaustion (1%
+// remaining / 99% used), or genuinely-usable low-quota accounts get skipped.
+const ANTIGRAVITY_EXHAUSTION_THRESHOLD_PERCENT = 99.999;
+
 function isAntigravityQuotaExhausted(
   connectionId: string,
   entry: QuotaCacheEntry,
@@ -304,12 +313,14 @@ function isAntigravityQuotaExhausted(
   const quotaNames = Object.keys(entry.quotas || {});
   if (quotaNames.length === 0) return entry.exhausted;
   const matchingWindows = resolveAntigravityQuotaWindowsForModel(quotaNames, requestedModel);
+  // Antigravity enforces both 5h and weekly windows for a family. A remaining
+  // 5h bucket cannot make an account usable when weekly is exhausted (or vice versa).
   return (
     matchingWindows.length > 0 &&
-    matchingWindows.every(
+    matchingWindows.some(
       (windowName) =>
-        // Automatic exhaustion is not the operator's optional usage cutoff.
-        getQuotaWindowStatus(connectionId, windowName, 100)?.reachedThreshold
+        getQuotaWindowStatus(connectionId, windowName, ANTIGRAVITY_EXHAUSTION_THRESHOLD_PERCENT)
+          ?.reachedThreshold
     )
   );
 }
@@ -653,6 +664,9 @@ export function isQuotaExhaustedForRequest(
   if (isQuotaHealthy(connectionId)) return false;
   if (isCodexQuotaFilteringDisabled(provider, providerSpecificData)) return false;
   if (isClaudeExtraUsageAllowed(provider, providerSpecificData)) return false;
+  // Subscription snapshots cannot decide paid-credit eligibility. The mandatory
+  // Codex preflight checks the credit balance before dispatch; cooldowns remain separate.
+  if (isCodexPaidCreditsEnabled(provider, providerSpecificData, requestedModel)) return false;
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return false;
 
@@ -981,13 +995,31 @@ export function markAccountExhaustedFromCredits(connectionId: string, provider: 
  * with, as a percentage. Returns 0 once the connection is known exhausted so a
  * 402-marked account cannot be weighted back into the draw.
  */
-export function getQuotaWeightedRemainingPercent(connectionId: string): number | null {
+export function getQuotaWeightedRemainingPercent(
+  connectionId: string,
+  requestedModel: string | null = null
+): number | null {
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return null;
   if (isAccountQuotaExhausted(connectionId)) return 0;
 
-  const remaining = Object.values(entry.quotas)
-    .filter((quota) => quota.fractionReported !== false)
+  const provider = entry.provider;
+  const names = Object.keys(entry.quotas);
+  const codexWindowFilter =
+    requestedModel && provider === "codex"
+      ? getCodexQuotaWindowFilterForModel(requestedModel)
+      : undefined;
+  const scoped =
+    requestedModel && (provider === "antigravity" || provider === "agy")
+      ? selectAntigravityQuotaWindowNames(names, requestedModel)
+      : codexWindowFilter
+        ? names.filter(codexWindowFilter)
+        : names;
+  if (requestedModel && scoped.length === 0) return null;
+
+  const remaining = scoped
+    .map((name) => entry.quotas[name])
+    .filter((quota) => quota && quota.fractionReported !== false)
     .map((quota) => clampPercent(quota.remainingPercentage));
   if (remaining.length === 0) return null;
   return Math.min(...remaining);

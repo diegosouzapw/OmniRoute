@@ -197,8 +197,12 @@ async function describeWeightedExclusion(
       return exclude("free_tier_drained");
     }
   }
-  if (isModelAvailable && (await isModelAvailable(target.modelStr, target)) !== true) {
-    return exclude("unavailable");
+  if (isModelAvailable) {
+    const availability = await isModelAvailable(target.modelStr, target);
+    if (typeof availability === "object" && availability?.reason === "connection_cooldown") {
+      return exclude("connection_cooldown", availability.retryAfterMs);
+    }
+    if (availability !== true) return exclude("unavailable");
   }
   return null;
 }

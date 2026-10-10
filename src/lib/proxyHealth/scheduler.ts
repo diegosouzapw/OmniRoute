@@ -6,6 +6,9 @@
  *
  * Config via environment:
  *   PROXY_HEALTH_INTERVAL_MS  — sweep interval (default: 600000 = 10min)
+ *   PROXY_HEALTH_RELAY_INTERVAL_MS — probe interval for edge-relay rows (deno / vercel /
+ *                               cloudflare), whose probes wake a billed serverless isolate
+ *                               (default: 21600000 = 6h, minimum 60000; see relayCadence.ts)
  *   PROXY_HEALTH_ENABLED      — set "false" to disable
  *   PROXY_AUTO_REMOVE         — set "true" to auto-remove dead proxies (destructive)
  *   PROXY_AUTO_DISABLE        — set "true" to auto-disable dead proxies instead of
@@ -51,6 +54,7 @@ import {
   resolveProbeTarget,
   waitForProbeSlot,
 } from "./probeTarget.ts";
+import { selectRelayIdsToSkip } from "./relayCadence.ts";
 import { resolveProviderProbeTarget } from "./providerProbeTarget.ts";
 import {
   noteProxyRecovered,
@@ -674,7 +678,11 @@ async function sweep(): Promise<void> {
       if (resolvePassiveSkip(proxy, passiveVerdicts)) skippedIds.add(proxy.id);
     }
   }
-  const toProbe = proxies.filter((proxy) => !skippedIds.has(proxy.id));
+  // #14984: edge-relay rows are probed on their own long cadence, not every sweep.
+  const relaySkipped = selectRelayIdsToSkip(proxies);
+  const toProbe = proxies.filter(
+    (proxy) => !skippedIds.has(proxy.id) && !relaySkipped.has(proxy.id)
+  );
   const passiveSkipped = skippedIds.size;
   const collected = await collectProbeResults(toProbe, async (proxy) => {
     const { outcome, status, target } = await testOneProxy(proxy);

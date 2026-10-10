@@ -89,6 +89,15 @@ export function isCursorBenignCancelError(value: unknown): boolean {
   return false;
 }
 
+/**
+ * True for the driveH2 safety-timeout error (CURSOR_STREAM_TIMEOUT_MS). When it
+ * fires after content was already streamed, the turn is finished as truncated
+ * (finish_reason "length") instead of being torn down mid-answer (#14727).
+ */
+export function isCursorStreamTimeoutError(value: unknown): boolean {
+  return errorCode(value) === "CURSOR_STREAM_TIMEOUT";
+}
+
 export function classifyCursorErrorKind(rawMessage: string): CursorErrorKind {
   const lower = rawMessage.toLowerCase();
 

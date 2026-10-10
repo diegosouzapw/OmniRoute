@@ -47,6 +47,7 @@ import {
   validateDevinCloudAgentProvider,
   validateInnerAiProvider,
   validateNotionWebProvider,
+  validateSyntxProvider,
 } from "./validation/webProvidersB";
 import {
   validateHerokuProvider,
@@ -79,6 +80,7 @@ import {
   validateNousResearchProvider,
   validatePoeProvider,
 } from "./validation/audioMiscProviders";
+import { validateTypesafeProvider } from "./validation/typesafe";
 import { validateZaiWebProvider } from "./validation/zaiWeb";
 import { validateSearchProvider, SEARCH_VALIDATOR_CONFIGS } from "./validation/searchProviders";
 import {
@@ -325,6 +327,7 @@ export async function validateProviderApiKey({
     nlpcloud: validateNlpCloudProvider,
     oneminai: validateOneMinAiProvider,
     runwayml: validateRunwayProvider,
+    typesafe: ({ apiKey }: any) => validateTypesafeProvider({ apiKey }),
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
     "deepseek-web": validateDeepSeekWebProvider,
@@ -350,6 +353,8 @@ export async function validateProviderApiKey({
     "copilot-m365-web": validateCopilotM365WebProvider,
     "copilot-web": validateCopilotWebProvider,
     "t3-web": validateT3WebProvider,
+    syntx: validateSyntxProvider,
+    stx: validateSyntxProvider,
     "azure-openai": validateAzureOpenAIProvider,
     "azure-ai": validateAzureAiProvider,
     "voyage-ai": ({ apiKey, providerSpecificData }: any) => {

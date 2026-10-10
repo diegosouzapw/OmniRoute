@@ -80,7 +80,10 @@ export type HandleSingleModel = (
  * `false` is the generic availability bucket (credentials, key policy, hidden).
  * `"model_not_in_catalog"` is the live-catalog miss, recorded separately.
  */
-export type ModelAvailabilityResult = boolean | "model_not_in_catalog";
+export type ModelAvailabilityResult =
+  | boolean
+  | "model_not_in_catalog"
+  | { available: false; reason: "connection_cooldown"; retryAfterMs: number };
 
 export type IsModelAvailable = (
   modelStr: string,

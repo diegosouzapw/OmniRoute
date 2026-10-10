@@ -1,0 +1,1 @@
+- fix(sse): a failed deduplicated request with no joiners no longer raises an unhandled rejection that exits the server with code 7 — fixed via #15750, regression test added (#15706)

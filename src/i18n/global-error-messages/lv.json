@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Kaut kas nogāja greizi",
+      "description": "Radās neparedzēta kļūda. Tā ir reģistrēta, un mūsu komanda to izpētīs.",
+      "detailsAriaLabel": "Kļūdas informācija",
+      "retryAriaLabel": "Mēģināt vēlreiz ielādēt lapu",
+      "tryAgain": "Mēģināt vēlreiz",
+      "statusAriaLabel": "Atvērt sistēmas statusu",
+      "systemStatus": "Sistēmas statuss"
+    }
+  }
+}
