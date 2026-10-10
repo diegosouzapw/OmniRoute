@@ -14526,7 +14526,7 @@
     "errorImportFailed": "Import fehlgeschlagen",
     "title": "Verbinde Trae SOLO",
     "authorizeDescription": "Autorisieren Sie sich über <code>trae.ai</code> in einem Popup. Das Popup schließt sich, sobald das Token importiert wurde.",
-    "authorizeImportant": "<strong>Wichtig:</strong> Sie müssen in diesem Browser bei <code>trae.ai</code> angemeldet sein. Die Autorisierungsseite bestätigt nur eine bestehende Sitzung — sie kann Sie nicht anmelden. Wenn Sie \"Anmeldung fehlgeschlagen\" sehen, klicken Sie auf \"Öffnen Sie solo.trae.ai\", melden Sie sich an und kehren Sie dann hierher zurück.",
+    "authorizeImportant": "<strong>Wichtig:</strong> Sie müssen in <em>diesem</em> Browser bei <code>trae.ai</code> angemeldet sein. Die Autorisierungsseite bestätigt nur eine bestehende Sitzung — sie kann Sie nicht anmelden. Wenn Sie \"Anmeldung fehlgeschlagen\" sehen, klicken Sie auf \"Öffnen Sie solo.trae.ai\", melden Sie sich an und kehren Sie dann hierher zurück.",
     "waitingForAuthorization": "Warten auf trae.ai…",
     "authorizeWithBrowser": "Mit Browser autorisieren",
     "openSoloTrae": "Öffne solo.trae.ai",

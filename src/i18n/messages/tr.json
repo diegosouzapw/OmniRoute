@@ -14526,7 +14526,7 @@
     "errorImportFailed": "İçe aktarma başarısız oldu",
     "title": "Bağlan Trae SOLO",
     "authorizeDescription": "<code>trae.ai</code> üzerinden bir açılır pencerede yetkilendirin. Token içe aktarıldıktan sonra açılır pencere kendiliğinden kapanacaktır.",
-    "authorizeImportant": "<strong>Önemli:</strong> önce bu tarayıcıda <code>trae.ai</code> hesabınıza giriş yapmış olmalısınız. Yetkilendirme sayfası yalnızca mevcut bir oturumu onaylar — sizi giriş yaptıramaz. \"Giriş Başarısız\" mesajını görüyorsanız, \"solo.trae.ai'yi Aç\" seçeneğine tıklayın, giriş yapın ve ardından buraya geri dönün.",
+    "authorizeImportant": "<strong>Önemli:</strong> önce bu <em>tarayıcıda</em> <code>trae.ai</code> hesabınıza giriş yapmış olmalısınız. Yetkilendirme sayfası yalnızca mevcut bir oturumu onaylar — sizi giriş yaptıramaz. \"Giriş Başarısız\" mesajını görüyorsanız, \"solo.trae.ai'yi Aç\" seçeneğine tıklayın, giriş yapın ve ardından buraya geri dönün.",
     "waitingForAuthorization": "trae.ai için bekleniyor…",
     "authorizeWithBrowser": "Tarayıcı ile Yetkilendir",
     "openSoloTrae": "solo.trae.ai'yi aç",
