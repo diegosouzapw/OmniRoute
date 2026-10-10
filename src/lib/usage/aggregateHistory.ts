@@ -170,14 +170,16 @@ export async function rollupUsageHistoryBeforeDate(beforeDate: string): Promise<
           COALESCE(SUM(tokens_output), 0) as outputTokens,
           COALESCE(SUM(tokens_cache_read), 0) as cacheReadTokens,
           COALESCE(SUM(tokens_cache_creation), 0) as cacheCreationTokens,
-          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens
+          COALESCE(SUM(tokens_reasoning), 0) as reasoningTokens,
+          (provider_cost_usd IS NOT NULL) as hasStoredCost,
+          COALESCE(SUM(provider_cost_usd), 0) as storedCost
         FROM usage_history
         WHERE timestamp < ?
           AND provider IS NOT NULL AND provider != ''
           AND model IS NOT NULL AND model != ''
         GROUP BY LOWER(provider), LOWER(model), DATE(timestamp), serviceTier,
           requestInputTokens, requestOutputTokens, requestCacheReadTokens,
-          requestCacheCreationTokens, requestReasoningTokens`
+          requestCacheCreationTokens, requestReasoningTokens, hasStoredCost`
       )
       .all(beforeDate) as Array<{
       provider: string;
@@ -195,6 +197,8 @@ export async function rollupUsageHistoryBeforeDate(beforeDate: string): Promise<
       cacheReadTokens: number;
       cacheCreationTokens: number;
       reasoningTokens: number;
+      hasStoredCost: number;
+      storedCost: number;
     }>;
 
     const pricedRows = await Promise.all(
@@ -207,26 +211,30 @@ export async function rollupUsageHistoryBeforeDate(beforeDate: string): Promise<
         // non-cached input is clamped at zero per request, and summing first lets
         // one cache-heavy request's clamped surplus cancel another request's
         // billable input.
-        totalCost:
-          (await calculateCost(
-            row.provider,
-            row.model,
-            {
-              input: row.requestInputTokens,
-              output: row.requestOutputTokens,
-              cacheRead: row.requestCacheReadTokens,
-              cacheCreation: row.requestCacheCreationTokens,
-              reasoning: row.requestReasoningTokens,
-            },
-            {
-              provider: row.provider,
-              model: row.model,
-              serviceTier: row.serviceTier,
-              // The archive stores API-equivalent value. Billed-cost consumers
-              // still mask flat-rate providers when they read this value.
-              flatRateAsZero: false,
-            }
-          )) * row.totalRequests,
+        //
+        // A request with a provider-reported exact cost (`provider_cost_usd`) is
+        // archived at that cost; none of its tokens are priced.
+        totalCost: row.hasStoredCost
+          ? row.storedCost
+          : (await calculateCost(
+              row.provider,
+              row.model,
+              {
+                input: row.requestInputTokens,
+                output: row.requestOutputTokens,
+                cacheRead: row.requestCacheReadTokens,
+                cacheCreation: row.requestCacheCreationTokens,
+                reasoning: row.requestReasoningTokens,
+              },
+              {
+                provider: row.provider,
+                model: row.model,
+                serviceTier: row.serviceTier,
+                // The archive stores API-equivalent value. Billed-cost consumers
+                // still mask flat-rate providers when they read this value.
+                flatRateAsZero: false,
+              }
+            )) * row.totalRequests,
       }))
     );
 

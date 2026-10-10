@@ -37,6 +37,33 @@ export interface UnifiedSourceResult {
 }
 
 /**
+ * Stored cost and priceable tokens of a raw usage_history row. A row carrying a
+ * provider-reported exact cost (`provider_cost_usd` — credit-metered providers,
+ * xAI) is billed by that cost; its tokens stay for display and are never priced
+ * again. Rows without one are priced from their tokens as before.
+ */
+const RAW_COST_COLUMNS = `
+          COALESCE(provider_cost_usd, 0.0) as stored_cost,
+          CASE WHEN provider_cost_usd IS NULL THEN tokens_input ELSE 0 END as cost_tokens_input,
+          CASE WHEN provider_cost_usd IS NULL THEN tokens_output ELSE 0 END as cost_tokens_output,
+          CASE WHEN provider_cost_usd IS NULL THEN tokens_cache_read ELSE 0 END as cost_tokens_cache_read,
+          CASE WHEN provider_cost_usd IS NULL THEN tokens_cache_creation ELSE 0 END as cost_tokens_cache_creation,
+          CASE WHEN provider_cost_usd IS NULL THEN tokens_reasoning ELSE 0 END as cost_tokens_reasoning`;
+
+/**
+ * The same columns for a daily_usage_summary row. Its `total_cost` is already
+ * priced at rollup time; a legacy zero-cost summary falls back to its
+ * input/output totals (see computeUsageRowCost in the analytics route).
+ */
+const SUMMARY_COST_COLUMNS = `
+          COALESCE(total_cost, 0.0) as stored_cost,
+          total_input_tokens as cost_tokens_input,
+          total_output_tokens as cost_tokens_output,
+          0 as cost_tokens_cache_read,
+          0 as cost_tokens_cache_creation,
+          0 as cost_tokens_reasoning`;
+
+/**
  * Builds the UNION subquery that merges recent `usage_history` rows with
  * older `daily_usage_summary` aggregates, preventing double-counting and
  * preventing api_key leakage from summary rows.
@@ -106,7 +133,7 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           account_key,
           api_key_id,
           api_key_name,
-          0.0 as stored_cost,
+          ${RAW_COST_COLUMNS},
           0 as is_aggregated,
           1 as requests
         FROM usage_history
@@ -128,7 +155,7 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           NULL as account_key,
           NULL as api_key_id,
           NULL as api_key_name,
-          COALESCE(total_cost, 0.0) as stored_cost,
+          ${SUMMARY_COST_COLUMNS},
           1 as is_aggregated,
           total_requests as requests
         FROM daily_usage_summary
@@ -140,7 +167,8 @@ export function buildUnifiedSource(opts: BuildUnifiedSourceOptions): UnifiedSour
           tokens_cache_read, tokens_cache_creation, tokens_reasoning,
           service_tier, success, latency_ms,
           connection_id, account_key, api_key_id, api_key_name,
-          0.0 as stored_cost, 0 as is_aggregated,
+          ${RAW_COST_COLUMNS},
+          0 as is_aggregated,
           1 as requests
         FROM usage_history
         ${rawWhere}
@@ -191,7 +219,8 @@ export function buildPresetUnifiedSource(opts: BuildUnifiedSourceOptions): Unifi
         SELECT timestamp, provider, model, service_tier,
           tokens_input, tokens_output,
           tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-          0.0 as stored_cost, 0 as is_aggregated
+          ${RAW_COST_COLUMNS},
+          0 as is_aggregated
         FROM usage_history
         ${presetRawWhere}
         UNION ALL
@@ -204,7 +233,7 @@ export function buildPresetUnifiedSource(opts: BuildUnifiedSourceOptions): Unifi
           0 as tokens_cache_read,
           0 as tokens_cache_creation,
           0 as tokens_reasoning,
-          COALESCE(total_cost, 0.0) as stored_cost,
+          ${SUMMARY_COST_COLUMNS},
           1 as is_aggregated
         FROM daily_usage_summary
         ${presetAggWhere}
@@ -212,7 +241,8 @@ export function buildPresetUnifiedSource(opts: BuildUnifiedSourceOptions): Unifi
     : `(SELECT timestamp, provider, model, service_tier,
           tokens_input, tokens_output,
           tokens_cache_read, tokens_cache_creation, tokens_reasoning,
-          0.0 as stored_cost, 0 as is_aggregated
+          ${RAW_COST_COLUMNS},
+          0 as is_aggregated
         FROM usage_history
         ${presetRawWhere}
       )`;

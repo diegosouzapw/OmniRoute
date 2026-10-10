@@ -2,6 +2,7 @@ import { getComboForecastUsageRows, type ComboForecastUsageRow } from "@/lib/db/
 import { getCombos, getComboById } from "@/lib/db/combos";
 import { getPricingForModel } from "@/lib/db/settings";
 import { getQuotaSnapshots } from "@/lib/db/quotaSnapshots";
+import { isCreditMeteredProvider } from "@/lib/usage/creditMeteredProviders";
 import { computeCostFromPricing, normalizeModelName } from "@/lib/usage/costCalculator";
 import { resolveNestedComboTargets } from "@omniroute/open-sse/services/combo.ts";
 import type {
@@ -109,7 +110,14 @@ async function attachCosts(rows: ComboForecastUsageRow[]): Promise<CostedUsageRo
       },
       { provider: row.provider, model: row.model, serviceTier: "standard" }
     );
-    costed.push({ ...row, costUsd, pricingCovered: Boolean(pricing) });
+    // A credit-metered provider is billed by the credits the upstream reports, and
+    // `call_logs` does not carry them: there is no token tariff to forecast from. The
+    // row counts as unpriced, so coverage reports the gap instead of a misleading $0.
+    costed.push({
+      ...row,
+      costUsd,
+      pricingCovered: Boolean(pricing) && !isCreditMeteredProvider(row.provider),
+    });
   }
   return costed;
 }

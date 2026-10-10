@@ -7,6 +7,7 @@
  * @module lib/usage/costCalculator
  */
 
+import { isCreditMeteredProvider } from "./creditMeteredProviders";
 import { isFlatRateProvider } from "./flatRateProviders";
 
 /**
@@ -146,6 +147,10 @@ export function computeCostFromPricing(
   // per-token pricing rows exist only for estimation, so display surfaces opt in
   // to show $0 instead of an inflated estimate (#5552).
   if (options.flatRateAsZero && isFlatRateProvider(options.provider)) return 0;
+  // A credit-metered provider bills in credits, reported per request as the exact
+  // cost handled above. Its per-token rows describe no real tariff, so they are
+  // never a cost basis: pricing them would bill the request a second time.
+  if (isCreditMeteredProvider(options.provider)) return 0;
   const inputPrice = toNumber(pricing.input, 0);
   const cachedPrice = toNumber(pricing.cached, inputPrice);
   const outputPrice = toNumber(pricing.output, 0);

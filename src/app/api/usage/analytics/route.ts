@@ -253,14 +253,19 @@ function computeUsageRowCost(
   const isAggregated = toNumber(row.isAggregated ?? row.is_aggregated) > 0;
   const storedCost = toNumber(row.storedCost ?? row.stored_cost);
 
+  // Billed-cost views show flat-rate providers as $0, whatever was stored.
+  if (flatRateAsZero && isFlatRateProvider(provider)) return 0;
   if (isAggregated) {
-    if (flatRateAsZero && isFlatRateProvider(provider)) return 0;
     // New rollups preserve the exact API-equivalent value calculated before
     // cache/reasoning token dimensions are discarded. Legacy zero-cost rows
     // fall through to the best available input/output-token estimate.
     if (storedCost > 0) return storedCost;
   }
 
+  // Raw rows: `storedCost` is the provider-reported exact cost of the rows that
+  // carry one, and the `cost*Tokens` sums exclude those rows' tokens, so a
+  // request with a reported cost is never priced a second time from its tokens.
+  const rawStoredCost = isAggregated ? 0 : storedCost;
   const pricing = resolveModelPricing(
     pricingByProvider,
     providerAliasMap,
@@ -268,23 +273,26 @@ function computeUsageRowCost(
     model,
     normalizeModelName
   );
-  if (!pricing) return 0;
+  if (!pricing) return rawStoredCost;
 
-  return computeCostFromPricing(
-    pricing,
-    {
-      input: toNumber(row.promptTokens),
-      output: toNumber(row.completionTokens),
-      cacheRead: toNumber(row.cacheReadTokens),
-      cacheCreation: toNumber(row.cacheCreationTokens),
-      reasoning: toNumber(row.reasoningTokens),
-    },
-    {
-      provider,
-      model,
-      serviceTier,
-      flatRateAsZero,
-    }
+  return (
+    rawStoredCost +
+    computeCostFromPricing(
+      pricing,
+      {
+        input: toNumber(row.costPromptTokens ?? row.promptTokens),
+        output: toNumber(row.costCompletionTokens ?? row.completionTokens),
+        cacheRead: toNumber(row.costCacheReadTokens ?? row.cacheReadTokens),
+        cacheCreation: toNumber(row.costCacheCreationTokens ?? row.cacheCreationTokens),
+        reasoning: toNumber(row.costReasoningTokens ?? row.reasoningTokens),
+      },
+      {
+        provider,
+        model,
+        serviceTier,
+        flatRateAsZero,
+      }
+    )
   );
 }
 
@@ -296,13 +304,18 @@ function computeUsageRowStandardCost(
   computeCostFromPricing: ComputeCostFromPricing,
   flatRateAsZero = true
 ): number {
+  // A raw row's provider-reported cost has no standard-tier alternative to compare
+  // against, so it counts the same on both sides and yields no savings. A rollup's
+  // stored cost is tier-specific and is re-priced from its tokens instead.
+  const keepsReportedCost = toNumber(row.isAggregated ?? row.is_aggregated) === 0;
+  const reportedCost = keepsReportedCost ? toNumber(row.storedCost ?? row.stored_cost) : 0;
   return computeUsageRowCost(
     {
       ...row,
       serviceTier: "standard",
       service_tier: "standard",
-      storedCost: 0,
-      stored_cost: 0,
+      storedCost: reportedCost,
+      stored_cost: reportedCost,
       isAggregated: 0,
       is_aggregated: 0,
     },

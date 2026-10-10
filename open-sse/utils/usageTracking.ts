@@ -41,6 +41,7 @@ export interface UsageLike {
   no_cache_tokens?: number;
   reasoning_tokens?: number;
   cost_in_usd_ticks?: number;
+  provider_credits?: number;
   cache_read_input_tokens?: number;
   cache_creation_input_tokens?: number;
   /** OpenRouter / Devin Desktop / codex-chatgpt-web alias for cache creation. */
@@ -332,6 +333,7 @@ export function filterUsageForFormat(usage: UsageLike | null | undefined, target
       "output_tokens_details",
       "estimated",
       "cost_in_usd_ticks",
+      "provider_credits",
       "server_side_tool_usage_details",
       "server_side_tool_usage",
       "tokens_per_second",
@@ -350,6 +352,8 @@ export function filterUsageForFormat(usage: UsageLike | null | undefined, target
       "cache_read_input_tokens",
       "cache_creation_input_tokens",
       "estimated",
+      "cost_in_usd_ticks",
+      "provider_credits",
       "tokens_per_second",
     ],
   };
@@ -657,6 +661,9 @@ export function normalizeUsage(usage: UsageLike | null | undefined) {
   );
   assignNumber("no_cache_tokens", usage?.no_cache_tokens);
   assignNumber("reasoning_tokens", usage?.reasoning_tokens);
+  // Credits metered by a credit-metered provider (see
+  // src/lib/usage/creditMeteredProviders.ts); provenance for cost_in_usd_ticks.
+  assignNumber("provider_credits", usage?.provider_credits);
   // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A —
   // @ryanngit). Ticks → USD conversion happens in costCalculator.ts, not here.
   const exactCostTicks = usage?.cost_in_usd_ticks;
@@ -706,6 +713,19 @@ export function isEstimatedUsage(usage: unknown): boolean {
  */
 export function hasValidUsage(usage: UsageLike | null | undefined) {
   if (!usage || typeof usage !== "object") return false;
+
+  // A credit measurement with its exact cost is billable usage even when the
+  // provider reported no tokens and no visible text.
+  if (
+    typeof usage.provider_credits === "number" &&
+    Number.isFinite(usage.provider_credits) &&
+    usage.provider_credits >= 0 &&
+    typeof usage.cost_in_usd_ticks === "number" &&
+    Number.isFinite(usage.cost_in_usd_ticks) &&
+    usage.cost_in_usd_ticks >= 0
+  ) {
+    return true;
+  }
 
   // Check for known token fields with value > 0
   const tokenFields = [
@@ -823,6 +843,8 @@ export function extractUsage(chunk: UsagePayloadLike | null | undefined) {
   ) {
     const usage = chunk.response.usage;
     return normalizeUsage({
+      provider_credits: usage.provider_credits,
+      cost_in_usd_ticks: usage.cost_in_usd_ticks,
       prompt_tokens: usage.input_tokens || usage.prompt_tokens || 0,
       completion_tokens: usage.output_tokens || usage.completion_tokens || 0,
       cached_tokens:
@@ -860,6 +882,7 @@ export function extractUsage(chunk: UsagePayloadLike | null | undefined) {
         chunk.usage.reasoning_tokens,
       // xAI's exact provider-reported cost (port of decolua/9router#2453, capability A).
       cost_in_usd_ticks: chunk.usage.cost_in_usd_ticks,
+      provider_credits: chunk.usage.provider_credits,
     });
     return carryEstimatedUsageMarker(chunk.usage, normalized);
   }

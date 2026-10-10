@@ -32,12 +32,15 @@ import {
   validateKiroToolUse,
   type PendingKiroWrapperToolCall,
 } from "./kiroToolCallValidation.ts";
+import { addKiroCredits } from "./kiroCredits.ts";
 
 export { validateKiroToolUse } from "./kiroToolCallValidation.ts";
 
 type JsonRecord = Record<string, unknown>;
 
 type UsageSummary = {
+  provider_credits?: number;
+  cost_in_usd_ticks?: number;
   prompt_tokens: number;
   completion_tokens: number;
   total_tokens: number;
@@ -197,7 +200,14 @@ function ensureKiroUsage(state: KiroStreamState, model: string) {
       ? Math.floor((state.contextUsagePercentage * resolveKiroMaxInputTokens(model)) / 100)
       : 0;
 
-  if (estimatedTotalTokens <= 0 && estimatedOutputTokens <= 0) return;
+  if (estimatedTotalTokens <= 0 && estimatedOutputTokens <= 0) {
+    // A credit-only response still needs explicit zero token counts so the
+    // usage block is well-formed and its credits reach billing.
+    if (state.usage?.provider_credits !== undefined) {
+      state.usage = { ...state.usage, prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+    }
+    return;
+  }
   // Without a percentage there is no total to split, so the output estimate is
   // all that is known and stands on its own.
   if (estimatedTotalTokens <= 0) {
@@ -946,6 +956,16 @@ export class KiroExecutor extends BaseExecutor {
             // Handle meteringEvent - mark that we received it
             if (eventType === "meteringEvent") {
               state.hasMeteringEvent = true;
+              // A metering frame without a `usage` figure has nothing to add and is
+              // skipped. With KIRO_REQUIRE_CREDITS every frame is validated, so a
+              // malformed one fails the stream; a stream with no credits at all is
+              // rejected in flush().
+              if (
+                event.payload?.usage !== undefined ||
+                process.env.KIRO_REQUIRE_CREDITS === "true"
+              ) {
+                state.usage = addKiroCredits(state.usage, event.payload);
+              }
             }
 
             // Handle token usage. Kiro reports it under more than one frame: the
@@ -995,6 +1015,7 @@ export class KiroExecutor extends BaseExecutor {
 
                 if (inputTokens > 0 || outputTokens > 0) {
                   state.usage = {
+                    ...state.usage,
                     prompt_tokens: inputTokens,
                     completion_tokens: outputTokens,
                     total_tokens: inputTokens + outputTokens,
@@ -1069,6 +1090,13 @@ export class KiroExecutor extends BaseExecutor {
                 controller.enqueue(TEXT_ENCODER.encode(`data: ${JSON.stringify(chunk)}\n\n`));
               }
             );
+          }
+
+          if (
+            process.env.KIRO_REQUIRE_CREDITS === "true" &&
+            state.usage?.provider_credits === undefined
+          ) {
+            throw new Error("Kiro response ended without credit metering");
           }
 
           // Emit finish chunk if not already sent
