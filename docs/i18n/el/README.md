@@ -1274,7 +1274,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 επίσης τη
   <tr><td nowrap><b>Περιβάλλον εκτέλεσης</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Γλώσσα</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> σε όλο το <code>src/</code> και το <code>open-sse/</code> (μηδενική χρήση <code>any</code> στον πυρήνα από την έκδοση v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 137 αρθρώματα τομέα, 193 μεταβιβάσεις</td></tr>
+  <tr><td nowrap><b>Βάση δεδομένων</b></td><td>better-sqlite3 (SQLite, καταγραφή WAL) + LowDB (παλαιού τύπου JSON) — 137 αρθρώματα τομέα, 202 μεταβιβάσεις</td></tr>
   <tr><td nowrap><b>Μνήμη</b></td><td>Αναζήτηση πλήρους κειμένου SQLite FTS5 + διανυσματικές ενσωματώσεις κβαντισμένες σε int8, τυποποιημένη εξασθένηση</td></tr>
   <tr><td nowrap><b>Σχήματα</b></td><td>Zod 4 — επικύρωση εισόδου/εξόδου εργαλείων MCP + συμβάσεις API</td></tr>
   <tr><td nowrap><b>Πρωτόκολλα</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

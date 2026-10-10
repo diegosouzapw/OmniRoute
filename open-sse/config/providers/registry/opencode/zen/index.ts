@@ -179,7 +179,16 @@ export const opencode_zenProvider: RegistryEntry = {
     // 2026-08-17 sync: north-mini-code-free delisted; nemotron-3.5-lightning-free
     // and laguna-s-2.1-free added.
     { id: "deepseek-v4-flash-free", name: "DeepSeek V4 Flash Free", supportsReasoning: true },
-    { id: "mimo-v2.5-free", name: "MiMo V2.5 Free", contextLength: 200000 },
+    { id: "mimo-v2.5-free", name: "MiMo V2.5 Free", contextLength: 1048576 },
+    // MiMo V2.6 Flash Free ships a 1M window upstream (same as V2.5); without
+    // this row it falls through to the 200000 provider default and clients
+    // compact far too early.
+    {
+      id: "mimo-v2.6-flash-free",
+      name: "MiMo V2.6 Flash Free",
+      contextLength: 1048576,
+      maxOutputTokens: 131072,
+    },
     { id: "hy3-free", name: "HY3 Free", contextLength: 200000 },
     { id: "nemotron-3-ultra-free", name: "Nemotron 3 Ultra Free", contextLength: 1000000 },
     { id: "nemotron-3.5-lightning-free", name: "Nemotron 3.5 Lightning Free" },

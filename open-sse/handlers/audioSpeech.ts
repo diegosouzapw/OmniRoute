@@ -578,15 +578,24 @@ async function handleKieAudioSpeech(providerConfig, body, modelId, token) {
     });
   } catch (err: unknown) {
     const status = getKieErrorStatus(err, 502);
-    return Response.json(
-      {
-        error: { message: getKieErrorMessage(err, "Kie audio createTask failed"), code: status },
-      },
-      {
-        status,
-        headers: { ...CORS_HEADERS },
-      }
-    );
+    // E-02 (#15159 wave 1.4): the caught error is the RAW upstream body text —
+    // `kieExecutor.createTask` throws `new Error(await res.text())`
+    // (open-sse/executors/kie.ts:57-61) — and `getKieErrorMessage` returns
+    // `error.message` raw on all three branches. Building the body by hand
+    // therefore put upstream stack frames and credential-shaped substrings
+    // straight into the client response. This is byte-for-byte the defect E-02
+    // fixed in audioTranscription.ts:629 via the SAME executor (commit
+    // 566c203381 / #15388), which never reached this file.
+    //
+    // Route it through the canonical builder. CORS headers are merged back on
+    // because the hand-rolled Response.json attached `{ ...CORS_HEADERS }` and
+    // this route does not otherwise set them on the POST response — dropping
+    // them would break browser clients. (E-02's PR hit exactly this.)
+    const response = errorResponse(status, getKieErrorMessage(err, "Kie audio createTask failed"));
+    for (const [header, value] of Object.entries(CORS_HEADERS)) {
+      response.headers.set(header, value);
+    }
+    return response;
   }
 
   const taskId = data?.data?.taskId || data?.taskId;

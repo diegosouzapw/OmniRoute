@@ -80,6 +80,7 @@ import {
   validateNousResearchProvider,
   validatePoeProvider,
 } from "./validation/audioMiscProviders";
+import { validateTypesafeProvider } from "./validation/typesafe";
 import { validateZaiWebProvider } from "./validation/zaiWeb";
 import { validateSearchProvider, SEARCH_VALIDATOR_CONFIGS } from "./validation/searchProviders";
 import {
@@ -326,6 +327,7 @@ export async function validateProviderApiKey({
     nlpcloud: validateNlpCloudProvider,
     oneminai: validateOneMinAiProvider,
     runwayml: validateRunwayProvider,
+    typesafe: ({ apiKey }: any) => validateTypesafeProvider({ apiKey }),
     snowflake: validateSnowflakeProvider,
     gigachat: validateGigachatProvider,
     "deepseek-web": validateDeepSeekWebProvider,

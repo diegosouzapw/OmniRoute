@@ -1,0 +1,1 @@
+- Release stream-controller callbacks after completion, disconnection, errors, and aborts so retained response controllers do not keep completed request bodies alive through callback closures.

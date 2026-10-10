@@ -10,6 +10,7 @@ import {
   type CursorAgentModelEntry,
 } from "@/lib/providerModels/cursorAgent";
 import { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
+import { cursorGrok47Catalog } from "@/lib/providerModels/cursorGrok47Catalog";
 import { getConsistentMachineId } from "@/shared/utils/machineId";
 
 export { ensureCursorAutoCatalogEntry } from "@/lib/providerModels/cursorAutoCatalog";
@@ -50,6 +51,7 @@ function collectArrays(record: Record<string, unknown>, keys: string[]): unknown
 function collectModelCandidates(payload: unknown): unknown[] {
   const root = asRecord(payload) ?? {};
   const candidates = collectArrays(root, [
+    "items",
     "models",
     "availableModels",
     "available_models",
@@ -133,7 +135,17 @@ export function normalizeCursorAvailableModelsPayload(payload: unknown): CursorA
     const model = normalizeModelCandidate(item);
     if (!model || seen.has(model.id)) continue;
     seen.add(model.id);
+    const grok = cursorGrok47Catalog(item);
+    if (grok) {
+      model.contextLength = grok.contextLength;
+      model.supportedThinkingEfforts = grok.supportedThinkingEfforts;
+    }
     out.push(model);
+    for (const variant of grok?.variants ?? []) {
+      if (seen.has(variant.id)) continue;
+      seen.add(variant.id);
+      out.push(variant);
+    }
   }
 
   return ensureCursorAutoCatalogEntry(out);

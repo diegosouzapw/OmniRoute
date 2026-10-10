@@ -13,10 +13,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Free Tokens / Month
+## 💰 ~1.62B Tokens / Month Across Third-Party Free Tiers
 
 </div>
 
+> **Bring your own provider accounts.** This is an estimated aggregate across separately eligible third-party free tiers, not a token grant from OmniRoute. Sign up, obtain credentials where required, and connect the providers you can use; each provider controls its limits, availability, and terms.
+>
 > Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you actually have. OmniRoute catalogs **489 free-tier entries across 35 recurring pool keys** and computes the token headline from the **17 pools with a published positive monthly budget plus five per-model Groq caps**, deduplicated by shared pool. Quotas that only open after a regional identity check (today: ModelScope) are shown apart, +~6M behind regional identity verification, and never summed into the headline. The result stays visible on the dashboard (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute free-tier budget card: ~1.62B free tokens per month steady, up to ~2.22B in the first month with signup credits, from 35 documented recurring pool keys covering 489 cataloged free-tier entries behind one endpoint. Honest pool-deduped math — each shared pool counted once, including 17 recurring pools with a published positive monthly token budget plus five per-model Groq caps; 13 providers are marked avoid in the terms-risk catalog so you decide. Budget bar includes Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (five per-model caps) and smaller pools, plus first-month signup credits and permanently-free no-token-cap providers surfaced separately so they never inflate the headline. Live used/remaining on /dashboard/free-tiers."/>
@@ -209,20 +211,21 @@
 
 <div align="center">
 
-## 🆓 Works the second you install it — no keys, no config
+## 🆓 Install, connect a provider, then route through one endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Works the second you install it — zero config. Three steps: 1. Install — npm i -g omniroute, server boots on localhost:20128. 2. Point your tool at http://localhost:20128/v1 — any OpenAI-compatible tool (Claude Code, Cursor, Cline). 3. It answers — call model auto for an instant reply, with no API key, no signup, no configuration. Keyless provider OpenCode Free is pre-wired into the auto combo, so a fresh install responds out of the box."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Three steps: install and start OmniRoute, connect an eligible provider with your own account or API key, then point your tool at localhost:20128/v1 using an OmniRoute API key and model auto. Routing depends on available eligible connections and provider limits."/>
 
 ```bash
-# Fresh install, zero credentials — `auto` already works:
+# After connecting a provider, copy your OmniRoute key from Dashboard → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Prefer a specific free backend? Call `oc/…` (OpenCode Free) directly. Then graduate to `auto` and let OmniRoute pick.</sub>
+<sub>`auto` needs an eligible route. A fresh installation can have no eligible keyless targets, and a keyless provider may reject third-party clients. Providers marked `tos: avoid`, including OpenCode Free and Kiro, are excluded from automatic routing by default; connecting an account does not override that setting. See the [Free Tiers Guide](docs/getting-started/FREE-TIERS-GUIDE.md) before choosing a provider.</sub>
 
 <sub>📦 Copy-paste quickstart scripts for **Python, Node.js, PHP, and cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -728,7 +731,7 @@ of your shell history. → [CLI Integrations](docs/guides/CLI-INTEGRATIONS.md)
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>No key needed</sub></td>
     <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ models<br/>10K neurons/day</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM free</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>1M tokens/day</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>One-time $5 credit; card required</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free models<br/>+$10 → higher RPM</sub></td>
   </tr>
 </table>
@@ -1030,16 +1033,16 @@ omniroute
 
 Dashboard at `http://localhost:20128` · API at `http://localhost:20128/v1`.
 
-**2) Connect a FREE provider (no signup)**
+**2) Connect an eligible provider using your own account**
 
-Dashboard → **Providers** → connect **Kiro AI** (free Claude, ~50 credits/month per account) or **OpenCode Free** (no auth) → done.
+Dashboard → **Providers** → choose a provider whose current terms and quota fit your use case → add its API key or complete its account flow. Free tiers may require signup, approval, or a payment method. Review the [Free Tiers Guide](docs/getting-started/FREE-TIERS-GUIDE.md); keyless availability is not guaranteed, and providers marked `tos: avoid` are excluded from `auto` by default.
 
 **3) Point your coding tool**
 
 ```txt
 Base URL: http://localhost:20128/v1
 API Key:  [copy from Dashboard → Endpoints]
-Model:    auto            (zero-config smart routing — or any provider/model)
+Model:    auto            (routes among eligible connections — or choose provider/model)
 ```
 
 **4) Verify it's working**

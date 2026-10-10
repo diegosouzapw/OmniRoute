@@ -104,12 +104,7 @@ import {
 import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
 import { applyClineProtocolHeaders } from "@/shared/utils/clineAuth";
 import { isProbeContext } from "@/shared/utils/probeOrigin";
-import {
-  parseAndValidatePublicUrl,
-  parseAndValidateNonMetadataUrl,
-} from "@/shared/network/outboundUrlGuard";
-import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
-import { isLocalProvider, isSelfHostedChatProvider } from "@/shared/constants/providers";
+import { assertDispatchUrlAllowed, dispatchGuarded } from "./dispatchPin.ts";
 // Header helpers extracted to a pure leaf; re-exported for external importers
 // (executors + tests) that import them from "./base.ts".
 export {
@@ -430,13 +425,7 @@ export class BaseExecutor {
    * cloud-metadata IMDS pivot. Throws on a blocked URL.
    */
   protected assertOutboundUrlAllowed(url: string): void {
-    if (!url) return;
-    if (isLocalProvider(this.provider) || isSelfHostedChatProvider(this.provider)) return;
-    if (getProviderValidationGuard() === "public-only") {
-      parseAndValidatePublicUrl(url);
-      return;
-    }
-    parseAndValidateNonMetadataUrl(url);
+    assertDispatchUrlAllowed(this.provider, url);
   }
 
   /**
@@ -685,12 +674,17 @@ export class BaseExecutor {
     }
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(requestBody),
-        signal: activeSignal || undefined,
-      });
+      const response = await dispatchGuarded(
+        this.provider,
+        url,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(requestBody),
+          signal: activeSignal || undefined,
+        },
+        credentials
+      );
 
       const text = await response.text();
       if (!response.ok) {
@@ -976,11 +970,14 @@ export class BaseExecutor {
             : requestOptions;
 
           try {
+            // Strict-validation fence (tip) first, then the connect-time DNS-rebinding guard
+            // for operator-supplied base URLs (#13330) as the transport.
             return await validationFetch(
               input.validationDispatch,
               this.provider,
               model,
-              requestCredentials
+              requestCredentials,
+              (url, init) => dispatchGuarded(this.provider, url, init, requestCredentials)
             )(requestUrl, optionsWithSignal);
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
