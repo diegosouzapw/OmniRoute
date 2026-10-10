@@ -3,6 +3,7 @@
   "pages": [
     "GUARDRAILS",
     "ERROR_SANITIZATION",
+    "ENTRA_SSO",
     "INFERENCE_AUTH_POSTURE",
     "ROUTE_GUARD_TIERS",
     "BAN_DETECTION",

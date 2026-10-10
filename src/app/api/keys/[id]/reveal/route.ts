@@ -21,6 +21,15 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }
 
+    // SSO shadow keys read back blank (getApiKeyById redacts them). Say so
+    // instead of answering 200 with an empty string the caller would copy.
+    if (key.key === "") {
+      return NextResponse.json(
+        { error: "This key is managed by SSO and has no secret to reveal" },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json({ key: key.key });
   } catch (error) {
     log.error("keys", "Error revealing key", error);

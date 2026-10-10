@@ -56,6 +56,30 @@ export function getKeyGroup(id: string): KeyGroup | undefined {
   return row ? rowToGroup(row) : undefined;
 }
 
+/**
+ * Narrow a list of key-group ids to the ones that exist AND are active.
+ *
+ * Callers that grant access by group membership must use this before trusting
+ * ids from configuration: `addKeyToGroup` swallows a bad id, and a key that
+ * ends up in zero groups is treated as UNRESTRICTED by `checkKeyModelAccess`.
+ * A typo'd or deleted group would therefore widen access instead of denying it.
+ */
+export function filterExistingActiveKeyGroupIds(ids: readonly string[]): string[] {
+  const unique = [...new Set(ids.filter((id) => typeof id === "string" && id.length > 0))];
+  if (unique.length === 0) return [];
+
+  const db = getDbInstance() as any;
+  const placeholders = unique.map(() => "?").join(",");
+  const rows = db
+    .prepare(`SELECT id FROM key_groups WHERE is_active = 1 AND id IN (${placeholders})`)
+    .all(...unique) as Array<{ id?: unknown }>;
+
+  const live = new Set(
+    rows.map((row) => (typeof row.id === "string" ? row.id : "")).filter((id) => id.length > 0)
+  );
+  return unique.filter((id) => live.has(id));
+}
+
 export function getKeyGroupWithPermissions(id: string): KeyGroupWithPermissions | undefined {
   const group = getKeyGroup(id);
   if (!group) return undefined;

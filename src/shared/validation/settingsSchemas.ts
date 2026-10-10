@@ -118,6 +118,31 @@ export const updateSettingsSchema = z.object({
   oidcScopes: z.array(z.string().max(100)).optional(),
   oidcRedirectPath: z.string().max(500).optional(),
   oidcAllowedSubjects: z.array(z.string().max(200)).optional(),
+  // Entra ID SSO for /v1/*. Separate from the oidc* block above: that gates the
+  // dashboard with an id_token audienced to the client_id, this gates the API
+  // with an access token audienced to a custom scope. See docs/security/ENTRA_SSO.md.
+  entraSsoEnabled: z.boolean().optional(),
+  /** Authority origin. Defaults to the commercial cloud; sovereign clouds differ. */
+  entraAuthorityHost: z.string().max(300).optional(),
+  entraTenantId: z.string().max(100).optional(),
+  entraClientId: z.string().max(200).optional(),
+  entraApiAudience: z.string().max(300).optional(),
+  /** Entra security-group objectId → OmniRoute key_groups.id. */
+  entraGroupMappings: z
+    .array(
+      z.object({
+        groupId: z.string().min(1).max(100),
+        keyGroupId: z.string().min(1).max(100),
+      })
+    )
+    .max(500)
+    .optional(),
+  /** Key group for users matching no mapping. Empty/absent = deny. */
+  entraDefaultKeyGroupId: z.string().max(100).nullable().optional(),
+  /** Resolve users whose `groups` claim overflowed (>150 groups) via Graph. */
+  entraGraphFallbackEnabled: z.boolean().optional(),
+  /** Encrypted at rest. Only needed for the Graph fallback. */
+  entraGraphClientSecret: z.string().max(500).optional(),
   enableSocks5Proxy: z.boolean().optional(),
   instanceName: z.string().max(100).optional(),
   customLogoUrl: z.string().max(2000).optional(),
@@ -504,7 +529,9 @@ export const updateSettingsSchema = z.object({
   // holding a worker for hours.
   searchTimeoutMs: z.number().int().min(1_000).max(120_000).optional(),
   // Per-provider timeout overrides in ms, keyed by search provider id.
-  searchProviderTimeoutsMs: z.record(z.string().max(60), z.number().int().min(1).max(120_000)).optional(),
+  searchProviderTimeoutsMs: z
+    .record(z.string().max(60), z.number().int().min(1).max(120_000))
+    .optional(),
   backgroundDegradation: z.unknown().optional(),
   bruteForceProtection: z.boolean().optional(),
   // Auto-routing settings
