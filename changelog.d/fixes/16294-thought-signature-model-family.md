@@ -1,0 +1,1 @@
+- **fix(sse):** cached thought signatures are scoped by model family, so switching between Claude and Gemini on one Antigravity connection no longer fails with "Corrupted thought signature" ([#16294](https://github.com/diegosouzapw/OmniRoute/pull/16294)) — thanks @louisphamdev
