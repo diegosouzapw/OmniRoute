@@ -49,6 +49,7 @@ exists to open the dashboard).
 | Proxy core at boot: DB, secrets, quota fetchers, settings hydration         | on       |
 | Background proxy work: quota refresh, token auto-refresh, cooldown recovery | on       |
 | API bridge port, cleanup/VACUUM schedulers, backup schedule                 | on       |
+| Memory: configured memory backends + typed-memory decay sweep               | on       |
 
 Authentication is unchanged: if `/v1/*` needs an API key on the full server, it needs one in
 headless mode too.
@@ -73,8 +74,6 @@ headless mode too.
 | `pricing-sync`              | External pricing data sync (opt-in, `PRICING_SYNC_ENABLED`)            |
 | `openrouter-provider-stats` | Provider directory / popularity enrichment for the dashboard           |
 | `models-dev-sync`           | models.dev capability sync (opt-in in settings)                        |
-| `memory-decay-sweep`        | Typed-memory decay sweep (opt-in)                                      |
-| `memory-backends`           | Initializes configured memory backends from settings                   |
 | `live-dashboard-ws`         | Real-time dashboard WebSocket daemon (port 20132)                      |
 
 Each skip is logged once at startup, for example:
@@ -111,8 +110,9 @@ curl -s -w "\n%{http_code}\n" http://localhost:20128/dashboard
 - **Route-loaded features still load on demand.** MCP, A2A, evals, gamification, webhooks and
   cloud agents have no boot-time init; they start lazily when their routes are called, in both
   modes.
-- **Memory backends.** Configured memory backends are not initialized at boot in headless mode;
-  features that depend on a non-default memory backend should run on the full server.
+- **Memory stays on.** Memory is cross-cutting to the request pipeline (`/v1` injects and
+  queries it), so the configured memory backends and the typed-memory decay sweep start at boot
+  in headless mode exactly as on the full server.
 - **Code still ships.** This mode changes what runs, not what is installed — the package size
   and the build are identical.
 
