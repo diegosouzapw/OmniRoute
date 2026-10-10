@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "正在顯示 {total} 個匹配行中的 {shown} 個（前 50 個）。"
   },
   "endpoint": {
+    "cloudUploadDestination": "雲端同步目的地（非本機備份位置）：",
+    "cloudUploadWarning": "新安裝預設停用雲端同步。啟用後，提供者 API 金鑰、OAuth 存取權杖與更新權杖、OmniRoute API 金鑰及設定會立即上傳至上述目的地，並在日後同步時繼續上傳。此功能與「儲存」中的本機備份分開。請僅在信任該伺服器時啟用。",
+    "cloudUploadConsent": "我理解並授權將我的憑證上傳至此目的地。",
     "title": "API 端點",
     "subtitle": "搭配大多數 SDK 與工具使用 OpenAI 相容端點。",
     "testEndpoint": "測試端點 →",

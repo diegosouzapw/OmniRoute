@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "일치하는 {total}개 행 중 {shown}개를 표시합니다(상위 50개)."
   },
   "endpoint": {
+    "cloudUploadDestination": "클라우드 동기화 대상(로컬 백업 대상이 아님):",
+    "cloudUploadWarning": "새로 설치하면 클라우드 동기화는 기본적으로 비활성화됩니다. 활성화하면 공급자의 API 키, OAuth 액세스 토큰 및 갱신 토큰, OmniRoute API 키와 설정이 지금부터 향후 동기화 시에도 위 대상에 업로드됩니다. 이 기능은 저장소의 로컬 백업과 별개입니다. 해당 서버를 신뢰하는 경우에만 활성화하세요.",
+    "cloudUploadConsent": "이 내용을 이해하며 내 자격 증명을 이 대상에 업로드하는 것을 허용합니다.",
     "title": "API 엔드포인트",
     "subtitle": "대부분의 SDK 및 도구에서 OpenAI 호환 엔드포인트를 사용하세요.",
     "testEndpoint": "엔드포인트 테스트 →",

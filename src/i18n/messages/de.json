@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Zeige {shown} von {total} passenden Zeilen (Top 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Ziel der Cloud-Synchronisierung (nicht der lokalen Sicherungen):",
+    "cloudUploadWarning": "Die Cloud-Synchronisierung ist bei neuen Installationen standardmäßig deaktiviert. Wenn Sie sie aktivieren, werden API-Schlüssel der Anbieter, OAuth-Zugriffs- und Aktualisierungstokens, OmniRoute-API-Schlüssel und die Konfiguration an das oben angegebene Ziel hochgeladen, jetzt und bei künftigen Synchronisierungen. Diese Funktion ist von den lokalen Sicherungen unter „Lagerung“ getrennt. Aktivieren Sie sie nur, wenn Sie diesem Server vertrauen.",
+    "cloudUploadConsent": "Ich verstehe dies und erlaube das Hochladen meiner Zugangsdaten an dieses Ziel.",
     "title": "API-Endpunkt",
     "subtitle": "Verwenden Sie den OpenAI-kompatiblen Endpunkt mit den meisten SDKs und Tools.",
     "testEndpoint": "Endpunkt testen →",

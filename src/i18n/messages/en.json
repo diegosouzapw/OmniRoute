@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Showing {shown} of {total} matching rows (top 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Cloud sync destination (not local backups):",
+    "cloudUploadWarning": "Cloud sync is disabled by default on new installations. Enabling it uploads provider API keys, OAuth access/refresh tokens, OmniRoute API keys, and configuration to the destination above, now and during future syncs. This is separate from local Storage backups. Only enable it if you trust that server.",
+    "cloudUploadConsent": "I understand and authorize uploading my credentials to this destination.",
     "title": "API Endpoint",
     "subtitle": "Use the OpenAI-compatible endpoint with most SDKs and tools.",
     "testEndpoint": "Test endpoint →",

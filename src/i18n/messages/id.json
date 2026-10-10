@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Menampilkan {shown} dari {total} baris yang cocok (50 teratas)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Tujuan sinkronisasi cloud (bukan cadangan lokal):",
+    "cloudUploadWarning": "Sinkronisasi cloud dinonaktifkan secara default pada instalasi baru. Mengaktifkannya akan mengunggah kunci API penyedia, token akses dan penyegaran OAuth, kunci API OmniRoute, serta konfigurasi ke tujuan di atas, sekarang dan pada sinkronisasi mendatang. Fitur ini terpisah dari cadangan lokal di bagian Penyimpanan. Aktifkan hanya jika Anda memercayai server tersebut.",
+    "cloudUploadConsent": "Saya memahami dan mengizinkan pengunggahan kredensial saya ke tujuan ini.",
     "title": "Titik Akhir API",
     "subtitle": "Gunakan endpoint yang kompatibel dengan OpenAI dengan sebagian besar SDK dan alat.",
     "testEndpoint": "Uji endpoint →",

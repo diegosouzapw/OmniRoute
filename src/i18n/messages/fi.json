@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Näytetään {shown}/{total} vastaavaa riviä (50 parasta)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Pilvisynkronoinnin kohde (ei paikallisten varmuuskopioiden):",
+    "cloudUploadWarning": "Pilvisynkronointi on oletusarvoisesti pois käytöstä uusissa asennuksissa. Sen käyttöönotto lähettää palveluntarjoajien API-avaimet, OAuth-käyttö- ja päivitystunnukset, OmniRoute API-avaimet ja asetukset yllä olevaan kohteeseen nyt ja tulevien synkronointien yhteydessä. Tämä toiminto on erillinen Varastointi-osion paikallisista varmuuskopioista. Ota se käyttöön vain, jos luotat kyseiseen palvelimeen.",
+    "cloudUploadConsent": "Ymmärrän tämän ja sallin tunnistetietojeni lähettämisen tähän kohteeseen.",
     "title": "API-päätepiste",
     "subtitle": "Käytä OpenAI-yhteensopivaa päätepistettä useimpien SDK:iden ja työkalujen kanssa.",
     "testEndpoint": "Testaa päätepistettä →",

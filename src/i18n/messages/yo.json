@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Ń ṣàfihàn {shown} nínú {total} ìlà tó bá mu (àwọn 50 tó ga jù)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Ibi tí ìmúṣiṣẹ́pọ̀ àwọsánmà ń lọ (kì í ṣe fún àwọn ẹ̀dà àfẹ́yìntì inú ẹ̀rọ):",
+    "cloudUploadWarning": "Ìmúṣiṣẹ́pọ̀ àwọsánmà ti pa láti ìbẹ̀rẹ̀ nínú àwọn ìfisórí tuntun. Títàn án yóò gbé àwọn kọ́kọ́rọ́ API ti àwọn olùpèsè, àwọn token ìwọlé àti ìmúdọ̀tun OAuth, àwọn kọ́kọ́rọ́ API OmniRoute àti ìṣètò sí ibi tí a tọ́ka sí lókè, nísinsìnyí àti nígbà ìmúṣiṣẹ́pọ̀ lọ́jọ́ iwájú. Èyí yàtọ̀ sí àwọn ẹ̀dà àfẹ́yìntì inú ẹ̀rọ ní abala Ìpamọ́. Tàn án kìkì bí o bá gbẹ́kẹ̀ lé olupin yẹn.",
+    "cloudUploadConsent": "Mo lóye èyí, mo sì fún ní àṣẹ láti gbé àwọn ẹ̀rí ìwọlé mi sí ibi yìí.",
     "title": "Ibi Ìparí API",
     "subtitle": "Lo ibi ìparí tó bá OpenAI mu pẹ̀lú ọ̀pọ̀lọpọ̀ SDK àti irinṣẹ́.",
     "testEndpoint": "Dán ibi ìparí wò →",

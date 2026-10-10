@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Rodoma {shown} iš {total} atitinkančių eilučių (pirmosios 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Sinchronizavimo debesijoje paskirties vieta (ne vietinių atsarginių kopijų):",
+    "cloudUploadWarning": "Naujose diegtyse sinchronizavimas debesijoje pagal numatytuosius nustatymus išjungtas. Jį įjungus, teikėjų API raktai, OAuth prieigos ir atnaujinimo prieigos raktai, OmniRoute API raktai ir konfigūracija įkeliami į pirmiau nurodytą paskirties vietą dabar ir per būsimus sinchronizavimus. Ši funkcija yra atskira nuo vietinių atsarginių kopijų skiltyje Saugykla. Įjunkite ją tik jei pasitikite tuo serveriu.",
+    "cloudUploadConsent": "Suprantu ir leidžiu įkelti savo prisijungimo duomenis į šią paskirties vietą.",
     "title": "API galinis punktas",
     "subtitle": "Naudokite su OpenAI suderinamą galinį punktą su daugeliu SDK ir įrankių.",
     "testEndpoint": "Testuoti galinį punktą →",

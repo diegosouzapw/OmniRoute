@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Zobrazuje se {shown} z {total} odpovídajících řádků (top 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Cíl synchronizace s cloudem (nikoli místních záloh):",
+    "cloudUploadWarning": "Při nové instalaci je synchronizace s cloudem ve výchozím nastavení vypnutá. Jejím zapnutím se klíče API poskytovatelů, přístupové a obnovovací tokeny OAuth, klíče API OmniRoute a konfigurace nahrají do výše uvedeného cíle, nyní i při budoucích synchronizacích. Tato funkce je oddělená od místních záloh v části Skladování. Zapněte ji pouze tehdy, pokud tomuto serveru důvěřujete.",
+    "cloudUploadConsent": "Rozumím tomu a povoluji nahrání svých přihlašovacích údajů do tohoto cíle.",
     "title": "API Koncový bod",
     "subtitle": "Použijte koncový bod kompatibilní s OpenAI ve většině sad SDK a nástrojů.",
     "testEndpoint": "Otestovat koncový bod →",

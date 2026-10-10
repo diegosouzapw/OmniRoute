@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Prikazano {shown} od {total} odgovarajućih redova (prvih 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Odredište sinhronizacije u oblaku (ne lokalnih rezervnih kopija):",
+    "cloudUploadWarning": "Sinhronizacija u oblaku je podrazumijevano isključena u novim instalacijama. Uključivanjem se API ključevi pružalaca usluga, OAuth tokeni za pristup i osvježavanje, OmniRoute API ključevi i konfiguracija prenose na gore navedeno odredište, sada i tokom budućih sinhronizacija. Ovo je odvojeno od lokalnih rezervnih kopija u odjeljku Skladište. Uključite je samo ako vjerujete tom serveru.",
+    "cloudUploadConsent": "Razumijem i odobravam prijenos svojih pristupnih podataka na ovo odredište.",
     "title": "API krajnja tačka",
     "subtitle": "Koristite OpenAI-kompatibilni endpoint sa većinom SDK-ova i alata.",
     "testEndpoint": "Testiraj endpoint →",

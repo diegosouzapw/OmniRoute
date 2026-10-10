@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Ag taispeáint {shown} as {total} sraitheanna comhoiriúnacha (an 50 ceann is airde)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Ceann scríbe sioncronaithe néil (ní cúltacaí áitiúla):",
+    "cloudUploadWarning": "Bíonn sioncronú néil díchumasaithe de réir réamhshocraithe i suiteálacha nua. Má chumasaítear é, uaslódáiltear eochracha API na soláthraithe, comharthaí rochtana agus athnuachana OAuth, eochracha API OmniRoute agus an chumraíocht chuig an gceann scríbe thuas, anois agus le linn sioncronuithe amach anseo. Tá sé seo ar leithligh ó na cúltacaí áitiúla sa rannán Stóráil. Ná cumasaigh é ach amháin má tá muinín agat as an bhfreastalaí sin.",
+    "cloudUploadConsent": "Tuigim é seo agus údaraím mo dhintiúir a uaslódáil chuig an gceann scríbe seo.",
     "title": "Críochphointe API",
     "subtitle": "Úsáid an críochphointe atá comhoiriúnach le OpenAI le formhór na SDKanna agus na n-uirlisí.",
     "testEndpoint": "Tástáil an críochphointe →",

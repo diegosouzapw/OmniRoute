@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Prikazanih je {shown} od {total} ujemajočih se vrstic (prvih 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Cilj sinhronizacije v oblaku (ne lokalnih varnostnih kopij):",
+    "cloudUploadWarning": "Pri novih namestitvah je sinhronizacija v oblaku privzeto izklopljena. Če jo vklopite, se ključi API ponudnikov, žetoni za dostop in osveževanje OAuth, ključi API OmniRoute ter konfiguracija naložijo na zgornji cilj, zdaj in med prihodnjimi sinhronizacijami. Ta funkcija je ločena od lokalnih varnostnih kopij v razdelku Shramba. Vklopite jo samo, če temu strežniku zaupate.",
+    "cloudUploadConsent": "Razumem in dovoljujem nalaganje svojih poverilnic na ta cilj.",
     "title": "Končna točka API-ja",
     "subtitle": "Uporabite končno točko, združljivo z OpenAI, z večino kompletov SDK in orodij.",
     "testEndpoint": "Preizkusi končno točko →",

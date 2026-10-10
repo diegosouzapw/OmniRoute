@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Viser {shown} av {total} samsvarende rader (topp 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Mål for skysynkronisering (ikke lokale sikkerhetskopier):",
+    "cloudUploadWarning": "Skysynkronisering er slått av som standard ved nye installasjoner. Når du slår den på, lastes leverandørenes API-nøkler, OAuth-tilgangs- og oppdateringstokener, OmniRoute API-nøkler og konfigurasjonen opp til målet ovenfor, nå og ved fremtidige synkroniseringer. Dette er atskilt fra lokale sikkerhetskopier under Oppbevaring. Slå det bare på hvis du stoler på den serveren.",
+    "cloudUploadConsent": "Jeg forstår dette og tillater at påloggingsopplysningene mine lastes opp til dette målet.",
     "title": "API-endepunkt",
     "subtitle": "Bruk det OpenAI-kompatible endepunktet med de fleste SDK-er og verktøy.",
     "testEndpoint": "Test endepunkt →",

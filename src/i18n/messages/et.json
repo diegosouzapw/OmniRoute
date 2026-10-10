@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Kuvatud sobivaid ridu: {shown}/{total} (50 esimest)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Pilvesünkroonimise sihtkoht (mitte kohalike varukoopiate jaoks):",
+    "cloudUploadWarning": "Uutel paigaldustel on pilvesünkroonimine vaikimisi välja lülitatud. Selle sisselülitamine laadib teenusepakkujate API-võtmed, OAuthi juurdepääsu- ja värskendustõendid, OmniRoute API-võtmed ning seadistuse ülaltoodud sihtkohta nüüd ja tulevastel sünkroonimistel. See on eraldi jaotise Salvestusruum kohalikest varukoopiatest. Lülitage see sisse ainult siis, kui usaldate seda serverit.",
+    "cloudUploadConsent": "Mõistan seda ja luban oma autentimisandmed sellesse sihtkohta üles laadida.",
     "title": "API otspunkt",
     "subtitle": "Kasutage enamiku SDK-de ja tööriistadega OpenAI-ga ühilduvat otspunkti.",
     "testEndpoint": "Testi otspunkti →",

@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Uyğun gələn {total} sətirdən {shown}-i göstərilir (ilk 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Bulud sinxronizasiyasının təyinatı (yerli ehtiyat nüsxələr üçün deyil):",
+    "cloudUploadWarning": "Yeni quraşdırmalarda bulud sinxronizasiyası standart olaraq söndürülür. Onu aktivləşdirdikdə provayderlərin API açarları, OAuth giriş və yeniləmə tokenləri, OmniRoute API açarları və konfiqurasiya indi və gələcək sinxronizasiyalar zamanı yuxarıdakı təyinata yüklənir. Bu, Saxlama bölməsindəki yerli ehtiyat nüsxələrdən ayrıdır. Yalnız həmin serverə etibar edirsinizsə aktivləşdirin.",
+    "cloudUploadConsent": "Bunu başa düşürəm və giriş məlumatlarımın bu təyinata yüklənməsinə icazə verirəm.",
     "title": "API son nöqtəsi",
     "subtitle": "Əksər SDK və alətlərlə OpenAI ilə uyğun son nöqtədən istifadə edin.",
     "testEndpoint": "Son nöqtəni sınaqdan keçirin →",

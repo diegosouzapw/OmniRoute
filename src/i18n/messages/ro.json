@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Se afișează {shown} din {total} rânduri corespunzătoare (primele 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Destinația sincronizării în cloud (nu a copiilor de rezervă locale):",
+    "cloudUploadWarning": "Sincronizarea în cloud este dezactivată implicit la instalările noi. Activarea ei încarcă cheile API ale furnizorilor, tokenurile de acces și reîmprospătare OAuth, cheile API OmniRoute și configurația la destinația de mai sus, acum și în timpul sincronizărilor viitoare. Această funcție este separată de copiile de rezervă locale din secțiunea Depozitare. Activați-o numai dacă aveți încredere în acel server.",
+    "cloudUploadConsent": "Înțeleg și autorizez încărcarea acreditărilor mele la această destinație.",
     "title": "Endpoint API",
     "subtitle": "Utilizează endpointul compatibil cu OpenAI pentru majoritatea SDK-urilor și instrumentelor.",
     "testEndpoint": "Testează endpointul →",
