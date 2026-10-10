@@ -34,12 +34,13 @@
  *   node scripts/release/dry-run-lts-cut.mjs --execute --rollback --remote rehearsal
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { load as yamlLoad } from "js-yaml";
+import { resolveDistTag } from "./dist-tag.mjs";
 
 export const CANONICAL_REPO = "diegosouzapw/OmniRoute";
 const PACKAGE_NAME = "omniroute";
@@ -72,7 +73,7 @@ const BUMP_FILES = Object.freeze([
   "docs/openapi.yaml",
 ]);
 
-/** Workflows that are dormant until the cut (they land with the dormant-workflows PR, #16172). */
+/** Workflows that stay dormant until the cut (docs/ops/RELEASE_STRATEGY.md → branches/channels). */
 const DORMANT_WORKFLOWS = Object.freeze([
   "forward-port.yml",
   "validate-stable-pr.yml",
@@ -441,7 +442,7 @@ export function analyzeDormantWorkflow(file, yamlText) {
       activates: [],
       stillGated: [],
       forkCaveats: [],
-      note: "absent on this base — expected from the dormant-workflows PR (#16172)",
+      note: "MISSING at the cut source — the LTS line needs it before the cut",
     };
   }
   const doc = yamlLoad(yamlText) ?? {};
@@ -478,18 +479,9 @@ export function analyzeDormantWorkflow(file, yamlText) {
 // ── dist-tags ───────────────────────────────────────────────────────────────
 
 /**
- * Minimal stand-in for scripts/release/dist-tag.mjs#resolveDistTag, used only
- * while that script (dormant-workflows PR #16172) is not on the base.
+ * Expected post-cut dist-tags, cross-checked against the channel resolver that
+ * npm-publish.yml uses (scripts/release/dist-tag.mjs#resolveDistTag).
  */
-export function fallbackResolveDistTag(version, { latestMajor } = {}) {
-  const m = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/.exec(String(version));
-  if (!m) throw new Error(`Not a semver version: ${JSON.stringify(version)}`);
-  if (m[4]) return /^nightly(\.|$)/.test(m[4]) ? "nightly" : "next";
-  if (Number.isInteger(latestMajor) && Number(m[1]) < latestMajor) return "lts";
-  return "latest";
-}
-
-/** Expected post-cut dist-tags, cross-checked against the channel resolver. */
 export function expectedDistTags(opts, resolver) {
   const major = Number(opts.targetVersion.split(".")[0]);
   const probes = [
@@ -770,17 +762,7 @@ export function createRealIo(cwd) {
       return tryExec("git", ["show", `${sha}:.github/workflows/${file}`], { cwd });
     },
     async loadDistTagResolver() {
-      const file = path.join(path.dirname(fileURLToPath(import.meta.url)), "dist-tag.mjs");
-      if (existsSync(file)) {
-        const mod = await import(pathToFileURL(file).href);
-        if (typeof mod.resolveDistTag === "function") {
-          return { source: "scripts/release/dist-tag.mjs", resolveDistTag: mod.resolveDistTag };
-        }
-      }
-      return {
-        source: "built-in fallback (scripts/release/dist-tag.mjs not on this base)",
-        resolveDistTag: fallbackResolveDistTag,
-      };
+      return { source: "scripts/release/dist-tag.mjs", resolveDistTag };
     },
     createDevelopCommit(sourceSha, version, files, message) {
       const tmp = mkdtempSync(path.join(os.tmpdir(), "lts-cut-index-"));
@@ -826,7 +808,7 @@ export async function runCut(opts, io, log = (line) => process.stdout.write(`${l
   log(renderReport({ opts, checks, plan, workflows, distTags }));
 
   const blockingFailed = checks.some((c) => c.blocking && !c.ok);
-  const distTagFailed = distTags.checks.some((c) => !c.ok);
+  const distTagFailed = distTags.checks.some((c) => !c.ok) || workflows.some((wf) => !wf.present);
   if (opts.mode === "dry-run") {
     log("");
     log(blockingFailed || distTagFailed ? "RESULT: NOT READY" : "RESULT: READY");

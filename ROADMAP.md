@@ -96,3 +96,6 @@ The monolith is intentionally disassembled on `develop`:
 | New feature        | active `release/v3.8.x` | held with `v4-feature` label | `develop` (v4) |
 
 See `CONTRIBUTING.md` for the golden path per change type.
+
+See also: [Release Strategy](docs/ops/RELEASE_STRATEGY.md) — branches, npm channels, forward-port
+and the `v4-feature` label rule for the LTS rail.

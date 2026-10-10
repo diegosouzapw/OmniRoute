@@ -254,6 +254,7 @@
     "log": "Visa serverloggar direkt",
     "no_recovery": "Inaktivera automatisk omstart vid krasch (felsökningsläge)",
     "max_restarts": "Maximalt antal omstarter efter krascher inom 30 s innan försöken avbryts (standard: 2)",
+    "headless": "Kör endast proxymotorn: instrumentpanel inaktiverad (404), valfria delsystem hoppas över (sätter OMNIROUTE_HEADLESS=1)",
     "tray": "Starta i systemfältet (endast skrivbord, måste aktiveras)",
     "no_tray": "Inaktivera ikonen i systemfältet",
     "ready_timeout": "Tidsgräns för beredskapskontroll i ms (även OMNIROUTE_READY_TIMEOUT_MS, standard 60000)",

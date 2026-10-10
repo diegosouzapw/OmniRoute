@@ -1,0 +1,53 @@
+name: Validate stable/v3 PR (dormant)
+
+# DORMANT until the 3.9.0 LTS cut creates `stable/v3` (docs/ops/RELEASE_STRATEGY.md).
+# The `branches:` filter means this never triggers while that branch does not exist.
+#
+# `stable/v3` only takes LTS-safe changes: a Conventional title starting with
+# fix / docs / chore(i18n) / feat(providers), or anything the maintainer marks
+# with the `lts` label. Everything else belongs on `develop` (v4).
+#
+# `pull_request` (not `pull_request_target`): nothing is checked out and no code
+# from the PR runs — the title and labels arrive through env, never inlined into
+# the script (zizmor template-injection).
+
+on:
+  pull_request:
+    branches: [stable/v3]
+    types: [opened, edited, synchronize, reopened, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-stable-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: LTS scope (stable/v3)
+    if: github.base_ref == 'stable/v3'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Check title scope or lts label
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -euo pipefail
+          STRATEGY="docs/ops/RELEASE_STRATEGY.md"
+          case ",${PR_LABELS}," in
+            *,lts,*)
+              echo "✅ label 'lts' present — accepted for stable/v3."
+              exit 0
+              ;;
+          esac
+          if printf '%s' "$PR_TITLE" | grep -qE '^((fix|docs)(\([A-Za-z0-9._/-]+\))?|chore\(i18n\)|feat\(providers\))!?: .+'; then
+            echo "✅ title scope accepted for stable/v3."
+            exit 0
+          fi
+          {
+            echo "::error title=Not an LTS change::stable/v3 only accepts fix:, docs:, chore(i18n): or feat(providers): titles, or a PR labelled 'lts'. Retarget this PR to develop, or ask a maintainer for the 'lts' label. See ${STRATEGY}."
+          }
+          exit 1

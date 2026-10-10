@@ -260,6 +260,7 @@ Do NOT run `npm run build` followed by a separate `npm run build:cli` for deploy
 - [ ] `npm run build:release` succeeds and `dist/BUILD_SHA` == `git rev-parse --short HEAD`
 - [ ] `npm run check:pack-artifact` clean — no `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, or other local residue
 - [ ] `dist/server.js` exists after build
+- [ ] Optional local packaged-runtime smoke: `npm run dev:candidate -- validate` after `npm run dev:candidate -- build` boots the packed tarball on an isolated `DATA_DIR` and checks `/api/health` + `/v1/models` (see [Contribution Golden Path](CONTRIBUTION_GOLDEN_PATH.md#local-candidate-loop))
 
 ### Tagging & Release
 
@@ -389,7 +390,8 @@ Before shipping any v3.8.x release, verify these additional items:
 
 After v3.8.59 the next version is 3.9.0, and its tip becomes two long-lived branches:
 `stable/v3` (the v3 LTS line, npm `latest`) and `develop` (v4, bumped to 4.0.0, npm
-`nightly`). See the [ROADMAP](../../ROADMAP.md) (Phase 3) for the model. The cut runs once;
+`nightly`). The branch/channel model, forward-port and labels are in
+[RELEASE_STRATEGY.md](./RELEASE_STRATEGY.md); the plan is in the [ROADMAP](../../ROADMAP.md) (Phase 3). The cut runs once;
 3.8.58 rehearses it end to end on a fork, and 3.8.59 closes with the
 [GO/NO-GO checklist](./LTS_GO_NO_GO.md).
 
@@ -475,9 +477,13 @@ a preview means installing that tarball: never rebuild from source.
    ```
 
 4. Protect `stable/v3` and `develop` (rulesets + merge queue) before the first PR lands.
-5. The dormant workflows switch on by branch existence; apply the repository variable,
-   secret and npm Trusted Publishing settings named in their header comments when the owner
-   enables nightly publishing.
+5. The dormant workflows switch on by branch existence: `forward-port.yml` (push to
+   `stable/v3`), `validate-stable-pr.yml` (PRs to `stable/v3`) and `nightly-v4-build.yml`
+   (builds `develop`). Before go-live, set the `secrets.FORWARD_PORT_TOKEN` repository secret (so CI runs on
+   forward-port PRs); nightly publishing stays off until the owner sets the repository
+   variable `vars.NIGHTLY_PUBLISH` to `true` and npm Trusted Publishing accepts
+   `nightly-v4-build.yml`. Channel resolution is `scripts/release/dist-tag.mjs`, the same
+   resolver `npm-publish.yml` uses.
 6. Verify the channels: `npm view omniroute dist-tags --json` shows `latest` = 3.9.0 and no
    `next` / `nightly` until v4 publishes.
 7. Rollback, if needed: `git push origin --delete refs/heads/stable/v3 refs/heads/develop`

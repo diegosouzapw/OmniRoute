@@ -254,6 +254,7 @@
     "log": "Wyświetlaj logi serwera bezpośrednio",
     "no_recovery": "Wyłącz automatyczne ponowne uruchamianie po awarii (tryb debugowania)",
     "max_restarts": "Maksymalna liczba ponownych uruchomień po awarii w ciągu 30 s przed rezygnacją (domyślnie: 2)",
+    "headless": "Uruchom tylko silnik proxy: panel wyłączony (404), opcjonalne podsystemy pominięte (ustawia OMNIROUTE_HEADLESS=1)",
     "tray": "Uruchom w zasobniku systemowym (tylko aplikacja komputerowa, opcjonalnie)",
     "no_tray": "Wyłącz ikonę w zasobniku systemowym",
     "ready_timeout": "Limit czasu sondy gotowości w ms (również OMNIROUTE_READY_TIMEOUT_MS, domyślnie 60000)",

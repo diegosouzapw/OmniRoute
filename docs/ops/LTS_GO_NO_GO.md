@@ -9,7 +9,8 @@ The owner's decision gate at the end of **3.8.59** (ROADMAP Phase 2): is the cod
 becomes the v3 LTS line (`stable/v3`, npm `latest` for the whole v4 cycle) ready to be cut
 as **3.9.0**? The cut itself is described in
 [RELEASE_CHECKLIST.md → 3.9.0 LTS cut](./RELEASE_CHECKLIST.md#390-lts-cut-rehearsed-in-3858)
-and the branch/channel model in the [ROADMAP](../../ROADMAP.md) (Phase 3).
+and the branch/channel model in [RELEASE_STRATEGY.md](./RELEASE_STRATEGY.md) and the
+[ROADMAP](../../ROADMAP.md) (Phase 3).
 
 How to use it:
 

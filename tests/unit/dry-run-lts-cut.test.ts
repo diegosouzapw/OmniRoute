@@ -25,20 +25,18 @@ import {
   evaluatePreconditions,
   executeCut,
   expectedDistTags,
-  fallbackResolveDistTag,
   isCanonicalRemoteUrl,
   parseCutArgs,
   renderReport,
   runCut,
 } from "../../scripts/release/dry-run-lts-cut.mjs";
+import { resolveDistTag } from "../../scripts/release/dist-tag.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SCRIPT = path.join(repoRoot, "scripts/release/dry-run-lts-cut.mjs");
 const SHA = "1".repeat(40);
-// The real .mergify.yml of this checkout plus the checks_timeout PR #16066 adds.
-const MERGIFY = fs
-  .readFileSync(path.join(repoRoot, ".mergify.yml"), "utf8")
-  .replace(/(\n {2}- name: release\n)/, "$1    checks_timeout: 240 min\n");
+// The real .mergify.yml of this checkout (G11: queue `release` with checks_timeout, #16066).
+const MERGIFY = fs.readFileSync(path.join(repoRoot, ".mergify.yml"), "utf8");
 
 type Facts = Parameters<typeof evaluatePreconditions>[0];
 
@@ -186,14 +184,16 @@ test("base-green is unknown (never green) when the release branch does not exist
 });
 
 test("G11 is the Mergify `release` queue, not GitHub's native merge queue", () => {
-  const withTimeout = evaluateMergifyQueue(MERGIFY);
-  assert.deepEqual(withTimeout, { ok: true, problems: [] });
-  const base = fs.readFileSync(path.join(repoRoot, ".mergify.yml"), "utf8");
-  if (!/checks_timeout/.test(base)) {
-    assert.deepEqual(evaluateMergifyQueue(base).problems, [
-      "queue `release` has no checks_timeout",
-    ]);
-  }
+  assert.deepEqual(
+    evaluateMergifyQueue(MERGIFY),
+    { ok: true, problems: [] },
+    "G11 GO on this base"
+  );
+  const noTimeout = MERGIFY.replace(/^ {4}checks_timeout:.*\n/m, "");
+  assert.notEqual(noTimeout, MERGIFY, "fixture removed checks_timeout");
+  assert.deepEqual(evaluateMergifyQueue(noTimeout).problems, [
+    "queue `release` has no checks_timeout",
+  ]);
   assert.match(
     evaluateMergifyQueue("queue_rules:\n  - name: other\n").problems.join(),
     /no queue_rules entry named `release`/
@@ -348,17 +348,17 @@ test("analyzeDormantWorkflow reports what turns on, what stays gated, and fork c
 
 // ── dist-tags ─────────────────────────────────────────────────────────────
 
-test("fallback dist-tag resolver keeps nightly/rc off latest", () => {
-  assert.equal(fallbackResolveDistTag("3.9.0", { latestMajor: 3 }), "latest");
-  assert.equal(fallbackResolveDistTag("4.0.0-nightly.20261010.abcdef0", {}), "nightly");
-  assert.equal(fallbackResolveDistTag("4.0.0-rc.1", {}), "next");
-  assert.equal(fallbackResolveDistTag("3.9.1", { latestMajor: 4 }), "lts");
+test("the real dist-tag resolver keeps nightly/rc off latest and 3.9.x on lts after 4.0 GA", () => {
+  assert.equal(resolveDistTag("3.9.0", { latestMajor: 3 }), "latest");
+  assert.equal(resolveDistTag("4.0.0-nightly.20261010.abcdef0", {}), "nightly");
+  assert.equal(resolveDistTag("4.0.0-rc.1", {}), "next");
+  assert.equal(resolveDistTag("3.9.1", { latestMajor: 4 }), "lts");
 });
 
 test("expectedDistTags: latest → 3.9.0, next/nightly empty, resolver agrees", () => {
   const tags = expectedDistTags(parseCutArgs([]), {
     source: "test",
-    resolveDistTag: fallbackResolveDistTag,
+    resolveDistTag: resolveDistTag,
   });
   assert.deepEqual(tags.expected, { latest: "3.9.0", next: null, nightly: null });
   assert.ok(
@@ -438,7 +438,7 @@ test("runCut in dry-run renders the whole sequence and exits 1 on a failed block
     readWorkflow: (file: string) => (file === "forward-port.yml" ? FORWARD_PORT : null),
     loadDistTagResolver: async () => ({
       source: "fallback",
-      resolveDistTag: fallbackResolveDistTag,
+      resolveDistTag: resolveDistTag,
     }),
   };
   const code = await runCut(parseCutArgs([]), io, (l: string) => lines.push(l));
@@ -458,6 +458,41 @@ test("runCut in dry-run renders the whole sequence and exits 1 on a failed block
   assert.match(out, /✗ tag/);
   assert.equal(io.calls.length, 0, "dry-run never runs git mutations");
   assert.equal(typeof renderReport, "function");
+});
+
+test("runCut is READY only when every dormant workflow exists at the source", async () => {
+  const real = (file: string) =>
+    fs.readFileSync(path.join(repoRoot, ".github/workflows", file), "utf8");
+  const run = async (readWorkflow: (file: string) => string | null) => {
+    const lines: string[] = [];
+    const io = {
+      ...fakeIo(),
+      gatherFacts: async () => goodFacts(),
+      readWorkflow,
+      loadDistTagResolver: async () => ({ source: "dist-tag.mjs", resolveDistTag }),
+    };
+    const code = await runCut(parseCutArgs([]), io, (l: string) => lines.push(l));
+    return { code, out: lines.join("\n") };
+  };
+  const ready = await run(real);
+  assert.equal(ready.code, 0, ready.out);
+  assert.match(ready.out, /RESULT: READY/);
+  const missing = await run((file) => (file === "nightly-v4-build.yml" ? null : real(file)));
+  assert.equal(missing.code, 1);
+  assert.match(missing.out, /nightly-v4-build\.yml: MISSING at the cut source/);
+});
+
+test("the real dormant workflows on this base activate as RELEASE_STRATEGY.md promises", () => {
+  const read = (file: string) =>
+    fs.readFileSync(path.join(repoRoot, ".github/workflows", file), "utf8");
+  const fp = analyzeDormantWorkflow("forward-port.yml", read("forward-port.yml"));
+  assert.ok(fp.triggers.includes("push → stable/v3"));
+  assert.ok(fp.forkCaveats.length > 0, "forward-port is pinned to the canonical repository");
+  const stable = analyzeDormantWorkflow("validate-stable-pr.yml", read("validate-stable-pr.yml"));
+  assert.ok(stable.triggers.includes("pull_request → stable/v3"));
+  const nightly = analyzeDormantWorkflow("nightly-v4-build.yml", read("nightly-v4-build.yml"));
+  assert.ok(nightly.activates.some((l) => /develop exists/.test(l)));
+  assert.ok(nightly.stillGated.some((l) => /vars\.NIGHTLY_PUBLISH/.test(l)));
 });
 
 test("CLI usage errors exit 2 without touching anything", () => {
