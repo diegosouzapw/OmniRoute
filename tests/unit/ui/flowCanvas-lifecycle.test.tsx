@@ -3,8 +3,9 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-const { instances } = vi.hoisted(() => ({
+const { instances, initializers } = vi.hoisted(() => ({
   instances: [] as Array<{ fitView: ReturnType<typeof vi.fn> }>,
+  initializers: [] as Array<() => void>,
 }));
 
 // The external canvas is the boundary: observe calls into its disposed instance.
@@ -13,7 +14,9 @@ vi.mock("@xyflow/react", () => ({
     React.useEffect(() => {
       const instance = { fitView: vi.fn() };
       instances.push(instance);
-      onInit(instance);
+      const initialize = () => onInit(instance);
+      initializers.push(initialize);
+      initialize();
     }, [onInit]);
     return <div data-testid="canvas" />;
   },
@@ -36,9 +39,21 @@ beforeEach(() => {
     }
   );
   instances.length = 0;
+  initializers.length = 0;
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
+});
+
+it("ignores an external onInit callback delivered after the parent unmounts", () => {
+  act(() => root!.render(<FlowCanvas nodes={[]} edges={[]} />));
+  act(() => root!.unmount());
+  root = undefined;
+  // React Flow itself defers onInit with a timer; it can outlive its caller.
+  act(() => initializers[0]());
+  act(() => vi.runAllTimers());
+  expect(instances[0].fitView).not.toHaveBeenCalled();
+  expect(vi.getTimerCount()).toBe(0);
 });
 
 afterEach(() => {
@@ -73,4 +88,25 @@ it("refits only the replacement canvas when fitKey changes before the deferred f
   expect(instances[0].fitView).not.toHaveBeenCalled();
   expect(instances[1].fitView).toHaveBeenCalledTimes(1);
   expect(instances[1].fitView).toHaveBeenCalledWith({ padding: 0.22, duration: 250 });
+});
+
+it("ignores a stale external initializer delivered after the replacement graph initialized", () => {
+  act(() => root!.render(<FlowCanvas nodes={[]} edges={[]} fitKey="before" />));
+  act(() => root!.render(<FlowCanvas nodes={[]} edges={[]} fitKey="after" />));
+  act(() => initializers[0]());
+  act(() => vi.runAllTimers());
+  expect(instances[0].fitView).not.toHaveBeenCalled();
+  expect(instances[1].fitView).toHaveBeenCalledWith({ padding: 0.22, duration: 250 });
+});
+
+it("still initializes the active graph after StrictMode replays lifecycle effects", () => {
+  act(() =>
+    root!.render(
+      <React.StrictMode>
+        <FlowCanvas nodes={[]} edges={[]} />
+      </React.StrictMode>
+    )
+  );
+  act(() => vi.runAllTimers());
+  expect(instances.at(-1)!.fitView).toHaveBeenCalledWith({ padding: 0.22, duration: 250 });
 });

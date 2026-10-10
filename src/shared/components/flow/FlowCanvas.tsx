@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import {
   ReactFlow,
   Controls,
@@ -73,21 +73,32 @@ export function FlowCanvas({
   // a new ReactFlow instance mounts (e.g. via fitKey change).
   const generationRef = useRef(0);
   const initTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
+  const activeFitKeyRef = useRef(fitKey);
 
-  const onInit = useCallback((instance: ReactFlowInstance) => {
-    if (initTimerRef.current !== null) clearTimeout(initTimerRef.current);
-    const generation = ++generationRef.current;
-    rfInstance.current = instance;
-    // Defer fitView until ReactFlow has measured its viewport, but guard
-    // against the instance being replaced (generation mismatch) before the
-    // timer fires — see Bug #4 in the audit report.
-    initTimerRef.current = setTimeout(() => {
-      initTimerRef.current = null;
-      if (generationRef.current === generation && rfInstance.current === instance) {
-        instance.fitView(FIT_VIEW_OPTIONS);
-      }
-    }, REFIT_DELAY_MS);
-  }, []);
+  useLayoutEffect(() => {
+    activeFitKeyRef.current = fitKey;
+  }, [fitKey]);
+
+  const onInit = useCallback(
+    (instance: ReactFlowInstance) => {
+      // React Flow defers onInit itself; it may arrive after our cleanup ran.
+      if (!mountedRef.current || activeFitKeyRef.current !== fitKey) return;
+      if (initTimerRef.current !== null) clearTimeout(initTimerRef.current);
+      const generation = ++generationRef.current;
+      rfInstance.current = instance;
+      // Defer fitView until ReactFlow has measured its viewport, but guard
+      // against the instance being replaced (generation mismatch) before the
+      // timer fires — see Bug #4 in the audit report.
+      initTimerRef.current = setTimeout(() => {
+        initTimerRef.current = null;
+        if (generationRef.current === generation && rfInstance.current === instance) {
+          instance.fitView(FIT_VIEW_OPTIONS);
+        }
+      }, REFIT_DELAY_MS);
+    },
+    [fitKey]
+  );
 
   useEffect(() => {
     const el = containerRef.current;
@@ -114,8 +125,10 @@ export function FlowCanvas({
   // Clear the ref on unmount so a late-arriving callback (e.g. a ResizeObserver
   // tick fired just before the React tree unmounted) cannot reach into a
   // disposed ReactFlow instance.
-  useEffect(() => {
+  useLayoutEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       if (initTimerRef.current !== null) clearTimeout(initTimerRef.current);
       initTimerRef.current = null;
       rfInstance.current = null;
