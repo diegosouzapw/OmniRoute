@@ -16,6 +16,30 @@ import { MemoryType } from "./types";
 
 const log = logger("OBSIDIAN_BACKEND");
 
+/**
+ * Memory keys come from extracted conversation content and API bodies, so they are
+ * untrusted. Each key maps to exactly one flat file inside the vault: anything with a
+ * path separator, a NUL byte or a dot-segment would let the write escape it
+ * (GHSA-jj59-hx95-569p).
+ */
+function resolveVaultFilePath(path: typeof import("path"), vaultPath: string, key: string): string {
+  if (
+    typeof key !== "string" ||
+    key.trim() === "" ||
+    key === "." ||
+    key === ".." ||
+    /[\\/\0]/.test(key)
+  ) {
+    throw new Error("Invalid memory key for the Obsidian vault");
+  }
+  const vaultRoot = path.resolve(vaultPath);
+  const filePath = path.resolve(vaultRoot, `${key}.md`);
+  if (path.dirname(filePath) !== vaultRoot) {
+    throw new Error("Invalid memory key for the Obsidian vault");
+  }
+  return filePath;
+}
+
 /** Optional backend for Obsidian Vault */
 export class ObsidianBackend implements MemoryBackend {
   readonly id = "obsidian";
@@ -53,8 +77,7 @@ export class ObsidianBackend implements MemoryBackend {
     const path = await import("path");
 
     const id = crypto.randomUUID();
-    const fileName = `${input.key}.md`;
-    const filePath = path.join(this.vaultPath, fileName);
+    const filePath = resolveVaultFilePath(path, this.vaultPath, input.key);
 
     const frontmatter = [
       "---",
