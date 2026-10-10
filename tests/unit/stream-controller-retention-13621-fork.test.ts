@@ -1,5 +1,5 @@
 /**
- * Issue #13621 regression test (RED phase) — closure retention of the request
+ * Issue #13621 regression test — closure retention of the request
  * payload after the stream controller reaches a terminal state.
  *
  * Each case runs in an isolated worker (spawned child with --expose-gc and a
@@ -10,10 +10,12 @@
  * terminal path, then GC-settles and reports whether the payload's canary was
  * collected.
  *
- * Fixed behavior (GREEN): after ANY terminal state, the payload closure must be
- * collectible while only the controller itself stays pinned.
- * Defect behavior (RED on this tree): the terminal-state controller still pins
- * its onDisconnect/onError closures, so the payload survives GC.
+ * Required behavior (GREEN): after ANY terminal state — including the
+ * deferred tool-handoff drain, which production completes asynchronously —
+ * the payload closure must be collectible while only the controller itself
+ * stays pinned. Terminal-callback modes cross-validated 2026-10-10 against
+ * upstream #15961 (release of terminal request callbacks); the handoff-grace
+ * fixture mirrors production's asynchronous drain completion.
  */
 
 import assert from "node:assert/strict";
