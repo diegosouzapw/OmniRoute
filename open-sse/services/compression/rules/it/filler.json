@@ -28,11 +28,12 @@
     },
     {
       "name": "it_filler_adverbs",
-      "pattern": "\\b(?:sostanzialmente|essenzialmente|fondamentalmente|praticamente|in realtà|in effetti|letteralmente|semplicemente|diciamo|insomma|comunque|appunto|ovviamente|chiaramente)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:sostanzialmente|essenzialmente|fondamentalmente|praticamente|in realtà|in effetti|letteralmente|semplicemente|diciamo|insomma|comunque|appunto|ovviamente|chiaramente)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "it_self_reference",
@@ -84,11 +85,12 @@
     },
     {
       "name": "it_softeners",
-      "pattern": "\\b(?:un attimo|un momento|se non ti dispiace|se non è troppo disturbo|se possibile)\\b[,.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:un attimo|un momento|se non ti dispiace|se non è troppo disturbo|se possibile)(?![\\p{L}\\p{N}_])[,.]?\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

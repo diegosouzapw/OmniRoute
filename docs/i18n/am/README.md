@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ ባህሪያት</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 ጥምረቶች</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 አቅራቢዎች</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 አቅራቢዎች</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI እና MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # እነዚህም፦ claude opencode qwen aid
 
 <div align="center">
 
-## 🌐 357 የAI አቅራቢዎች — 152 በካታሎግ እንደ ነፃ የተመለከቱ
+## 🌐 372 የAI አቅራቢዎች — 154 በካታሎግ እንደ ነፃ የተመለከቱ
 
 </div>
 

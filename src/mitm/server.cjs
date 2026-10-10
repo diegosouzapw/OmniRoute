@@ -29,12 +29,6 @@ const TARGET_HOSTS = new Set([
 const TARGET_HOST_AGENT = new Map();
 for (const h of TARGET_HOSTS) TARGET_HOST_AGENT.set(h, "antigravity");
 
-// The MITM only intercepts this host's own traffic (/etc/hosts points the target
-// domains at 127.0.0.1), so it must never listen on other interfaces: a LAN peer
-// could otherwise drive intercept() with the operator's ROUTER_API_KEY or use
-// passthrough() as an open TLS relay (GHSA-qxg2-rm3h-4cxp).
-const MITM_LISTEN_HOST = "127.0.0.1";
-
 const parsedLocalPort = Number.parseInt(process.env.MITM_LOCAL_PORT || "443", 10);
 const LOCAL_PORT =
   Number.isInteger(parsedLocalPort) && parsedLocalPort > 0 && parsedLocalPort <= 65535
@@ -147,6 +141,7 @@ const forwardShim = require("./_internal/forwardTarget.cjs");
 const aliasConfigShim = require("./_internal/aliasConfig.cjs");
 const standaloneRoutingShim = require("./_internal/standaloneRouting.cjs");
 const writeBackpressureShim = require("./_internal/writeBackpressure.cjs");
+const peerGuardShim = require("./_internal/peerGuard.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -904,10 +899,24 @@ async function startMitmServer() {
   server.headersTimeout = MITM_IDLE_TIMEOUT_MS; // time allowed to send headers
   server.keepAliveTimeout = MITM_IDLE_TIMEOUT_MS; // idle keep-alive window
 
-  server.listen(LOCAL_PORT, MITM_LISTEN_HOST, () => {
+  // GHSA-qxg2-rm3h-4cxp: the listener is dual-stack (the DNS spoof maps target
+  // hosts to both 127.0.0.1 and ::1), so refuse non-loopback peers here, before
+  // any other connection listener — otherwise a LAN peer reaches intercept()
+  // with the operator's ROUTER_API_KEY, or passthrough() as an open TLS relay.
+  // MITM_ALLOW_REMOTE_CLIENTS=1 is the explicit opt-in for a trusted LAN.
+  server.prependListener("connection", (socket) => {
+    if (!peerGuardShim.guardLoopbackPeer(socket)) {
+      vlog(1, `[MITM] refused non-loopback peer ${socket.remoteAddress || "unknown"}`);
+    }
+  });
+
+  // Dual-stack on purpose: the DNS spoof maps hosts to ::1 too, so binding to
+  // 127.0.0.1 alone would break clients that resolve to ::1. The peer guard above
+  // is what keeps LAN peers out.
+  server.listen(LOCAL_PORT, () => {
     stats.startedAt = new Date().toISOString();
     writeStats();
-    console.log(`🚀 MITM ready on ${MITM_LISTEN_HOST}:${LOCAL_PORT} → ${ROUTER_URL}`);
+    console.log(`🚀 MITM ready on :${LOCAL_PORT} (loopback peers only) → ${ROUTER_URL}`);
   });
 
   server.on("connection", (socket) => {

@@ -254,6 +254,7 @@
     "log": "Uri l-logs tas-server inline",
     "no_recovery": "Iddiżattiva l-awto-restart meta jkisser (modalità ta' debugging)",
     "max_restarts": "L-ogħla numru ta' restarts wara crash fi żmien 30s qabel ma jċedi (default: 2)",
+    "headless": "Ħaddem biss il-magna tal-proxy: dashboard diżattivat (404), sottosistemi mhux obbligatorji jinqabżu (jissettja OMNIROUTE_HEADLESS=1)",
     "tray": "Bda' fil-caffettar tal-pajjiż (biss desktop, għażla)",
     "no_tray": "Iddiżattiva l-ikona tal-caffettar tal-pajjiż",
     "ready_timeout": "Limitu taż-żmien tal-verifika tat-tħejjija f'ms (ukoll OMNIROUTE_READY_TIMEOUT_MS, valur predefinit 60000)",

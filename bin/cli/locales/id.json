@@ -254,6 +254,7 @@
     "log": "Tampilkan log server secara langsung",
     "no_recovery": "Nonaktifkan mulai ulang otomatis saat crash (mode debugging)",
     "max_restarts": "Jumlah maksimum mulai ulang akibat crash dalam 30 detik sebelum menyerah (default: 2)",
+    "headless": "Jalankan hanya mesin proksi: dasbor dinonaktifkan (404), subsistem opsional dilewati (mengatur OMNIROUTE_HEADLESS=1)",
     "tray": "Mulai di baki sistem (khusus desktop, harus diaktifkan)",
     "no_tray": "Nonaktifkan ikon baki sistem",
     "ready_timeout": "Batas waktu probe kesiapan dalam ms (juga OMNIROUTE_READY_TIMEOUT_MS, default 60000)",

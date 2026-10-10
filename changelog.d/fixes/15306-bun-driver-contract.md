@@ -1,0 +1,1 @@
+- Correct the SQLite driver regression test to verify Bun stays on `bun:sqlite` while preserving Node's network-exclusion and report-restoration assertions. (#15306)

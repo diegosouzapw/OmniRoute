@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Karatteristiċi</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinazzjonijiet</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Fornituri</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Fornituri</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ mill-istorja tas-shell tiegħek. → [Integrazzjonijiet tas-CLI](docs/guides/CLI
 
 <div align="center">
 
-## 🌐 357 Fornitur tal-IA — 152 Immarkati bħala Bla Ħlas fil-Katalgu
+## 🌐 372 Fornitur tal-IA — 154 Immarkati bħala Bla Ħlas fil-Katalgu
 
 </div>
 

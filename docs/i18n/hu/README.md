@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkciók</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombók</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Szolgáltatók</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Szolgáltatók</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI és MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ a parancsérzékeny terminálelőzményektől. → [CLI-integrációk](docs/guid
 
 <div align="center">
 
-## 🌐 357 MI-szolgáltató — 152 a katalógusban ingyenesként jelölve
+## 🌐 372 MI-szolgáltató — 154 a katalógusban ingyenesként jelölve
 
 </div>
 

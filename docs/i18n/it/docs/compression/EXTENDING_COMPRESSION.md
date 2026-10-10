@@ -338,7 +338,6 @@ In alternativa, posizionalo in un percorso riconosciuto:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # A livello utente
-<project>/.compression/rules/hi/filler.json   # A livello di progetto
 ```
 
 ### Procedure consigliate per i pacchetti linguistici

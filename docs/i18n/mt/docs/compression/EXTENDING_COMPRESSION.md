@@ -336,7 +336,6 @@ Jew poġġih f’post rikonoxxut:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Fil-livell tal-utent
-<project>/.compression/rules/hi/filler.json   # Fil-livell tal-proġett
 ```
 
 ### L-Aħjar Prattiki għall-Pakketti tal-Lingwa

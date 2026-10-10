@@ -335,7 +335,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # የተጠቃሚ ደረጃ
-<project>/.compression/rules/hi/filler.json   # የፕሮጀክት ደረጃ
 ```
 
 ### ለቋንቋ ጥቅሎች ምርጥ ልምዶች

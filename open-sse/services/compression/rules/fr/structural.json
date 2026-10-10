@@ -20,11 +20,12 @@
     },
     {
       "name": "fr_emphasis",
-      "pattern": "\\b(?:tres|très|vraiment|extremement|extrêmement|assez)\\s+(?=[a-zàâçéèêëîïôûùüÿñæœ])",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:tres|très|vraiment|extremement|extrêmement|assez)\\s+(?=[a-zàâçéèêëîïôûùüÿñæœ])",
       "replacement": "",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

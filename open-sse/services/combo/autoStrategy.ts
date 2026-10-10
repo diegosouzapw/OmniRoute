@@ -488,6 +488,10 @@ export async function expandAutoComboCandidatePool(
   if (Array.isArray(localAutoConfig?.candidatePool) && localAutoConfig.candidatePool.length > 0)
     return eligibleTargets;
 
+  // #15546: `auto/subscription` promises plan-included capacity only. An empty
+  // pool must stay empty (fail closed) rather than widen to the paid catalog.
+  if (localAutoConfig?.failClosedWhenEmpty === true) return eligibleTargets;
+
   // #COMBO-REF: if the combo references other combos via kind:"combo-ref" entries,
   // the resolved eligibleTargets already represent the operator's intended pool.
   // Expanding to ALL providers would defeat the purpose of the combo-ref constraint

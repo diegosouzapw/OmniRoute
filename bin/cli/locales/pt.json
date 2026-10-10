@@ -254,6 +254,7 @@
     "log": "Mostrar os registos do servidor em linha",
     "no_recovery": "Desativar o reinício automático em caso de falha (modo de depuração)",
     "max_restarts": "Número máximo de reinícios após falha num período de 30 s antes de desistir (predefinição: 2)",
+    "headless": "Executa apenas o motor de proxy: painel desativado (404), subsistemas opcionais ignorados (define OMNIROUTE_HEADLESS=1)",
     "tray": "Iniciar na área de notificação do sistema (apenas no ambiente de trabalho, opção facultativa)",
     "no_tray": "Desativar o ícone da área de notificação do sistema",
     "ready_timeout": "Tempo limite da verificação de disponibilidade em ms (também OMNIROUTE_READY_TIMEOUT_MS, predefinição: 60000)",

@@ -227,10 +227,10 @@ export const WEB_SESSION_CREDENTIAL_REQUIREMENTS = {
   },
   "venice-web": {
     kind: "cookie",
-    credentialName: "session",
-    placeholder: "session=... or full Cookie header from venice.ai",
+    credentialName: "__client",
+    placeholder: "__client=... or full Cookie header from clerk.venice.ai",
     acceptsFullCookieHeader: true,
-    storageKeys: ["cookie", "session"],
+    storageKeys: ["cookie", "__client"],
   },
   "v0-vercel-web": {
     kind: "cookie",

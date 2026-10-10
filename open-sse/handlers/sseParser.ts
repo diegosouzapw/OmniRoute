@@ -541,13 +541,13 @@ function cloneResponseItem(item) {
   };
 }
 
-function ensureResponsesMessageItem(outputItems, outputIndex) {
+function ensureResponsesMessageItem(outputItems, outputIndex, itemId) {
   const existing = outputItems.get(outputIndex);
   if (existing?.type === "message") return existing;
 
   const next = {
     ...(existing && typeof existing === "object" ? existing : {}),
-    id: existing?.id != null ? String(existing.id) : `msg_${Date.now()}_${outputIndex}`,
+    id: toIdString(itemId) || (existing?.id != null ? String(existing.id) : undefined),
     type: "message",
     role: "assistant",
     content: Array.isArray(existing?.content)
@@ -617,8 +617,33 @@ function ensureResponsesFunctionCallItem(outputItems, outputIndex, itemId, callI
   return next;
 }
 
-function mergeResponseItems(existing, incoming) {
+function recoverEmptyMessageSnapshot(existing, incoming) {
   const next = cloneResponseItem(incoming);
+  if (!existing || typeof existing !== "object") return next;
+
+  // An empty snapshot must not erase text already received for this message.
+  // Non-text parts (especially refusals) remain authoritative, as do explicit
+  // different identities. Preserve terminal metadata and only recover content.
+  if (
+    existing.type === "message" &&
+    next.type === "message" &&
+    (!existing.id || !next.id || String(existing.id) === String(next.id)) &&
+    Array.isArray(next.content) &&
+    next.content.every((part) => part.type === "output_text" && !part.text) &&
+    Array.isArray(existing.content) &&
+    existing.content.some(
+      (part) =>
+        (part.type === "output_text" && typeof part.text === "string" && part.text.length > 0) ||
+        (part.type === "refusal" && typeof part.refusal === "string" && part.refusal.length > 0)
+    )
+  ) {
+    next.content = existing.content.map((part) => ({ ...toRecord(part) }));
+  }
+  return next;
+}
+
+function mergeResponseItems(existing, incoming) {
+  const next = recoverEmptyMessageSnapshot(existing, incoming);
   if (!existing || typeof existing !== "object") return next;
 
   return {
@@ -678,27 +703,44 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
       outputItems.set(outputIndex, mergeResponseItems(existing, item));
     }
 
-    if (outputIndex !== null && eventType === "response.output_text.delta") {
-      const messageItem = ensureResponsesMessageItem(outputItems, outputIndex);
+    if (
+      outputIndex !== null &&
+      (eventType === "response.output_text.delta" || eventType === "response.refusal.delta")
+    ) {
+      const refusal = eventType === "response.refusal.delta";
+      const field = refusal ? "refusal" : "text";
+      const contentIndex = toOutputIndex(evt.content_index) ?? 0;
+      // Untrusted sparse indices must not allocate enormous reconstructed arrays.
+      if (contentIndex < 0 || contentIndex >= 4096) continue;
+      const messageItem = ensureResponsesMessageItem(outputItems, outputIndex, evt.item_id);
       const content = Array.isArray(messageItem.content) ? messageItem.content : [];
-      const firstPart =
-        content.length > 0 ? { ...toRecord(content[0]) } : { type: "output_text", annotations: [] };
-      firstPart.type = firstPart.type || "output_text";
-      firstPart.annotations = Array.isArray(firstPart.annotations) ? firstPart.annotations : [];
-      firstPart.text = `${toString(firstPart.text)}${toString(evt.delta)}`;
-      content[0] = firstPart;
+      const firstPart = { ...toRecord(content[contentIndex]) };
+      firstPart.type = refusal ? "refusal" : "output_text";
+      if (!refusal)
+        firstPart.annotations = Array.isArray(firstPart.annotations) ? firstPart.annotations : [];
+      firstPart[field] = `${toString(firstPart[field])}${toString(evt.delta)}`;
+      if (refusal) delete firstPart.text;
+      content[contentIndex] = firstPart;
       messageItem.content = content;
     }
 
-    if (outputIndex !== null && eventType === "response.output_text.done") {
-      const messageItem = ensureResponsesMessageItem(outputItems, outputIndex);
+    if (
+      outputIndex !== null &&
+      (eventType === "response.output_text.done" || eventType === "response.refusal.done")
+    ) {
+      const refusal = eventType === "response.refusal.done";
+      const field = refusal ? "refusal" : "text";
+      const contentIndex = toOutputIndex(evt.content_index) ?? 0;
+      if (contentIndex < 0 || contentIndex >= 4096) continue;
+      const messageItem = ensureResponsesMessageItem(outputItems, outputIndex, evt.item_id);
       const content = Array.isArray(messageItem.content) ? messageItem.content : [];
-      const firstPart =
-        content.length > 0 ? { ...toRecord(content[0]) } : { type: "output_text", annotations: [] };
-      firstPart.type = firstPart.type || "output_text";
-      firstPart.annotations = Array.isArray(firstPart.annotations) ? firstPart.annotations : [];
-      firstPart.text = toString(evt.text, toString(firstPart.text));
-      content[0] = firstPart;
+      const firstPart = { ...toRecord(content[contentIndex]) };
+      firstPart.type = refusal ? "refusal" : "output_text";
+      if (!refusal)
+        firstPart.annotations = Array.isArray(firstPart.annotations) ? firstPart.annotations : [];
+      firstPart[field] = toString(evt[field]) || toString(firstPart[field]);
+      if (refusal) delete firstPart.text;
+      content[contentIndex] = firstPart;
       messageItem.content = content;
     }
 
@@ -782,7 +824,18 @@ export function parseSSEToResponsesOutput(rawSSE, fallbackModel) {
     .sort((a, b) => a[0] - b[0])
     .map(([, item]) => item)
     .filter((item) => item && typeof item === "object");
-  const pickedOutput = Array.isArray(picked.output) ? picked.output : [];
+  const reconstructedById = new Map(
+    reconstructedOutput.filter((item) => item.id != null).map((item) => [String(item.id), item])
+  );
+  const pickedOutput = Array.isArray(picked.output)
+    ? picked.output.map((item, index) => {
+        const record = toRecord(item);
+        const existing =
+          (record.id != null ? reconstructedById.get(String(record.id)) : undefined) ??
+          outputItems.get(index);
+        return recoverEmptyMessageSnapshot(existing, record);
+      })
+    : [];
   // #3948 — A Responses-API terminal snapshot (`response.completed`) can carry a
   // non-empty `output` that LACKS the assistant message item (e.g. only a
   // `reasoning` item) even though the streamed `output_text` deltas reconstructed

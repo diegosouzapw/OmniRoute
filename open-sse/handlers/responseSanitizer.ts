@@ -14,6 +14,7 @@ import {
 } from "./responseSanitizer/cacheHitTokens.ts";
 import { stripObfuscationZeroWidth } from "../utils/zeroWidth.ts";
 import { normalizeArrayContentChunk } from "../utils/arrayContentDelta.ts";
+import { assignAliasCacheWrite } from "../utils/pickCacheCreationTokens.ts";
 export {
   extractThinkingFromContent,
   shouldParseTextualReasoningTags,
@@ -74,7 +75,6 @@ function toRecord(value: unknown): JsonRecord | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   return value as JsonRecord;
 }
-
 function toString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
@@ -595,9 +595,7 @@ function sanitizeResponsesUsage(usage: unknown): unknown {
   ) {
     inputDetails.cache_creation_tokens = normalized.cache_creation_input_tokens;
   }
-  if (Object.keys(inputDetails).length > 0) {
-    normalized.input_tokens_details = inputDetails;
-  }
+  assignAliasCacheWrite(normalized, inputDetails);
 
   const outputDetails = toRecord(normalized.output_tokens_details) || {};
   if (normalized.reasoning_tokens !== undefined && outputDetails.reasoning_tokens === undefined) {
@@ -1154,7 +1152,8 @@ export function sanitizeStreamingChunk(parsed: unknown): unknown {
         const deltaRecord = toRecord(choiceRecord.delta);
         if (deltaRecord) {
           const delta: JsonRecord = {};
-          if (deltaRecord.role !== undefined) delta.role = deltaRecord.role;
+          // prettier-ignore
+          { if (deltaRecord.role !== undefined) delta.role = deltaRecord.role; if (typeof deltaRecord.refusal === "string") delta.refusal = deltaRecord.refusal; }
           if (deltaRecord.content !== undefined) {
             delta.content =
               typeof deltaRecord.content === "string"

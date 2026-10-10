@@ -320,14 +320,14 @@ Allowlists (`eslint-suppressions.json`, `test-masking-allowlist.json`, `test-dis
   einmalige Lockerung (`scripts/quality/relax-baselines.mjs`); eine zweite Ausführung mit demselben
   Hinweis wird abgelehnt.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  misst jedes numerische Gate auf dieselbe Weise wie CI und gibt den verbleibenden Spielraum pro
-  Gate aus (`scripts/quality/baseline-headroom.mjs`). Der nächtliche Job `baseline-headroom`
-  veröffentlicht die Tabelle im fortlaufend gepflegten Issue **📈 Baseline-Spielraum
-  (Velocity-Phase)** und fügt das Label `headroom-alert` hinzu, wenn ein Gate höchstens noch 10 %
-  von seiner Obergrenze entfernt ist oder diese bereits überschritten hat. Dieses Issue dient als
-  Frühwarnung: Ein Budget, das innerhalb weniger Tage aufgebraucht ist, bedeutet, dass die
-  Lockerung von wenigen PRs statt vom gesamten Team verbraucht wird — prüfen Sie die
-  `_rebaseline_*`-Hinweise des betreffenden Gates.
+  misst jede numerische Qualitätsprüfung genauso wie CI und gibt den verbleibenden Spielraum je Prüfung aus
+  (`scripts/quality/baseline-headroom.mjs`). Der nächtliche Job `baseline-headroom` veröffentlicht
+  die Tabelle in der Zusammenfassung des Workflow-Laufs und lädt seinen JSON/Markdown-Bericht als
+  `baseline-headroom-<run_id>` hoch; dieser wird 90 Tage aufbewahrt. Warnungen und kritische Zeilen kennzeichnen
+  Prüfungen, deren verbleibender Spielraum höchstens 10% der Obergrenze beträgt oder die diese bereits überschritten haben.
+  Nutzen Sie diese Berichte als Frühwarnung für aufgebrauchte Budgets; prüfen Sie die
+  `_rebaseline_*`-Notizen der betroffenen Prüfung. Der Job erstellt oder aktualisiert kein dauerhaftes Issue mehr;
+  #12149 bewahrt den Verlauf der früheren Berichte.
 
 **Neucode-Modus (Clean-as-You-Code) — seit 2026-08-30, nur PR-Schnellpfad**
 

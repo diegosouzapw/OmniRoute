@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ 機能</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 コンボ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 プロバイダー</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 プロバイダー</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # 対応ツール：claude opencode qwen aide
 
 <div align="center">
 
-## 🌐 357のAIプロバイダー — うち152がカタログ上で無料
+## 🌐 372のAIプロバイダー — うち154がカタログ上で無料
 
 </div>
 

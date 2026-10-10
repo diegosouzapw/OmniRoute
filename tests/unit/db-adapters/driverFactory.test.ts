@@ -462,7 +462,7 @@ describe("driverFactory", () => {
     assert.equal(openWithoutNativeDrivers(":memory:"), null);
   });
 
-  test("opens better-sqlite3 with the network section excluded from process.report", () => {
+  test("guards the Node addon report and keeps Bun on its own SQLite driver", () => {
     // better-sqlite3 13 resolves its prebuild via process.report.getReport() (isLinuxMusl).
     // With open TCP handles that report reverse-resolves every socket, which took ~6s per
     // first DB open on a host with slow reverse DNS (#15106 vitest timeouts). The driver
@@ -470,7 +470,9 @@ describe("driverFactory", () => {
     const report = process.report as NodeJS.ProcessReport & { excludeNetwork: boolean };
     const original = report.excludeNetwork;
     let seenDuringConstruct: boolean | undefined;
+    const requestedModules: string[] = [];
     const open = createSyncDriverFactory((moduleName: string) => {
+      requestedModules.push(moduleName);
       if (moduleName === "better-sqlite3") {
         return class {
           constructor() {
@@ -484,8 +486,14 @@ describe("driverFactory", () => {
 
     report.excludeNetwork = false;
     try {
-      open(":memory:");
-      assert.equal(seenDuringConstruct, true);
+      assert.equal(open(":memory:"), null);
+      if (isBun) {
+        assert.deepEqual(requestedModules, ["bun:sqlite"]);
+        assert.equal(seenDuringConstruct, undefined);
+      } else {
+        assert.deepEqual(requestedModules, ["better-sqlite3", "node:sqlite"]);
+        assert.equal(seenDuringConstruct, true);
+      }
       assert.equal(report.excludeNetwork, false, "the caller's excludeNetwork must be restored");
     } finally {
       report.excludeNetwork = original;
