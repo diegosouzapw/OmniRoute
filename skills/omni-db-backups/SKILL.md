@@ -19,7 +19,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 GET system › env › repair
 
 ```bash
-curl https://localhost:20128/api/system/env/repair \
+curl http://localhost:20128/api/system/env/repair \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -28,7 +28,7 @@ curl https://localhost:20128/api/system/env/repair \
 POST system › env › repair
 
 ```bash
-curl -X POST https://localhost:20128/api/system/env/repair \
+curl -X POST http://localhost:20128/api/system/env/repair \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -39,7 +39,7 @@ curl -X POST https://localhost:20128/api/system/env/repair \
 GET system › version
 
 ```bash
-curl https://localhost:20128/api/system/version \
+curl http://localhost:20128/api/system/version \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -48,7 +48,7 @@ curl https://localhost:20128/api/system/version \
 POST system › version
 
 ```bash
-curl -X POST https://localhost:20128/api/system/version \
+curl -X POST http://localhost:20128/api/system/version \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'

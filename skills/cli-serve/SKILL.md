@@ -67,6 +67,10 @@ omniroute serve
 
 ### `stop`
 
+**Flags:**
+
+- `--port <port>`
+
 **Example:**
 
 ```bash

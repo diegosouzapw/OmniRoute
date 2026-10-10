@@ -21,7 +21,7 @@ System health check
 Returns system health including uptime, memory, circuit breakers, rate limits
 
 ```bash
-curl https://localhost:20128/api/monitoring/health \
+curl http://localhost:20128/api/monitoring/health \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -32,7 +32,7 @@ Get compression result-memo statistics
 In-process compression result-memo observability snapshot — size, capacity, lifetime hits/misses/hitRate plus 1m/5m/15m/1h windowed rates. Lightweight (no DB, no provider reads) companion to `GET /api/monitoring/health` intended for frequent polling. Sent with `Cache-Control: no-store, no-cache, must-revalidate`. Counters reset on process restart.
 
 ```bash
-curl https://localhost:20128/api/monitoring/compression \
+curl http://localhost:20128/api/monitoring/compression \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -41,7 +41,7 @@ curl https://localhost:20128/api/monitoring/compression \
 GET provider metrics
 
 ```bash
-curl https://localhost:20128/api/provider-metrics \
+curl http://localhost:20128/api/provider-metrics \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
