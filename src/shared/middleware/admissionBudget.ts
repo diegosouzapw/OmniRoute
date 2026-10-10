@@ -114,3 +114,80 @@ export function resolveIngestByteBudget(
 export function reloadIngestBudgetForTests(): void {
   cachedBudget = null;
 }
+
+/** Fraction of the effective memory ceiling reserved for in-flight SSE hold RSS. */
+export const FLIGHT_HEAP_FRACTION = 0.5;
+export const MIN_FLIGHT_BUDGET_BYTES = 256 * 1024 * 1024;
+export const MAX_FLIGHT_BUDGET_BYTES = 4 * 1024 * 1024 * 1024;
+/** Multiplier from ingress body bytes to estimated SSE hold RSS. */
+export const DEFAULT_STREAM_HOLD_FACTOR = 4;
+/** maxFlightBytes / this = STREAM_FLOOR, so 100 small streams fill the ledger. */
+export const DEFAULT_STREAM_FLOOR_DIVISOR = 100;
+
+/**
+ * Pure flight-ledger budget. Same override / ceiling / source as ingest,
+ * but the raw figure is `ceiling * FLIGHT_HEAP_FRACTION` (no amplification).
+ */
+export function computeFlightByteBudget(input: {
+  heapSizeLimitBytes: number;
+  constrainedMemoryBytes?: number | null;
+  override?: string | number | null;
+}): IngestBudget {
+  const override = parsePositiveFinite(input.override);
+  if (override !== null) {
+    const bytes = Math.min(
+      MAX_FLIGHT_BUDGET_BYTES,
+      Math.max(MIN_FLIGHT_BUDGET_BYTES, Math.floor(override))
+    );
+    return { bytes, source: "override", effectiveCeilingBytes: bytes };
+  }
+
+  const heapLimit = parsePositiveFinite(input.heapSizeLimitBytes) ?? MIN_FLIGHT_BUDGET_BYTES;
+  const constrained = parsePositiveFinite(input.constrainedMemoryBytes ?? null);
+  const ceiling = constrained !== null ? Math.min(heapLimit, constrained) : heapLimit;
+  const source: IngestBudgetSource =
+    constrained !== null && constrained <= heapLimit ? "cgroup" : "v8_heap";
+
+  const raw = Math.floor(ceiling * FLIGHT_HEAP_FRACTION);
+  const bytes = Math.min(MAX_FLIGHT_BUDGET_BYTES, Math.max(MIN_FLIGHT_BUDGET_BYTES, raw));
+
+  return { bytes, source, effectiveCeilingBytes: Math.floor(ceiling) };
+}
+
+/**
+ * Charge for one request on the flight ledger.
+ * Non-stream is 0. Over STREAM_CEILING returns +Infinity (caller maps to 413).
+ * Do not clamp with min(STREAM_CEILING, f).
+ */
+export function estimateFlightBytes(
+  bodyBytes: number,
+  stream: boolean,
+  maxFlightBytes: number
+): number {
+  if (stream !== true) return 0;
+  const floor = Math.floor(maxFlightBytes / DEFAULT_STREAM_FLOOR_DIVISOR);
+  const ceiling = Math.floor(maxFlightBytes / DEFAULT_STREAM_HOLD_FACTOR);
+  const f = Math.max(0, Math.floor(bodyBytes)) * DEFAULT_STREAM_HOLD_FACTOR;
+  if (f > ceiling) return Number.POSITIVE_INFINITY;
+  return Math.max(floor, f);
+}
+
+let cachedFlightBudget: IngestBudget | null = null;
+
+/** Process-wide flight budget. Override: `OMNIROUTE_CHAT_MAX_FLIGHT_BYTES`. */
+export function resolveFlightByteBudget(
+  override: string | number | null | undefined = process.env.OMNIROUTE_CHAT_MAX_FLIGHT_BYTES
+): IngestBudget {
+  if (cachedFlightBudget) return cachedFlightBudget;
+  cachedFlightBudget = computeFlightByteBudget({
+    heapSizeLimitBytes: v8.getHeapStatistics().heap_size_limit,
+    constrainedMemoryBytes: readConstrainedMemoryBytes(),
+    override,
+  });
+  return cachedFlightBudget;
+}
+
+/** Test seam: force the next `resolveFlightByteBudget()` call to recompute. */
+export function reloadFlightBudgetForTests(): void {
+  cachedFlightBudget = null;
+}

@@ -20,7 +20,8 @@ export function buildExecutorClientHeaders(
     return (
       lowerKey === "x-omniroute-lease-owner" ||
       lowerKey === "x-omniroute-lease-generation" ||
-      lowerKey === "x-deadline-token"
+      lowerKey === "x-deadline-token" ||
+      lowerKey === "x-omniroute-recorded-body-bytes"
     );
   };
 

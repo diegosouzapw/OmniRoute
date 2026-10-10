@@ -225,6 +225,46 @@ describe("createChatAdmissionContext", () => {
     ctx.getAdmittedState()!.admitted.lease.release("success");
   });
 
+  it("keeps the same flight lease on repeated attachFlightLease", () => {
+    const ctx = createChatAdmissionContext(() => runtime);
+    let releases = 0;
+    const lease = {
+      get released() {
+        return releases > 0;
+      },
+      release() {
+        releases += 1;
+      },
+    };
+    ctx.attachFlightLease(lease);
+    ctx.attachFlightLease(lease);
+    assert.equal(releases, 0);
+    assert.equal(ctx.getFlightLease(), lease);
+  });
+
+  it("releases the previous flight lease when attaching a different one", () => {
+    const ctx = createChatAdmissionContext(() => runtime);
+    let firstReleases = 0;
+    const first = {
+      get released() {
+        return firstReleases > 0;
+      },
+      release() {
+        firstReleases += 1;
+      },
+    };
+    const second = {
+      get released() {
+        return false;
+      },
+      release() {},
+    };
+    ctx.attachFlightLease(first);
+    ctx.attachFlightLease(second);
+    assert.equal(firstReleases, 1);
+    assert.equal(ctx.getFlightLease(), second);
+  });
+
   it("returns standardized 503 rejection without holding a lease", async () => {
     const tiny = makeRuntime(
       clock,

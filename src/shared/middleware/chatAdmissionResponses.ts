@@ -48,6 +48,44 @@ export function chatAdmissionRejectionResponse(
   );
 }
 
+export function flightBytesBudgetRejectionResponse(retryAfterSeconds?: number): Response {
+  const headers: Record<string, string> = { ...JSON_HEADERS };
+  headers["Retry-After"] = retryAfterHeader(
+    BYTE_STAGE_RETRY_AFTER_FLOOR_SECONDS,
+    retryAfterSeconds
+  );
+  return new Response(
+    JSON.stringify(
+      buildErrorBody(
+        503,
+        "Chat admission capacity is temporarily unavailable. Retry shortly.",
+        undefined,
+        {
+          type: "server_error",
+          code: "chat_admission_busy",
+          reason: "flight_bytes_budget",
+        }
+      )
+    ),
+    { status: 503, headers }
+  );
+}
+
+/** STREAM_CEILING miss - not the ingest-budget 413. */
+export function flightCeilingExceededResponse(): Response {
+  return new Response(
+    JSON.stringify(
+      buildErrorBody(
+        413,
+        "Streaming request exceeds the in-flight SSE hold budget.",
+        undefined,
+        { type: "payload_too_large", code: "body_exceeds_budget", reason: "flight_ceiling" }
+      )
+    ),
+    { status: 413, headers: JSON_HEADERS }
+  );
+}
+
 export function bodyExceedsBudgetResponse(maxInflightBytes: number): Response {
   const maxMiB = Math.max(1, Math.floor(maxInflightBytes / (1024 * 1024)));
   return new Response(
