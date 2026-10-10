@@ -38,6 +38,21 @@ test("unmapped source file → run all (fail-safe)", () => {
   assert.deepEqual(sel, ["__RUN_ALL__"]);
 });
 
+// A test that pins a workflow or root config as a file read (not an import) has its
+// own map entry under the config path itself, outside src/open-sse (#16068). That
+// entry must be consulted before the src/open-sse-only `isSource` gate, or a change to
+// the config file is silently skipped instead of selecting the test that pins it.
+test("changed workflow file mapped by file-read reference → its pinning test", () => {
+  const map = {
+    sources: {
+      ...MAP.sources,
+      ".github/workflows/quality.yml": ["tests/unit/build/check-workflows.test.ts"],
+    },
+  };
+  const sel = selectImpacted({ changed: [".github/workflows/quality.yml"], map });
+  assert.deepEqual(sel, ["tests/unit/build/check-workflows.test.ts"]);
+});
+
 // The TIA step runs selected files via `node --test`, so it must only ever select
 // node:test unit files (the `test:unit` glob). vitest/.tsx/e2e/integration changes
 // must NOT be selected — running them under node:test was the 99-false-failure bug.

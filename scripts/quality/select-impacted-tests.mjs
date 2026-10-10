@@ -27,14 +27,22 @@ export function selectImpacted({ changed, map }) {
       out.add(f);
       continue;
     }
+    // A file the map indexes by file-read reference (a workflow or root config; #16068)
+    // has its own tests regardless of its path prefix, so it is checked before the
+    // src/open-sse gate below.
+    const mapped = map.sources[f];
+    if (mapped) {
+      mapped.forEach((t) => out.add(t));
+      continue;
+    }
     // Impact map only indexes imports under src/ + open-sse/. electron/ and bin/
     // are not unit-mapped; treating them as unmapped used to force __RUN_ALL__ and
     // a full unit suite for pure CLI/desktop PRs. Package/smoke jobs cover those.
     const isSource = f.startsWith("src/") || f.startsWith("open-sse/");
     if (!isSource) continue;
-    const hits = map.sources[f];
-    if (!hits) return ["__RUN_ALL__"];
-    hits.forEach((t) => out.add(t));
+    // A source file the map does not index at all is unmapped; run everything rather
+    // than silently skip it.
+    return ["__RUN_ALL__"];
   }
   return [...out].sort();
 }

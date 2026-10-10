@@ -164,6 +164,42 @@ export function analyzeForgottenSiblingTests({
       else findings.push(finding);
     }
   }
+  // A changed file the map indexes by file-read reference (a workflow or root config;
+  // #16068) has no production-file "consumer": the test reads it directly, so it is its
+  // own module and its own edge, independent of `isProduction` and `importEdges()`.
+  for (const configFile of Object.keys(impactMap.sources || {})) {
+    if (isProduction(configFile)) continue;
+    if (!changed.has(configFile)) continue;
+    const tests = [...new Set(impactMap.sources[configFile] || [])].sort();
+    for (const candidateTest of tests) {
+      const status = changed.get(candidateTest);
+      const masking = status === "D" || (status && maskingAdded);
+      if (masking) {
+        maskingRisks.push({
+          changedModule: configFile,
+          consumer: configFile,
+          candidateTest,
+          reason:
+            status === "D"
+              ? "candidate sibling test was deleted"
+              : "candidate sibling test adds skip/todo masking",
+        });
+        continue;
+      }
+      if (status) continue;
+      const finding = {
+        changedModule: configFile,
+        changedSymbols: [],
+        consumer: configFile,
+        candidateTest,
+        reason: "candidate sibling test is absent from the PR diff",
+      };
+      const exception = allow.get(`${configFile}\0${candidateTest}`);
+      if (exception) suppressed.push({ ...finding, exception });
+      else findings.push(finding);
+    }
+  }
+
   return { mode: "advisory", findings, diagnostics, suppressed, maskingRisks };
 }
 

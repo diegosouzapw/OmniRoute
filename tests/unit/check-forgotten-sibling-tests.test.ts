@@ -91,3 +91,90 @@ test("barrel and dynamic-import consumers remain advisory diagnostics", () => {
     ]
   );
 });
+
+test("a changed workflow file flags its pinning test as a forgotten sibling (#16068)", () => {
+  const root = fixture({
+    ".github/workflows/quality.yml": "name: quality\n",
+    "tests/unit/build/check-workflows.test.ts":
+      'const p = new URL("../../../.github/workflows/quality.yml", import.meta.url);\n',
+  });
+
+  const result = analyzeForgottenSiblingTests({
+    root,
+    changedEntries: [{ status: "M", file: ".github/workflows/quality.yml" }],
+    impactMap: {
+      sources: {
+        ".github/workflows/quality.yml": ["tests/unit/build/check-workflows.test.ts"],
+      },
+    },
+    allowlist: [],
+  });
+
+  assert.deepEqual(result.findings, [
+    {
+      changedModule: ".github/workflows/quality.yml",
+      changedSymbols: [],
+      consumer: ".github/workflows/quality.yml",
+      candidateTest: "tests/unit/build/check-workflows.test.ts",
+      reason: "candidate sibling test is absent from the PR diff",
+    },
+  ]);
+});
+
+test("touching the pinning test alongside the workflow file clears the finding", () => {
+  const root = fixture({
+    ".github/workflows/quality.yml": "name: quality\n",
+    "tests/unit/build/check-workflows.test.ts":
+      'const p = new URL("../../../.github/workflows/quality.yml", import.meta.url);\n',
+  });
+
+  const result = analyzeForgottenSiblingTests({
+    root,
+    changedEntries: [
+      { status: "M", file: ".github/workflows/quality.yml" },
+      { status: "M", file: "tests/unit/build/check-workflows.test.ts" },
+    ],
+    impactMap: {
+      sources: {
+        ".github/workflows/quality.yml": ["tests/unit/build/check-workflows.test.ts"],
+      },
+    },
+    allowlist: [],
+  });
+
+  assert.equal(result.findings.length, 0);
+});
+
+test("a config-mapped file that was not itself changed produces no finding", () => {
+  const root = fixture({
+    ".github/workflows/quality.yml": "name: quality\n",
+    "next.config.mjs": "export default {};\n",
+    "tests/unit/build/check-workflows.test.ts":
+      'const p = new URL("../../../.github/workflows/quality.yml", import.meta.url);\n',
+    "tests/unit/next-config.test.ts": 'const c = path.join(process.cwd(), "next.config.mjs");\n',
+  });
+
+  const result = analyzeForgottenSiblingTests({
+    root,
+    // Only next.config.mjs changed; quality.yml did not, even though it has its own
+    // map entry too — it must not be flagged.
+    changedEntries: [{ status: "M", file: "next.config.mjs" }],
+    impactMap: {
+      sources: {
+        ".github/workflows/quality.yml": ["tests/unit/build/check-workflows.test.ts"],
+        "next.config.mjs": ["tests/unit/next-config.test.ts"],
+      },
+    },
+    allowlist: [],
+  });
+
+  assert.deepEqual(result.findings, [
+    {
+      changedModule: "next.config.mjs",
+      changedSymbols: [],
+      consumer: "next.config.mjs",
+      candidateTest: "tests/unit/next-config.test.ts",
+      reason: "candidate sibling test is absent from the PR diff",
+    },
+  ]);
+});
