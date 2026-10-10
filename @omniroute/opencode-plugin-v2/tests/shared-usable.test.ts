@@ -2,7 +2,6 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   defaultOmniRouteProvidersFetcher,
-  isUsableCombo,
   isUsableRawModelId,
   usableProviderAliasSet,
 } from "../src/shared/usable.js";
@@ -189,60 +188,5 @@ describe("isUsableRawModelId subtract-filter", () => {
 
   it("keeps ids without a prefix", () => {
     assert.equal(isUsableRawModelId("bare-model", usable), true);
-  });
-});
-
-describe("isUsableCombo", () => {
-  const usable = usableProviderAliasSet(
-    [{ id: "c1", provider: "claude", isActive: true, testStatus: "active" }],
-    enrichmentOf(["cc", "claude"], ["dead", "legacy"])
-  );
-
-  it("keeps a combo with one usable member", () => {
-    assert.equal(
-      isUsableCombo(
-        {
-          id: "c",
-          models: [
-            { kind: "model", model: "dead/legacy" },
-            { kind: "model", model: "cc/x" },
-          ],
-        },
-        usable
-      ),
-      true
-    );
-  });
-
-  it("drops a combo whose members are all known-but-not-provisioned", () => {
-    assert.equal(
-      isUsableCombo(
-        {
-          id: "c",
-          models: [
-            { kind: "model", model: "dead/a" },
-            { kind: "model", model: "dead/b" },
-          ],
-        },
-        usable
-      ),
-      false
-    );
-  });
-
-  it("keeps a combo with an unknown-prefix member", () => {
-    assert.equal(
-      isUsableCombo({ id: "c", models: [{ kind: "model", model: "agentrouter/mystery" }] }, usable),
-      true
-    );
-  });
-
-  it("keeps combos with no resolvable members", () => {
-    assert.equal(isUsableCombo({ id: "c", models: [] }, usable), true);
-    assert.equal(isUsableCombo({ id: "c" }, usable), true);
-    assert.equal(
-      isUsableCombo({ id: "c", models: [{ kind: "combo-ref", comboName: "nested" }] }, usable),
-      true
-    );
   });
 });

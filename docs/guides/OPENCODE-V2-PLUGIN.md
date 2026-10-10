@@ -6,9 +6,9 @@ lastUpdated: 2026-09-06
 
 # OpenCode v2 plugin — install and configure
 
-`@omniroute/opencode-plugin-v2` puts your whole OmniRoute catalog — models, combos and
-auto-combos — into OpenCode v2's model picker, with display names, pricing and free-tier
-budgets.
+`@omniroute/opencode-plugin-v2` puts your whole OmniRoute catalog — models from
+`/v1/models` (combo rows included) — into OpenCode v2's model picker, with display
+names, pricing and free-tier budgets.
 
 It is a separate package from `@omniroute/opencode-plugin` because OpenCode v1 and v2 load
 plugins through different contracts. Pick the one matching your OpenCode major; nothing is
@@ -56,9 +56,10 @@ leaving you with a silent empty picker.
 
 ### The management token is a different key
 
-Combos, provider health and enrichment (display names, pricing, free-tier budgets) come from
+Provider health and enrichment (display names, pricing, free-tier budgets) come from
 the gateway's `/api/*` endpoints, which most deployments gate behind a **management** token
-rather than the inference key:
+rather than the inference key. Combo rows arrive inside `/v1/models` and need no
+management token:
 
 ```json
 "options": {
@@ -69,7 +70,7 @@ rather than the inference key:
 
 Left unset, `managementReadToken` falls back to `apiKey`. When a gateway rejects that fallback
 the catalog still publishes, but with raw model ids instead of display names, no canonical
-alias dedupe, no pricing and no combos. The plugin warns once per endpoint when that happens,
+alias dedupe and no pricing. The plugin warns once per endpoint when that happens,
 naming the endpoint and what was lost — so a degraded picker is never a mystery.
 
 ## Options
@@ -83,7 +84,7 @@ naming the endpoint and what was lost — so a degraded picker is never a myster
 | `displayName`                    | `"OmniRoute"`                                  | Provider name in the picker                                                                            |
 | `timeoutMs`                      | `10000`                                        | Per-endpoint fetch timeout (auto-combos use 5s)                                                        |
 | `modelCacheTtlMs`                | `300000`                                       | Catalog cache TTL; a disk snapshot warms cold starts                                                   |
-| `timeouts`                       | falls back to `timeoutMs`                      | Per-endpoint budgets in ms: `models`, `combos`, `autoCombos`, `enrichment`                             |
+| `timeouts`                       | falls back to `timeoutMs`                      | Per-endpoint budgets in ms: `models`, `autoCombos`, `enrichment`                                       |
 | `enrichment`                     | `true`                                         | Fetch names, pricing and free-tier budgets                                                             |
 | `providerTag`                    | `true`                                         | Prefix a display name with the upstream provider it routes to                                          |
 | `usableOnly`                     | `false`                                        | Keep only providers the gateway reports as provisioned                                                 |
@@ -104,7 +105,7 @@ Usage memory is on by default. Without a management token it stays inert
 
 The catalog is fetched lazily and cached for `modelCacheTtlMs`, and a disk snapshot keeps the
 last known catalog available when the gateway is unreachable — an outage costs you nothing but
-freshness. Models and combos are published as soon as they arrive; auto-combos, the provider
+freshness. Models (combo rows included) are published as soon as they arrive; the provider
 list and the enrichment overlay fold in when they land, so one slow endpoint cannot hold the
 whole picker hostage.
 
@@ -130,7 +131,7 @@ Set `"geminiSanitization": false` to turn it off.
 | Symptom                               | Cause                                                                                                    |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Picker shows no OmniRoute model       | No key resolved (check the startup warning), or the gateway is unreachable                               |
-| Raw model ids, no combos, no pricing  | The management endpoints refused the token — set `managementReadToken`                                   |
+| Raw model ids, no pricing             | The management endpoints refused the token — set `managementReadToken`                                   |
 | A session pinned to `opencode-<id>/…` | The v1 plugin published `opencode-<id>`; v2 publishes `<id>` bare, so re-select the model under `<id>/…` |
 
 ## See also

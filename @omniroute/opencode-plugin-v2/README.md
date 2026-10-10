@@ -1,6 +1,6 @@
 # @omniroute/opencode-plugin-v2
 
-OpenCode v2 plugin (`define({ id, setup })`, Promise API) that publishes the live OmniRoute catalog — models from `/v1/models`, combos from `/api/combos` (least-common-denominator join), enrichment (names + pricing), and usable-provider filtering — into the v2 `catalog.transform`, with `key` + `env` auth via `integration.transform`.
+OpenCode v2 plugin (`define({ id, setup })`, Promise API) that publishes the live OmniRoute catalog — models from `/v1/models` (combo rows included), enrichment (names + pricing), and usable-provider filtering — into the v2 `catalog.transform`, with `key` + `env` auth via `integration.transform`.
 
 Companion to `@omniroute/opencode-plugin` (OpenCode v1, same repo). The two packages are independent: this one carries its own catalog-mapping logic and the v1 plugin is left untouched.
 
@@ -72,9 +72,10 @@ once at startup rather than leaving you with a silent empty model list.
 
 ### The management token is a different key
 
-Combos, provider health and enrichment (display names, pricing, free-tier
+Provider health and enrichment (display names, pricing, free-tier
 budgets) come from the gateway's `/api/*` endpoints, which most deployments
-gate behind a **management** token rather than the inference key. Set it
+gate behind a **management** token rather than the inference key. Combo rows
+arrive inside `/v1/models` and need no management token. Set it
 explicitly:
 
 ```json
@@ -93,7 +94,7 @@ Left unset, `managementReadToken` falls back to `apiKey` for backwards
 compatibility, and the plugin warns once at startup that the fallback is
 active. When a gateway rejects that fallback, the catalog still
 publishes — but with raw model ids instead of display names, no canonical
-alias dedupe, no pricing and no combos. The plugin warns once per endpoint
+alias dedupe, no pricing. The plugin warns once per endpoint
 when this happens, naming the endpoint and the consequence, so the degraded
 catalog is never a mystery.
 
@@ -104,16 +105,16 @@ catalog is never a mystery.
 | `providerId`                            | `"omniroute"`                                              | Provider id and integration id; models publish under `<providerId>/…`                                                                                                                                                                               |
 | `baseURL`                               | required                                                   | OmniRoute gateway root (no `/v1` suffix needed)                                                                                                                                                                                                     |
 | `apiKey`                                | connected credential, then `OMNIROUTE_API_KEY`             | Chat key for `/v1/*` — see [Credentials](#credentials)                                                                                                                                                                                              |
-| `managementReadToken`                   | option, then `OMNIROUTE_MANAGEMENT_API_KEY`, then `apiKey` | Management key for `/api/*` (combos, providers, enrichment) — usually **not** the same key                                                                                                                                                          |
+| `managementReadToken`                   | option, then `OMNIROUTE_MANAGEMENT_API_KEY`, then `apiKey` | Management key for `/api/*` (providers, enrichment) — usually **not** the same key                                                                                                                                                                  |
 | `displayName`                           | `"OmniRoute"`                                              | Provider display name                                                                                                                                                                                                                               |
 | `timeoutMs`                             | `10000`                                                    | Per-endpoint fetch timeout                                                                                                                                                                                                                          |
 | `modelCacheTtlMs`                       | `300000`                                                   | Catalog cache TTL; disk snapshot warms cold starts                                                                                                                                                                                                  |
-| `timeouts`                              | per-endpoint override                                      | `{ models, combos, enrichment }` in ms; falls back to `timeoutMs` (`autoCombos` still parses but is ignored — the virtual-entries route is no longer requested)                                                                                     |
+| `timeouts`                              | per-endpoint override                                      | `{ models, enrichment }` in ms; falls back to `timeoutMs` (`autoCombos` still parses but is ignored — the virtual-entries route is no longer requested)                                                                                             |
 | `enrichment`                            | `true`                                                     | Fetch names + pricing (`/api/pricing*`, `/api/free-tier/summary`)                                                                                                                                                                                   |
 | `providerTag`                           | `true`                                                     | Prefix a display name with the upstream provider it routes to                                                                                                                                                                                       |
 | `geminiSanitization`                    | `true`                                                     | Strip `$schema`/`additionalProperties` from tool schemas sent to Gemini models (`$ref` tools are forwarded untouched)                                                                                                                               |
 | `usableOnly`                            | `false`                                                    | Filter to healthy provisioned providers (`/api/providers`)                                                                                                                                                                                          |
-| `freeOnly` / `toolsOnly` / `visionOnly` | `false` / `false` / `false`                                | Filter to free-tier / tool-calling / image-input models; combos with a filtered member are dropped, never partial                                                                                                                                   |
+| `freeOnly` / `toolsOnly` / `visionOnly` | `false` / `false` / `false`                                | Filter to free-tier / tool-calling / image-input models                                                                                                                                                                                             |
 | `showcasePerOwner`                      | `10`                                                       | Default-view entries kept per provider                                                                                                                                                                                                              |
 | `freshPerOwner`                         | `10`                                                       | Default-view fresh entries kept per provider                                                                                                                                                                                                        |
 | `freshWindowDays`                       | `90`                                                       | Freshness window in days for the fresh branch                                                                                                                                                                                                       |

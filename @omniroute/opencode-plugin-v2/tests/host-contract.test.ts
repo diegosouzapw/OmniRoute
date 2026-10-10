@@ -19,7 +19,6 @@ const rawModel = {
 async function publish() {
   const collected = await collectCatalog(baseOpts, {
     fetcher: async () => [rawModel],
-    combosFetcher: async () => [],
   });
   const payload = buildProviderPayload(collected, baseOpts);
   assert.equal(collected.counts.models, 1);

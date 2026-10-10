@@ -63,17 +63,17 @@ function apiPackageOf(m: Record<string, any> | undefined): string {
   return m.api.package;
 }
 
-describe("catalog api package (models + combos)", () => {
+describe("catalog api package (models)", () => {
   it("every published entry carries a non-empty supported api.package", async () => {
     const { models, draft } = fakeDraft();
     const res = await publishCatalog(draft, baseOpts, {
-      fetcher: async () => [{ id: "gpt-x", context_length: 128000, max_output_tokens: 4096 }],
-      combosFetcher: async () => [
-        { id: "combo-a", name: "Combo A", models: [{ kind: "model", model: "gpt-x" }] },
+      fetcher: async () => [
+        { id: "gpt-x", context_length: 128000, max_output_tokens: 4096 },
+        { id: "team-combo", owned_by: "combo", context_length: 64000, max_output_tokens: 2000 },
       ],
     });
-    assert.deepEqual(res, { models: 1, combos: 1 });
-    for (const key of ["omniroute/gpt-x", "omniroute/Combo A"]) {
+    assert.deepEqual(res, { models: 2 });
+    for (const key of ["omniroute/gpt-x", "omniroute/team-combo"]) {
       const pkg = apiPackageOf(models.get(key));
       assert.ok(pkg.length > 0, `${key} api.package must be non-empty`);
       assert.ok(SUPPORTED_PACKAGES.has(pkg), `${key} api.package must be supported, got ${pkg}`);
@@ -90,10 +90,9 @@ describe("catalog api package (models + combos)", () => {
       },
       {
         fetcher: async () => [{ id: "anthropic/claude-x" }, { id: "auto/coding" }],
-        combosFetcher: async () => [],
       }
     );
-    assert.deepEqual(res, { models: 2, combos: 0 });
+    assert.deepEqual(res, { models: 2 });
     assert.equal(apiPackageOf(models.get("omniroute/anthropic/claude-x")), "@ai-sdk/anthropic");
     assert.ok(models.has("omniroute/auto/coding"), "gateway entries publish under their own id");
   });
