@@ -50,15 +50,29 @@ test("fast-gates carries the deterministic ratchets and security scanners from t
   const block = jobBlock("fast-gates");
   // #8542: all gates run inside a single aggregation step's bash loop.
   // Check that the gate names appear in the arrays or the loop body.
+  // #15306: `cycles` moved to ratchet_gates — check-cycles.mjs exits 1 on ANY cycle
+  // without --ratchet (#15281), so fast-gates must run it with the frozen ceiling in
+  // quality-baseline.json, same as ci.yml's check:cycles:ratchet.
   for (const needle of [
-    "cycles lockfile duplication dead-code type-coverage compression-budget",
-    "secrets vuln-ratchet workflows openapi-breaking",
+    "lockfile duplication dead-code type-coverage compression-budget",
+    "secrets vuln-ratchet workflows openapi-breaking cycles",
     "typecheck:core",
     "check:dashboard-typecheck",
     "check:ts7-diagnostics-ratchet",
   ]) {
     assert.ok(block.includes(needle), `fast-gates must contain "${needle}"`);
   }
+  // The ratchet_gates move must be exclusive: a plain `cycles` entry would run
+  // check-cycles.mjs without --ratchet, which exits 1 on ANY cycle and fails
+  // every PR at the frozen 14-SCC ceiling (#15306). Pin the whole gates=(...)
+  // array, not just its current line, so a re-entry on any line trips the guard.
+  const plainGates = /\n(\s+)gates=\(([\s\S]*?)\n\1\)/.exec(block);
+  assert.ok(plainGates, "fast-gates must still carry the deterministic plain gates array");
+  assert.doesNotMatch(
+    plainGates[2],
+    /(^|\s)cycles(\s|$)/,
+    "cycles must not re-enter the plain gates array — it would run without --ratchet"
+  );
   assert.ok(
     block.includes(
       "BASE_REF: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}"

@@ -58,9 +58,9 @@ curl https://localhost:20128/api/auth/oidc/login \
 Complete OIDC login for the dashboard admin gate
 
 Validates the `state` cookie, exchanges the authorization `code` for tokens,
-verifies the ID token against the issuer's JWKS (audience = client id), and —
-if `oidcAllowedSubjects` is configured — checks the token's `sub`/`email` against
-that allowlist. On success it mints the same 30-day `auth_token` dashboard-session
+verifies the ID token against the issuer's JWKS (audience = client id), and
+checks the token's `sub`/`email` against `oidcAllowedSubjects`, which must hold at
+least one entry (an empty list ends in `not_configured`). On success it mints the same 30-day `auth_token` dashboard-session
 JWT used by password login and redirects to `/dashboard`.
 
 
