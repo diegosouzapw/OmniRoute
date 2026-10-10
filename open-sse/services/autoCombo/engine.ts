@@ -241,7 +241,13 @@ export function selectProvider(
                 .map((b) => b.text || "")
                 .join(" ")
             : "";
-      if (text.length > 10) {
+      // Short prompts (≤10 chars, e.g. "olá", "hi") are inherently simple —
+      // classify them as "simple" directly so short greetings don't fall into
+      // "default" which scores all model tiers equally.  Longer prompts go
+      // through the full keyword classifier. (#13386)
+      if (text.length <= 10) {
+        effectiveTaskType = "simple";
+      } else {
         const intent = classifyPromptIntent(text);
         // Bridge intentClassifier's vocabulary ('code'|'math'|'reasoning'|'creative'|
         // 'simple'|'medium') to taskFitness.ts's vocabulary ('coding'|'review'|'planning'|

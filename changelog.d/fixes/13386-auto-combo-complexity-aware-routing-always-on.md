@@ -1,0 +1,1 @@
+- fix(routing): make complexity-aware `auto` combo routing always-on — the `complexityAwareRouting` opt-in flag was orphaned by migration 103 (stripped as a legacy key on every save), so the feature was permanently unreachable and a short prompt (e.g. "olá") could tie-score into an expensive model instead of a cheap one (#13386, #13387)

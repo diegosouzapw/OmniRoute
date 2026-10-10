@@ -11,8 +11,7 @@
  * trivial, because function-calling reliability matters more than raw cost.
  *
  * The classification maps to a `recommendedTier` that feeds the auto-router's
- * tier-affinity / specificity-match scoring factors (see scoreAutoTargets,
- * gated by config.complexityAwareRouting).
+ * tier-affinity / specificity-match scoring factors (see scoreAutoTargets).
  */
 import {
   analyzeSpecificity,

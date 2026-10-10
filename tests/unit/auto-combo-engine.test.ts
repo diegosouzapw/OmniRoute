@@ -4,9 +4,18 @@ import assert from "node:assert/strict";
 import { selectProvider } from "../../open-sse/services/autoCombo/engine.ts";
 import { getSelfHealingManager } from "../../open-sse/services/autoCombo/selfHealing.ts";
 import { DEFAULT_WEIGHTS } from "../../open-sse/services/autoCombo/scoring.ts";
+import { resetDbInstance } from "../../src/lib/db/core.ts";
+import {
+  setUserFitnessOverrideEntry,
+  deleteUserFitnessOverrideEntry,
+} from "../../src/lib/db/modelIntelligence.ts";
 
 const healer = getSelfHealingManager();
 const originalRandom = Math.random;
+
+test.after(() => {
+  resetDbInstance();
+});
 
 function resetHealer() {
   healer.exclusions.clear();
@@ -179,4 +188,63 @@ test("selectProvider degrades to the cheapest candidate when the selected option
   );
 
   assert.equal(result.provider, "cheap");
+});
+
+// Regression for #13386: a short prompt ("olá", ≤10 chars) used to leave
+// `effectiveTaskType` at whatever generic value was passed in ("default"),
+// because the classifier was only invoked for `text.length > 10`. It must
+// instead resolve as the "simple" task-fitness category. Two per-category
+// user_override fitness rows (distinct scores for "default" vs "simple") make
+// the two categories diverge in outcome, so this fails on the pre-fix code
+// (which reads "default") and passes on the fix (which reads "simple").
+test("selectProvider classifies a short prompt (≤10 chars) as 'simple', not 'default' (#13386)", () => {
+  // The taskFit delta from the seeded scores alone does not clear
+  // ScoreTierRotator's CLEAR_WINNER_THRESHOLD, so the two candidates land in
+  // different tiers (top/mid) and the pick is weighted-random by default —
+  // pin Math.random so the top tier (the higher-taskFit candidate) always
+  // wins, same pattern as the "incident mode" test above.
+  Math.random = () => 0;
+  setUserFitnessOverrideEntry("model-default-fit-13386", "default", 0.95);
+  setUserFitnessOverrideEntry("model-default-fit-13386", "simple", 0.1);
+  setUserFitnessOverrideEntry("model-simple-fit-13386", "default", 0.1);
+  setUserFitnessOverrideEntry("model-simple-fit-13386", "simple", 0.95);
+
+  try {
+    const candidates = [
+      {
+        provider: "provider-a",
+        model: "model-default-fit-13386",
+        quotaRemaining: 90,
+        quotaTotal: 100,
+        circuitBreakerState: "CLOSED",
+        costPer1MTokens: 5,
+        p95LatencyMs: 200,
+        latencyStdDev: 10,
+        errorRate: 0.01,
+      },
+      {
+        provider: "provider-b",
+        model: "model-simple-fit-13386",
+        quotaRemaining: 90,
+        quotaTotal: 100,
+        circuitBreakerState: "CLOSED",
+        costPer1MTokens: 5,
+        p95LatencyMs: 200,
+        latencyStdDev: 10,
+        errorRate: 0.01,
+      },
+    ];
+
+    const result = selectProvider(baseConfig, candidates, "default", [
+      { role: "user", content: "olá" },
+    ]);
+
+    assert.equal(result.provider, "provider-b");
+    assert.equal(result.model, "model-simple-fit-13386");
+  } finally {
+    deleteUserFitnessOverrideEntry("model-default-fit-13386", "default");
+    deleteUserFitnessOverrideEntry("model-default-fit-13386", "simple");
+    deleteUserFitnessOverrideEntry("model-simple-fit-13386", "default");
+    deleteUserFitnessOverrideEntry("model-simple-fit-13386", "simple");
+  }
 });

@@ -123,10 +123,9 @@ const DEFAULT_COMBO_CONFIG = {
   trackMetrics: true,
   reasoningTokenBufferEnabled: true,
   manifestRouting: false,
-  // Complexity-aware auto routing (2026): when on, the auto router scores
-  // candidates by how well their tier matches the request's classified
-  // difficulty (feeds tierAffinity/specificityMatch). Opt-in — off by default.
-  complexityAwareRouting: false,
+  // Complexity-aware auto routing is always-on since #13386 — the
+  // config.complexityAwareRouting flag was removed (it was orphaned by
+  // migration 103 which stripped it as a legacy key).
   resetAwareSessionWeight: 0.35,
   resetAwareWeeklyWeight: 0.65,
   resetAwareTieBandPercent: 5,
