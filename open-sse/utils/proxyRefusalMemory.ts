@@ -15,6 +15,7 @@ import type {
   RefusalState,
   SharedRefusalStore,
   SlowOverrun,
+  SlowServe,
   TransportFailure,
   TransportSuccess,
 } from "./proxyTransitionListeners.ts";
@@ -682,13 +683,18 @@ export const SLOW_OVERRUN_THRESHOLD = 3;
 const MAX_SLOW_OVERRUNS = 1000;
 
 const slowOverruns: SlowOverrun[] = store.slowOverruns;
+const slowServes: SlowServe[] = store.slowServes;
 
 // Lazy purge mirrors readState: entries older than the evidence window plus
-// twice the slow cap can no longer contribute, so drop them on record.
+// twice the slow cap can no longer contribute, so drop them on record. Slow
+// serves share the same window, so one purge covers both stores.
 function purgeSlowOverruns(nowMs: number): void {
   const cutoff = nowMs - SLOW_OVERRUN_WINDOW_MS - 2 * REFUSAL_POLICIES.slow.maxMs;
   while (slowOverruns.length > 0 && slowOverruns[0].at < cutoff) {
     slowOverruns.shift();
+  }
+  while (slowServes.length > 0 && slowServes[0].at < cutoff) {
+    slowServes.shift();
   }
 }
 
@@ -702,13 +708,30 @@ export function recordSlowOverrun(key: string | null, nowMs: number = Date.now()
 
 /**
  * True when this egress waited out the headers window at least
- * SLOW_OVERRUN_THRESHOLD times inside SLOW_OVERRUN_WINDOW_MS. Overruns for
- * other keys never count.
+ * SLOW_OVERRUN_THRESHOLD times inside SLOW_OVERRUN_WINDOW_MS, with
+ * cross-egress proof: another egress served the same destination inside the
+ * window. Without any other egress active in the window the repetition alone
+ * decides (a lone upstream queue still condemns a lone member). A null
+ * destination keeps the repetition rule (callers without a destination).
  */
-export function hasSlowOverrunEvidence(key: string | null, nowMs: number = Date.now()): boolean {
+export function hasSlowOverrunEvidence(
+  key: string | null,
+  destinationOrNowMs: string | null | number = Date.now(),
+  nowMs: number = Date.now()
+): boolean {
+  const destination = typeof destinationOrNowMs === "number" ? null : (destinationOrNowMs ?? null);
+  const at = typeof destinationOrNowMs === "number" ? destinationOrNowMs : nowMs;
   if (key === null || key === "") return false;
-  purgeSlowOverruns(nowMs);
-  const from = nowMs - SLOW_OVERRUN_WINDOW_MS;
+  if (!hasSlowOverrunRepetition(key, at)) return false;
+  if (destination === null || destination === "") return true;
+  if (hasSlowServeCrossEvidence(key, destination, at)) return true;
+  return !hasOtherSlowEgressActivity(key, at);
+}
+
+// Three settled waits through the same key inside the window: repetition alone.
+function hasSlowOverrunRepetition(key: string, at: number): boolean {
+  purgeSlowOverruns(at);
+  const from = at - SLOW_OVERRUN_WINDOW_MS;
   let overruns = 0;
   for (const o of slowOverruns) {
     if (o.key === key && o.at >= from) {
@@ -719,14 +742,66 @@ export function hasSlowOverrunEvidence(key: string | null, nowMs: number = Date.
   return false;
 }
 
-/** Test-only: forget slow overruns (refusal memory is separate). */
+// Any overrun or serve by another live egress inside the window. The direct
+// sentinel never counts: it can never be accused, so it can never witness.
+function hasOtherSlowEgressActivity(key: string, at: number): boolean {
+  const from = at - SLOW_OVERRUN_WINDOW_MS;
+  for (const o of slowOverruns) {
+    if (o.key !== key && o.key !== "direct" && o.at >= from) return true;
+  }
+  for (const s of slowServes) {
+    if (s.key !== key && s.key !== "direct" && s.at >= from) return true;
+  }
+  return false;
+}
+
+/**
+ * True when another egress served the same destination inside the slow
+ * window: a headers wait answered in time there, so the destination answers
+ * and the accused member — not the destination — is at fault. The egress
+ * itself is never its own witness.
+ */
+export function hasSlowServeCrossEvidence(
+  key: string | null,
+  destination: string | null,
+  nowMs: number = Date.now()
+): boolean {
+  if (key === null || destination === null || destination === "") return false;
+  purgeSlowOverruns(nowMs);
+  const from = nowMs - SLOW_OVERRUN_WINDOW_MS;
+  return slowServes.some((s) => s.destination === destination && s.key !== key && s.at >= from);
+}
+
+/**
+ * Record one headers wait answered in time through this egress. The writers
+ * (never this store) keep the sentinel out: `direct` is never recorded, so
+ * readers need no sentinel filter. Never throws, never writes refusal memory.
+ */
+export function recordSlowServe(
+  key: string | null,
+  destination: string | null,
+  nowMs: number = Date.now()
+): void {
+  if (key === null || key === "" || destination === null || destination === "") return;
+  purgeSlowOverruns(nowMs);
+  slowServes.push({ key, destination, at: nowMs });
+  while (slowServes.length > MAX_SLOW_OVERRUNS) slowServes.shift();
+}
+
+/** Test-only: forget slow overruns and slow serves (refusal memory is separate). */
 export function __resetSlowOverrunsForTesting(): void {
   slowOverruns.length = 0;
+  slowServes.length = 0;
 }
 
 /** Test-only: current slow-overrun store size. */
 export function __slowOverrunSizeForTesting(): number {
   return slowOverruns.length;
+}
+
+/** Test-only: current slow-serve store size. */
+export function __slowServeSizeForTesting(): number {
+  return slowServes.length;
 }
 
 /** Test-only: number of (key, kind) entries held. */

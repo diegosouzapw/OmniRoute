@@ -24,6 +24,8 @@ import {
   noteProxyRefusal,
   proxyEgressKey,
   recordSlowOverrun,
+  recordSlowServe,
+  transportDestinationKey,
   type ProxyRefusalKind,
 } from "../utils/proxyRefusalMemory.ts";
 import { stripIpv6Brackets } from "../utils/proxyFamily.ts";
@@ -209,6 +211,7 @@ export type AppliedProxyResolver = (targetUrl: string) => unknown;
 export interface AppliedEgressTracker {
   readAppliedKey: AppliedEgressReader;
   keyOfMember: (account: AppliedEgressAccount) => string | null;
+  destinationOfRequest: () => string | null;
   resetAttempt: () => void;
   rememberServed: (account: AppliedEgressAccount) => void;
   noteRefused: (
@@ -216,6 +219,7 @@ export interface AppliedEgressTracker {
     skipRecentlyFailed: boolean,
     kind?: ProxyRefusalKind
   ) => number | null;
+  noteServed: <T>(account: AppliedEgressAccount, result: T, waitMs: number, enabled: boolean) => T;
 }
 
 /**
@@ -255,9 +259,29 @@ export function createAppliedEgressTracker(
     skipRecentlyFailed: boolean,
     kind: ProxyRefusalKind = "ip_quota_429"
   ) => noteRefusedMember(a.proxy, skipRecentlyFailed, readAppliedKey, a.fingerprint, kind);
+  const destinationOfRequest = (): string | null => transportDestinationKey(dispatchUrl);
+  const noteServed = <T>(
+    a: AppliedEgressAccount,
+    result: T,
+    waitMs: number,
+    enabled: boolean
+  ): T => {
+    try {
+      if (!enabled || !(waitMs > 0)) return result;
+      const key = resolveAppliedEgressKey(a, readAppliedKey);
+      if (key === DIRECT_EGRESS_SENTINEL) return result;
+      const destination = destinationOfRequest();
+      if (destination === null) return result;
+      recordSlowServe(key, destination);
+    } catch {
+      /* evidence is best-effort; never break the request path */
+    }
+    return result;
+  };
   return {
     readAppliedKey,
     keyOfMember: (a) => (a.proxy !== null ? proxyEgressKey(a.proxy) : readAppliedKey(a)),
+    destinationOfRequest,
     resetAttempt: () => {
       attemptAmbientKey = undefined;
     },
@@ -268,6 +292,7 @@ export function createAppliedEgressTracker(
       }
     },
     noteRefused,
+    noteServed,
   };
 }
 
@@ -576,20 +601,22 @@ export function noteSlowOverrun(
   account: AppliedEgressAccount,
   skipRecentlyFailed: boolean,
   readApplied?: AppliedEgressReader | null,
-  nowMs: number = Date.now()
+  nowMs: number = Date.now(),
+  opts?: { destination?: string | null }
 ): number | null {
+  const destination = opts?.destination ?? null;
   if (!skipRecentlyFailed) return null;
   if (account.proxy !== null) {
     const key = proxyEgressKey(account.proxy);
     if (key === null) return null;
     recordSlowOverrun(key, nowMs);
-    if (!hasSlowOverrunEvidence(key, nowMs)) return null;
+    if (!hasSlowOverrunEvidence(key, destination, nowMs)) return null;
     return noteProxyRefusal(key, "slow", nowMs);
   }
   const key = resolveAppliedEgressKey(account, readApplied);
   if (key === DIRECT_EGRESS_SENTINEL) return null;
   recordSlowOverrun(key, nowMs);
-  if (!hasSlowOverrunEvidence(key, nowMs)) return null;
+  if (!hasSlowOverrunEvidence(key, destination, nowMs)) return null;
   return noteProxyRefusal(key, "slow", nowMs);
 }
 
@@ -726,7 +753,7 @@ export interface StallLoopWiring {
   stalled: { attempts: number };
   cooldown: (account: { proxy: { host: string; port: number } | null }) => void;
   markDirect: () => void;
-  slow?: { account: AppliedEgressAccount; enabled: boolean; read: AppliedEgressReader | null };
+  slow?: { account: AppliedEgressAccount; enabled: boolean; egress: AppliedEgressTracker };
 }
 
 /**
@@ -748,7 +775,10 @@ export function settleStalledDispatch(
   const first = loop.stalled.attempts === 0;
   loop.stalled.attempts++;
   const slow = loop.slow;
-  if (slow) noteSlowOverrun(slow.account, slow.enabled, slow.read ?? null);
+  if (slow)
+    noteSlowOverrun(slow.account, slow.enabled, slow.egress.readAppliedKey, Date.now(), {
+      destination: slow.egress.destinationOfRequest(),
+    });
   return first;
 }
 
