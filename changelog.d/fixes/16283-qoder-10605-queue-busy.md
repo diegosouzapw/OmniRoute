@@ -1,0 +1,1 @@
+- **fix(sse):** Qoder's 10605 queue-throttle envelope now returns 503 `upstream_busy` with `Retry-After` instead of 403 `authentication_error`, so healthy accounts are not parked on the auth cooldown ([#16283](https://github.com/diegosouzapw/OmniRoute/pull/16283)) — thanks @chenli971014-sketch
