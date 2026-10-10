@@ -26,6 +26,8 @@ process.env.API_KEY_SECRET = process.env.API_KEY_SECRET ?? "skipped-variants-tes
 
 const core = await import("../../src/lib/db/core.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
+const providersDb = await import("../../src/lib/db/providers.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 const modePacks = await import("../../open-sse/services/autoCombo/modePacks.ts");
 const combosAutoRoute = await import("../../src/app/api/combos/auto/route.ts");
 
@@ -76,6 +78,18 @@ async function callRoute(): Promise<{ status: number; combos: Array<{ id: string
   const res = await combosAutoRoute.GET(new Request("http://localhost/api/combos/auto"));
   return { status: res.status, combos: (await res.json()).combos };
 }
+
+test.before(async () => {
+  assert.equal((await settingsDb.getSettings()).excludeTosAvoid, true);
+  await providersDb.createProviderConnection({
+    provider: "groq",
+    authType: "apikey",
+    apiKey: "synthetic-groq-key",
+    name: "Synthetic variants account",
+  });
+  await modelsDb.addCustomModel("groq", "openai/gpt-oss-120b", "Groq GPT OSS 120B");
+  await modelsDb.addCustomModel("groq", "openai/gpt-oss-20b", "Groq GPT OSS 20B");
+});
 
 test.after(() => {
   restorePacks();

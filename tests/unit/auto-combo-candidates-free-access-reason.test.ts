@@ -25,6 +25,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 const candidateHandler = await import("../../open-sse/handlers/autoComboCandidates.ts");
@@ -36,12 +37,13 @@ async function resetStorage() {
 }
 
 async function seedConnection() {
+  assert.equal((await settingsDb.getSettings()).excludeTosAvoid, true);
+  await modelsDb.addCustomModel("openai", "gpt-4o-mini", "Synthetic strict-policy model");
   return providersDb.createProviderConnection({
-    provider: "antigravity",
-    authType: "oauth",
-    email: "antigravity-strict@example.com",
-    accessToken: "fake-antigravity-access-token",
-    tokenExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "synthetic-openai-key",
+    name: "Synthetic strict-policy account",
   });
 }
 
@@ -79,6 +81,7 @@ test("the dispatch pool still drops what the guard excludes", async () => {
     return prepared.regularCandidates;
   })();
 
+  assert.ok(strictOff.length > 0, "the control pool must contain an eligible candidate");
   assert.ok(
     survivors.length <= strictOff.length,
     "the guard must never add candidates to the dispatch pool"

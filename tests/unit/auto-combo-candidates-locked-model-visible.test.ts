@@ -25,6 +25,8 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const providersDb = await import("../../src/lib/db/providers.ts");
+const modelsDb = await import("../../src/lib/db/models.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const candidateHandler = await import("../../open-sse/handlers/autoComboCandidates.ts");
 const accountFallback = await import("../../open-sse/services/accountFallback.ts");
 
@@ -35,20 +37,19 @@ async function resetStorage() {
 }
 
 async function seedConnections() {
-  const tokenExpiresAt = new Date(Date.now() + 60_000).toISOString();
+  assert.equal((await settingsDb.getSettings()).excludeTosAvoid, true);
+  await modelsDb.addCustomModel("openai", "gpt-4o-mini", "Synthetic lockout model");
   const first = await providersDb.createProviderConnection({
-    provider: "antigravity",
-    authType: "oauth",
-    email: "antigravity-locked@example.com",
-    accessToken: "fake-antigravity-access-token-one",
-    tokenExpiresAt,
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "synthetic-openai-key-one",
+    name: "Synthetic locked account",
   });
   const second = await providersDb.createProviderConnection({
-    provider: "antigravity",
-    authType: "oauth",
-    email: "antigravity-clean@example.com",
-    accessToken: "fake-antigravity-access-token-two",
-    tokenExpiresAt,
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "synthetic-openai-key-two",
+    name: "Synthetic unlocked account",
   });
   return { first, second };
 }
@@ -75,35 +76,28 @@ test("a model-locked account row stays in the listing with reachable:false + mod
 
   // Lock a single model on a single account — the bare model id, matching
   // every real lock writer (accountFallback.ts, resilienceCandidateFilter.ts).
-  accountFallback.lockModel(
-    "antigravity",
-    first.id,
-    "claude-sonnet-4-6",
-    "rate_limit",
-    60_000
-  );
+  accountFallback.lockModel("openai", first.id, "gpt-4o-mini", "rate_limit", 60_000);
 
   const result = await candidateHandler.getAutoComboCandidates("auto", null);
-  const sonnetRows = result.candidates.filter(
-    (candidate) =>
-      candidate.provider === "antigravity" && candidate.model === "antigravity/claude-sonnet-4-6"
+  const modelRows = result.candidates.filter(
+    (candidate) => candidate.provider === "openai" && candidate.model === "openai/gpt-4o-mini"
   );
 
   // Baseline: both accounts must still be represented — the endpoint's
   // stated role is read-only transparency, so a lock must never make a row
   // disappear.
   assert.deepEqual(
-    new Set(sonnetRows.map((candidate) => candidate.connectionId)),
+    new Set(modelRows.map((candidate) => candidate.connectionId)),
     new Set([first.id, second.id]),
     "the locked account's row must remain listed, not be silently dropped"
   );
 
-  const lockedRow = sonnetRows.find((candidate) => candidate.connectionId === first.id);
+  const lockedRow = modelRows.find((candidate) => candidate.connectionId === first.id);
   assert.ok(lockedRow, "locked account row must be present");
   assert.equal(lockedRow?.modelLocked, true, "locked row must report modelLocked:true");
   assert.equal(lockedRow?.reachable, false, "locked row must report reachable:false");
 
-  const cleanRow = sonnetRows.find((candidate) => candidate.connectionId === second.id);
+  const cleanRow = modelRows.find((candidate) => candidate.connectionId === second.id);
   assert.ok(cleanRow, "unlocked account row must be present");
   assert.equal(cleanRow?.modelLocked, false, "unlocked row must not report modelLocked");
   assert.equal(cleanRow?.reachable, true, "unlocked row must remain reachable");
