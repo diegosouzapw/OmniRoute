@@ -21,7 +21,6 @@ import type { Config } from "@opencode-ai/plugin";
 import {
   createOmniRouteConfigHook,
   _resetInflightRefresh,
-  type OmniRouteAutoCombosFetcher,
   type OmniRouteCombosFetcher,
   type OmniRouteCompressionMetaFetcher,
   type OmniRouteEnrichmentFetcher,
@@ -104,7 +103,6 @@ test("issue #13000: warm combo limit (245000) survives a degraded post-restart r
         computed_context_length: 245_000,
       },
     ],
-    rawAutoCombos: [],
     rawEnrichment: new Map(),
     rawCompressionCombos: [],
     rawConnections: [],
@@ -119,7 +117,6 @@ test("issue #13000: warm combo limit (245000) survives a degraded post-restart r
       // computed_context_length intentionally omitted.
     },
   ];
-  const autoCombosFetcher: OmniRouteAutoCombosFetcher = async () => [];
   const enrichmentFetcher: OmniRouteEnrichmentFetcher = async () => new Map();
   const compressionMetaFetcher: OmniRouteCompressionMetaFetcher = async () => [];
   const providersFetcher: OmniRouteProvidersFetcher = async () => [];
@@ -135,7 +132,6 @@ test("issue #13000: warm combo limit (245000) survives a degraded post-restart r
       readAuthJson: authStub(),
       fetcher,
       combosFetcher,
-      autoCombosFetcher,
       enrichmentFetcher,
       compressionMetaFetcher,
       providersFetcher,
@@ -176,7 +172,6 @@ test("issue #13000 (control): no warm snapshot exists — Math.min(member) fallb
       // computed_context_length intentionally omitted.
     },
   ];
-  const autoCombosFetcher: OmniRouteAutoCombosFetcher = async () => [];
   const enrichmentFetcher: OmniRouteEnrichmentFetcher = async () => new Map();
   const compressionMetaFetcher: OmniRouteCompressionMetaFetcher = async () => [];
   const providersFetcher: OmniRouteProvidersFetcher = async () => [];
@@ -193,7 +188,6 @@ test("issue #13000 (control): no warm snapshot exists — Math.min(member) fallb
       readAuthJson: authStub(),
       fetcher,
       combosFetcher,
-      autoCombosFetcher,
       enrichmentFetcher,
       compressionMetaFetcher,
       providersFetcher,

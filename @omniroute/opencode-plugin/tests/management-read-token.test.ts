@@ -75,6 +75,9 @@ test("provider hook: management GET fetchers use managementReadToken while /v1 u
         calls.push(["combos", token]);
         return [];
       },
+      // Retired source: the stub must never run. It stays in the DI bag so
+      // the removal is proven: base code calls it (red), fixed code ignores
+      // the unknown key (green).
       autoCombosFetcher: async (_baseURL, token) => {
         calls.push(["auto-combos", token]);
         return [];
@@ -90,17 +93,21 @@ test("provider hook: management GET fetchers use managementReadToken while /v1 u
   assert.deepEqual(calls, [
     ["models", API_KEY],
     ["combos", MANAGEMENT_READ_TOKEN],
-    ["auto-combos", MANAGEMENT_READ_TOKEN],
     ["pricing", MANAGEMENT_READ_TOKEN],
     ["context", MANAGEMENT_READ_TOKEN],
     ["providers", MANAGEMENT_READ_TOKEN],
   ]);
+  assert.equal(
+    calls.some(([name]) => name === "auto-combos"),
+    false,
+    "retired fetcher has no call slot anymore"
+  );
 });
 
 test("provider hook: absent managementReadToken preserves apiKey fallback", async () => {
   const calls: Array<[string, string]> = [];
   const hook = createOmniRouteProviderHook(
-    { baseURL: BASE_URL, features: { enrichment: false, autoCombos: false } },
+    { baseURL: BASE_URL, features: { enrichment: false } },
     {
       fetcher: async (_baseURL, token) => {
         calls.push(["models", token]);
@@ -127,7 +134,7 @@ test("config hook: managementReadToken stays out of provider inference and MCP c
     {
       baseURL: BASE_URL,
       managementReadToken: MANAGEMENT_READ_TOKEN,
-      features: { enrichment: false, autoCombos: false, diskCache: false, mcpAutoEmit: true },
+      features: { enrichment: false, diskCache: false, mcpAutoEmit: true },
     },
     {
       readAuthJson: async () => ({
@@ -233,7 +240,6 @@ test("disk cache: snapshot written under management token A is rejected under to
     };
     const features = {
       enrichment: false,
-      autoCombos: false,
       diskCache: true,
     } as const;
 
