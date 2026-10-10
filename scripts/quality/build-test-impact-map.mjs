@@ -19,8 +19,25 @@ const EXTS = [".ts", ".tsx", ".mts", ".js", ".mjs"];
 // (the `new URL`/`resolve(here, …)` shape) or relative to the repo root (the
 // `process.cwd()` shape, which only makes sense for a file CI actually runs `cwd=root`
 // from).
-const CONFIG_FILE_RE =
-  /(["'`])((?:\.\.\/)*(?:\.github\/workflows\/[\w.-]+\.ya?ml|[\w.-]+\.config\.[cm]?[jt]s|config\/quality\/[\w.-]+\.json))\1/g;
+const FILE_CLASS_BODY =
+  "(?:\\.\\.\\/)*(?:\\.github\\/workflows\\/[\\w.-]+\\.ya?ml|[\\w.-]+\\.config\\.[cm]?[jt]s|config\\/quality\\/[\\w.-]+\\.json)";
+const CONFIG_FILE_RE = new RegExp(`(["'\`])(${FILE_CLASS_BODY})\\1`, "g");
+// The joined spec must itself be one of the same classes end to end (anchored), the
+// same restriction the single-literal match gets implicitly from CONFIG_FILE_RE's own
+// alternation — otherwise `path.join(process.cwd(), "package.json")` or any other
+// `path.join`/`path.resolve` call that happens to resolve to a real file (the issue
+// explicitly excludes package.json and tests/fixtures) would wrongly become an edge.
+const FILE_CLASS_ONLY_RE = new RegExp(`^${FILE_CLASS_BODY}$`);
+
+// The same reference can also arrive as separate path.join/path.resolve segments —
+// `path.join(process.cwd(), ".github", "workflows", "quality.yml")` — instead of one
+// literal. Capture the anchor-relative segment list and re-join it. This covers the
+// `process.cwd()`/`__dirname` anchors seen in the repo; it is not a full static
+// evaluator, so a segment built from a variable or template expression is still
+// missed (disclosed as a known gap rather than attempted here).
+const SEGMENT_JOIN_RE =
+  /(?:path\.)?(?:join|resolve)\(\s*(?:process\.cwd\(\)|__dirname)((?:\s*,\s*["'`][^"'`]*["'`])+)\s*\)/g;
+const SEGMENT_RE = /["'`]([^"'`]+)["'`]/g;
 
 export function configFileDepsOf(testFile, root = ROOT) {
   const found = new Set();
@@ -32,6 +49,19 @@ export function configFileDepsOf(testFile, root = ROOT) {
   }
   for (const m of code.matchAll(CONFIG_FILE_RE)) {
     const spec = m[2];
+    const fromTestDir = path.resolve(path.dirname(testFile), spec);
+    const fromRoot = path.resolve(root, spec);
+    for (const candidate of [fromTestDir, fromRoot]) {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+        found.add(path.relative(root, candidate));
+      }
+    }
+  }
+  for (const m of code.matchAll(SEGMENT_JOIN_RE)) {
+    const segments = [...m[1].matchAll(SEGMENT_RE)].map((s) => s[1]);
+    if (segments.length === 0) continue;
+    const spec = segments.join("/");
+    if (!FILE_CLASS_ONLY_RE.test(spec)) continue;
     const fromTestDir = path.resolve(path.dirname(testFile), spec);
     const fromRoot = path.resolve(root, spec);
     for (const candidate of [fromTestDir, fromRoot]) {

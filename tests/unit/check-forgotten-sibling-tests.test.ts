@@ -178,3 +178,77 @@ test("a config-mapped file that was not itself changed produces no finding", () 
     },
   ]);
 });
+
+test("a changed src/ file present in the map produces no finding from the config-file loop", () => {
+  // src/lib/foo.ts has no production importer in this fixture, so importEdges()
+  // never emits an edge for it: the only way it could reach a finding is through
+  // the config-file loop treating it as its own module/consumer, which must not
+  // happen for a production file (isProduction guards it; that guard belongs to
+  // the main importEdges-based loop, not this one).
+  const root = fixture({
+    "src/lib/foo.ts": "export const foo = 1;\n",
+  });
+
+  const result = analyzeForgottenSiblingTests({
+    root,
+    changedEntries: [{ status: "M", file: "src/lib/foo.ts" }],
+    impactMap: { sources: { "src/lib/foo.ts": ["tests/unit/foo.test.ts"] } },
+    allowlist: [],
+  });
+
+  assert.equal(result.findings.length, 0);
+});
+
+test("a deleted sibling test flags a masking risk via the config-file loop, not a finding", () => {
+  const root = fixture({});
+
+  const result = analyzeForgottenSiblingTests({
+    root,
+    changedEntries: [
+      { status: "M", file: ".github/workflows/quality.yml" },
+      { status: "D", file: "tests/unit/build/check-workflows.test.ts" },
+    ],
+    impactMap: {
+      sources: {
+        ".github/workflows/quality.yml": ["tests/unit/build/check-workflows.test.ts"],
+      },
+    },
+    allowlist: [],
+  });
+
+  assert.equal(result.findings.length, 0);
+  assert.deepEqual(result.maskingRisks, [
+    {
+      changedModule: ".github/workflows/quality.yml",
+      consumer: ".github/workflows/quality.yml",
+      candidateTest: "tests/unit/build/check-workflows.test.ts",
+      reason: "candidate sibling test was deleted",
+    },
+  ]);
+});
+
+test("an allowlisted config-file/sibling-test pair is suppressed, not a finding", () => {
+  const root = fixture({});
+
+  const result = analyzeForgottenSiblingTests({
+    root,
+    changedEntries: [{ status: "M", file: ".github/workflows/quality.yml" }],
+    impactMap: {
+      sources: {
+        ".github/workflows/quality.yml": ["tests/unit/build/check-workflows.test.ts"],
+      },
+    },
+    allowlist: [
+      {
+        consumer: ".github/workflows/quality.yml",
+        candidateTest: "tests/unit/build/check-workflows.test.ts",
+        rationale: "covered by a separate manual CI smoke test, tracked in the issue",
+        reference: "#16068",
+      },
+    ],
+  });
+
+  assert.equal(result.findings.length, 0);
+  assert.equal(result.suppressed.length, 1);
+  assert.equal(result.suppressed[0].candidateTest, "tests/unit/build/check-workflows.test.ts");
+});

@@ -48,6 +48,51 @@ test("a test that reads a root config via path.join(process.cwd(), ...) is mappe
   assert.ok(deps.has("next.config.mjs"));
 });
 
+test("a test that reads a workflow file via joined path segments is mapped to it", () => {
+  const root = fixture({
+    ".github/workflows/quality.yml": "name: quality\n",
+    "tests/unit/build/check-workflows-segments.test.ts":
+      'const p = path.join(process.cwd(), ".github", "workflows", "quality.yml");\n',
+  });
+  const testFile = path.join(root, "tests/unit/build/check-workflows-segments.test.ts");
+  const deps = configFileDepsOf(testFile, root);
+  assert.ok(deps.has(".github/workflows/quality.yml"));
+});
+
+test("a joined path.join(process.cwd(), 'scripts', 'x.config.mjs') is not mapped (nested, not root)", () => {
+  // Without the ^...$ anchors on FILE_CLASS_ONLY_RE, "x.config.mjs" would still match
+  // as a SUBSTRING of "scripts/x.config.mjs", wrongly treating a nested config as a
+  // root one.
+  const root = fixture({
+    "scripts/x.config.mjs": "export default {};\n",
+    "tests/unit/scripts-config.test.ts":
+      'const c = path.join(process.cwd(), "scripts", "x.config.mjs");\n',
+  });
+  const testFile = path.join(root, "tests/unit/scripts-config.test.ts");
+  const deps = configFileDepsOf(testFile, root);
+  assert.equal(deps.size, 0);
+});
+
+test("a joined path.join(process.cwd(), 'package.json') is not mapped (excluded class)", () => {
+  const root = fixture({
+    "package.json": "{}\n",
+    "tests/unit/package-json.test.ts": 'const c = path.join(process.cwd(), "package.json");\n',
+  });
+  const testFile = path.join(root, "tests/unit/package-json.test.ts");
+  const deps = configFileDepsOf(testFile, root);
+  assert.equal(deps.size, 0);
+});
+
+test("a joined path.join(__dirname, 'fixtures', 'x.json') is not mapped (excluded class)", () => {
+  const root = fixture({
+    "tests/unit/fixtures/x.json": "{}\n",
+    "tests/unit/uses-fixture.test.ts": 'const c = path.join(__dirname, "fixtures", "x.json");\n',
+  });
+  const testFile = path.join(root, "tests/unit/uses-fixture.test.ts");
+  const deps = configFileDepsOf(testFile, root);
+  assert.equal(deps.size, 0);
+});
+
 test("a config path that does not exist on disk is not reported as a dependency", () => {
   const root = fixture({
     "tests/unit/no-such-config.test.ts":
