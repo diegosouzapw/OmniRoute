@@ -80,14 +80,22 @@ registerHooks({
         ? "ts"
         : "js";
     const format = loaded.format?.startsWith("commonjs") ? "cjs" : "esm";
-    const compiled = transformSync(instrumented.code, {
-      loader,
-      format,
-      target: "es2022",
-      sourcefile: path,
-      sourcemap: "inline",
-      jsx: "automatic",
-    });
+    // Feed the original-source map into esbuild, rather than mapping stacks to
+    // Istanbul's generated counter code. Absolute sources avoid duplicating src/
+    // when Node resolves the inline map relative to the loaded module URL.
+    const originalMap = { ...instrumented.map, sourceRoot: "", sources: [filename] };
+    const mapComment = Buffer.from(JSON.stringify(originalMap)).toString("base64");
+    const compiled = transformSync(
+      `${instrumented.code}\n//# sourceMappingURL=data:application/json;base64,${mapComment}`,
+      {
+        loader,
+        format,
+        target: "es2022",
+        sourcefile: filename,
+        sourcemap: "inline",
+        jsx: "automatic",
+      }
+    );
     return { ...loaded, source: compiled.code, shortCircuit: true };
   },
 });

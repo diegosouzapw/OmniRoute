@@ -12,7 +12,7 @@ const register = fileURLToPath(
 );
 const tsx = new URL("../../node_modules/tsx/dist/esm/index.mjs", import.meta.url).href;
 
-function fixture(t) {
+function fixture(t, { source } = {}) {
   const root = mkdtempSync(join(tmpdir(), "omni-node-capture-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, "src"));
@@ -20,7 +20,8 @@ function fixture(t) {
   writeFileSync(join(root, "package.json"), '{"type":"module"}');
   writeFileSync(
     join(root, "src/read.ts"),
-    "const seed = <number>41; export function read(flag: boolean) { return flag ? seed + 1 : 0; } export function unused() { return -1; }"
+    source ||
+      "const seed = <number>41; export function read(flag: boolean) { return flag ? seed + 1 : 0; } export function unused() { return -1; }"
   );
   writeFileSync(join(root, "src/require.cjs"), "module.exports = (flag) => flag ? 7 : 8;");
   writeFileSync(join(root, "src/never.ts"), "export function neverImported() { return 123; }");
@@ -52,7 +53,16 @@ test('public returns', () => { assert.equal(read(true), 42); assert.equal(requir
   const run = () =>
     spawnSync(
       process.execPath,
-      ["--import", tsx, "--import", register, "--test", "--test-force-exit", "tests/fixture.mjs"],
+      [
+        "--enable-source-maps",
+        "--import",
+        tsx,
+        "--import",
+        register,
+        "--test",
+        "--test-force-exit",
+        "tests/fixture.mjs",
+      ],
       {
         cwd: root,
         encoding: "utf8",
@@ -110,6 +120,29 @@ test("real Node/tsx ESM and CJS hits survive the native runner's force-exit", as
   });
   assert.equal(ledger.receipts.length, receipts.length);
   assert.equal(ledger.partition.processes.length, receipts.length);
+});
+
+test("captured Node stack traces still point at the original TypeScript throw line", (t) => {
+  const input = fixture(t, {
+    source:
+      "export function read(flag: boolean) {\n  if (flag) {\n    throw new Error('original-coordinate');\n  }\n  return 0;\n}\n",
+  });
+  writeFileSync(
+    join(input.root, "tests/fixture.mjs"),
+    `import test from 'node:test'; import assert from 'node:assert/strict';
+import { read } from '../src/read.ts';
+test('original stack', () => {
+  assert.throws(() => read(true), error => {
+    console.log(error.stack);
+    assert.match(error.stack, /src\\/read\\.ts:3:\\d+/);
+    return true;
+  });
+});`
+  );
+  const child = input.run();
+  assert.equal(child.error, undefined, child.error?.message);
+  assert.equal(child.status, 0, child.stdout + child.stderr);
+  assert.match(child.stdout, /original stack/);
 });
 
 test("changed working sources fail capture instead of carrying the committed source identity", (t) => {
