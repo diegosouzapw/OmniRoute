@@ -1,0 +1,1 @@
+- **A2A discovery:** Align the legacy Agent Card’s static names, descriptions, and examples with the English v1 card, and remove the outdated fixed skill count while preserving legacy protocol fields and dynamic fleet entries. Fixes #16188.

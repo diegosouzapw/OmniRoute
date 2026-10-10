@@ -154,15 +154,13 @@ test("Agent Card v1.0 (/.well-known/agent-card.json): same skill ids, both proto
   );
 });
 
-test("characterization: the v0.3 Agent Card currently serves zh-CN name/descriptions (v1.0 card is English)", async () => {
+test("the v0.3 Agent Card serves the same English metadata as the v1.0 card", async () => {
   const v03 = await (await agentCardV03.GET()).json();
-  // Hardcoded by the zh-CN localization commit (#9038); the v1.0 card kept English.
-  assert.equal(v03.name, "OmniRoute AI 网关");
-  assert.match(v03.description, /智能 AI 路由网关/);
-  assert.equal(
-    v03.skills.find((s: { id: string }) => s.id === "smart-routing").name,
-    "智能请求路由"
-  );
+  const v10 = await (await agentCardV10.GET()).json();
+  assert.equal(v03.name, "OmniRoute AI Gateway");
+  assert.equal(v03.name, v10.name);
+  assert.equal(v03.description, v10.description);
+  assert.deepEqual(v03.skills, v10.skills);
 });
 
 // ─── (b) Skill handler via A2A_SKILL_HANDLERS ────────────────────────────────
