@@ -191,7 +191,6 @@ import { resolveExecutionCredentials as resolveExecutionCredentialsFor } from ".
 import { createExecutorResolver } from "./chatCore/executorProxy.ts";
 import type { ClaudeMessage } from "./chatCore/claudeMessageTypes.ts";
 import { normalizeClaudeUpstreamMessages as normalizeClaudeUpstreamMessagesFor } from "./chatCore/claudeUpstreamMessages.ts";
-import { resolveClaudeMidConversationSystemPolicy } from "../services/claudeMidConversationSystem.ts";
 import {
   persistAttemptLogs as persistAttemptLogsFor,
   type PersistAttemptLogsArgs,
@@ -2270,8 +2269,8 @@ async function handleChatCoreInner({
   // chatCore/claudeUpstreamMessages.ts (#3501); bind `log` once so the call sites stay byte-identical.
   const normalizeClaudeUpstreamMessages = (
     payload: Record<string, unknown>,
-    options?: { preserveToolResultBlocks?: boolean; preserveMidConversationSystem?: boolean }
-  ) => normalizeClaudeUpstreamMessagesFor(payload, options, log);
+    options?: { preserveToolResultBlocks?: boolean }
+  ) => normalizeClaudeUpstreamMessagesFor(payload, { ...options, provider, sourceFormat }, log);
 
   try {
     if (nativeResponsesPassthrough) {
@@ -2425,16 +2424,8 @@ async function handleChatCoreInner({
         // the guard is a no-op on this call site, kept for symmetry with the
         // CC-bridge one above rather than a change to code the issue said not
         // to touch.
-        // An anthropic-compatible relay keeps mid-conversation system turns in
-        // place: hoisting them grows `system` every turn and invalidates the
-        // cached history behind it.
         normalizeClaudeUpstreamMessages(translatedBody, {
           preserveToolResultBlocks: targetFormat === FORMATS.CLAUDE,
-          preserveMidConversationSystem: resolveClaudeMidConversationSystemPolicy({
-            provider,
-            sourceFormat,
-            targetFormat,
-          }),
         });
       }
 

@@ -13,18 +13,10 @@ import { getGigachatAccessToken } from "../services/gigachatAuth.ts";
 import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
-  appendAnthropicBetaHeader,
   applyClientAnthropicBeta,
   normalizeAnthropicHeaderVariants,
   maybeAppendSkillsBeta,
 } from "../config/anthropicHeaders.ts";
-import {
-  clientNegotiatedMidConversationSystem,
-  hasMidConversationSystemTurn,
-  MID_CONVERSATION_SYSTEM_BETA,
-  resolveClaudeMidConversationSystemPolicy,
-} from "../services/claudeMidConversationSystem.ts";
-import { FORMATS } from "../translator/formats.ts";
 import { isOfficialAnthropicBaseUrl } from "../utils/anthropicHost.ts";
 import { applyProviderRequestDefaults } from "../services/providerRequestDefaults.ts";
 import { stripUnsupportedParams } from "../translator/paramSupport.ts";
@@ -711,25 +703,6 @@ export class DefaultExecutor extends BaseExecutor {
         model,
         body,
       });
-    }
-
-    // chatCore keeps mid-conversation system turns in messages[] on these relays.
-    // The generic allowlist above does not forward their beta, so pass the client's own
-    // token through when it negotiated one — never invented, and only when such a turn
-    // actually survived into the body.
-    const clientBetaHeader = clientHeaders
-      ? (clientHeaders["anthropic-beta"] ?? clientHeaders["Anthropic-Beta"] ?? null)
-      : null;
-    if (
-      clientNegotiatedMidConversationSystem(clientBetaHeader) &&
-      resolveClaudeMidConversationSystemPolicy({
-        provider: this.provider,
-        sourceFormat: FORMATS.CLAUDE,
-        targetFormat: getTargetFormat(this.provider, credentials?.providerSpecificData),
-      }) &&
-      hasMidConversationSystemTurn(body)
-    ) {
-      appendAnthropicBetaHeader(headers, MID_CONVERSATION_SYSTEM_BETA);
     }
 
     maybeAppendSkillsBeta(headers, this.provider, body, this.usesClaudeCodeProtocol(credentials));

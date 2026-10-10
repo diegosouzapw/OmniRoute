@@ -24,7 +24,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const { handleChatCore } = await import("../../open-sse/handlers/chatCore.ts");
-const { clientNegotiatedMidConversationSystem, resolveClaudeMidConversationSystemPolicy } =
+const { resolveClaudeMidConversationSystemPolicy } =
   await import("../../open-sse/services/claudeMidConversationSystem.ts");
 
 const originalFetch = globalThis.fetch;
@@ -228,6 +228,28 @@ test("a non-Claude Code client gets the same treatment and its beta is forwarded
   assert.ok(betaTokens(call).includes(MID_SYSTEM_BETA));
 });
 
+test("the client's beta token is matched case-insensitively and with spaces", async () => {
+  const body = buildBody(2);
+  const call = await send(body, {
+    headers: {
+      ...SDK_HEADERS,
+      "anthropic-beta": `effort-2025-11-24, ${MID_SYSTEM_BETA.toUpperCase()} `,
+    },
+  });
+  assertInPlace(call, body);
+  assert.ok(
+    betaTokens(call).some((t) => t.toLowerCase() === MID_SYSTEM_BETA),
+    `beta: ${betaTokens(call)}`
+  );
+});
+
+test("a token that only looks like the beta is not forwarded", async () => {
+  const call = await send(buildBody(2), {
+    headers: { ...SDK_HEADERS, "anthropic-beta": `${MID_SYSTEM_BETA}x` },
+  });
+  assert.ok(!betaTokens(call).some((t) => t.toLowerCase() === MID_SYSTEM_BETA));
+});
+
 test("client without the beta: turns still stay in place, and OmniRoute never invents it", async () => {
   const body = buildBody(2);
   const call = await send(body, { headers: NO_BETA_HEADERS });
@@ -324,7 +346,7 @@ test("the caller's body is not mutated, so retries/combo attempts see the origin
   assert.deepEqual(body.system, snapshot.system);
 });
 
-test("policy: scope and beta parsing", () => {
+test("policy: scope", () => {
   const resolve = (extra = {}) =>
     resolveClaudeMidConversationSystemPolicy({
       provider: PROVIDER,
@@ -333,13 +355,6 @@ test("policy: scope and beta parsing", () => {
       ...extra,
     });
   assert.equal(resolve(), true, "plain anthropic-compatible claude passthrough");
-  assert.equal(
-    clientNegotiatedMidConversationSystem(`effort-2025-11-24, ${MID_SYSTEM_BETA.toUpperCase()} `),
-    true,
-    "token match is trimmed and case-insensitive"
-  );
-  assert.equal(clientNegotiatedMidConversationSystem(null), false);
-  assert.equal(clientNegotiatedMidConversationSystem(`${MID_SYSTEM_BETA}x`), false);
   assert.equal(resolve({ targetFormat: "openai" }), false);
   assert.equal(resolve({ provider: "claude" }), false, "native path keeps its own policy");
   assert.equal(
