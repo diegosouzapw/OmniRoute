@@ -228,6 +228,7 @@ export async function POST(request) {
 /**
  * PUT /api/provider-models
  * Body: { provider, modelId, modelName?, apiFormat?, supportedEndpoints? }
+ * A body with only `contextWindowOverride` next to provider/modelId never creates a custom-model row.
  */
 export async function PUT(request) {
   const authError = await requireManagementAuth(request);
@@ -302,8 +303,17 @@ export async function PUT(request) {
       }
     }
 
+    // A body whose only mutable key is `contextWindowOverride` edits the
+    // `model_context_overrides` record alone. It must not upsert a customModels
+    // row: that would turn a native/synced catalog model into a "custom" one
+    // (/v1/models overlay, apiFormat flip, availability under a live catalog).
+    const contextOnly =
+      "contextWindowOverride" in raw &&
+      Object.keys(raw).every((k) => ["provider", "modelId", "contextWindowOverride"].includes(k));
+
     const model = await updateCustomModel(provider, modelId, updates, {
-      createIfMissing: maxOutputTokenOverride === undefined || Object.keys(updates).length > 0,
+      createIfMissing:
+        !contextOnly && (maxOutputTokenOverride === undefined || Object.keys(updates).length > 0),
     });
 
     if (!model) {
