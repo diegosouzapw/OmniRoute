@@ -58,12 +58,16 @@ export default function Modal({
   const dialogRef = useRef(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
 
+  // Dialogs take ~70% of the viewport from the `sm` breakpoint up (full width
+  // below it), so settings-style modals (API key permissions, provider config,
+  // routing editors) stop cramming their forms into a 28rem column. Only `sm`
+  // keeps a fixed narrow width — it is the confirm/alert dialog size.
   const sizes = {
     sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    full: "max-w-4xl",
+    md: "sm:w-[70vw] sm:max-w-[70vw]",
+    lg: "sm:w-[70vw] sm:max-w-[70vw]",
+    xl: "sm:w-[70vw] sm:max-w-[70vw]",
+    full: "sm:w-[70vw] sm:max-w-[70vw]",
   };
 
   // Lock body scroll when modal is open
