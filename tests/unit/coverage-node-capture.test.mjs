@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,14 +20,14 @@ const register = fileURLToPath(
 );
 const tsx = new URL("../../node_modules/tsx/dist/esm/index.mjs", import.meta.url).href;
 
-function fixture(t, { source } = {}) {
+function fixture(t, { source, filename = "read.ts" } = {}) {
   const root = mkdtempSync(join(tmpdir(), "omni-node-capture-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, "src"));
   mkdirSync(join(root, "tests"));
   writeFileSync(join(root, "package.json"), '{"type":"module"}');
   writeFileSync(
-    join(root, "src/read.ts"),
+    join(root, "src", filename),
     source ||
       "const seed = <number>41; export function read(flag: boolean) { return flag ? seed + 1 : 0; } export function unused() { return -1; }"
   );
@@ -144,6 +152,57 @@ test('original stack', () => {
   assert.equal(child.status, 0, child.stdout + child.stderr);
   assert.match(child.stdout, /original stack/);
 });
+
+for (const extension of ["js", "mjs", "cjs", "ts", "mts", "cts", "tsx", "jsx"]) {
+  test(`captured .${extension} stacks and coverage retain original throw coordinates`, (t) => {
+    const isCommonJs = ["cjs", "cts"].includes(extension);
+    const typed = ["ts", "mts", "cts", "tsx"].includes(extension);
+    const source = `${isCommonJs ? "" : "export "}function read(flag${typed ? ": boolean" : ""}) {\n  if (flag) {\n    throw new Error('format-coordinate');\n  }\n  return 0;\n}\n${isCommonJs ? "module.exports = { read };\n" : ""}${["tsx", "jsx"].includes(extension) ? "export function neverRendered() { return <section>untouched</section>; }\n" : ""}`;
+    const filename = `read.${extension}`;
+    const input = fixture(t, { source, filename });
+    // JSX's real automatic runtime is a dependency, not a source in the frozen scope.
+    symlinkSync(
+      fileURLToPath(new URL("../../node_modules", import.meta.url)),
+      join(input.root, "node_modules"),
+      "dir"
+    );
+    writeFileSync(
+      join(input.root, "tests/fixture.mjs"),
+      `
+import test from 'node:test'; import assert from 'node:assert/strict';
+import * as namespace from '../src/${filename}';
+const read = namespace.read || namespace.default.read;
+test('format stack', () => {
+  assert.throws(() => read(true), error => {
+    assert.ok(error.stack.includes(${JSON.stringify(`/src/${filename}:3:`)}), error.stack);
+    return true;
+  });
+});`
+    );
+    const child = input.run();
+    assert.equal(child.error, undefined, child.error?.message);
+    assert.equal(child.status, 0, child.stdout + child.stderr);
+    const receipts = readdirSync(join(input.directory, "receipts")).map((file) =>
+      JSON.parse(readFileSync(join(input.directory, "receipts", file), "utf8"))
+    );
+    const observed = receipts.find((receipt) => receipt.coverage[`src/${filename}`])?.coverage[
+      `src/${filename}`
+    ];
+    assert.ok(observed, "the test worker must capture this format, not merely map its stack");
+    assert.ok(
+      Object.entries(observed.statementMap).some(
+        ([id, location]) => location.start.line === 3 && observed.s[id] > 0
+      )
+    );
+    if (["tsx", "jsx"].includes(extension)) {
+      const untouched = Object.entries(observed.fnMap).find(
+        ([, item]) => item.name === "neverRendered"
+      );
+      assert.ok(untouched);
+      assert.equal(observed.f[untouched[0]], 0);
+    }
+  });
+}
 
 test("changed working sources fail capture instead of carrying the committed source identity", (t) => {
   const input = fixture(t);
