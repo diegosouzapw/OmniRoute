@@ -21,6 +21,7 @@ import {
   bumpLockfile,
   bumpManifest,
   bumpOpenApi,
+  evaluateMergifyQueue,
   evaluatePreconditions,
   executeCut,
   expectedDistTags,
@@ -34,6 +35,10 @@ import {
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SCRIPT = path.join(repoRoot, "scripts/release/dry-run-lts-cut.mjs");
 const SHA = "1".repeat(40);
+// The real .mergify.yml of this checkout plus the checks_timeout PR #16066 adds.
+const MERGIFY = fs
+  .readFileSync(path.join(repoRoot, ".mergify.yml"), "utf8")
+  .replace(/(\n {2}- name: release\n)/, "$1    checks_timeout: 240 min\n");
 
 type Facts = Parameters<typeof evaluatePreconditions>[0];
 
@@ -44,6 +49,10 @@ function goodFacts(overrides: Partial<Facts> = {}): Facts {
     previousTagExists: true,
     freezeIssues: [{ number: 900, title: "🧊 Release freeze: release/v3.9.0" }],
     baseRedIssues: [],
+    sourceBranchExists: true,
+    mergifyConfig: MERGIFY,
+    queueLabelExists: true,
+    releaseRulesetRules: ["deletion", "non_fast_forward"],
     remoteBranches: { "stable/v3": null, develop: null },
     ...overrides,
   };
@@ -117,7 +126,16 @@ test("all preconditions pass on a ready cut", () => {
   const checks = evaluatePreconditions(goodFacts(), parseCutArgs([]));
   assert.deepEqual(
     checks.map((c) => c.id),
-    ["source", "tag", "version", "freeze", "base-green", "branches-absent"]
+    [
+      "source",
+      "tag",
+      "version",
+      "freeze",
+      "base-green",
+      "merge-queue",
+      "release-ruleset",
+      "branches-absent",
+    ]
   );
   assert.ok(checks.every((c) => c.ok && c.blocking));
 });
@@ -136,6 +154,10 @@ test("each failing precondition is reported with expected vs actual", () => {
     ],
     [{ remoteBranches: { "stable/v3": SHA, develop: null } }, "branches-absent", /stable\/v3/],
     [{ freezeIssues: null }, "freeze", /unknown/],
+    [{ queueLabelExists: false }, "merge-queue", /label `queue` missing/],
+    [{ mergifyConfig: null }, "merge-queue", /\.mergify\.yml missing/],
+    [{ releaseRulesetRules: ["deletion"] }, "release-ruleset", /missing: non_fast_forward/],
+    [{ releaseRulesetRules: null }, "release-ruleset", /unknown/],
   ];
   for (const [override, id, actual] of cases) {
     const check = evaluatePreconditions(goodFacts(override), opts).find((c) => c.id === id);
@@ -143,6 +165,43 @@ test("each failing precondition is reported with expected vs actual", () => {
     assert.match(String(check?.actual), actual);
     assert.ok(check?.expected, `${id} states what it expected`);
   }
+});
+
+test("base-green is unknown (never green) when the release branch does not exist", () => {
+  const opts = parseCutArgs([]);
+  const missing = evaluatePreconditions(goodFacts({ sourceBranchExists: false }), opts).find(
+    (c) => c.id === "base-green"
+  );
+  assert.equal(missing?.ok, false, "no issue for a branch that does not exist is not evidence");
+  assert.equal(missing?.verifiable, false);
+  assert.match(String(missing?.actual), /unknown .*does not exist.*not verifiable/);
+  const lookupFailed = evaluatePreconditions(goodFacts({ sourceBranchExists: null }), opts).find(
+    (c) => c.id === "base-green"
+  );
+  assert.equal(lookupFailed?.ok, false);
+  assert.doesNotMatch(String(lookupFailed?.actual), /green$/);
+  const existing = evaluatePreconditions(goodFacts(), opts).find((c) => c.id === "base-green");
+  assert.equal(existing?.ok, true);
+  assert.equal(existing?.verifiable, true);
+});
+
+test("G11 is the Mergify `release` queue, not GitHub's native merge queue", () => {
+  const withTimeout = evaluateMergifyQueue(MERGIFY);
+  assert.deepEqual(withTimeout, { ok: true, problems: [] });
+  const base = fs.readFileSync(path.join(repoRoot, ".mergify.yml"), "utf8");
+  if (!/checks_timeout/.test(base)) {
+    assert.deepEqual(evaluateMergifyQueue(base).problems, [
+      "queue `release` has no checks_timeout",
+    ]);
+  }
+  assert.match(
+    evaluateMergifyQueue("queue_rules:\n  - name: other\n").problems.join(),
+    /no queue_rules entry named `release`/
+  );
+  const noLabel = MERGIFY.replace(/label ?= ?queue/g, "label=other");
+  assert.match(evaluateMergifyQueue(noLabel).problems.join(), /`queue` label/);
+  assert.equal(evaluateMergifyQueue(null).ok, false);
+  assert.equal(evaluateMergifyQueue(": : :\n  - [").ok, false);
 });
 
 test("--advisory downgrades a check to a warning without hiding it", () => {

@@ -52,7 +52,16 @@ export const DEFAULTS = Object.freeze({
   developBranch: "develop",
 });
 
-const PRECONDITION_IDS = ["source", "tag", "version", "freeze", "base-green", "branches-absent"];
+const PRECONDITION_IDS = [
+  "source",
+  "tag",
+  "version",
+  "freeze",
+  "base-green",
+  "merge-queue",
+  "release-ruleset",
+  "branches-absent",
+];
 
 /** Files bumped on `develop` — the same set the cycle-open commit bumps. */
 const BUMP_FILES = Object.freeze([
@@ -159,6 +168,41 @@ export function isCanonicalRemoteUrl(url, repo = CANONICAL_REPO) {
 
 // ── preconditions ───────────────────────────────────────────────────────────
 
+/**
+ * Pure: is the Mergify `release` queue (rail gate G11) configured? GitHub's native
+ * merge queue was rejected in v3.8.49 (no branch wildcards on a personal-account
+ * repo — see the .mergify.yml header), so G11 is the Mergify queue: a
+ * `queue_rules` entry named `release` covering `release/vX.Y.Z`, entered through
+ * the `queue` label, with a `checks_timeout` so a hung check cannot park the queue.
+ */
+export function evaluateMergifyQueue(yamlText) {
+  if (yamlText == null) return { ok: false, problems: [".mergify.yml missing at the source"] };
+  let doc;
+  try {
+    doc = yamlLoad(yamlText) ?? {};
+  } catch {
+    return { ok: false, problems: [".mergify.yml is not valid YAML"] };
+  }
+  const rules = Array.isArray(doc.queue_rules) ? doc.queue_rules : [];
+  const release = rules.find((rule) => rule?.name === "release");
+  if (!release) return { ok: false, problems: ["no queue_rules entry named `release`"] };
+  const problems = [];
+  const conditions = (release.queue_conditions ?? []).map((c) => String(c).replace(/\s+/g, ""));
+  if (!conditions.some((c) => c.startsWith("base~=") && c.includes("release/"))) {
+    problems.push("queue `release` does not target release/* branches");
+  }
+  const autoMerge = (doc.merge_protections_settings?.auto_merge_conditions ?? []).map((c) =>
+    String(c).replace(/\s+/g, "")
+  );
+  if (!conditions.includes("label=queue") && !autoMerge.includes("label=queue")) {
+    problems.push("queue `release` is not entered through the `queue` label");
+  }
+  if (release.checks_timeout == null || String(release.checks_timeout).trim() === "") {
+    problems.push("queue `release` has no checks_timeout");
+  }
+  return { ok: problems.length === 0, problems };
+}
+
 function issueList(issues) {
   return issues.map((i) => `#${i.number}`).join(", ");
 }
@@ -178,6 +222,14 @@ export function evaluatePreconditions(facts, opts) {
   });
   const freeze = facts.freezeIssues;
   const red = facts.baseRedIssues;
+  const queue = evaluateMergifyQueue(facts.mergifyConfig ?? null);
+  const rulesetRules = facts.releaseRulesetRules;
+  const missingRules = Array.isArray(rulesetRules)
+    ? ["deletion", "non_fast_forward"].filter((r) => !rulesetRules.includes(r))
+    : null;
+  // No open base-red issue is only evidence of green when the branch exists: the
+  // nightly observer never files an issue for a branch it cannot see.
+  const branchMissing = facts.sourceBranchExists === false;
   const existing = Object.entries(facts.remoteBranches ?? {})
     .filter(([, sha]) => sha)
     .map(([name]) => name);
@@ -218,12 +270,50 @@ export function evaluatePreconditions(facts, opts) {
           ? issueList(freeze)
           : "none open"
     ),
+    {
+      ...check(
+        "base-green",
+        `${opts.sourceBranch} is green (no open "Release branch not green" issue)`,
+        "no open base-red issue on an existing branch",
+        !branchMissing && facts.sourceBranchExists !== null && Array.isArray(red) && !red.length,
+        branchMissing
+          ? `unknown — ${opts.sourceBranch} does not exist on origin (not verifiable)`
+          : facts.sourceBranchExists === null
+            ? "unknown (ls-remote failed)"
+            : red === null
+              ? "unknown (gh query failed)"
+              : red.length
+                ? `red: ${issueList(red)}`
+                : "green"
+      ),
+      verifiable: !branchMissing && facts.sourceBranchExists !== null && red !== null,
+    },
     check(
-      "base-green",
-      `${opts.sourceBranch} is green (no open "Release branch not green" issue)`,
-      "no open base-red issue",
-      Array.isArray(red) && red.length === 0,
-      red === null ? "unknown (gh query failed)" : red.length ? `red: ${issueList(red)}` : "green"
+      "merge-queue",
+      "G11: Mergify queue `release` active (queue_rules, checks_timeout, `queue` label)",
+      "queue_rules[release] with checks_timeout + label `queue` exists",
+      queue.ok && facts.queueLabelExists === true,
+      [
+        ...queue.problems,
+        facts.queueLabelExists === null
+          ? "label lookup failed"
+          : facts.queueLabelExists
+            ? null
+            : "label `queue` missing",
+      ]
+        .filter(Boolean)
+        .join("; ") || "configured"
+    ),
+    check(
+      "release-ruleset",
+      "release/* ruleset blocks deletion and force-push",
+      "rules deletion + non_fast_forward",
+      Array.isArray(missingRules) && missingRules.length === 0,
+      missingRules === null
+        ? "unknown (ruleset lookup failed)"
+        : missingRules.length
+          ? `missing: ${missingRules.join(", ")}`
+          : "deletion + non_fast_forward"
     ),
     check(
       "branches-absent",
@@ -440,7 +530,7 @@ export function renderReport({ opts, checks, plan, workflows, distTags }) {
   );
   lines.push("Preconditions");
   for (const c of checks) {
-    const mark = c.ok ? "✓" : c.blocking ? "✗" : "!";
+    const mark = c.ok ? "✓" : c.verifiable === false ? "?" : c.blocking ? "✗" : "!";
     lines.push(
       `  ${mark} ${c.id} — ${c.label}: ${c.actual}${c.ok ? "" : ` (expected ${c.expected})`}`
     );
@@ -569,6 +659,46 @@ function ghIssues(repo, args) {
   }
 }
 
+function ghJson(args) {
+  const out = tryExec("gh", args);
+  if (out === null) return null;
+  try {
+    return JSON.parse(out);
+  } catch {
+    return null;
+  }
+}
+
+function labelExists(repo, name) {
+  const labels = ghJson([
+    "label",
+    "list",
+    "--repo",
+    repo,
+    "--search",
+    name,
+    "--limit",
+    "100",
+    "--json",
+    "name",
+  ]);
+  return Array.isArray(labels) ? labels.some((l) => l.name === name) : null;
+}
+
+/** Rule types of the ruleset whose include covers `refs/heads/release/*`. */
+function releaseRulesetRules(repo) {
+  const list = ghJson(["api", `repos/${repo}/rulesets`]);
+  if (!Array.isArray(list)) return null;
+  for (const { id } of list) {
+    const ruleset = ghJson(["api", `repos/${repo}/rulesets/${id}`]);
+    const include = ruleset?.conditions?.ref_name?.include ?? [];
+    if (include.includes("refs/heads/release/*")) {
+      return (ruleset.rules ?? []).map((r) => r.type);
+    }
+  }
+  return [];
+}
+
 export function createRealIo(cwd) {
   const gitRaw = (args, options = {}) =>
     execFileSync("git", args, {
@@ -592,6 +722,10 @@ export function createRealIo(cwd) {
           sourceVersion = null;
         }
       }
+      const branchExists = (branch) => {
+        const out = tryExec("git", ["ls-remote", "--heads", "origin", branch], { cwd });
+        return out === null ? null : out.length > 0;
+      };
       // Tags are canonical facts: read them from origin (read-only).
       const tagOut = tryExec(
         "git",
@@ -617,6 +751,12 @@ export function createRealIo(cwd) {
         sourceSha,
         sourceVersion,
         previousTagExists,
+        sourceBranchExists: branchExists(opts.sourceBranch),
+        mergifyConfig: sourceSha
+          ? tryExec("git", ["show", `${sourceSha}:.mergify.yml`], { cwd })
+          : null,
+        queueLabelExists: labelExists(opts.repo, "queue"),
+        releaseRulesetRules: releaseRulesetRules(opts.repo),
         freezeIssues: ghIssues(opts.repo, ["--label", "release-freeze"]),
         baseRedIssues: ghIssues(opts.repo, [
           "--search",
