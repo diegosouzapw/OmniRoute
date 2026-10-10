@@ -21,7 +21,7 @@
 const BASE64_DATA_URI_RE = /data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+/=]+/gi;
 
 /** Length of a JSON-encoded string, including the surrounding quotes. */
-function encodedStringLength(value: string, stripBase64 = false): number {
+export function encodedStringLength(value: string, stripBase64 = false): number {
   const target = stripBase64 ? value.replace(BASE64_DATA_URI_RE, "") : value;
   let len = 2; // the quotes
   for (let i = 0; i < target.length; i++) {
