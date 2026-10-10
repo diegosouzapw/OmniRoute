@@ -98,6 +98,8 @@ _Living section — cycle opened at the v3.8.51 freeze (parallel-cycle model). B
 
 ### 🐛 Bug Fixes
 
+- **fix(images):** honor configured image deadlines through response-body reads and keep long Playground generations alive with cancellable SSE heartbeats, preserving ordinary JSON responses and image previews (#16260).
+
 ### 📝 Maintenance
 
 ---

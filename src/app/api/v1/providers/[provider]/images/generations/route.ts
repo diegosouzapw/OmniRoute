@@ -107,7 +107,13 @@ export async function POST(request, { params }) {
           apiKeyId: policy.apiKeyInfo?.id ?? null,
           apiKeyName: policy.apiKeyInfo?.name ?? null,
         },
-        () => handleImageGeneration({ body, credentials: attemptCredentials, log })
+        () =>
+          handleImageGeneration({
+            body,
+            credentials: attemptCredentials,
+            log,
+            signal: request.signal,
+          })
       ),
   });
   credentials = execution.credentials;

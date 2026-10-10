@@ -65,14 +65,38 @@ const { DEFAULT_PARAMS } =
 const { default: ChatTab } =
   await import("../../../src/app/(dashboard)/dashboard/playground/components/tabs/ChatTab");
 
-function makeConfig(systemPrompt = "You are a helpful assistant.") {
+function makeConfig(
+  systemPrompt = "You are a helpful assistant.",
+  endpoint: "chat.completions" | "images" = "chat.completions"
+) {
   return {
-    endpoint: "chat.completions" as const,
+    endpoint,
     baseUrl: "http://localhost:20128",
     model: "openai/gpt-4o",
     systemPrompt,
     params: { ...DEFAULT_PARAMS },
   };
+}
+
+function buildImageResultResponse(status: number, body: string): Response {
+  const payload = JSON.stringify({
+    status,
+    body,
+    headers: { "content-type": "application/json" },
+  });
+  return new Response(
+    new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(
+            `: keepalive\n\nevent: playground.image.result\ndata: ${payload}\n\n`
+          )
+        );
+        controller.close();
+      },
+    }),
+    { status: 200, headers: { "content-type": "text/event-stream" } }
+  );
 }
 
 function buildSseResponse(content: string) {
@@ -188,6 +212,57 @@ describe("ChatTab", () => {
     fetchSpy.mockRestore();
   });
 
+  it("opts image requests into the bounded stream and restores the JSON body", async () => {
+    let capturedHeaders: Record<string, string> | undefined;
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+      capturedHeaders = init?.headers as Record<string, string>;
+      return buildImageResultResponse(
+        200,
+        JSON.stringify({ data: [{ url: "https://cdn.example.com/chat-image.png" }] })
+      );
+    });
+    const config = makeConfig("You are a helpful assistant.", "images");
+    config.model = "openai/gpt-image-2";
+    const el = renderChatTab(config);
+    const textarea = el.querySelector("textarea") as HTMLTextAreaElement;
+    act(() => setInputValue(textarea, "Draw a lighthouse"));
+    const sendBtn = Array.from(el.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Send")
+    );
+
+    await act(async () => sendBtn?.click());
+    await waitFor(() => el.textContent?.includes("chat-image.png") === true);
+
+    expect(capturedHeaders?.["X-OmniRoute-Playground-Stream"]).toBe("1");
+    expect(el.textContent).not.toContain("playground.image.result");
+    fetchSpy.mockRestore();
+  });
+
+  it("uses the restored image status for existing error handling", async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(
+        buildImageResultResponse(
+          422,
+          JSON.stringify({ error: { message: "Image prompt was rejected" } })
+        )
+      );
+    const config = makeConfig("You are a helpful assistant.", "images");
+    config.model = "openai/gpt-image-2";
+    const el = renderChatTab(config);
+    const textarea = el.querySelector("textarea") as HTMLTextAreaElement;
+    act(() => setInputValue(textarea, "Rejected prompt"));
+    const sendBtn = Array.from(el.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Send")
+    );
+
+    await act(async () => sendBtn?.click());
+    await waitFor(() => el.textContent?.includes("Image prompt was rejected") === true);
+
+    expect(el.textContent).toContain("Image prompt was rejected");
+    fetchSpy.mockRestore();
+  });
+
   it("uses native Responses protocol for ChatGPT Web Codex models", async () => {
     let capturedUrl = "";
     let capturedInit: RequestInit | undefined;
@@ -236,6 +311,42 @@ describe("ChatTab", () => {
     const turn = JSON.parse(body.client_metadata["x-codex-turn-metadata"]);
     expect(turn.thread_id).toBeTruthy();
     expect(turn.turn_id).toBe(body.input.at(-1).internal_chat_message_metadata_passthrough.turn_id);
+    fetchSpy.mockRestore();
+  });
+
+  it("keeps native Codex Responses traffic out of the image stream protocol", async () => {
+    let capturedHeaders: Record<string, string> | undefined;
+    const encoder = new TextEncoder();
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+      capturedHeaders = init?.headers as Record<string, string>;
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ type: "response.output_text.delta", delta: "Native image model response" })}\n\n`
+              )
+            );
+            controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+            controller.close();
+          },
+        }),
+        { status: 200, headers: { "content-type": "text/event-stream" } }
+      );
+    });
+    const config = makeConfig("You are a helpful assistant.", "images");
+    config.model = "cgpt-codex/luna";
+    const el = renderChatTab(config);
+    const textarea = el.querySelector("textarea") as HTMLTextAreaElement;
+    act(() => setInputValue(textarea, "Use the native route"));
+    const sendBtn = Array.from(el.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("Send")
+    );
+
+    await act(async () => sendBtn?.click());
+    await waitFor(() => el.textContent?.includes("Native image model response") === true);
+
+    expect(capturedHeaders?.["X-OmniRoute-Playground-Stream"]).toBeUndefined();
     fetchSpy.mockRestore();
   });
 

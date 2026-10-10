@@ -28,13 +28,7 @@ vi.mock("next/dynamic", () => ({
 }));
 
 vi.mock("@/shared/components/MonacoEditor", () => ({
-  default: ({
-    value,
-    onChange,
-  }: {
-    value?: string;
-    onChange?: (v: string) => void;
-  }) => (
+  default: ({ value, onChange }: { value?: string; onChange?: (v: string) => void }) => (
     <textarea
       data-testid="monaco-editor"
       value={value}
@@ -76,7 +70,9 @@ vi.mock("@/shared/components", () => ({
       ))}
     </select>
   ),
-  Badge: ({ children }: { children: React.ReactNode }) => <span data-testid="badge">{children}</span>,
+  Badge: ({ children }: { children: React.ReactNode }) => (
+    <span data-testid="badge">{children}</span>
+  ),
 }));
 
 vi.mock("@/shared/constants/providers", () => ({
@@ -97,9 +93,8 @@ vi.stubGlobal("fetch", mockFetch);
 
 // ── Import under test ──────────────────────────────────────────────────────────
 
-const { default: ApiTab } = await import(
-  "../../../src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab"
-);
+const { default: ApiTab } =
+  await import("../../../src/app/(dashboard)/dashboard/playground/components/tabs/ApiTab");
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -128,8 +123,9 @@ async function waitFor(fn: () => boolean, timeout = 3000): Promise<void> {
 
 describe("ApiTab", () => {
   beforeEach(() => {
-    (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean })
-      .IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
 
     // Default fetch mock: models + providers return empty
     mockFetch.mockImplementation(async (url: string) => {
@@ -214,9 +210,7 @@ describe("ApiTab", () => {
 
     // The badge should reflect the new endpoint
     const badges = el.querySelectorAll("[data-testid='badge']");
-    const endpointBadge = Array.from(badges).find((b) =>
-      b.textContent?.includes("/v1/")
-    );
+    const endpointBadge = Array.from(badges).find((b) => b.textContent?.includes("/v1/"));
     expect(endpointBadge?.textContent).toContain("embeddings");
   });
 
@@ -263,8 +257,8 @@ describe("ApiTab", () => {
     });
 
     // Find Send button
-    const sendBtn = Array.from(el.querySelectorAll("button")).find(
-      (b) => b.textContent?.includes("send")
+    const sendBtn = Array.from(el.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("send")
     ) as HTMLButtonElement | undefined;
 
     // Selecting a model + the auto-populated request body must enable Send —
@@ -286,6 +280,60 @@ describe("ApiTab", () => {
     const editors = el.querySelectorAll("[data-testid='monaco-editor']");
     const responseEditor = editors[1] as HTMLTextAreaElement;
     expect(responseEditor.value).toContain("Hello!");
+  });
+
+  it("opts image requests into the bounded stream and renders the restored image", async () => {
+    let capturedHeaders: Record<string, string> | undefined;
+    const imageBody = JSON.stringify({
+      data: [{ url: "https://cdn.example.com/api-image.png" }],
+    });
+    const terminal = `: keepalive\n\nevent: playground.image.result\ndata: ${JSON.stringify({
+      status: 200,
+      body: imageBody,
+      headers: { "content-type": "application/json" },
+    })}\n\n`;
+    mockFetch.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (typeof url === "string" && url.includes("/v1/models")) {
+        return new Response(JSON.stringify({ data: [{ id: "openai/gpt-image-2" }] }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      if (typeof url === "string" && url.includes("/api/providers/client")) {
+        return new Response(JSON.stringify({ connections: [] }), {
+          headers: { "content-type": "application/json" },
+        });
+      }
+      capturedHeaders = init?.headers as Record<string, string>;
+      return new Response(terminal, {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
+      });
+    });
+
+    const el = renderApiTab();
+    await waitFor(() => el.querySelectorAll("select").length >= 3);
+    const endpointSelect = el.querySelectorAll("select")[0] as HTMLSelectElement;
+    act(() => {
+      endpointSelect.value = "images";
+      endpointSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const modelSelect = el.querySelectorAll("select")[2] as HTMLSelectElement;
+    await waitFor(() => modelSelect.options.length > 0);
+    act(() => {
+      modelSelect.value = "openai/gpt-image-2";
+      modelSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const sendBtn = Array.from(el.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("send")
+    );
+
+    await act(async () => sendBtn?.click());
+    await waitFor(() => el.querySelector("img") !== null);
+
+    expect(capturedHeaders?.["X-OmniRoute-Playground-Stream"]).toBe("1");
+    expect((el.querySelector("img") as HTMLImageElement).src).toBe(
+      "https://cdn.example.com/api-image.png"
+    );
   });
 
   it("shows info banner", async () => {

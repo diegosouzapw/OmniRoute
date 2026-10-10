@@ -12,6 +12,10 @@ import { ALIAS_TO_ID } from "@/shared/constants/providers";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import useEmailPrivacyStore from "@/store/emailPrivacyStore";
 import dynamic from "next/dynamic";
+import {
+  PLAYGROUND_IMAGE_STREAM_HEADER,
+  restorePlaygroundImageResponse,
+} from "@/shared/utils/playgroundImageStream";
 
 // Monaco editor lazy-loaded (ssr: false) to avoid SSR issues (F10 requirement)
 const Editor = dynamic(() => import("@/shared/components/MonacoEditor"), { ssr: false });
@@ -429,12 +433,17 @@ export default function ApiTab(_props: ApiTabProps) {
         if (selectedConnection) {
           fetchHeaders["X-OmniRoute-Connection"] = selectedConnection;
         }
+        if (isImageEndpoint) fetchHeaders[PLAYGROUND_IMAGE_STREAM_HEADER] = "1";
         res = await fetch(`/api${path}`, {
           method: "POST",
           headers: fetchHeaders,
           body: JSON.stringify(parsed),
           signal: controller.signal,
         });
+      }
+
+      if (isImageEndpoint) {
+        res = await restorePlaygroundImageResponse(res, controller.signal);
       }
 
       setResponseStatus(res.status);

@@ -50,6 +50,8 @@ import {
   CHATGPT_WEB_RETIRED_ERROR_CODE,
   isCommonChatGptWebRetirementError,
 } from "@/shared/constants/chatgptWebRetirement";
+import { PLAYGROUND_IMAGE_STREAM_HEADER } from "@/shared/utils/playgroundImageStream";
+import { createPlaygroundImageStreamResponse } from "@/lib/playground/imageGenerationStream";
 
 export const dynamic = "force-dynamic";
 
@@ -404,4 +406,11 @@ async function postHandler(request, context) {
   return errorResponse((result as any).status, message);
 }
 
-export const POST = withInjectionGuard(postHandler);
+const guardedPost = withInjectionGuard(postHandler);
+
+export function POST(request: Request, context?: unknown) {
+  if (request.headers.get(PLAYGROUND_IMAGE_STREAM_HEADER) === "1") {
+    return createPlaygroundImageStreamResponse(request, context, guardedPost);
+  }
+  return guardedPost(request, context);
+}
