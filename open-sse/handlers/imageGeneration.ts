@@ -37,11 +37,6 @@ import {
   resolveComfyUiBaseUrl,
 } from "../utils/comfyuiClient.ts";
 import { fetchUntrustedRemoteImage } from "@/shared/network/remoteImageFetch";
-import {
-  FetchTimeoutError,
-  fetchWithTimeout,
-  getConfiguredTimeout,
-} from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage, sanitizeUpstreamDetails } from "../utils/error.ts";
 // Shared with imageUpscale/shared.ts — see imageErrorLog.ts for why a bare
 // String(value) is unsafe here (null-prototype sanitizeUpstreamDetails() payloads, #12506).
@@ -75,6 +70,10 @@ import {
   applyPollinationsAnonymousFallback,
   reportPollinationsAnonOutcome,
 } from "./imageGeneration/pollinationsAnonAuth.ts";
+import {
+  fetchImageEndpoint,
+  resolveImageGenerationTimeoutMs,
+} from "./imageGeneration/openAiImageFetch.ts";
 
 // Re-export so /v1/images/edits can dispatch Firefly reference-image edits.
 export { handleAdobeFireflyImageGeneration };
@@ -521,6 +520,7 @@ export async function handleImageGeneration({
       body,
       credentials,
       log,
+      signal,
     });
   }
 
@@ -844,7 +844,15 @@ export async function handleImageGeneration({
     });
   }
 
-  return handleOpenAIImageGeneration({ model, provider, providerConfig, body, credentials, log });
+  return handleOpenAIImageGeneration({
+    model,
+    provider,
+    providerConfig,
+    body,
+    credentials,
+    log,
+    signal,
+  });
 }
 
 function normalizeKieImageResult(recordData: unknown): string[] {
@@ -1291,6 +1299,7 @@ async function handleOpenAIImageGeneration({
   body,
   credentials,
   log,
+  signal,
 }) {
   const startTime = Date.now();
 
@@ -1370,6 +1379,7 @@ async function handleOpenAIImageGeneration({
   }
 
   const requestBody = JSON.stringify(upstreamBody);
+  const timeoutMs = resolveImageGenerationTimeoutMs(credentials?.providerSpecificData);
 
   // Try primary URL
   let result = await fetchImageEndpoint(
@@ -1377,7 +1387,8 @@ async function handleOpenAIImageGeneration({
     headers,
     requestBody,
     provider,
-    log
+    log,
+    { signal, timeoutMs }
   );
 
   // Fallback for providers with fallbackUrl (e.g., Nebius)
@@ -1394,7 +1405,8 @@ async function handleOpenAIImageGeneration({
       headers,
       requestBody,
       provider,
-      log
+      log,
+      { signal, timeoutMs }
     );
   }
 
@@ -2924,101 +2936,6 @@ export function saveImageErrorResult({
 /**
  * Fetch a single image endpoint and normalize response
  */
-async function fetchImageEndpoint(url, headers, body, provider, log) {
-  try {
-    let response;
-    try {
-      response = await fetchWithTimeout(url, {
-        method: "POST",
-        headers,
-        body,
-        timeoutMs: getConfiguredTimeout(),
-      });
-    } catch (err: unknown) {
-      const isAbortError =
-        typeof err === "object" &&
-        err !== null &&
-        "name" in err &&
-        (err as { name?: unknown }).name === "AbortError";
-      if (err instanceof FetchTimeoutError || isAbortError) {
-        const message = err instanceof Error ? err.message : String(err);
-        if (log) {
-          log.error("IMAGE", `${provider} fetch error: ${message}`);
-        }
-        return {
-          success: false,
-          status: 504,
-          error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
-        };
-      }
-      throw err;
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      if (log) {
-        log.error("IMAGE", `${provider} error ${response.status}: ${errorText.slice(0, 200)}`);
-      }
-      return {
-        success: false,
-        status: response.status,
-        error: errorText,
-      };
-    }
-
-    const data = await response.json();
-
-    // Normalize response to OpenAI format
-    const items = Array.isArray(data?.data) ? data.data : [];
-
-    // Some providers return HTTP 2xx with an empty or malformed image
-    // payload (empty data array, missing/blank b64_json and url). Treating that
-    // as success makes image-combo strategies stop on the first leg and hand an
-    // image-less 200 to the client. Require at least one usable image item and
-    // surface an empty 2xx as a retryable 502 so combos fall back to the next
-    // priority leg.
-    const hasUsableImage = items.some(
-      (item: unknown) =>
-        isJsonObject(item) &&
-        ((typeof item.b64_json === "string" && item.b64_json.length > 0) ||
-          (typeof item.url === "string" && item.url.length > 0))
-    );
-    if (!hasUsableImage) {
-      if (log) {
-        log.warn(
-          "IMAGE",
-          `${provider} returned 200 without a usable image payload; treating as retryable 502`
-        );
-      }
-      return {
-        success: false,
-        status: HTTP_STATUS.BAD_GATEWAY,
-        error: sanitizeErrorMessage(
-          "Image provider returned a success status without an image payload"
-        ),
-      };
-    }
-
-    return {
-      success: true,
-      data: {
-        created: data.created || Math.floor(Date.now() / 1000),
-        data: items,
-      },
-    };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    if (log) {
-      log.error("IMAGE", `${provider} fetch error: ${message}`);
-    }
-    return {
-      success: false,
-      status: 502,
-      error: `Image provider error: ${sanitizeErrorMessage(message || err)}`,
-    };
-  }
-}
-
 /**
  * Handle Hyperbolic image generation
  * Uses { model_name, prompt, height, width } and returns { images: [{ image: base64 }] }
