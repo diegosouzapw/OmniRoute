@@ -1,0 +1,1 @@
+- **fix(providers):** the Anthropic API-key connection test no longer reports a key as valid when Anthropic answers 400 "credit balance is too low" or "not scoped to a workspace" (every real request would fail the same way), and the probe now sends the connection-level `customHeaders` like the chat path does — thanks @shipsfromrio
