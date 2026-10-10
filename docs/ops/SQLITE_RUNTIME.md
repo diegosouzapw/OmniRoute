@@ -71,6 +71,26 @@ omniroute  # will reinstall on next start
 omniroute config db-info  # (if CLI command exists)
 ```
 
+## Diagnosing synchronous stalls
+
+With `better-sqlite3`, set `OMNIROUTE_SQLITE_SLOW_MS=200` before startup to opt
+into synchronous adapter timing. The default is off. A completed operation taking
+at least that many milliseconds emits a `[SQLITE-SLOW]` warning, at most once per
+ten seconds per adapter. The warning contains only the driver, operation class
+(`prepare`, `get`, `all`, `run`, `exec`, `pragma`, transaction or maintenance), and
+elapsed milliseconds: no SQL, bindings, rows, paths or exception text.
+
+This is a diagnostic aid, not a timeout or query optimization. It cannot report
+an operation that never returns, distinguish CPU work from disk waits, identify
+the exact SQL, or observe operations performed through the raw driver handle.
+Async backup duration is deliberately excluded; other SQLite drivers are not
+instrumented by this opt-in. Disabling the variable restores the original adapter
+without timing wrappers. No database schema or stored configuration changes.
+
+The `/healthz` lag warning reports the event-loop peak since the previous sample,
+not the lifetime average. Correlate its timestamps with slow-operation warnings
+and host/storage metrics before attributing a stall to SQLite or disk failure.
+
 ## Reference
 
 Implementation:
@@ -93,4 +113,3 @@ OmniRoute is a **single writer**:
   replica. Prefer TCP liveness + HTTP `/healthz` readiness. See
   [Docker Guide — availability](../guides/DOCKER_GUIDE.md#availability-default-sqlite-is-single-replica)
   and [Kubernetes probe recommendations](./MONITORING_GUIDE.md#kubernetes-probe-recommendations).
-
