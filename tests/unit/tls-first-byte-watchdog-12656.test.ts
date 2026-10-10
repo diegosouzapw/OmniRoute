@@ -53,6 +53,19 @@ function neverYieldingBody(): ReadableStream<Uint8Array> {
   });
 }
 
+let loopGuard: ReturnType<typeof setTimeout> | undefined;
+
+test.beforeEach(() => {
+  // The production first-byte watchdog timer is unref'd, so it cannot keep the
+  // loop alive on its own: hold the loop with a ref'd guard while each case runs.
+  loopGuard = setTimeout(() => {}, 20_000);
+});
+
+test.afterEach(() => {
+  clearTimeout(loopGuard);
+  loopGuard = undefined;
+});
+
 test("#12656 (a) a stalled wreq body falls back to the direct dispatcher within the watchdog window", async () => {
   await withEnv({ ENABLE_TLS_FINGERPRINT: "true", TLS_FIRST_BYTE_WATCHDOG_MS: "80" }, async () => {
     setTlsClientForTest(

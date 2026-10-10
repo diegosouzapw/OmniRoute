@@ -20,6 +20,8 @@ const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuit
 const { waitForCallLogSaves, closeCallLogSaves } = await import("../../src/lib/usage/callLogs.ts");
 
 const originalFetch = globalThis.fetch;
+const { OUTPUT_STYLE_MARKER } =
+  await import("../../open-sse/services/compression/outputStyles/apply.ts");
 
 async function resetStorage() {
   globalThis.fetch = originalFetch;
@@ -43,6 +45,107 @@ test.after(async () => {
   assert.ok(await waitForCallLogSaves(30_000), "the last test's call-log save should finish");
   await closeCallLogSaves(2_000);
   await cleanup();
+});
+
+// Complement the full handleChat pipeline suite with direct chatCore contracts. These
+// checks catch a regression in the core even if a route wrapper compensates for it.
+async function coreStyleReachesUpstream(options: {
+  enabled: boolean;
+  autoClarity: boolean;
+  panel: boolean;
+}) {
+  const userContent = "Explain this security vulnerability in detail.";
+  await compressionDb.updateCompressionSettings({
+    enabled: options.enabled,
+    defaultMode: "off",
+    autoTriggerTokens: 0,
+    outputStyles: options.panel ? [{ id: "terse-prose", level: "full" }] : [],
+    cavemanOutputMode: {
+      enabled: !options.panel,
+      intensity: "full",
+      autoClarity: options.autoClarity,
+    },
+  });
+  const connection = await providersDb.createProviderConnection({
+    provider: "openai",
+    apiKey: "test-key",
+    isActive: true,
+  });
+  const upstreamBodies: Array<{ messages?: Array<{ role?: string; content?: string }> }> = [];
+  globalThis.fetch = async (_url: string | URL | Request, init?: RequestInit) => {
+    if (init?.body) upstreamBodies.push(JSON.parse(String(init.body)));
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { role: "assistant", content: "ok" } }],
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+  const result = await handleChatCore({
+    body: {
+      model: "gpt-4",
+      stream: false,
+      messages: [{ role: "user", content: userContent }],
+    },
+    modelInfo: { provider: "openai", model: "gpt-4" },
+    credentials: { apiKey: "test-key" },
+    log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+    clientRawRequest: { endpoint: "/v1/chat/completions", headers: new Map() },
+    connectionId: connection.id,
+    onCredentialsRefreshed: () => {},
+    onRequestSuccess: () => {},
+    onStreamFailure: () => {},
+    onDisconnect: () => {},
+    userAgent: "test-agent",
+    comboName: null,
+  });
+  assert.ok(result.success, "the core request succeeds");
+  assert.equal(upstreamBodies.length, 1, "exactly one upstream request");
+  assert.ok(upstreamBodies[0].messages, "the upstream request has messages");
+  assert.equal(upstreamBodies[0].messages[0]?.role, "user");
+  assert.equal(upstreamBodies[0].messages[0]?.content, userContent);
+  const response = result.response as Response;
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).choices[0].message.content, "ok");
+  return upstreamBodies[0].messages.some(
+    (message) => message.role === "system" && (message.content ?? "").includes(OUTPUT_STYLE_MARKER)
+  );
+}
+
+test("chatCore direct: Auto-Clarity off keeps legacy styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: false, panel: false }),
+    true
+  );
+});
+
+test("chatCore direct: Auto-Clarity on suppresses legacy styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: true, panel: false }),
+    false
+  );
+});
+
+test("chatCore direct: Auto-Clarity off keeps panel styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: false, panel: true }),
+    true
+  );
+});
+
+test("chatCore direct: Auto-Clarity on suppresses panel styles on a security turn", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: true, autoClarity: true, panel: true }),
+    false
+  );
+});
+
+test("chatCore direct: global compression disable suppresses styles with Auto-Clarity off", async () => {
+  assert.equal(
+    await coreStyleReachesUpstream({ enabled: false, autoClarity: false, panel: false }),
+    false
+  );
 });
 
 test("chatCore integration: compressContext called proactively when context exceeds 85% threshold", async () => {

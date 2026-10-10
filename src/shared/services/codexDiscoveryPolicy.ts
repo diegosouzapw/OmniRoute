@@ -51,7 +51,7 @@ export function isCodexDiscoveryModelExcluded(model: CodexDiscoveryModelIdentity
   });
 }
 
-function compareVersions(left: string, right: string): number | null {
+export function compareCodexDiscoveryVersions(left: string, right: string): number | null {
   const parse = (version: string) => {
     const parts = version.trim().split(".").map(Number);
     return parts.length > 0 && parts.every((part) => Number.isInteger(part) && part >= 0)
@@ -90,7 +90,10 @@ export function classifyCodexDiscoveryModel(
     return { status: "incompatible", reason: "api-not-supported" };
 
   if (typeof model.minimalClientVersion === "string") {
-    const versionComparison = compareVersions(model.minimalClientVersion, implementedClientVersion);
+    const versionComparison = compareCodexDiscoveryVersions(
+      model.minimalClientVersion,
+      implementedClientVersion
+    );
     if (versionComparison === null)
       return { status: "candidate", reason: "invalid-minimal-client-version" };
     if (versionComparison > 0) return { status: "candidate", reason: "requires-newer-client" };

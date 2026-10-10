@@ -995,13 +995,31 @@ export function markAccountExhaustedFromCredits(connectionId: string, provider: 
  * with, as a percentage. Returns 0 once the connection is known exhausted so a
  * 402-marked account cannot be weighted back into the draw.
  */
-export function getQuotaWeightedRemainingPercent(connectionId: string): number | null {
+export function getQuotaWeightedRemainingPercent(
+  connectionId: string,
+  requestedModel: string | null = null
+): number | null {
   const entry = getState().cache.get(connectionId) || hydrateQuotaCacheFromSnapshots(connectionId);
   if (!entry) return null;
   if (isAccountQuotaExhausted(connectionId)) return 0;
 
-  const remaining = Object.values(entry.quotas)
-    .filter((quota) => quota.fractionReported !== false)
+  const provider = entry.provider;
+  const names = Object.keys(entry.quotas);
+  const codexWindowFilter =
+    requestedModel && provider === "codex"
+      ? getCodexQuotaWindowFilterForModel(requestedModel)
+      : undefined;
+  const scoped =
+    requestedModel && (provider === "antigravity" || provider === "agy")
+      ? selectAntigravityQuotaWindowNames(names, requestedModel)
+      : codexWindowFilter
+        ? names.filter(codexWindowFilter)
+        : names;
+  if (requestedModel && scoped.length === 0) return null;
+
+  const remaining = scoped
+    .map((name) => entry.quotas[name])
+    .filter((quota) => quota && quota.fractionReported !== false)
     .map((quota) => clampPercent(quota.remainingPercentage));
   if (remaining.length === 0) return null;
   return Math.min(...remaining);

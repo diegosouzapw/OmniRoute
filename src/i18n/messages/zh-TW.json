@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "預設（自動）",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "最大輸出代幣",
+    "maxOutputTokenOverrideHint": "請輸入正整數權杖數。留空以使用預設值。",
     "contextWindowOverrideLabel": "上下文視窗覆寫",
     "contextWindowOverridePlaceholder": "例如 131072",
     "contextWindowOverrideHint": "當提供者回報不正確時，手動設定此模型的實際上下文視窗（token）。此設定優先於自動偵測/目錄值，並可防止組合路由丟棄該模型。",

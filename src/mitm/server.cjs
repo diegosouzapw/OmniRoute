@@ -910,10 +910,13 @@ async function startMitmServer() {
     }
   });
 
+  // Dual-stack on purpose: the DNS spoof maps hosts to ::1 too, so binding to
+  // 127.0.0.1 alone would break clients that resolve to ::1. The peer guard above
+  // is what keeps LAN peers out.
   server.listen(LOCAL_PORT, () => {
     stats.startedAt = new Date().toISOString();
     writeStats();
-    console.log(`🚀 MITM ready on :${LOCAL_PORT} → ${ROUTER_URL}`);
+    console.log(`🚀 MITM ready on :${LOCAL_PORT} (loopback peers only) → ${ROUTER_URL}`);
   });
 
   server.on("connection", (socket) => {

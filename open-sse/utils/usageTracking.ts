@@ -227,6 +227,26 @@ export function addBufferToUsage(usage: UsageLike | null | undefined) {
   return result;
 }
 
+/** Keep `cache_creation_in_prompt` when a rebuilt usage with the same prompt total replaces `from`. */
+export function carryCacheCreationMarker<T>(from: unknown, to: T): T {
+  if (!from || typeof from !== "object" || !to || typeof to !== "object") return to;
+  const source = from as Record<string, unknown>;
+  const target = to as Record<string, unknown>;
+  const promptTotal = (usage: Record<string, unknown>) => usage.prompt_tokens ?? usage.input_tokens;
+  if (promptTotal(source) === undefined || promptTotal(source) !== promptTotal(target)) return to;
+  for (const key of ["prompt_tokens_details", "input_tokens_details"]) {
+    const sourceDetails = source[key] as Record<string, unknown> | undefined;
+    const flag = sourceDetails?.cache_creation_in_prompt;
+    if (typeof flag !== "boolean") continue;
+    const targetDetails = target[key];
+    target[key] = {
+      ...(targetDetails && typeof targetDetails === "object" ? targetDetails : {}),
+      cache_creation_in_prompt: flag,
+    };
+  }
+  return to;
+}
+
 export function filterUsageForFormat(usage: UsageLike | null | undefined, targetFormat: string) {
   if (!usage || typeof usage !== "object") return usage;
 

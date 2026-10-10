@@ -1,0 +1,1 @@
+- **fix(db):** avoid synchronous database-wide statistics and integrity scans when inference reads semantic-cache or modality-combo settings; retain administrative database diagnostics ([#16037](https://github.com/diegosouzapw/OmniRoute/pull/16037)) — thanks @insoln

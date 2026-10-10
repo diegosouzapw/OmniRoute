@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "משהו השתבש",
+      "description": "אירעה שגיאה בלתי צפויה. זה נרשם וצוותנו יחקור את העניין.",
+      "detailsAriaLabel": "פרטי שגיאה",
+      "retryAriaLabel": "נסה לטעון את הדף שוב",
+      "tryAgain": "נסה שוב",
+      "statusAriaLabel": "פתח את מצב המערכת",
+      "systemStatus": "סטטוס מערכת"
+    }
+  }
+}

@@ -10,7 +10,11 @@ import {
   getProviderCredentialsWithQuotaPreflight,
   clearRecoveredProviderState,
 } from "@/sse/services/auth";
-import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
+import {
+  errorResponse,
+  sanitizeErrorMessage,
+  unavailableResponse,
+} from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import * as log from "@/sse/utils/logger";
 import { toJsonErrorPayload } from "@/shared/utils/upstreamError";
@@ -102,7 +106,10 @@ async function readUpscaleBody(request: Request): Promise<Record<string, unknown
       }
       return body;
     } catch (err) {
-      log.warn("IMAGE", `Invalid multipart upscale body: ${err instanceof Error ? err.message : err}`);
+      log.warn(
+        "IMAGE",
+        `Invalid multipart upscale body: ${err instanceof Error ? err.message : err}`
+      );
       return null;
     }
   }
@@ -226,7 +233,9 @@ async function postHandler(request: Request) {
   let proxyInfo: { proxy?: unknown } | null = null;
   if (creds.connectionId) {
     try {
-      proxyInfo = (await resolveProxyForConnection(creds.connectionId)) as { proxy?: unknown } | null;
+      proxyInfo = (await resolveProxyForConnection(creds.connectionId)) as {
+        proxy?: unknown;
+      } | null;
     } catch {
       log.debug("PROXY", `Failed to resolve proxy for upscale provider: ${provider}`);
     }
@@ -239,7 +248,12 @@ async function postHandler(request: Request) {
         (err: { statusCode?: number; message?: string }) => ({
           success: false,
           status: err.statusCode || 500,
-          error: err.message,
+          // Hard Rule #12 (#15159 wave 1.2): sanitize where the raw value is
+          // captured. toJsonErrorPayload() also sanitizes internally (wave 1.1),
+          // but the gate judges per LINE and cannot see through that call — so
+          // without this the site stayed frozen in KNOWN_MISSING_ERROR_HELPER
+          // while the route hand-serialized the payload via new Response().
+          error: sanitizeErrorMessage(err.message),
         })
       )
     : runUpscale());
@@ -264,11 +278,19 @@ async function postHandler(request: Request) {
   const errorPayload = toJsonErrorPayload(
     (result as { error?: unknown }).error,
     "Image upscale provider error"
+  ) as {
+    error?: { message?: string };
+  };
+  // Hard Rule #12 (#15159 wave 1.2): build the response through the sanctioned
+  // builder, which sanitizes internally, instead of hand-serializing the payload
+  // with `new Response(JSON.stringify(...))`. This is the divergence the audit
+  // called out — the sibling generations/route.ts already did exactly this.
+  return errorResponse(
+    (result as { status?: number }).status ?? HTTP_STATUS.BAD_GATEWAY,
+    typeof errorPayload?.error?.message === "string"
+      ? errorPayload.error.message
+      : "Image upscale provider error"
   );
-  return new Response(JSON.stringify(errorPayload), {
-    status: (result as { status?: number }).status ?? HTTP_STATUS.BAD_GATEWAY,
-    headers: { "Content-Type": "application/json" },
-  });
 }
 
 export const POST = withInjectionGuard(postHandler);

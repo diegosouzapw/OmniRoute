@@ -12,6 +12,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import http from "node:http";
+import { Readable } from "node:stream";
+import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 import { useDecollidedMigrationsDir } from "./helpers/decollidedMigrationsDir.ts";
 
@@ -75,6 +78,48 @@ describe("GET /api/logs/export streaming and row cap (#13123)", () => {
     core.resetDbInstance();
     fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   });
+
+  for (const failDuringHydration of [false, true]) {
+    it(`#13999: real HTTP count reflects emitted rows after ${failDuringHydration ? "hydration failure" : "concurrent deletion"}`, async () => {
+      for (let i = 0; i < 3; i++) await seedCallLog(`concurrent-${i}`, hoursAgo(i + 1));
+      const server = http.createServer(async (_req, res) => {
+        const response = await route.GET(
+          new Request("http://localhost/api/logs/export?hours=24&type=call-logs&limit=2")
+        );
+        // COUNT has completed and the first row has started hydration. Change the
+        // real SQLite source before the iterator can hydrate its remaining IDs.
+        if (failDuringHydration) core.getDbInstance().exec("DROP TABLE call_logs");
+        else core.getDbInstance().prepare("DELETE FROM call_logs WHERE id = ?").run("concurrent-1");
+        res.writeHead(response.status, Object.fromEntries(response.headers));
+        assert.ok(response.body);
+        Readable.fromWeb(response.body as NodeReadableStream<Uint8Array>).pipe(res);
+      });
+      await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+      try {
+        const address = server.address();
+        assert.ok(address && typeof address === "object");
+        const response = await fetch(`http://127.0.0.1:${address.port}`, {
+          signal: AbortSignal.timeout(5000),
+        });
+        const body = await response.json();
+        assert.equal(response.status, 200);
+        assert.equal(body.logs.length, 1);
+        assert.equal(body.count, body.logs.length, "count must describe rows actually emitted");
+        assert.equal(body.estimatedCount, 2);
+        assert.equal(body.totalAvailable, 3);
+        if (failDuringHydration) {
+          assert.equal(body.emitted, 1);
+          assert.equal(typeof body.error, "string");
+          assert.ok(!body.error.includes("at /"));
+        } else assert.equal(body.error, undefined);
+      } finally {
+        server.closeAllConnections();
+        await new Promise<void>((resolve, reject) =>
+          server.close((err) => (err ? reject(err) : resolve()))
+        );
+      }
+    });
+  }
 
   it("streamed response is valid JSON with the expected envelope shape for call-logs", async () => {
     await seedCallLog("call-1", hoursAgo(2));

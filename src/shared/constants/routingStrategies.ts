@@ -46,6 +46,7 @@ export const AUTO_ROUTING_STRATEGY_VALUES = [
   "sla-aware",
   "sla",
   "lkgp",
+  "nadir",
 ] as const;
 
 export type AutoRoutingStrategyValue = (typeof AUTO_ROUTING_STRATEGY_VALUES)[number];

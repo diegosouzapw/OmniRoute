@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { buildClaudeModelsHeaders } from "@/lib/providerModels/claudeModelsHeaders";
+import { applyConnectionCustomHeaders } from "./connectionCustomHeaders";
 
 const pageSchema = z.object({
   data: z.array(z.unknown()),
@@ -38,13 +39,16 @@ export async function fetchClaudeDiscoveryModels({
   accessToken,
   apiKey,
   fetchImpl,
+  providerSpecificData,
 }: {
   accessToken: string;
   apiKey: string;
   fetchImpl: DiscoveryFetch;
+  providerSpecificData?: unknown;
 }): Promise<ClaudeModel[]> {
   if (!accessToken && !apiKey) throw new Error("Claude model discovery requires credentials");
   const headers = buildClaudeModelsHeaders({ accessToken, apiKey });
+  applyConnectionCustomHeaders(headers, providerSpecificData);
   const models = new Map<string, ClaudeModel>();
   const cursors = new Set<string>();
   let cursor: string | undefined;

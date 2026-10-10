@@ -444,6 +444,11 @@
       "disposition": "separately-invoked"
     },
     {
+      "name": "quality:boundary",
+      "command": "node scripts/quality/measure-boundary.mjs",
+      "disposition": "separately-invoked"
+    },
+    {
       "name": "quality:collect",
       "command": "node scripts/quality/collect-metrics.mjs",
       "disposition": "separately-invoked"
@@ -710,7 +715,7 @@
         "check:test-discovery",
         "check:test-masking",
         "check:duplication",
-        "check:cycles"
+        "check:cycles:ratchet"
       ]
     },
     "quality-scan-fast": {

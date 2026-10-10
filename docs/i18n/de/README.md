@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funktionen</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Anbieter</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Anbieter</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ aus Ihrem Shell-Verlauf heraus. → [CLI-Integrationen](docs/guides/CLI-INTEGRAT
 
 <div align="center">
 
-## 🌐 357 KI-Anbieter — 152 im Katalog als kostenlos gekennzeichnet
+## 🌐 372 KI-Anbieter — 154 im Katalog als kostenlos gekennzeichnet
 
 </div>
 
@@ -1274,7 +1274,7 @@ Kanonische Kennzahlen vom 2026-08-24: **1.029 einzigartige Videos** · **11.132.
   <tr><td nowrap><b>Laufzeitumgebung</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Sprache</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> in <code>src/</code> und <code>open-sse/</code> (seit v2.0 kein <code>any</code> im Kern)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Datenbank</b></td><td>better-sqlite3 (SQLite, WAL-Journaling) + LowDB (JSON-Altsystem) — 137 Domänenmodule, 193 Migrationen</td></tr>
+  <tr><td nowrap><b>Datenbank</b></td><td>better-sqlite3 (SQLite, WAL-Journaling) + LowDB (JSON-Altsystem) — 137 Domänenmodule, 202 Migrationen</td></tr>
   <tr><td nowrap><b>Speicher</b></td><td>SQLite-FTS5-Volltextsuche + int8-quantisierte Vektoreinbettungen, typisierter Verfall</td></tr>
   <tr><td nowrap><b>Schemata</b></td><td>Zod 4 — Validierung der Ein- und Ausgaben von MCP-Werkzeugen + API-Verträge</td></tr>
   <tr><td nowrap><b>Protokolle</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

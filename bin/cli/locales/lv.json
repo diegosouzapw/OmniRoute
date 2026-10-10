@@ -254,6 +254,7 @@
     "log": "Rādīt servera žurnālus tiešā veidā",
     "no_recovery": "Atspējot automātisko restartēšanu pie avārijas (turināšanas režīms)",
     "max_restarts": "Maksimālās avāriju restartēšanas 30 sekunžu laikā pirms padoties (noklusējums: 2)",
+    "headless": "Palaist tikai starpniekservera dzinēju: informācijas panelis atspējots (404), izvēles apakšsistēmas izlaistas (iestata OMNIROUTE_HEADLESS=1)",
     "tray": "Sākt sistēmas tray (tikai darbvirsmas, izvēlēties)",
     "no_tray": "Atspējot sistēmas tray ikonu",
     "ready_timeout": "Gatavības pārbaudes taimauts milisekundēs (arī OMNIROUTE_READY_TIMEOUT_MS, noklusējuma vērtība 60000)",

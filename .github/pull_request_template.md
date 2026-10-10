@@ -7,6 +7,16 @@
 - Closes #
 - Related to #
 
+## Target Branch
+
+See the [Release Strategy](../docs/ops/RELEASE_STRATEGY.md), the
+[Contribution Golden Path](../docs/ops/CONTRIBUTION_GOLDEN_PATH.md) and the
+[ROADMAP](../ROADMAP.md):
+
+- [ ] Base is the active `release/v3.8.x` branch (the highest open `release/v*`), not `main`
+- [ ] New feature? From 3.8.55 on it is held with the `v4-feature` label for the v4 channel
+- Focused templates: append `?template=feature.md` or `?template=bugfix.md` to the compare URL
+
 ## Validation
 
 Choose the change type and focused loop from the

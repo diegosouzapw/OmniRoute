@@ -1,4 +1,5 @@
 import { RateLimitReason } from "@omniroute/open-sse/config/constants.ts";
+import { isExplicitModelCapacityFailure } from "@omniroute/open-sse/services/accountFallback/perModelFailureScope.ts";
 
 type FallbackSignal = { permanent?: boolean; reason?: unknown; creditsExhausted?: boolean };
 
@@ -19,8 +20,11 @@ export function isQuotaExhaustedSignal(fallbackResult: FallbackSignal): boolean 
 export function isModelScopedFailure(
   status: number,
   isNvidiaModelGone: boolean,
-  fallbackResult: FallbackSignal
+  fallbackResult: FallbackSignal,
+  errorText?: unknown,
+  model?: string | null
 ): boolean {
+  if (isExplicitModelCapacityFailure(status, errorText, model)) return true;
   if (status === 404 || isNvidiaModelGone || status === 429 || status >= 500) return true;
   return (
     !fallbackResult.permanent &&

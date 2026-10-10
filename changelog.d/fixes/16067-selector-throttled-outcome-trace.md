@@ -1,0 +1,1 @@
+- **fix(proxy-subscription):** record throttled selector repeats on the subscription row so the list shows why nothing moved ([#16067](https://github.com/diegosouzapw/OmniRoute/pull/16067)) — thanks @maxmad64bis
