@@ -9,6 +9,40 @@ const IMPORT_RE =
   /(?:import|export)[^'"]*from\s*['"]([^'"]+)['"]|require\(\s*['"]([^'"]+)['"]\s*\)|import\(\s*['"]([^'"]+)['"]\s*\)/g;
 const EXTS = [".ts", ".tsx", ".mts", ".js", ".mjs"];
 
+// A test may pin a root config or a workflow file by reading it, not by importing it
+// (#16068): `new URL("../../.github/workflows/quality.yml", import.meta.url)`,
+// `readFileSync(resolve(here, "../../next.config.mjs"))`, or
+// `path.join(process.cwd(), "next.config.mjs")`. None of those are import specifiers,
+// so the sibling gate and the TIA selector never point a change in one of those files
+// at the test that pins it. Match the handful of root-config basenames and any
+// `.github/workflows/*.yml(.yaml)` path, resolved two ways: relative to the test file
+// (the `new URL`/`resolve(here, …)` shape) or relative to the repo root (the
+// `process.cwd()` shape, which only makes sense for a file CI actually runs `cwd=root`
+// from).
+const CONFIG_FILE_RE =
+  /(["'`])((?:\.\.\/)*(?:\.github\/workflows\/[\w.-]+\.ya?ml|[\w.-]+\.config\.[cm]?[jt]s|config\/quality\/[\w.-]+\.json))\1/g;
+
+export function configFileDepsOf(testFile, root = ROOT) {
+  const found = new Set();
+  let code;
+  try {
+    code = fs.readFileSync(testFile, "utf8");
+  } catch {
+    return found;
+  }
+  for (const m of code.matchAll(CONFIG_FILE_RE)) {
+    const spec = m[2];
+    const fromTestDir = path.resolve(path.dirname(testFile), spec);
+    const fromRoot = path.resolve(root, spec);
+    for (const candidate of [fromTestDir, fromRoot]) {
+      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+        found.add(path.relative(root, candidate));
+      }
+    }
+  }
+  return found;
+}
+
 export function resolveImport(spec, fromFile, root = ROOT) {
   let base;
   if (spec.startsWith("@/")) base = path.join(root, "src", spec.slice(2));
@@ -76,6 +110,9 @@ export function buildTestImpactMap(root = ROOT) {
     const relTest = path.relative(root, tf);
     for (const src of sourceDepsOf(tf, root)) {
       (map[src] ||= []).push(relTest);
+    }
+    for (const configFile of configFileDepsOf(tf, root)) {
+      (map[configFile] ||= []).push(relTest);
     }
   }
   for (const k of Object.keys(map)) map[k].sort();
