@@ -548,14 +548,6 @@
       "count": 3
     }
   },
-  "open-sse/services/usage/codebuddy-cn.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/usage/github.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1462,11 +1454,6 @@
       "count": 1
     }
   },
-  "src/lib/oauth/providers/codebuddy-cn.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "src/lib/oauth/providers/codex.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -1816,11 +1803,6 @@
   "src/shared/validation/schemas/pricing.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 11
-    }
-  },
-  "src/shared/validation/schemas/provider.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 10
     }
   },
   "src/shared/validation/schemas/proxy.ts": {

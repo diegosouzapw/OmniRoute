@@ -113,6 +113,48 @@ test("buildFalVideoRequestBody maps the Gemini Omni Flash video schema", () => {
   );
 });
 
+test("buildFalVideoRequestBody encodes MiniMax H3 in fal's integer/uppercase enum forms", () => {
+  // H3 rejects the generic `"8s"` duration and lowercase `"720p"`: fal's OpenAPI
+  // declares `duration` as integer 5…15 and `resolution` as "480P"|"768P"|"1080P".
+  // Sending the shared defaults produced a 422 for every H3 call.
+  assert.deepEqual(
+    buildFalVideoRequestBody(
+      { prompt: "A lighthouse in a storm", duration: 5 },
+      "minimax/h3-max/text-to-video"
+    ),
+    {
+      prompt: "A lighthouse in a storm",
+      aspect_ratio: "16:9",
+      duration: 5, // integer, not "5s"
+      resolution: "768P", // 720p has no H3 tier -> its native 768P mid-tier
+      generate_audio: true,
+    }
+  );
+
+  // Every explicit resolution maps onto the same uppercase enum.
+  assert.equal(
+    buildFalVideoRequestBody({ prompt: "x", resolution: "480p" }, "minimax/h3-max/text-to-video")
+      .resolution,
+    "480P"
+  );
+  assert.equal(
+    buildFalVideoRequestBody({ prompt: "x", resolution: "1080p" }, "minimax/h3/text-to-video")
+      .resolution,
+    "1080P"
+  );
+
+  // Duration clamps into the declared 5…15 range.
+  assert.equal(
+    buildFalVideoRequestBody({ prompt: "x", duration: 30 }, "minimax/h3-max/text-to-video")
+      .duration,
+    15
+  );
+
+  // Models outside the H3 family keep the historical lowercase/`"Ns"` defaults.
+  assert.equal(buildFalVideoRequestBody({ prompt: "x" }, "fal-ai/veo3.1").resolution, "720p");
+  assert.equal(buildFalVideoRequestBody({ prompt: "x" }, "fal-ai/veo3.1").duration, "8s");
+});
+
 test("handleFalVideoGeneration selects Gemini Omni Flash image-to-video", async () => {
   const originalFetch = globalThis.fetch;
   const requests: Array<{ url: string; body: string }> = [];

@@ -28,6 +28,7 @@ import { isDashscopeTextModelId } from "@omniroute/open-sse/services/dashscopeTe
 import { extractZaiToken } from "@omniroute/open-sse/services/zaiWebCredentials.ts";
 import { buildOpencodeBackgroundHeaders } from "@omniroute/open-sse/utils/opencodeHeaders.ts";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
+import { applyConnectionCustomHeaders } from "./connectionCustomHeaders";
 import { buildChatPlaygroundModelsDiscoveryEntry } from "@omniroute/open-sse/services/chatplaygroundModels.ts";
 import { normalizeOpenAiLikeModelsResponse, normalizeWorkbuddyModelsResponse } from "./normalizers";
 
@@ -140,6 +141,7 @@ export function assembleProviderModelsHeaders(
   if (!config.buildHeaders && config.authHeader && !config.authQuery) {
     headers[config.authHeader] = (config.authPrefix || "") + token;
   }
+  applyConnectionCustomHeaders(headers, context?.providerSpecificData);
   return headers;
 }
 

@@ -448,7 +448,10 @@ export function buildCursorUsage(ctx: StreamCtx, body: { messages?: ChatMessage[
       total_tokens: prompt + completion,
       prompt_tokens_details: {
         cached_tokens: cached,
-        ...(cacheWrite > 0 ? { cache_creation_tokens: cacheWrite } : {}),
+        // runInput is at least read + write, so the write is inside prompt_tokens.
+        ...(cacheWrite > 0
+          ? { cache_creation_tokens: cacheWrite, cache_creation_in_prompt: true }
+          : {}),
       },
     };
     if (metered.reasoningTokens) {
@@ -472,8 +475,9 @@ export function buildCursorUsage(ctx: StreamCtx, body: { messages?: ChatMessage[
   if (metered?.cacheReadTokens !== undefined || metered?.cacheWriteTokens !== undefined) {
     usage.prompt_tokens_details = {
       ...(metered.cacheReadTokens !== undefined ? { cached_tokens: metered.cacheReadTokens } : {}),
+      // The estimate covers the whole prompt, so the write is inside prompt_tokens.
       ...(metered.cacheWriteTokens !== undefined
-        ? { cache_creation_tokens: metered.cacheWriteTokens }
+        ? { cache_creation_tokens: metered.cacheWriteTokens, cache_creation_in_prompt: true }
         : {}),
     };
   }

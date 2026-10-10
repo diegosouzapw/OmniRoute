@@ -2,6 +2,7 @@ import { intersectAllowedConnectionIds } from "./chat/connectionConstraints.ts";
 import { hasQoderCallerTools } from "@omniroute/open-sse/services/qoderCapabilities";
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { getComboCredentialAvailability } from "./comboCredentialAvailability.ts";
 import * as chatAdmission from "./chatAdmission.ts";
 import { buildClientRawRequest, resolveDispatchClientRawRequest } from "./chat/clientRawRequest.ts";
 export { buildClientRawRequest, resolveDispatchClientRawRequest };
@@ -1197,12 +1198,8 @@ async function handleChatImplementation(
           ...(managedLease ? { lease: credentialLease(managedLease) } : {}),
         }
       );
-      if (
-        !creds ||
-        ("allRateLimited" in creds && creds.allRateLimited) ||
-        ("waitingForCapacity" in creds && creds.waitingForCapacity)
-      )
-        return false;
+      const availability = getComboCredentialAvailability(creds);
+      if (availability !== true) return availability;
 
       // OAuth selection must happen atomically with occupancy reservation in the
       // actual dispatch. Availability preflight may finish well before a combo
@@ -2644,6 +2641,7 @@ async function handleSingleModelChat(
               ),
               isCombo,
               headers: result.response.headers,
+              structuredError: { code: result.errorCode, type: result.errorType },
             })
           );
 

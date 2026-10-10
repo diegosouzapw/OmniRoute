@@ -1,0 +1,1 @@
+- **fix(sse):** silent Responses stall shadow miss is counted without a debug line ([#16102](https://github.com/diegosouzapw/OmniRoute/pull/16102)) — thanks @maxmad64bis

@@ -36,6 +36,8 @@ jobs:
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
       testsOnly: ${{ steps.classify.outputs.testsOnly }}
+      # Exposure only (one-CI-policy step 1, RFC #8084): no job depends on it yet.
+      domains: ${{ steps.classify.outputs.domains }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -75,6 +77,7 @@ jobs:
               echo "i18n=true"
               echo "workflow=true"
               echo "testsOnly=false"
+              echo "domains=build,catalog,cli,core,db,docs,i18n,provider,routing,tests,ui,workflow"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
