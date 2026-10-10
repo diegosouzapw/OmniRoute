@@ -148,9 +148,11 @@ jobs:
             SKIP="true"
           fi
 
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
-          echo "skip=$SKIP"        >> "$GITHUB_OUTPUT"
+          {
+            echo "version=$VERSION"
+            echo "tag=$TAG"
+            echo "skip=$SKIP"
+          } >> "$GITHUB_OUTPUT"
           echo "📦 Resolved omniroute@$VERSION dist-tag=$TAG skip=$SKIP"
 
       - name: Sync package.json version
