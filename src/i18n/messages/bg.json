@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "По подразбиране (автоматично)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Максимални изходни токени",
+    "maxOutputTokenOverrideHint": "Въведете положителен цял брой токени. Оставете празно за стойността по подразбиране.",
     "contextWindowOverrideLabel": "Предефиниране на контекстния прозорец",
     "contextWindowOverridePlaceholder": "напр. 131072",
     "contextWindowOverrideHint": "Ръчно задаване на реалния контекстен прозорец (токени) на този модел, когато доставчикът го отчита неправилно. Има предимство пред автоматично откритите/каталожните стойности и предотвратява отпадането на модела при комбинирано маршрутизиране.",

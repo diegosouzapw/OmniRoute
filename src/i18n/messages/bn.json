@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "ডিফল্ট (স্বয়ংক্রিয়)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "সর্বোচ্চ আউটপুট টোকেন",
+    "maxOutputTokenOverrideHint": "টোকেনের ধনাত্মক পূর্ণসংখ্যা লিখুন। ডিফল্ট মান ব্যবহার করতে খালি রাখুন।",
     "contextWindowOverrideLabel": "কনটেক্সট উইন্ডো ওভাররাইড",
     "contextWindowOverridePlaceholder": "যেমন: 131072",
     "contextWindowOverrideHint": "প্রোভাইডার ভুল রিপোর্ট করলে ম্যানুয়ালি এই মডেলের আসল কনটেক্সট উইন্ডো (টোকেন) সেট করুন। এটি স্বয়ংক্রিয়ভাবে সনাক্ত করা/ক্যাটালগ মানের চেয়ে অগ্রাধিকার পায় এবং কম্বো রাউটিং থেকে মডেলটি বাদ পড়া রোধ করে।",

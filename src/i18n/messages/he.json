@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "ברירת מחדל (אוטומטי)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "אסימוני פלט מקסימליים",
+    "maxOutputTokenOverrideHint": "יש להזין מספר שלם וחיובי של טוקנים. השאירו ריק כדי להשתמש בברירת המחדל.",
     "contextWindowOverrideLabel": "עקיפת חלון הקשר",
     "contextWindowOverridePlaceholder": "למשל 131072",
     "contextWindowOverrideHint": "הגדר ידנית את חלון ההקשר האמיתי של דגם זה (אסימונים) כאשר הספק מדווח עליו בצורה שגויה. גובר על ערכים שזוהו אוטומטית/בקטלוג ומונע מניתוב משולב להשמיט את הדגם.",

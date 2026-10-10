@@ -72,8 +72,16 @@ export type ClassifyModelImportInput = {
 
 export type ModelImportOutcome = "no-models" | "nothing-new" | "import";
 
-/** A model entry as discovery returns it; the id may be under any of these keys. */
-export type DiscoveredModel = { id?: unknown; name?: unknown; model?: unknown };
+/**
+ * A model entry as discovery returns it; the id may be under any of these keys. The rest of the
+ * entry (apiFormat, dimensions, inputTokenLimit, …) is forwarded to the import call as-is.
+ */
+export type DiscoveredModel = {
+  id?: unknown;
+  name?: unknown;
+  model?: unknown;
+  [field: string]: unknown;
+};
 
 export type ModelImportClassification = {
   outcome: ModelImportOutcome;

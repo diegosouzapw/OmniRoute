@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "Standaard (automatisch)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maximale uitvoertokens",
+    "maxOutputTokenOverrideHint": "Voer een positief geheel aantal tokens in. Laat leeg om de standaardwaarde te gebruiken.",
     "contextWindowOverrideLabel": "Contextvenster overschrijven",
     "contextWindowOverridePlaceholder": "bijv. 131072",
     "contextWindowOverrideHint": "Stel handmatig het werkelijke contextvenster (tokens) van dit model in wanneer de provider dit onjuist rapporteert. Dit heeft voorrang op automatisch gedetecteerde/cataloguswaarden en voorkomt dat combo-routering het model laat vallen.",

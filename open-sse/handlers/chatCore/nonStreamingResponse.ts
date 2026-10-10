@@ -42,6 +42,7 @@ export {
 };
 
 import { HTTP_STATUS } from "../../config/constants.ts";
+import { buildMalformedResponseDiagnostic } from "../../utils/responseShapeDiagnostic.ts";
 
 import { lockModel } from "../../services/accountFallback.ts";
 
@@ -829,6 +830,11 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
     // choices:[] or output:[] with no usable content (Responses API shape included).
     const malformedTranslatedReason = detectMalformedNonStream(translatedResponse, provider);
     if (malformedTranslatedReason) {
+      const malformedDiagnostic = buildMalformedResponseDiagnostic(
+        malformedTranslatedReason,
+        responseBody,
+        translatedResponse
+      );
       const totalLatency = Date.now() - startTime;
       const rawBytes = (() => {
         try {
@@ -870,6 +876,7 @@ export async function runNonStreamingResponse(deps: NonStreamingDeps) {
         : sanitizedMalformedResponse;
       persistAttemptLogs({
         status: HTTP_STATUS.BAD_GATEWAY,
+        error: malformedDiagnostic,
         tokens: usage,
         responseBody: sanitizedMalformedResponse,
         providerRequest: finalBody || translatedBody,

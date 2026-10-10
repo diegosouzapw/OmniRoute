@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "Standard (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maximalt antal utdatatoken",
+    "maxOutputTokenOverrideHint": "Ange ett positivt helt antal token. Lämna tomt för att använda standardvärdet.",
     "contextWindowOverrideLabel": "Åsidosättning av kontextfönster",
     "contextWindowOverridePlaceholder": "t.ex. 131072",
     "contextWindowOverrideHint": "Ställ in denna modells verkliga kontextfönster (tokens) manuellt när leverantören rapporterar fel. Går före automatiskt identifierade värden/katalogvärden och förhindrar att kombinationsdirigering tappar modellen.",

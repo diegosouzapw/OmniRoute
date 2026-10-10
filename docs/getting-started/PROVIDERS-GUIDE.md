@@ -184,7 +184,6 @@ These providers offer **free access** with no credit card:
 | **Cloudflare AI** | 10K neurons/day  | 50+ models                               | No auth needed |
 | **NVIDIA NIM**    | ~40 RPM          | 129 models                               | API key needed |
 | **Cerebras**      | $5 signup credit | GLM 4.7, GPT-OSS 120B                    | API key + card |
-| **Qoder**         | Unlimited        | Kimi-K2, DeepSeek-R1, Qwen3-coder        | No auth needed |
 
 **Tip**: Connect multiple free providers for **unlimited free AI** with automatic fallback!
 
@@ -285,6 +284,46 @@ Then use `model: "auto"` and OmniRoute will automatically pick the best one for 
 1. Get API key: https://platform.deepseek.com/
 2. In OmniRoute: Providers → Add Provider → DeepSeek
 3. Paste API key → Connect
+
+### Qoder: choose the credential transport
+
+Qoder requires credentials. Its two transports have different capabilities; a model name
+alone does not identify what a particular connection can do.
+
+| Credential                      | OmniRoute transport                            | Caller tool calling                               | Streaming                                                          |
+| ------------------------------- | ---------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
+| PAT beginning with `pt-`        | Local `qodercli` process on the OmniRoute host | Unsupported                                       | Buffered: SSE is emitted only after the CLI returns the full reply |
+| Non-PAT access token or API key | DashScope OpenAI-compatible HTTP endpoint      | Passed through, subject to the upstream model/key | Upstream HTTP/SSE path                                             |
+
+For a PAT, install the Qoder CLI on the same host or container as OmniRoute. The executable
+must be discoverable as `qodercli`, or set `CLI_QODER_BIN` to its executable path. A CLI
+installed only on the Docker host is not automatically present in the container. Missing
+binaries produce an explicit error directing you to the installation or path setting.
+
+The PAT chat path has a 45-second process timeout. It flattens the conversation into a
+prompt and invokes the CLI in non-streaming print mode. Requesting `stream: true` changes
+the response envelope to SSE; it does not provide incremental upstream token delivery.
+CLI validation/model listing uses a separate 20-second timeout. These are current code
+defaults, not configurable dashboard settings.
+
+Use PAT connections for plain chat. Agent requests carrying `tools` or legacy `functions`
+exclude PAT accounts during credential selection, including pinned combo targets. A mixed
+Qoder pool can still select its HTTP account. Direct calls to the PAT executor also fail
+explicitly before launching the CLI instead of silently dropping tool definitions. This
+restriction concerns tools supplied by the API caller, not any internal tools the Qoder
+CLI might use itself. An HTTP key does not guarantee every model supports tools; normal
+model capability checks still apply.
+
+Browser OAuth is available only when the administrator configures all five settings:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID`, and `QODER_OAUTH_CLIENT_SECRET`. They default to empty; an
+unconfigured installation should use a supported credential import instead of assuming
+that the browser sign-in flow is ready.
+
+Implementation references: [Qoder executor](../../open-sse/executors/qoder.ts),
+[CLI runtime](../../open-sse/services/qoderCli.ts), and
+[OAuth configuration](../../src/lib/oauth/constants/oauth.ts). Incremental PAT streaming
+and a configurable timeout are separate enhancements; this behavior does not promise them.
 
 ### Groq
 

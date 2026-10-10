@@ -60,7 +60,21 @@ queue_rules:
       - check-success=Merge integrity (changelog + generated skills)
     # NO batching: 'Merge Queue Batch' requires a paid Mergify tier (live finding
     # 2026-07-15 — the queue command fails with "Cannot use Merge Queue batch" on
-    # the free plan). Serial queue (1 PR at a time) still automates the train.
+    # the free plan; #7220). Serial queue (1 PR at a time) still automates the train.
+    # Rail G11 (v3.8.54) asks for batch_size ~5: it stays BLOCKED on that tier —
+    # adding batch_size/batch_max_wait_time here would dequeue EVERY PR again. Do not
+    # re-add them unless the Mergify subscription is upgraded (owner decision).
+    #
+    # checks_timeout = 2 x p95 wall-clock of the quality.yml workflow (the fast-gates
+    # that run on PR -> release/**), measured over the last 100 successful runs
+    # (2026-09-28 .. 2026-10-08, createdAt -> updatedAt, so runner queueing counts):
+    #   mean 34.5 min · p50 1.8 min · p90 101.0 min · p95 119.75 min · max 468.6 min
+    #   (bimodal: path-filtered docs-only runs ~2 min vs full runs ~72 min median).
+    #   2 x 119.75 = 239.5 -> rounded up to 240 min. A PR whose checks are still
+    #   pending past this is dequeued instead of blocking the serial queue forever.
+    #   Re-measure with: gh run list --workflow quality.yml --status success
+    #   --limit 100 --json createdAt,updatedAt (contract: tests/unit/mergify-queue-config.test.ts).
+    checks_timeout: 240 min
     # Squash keeps the one-commit-per-PR history the CHANGELOG reconciliation expects.
     merge_method: squash
 

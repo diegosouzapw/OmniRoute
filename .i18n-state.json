@@ -15741,7 +15741,7 @@
       }
     },
     "docs/frameworks/MCP-SERVER.md": {
-      "source_hash": "e6dad5fa6e9eb6c0c7484edebc4d008255a04bd6058e0cf36464a26dbe114130",
+      "source_hash": "d52489818c0589192e2cf6601a82962b5b3311ec573f73e6cf6d76fba25c6ec6",
       "locales": {
         "ar": {
           "source_hash": "e6dad5fa6e9eb6c0c7484edebc4d008255a04bd6058e0cf36464a26dbe114130",
@@ -42252,7 +42252,7 @@
       }
     },
     "docs/reference/ENVIRONMENT.md": {
-      "source_hash": "0d9c63641e0d63a4a7fc5d8595fbe0dd7e25021093fc69cc723c127e12143f2b",
+      "source_hash": "3052e1d2f93e56db85c9173cc60e045078df28d57e38c44bad3dc66bebf8a6c4",
       "locales": {
         "ar": {
           "source_hash": "f9cd3ca3423c4b9b190152051eb75b492f8ffe6915295799515f5602bf040421",
@@ -45227,7 +45227,7 @@
       }
     },
     "docs/reference/FEATURE_FLAGS.md": {
-      "source_hash": "b8b68380f3216b7441efcf9a92d3a33e6c53060c63941d424348a6270a8361e1",
+      "source_hash": "9afe2c360388a5d6ff2f73f56652187c2cf217e9646ad26babb8a1558288e8ca",
       "locales": {
         "ar": {
           "source_hash": "b8b68380f3216b7441efcf9a92d3a33e6c53060c63941d424348a6270a8361e1",
@@ -48100,7 +48100,7 @@
       }
     },
     "docs/routing/AUTO-COMBO.md": {
-      "source_hash": "72de08511f6fe3b81aef47001cf4a9504b7faf9e21824845125a6fabe700bbec",
+      "source_hash": "073330cd74b227dc26c592c3bfb2fc1b126d063105e552654216566b93da9acf",
       "locales": {
         "ar": {
           "source_hash": "72de08511f6fe3b81aef47001cf4a9504b7faf9e21824845125a6fabe700bbec",

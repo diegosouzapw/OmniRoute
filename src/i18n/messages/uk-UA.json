@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "За замовчуванням (авто)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Макс вихідних токенів",
+    "maxOutputTokenOverrideHint": "Введіть додатне ціле число токенів. Залиште поле порожнім для значення за замовчуванням.",
     "contextWindowOverrideLabel": "Перевизначення вікна контексту",
     "contextWindowOverridePlaceholder": "наприклад, 131072",
     "contextWindowOverrideHint": "Встановіть реальне вікно контексту цієї моделі (у токенах) вручну, якщо провайдер повідомляє його некоректно. Має пріоритет над автоматично визначеними значеннями або значеннями з каталогу та запобігає виключенню моделі комбінованою маршрутизацією.",

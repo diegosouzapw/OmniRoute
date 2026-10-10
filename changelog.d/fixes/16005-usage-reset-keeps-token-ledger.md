@@ -1,0 +1,1 @@
+- **fix(db):** keep token_ledger when resetting usage data ([#16005](https://github.com/diegosouzapw/OmniRoute/pull/16005)) — thanks @pacocartones

@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "ಡೀಫಾಲ್ಟ್ (ಸ್ವಯಂ)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "ಗರಿಷ್ಠ ಔಟ್ಪುಟ್ ಟೋಕನ್ಗಳು",
+    "maxOutputTokenOverrideHint": "ಟೋಕನ್‌ಗಳ ಧನ ಪೂರ್ಣಾಂಕ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ. ಪೂರ್ವನಿಯೋಜಿತ ಮೌಲ್ಯಕ್ಕಾಗಿ ಖಾಲಿ ಬಿಡಿ.",
     "contextWindowOverrideLabel": "ಕಾಂಟೆಕ್ಸ್ಟ್ ವಿಂಡೋ ಅತಿಕ್ರಮಣೆ",
     "contextWindowOverridePlaceholder": "ಉದಾ. 131072",
     "contextWindowOverrideHint": "ಪೂರೈಕೆದಾರರು ಈ ಮಾದರಿಯ ನೈಜ ಕಾಂಟೆಕ್ಸ್ಟ್ ವಿಂಡೋವನ್ನು ತಪ್ಪಾಗಿ ವರದಿ ಮಾಡಿದಾಗ, ಅದನ್ನು (ಟೋಕನ್ಗಳಲ್ಲಿ) ಹಸ್ತಚಾಲಿತವಾಗಿ ಹೊಂದಿಸಿ. ಇದು ಸ್ವಯಂ-ಪತ್ತೆಮಾಡಿದ/ಕ್ಯಾಟಲಾಗ್ ಮೌಲ್ಯಗಳಿಗಿಂತ ಆದ್ಯತೆ ಪಡೆಯುತ್ತದೆ ಮತ್ತು ಕಾಂಬೊ ರೂಟಿಂಗ್ನಿಂದ ಮಾದರಿಯನ್ನು ಕೈಬಿಡುವುದನ್ನು ತಡೆಯುತ್ತದೆ.",

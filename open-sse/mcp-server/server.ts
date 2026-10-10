@@ -42,6 +42,7 @@ import {
   buildScopeDenialMessage,
   evaluateToolScopes,
   resolveCallerScopeContext,
+  shouldForceScopeEnforcement,
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
 import {
@@ -187,7 +188,7 @@ function withScopeEnforcement(
     const scopeCheck = evaluateToolScopes(
       toolName,
       scopeContext.scopes,
-      isMcpScopeEnforcementEnabled(),
+      isMcpScopeEnforcementEnabled() || shouldForceScopeEnforcement(scopeContext),
       toolScopes
     );
     if (!scopeCheck.allowed) {
@@ -719,17 +720,21 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(toolDef.name, async (args, extra) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-expect-error - handler type lost through dynamic Object.values() access
-          const result = await toolDef.handler(parsedArgs, extra);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
+      withScopeEnforcement(
+        toolDef.name,
+        async (args, extra) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-expect-error - handler type lost through dynamic Object.values() access
+            const result = await toolDef.handler(parsedArgs, extra);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
     );
   });
 

@@ -254,6 +254,7 @@
     "log": "Prikaži serverske logove inline",
     "no_recovery": "Onemogući automatsko ponovno pokretanje pri padu (režim otklanjanja grešaka)",
     "max_restarts": "Maksimalni broj ponovnih pokretanja nakon pada u roku od 30s prije odustajanja (podrazumijevano: 2)",
+    "headless": "Pokreni samo proxy pogon: kontrolna tabla onemogućena (404), opcionalni podsistemi preskočeni (postavlja OMNIROUTE_HEADLESS=1)",
     "tray": "Pokreni u sistemskom tray-u (samo desktop, opciono)",
     "no_tray": "Onemogući ikonu u sistemskom tray-u",
     "ready_timeout": "Vrijeme isteka readiness probe u ms (također OMNIROUTE_READY_TIMEOUT_MS, zadano 60000)",

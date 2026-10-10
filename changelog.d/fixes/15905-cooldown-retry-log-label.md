@@ -1,0 +1,1 @@
+- **fix(resilience):** the `COOLDOWN_RETRY` "cooldown elapsed" log now reports the retry number (`retry N/M`) instead of an attempt index that could read `4/3` ([#15905](https://github.com/diegosouzapw/OmniRoute/pull/15905)) — thanks @wakqasahmed

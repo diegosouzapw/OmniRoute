@@ -10,7 +10,11 @@ import {
   getImageModelEntry,
   modalitiesRequireImageInput,
 } from "@omniroute/open-sse/config/imageRegistry.ts";
-import { errorResponse, unavailableResponse } from "@omniroute/open-sse/utils/error.ts";
+import {
+  errorResponse,
+  sanitizeErrorMessage,
+  unavailableResponse,
+} from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { isAllRateLimitedCredentials } from "@/app/api/v1/_shared/rateLimit";
 import * as log from "@/sse/utils/logger";
@@ -353,7 +357,12 @@ async function postHandler(request, context) {
         ? runWithProxyContext(proxyInfo?.proxy || null, generateImage).catch((err: any) => ({
             success: false,
             status: err.statusCode || 500,
-            error: err.message,
+            // Hard Rule #12 (#15159 wave 1.2): sanitize where the raw value is
+            // captured. The response below already goes through `errorResponse`,
+            // which sanitizes internally, but the gate judges per LINE and cannot
+            // see through the downstream builder — so without this the site stayed
+            // frozen in KNOWN_MISSING_ERROR_HELPER.
+            error: sanitizeErrorMessage(err.message),
           }))
         : generateImage();
     },

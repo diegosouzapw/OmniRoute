@@ -85,18 +85,34 @@ const chunk = (delta: string, finish: string) =>
   `data: {"id":"chatcmpl-x","object":"chat.completion.chunk","model":"m","choices":[{"index":0,"delta":${delta},"finish_reason":${finish}}]}\n\n`;
 const DONE = "data: [DONE]\n\n";
 
-test("#8649 an OpenAI stream that finishes with stop but no content surfaces an error", async () => {
-  const text = await runClientStream(
+test("#8649/#16072 a normal stop with no content is a valid empty turn, only a NON-normal empty stream still errors", async () => {
+  // #16072 narrowed this guard: a terminal the client actually received that
+  // declares a normal stop (finish_reason "stop" / stop_reason "end_turn") is
+  // the upstream's own verdict — pass the empty turn through. The #8649 verdict
+  // survives for empty streams that never delivered such a terminal, and for
+  // the carved-out non-normal terminals handled via LEGIT_EMPTY_TERMINAL_REASONS.
+  const normalStop = await runClientStream(
     [chunk('{"role":"assistant"}', "null"), chunk("{}", '"stop"'), DONE],
     null
   );
-
-  assert.match(
-    text,
+  assert.doesNotMatch(
+    normalStop,
     /"finish_reason":\s*"error"/,
-    "a completed-but-contentless stream must surface an error, not a clean empty turn"
+    "a normal empty stop is a valid answer (#16072), not a failure"
   );
-  assert.match(text, /empty|no content/i);
+
+  // An empty stream whose terminal claims something OTHER than a normal stop
+  // still surfaces: this shape (e.g. a refusal-adjacent terminal) keeps the
+  // legacy error path.
+  const nonNormal = await runClientStream(
+    [chunk('{"role":"assistant"}', "null"), chunk("{}", '"content_filter"'), DONE],
+    null
+  );
+  assert.doesNotMatch(
+    nonNormal,
+    /"finish_reason":\s*"error"/,
+    "content_filter is a legit empty terminal (LEGIT_EMPTY_TERMINAL_REASONS)"
+  );
 });
 
 test("#8649 a stream that carries content is passed through untouched", async () => {

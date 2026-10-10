@@ -1,3 +1,5 @@
+import { resolveCursorGrok47Variant } from "../../config/providers/registry/cursor/grok47.ts";
+
 export const CURSOR_EFFORT_SUFFIXES = ["low", "medium", "high", "xhigh", "max"] as const;
 
 type CursorRequestedModel = {
@@ -143,4 +145,8 @@ export function resolveOneMillionContextModel(normalized: string): CursorRequest
   return (
     resolveGptOneMillionContextModel(legacyId) ?? resolveClaudeOneMillionContextModel(legacyId)
   );
+}
+
+export function resolveCursorContextModel(normalized: string): CursorRequestedModel | null {
+  return resolveCursorGrok47Variant(normalized) ?? resolveOneMillionContextModel(normalized);
 }

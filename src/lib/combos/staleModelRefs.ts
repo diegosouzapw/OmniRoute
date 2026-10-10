@@ -3,9 +3,8 @@
  *
  * After a successful model sync, find combo steps that pin an explicit model
  * of the synced provider which the request-time check would now reject as
- * "not available in the active live catalog". Detection only: combos are
- * never modified here, so a temporary outage or a brand-new model can't
- * delete a step. Wildcard steps (`provider/*`) resolve live and combo refs
+ * "not available in the active live catalog". Detection never modifies
+ * combos; removal is the separate opt-in in `./staleModelPrune`. Wildcard steps (`provider/*`) resolve live and combo refs
  * are checked on their own, so both are skipped.
  */
 
@@ -25,7 +24,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function isExplicitModelStep(step: unknown): boolean {
+export function isExplicitModelStep(step: unknown): boolean {
   if (typeof step === "string") return true;
   if (!isRecord(step)) return false;
   return step.kind === undefined || step.kind === "model";

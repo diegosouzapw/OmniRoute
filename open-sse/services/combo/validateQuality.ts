@@ -237,13 +237,13 @@ function responsesApiOutputHasContent(output: unknown): boolean {
       const content = record.content;
       return (
         Array.isArray(content) &&
-        content.some(
-          (part) =>
-            !!part &&
-            typeof part === "object" &&
-            typeof (part as Record<string, unknown>).text === "string" &&
-            ((part as Record<string, string>).text as string).length > 0
-        )
+        content.some((part) => {
+          if (!isRecord(part)) return false;
+          return (
+            (typeof part.text === "string" && part.text.length > 0) ||
+            (part.type === "refusal" && typeof part.refusal === "string" && part.refusal.length > 0)
+          );
+        })
       );
     })
   );
@@ -429,6 +429,11 @@ export async function validateResponseQuality(
     let sawStructuredSSE = false;
     let upstreamFailure: StreamingUpstreamFailure | null = null;
     let sawTerminator = false;
+    // Set when the streaming peek loop hits an "outcome === content" verdict
+    // (a content_block_* event observed). Guards the catch-block failover
+    // check below so a stream that already produced content before an error
+    // is not misclassified as "aborted before content" (#12723 follow-up).
+    let anyContentFound = false;
     const sseLineNormalizer = createSSEDataLineNormalizer();
     let pendingEventType = "";
 
@@ -727,6 +732,7 @@ export async function validateResponseQuality(
         }
 
         if (outcome === "content") {
+          anyContentFound = true;
           // A content_block_* event was found — stop peeking. Return a
           // clonedResponse that replays all buffered bytes (the current chunk
           // is already in bufferedChunks) and then forwards the remainder of
@@ -760,7 +766,23 @@ export async function validateResponseQuality(
       ) {
         return { valid: false, reason: "stream locked or disturbed" };
       }
-      // Other read errors — pass through (stream readiness timeout will catch truly broken streams)
+      // Cursor empty-turn and stream-timeout read errors are hop failures.
+      // Any other pre-content read error still passes through; broadening this
+      // to every combo made a network reset fail over the whole chain.
+      const cursorEmptyBeforeContent =
+        !anyContentFound &&
+        !sse.hasContentBlock &&
+        !sawTerminator &&
+        /no usable content|cursor-agent stream timed out/i.test(errMsg);
+      if (cursorEmptyBeforeContent) {
+        log.warn?.(
+          "COMBO",
+          `Streaming response aborted before content (${errMsg}) — marking as invalid for combo failover`
+        );
+        return { valid: false, reason: `streaming aborted before content: ${errMsg}` };
+      }
+      // Tokens already started — client-facing stream is committed. Leave the
+      // rest to the stream-readiness / idle timeout.
       return { valid: true };
     } finally {
       if (signal && onAbort) signal.removeEventListener("abort", onAbort);
@@ -921,7 +943,8 @@ export async function validateResponseQuality(
     return { valid: false, reason: specViolation };
   }
 
-  if (!hasContent && !hasToolCalls) {
+  const hasRefusal = typeof message.refusal === "string" && message.refusal.trim().length > 0;
+  if (!hasContent && !hasToolCalls && !hasRefusal) {
     // finish_reason "length" is a truncated completion (max_tokens hit), the
     // same case the Claude shape exempts as stop_reason "max_tokens" (#12968).
     // A thinking model that spends the whole budget before any visible token

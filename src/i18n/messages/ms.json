@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "Lalai (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigraviti",
+    "maxOutputTokenOverrideLabel": "Token Output Maks",
+    "maxOutputTokenOverrideHint": "Masukkan bilangan token sebagai integer positif. Biarkan kosong untuk nilai lalai.",
     "contextWindowOverrideLabel": "Pintasan Tetingkap Konteks",
     "contextWindowOverridePlaceholder": "cth. 131072",
     "contextWindowOverrideHint": "Tetapkan tetingkap konteks sebenar model ini (token) secara manual apabila penyedia salah melaporkannya. Mengatasi nilai yang dikesan secara automatik/katalog dan menghalang penghalaan kombo daripada menggugurkan model.",

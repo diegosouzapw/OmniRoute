@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Något gick fel",
+      "description": "Ett oväntat fel inträffade. Detta har loggats och vårt team kommer att undersöka det.",
+      "detailsAriaLabel": "Felinformationer",
+      "retryAriaLabel": "Försök att ladda om sidan",
+      "tryAgain": "Försök igen",
+      "statusAriaLabel": "Öppna systemstatus",
+      "systemStatus": "Systemstatus"
+    }
+  }
+}

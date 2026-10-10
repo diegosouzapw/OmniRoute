@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Xatolik yuz berdi",
+      "description": "Kutilmagan xatolik yuz berdi. Bu jurnalga qayd etildi va jamoamiz uni tekshiradi.",
+      "detailsAriaLabel": "Xatolik tafsilotlari",
+      "retryAriaLabel": "Sahifani yuklashga qayta urinish",
+      "tryAgain": "Qayta urinish",
+      "statusAriaLabel": "Tizim holatini ochish",
+      "systemStatus": "Tizim holati"
+    }
+  }
+}

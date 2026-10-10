@@ -136,7 +136,11 @@ test("buildCursorUsage surfaces cache writes as cache_creation_tokens", () => {
     new Set()
   );
   const usage = buildCursorUsage(ctx, SAMPLE_BODY) as Record<string, unknown>;
-  assert.deepEqual(usage.prompt_tokens_details, { cached_tokens: 0, cache_creation_tokens: 26344 });
+  assert.deepEqual(usage.prompt_tokens_details, {
+    cached_tokens: 0,
+    cache_creation_tokens: 26344,
+    cache_creation_in_prompt: true,
+  });
 });
 
 test("processFrame keeps the ttft breakdown on the stream context", () => {
@@ -266,6 +270,21 @@ test("a malformed or input-less TurnEndedUpdate still ends the turn", () => {
   const usage = buildCursorUsage(ctx, SAMPLE_BODY) as Record<string, unknown>;
   assert.equal(usage.completion_tokens, 50);
   assert.equal(usage.estimated, true);
+});
+
+test("an estimated prompt identifies cache creation as included", () => {
+  const inputLess = lenPrefixed(
+    1,
+    lenPrefixed(14, Buffer.concat([varintField(2, 50), varintField(4, 300)]))
+  );
+  const ctx = newStreamCtx("auto", () => {});
+  processFrame(inputLess, ctx, new Set());
+  const usage = buildCursorUsage(ctx, SAMPLE_BODY) as Record<string, unknown>;
+  assert.equal(usage.estimated, true);
+  assert.deepEqual(usage.prompt_tokens_details, {
+    cache_creation_tokens: 300,
+    cache_creation_in_prompt: true,
+  });
 });
 
 test("a malformed ttft_breakdown does not drop the co-located update", () => {

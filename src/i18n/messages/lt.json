@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "Numatytasis (automatinis)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maks. išvesties leksemų (tokenų) skaičius",
+    "maxOutputTokenOverrideHint": "Įveskite teigiamą sveikąjį žetonų skaičių. Palikite tuščią numatytajai vertei.",
     "contextWindowOverrideLabel": "Konteksto lango perrašymas",
     "contextWindowOverridePlaceholder": "pvz., 131072",
     "contextWindowOverrideHint": "Rankiniu būdu nustatykite tikrąjį šio modelio konteksto langą (žetonais), kai paslaugų teikėjas jį nurodo neteisingai. Ši reikšmė turi viršenybę prieš automatiškai aptiktas arba katalogo reikšmes ir neleidžia kombinuotajam maršrutų parinkimui atmesti modelio.",

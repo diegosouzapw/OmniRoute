@@ -11,6 +11,7 @@ import { finalizeResponsesTerminalStatus } from "../helpers/responsesTerminalSta
 import { shouldParseTextualReasoningTags } from "../../handlers/responseSanitizer.ts";
 import { getReadableReasoningValue } from "../../utils/reasoningFields.ts";
 import { resolveResponsesCacheUsageDetails } from "../../utils/resolveResponsesCacheUsageDetails.ts";
+import { pickCacheCreationInPrompt } from "../../utils/pickCacheCreationTokens.ts";
 import {
   isInternalReasoningPlaceholder,
   stripInternalReasoningPlaceholder,
@@ -1066,16 +1067,21 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
   }
 
   // Text content delta
-  if (eventType === "response.output_text.delta") {
+  if (eventType === "response.output_text.delta" || eventType === "response.refusal.delta") {
     const delta = data.delta;
     if (typeof delta !== "string" || !delta) return null;
     recordResponsesTextDelta(state, data, delta);
-    return buildTextSnapshotChunk(state, delta);
+    return buildTextSnapshotChunk(
+      state,
+      delta,
+      eventType === "response.refusal.delta" ? "refusal" : "content"
+    );
   }
 
-  if (eventType === "response.output_text.done") {
-    const suffix = reconcileResponsesTextDone(state, data, data.text);
-    return suffix ? buildTextSnapshotChunk(state, suffix) : null;
+  if (eventType === "response.output_text.done" || eventType === "response.refusal.done") {
+    const refusal = eventType === "response.refusal.done";
+    const suffix = reconcileResponsesTextDone(state, data, refusal ? data.refusal : data.text);
+    return suffix ? buildTextSnapshotChunk(state, suffix, refusal ? "refusal" : "content") : null;
   }
   if (eventType === "response.output_item.added" && data.item?.type === "message") {
     bindResponsesTextItem(state, data.item, data.output_index);
@@ -1412,9 +1418,13 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         responseUsage.reasoning_tokens ||
         0;
 
+      const anthropicKeys = "cache_read_input_tokens" in responseUsage;
+      const sourceWriteInPrompt = pickCacheCreationInPrompt(responseUsage);
       const promptTokens =
         inputTokens +
-        ("cache_read_input_tokens" in responseUsage ? cacheReadTokens + cacheCreationTokens : 0);
+        (anthropicKeys
+          ? cacheReadTokens + (sourceWriteInPrompt === true ? 0 : cacheCreationTokens)
+          : 0);
 
       state.usage = {
         prompt_tokens: promptTokens,
@@ -1430,6 +1440,8 @@ function openaiResponsesToOpenAIResponseStream(chunk, state) {
         }
         if (cacheCreationTokens > 0) {
           state.usage.prompt_tokens_details.cache_creation_tokens = cacheCreationTokens;
+          state.usage.prompt_tokens_details.cache_creation_in_prompt =
+            anthropicKeys || sourceWriteInPrompt !== false;
         }
       }
 

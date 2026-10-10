@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "Privzeto (samodejno)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Največ izhodnih žetonov",
+    "maxOutputTokenOverrideHint": "Vnesite pozitivno celo število žetonov. Za privzeto vrednost pustite prazno.",
     "contextWindowOverrideLabel": "Ročna nastavitev kontekstnega okna",
     "contextWindowOverridePlaceholder": "npr. 131072",
     "contextWindowOverrideHint": "Ročno nastavite dejansko kontekstno okno tega modela (v žetonih), kadar ga ponudnik napačno sporoči. Ta nastavitev ima prednost pred samodejno zaznanimi vrednostmi in vrednostmi iz kataloga ter preprečuje, da bi kombinirano usmerjanje izločilo model.",

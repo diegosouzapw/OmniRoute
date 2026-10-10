@@ -1,0 +1,156 @@
+name: Forward-port stable/v3 → develop (dormant)
+
+# DORMANT until the 3.9.0 LTS cut creates `stable/v3` and `develop`
+# (docs/ops/RELEASE_STRATEGY.md → "Forward-port"). The push filter and the job
+# `if:` both pin it to `refs/heads/stable/v3`, and the job exits quietly while
+# `develop` does not exist.
+#
+# Every commit pushed to stable/v3 is cherry-picked (`-x`) onto a fresh
+# `forward-port/<sha7>` branch cut from develop, and a PR is opened against
+# develop. The original author stays the commit author and is also credited with
+# a `Co-authored-by:` trailer, so the credit survives a squash-merge of the
+# forward-port PR. A conflicting cherry-pick still opens a PR — as a DRAFT with
+# the exact commands to finish it by hand.
+#
+# PRs opened with the default GITHUB_TOKEN do not trigger other workflows; set the
+# `FORWARD_PORT_TOKEN` secret (fine-grained PAT or App token with contents +
+# pull-requests write) before go-live so CI runs on the forward-port PRs.
+
+on:
+  push:
+    branches: [stable/v3]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit on stable/v3 to forward-port (full or short SHA)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forward-port
+  cancel-in-progress: false
+
+jobs:
+  forward-port:
+    name: Cherry-pick onto develop
+    if: github.ref == 'refs/heads/stable/v3' && github.repository == 'diegosouzapw/OmniRoute'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push forward-port/<sha7>
+      pull-requests: write # open the PR against develop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check that develop exists
+        id: develop
+        run: |
+          set -euo pipefail
+          if [ -n "$(git ls-remote --heads origin develop)" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "develop does not exist yet — forward-port is dormant, nothing to do."
+          fi
+
+      - name: Resolve commits to forward-port
+        id: commits
+        if: steps.develop.outputs.exists == 'true'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          INPUT_SHA: ${{ inputs.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if ! printf '%s' "$INPUT_SHA" | grep -qE '^[0-9a-fA-F]{7,40}$'; then
+              echo "Refusing non-SHA input: $INPUT_SHA" >&2
+              exit 1
+            fi
+            TARGET=$(git rev-parse --verify "${INPUT_SHA}^{commit}")
+            git merge-base --is-ancestor "$TARGET" origin/stable/v3 \
+              || { echo "$TARGET is not on stable/v3" >&2; exit 1; }
+            RANGE="${TARGET}^..${TARGET}"
+          elif printf '%s' "$BEFORE" | grep -qE '^0+$' || [ -z "$BEFORE" ]; then
+            RANGE="${AFTER}^..${AFTER}"
+          else
+            RANGE="${BEFORE}..${AFTER}"
+          fi
+          git rev-list --reverse --no-merges "$RANGE" > commits.txt
+          echo "count=$(wc -l < commits.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "Commits to forward-port:"; cat commits.txt
+
+      - name: Cherry-pick and open PRs
+        if: steps.develop.outputs.exists == 'true' && steps.commits.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.FORWARD_PORT_TOKEN || github.token }}
+          REPO: ${{ github.repository }}
+          STRATEGY_URL: ${{ github.server_url }}/${{ github.repository }}/blob/develop/docs/ops/RELEASE_STRATEGY.md
+        run: |
+          set -euo pipefail
+          gh auth setup-git
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          while read -r SHA; do
+            SHORT="${SHA:0:7}"
+            BRANCH="forward-port/${SHORT}"
+            if [ -n "$(git ls-remote --heads origin "$BRANCH")" ]; then
+              echo "$BRANCH already exists — skipping $SHORT."
+              continue
+            fi
+
+            SUBJECT=$(git log -1 --format=%s "$SHA")
+            AUTHOR=$(git log -1 --format='%an <%ae>' "$SHA")
+            git checkout --quiet -B "$BRANCH" origin/develop
+
+            DRAFT=""
+            if git cherry-pick -x "$SHA"; then
+              # Keep the original author (cherry-pick already does) AND add the trailer,
+              # so a squash-merge of this PR still credits them.
+              git log -1 --format=%B > msg.txt
+              git interpret-trailers --in-place --if-exists addIfDifferent \
+                --trailer "Co-authored-by: ${AUTHOR}" msg.txt
+              git commit --amend --quiet --file msg.txt
+              BODY_STATE="Clean cherry-pick (\`git cherry-pick -x\`) of ${SHA} from \`stable/v3\`."
+            else
+              git cherry-pick --abort
+              DRAFT="--draft"
+              printf 'chore(forward-port): %s needs a manual cherry-pick\n\nCherry-pick of %s from stable/v3 conflicted on develop.\n\nCo-authored-by: %s\n' \
+                "$SHORT" "$SHA" "$AUTHOR" > msg.txt
+              git commit --allow-empty --quiet --file msg.txt
+              BODY_STATE=$(printf '%s\n\n%s\n\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n' \
+                "⚠️ **The cherry-pick of ${SHA} conflicted on \`develop\`** — this draft holds an empty placeholder commit." \
+                "To finish it:" \
+                '```bash' \
+                "git fetch origin" \
+                "git switch ${BRANCH}" \
+                "git cherry-pick -x ${SHA}   # resolve the conflicts, then: git cherry-pick --continue" \
+                "git commit --amend          # keep the trailer: Co-authored-by: ${AUTHOR}" \
+                "git push origin ${BRANCH}" \
+                '```')
+            fi
+
+            git push --quiet origin "HEAD:refs/heads/${BRANCH}"
+            {
+              echo "Automatic forward-port of \`stable/v3\` → \`develop\`."
+              echo
+              echo "$BODY_STATE"
+              echo
+              echo "Original author: ${AUTHOR}"
+              echo
+              echo "Policy: ${STRATEGY_URL}"
+            } > body.md
+            # shellcheck disable=SC2086 # DRAFT is intentionally empty or one flag
+            gh pr create --repo "$REPO" --base develop --head "$BRANCH" $DRAFT \
+              --title "${SUBJECT} (forward-port ${SHORT})" \
+              --body-file body.md \
+              --label forward-port
+          done < commits.txt

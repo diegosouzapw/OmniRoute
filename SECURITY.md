@@ -18,11 +18,31 @@ If you discover a security vulnerability in OmniRoute, please report it responsi
 
 ## Supported Versions
 
-| Version | Support Status |
-| ------- | -------------- |
-| 3.8.x   | ✅ Active      |
-| 3.7.x   | ✅ Security    |
-| < 3.7.0 | ❌ Unsupported |
+| Version | Support Status                                 |
+| ------- | ---------------------------------------------- |
+| 3.9.x   | 🗓️ Planned — LTS line (`stable/v3`), see below |
+| 3.8.x   | ✅ Active                                      |
+| 3.7.x   | ✅ Security                                    |
+| < 3.7.0 | ❌ Unsupported                                 |
+
+## LTS support window (v3.9.x)
+
+After 3.8.59 the next version is **3.9.0**, which opens the long-term support line on the
+`stable/v3` branch (see [`ROADMAP.md`](ROADMAP.md) → "Phase 3 — v3.9.0 LTS").
+
+- **What `stable/v3` receives:** bug fixes, security patches and provider updates. New
+  features go to the v4 channel; the LTS line is stability-first. `npm install omniroute`
+  (the `latest` dist-tag) stays on v3 during the whole v4 cycle.
+- **Window duration:** `<T-GAP-3: owner decision pending — see ROADMAP.md>`. The length of
+  the window after v4.0 GA (when `latest` switches to v4) has **not been decided yet**; this
+  section is updated when the maintainer announces it. Until then, do not assume an end date.
+- **Reporting a vulnerability in the LTS line:** same channel as any other version —
+  a private [GitHub Security Advisory](https://github.com/diegosouzapw/OmniRoute/security/advisories/new),
+  never a public issue. Say which version you tested (for example `3.9.2`); fixes land on
+  `stable/v3` and are forward-ported to v4.
+- **Security baseline at the LTS cut:** measured scanner state, route-guard and
+  public-credential proofs are recorded in
+  [`docs/security/LTS_SECURITY_BASELINE.md`](docs/security/LTS_SECURITY_BASELINE.md).
 
 ---
 
@@ -42,7 +62,7 @@ Request → CORS → Authz pipeline (classify → policies → enforce)
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Dashboard Login**   | Password-based auth with JWT tokens (HttpOnly cookies)                                                                                    |
 | **API Key Auth**      | HMAC-signed keys with CRC validation                                                                                                      |
-| **OAuth 2.0 + PKCE**  | Provider-specific browser/device OAuth uses PKCE where supported; import-only Devin credentials are handled separately.                    |
+| **OAuth 2.0 + PKCE**  | Provider-specific browser/device OAuth uses PKCE where supported; import-only Devin credentials are handled separately.                   |
 | **Token Refresh**     | Automatic OAuth token refresh before expiry                                                                                               |
 | **Secure Cookies**    | `AUTH_COOKIE_SECURE=true` for HTTPS environments                                                                                          |
 | **Authz Pipeline**    | Route classification (PUBLIC / CLIENT_API / MANAGEMENT) — see `docs/architecture/AUTHZ_GUIDE.md`                                          |

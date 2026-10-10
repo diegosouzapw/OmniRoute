@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "Domyślny (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maksymalna liczba wyjściowych tokens",
+    "maxOutputTokenOverrideHint": "Wpisz dodatnią całkowitą liczbę tokenów. Pozostaw puste, aby użyć wartości domyślnej.",
     "contextWindowOverrideLabel": "Nadpisanie okna kontekstu (Context Window Override)",
     "contextWindowOverridePlaceholder": "np. 131072",
     "contextWindowOverrideHint": "Ręcznie ustaw rzeczywiste okno kontekstu tego model (tokens), gdy provider podaje błędne informacje. Wygrywa z automatycznie wykrytymi/katalogowymi wartościami i zapobiega odrzuceniu model przez routing combo.",

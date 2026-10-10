@@ -23,6 +23,7 @@ const ORIGINAL_DATA_DIR = process.env.DATA_DIR;
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 
 async function resetStorage() {
@@ -33,6 +34,12 @@ async function resetStorage() {
 
 test.beforeEach(async () => {
   await resetStorage();
+  // contract changed by #15979 (on top of #15839): `excludeTosAvoid` defaults to on and
+  // uncataloged models inherit the provider's curated `tos: "avoid"` verdict, so a fresh
+  // install filters every opencode model out of auto/*. Opt out so this file keeps guarding
+  // the no-auth allowlist itself; the ToS default is covered by
+  // tests/unit/issue-15059-tos-avoid-auto-default.test.ts and tos-provider-alias-15059.
+  await settingsDb.updateSettings({ excludeTosAvoid: false });
 });
 
 test.after(async () => {

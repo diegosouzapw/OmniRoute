@@ -55,6 +55,26 @@ function headersOf(values: Record<string, string>) {
 }
 
 describe("readLogExportTruncation (#13999)", () => {
+  it("uses the emitted count instead of the preflight estimate", async () => {
+    const h = headersOf({
+      [LOG_EXPORT_HEADERS.count]: "2",
+      [LOG_EXPORT_HEADERS.capped]: "true",
+      [LOG_EXPORT_HEADERS.limit]: "2",
+      [LOG_EXPORT_HEADERS.totalAvailable]: "3",
+    });
+    assert.deepEqual(readLogExportTruncation(h, 1), { exported: 1, total: 3, limit: 2 });
+    assert.deepEqual(readLogExportTruncation(h, 0), { exported: 0, total: 3, limit: 2 });
+  });
+
+  it("warns when rows disappeared even without the row cap being reached", () => {
+    const h = headersOf({
+      [LOG_EXPORT_HEADERS.count]: "3",
+      [LOG_EXPORT_HEADERS.capped]: "false",
+      [LOG_EXPORT_HEADERS.limit]: "10",
+      [LOG_EXPORT_HEADERS.totalAvailable]: "3",
+    });
+    assert.deepEqual(readLogExportTruncation(h, 2), { exported: 2, total: 3, limit: 10 });
+  });
   it("returns null for an export the server did not cap", () => {
     const h = headersOf({
       [LOG_EXPORT_HEADERS.count]: "42",
@@ -96,6 +116,42 @@ describe("readLogExportTruncation (#13999)", () => {
     const t = readLogExportTruncation(h);
     assert.ok(t, "a capped flag must never be swallowed");
   });
+});
+
+describe("readLogExportEmittedCount (#13999)", () => {
+  it("reads only the bounded final slice of a large export", async () => {
+    const blob = new Blob(['{"logs":[{"message":"', "x".repeat(100_000), '"}],"count":1}\n']);
+    const slices: number[] = [];
+    const source = {
+      size: blob.size,
+      slice(start: number) {
+        slices.push(blob.size - start);
+        return blob.slice(start);
+      },
+    };
+    assert.equal(await logExport.readLogExportEmittedCount(source), 1);
+    assert.ok(slices.length === 1 && slices[0] <= 128);
+  });
+
+  for (const text of [
+    '{"logs":[],"count":0}\n',
+    '{"logs":[],"emitted":0,"error":"failed","count":0}\n',
+  ]) {
+    it(`reads the final count: ${text.trim()}`, async () => {
+      assert.equal(await logExport.readLogExportEmittedCount(new Blob([text])), 0);
+    });
+  }
+
+  for (const text of [
+    '{"count":2,"logs":[]}',
+    '{"logs":[],"count":-1}',
+    '{"logs":[],"count":9007199254740992}',
+    '{"logs":[]',
+  ]) {
+    it(`does not invent a count for a legacy or invalid trailer: ${text}`, async () => {
+      assert.equal(await logExport.readLogExportEmittedCount(new Blob([text])), null);
+    });
+  }
 });
 
 describe("buildLogExportUrl (#13999)", () => {
@@ -152,7 +208,10 @@ describe("dashboard logs page wiring (#13999)", () => {
 
   it("the Export button requests the server maximum and reads the cap headers", () => {
     assert.match(pageSource, /fetch\(buildLogExportUrl\(/);
-    assert.match(pageSource, /readLogExportTruncation\(res\.headers\)/);
+    assert.match(
+      pageSource,
+      /readLogExportTruncation\(\s*res\.headers,\s*await readLogExportEmittedCount\(blob\),?\s*\)/
+    );
     assert.doesNotMatch(pageSource, /\/api\/logs\/export\?hours=\$\{hours\}&type=\$\{logType\}`/);
   });
 

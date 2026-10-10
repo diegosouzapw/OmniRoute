@@ -1,0 +1,1 @@
+- Protect semantic-cache embedding credentials when the configured provider or endpoint changes, validate outbound embedding URLs and refuse redirects. Mask saved embedding/Redis secrets in settings responses, encrypt them with the configured storage encryption key, and prevent approximate cache reuse when its text projection omits request context or tool/output contracts.

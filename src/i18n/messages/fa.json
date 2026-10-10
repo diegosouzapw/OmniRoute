@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "پیش‌فرض (خودکار)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "حداکثر توکن های خروجی",
+    "maxOutputTokenOverrideHint": "یک عدد صحیح مثبت برای تعداد توکن‌ها وارد کنید. برای مقدار پیش‌فرض خالی بگذارید.",
     "contextWindowOverrideLabel": "بازنویسی پنجره زمینه",
     "contextWindowOverridePlaceholder": "مثلاً 131072",
     "contextWindowOverrideHint": "هنگامی که ارائه‌دهنده پنجره زمینه واقعی این مدل (توکن‌ها) را نادرست گزارش می‌کند، آن را به صورت دستی تنظیم کنید. بر مقادیر شناسایی‌شده خودکار/کاتالوگ اولویت دارد و از حذف مدل توسط مسیریابی ترکیبی جلوگیری می‌کند.",

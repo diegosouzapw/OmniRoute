@@ -27,6 +27,7 @@ export interface ImageModelEntry {
   imageRequired?: boolean;
   description?: string;
   isMarket?: boolean;
+  kieFluxKontextModel?: "flux-kontext-pro" | "flux-kontext-max";
   supportedSizes?: string[];
   mediaCapabilities?: Record<string, unknown>;
 }

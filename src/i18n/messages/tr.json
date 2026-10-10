@@ -5733,6 +5733,8 @@
     "targetFormatAuto": "Varsayılan (otomatik)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maksimum Çıkış Tokenları",
+    "maxOutputTokenOverrideHint": "Pozitif bir tam token sayısı girin. Varsayılanı kullanmak için boş bırakın.",
     "contextWindowOverrideLabel": "Bağlam Penceresi Geçersiz Kılma",
     "contextWindowOverridePlaceholder": "örn. 131072",
     "contextWindowOverrideHint": "Sağlayıcı yanlış bildirdiğinde bu modelin gerçek bağlam penceresini (token) manuel olarak ayarlayın. Otomatik algılanan/katalog değerlerinin üzerine yazar ve kombo yönlendirmenin modeli devre dışı bırakmasını önler.",
