@@ -1,0 +1,1 @@
+- Add a pure shadow gate selector and a Node.js CLI that plan gate selection from declared change domains, include prerequisite jobs, and preserve required/advisory policy metadata. Uncertain classification selects every gate with a diagnostic; invalid policy metadata produces an error. This planning stage does not execute gates or change workflow admission checks (#16075).
