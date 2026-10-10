@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { errorMessageFromBody, readFetchErrorMessage } from "../../src/shared/utils/fetchError.ts";
+import { throwIfResilienceSaveFailed } from "../../src/app/(dashboard)/dashboard/settings/components/resilienceSaveError.ts";
 
 const FALLBACK = "An error occurred";
 
@@ -144,4 +145,24 @@ test("consumed response falls back; parsed body still names the requestQueue fie
     errorMessageFromBody(json, FALLBACK),
     'requestQueue: Unrecognized key: "globalConcurrentRequests"'
   );
+});
+
+test("throwIfResilienceSaveFailed throws the parsed body only when the save is not ok", () => {
+  const json = {
+    error: {
+      message: "Invalid request",
+      details: [
+        {
+          field: "requestQueue",
+          message: 'Unrecognized key: "globalConcurrentRequests"',
+        },
+      ],
+    },
+  };
+  const expected = errorMessageFromBody(json, FALLBACK);
+  assert.throws(() => throwIfResilienceSaveFailed(false, json, FALLBACK), {
+    name: "Error",
+    message: expected,
+  });
+  assert.doesNotThrow(() => throwIfResilienceSaveFailed(true, json, FALLBACK));
 });
