@@ -21,11 +21,19 @@ function getPublicModel(id: string) {
 // `gemini-3.7-flash-tiered`) in favor of three directly-callable tiered public models —
 // the suffixed ids now work upstream without the collapsing alias. Keep this list in sync
 // with ANTIGRAVITY_PUBLIC_MODELS/ANTIGRAVITY_MODEL_ALIASES instead of the retired bare id.
-const EXPECTED_FLASH_TIERS = [
+const EXPECTED_38_FLASH_TIERS = [
+  ["gemini-3.8-flash-high", "Gemini 3.8 Flash (High)"],
+  ["gemini-3.8-flash-medium", "Gemini 3.8 Flash (Medium)"],
+  ["gemini-3.8-flash-low", "Gemini 3.8 Flash (Low)"],
+] as const;
+
+const EXPECTED_37_FLASH_TIERS = [
   ["gemini-3.7-flash-high", "Gemini 3.7 Flash (High)"],
   ["gemini-3.7-flash-medium", "Gemini 3.7 Flash (Medium)"],
   ["gemini-3.7-flash-low", "Gemini 3.7 Flash (Low)"],
 ] as const;
+
+const EXPECTED_FLASH_TIERS = [...EXPECTED_38_FLASH_TIERS, ...EXPECTED_37_FLASH_TIERS] as const;
 
 const RETIRED_FLASH_IDS = [
   "gemini-3.6-flash-low",
@@ -57,7 +65,11 @@ test("toClientAntigravityQuotaModelId preserves upstream Gemini Flash bucket IDs
 
 test("resolveAntigravityModelId maps the documented Antigravity aliases to upstream IDs", () => {
   assert.equal(resolveAntigravityModelId("gemini-3-pro-image-preview"), "gemini-3-pro-image");
-  for (const [modelId] of EXPECTED_FLASH_TIERS) {
+  for (const [modelId] of EXPECTED_38_FLASH_TIERS) {
+    assert.equal(resolveAntigravityModelId(modelId), modelId);
+  }
+  assert.equal(resolveAntigravityModelId("gemini-3.8-flash"), "gemini-3.8-flash-high");
+  for (const [modelId] of EXPECTED_37_FLASH_TIERS) {
     assert.equal(resolveAntigravityModelId(modelId), "gemini-3.7-flash-tiered");
   }
   assert.equal(resolveAntigravityModelId("gemini-3.7-flash"), "gemini-3.7-flash-tiered");

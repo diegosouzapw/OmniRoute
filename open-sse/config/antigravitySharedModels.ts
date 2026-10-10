@@ -8,6 +8,37 @@ export const ANTIGRAVITY_SHARED_MODELS = Object.freeze([
   // liveCatalogIds (#15659): a tiered-only account's live catalog lists `gemini-<ver>-flash-tiered`
   // and none of the -high/-medium/-low ids, so without this the authoritative live-catalog check
   // refuses every tier display id. The tier ids stay routable through the `-tiered` upstream id.
+  // Gemini 3.8 Flash tiers — listed ahead of 3.7 (newest live tier first).
+  {
+    id: "gemini-3.8-flash-high",
+    name: "Gemini 3.8 Flash (High)",
+    liveCatalogIds: ["gemini-3.8-flash-tiered"],
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.8-flash-medium",
+    name: "Gemini 3.8 Flash (Medium)",
+    liveCatalogIds: ["gemini-3.8-flash-tiered"],
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
+  {
+    id: "gemini-3.8-flash-low",
+    name: "Gemini 3.8 Flash (Low)",
+    liveCatalogIds: ["gemini-3.8-flash-tiered"],
+    contextLength: 1048576,
+    maxOutputTokens: 65536,
+    supportsReasoning: true,
+    supportsVision: true,
+    toolCalling: true,
+  },
   // Gemini 3.7 Flash tiers. The live endpoint selects High by default and advertises
   // all three ids to both the IDE 2.5.5 and CLI 1.1.x clients.
   {
@@ -43,38 +74,6 @@ export const ANTIGRAVITY_SHARED_MODELS = Object.freeze([
   {
     id: "gemini-3.7-flash-tiered",
     name: "Gemini 3.7 Flash (Tiered)",
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  // Gemini 3.8 Flash tiers. Served directly at these ids by the live upstream — no
-  // shared "-tiered" endpoint exists for 3.8 (unlike 3.7).
-  {
-    id: "gemini-3.8-flash-high",
-    name: "Gemini 3.8 Flash (High)",
-    liveCatalogIds: ["gemini-3.8-flash-tiered"],
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.8-flash-medium",
-    name: "Gemini 3.8 Flash (Medium)",
-    liveCatalogIds: ["gemini-3.8-flash-tiered"],
-    contextLength: 1048576,
-    maxOutputTokens: 65536,
-    supportsReasoning: true,
-    supportsVision: true,
-    toolCalling: true,
-  },
-  {
-    id: "gemini-3.8-flash-low",
-    name: "Gemini 3.8 Flash (Low)",
-    liveCatalogIds: ["gemini-3.8-flash-tiered"],
     contextLength: 1048576,
     maxOutputTokens: 65536,
     supportsReasoning: true,
