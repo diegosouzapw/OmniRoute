@@ -827,8 +827,8 @@ X-OmniRoute-No-Cache: true
 
 ## 대시보드 및 관리
 
-관리 경로(공개 인증/로그인을 제외한 `/api/*`)는 일반 추론 API 키로는 **인증되지 않습니다**.
-자격 증명 유형, 범위 및 curl 예시는 다음을 참조하세요.
+관리 경로(공개 인증/로그인을 제외한 `/api/*`)는 일반 추론 API 키로 **인증되지 않습니다**.
+자격 증명 유형, 범위 및 curl 예시는 다음을 참조하세요:
 [관리 인증](../guides/MANAGEMENT-AUTH.md).
 
 ### 인증
@@ -841,29 +841,36 @@ X-OmniRoute-No-Cache: true
 
 ### 공급자 관리
 
-| 엔드포인트                              | 메서드                | 설명                                                                                                                               |
-| --------------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | 공급자 목록 조회 / 생성                                                                                                            |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | 공급자 관리                                                                                                                        |
-| `/api/providers/[id]/test`              | POST                  | 공급자 연결 테스트                                                                                                                 |
-| `/api/providers/[id]/models`            | GET                   | 공급자 모델 목록 조회                                                                                                              |
-| `/api/providers/validate`               | POST                  | 공급자 구성 검증                                                                                                                   |
-| `/api/providers/bulk`                   | POST                  | 하나의 공급자에 API 키 일괄 추가                                                                                                   |
-| `/api/providers/import`                 | POST                  | 파싱된 CSV/JSON 파일에서 서로 다른 공급자 목록 가져오기(#6836), 행별 부분 실패 결과 제공                                           |
-| `/api/provider-nodes*`                  | 다양함                | 공급자 노드 관리                                                                                                                   |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | 사용자 지정 모델(추가, 업데이트, 숨기기/표시, 삭제)                                                                                |
-| `/api/provider-models/validate-and-add` | POST                  | 관리 인증이 적용된 옵트인 방식의 엄격한 연결 검증 및 원자적 사용자 지정 모델 등록. [모델 검증](../guides/MODEL-VALIDATION.md) 참조 |
+| 엔드포인트                              | 메서드                    | 설명                                                                                                                                   |
+| --------------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | 공급자 목록 조회/생성                                                                                                                  |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | 공급자 관리                                                                                                                            |
+| `/api/providers/[id]/test`              | POST                      | 공급자 연결 테스트                                                                                                                     |
+| `/api/providers/[id]/models`            | GET                       | 공급자 모델 목록 조회                                                                                                                  |
+| `/api/providers/validate`               | POST                      | 공급자 구성 검증                                                                                                                       |
+| `/api/providers/bulk`                   | POST                      | 단일 공급자의 API 키 일괄 추가                                                                                                         |
+| `/api/providers/import`                 | POST                      | 파싱된 CSV/JSON 파일에서 서로 다른 공급자 목록 가져오기(#6836); 행별 부분 실패 결과 제공                                               |
+| `/api/provider-nodes*`                  | 다양함                    | 공급자 노드 관리                                                                                                                       |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | 사용자 지정 모델 및 모델별 재정의 설정(추가, 업데이트, 숨기기/표시, 삭제)                                                              |
+| `/api/provider-models/validate-and-add` | POST                      | 관리 인증이 필요하며 선택적으로 엄격한 연결 검증 및 원자적 사용자 지정 모델 등록 수행; [모델 검증](../guides/MODEL-VALIDATION.md) 참조 |
+
+동기화하거나 가져온 모델의 경우 `PUT /api/provider-models`는 `provider`, `modelId`,
+`maxOutputTokenOverride`를 받습니다. 양의 정수는 수동 출력 토큰 상한을 설정하고, `null`은
+이를 해제하여 기본값을 복원합니다. `GET /api/provider-models?provider=<provider>`는 사용자 지정
+모델 행이 없는 모델을 포함하여 이러한 값을 `modelOutputOverrides`로 반환합니다. 이 재정의는
+런타임 `max_output_tokens` 기능을 사용하며 모델을 다시 동기화해도 유지됩니다. OpenAI 호환
+공급자 페이지에서는 동일한 편집/해제 컨트롤을 제공하며, 명시적인 비전 지원이 있는 모델을 표시합니다.
 
 사용자 지정 Chat Completions 노드는 명시적인 추론 비활성화 설정을 업스트림 백엔드에 맞게 조정합니다.
-연결 테스트에 성공하면 `/models` 항목에서 인식 가능한 `owned_by` 값인 `vllm`, `sglang` 또는
-`llamacpp`가 확인된 각 정확한 모델 ID에 대해 채팅 템플릿 제어가 자동으로 선택됩니다.
-투명한 OpenAI 호환 래퍼는 중첩된 `openai` 객체 내부에 원래 모델 항목을 유지할 수 있으며,
-감지는 이러한 래퍼를 최대 3단계까지 따라갑니다. 소유권 정보가 없거나, 알 수 없거나, 서로
-충돌하는 모델은 일반적인 OpenAI 동작을 유지합니다. 감지는 기존 카탈로그 요청을 재사용하고,
-완료 토큰을 생성하지 않으며, 연결 엔드포인트가 변경되면 무효화됩니다.
+연결 테스트에 성공하면 `/models` 항목에서 인식 가능한 `owned_by` 값(`vllm`, `sglang` 또는
+`llamacpp`)이 확인되는 정확한 각 모델 ID에 대해 채팅 템플릿 컨트롤이 자동으로 선택됩니다.
+투명한 OpenAI 호환 래퍼는 중첩된 `openai` 객체 안에 원래 모델 항목을 보존할 수 있으며,
+감지는 이러한 래퍼를 최대 3단계까지 따라갑니다. 소유권 정보가 없거나 알 수 없거나 충돌하는
+모델은 일반적인 OpenAI 동작을 유지합니다. 감지는 기존 카탈로그 요청을 재사용하고, completion
+토큰을 생성하지 않으며, 연결 엔드포인트가 변경되면 무효화됩니다.
 
-해당 메타데이터를 노출하지 않는 백엔드에서 동작을 고정하려면 기존의 부분 공급자 업데이트
-API를 사용하세요.
+해당 메타데이터를 노출하지 않는 백엔드의 동작을 고정하려면 기존의 부분 공급자 업데이트 API를
+사용하세요:
 
 ```json
 {
@@ -873,48 +880,44 @@ API를 사용하세요.
 }
 ```
 
-해당 본문을 `PUT /api/providers/<connection-id>`와 함께 전송하세요. 이 연결에서는 명시적인
-추론 노력 수준 `none`이 `chat_template_kwargs.thinking=false` 및
-`chat_template_kwargs.enable_thinking=false`로 전송됩니다. 서버 측 추론 규칙이 노력 수준을
-강제하지 않는 한 명시적인 네이티브 템플릿 값이 우선합니다. 이 설정은 사용자 지정 OpenAI 호환
-연결이 Chat Completions 본문을 전송할 때만 적용되며, Responses 요청과 일반 공급자는 고유한
+해당 본문을 `PUT /api/providers/<connection-id>`와 함께 전송하세요. 그 연결에서는 명시적인
+추론 수준 `none`이 `chat_template_kwargs.thinking=false` 및
+`chat_template_kwargs.enable_thinking=false`로 전송됩니다. 서버 측 추론 규칙이 추론 수준을
+강제하지 않는 한, 명시적인 네이티브 템플릿 값이 우선합니다. 이 설정은 사용자 지정 OpenAI 호환
+연결이 Chat Completions 본문을 전달할 때만 적용됩니다. Responses 요청 및 일반 공급자는 네이티브
 요청 형식을 유지합니다. 일반적인 OpenAI `reasoning_effort` 패스스루를 강제하려면
-`reasoningControl`을 `openai`로 설정하고, 자동 감지를 사용하려면 생략하거나 `null`로 설정하세요.
+`reasoningControl`을 `openai`로 설정하고, 자동 감지를 사용하려면 이를 생략하거나 `null`로
+설정하세요.
 
-명시적인 추론 제어가 없는 경우 Claude Code 자동 모드 분류자 요청은 기본적으로 네이티브 사고를
-비활성화합니다. 감지는 모델 이름이나 완료 제한이 아니라 Claude 형식 요청에 포함된 분류자의
-시스템 마커를 사용합니다. 명시적인 본문 제어, 지원되는 노력 수준/사고 헤더, 라우팅 규칙 및
-확정된 모델 노력 수준은 기존 우선순위를 유지합니다. 두 분류자 단계 모두 프롬프트, 완료 제한,
-중지 시퀀스 및 실제 업스트림 권한 판정 결과를 유지하며, 두 번째 단계에서도 요청된 가시적
-추론을 일반 텍스트로 생성할 수 있습니다.
+Claude Code 자동 모드 분류기 요청에 명시적인 추론 제어가 포함되어 있지 않으면 기본 네이티브 사고가 비활성화됩니다. 감지는 모델 이름이나 완성 제한이 아니라 Claude 형식 요청의 분류기 시스템 마커를 사용합니다. 명시적인 본문 제어, 지원되는 노력/사고 헤더, 라우팅 규칙 및 확정된 모델 노력 수준은 기존 우선순위를 유지합니다. 두 분류기 단계 모두 프롬프트, 완성 제한, 중지 시퀀스 및 실제 업스트림 권한 판정을 유지하며, 두 번째 단계는 요청된 가시적 추론을 여전히 일반 텍스트로 생성할 수 있습니다.
 
 ### OAuth 흐름
 
 | 엔드포인트                       | 메서드 | 설명           |
 | -------------------------------- | ------ | -------------- |
-| `/api/oauth/[provider]/[action]` | 다양함 | 공급자별 OAuth |
+| `/api/oauth/[provider]/[action]` | 다양함 | 제공자별 OAuth |
 
 ### 라우팅 및 구성
 
-| 엔드포인트            | 메서드   | 설명                         |
-| --------------------- | -------- | ---------------------------- |
-| `/api/models/alias`   | GET/POST | 모델 별칭                    |
-| `/api/models/catalog` | GET      | 제공업체 및 유형별 전체 모델 |
-| `/api/combos*`        | 다양함   | 콤보 관리                    |
-| `/api/keys*`          | 다양함   | API 키 관리                  |
-| `/api/pricing`        | GET      | 모델 가격                    |
+| 엔드포인트            | 메서드   | 설명                       |
+| --------------------- | -------- | -------------------------- |
+| `/api/models/alias`   | GET/POST | 모델 별칭                  |
+| `/api/models/catalog` | GET      | 제공자 및 유형별 모든 모델 |
+| `/api/combos*`        | 다양함   | 콤보 관리                  |
+| `/api/keys*`          | 다양함   | API 키 관리                |
+| `/api/pricing`        | GET      | 모델 가격                  |
 
 ### 사용량 및 분석
 
-| 엔드포인트                       | 메서드          | 설명                                                                                                                                                                                                                                                             |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | 사용량 기록                                                                                                                                                                                                                                                      |
-| `/api/usage/logs`                | GET             | 사용량 로그                                                                                                                                                                                                                                                      |
-| `/api/usage/request-logs`        | GET             | 요청 수준 로그                                                                                                                                                                                                                                                   |
-| `/api/usage/[connectionId]`      | GET             | 연결별 사용량                                                                                                                                                                                                                                                    |
-| `/api/usage/token-limits`        | GET/POST/DELETE | API 키별 토큰 한도 예산                                                                                                                                                                                                                                          |
-| `/api/usage/model-latency-stats` | GET             | 제공업체/모델별 이동 지연 시간 집계(avg/p50/p95/p99, 성공률); 필터: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                              |
-| `/api/usage/cache-health`        | GET             | `call_logs`에 대한 프롬프트 캐시 상태 요약 — 쓰기/읽기 비율, p50/p90/p99 쓰기 크기 분포, 대량 쓰기 집중도, 모델별 분석 및 `healthy`/`degraded`/`thrash`/`no-data` 판정; 쿼리 매개변수 `range` (`1h`\|`24h`\|`7d`\|`30d`, 기본값 `24h`) 및 선택적 `model` (#8827) |
+| 엔드포인트                       | 메서드          | 설명                                                                                                                                                                                                                                                               |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/usage/history`             | GET             | 사용량 기록                                                                                                                                                                                                                                                        |
+| `/api/usage/logs`                | GET             | 사용량 로그                                                                                                                                                                                                                                                        |
+| `/api/usage/request-logs`        | GET             | 요청 수준 로그                                                                                                                                                                                                                                                     |
+| `/api/usage/[connectionId]`      | GET             | 연결별 사용량                                                                                                                                                                                                                                                      |
+| `/api/usage/token-limits`        | GET/POST/DELETE | API 키별 토큰 제한 예산                                                                                                                                                                                                                                            |
+| `/api/usage/model-latency-stats` | GET             | 제공자/모델별 이동 지연 시간 집계(avg/p50/p95/p99, 성공률); 필터: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                  |
+| `/api/usage/cache-health`        | GET             | `call_logs`에 대한 프롬프트 캐시 상태 요약 — 쓰기/읽기 비율, p50/p90/p99 쓰기 크기 분포, 대규모 쓰기 집중도, 모델별 분석 및 `healthy`/`degraded`/`thrash`/`no-data` 판정; 쿼리 매개변수 `range` (`1h`\|`24h`\|`7d`\|`30d`, 기본값 `24h`) 및 선택적 `model` (#8827) |
 
 ### 설정
 
@@ -931,36 +934,36 @@ API를 사용하세요.
 
 ### 컨텍스트 및 압축
 
-| 엔드포인트                             | 메서드         | 설명                                                         |
-| -------------------------------------- | -------------- | ------------------------------------------------------------ |
-| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked 압축 미리보기 |
-| `/api/compression/language-packs`      | GET            | 사용 가능한 Caveman 언어 팩 목록                             |
-| `/api/compression/rules`               | GET            | Caveman 규칙 메타데이터 목록                                 |
-| `/api/context/caveman/config`          | GET/PUT        | Caveman 전용 설정 별칭                                       |
-| `/api/context/rtk/config`              | GET/PUT        | 사용자 지정 필터 및 원시 출력 보존을 포함한 RTK 전용 설정    |
-| `/api/context/rtk/filters`             | GET            | RTK 필터 카탈로그 및 사용자 지정 필터 진단                   |
-| `/api/context/rtk/test`                | POST           | 텍스트 페이로드를 대상으로 RTK 미리보기/테스트 실행          |
-| `/api/context/rtk/raw-output/[id]`     | GET            | 포인터 id를 통해 보존된 민감 정보 제거 원시 출력 읽기        |
-| `/api/context/combos`                  | GET/POST       | 압축 조합 목록 조회/생성                                     |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | 압축 조합 상세 조회/업데이트/삭제                            |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | 라우팅 조합에 압축 조합 할당                                 |
-| `/api/context/analytics`               | GET            | 압축 분석 별칭                                               |
+| 엔드포인트                             | 메서드         | 설명                                                          |
+| -------------------------------------- | -------------- | ------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | off/lite/standard/aggressive/ultra/RTK/stacked 압축 미리 보기 |
+| `/api/compression/language-packs`      | GET            | 사용 가능한 Caveman 언어 팩 목록                              |
+| `/api/compression/rules`               | GET            | Caveman 규칙 메타데이터 목록                                  |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman 전용 설정 별칭                                        |
+| `/api/context/rtk/config`              | GET/PUT        | 사용자 지정 필터 및 원시 출력 보존을 포함한 RTK 전용 설정     |
+| `/api/context/rtk/filters`             | GET            | RTK 필터 카탈로그 및 사용자 지정 필터 진단                    |
+| `/api/context/rtk/test`                | POST           | 텍스트 페이로드에 대해 RTK 미리 보기/테스트 실행              |
+| `/api/context/rtk/raw-output/[id]`     | GET            | 포인터 id로 보존된 민감 정보 삭제 원시 출력 읽기              |
+| `/api/context/combos`                  | GET/POST       | 압축 조합 목록/생성                                           |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | 압축 조합 세부 정보/업데이트/삭제                             |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | 라우팅 조합에 압축 조합 할당                                  |
+| `/api/context/analytics`               | GET            | 압축 분석 별칭                                                |
 
 ### 모니터링
 
-| Endpoint                             | Method     | Description                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 엔드포인트                           | 메서드     | 설명                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | ------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/api/sessions`                      | GET        | 활성 세션 추적                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `/api/rate-limits`                   | GET        | 계정별 요청 제한                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/api/rate-limits`                   | GET        | 계정별 요청 속도 제한                                                                                                                                                                                                                                                                                                                                                                                                |
 | `/api/monitoring/health`             | GET        | 상태 확인 + 제공자 요약(`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). 관리 화면에는 `credentialHealth`가 포함됩니다. 여기에는 프로브 캐시 스칼라, `failed>0`일 때의 `failedConnections`, 그리고 `staleDbNonOkCount`(게이지가 아닌 SQLite 고정 `test_status`)가 포함됩니다. [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status)를 참조하세요. |
-| `/api/cache/stats`                   | GET/DELETE | 캐시 통계 조회 / 삭제                                                                                                                                                                                                                                                                                                                                                                                                |
-| `/api/modality-bridge/stats`         | GET        | 메모리 내 `attempts`, 성공 횟수/`bridged`, 실패 횟수, 캐시 적중 횟수, `totalLatencyMs`, `latencySamples`, 샘플 수를 분모로 계산한 `averageLatencyMs`, 마지막 사용 시간(재시작 시 초기화됨, 관리 인증 필요)                                                                                                                                                                                                           |
-| `/api/modality-bridge/video/runtime` | GET        | 관리 인증/프로브 전에 엄격한 신뢰된 루프백 검사 수행, 정제된 FFmpeg/ffprobe 가용성 및 버전 반환(no-store)                                                                                                                                                                                                                                                                                                            |
-| `/api/modality-bridge/video/extract` | POST       | 인증된 내부 신뢰 루프백 바이트 브로커. 입력 한도 50 MiB, 제한된 큐/출력 한도 32 MiB, 용량 초과 시 `503`, 연결 해제 시 `499`, 기한 초과 시 `504` 반환. 공개 업로드 API가 아님                                                                                                                                                                                                                                         |
+| `/api/cache/stats`                   | GET/DELETE | 캐시 통계 조회 / 초기화                                                                                                                                                                                                                                                                                                                                                                                              |
+| `/api/modality-bridge/stats`         | GET        | 메모리 내 `attempts`, 성공 횟수/`bridged`, 실패 횟수, 캐시 적중 횟수, `totalLatencyMs`, `latencySamples`, 샘플 수를 분모로 계산한 `averageLatencyMs`, 마지막 사용 시간(재시작 시 초기화, 관리 인증 필요)                                                                                                                                                                                                             |
+| `/api/modality-bridge/video/runtime` | GET        | 관리 인증/프로브 전에 엄격한 신뢰 루프백 검사 수행, 정제된 FFmpeg/ffprobe 가용성 및 버전 정보(`no-store`)                                                                                                                                                                                                                                                                                                            |
+| `/api/modality-bridge/video/extract` | POST       | 내부 인증을 사용하는 신뢰 루프백 바이트 브로커. 입력 한도 50 MiB, 제한된 대기열/출력 한도 32 MiB, 용량 초과 시 `503`, 연결 해제 시 `499`, 기한 초과 시 `504`; 공개 업로드 API가 아님                                                                                                                                                                                                                                 |
 
 ### 백업 및 내보내기/가져오기
 
-| Endpoint                    | Method | Description                                 |
+| 엔드포인트                  | 메서드 | 설명                                        |
 | --------------------------- | ------ | ------------------------------------------- |
 | `/api/db-backups`           | GET    | 사용 가능한 백업 목록 조회                  |
 | `/api/db-backups`           | PUT    | 수동 백업 생성                              |
@@ -971,15 +974,15 @@ API를 사용하세요.
 
 ### 클라우드 동기화
 
-| Endpoint               | Method  | Description          |
-| ---------------------- | ------- | -------------------- |
-| `/api/sync/cloud`      | Various | 클라우드 동기화 작업 |
-| `/api/sync/initialize` | POST    | 동기화 초기화        |
-| `/api/cloud/*`         | Various | 클라우드 관리        |
+| 엔드포인트             | 메서드 | 설명                 |
+| ---------------------- | ------ | -------------------- |
+| `/api/sync/cloud`      | 다양함 | 클라우드 동기화 작업 |
+| `/api/sync/initialize` | POST   | 동기화 초기화        |
+| `/api/cloud/*`         | 다양함 | 클라우드 관리        |
 
 ### 터널
 
-| Endpoint                   | Method | Description                                                           |
+| 엔드포인트                 | 메서드 | 설명                                                                  |
 | -------------------------- | ------ | --------------------------------------------------------------------- |
 | `/api/tunnels/cloudflared` | GET    | 대시보드용 Cloudflare Quick Tunnel 설치/런타임 상태 조회              |
 | `/api/tunnels/cloudflared` | POST   | Cloudflare Quick Tunnel 활성화 또는 비활성화(`action=enable/disable`) |
@@ -994,7 +997,7 @@ API를 사용하세요.
 | `/api/cli-tools/codex-settings`    | GET    | Codex CLI 상태    |
 | `/api/cli-tools/droid-settings`    | GET    | Droid CLI 상태    |
 | `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI 상태 |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | 일반 CLI 런타임   |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | 범용 CLI 런타임   |
 
 CLI 응답에는 `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`이 포함됩니다.
 
@@ -1002,30 +1005,30 @@ CLI 응답에는 `installed`, `runnable`, `command`, `commandPath`, `runtimeMode
 
 | 엔드포인트        | 메서드 | 설명                                                      |
 | ----------------- | ------ | --------------------------------------------------------- |
-| `/api/acp/agents` | GET    | 상태와 함께 감지된 모든 에이전트(내장 + 사용자 지정) 나열 |
+| `/api/acp/agents` | GET    | 감지된 모든 에이전트(기본 제공 + 사용자 지정)와 상태 조회 |
 | `/api/acp/agents` | POST   | 사용자 지정 에이전트 추가 또는 감지 캐시 새로 고침        |
 | `/api/acp/agents` | DELETE | `id` 쿼리 매개변수로 사용자 지정 에이전트 제거            |
 
 GET 응답에는 `agents[]`(id, name, binary, version, installed, protocol, isCustom)와 `summary`(total, installed, notFound, builtIn, custom)가 포함됩니다.
 
-### 복원력 및 사용량 제한
+### 복원력 및 속도 제한
 
-| 엔드포인트                        | 메서드    | 설명                                                                                |
-| --------------------------------- | --------- | ----------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | 요청 큐, 연결 쿨다운, 제공자 차단기 및 대기 설정 조회/업데이트                      |
-| `/api/resilience/reset`           | POST      | 제공자 회로 차단기 초기화                                                           |
-| `/api/resilience/model-cooldowns` | GET       | 활성화된 (제공자, 연결, 모델)별 잠금을 남은 시간순으로 정렬하여 나열                |
-| `/api/resilience/model-cooldowns` | DELETE    | 모델 잠금 해제 — 본문에 `{provider, model}` 또는 모두 삭제하려면 `{all: true}` 지정 |
-| `/api/rate-limits`                | GET       | 계정별 사용량 제한 상태                                                             |
-| `/api/rate-limit`                 | GET       | 전역 사용량 제한 구성                                                               |
+| 엔드포인트                        | 메서드    | 설명                                                                                        |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | 요청 큐, 연결 쿨다운, 공급자 차단기 및 대기 설정 조회/업데이트                              |
+| `/api/resilience/reset`           | POST      | 공급자 회로 차단기 초기화                                                                   |
+| `/api/resilience/model-cooldowns` | GET       | 활성화된 (공급자, 연결, 모델)별 잠금 목록을 남은 시간순으로 조회                            |
+| `/api/resilience/model-cooldowns` | DELETE    | 모델 잠금 해제 — 본문에 `{provider, model}`을 사용하거나 모두 삭제하려면 `{all: true}` 사용 |
+| `/api/rate-limits`                | GET       | 계정별 속도 제한 상태                                                                       |
+| `/api/rate-limit`                 | GET       | 전역 속도 제한 구성                                                                         |
 
-> 네 개의 `/api/resilience/*` 경로에는 모두 **관리 인증**(`requireManagementAuth`)이 필요합니다. 제공자 차단기, 연결 쿨다운 및 모델 잠금에 대한 전체 설명은 [복원력(확장)](#resilience-extended)을 참조하세요.
+> 네 개의 `/api/resilience/*` 경로는 모두 **관리 인증**(`requireManagementAuth`)이 필요합니다. 공급자 차단기, 연결 쿨다운 및 모델 잠금의 차이점에 대한 전체 설명은 [복원력(확장)](#resilience-extended)을 참조하세요.
 
 ### 평가
 
-| 엔드포인트   | 메서드   | 설명                         |
-| ------------ | -------- | ---------------------------- |
-| `/api/evals` | GET/POST | 평가 스위트 나열 / 평가 실행 |
+| 엔드포인트   | 메서드   | 설명                       |
+| ------------ | -------- | -------------------------- |
+| `/api/evals` | GET/POST | 평가 스위트 조회/평가 실행 |
 
 ### 정책
 
@@ -1043,22 +1046,22 @@ GET 응답에는 `agents[]`(id, name, binary, version, installed, protocol, isCu
 
 | 엔드포인트                 | 메서드 | 설명                                |
 | -------------------------- | ------ | ----------------------------------- |
-| `/v1beta/models`           | GET    | Gemini 형식으로 모델 나열           |
+| `/v1beta/models`           | GET    | Gemini 형식으로 모델 조회           |
 | `/v1beta/models/{...path}` | POST   | Gemini `generateContent` 엔드포인트 |
 
-이 엔드포인트는 네이티브 Gemini SDK 호환성이 필요한 클라이언트를 위해 Gemini의 API 형식을 그대로 따릅니다.
+이 엔드포인트들은 네이티브 Gemini SDK 호환성을 요구하는 클라이언트를 위해 Gemini의 API 형식을 그대로 따릅니다.
 
-### 내부 / 시스템 API
+### 내부/시스템 API
 
 | 엔드포인트               | 메서드 | 설명                                        |
 | ------------------------ | ------ | ------------------------------------------- |
 | `/api/init`              | GET    | 애플리케이션 초기화 확인(최초 실행 시 사용) |
 | `/api/tags`              | GET    | Ollama 호환 모델 태그(Ollama 클라이언트용)  |
-| `/api/restart`           | POST   | 정상적인 서버 재시작 실행                   |
-| `/api/shutdown`          | POST   | 정상적인 서버 종료 실행                     |
-| `/api/system/env/repair` | POST   | OAuth 제공자 환경 변수 복구                 |
+| `/api/restart`           | POST   | 정상적인 서버 재시작 트리거                 |
+| `/api/shutdown`          | POST   | 정상적인 서버 종료 트리거                   |
+| `/api/system/env/repair` | POST   | OAuth 공급자 환경 변수 복구                 |
 
-> **참고:** 이 엔드포인트는 시스템 내부에서 사용되거나 Ollama 클라이언트 호환성을 위해 사용됩니다. 일반적으로 최종 사용자가 직접 호출하지는 않습니다.
+> **참고:** 이 엔드포인트들은 시스템 내부에서 사용되거나 Ollama 클라이언트 호환성을 위해 사용됩니다. 일반적으로 최종 사용자가 직접 호출하지 않습니다.
 
 ### OAuth 환경 복구 _(v3.6.1+)_
 
@@ -1071,7 +1074,7 @@ Content-Type: application/json
 }
 ```
 
-특정 제공자의 누락되거나 손상된 OAuth 환경 변수를 복구합니다. 반환 값:
+특정 공급자의 누락되거나 손상된 OAuth 환경 변수를 복구합니다. 반환값:
 
 ```json
 {
@@ -1214,7 +1217,7 @@ Content-Type: application/json
 }
 ```
 
-> **스키마 참고 사항** (`setBudgetSchema`): `apiKeyId`는 필수이며, `dailyLimitUsd`, `weeklyLimitUsd`, `monthlyLimitUsd` 중 하나 이상이 0보다 커야 합니다. 선택적 필드: `warningThreshold`(0~1), `resetInterval`(`daily` | `weekly` | `monthly`), `resetTime`(`HH:MM`). 기존 `{keyId, limit, period}` 형식은 `400 Bad Request`를 반환합니다.
+> **스키마 참고 사항** (`setBudgetSchema`): `apiKeyId`는 필수이며, `dailyLimitUsd`, `weeklyLimitUsd`, `monthlyLimitUsd` 중 하나 이상이 0보다 커야 합니다. 선택적 필드: `warningThreshold`(0–1), `resetInterval`(`daily` | `weekly` | `monthly`), `resetTime`(`HH:MM`). 기존 `{keyId, limit, period}` 형식을 사용하면 `400 Bad Request`가 반환됩니다.
 
 ## 토큰 한도
 

@@ -844,40 +844,48 @@ X-OmniRoute-No-Cache: true
 
 ## Dashboard at Pamamahala
 
-Ang mga route ng pamamahala (`/api/*` maliban sa pampublikong auth/login) ay **hindi** pinapahintulutan ng
-mga karaniwang inference API key. Para sa mga pamilya ng credential, saklaw, at halimbawa ng curl:
-[Pagpapatotoo sa Pamamahala](../guides/MANAGEMENT-AUTH.md).
+Ang mga route ng pamamahala (`/api/*` maliban sa pampublikong auth/login) ay **hindi** pinapahintulutan ng mga ordinaryong inference API key. Para sa mga pamilya ng kredensyal, saklaw, at halimbawa ng curl:
+[Authentication sa Pamamahala](../guides/MANAGEMENT-AUTH.md).
 
-### Pagpapatotoo
+### Authentication
 
-| Endpoint                      | Pamamaraan | Paglalarawan                      |
-| ----------------------------- | ---------- | --------------------------------- |
-| `/api/auth/login`             | POST       | Mag-log in                        |
-| `/api/auth/logout`            | POST       | Mag-log out                       |
-| `/api/settings/require-login` | GET/PUT    | I-toggle ang kinakailangang login |
+| Endpoint                      | Paraan  | Paglalarawan                      |
+| ----------------------------- | ------- | --------------------------------- |
+| `/api/auth/login`             | POST    | Mag-login                         |
+| `/api/auth/logout`            | POST    | Mag-logout                        |
+| `/api/settings/require-login` | GET/PUT | I-toggle ang kinakailangang login |
 
 ### Pamamahala ng Provider
 
-| Endpoint                                | Pamamaraan            | Paglalarawan                                                                                                                                                                                                                    |
-| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | Ilista / gumawa ng mga provider                                                                                                                                                                                                 |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Pamahalaan ang isang provider                                                                                                                                                                                                   |
-| `/api/providers/[id]/test`              | POST                  | Subukan ang koneksyon ng provider                                                                                                                                                                                               |
-| `/api/providers/[id]/models`            | GET                   | Ilista ang mga model ng provider                                                                                                                                                                                                |
-| `/api/providers/validate`               | POST                  | Patunayan ang config ng provider                                                                                                                                                                                                |
-| `/api/providers/bulk`                   | POST                  | Maramihang magdagdag ng mga API key para sa ISANG provider                                                                                                                                                                      |
-| `/api/providers/import`                 | POST                  | Mag-import ng magkakaibang LISTAHAN ng provider mula sa na-parse na CSV/JSON file (#6836); mga resulta ng bahagyang pagkabigo sa bawat row                                                                                      |
-| `/api/provider-nodes*`                  | Iba-iba               | Pamamahala ng provider node                                                                                                                                                                                                     |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Mga custom model (magdagdag, mag-update, magtago/magpakita, magtanggal)                                                                                                                                                         |
-| `/api/provider-models/validate-and-add` | POST                  | Pagpapatunay ng mahigpit na koneksyon na nangangailangan ng pagpapatotoo sa pamamahala at tahasang pag-opt in, at atomikong pagpaparehistro ng custom model; tingnan ang [Pagpapatunay ng model](../guides/MODEL-VALIDATION.md) |
+| Endpoint                                | Paraan                    | Paglalarawan                                                                                                                                                                                                      |
+| --------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | Ilista / gumawa ng mga provider                                                                                                                                                                                   |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Pamahalaan ang isang provider                                                                                                                                                                                     |
+| `/api/providers/[id]/test`              | POST                      | Subukan ang koneksyon ng provider                                                                                                                                                                                 |
+| `/api/providers/[id]/models`            | GET                       | Ilista ang mga model ng provider                                                                                                                                                                                  |
+| `/api/providers/validate`               | POST                      | I-validate ang configuration ng provider                                                                                                                                                                          |
+| `/api/providers/bulk`                   | POST                      | Maramihang magdagdag ng mga API key para sa ISANG provider                                                                                                                                                        |
+| `/api/providers/import`                 | POST                      | Mag-import ng magkakaibang LISTAHAN ng mga provider mula sa na-parse na CSV/JSON file (#6836); mga resulta ng bahagyang pagkabigo sa bawat row                                                                    |
+| `/api/provider-nodes*`                  | Iba't iba                 | Pamamahala ng provider node                                                                                                                                                                                       |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Mga custom model at override sa bawat model (magdagdag, mag-update, magtago/magpakita, mag-delete)                                                                                                                |
+| `/api/provider-models/validate-and-add` | POST                      | Mahigpit na pag-validate ng koneksyon na nangangailangan ng management authentication at opt-in, at atomic na pagpaparehistro ng custom model; tingnan ang [Pag-validate ng model](../guides/MODEL-VALIDATION.md) |
 
-Inaangkop ng mga custom na Chat Completions node ang tahasang pag-opt out sa reasoning para sa upstream backend. Awtomatikong pinipili ng
-matagumpay na pagsubok sa koneksyon ang mga kontrol ng chat template para sa bawat eksaktong model ID
-na may entry sa `/models` na nagpapatunay ng kinikilalang value ng `owned_by`: `vllm`, `sglang`, o `llamacpp`.
-Maaaring panatilihin ng mga transparent na wrapper na compatible sa OpenAI ang orihinal na entry ng model sa loob ng isang naka-nest na
-`openai` object; sinusundan ng pagtukoy ang hanggang tatlong ganoong envelope. Pinananatili ng mga model na walang, hindi kilala, o
-magkakasalungat na pagmamay-ari ang karaniwang gawi ng OpenAI. Muling ginagamit ng pagtukoy ang kasalukuyang catalog request,
-hindi gumagawa ng anumang completion token, at nawawalan ng bisa kapag nagbago ang endpoint ng koneksyon.
+Para sa mga naka-sync/na-import na model, tumatanggap ang `PUT /api/provider-models` ng `provider`, `modelId`, at
+`maxOutputTokenOverride`: itinatakda ng isang positibong integer ang manu-manong limitasyon sa output token, at
+inaalis ito ng `null` upang maibalik ang default. Ibinabalik ng `GET /api/provider-models?provider=<provider>` ang mga
+halagang ito sa `modelOutputOverrides`, kabilang ang mga model na walang custom-model row. Ginagamit ng override
+ang runtime na kakayahang `max_output_tokens` at nananatili ito pagkatapos ng muling pag-sync ng model. Nagbibigay
+ang page ng OpenAI-compatible na provider ng parehong mga kontrol sa pag-edit/pag-clear at minamarkahan nito ang
+mga model na may tahasang suporta sa vision.
+
+Inaangkop ng mga Custom Chat Completions node ang mga tahasang pag-opt out sa reasoning para sa upstream backend.
+Awtomatikong pinipili ng matagumpay na pagsubok sa koneksyon ang mga kontrol ng chat-template para sa bawat eksaktong
+model ID na ang entry sa `/models` ay nagpapatunay ng kinikilalang value ng `owned_by`: `vllm`, `sglang`, o `llamacpp`.
+Maaaring panatilihin ng mga transparent na OpenAI-compatible wrapper ang orihinal na entry ng model sa loob ng isang
+nested na `openai` object; sinusundan ng detection ang hanggang tatlong ganitong envelope. Pinananatili ng mga model
+na may nawawala, hindi kilala, o magkakasalungat na ownership ang ordinaryong gawi ng OpenAI. Muling ginagamit ng
+detection ang kasalukuyang catalog request, hindi ito bumubuo ng anumang completion token, at nawawalan ito ng bisa
+kapag nagbago ang endpoint ng koneksyon.
 
 Upang i-pin ang gawi para sa isang backend na hindi naglalantad ng metadata na iyon, gamitin ang kasalukuyang partial
 provider update API:
@@ -892,26 +900,22 @@ provider update API:
 
 Ipadala ang body na iyon gamit ang `PUT /api/providers/<connection-id>`. Sa koneksyong iyon, ipinapadala ang tahasang
 reasoning effort na `none` bilang `chat_template_kwargs.thinking=false` at
-`chat_template_kwargs.enable_thinking=false`. Nananatiling may awtoridad ang mga tahasang native template value
-maliban kung sapilitang nagtatakda ng effort ang isang server-side reasoning rule. Nalalapat lamang ang setting kapag ang isang custom na
-koneksyong compatible sa OpenAI ay nagpapadala ng Chat Completions body; pinananatili ng mga Responses request at karaniwang
-provider ang kanilang native na anyo ng request. Itakda ang `reasoningControl` sa `openai` upang sapilitang gamitin ang karaniwang OpenAI
-`reasoning_effort` passthrough, o alisin ito/itakda ito sa `null` upang gumamit ng awtomatikong pagtukoy.
+`chat_template_kwargs.enable_thinking=false`. Nananatiling authoritative ang mga tahasang native template value
+maliban kung pinipilit ng isang server-side reasoning rule ang isang effort. Nalalapat lamang ang setting kapag
+nagpapadala ang isang custom na OpenAI-compatible na koneksyon ng Chat Completions body; pinananatili ng mga Responses
+request at ordinaryong provider ang kanilang native na anyo ng request. Itakda ang `reasoningControl` sa `openai`
+upang pilitin ang ordinaryong OpenAI `reasoning_effort` passthrough, o alisin ito/itakda ito sa `null` upang gamitin
+ang awtomatikong detection.
 
-Ang mga request ng Claude Code auto-mode classifier ay gumagamit bilang default ng naka-disable na native thinking kapag
-wala silang tahasang mga kontrol sa reasoning. Ginagamit ng pagtukoy ang system marker ng classifier sa mga Claude-format na
-request, hindi ang mga pangalan ng model o completion limit. Pinananatili ng mga tahasang kontrol sa body, mga sinusuportahang effort/thinking
-header, routing rule, at nalutas na model effort ang kanilang kasalukuyang prayoridad. Pinananatili ng parehong yugto ng classifier
-ang kanilang mga prompt, completion limit, stop sequence, at tunay na upstream na pasya sa pahintulot; maaari pa ring
-ilabas ng ikalawang yugto ang hinihinging nakikitang reasoning nito bilang karaniwang text.
+Ang mga kahilingan sa classifier ng auto-mode ng Claude Code ay nagde-default sa naka-disable na likas na pag-iisip kapag wala silang tahasang kontrol sa pangangatwiran. Ginagamit ng pagtukoy ang system marker ng classifier sa mga kahilingang nasa Claude format, hindi ang mga pangalan ng modelo o mga limitasyon sa completion. Nananatili ang kasalukuyang priyoridad ng mga tahasang kontrol sa body, mga sinusuportahang header ng effort/thinking, mga panuntunan sa pagruruta, at naresolbang antas ng effort ng modelo. Pinananatili ng parehong yugto ng classifier ang kanilang mga prompt, limitasyon sa completion, stop sequence, at aktuwal na hatol sa pahintulot mula sa upstream; maaari pa ring ilabas ng ikalawang yugto ang hinihingi nitong nakikitang pangangatwiran bilang karaniwang teksto.
 
 ### Mga Daloy ng OAuth
 
-| Endpoint                         | Pamamaraan | Paglalarawan                    |
-| -------------------------------- | ---------- | ------------------------------- |
-| `/api/oauth/[provider]/[action]` | Iba-iba    | OAuth na partikular sa provider |
+| Endpoint                         | Paraan  | Paglalarawan                    |
+| -------------------------------- | ------- | ------------------------------- |
+| `/api/oauth/[provider]/[action]` | Iba-iba | OAuth na partikular sa provider |
 
-### Routing at Config
+### Pagruruta at Configuration
 
 | Endpoint              | Paraan   | Paglalarawan                           |
 | --------------------- | -------- | -------------------------------------- |
@@ -923,15 +927,15 @@ ilabas ng ikalawang yugto ang hinihinging nakikitang reasoning nito bilang karan
 
 ### Paggamit at Analytics
 
-| Endpoint                         | Paraan          | Paglalarawan                                                                                                                                                                                                                                                                                                                                               |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Kasaysayan ng paggamit                                                                                                                                                                                                                                                                                                                                     |
-| `/api/usage/logs`                | GET             | Mga log ng paggamit                                                                                                                                                                                                                                                                                                                                        |
-| `/api/usage/request-logs`        | GET             | Mga log sa antas ng request                                                                                                                                                                                                                                                                                                                                |
-| `/api/usage/[connectionId]`      | GET             | Paggamit sa bawat koneksyon                                                                                                                                                                                                                                                                                                                                |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Mga budget ng limitasyon sa token para sa bawat API key                                                                                                                                                                                                                                                                                                    |
-| `/api/usage/model-latency-stats` | GET             | Umuusad na pinagsama-samang latency ng bawat provider/modelo (avg/p50/p95/p99, rate ng tagumpay); mga filter: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                              |
-| `/api/usage/cache-health`        | GET             | Buod ng kalagayan ng prompt cache sa `call_logs` — ratio ng pagsulat/pagbasa, distribusyon ng laki ng pagsulat na p50/p90/p99, konsentrasyon ng malalaking pagsulat, paghahati ayon sa modelo, at hatol na `healthy`/`degraded`/`thrash`/`no-data`; mga query param na `range` (`1h`\|`24h`\|`7d`\|`30d`, default na `24h`) at opsyonal na `model` (#8827) |
+| Endpoint                         | Paraan          | Paglalarawan                                                                                                                                                                                                                                                                                                                                         |
+| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Kasaysayan ng paggamit                                                                                                                                                                                                                                                                                                                               |
+| `/api/usage/logs`                | GET             | Mga log ng paggamit                                                                                                                                                                                                                                                                                                                                  |
+| `/api/usage/request-logs`        | GET             | Mga log sa antas ng kahilingan                                                                                                                                                                                                                                                                                                                       |
+| `/api/usage/[connectionId]`      | GET             | Paggamit sa bawat koneksyon                                                                                                                                                                                                                                                                                                                          |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Mga budget sa limitasyon ng token para sa bawat API key                                                                                                                                                                                                                                                                                              |
+| `/api/usage/model-latency-stats` | GET             | Gumugulong na pinagsama-samang latency ayon sa provider/modelo (avg/p50/p95/p99, antas ng tagumpay); mga filter: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                     |
+| `/api/usage/cache-health`        | GET             | Buod ng kalagayan ng prompt cache sa `call_logs` — ratio ng write/read, distribusyon ng laki ng write sa p50/p90/p99, konsentrasyon ng mabibigat na write, paghahati ayon sa modelo, at hatol na `healthy`/`degraded`/`thrash`/`no-data`; mga query parameter na `range` (`1h`\|`24h`\|`7d`\|`30d`, default na `24h`) at opsyonal na `model` (#8827) |
 
 ### Mga Setting
 
@@ -941,10 +945,10 @@ ilabas ng ikalawang yugto ang hinihinging nakikitang reasoning nito bilang karan
 | `/api/settings/proxy`                 | GET/PUT       | Configuration ng network proxy                                                                                                                                                                                  |
 | `/api/settings/proxy/test`            | POST          | Subukan ang koneksyon sa proxy                                                                                                                                                                                  |
 | `/api/settings/ip-filter`             | GET/PUT       | Allowlist/blocklist ng IP                                                                                                                                                                                       |
-| `/api/settings/thinking-budget`       | GET/PUT       | Mode ng muling pagsulat sa **request** para sa pag-iisip/pangangatwiran (passthrough / auto-strip / custom / adaptive). Hiwalay sa compression. Tingnan ang [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/thinking-budget`       | GET/PUT       | Mode ng muling pagsulat ng **request** para sa pag-iisip/pangangatwiran (passthrough / auto-strip / custom / adaptive). Hiwalay sa compression. Tingnan ang [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
 | `/api/settings/system-prompt`         | GET/PUT       | Pangkalahatang system prompt                                                                                                                                                                                    |
 | `/api/settings/compression`           | GET/PUT       | Pangkalahatang configuration ng compression                                                                                                                                                                     |
-| `/api/settings/purge-request-history` | POST          | Burahin ang mga row ng request log at mga lokal na artifact ng call log                                                                                                                                         |
+| `/api/settings/purge-request-history` | POST          | I-clear ang mga row ng request log at mga lokal na artifact ng call log                                                                                                                                         |
 
 ### Konteksto at Compression
 
@@ -952,113 +956,113 @@ ilabas ng ikalawang yugto ang hinihinging nakikitang reasoning nito bilang karan
 | -------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------- |
 | `/api/compression/preview`             | POST           | I-preview ang off/lite/standard/aggressive/ultra/RTK/stacked compression                        |
 | `/api/compression/language-packs`      | GET            | Ilista ang mga available na Caveman language pack                                               |
-| `/api/compression/rules`               | GET            | Ilista ang metadata ng mga Caveman rule                                                         |
+| `/api/compression/rules`               | GET            | Ilista ang metadata ng mga panuntunan ng Caveman                                                |
 | `/api/context/caveman/config`          | GET/PUT        | Alias ng mga setting na partikular sa Caveman                                                   |
 | `/api/context/rtk/config`              | GET/PUT        | Mga setting na partikular sa RTK, kabilang ang mga custom filter at pagpapanatili ng raw output |
 | `/api/context/rtk/filters`             | GET            | Catalog ng RTK filter at mga diagnostic ng custom filter                                        |
-| `/api/context/rtk/test`                | POST           | Magpatakbo ng RTK preview/test gamit ang isang text payload                                     |
+| `/api/context/rtk/test`                | POST           | Patakbuhin ang RTK preview/test sa isang text payload                                           |
 | `/api/context/rtk/raw-output/[id]`     | GET            | Basahin ang pinanatiling na-redact na raw output ayon sa pointer id                             |
 | `/api/context/combos`                  | GET/POST       | Ilista/gumawa ng compression combo                                                              |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Mga detalye/pag-update/pagbura ng compression combo                                             |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Detalye/pag-update/pagtanggal ng compression combo                                              |
 | `/api/context/combos/[id]/assignments` | GET/PUT        | Italaga ang mga compression combo sa mga routing combo                                          |
 | `/api/context/analytics`               | GET            | Alias ng compression analytics                                                                  |
 
 ### Pagsubaybay
 
-| Endpoint                             | Pamamaraan | Paglalarawan                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `/api/sessions`                      | GET        | Pagsubaybay sa mga aktibong session                                                                                                                                                                                                                                                                                                                                                                                            |
-| `/api/rate-limits`                   | GET        | Mga limitasyon sa rate para sa bawat account                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/monitoring/health`             | GET        | Pagsusuri ng kalagayan + buod ng provider (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Kasama sa view ng pamamahala ang `credentialHealth`: mga scalar ng probe cache, `failedConnections` kapag `failed>0`, at `staleDbNonOkCount` (SQLite sticky `test_status`, hindi ang gauge). Tingnan ang [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Mga estadistika ng cache / pag-clear                                                                                                                                                                                                                                                                                                                                                                                           |
-| `/api/modality-bridge/stats`         | GET        | Nasa memoryang `attempts`, mga tagumpay/`bridged`, mga pagkabigo, mga cache hit, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` na nakabatay sa bilang ng mga sample, at oras ng huling paggamit (nire-reset sa pag-restart; awtentikasyon sa pamamahala)                                                                                                                                                              |
-| `/api/modality-bridge/video/runtime` | GET        | Mahigpit na pagsusuri sa pinagkakatiwalaang loopback bago ang awtentikasyon/probe ng pamamahala; na-sanitize na availability at mga bersyon ng FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                       |
-| `/api/modality-bridge/video/extract` | POST       | Internal na awtentikado at pinagkakatiwalaang loopback byte broker; 50 MiB na input, nilimitahang queue/32 MiB na output, `503` kapag sagad ang kapasidad, `499` kapag nadiskonekta, `504` kapag lumampas sa deadline; hindi isang pampublikong upload API                                                                                                                                                                     |
+| Endpoint                             | Paraan     | Paglalarawan                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Pagsubaybay sa mga aktibong session                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `/api/rate-limits`                   | GET        | Mga limitasyon sa rate para sa bawat account                                                                                                                                                                                                                                                                                                                                                                                            |
+| `/api/monitoring/health`             | GET        | Pagsusuri ng kalagayan + buod ng provider (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Kasama sa view ng pamamahala ang `credentialHealth`: mga scalar ng probe cache, `failedConnections` kapag `failed>0`, at `staleDbNonOkCount` (nananatiling `test_status` ng SQLite, hindi ang gauge). Tingnan ang [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Mga estadistika ng cache / i-clear                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `/api/modality-bridge/stats`         | GET        | Nasa-memoryang `attempts`, mga tagumpay/`bridged`, mga pagkabigo, mga cache hit, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` na nakabatay sa bilang ng sample, at oras ng huling paggamit (nire-reset kapag nag-restart; nangangailangan ng awtentikasyon sa pamamahala)                                                                                                                                                     |
+| `/api/modality-bridge/video/runtime` | GET        | Mahigpit na pagsusuri sa pinagkakatiwalaang loopback bago ang awtentikasyon/probe sa pamamahala; na-sanitize na availability at mga bersyon ng FFmpeg/ffprobe (`no-store`)                                                                                                                                                                                                                                                              |
+| `/api/modality-bridge/video/extract` | POST       | Panloob at awtentikadong byte broker para sa pinagkakatiwalaang loopback; 50 MiB na input, nililimitahang queue/32 MiB na output, `503` para sa kapasidad, `499` para sa pagkakadiskonekta, `504` para sa deadline; hindi isang pampublikong API para sa pag-upload                                                                                                                                                                     |
 
 ### Pag-backup at Pag-export/Pag-import
 
-| Endpoint                    | Pamamaraan | Paglalarawan                                          |
-| --------------------------- | ---------- | ----------------------------------------------------- |
-| `/api/db-backups`           | GET        | Ilista ang mga available na backup                    |
-| `/api/db-backups`           | PUT        | Gumawa ng manu-manong backup                          |
-| `/api/db-backups`           | POST       | Mag-restore mula sa isang partikular na backup        |
-| `/api/db-backups/export`    | GET        | I-download ang database bilang .sqlite file           |
-| `/api/db-backups/import`    | POST       | Mag-upload ng .sqlite file upang palitan ang database |
-| `/api/db-backups/exportAll` | GET        | I-download ang buong backup bilang .tar.gz archive    |
+| Endpoint                    | Paraan | Paglalarawan                                          |
+| --------------------------- | ------ | ----------------------------------------------------- |
+| `/api/db-backups`           | GET    | Ilista ang mga available na backup                    |
+| `/api/db-backups`           | PUT    | Gumawa ng manu-manong backup                          |
+| `/api/db-backups`           | POST   | Mag-restore mula sa isang partikular na backup        |
+| `/api/db-backups/export`    | GET    | I-download ang database bilang .sqlite file           |
+| `/api/db-backups/import`    | POST   | Mag-upload ng .sqlite file upang palitan ang database |
+| `/api/db-backups/exportAll` | GET    | I-download ang buong backup bilang .tar.gz archive    |
 
 ### Pag-sync sa Cloud
 
-| Endpoint               | Pamamaraan | Paglalarawan                |
-| ---------------------- | ---------- | --------------------------- |
-| `/api/sync/cloud`      | Iba-iba    | Mga operasyon ng cloud sync |
-| `/api/sync/initialize` | POST       | Simulan ang sync            |
-| `/api/cloud/*`         | Iba-iba    | Pamamahala sa cloud         |
+| Endpoint               | Paraan    | Paglalarawan                       |
+| ---------------------- | --------- | ---------------------------------- |
+| `/api/sync/cloud`      | Iba't iba | Mga operasyon sa pag-sync sa cloud |
+| `/api/sync/initialize` | POST      | Simulan ang pag-sync               |
+| `/api/cloud/*`         | Iba't iba | Pamamahala sa cloud                |
 
 ### Mga Tunnel
 
-| Endpoint                   | Pamamaraan | Paglalarawan                                                                      |
-| -------------------------- | ---------- | --------------------------------------------------------------------------------- |
-| `/api/tunnels/cloudflared` | GET        | Basahin ang status ng pag-install/runtime ng Cloudflare Quick Tunnel sa dashboard |
-| `/api/tunnels/cloudflared` | POST       | I-enable o i-disable ang Cloudflare Quick Tunnel (`action=enable/disable`)        |
-| `/api/tunnels/ngrok`       | GET        | Basahin ang runtime status ng ngrok Tunnel sa dashboard                           |
-| `/api/tunnels/ngrok`       | POST       | I-enable o i-disable ang ngrok Tunnel (`action=enable/disable`)                   |
+| Endpoint                   | Paraan | Paglalarawan                                                                             |
+| -------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| `/api/tunnels/cloudflared` | GET    | Basahin ang katayuan ng pag-install/runtime ng Cloudflare Quick Tunnel para sa dashboard |
+| `/api/tunnels/cloudflared` | POST   | I-enable o i-disable ang Cloudflare Quick Tunnel (`action=enable/disable`)               |
+| `/api/tunnels/ngrok`       | GET    | Basahin ang katayuan ng runtime ng ngrok Tunnel para sa dashboard                        |
+| `/api/tunnels/ngrok`       | POST   | I-enable o i-disable ang ngrok Tunnel (`action=enable/disable`)                          |
 
-### Mga CLI Tool
+### Mga Tool ng CLI
 
-| Endpoint                           | Paraan | Paglalarawan               |
-| ---------------------------------- | ------ | -------------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Katayuan ng Claude CLI     |
-| `/api/cli-tools/codex-settings`    | GET    | Katayuan ng Codex CLI      |
-| `/api/cli-tools/droid-settings`    | GET    | Katayuan ng Droid CLI      |
-| `/api/cli-tools/openclaw-settings` | GET    | Katayuan ng OpenClaw CLI   |
-| `/api/cli-tools/runtime/[toolId]`  | GET    | Pangkalahatang CLI runtime |
+| Endpoint                           | Method | Paglalarawan                  |
+| ---------------------------------- | ------ | ----------------------------- |
+| `/api/cli-tools/claude-settings`   | GET    | Katayuan ng Claude CLI        |
+| `/api/cli-tools/codex-settings`    | GET    | Katayuan ng Codex CLI         |
+| `/api/cli-tools/droid-settings`    | GET    | Katayuan ng Droid CLI         |
+| `/api/cli-tools/openclaw-settings` | GET    | Katayuan ng OpenClaw CLI      |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Pangkalahatang runtime ng CLI |
 
 Kasama sa mga tugon ng CLI ang: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### Mga ACP Agent
 
-| Endpoint          | Paraan | Paglalarawan                                                         |
-| ----------------- | ------ | -------------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | Ilista ang lahat ng natukoy na agent (built-in + custom) at katayuan |
-| `/api/acp/agents` | POST   | Magdagdag ng custom na agent o i-refresh ang detection cache         |
-| `/api/acp/agents` | DELETE | Mag-alis ng custom na agent gamit ang `id` query param               |
+| Endpoint          | Method | Paglalarawan                                                                 |
+| ----------------- | ------ | ---------------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | Ilista ang lahat ng natukoy na agent (built-in + custom) kasama ang katayuan |
+| `/api/acp/agents` | POST   | Magdagdag ng custom na agent o i-refresh ang detection cache                 |
+| `/api/acp/agents` | DELETE | Mag-alis ng custom na agent gamit ang `id` query param                       |
 
 Kasama sa tugon ng GET ang `agents[]` (id, name, binary, version, installed, protocol, isCustom) at `summary` (total, installed, notFound, builtIn, custom).
 
 ### Katatagan at Mga Limitasyon sa Rate
 
-| Endpoint                          | Paraan    | Paglalarawan                                                                                              |
-| --------------------------------- | --------- | --------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Kunin/i-update ang request queue, connection cooldown, provider breaker, at mga setting sa paghihintay    |
-| `/api/resilience/reset`           | POST      | I-reset ang mga circuit breaker ng provider                                                               |
-| `/api/resilience/model-cooldowns` | GET       | Ilista ang mga aktibong lockout sa bawat (provider, connection, model), na inayos ayon sa natitirang oras |
-| `/api/resilience/model-cooldowns` | DELETE    | Alisin ang lockout ng modelo — body na `{provider, model}` o `{all: true}` upang burahin ang lahat        |
-| `/api/rate-limits`                | GET       | Katayuan ng limitasyon sa rate ng bawat account                                                           |
-| `/api/rate-limit`                 | GET       | Pandaigdigang configuration ng limitasyon sa rate                                                         |
+| Endpoint                          | Method    | Paglalarawan                                                                                           |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| `/api/resilience`                 | GET/PATCH | Kunin/i-update ang request queue, connection cooldown, provider breaker, at mga setting sa paghihintay |
+| `/api/resilience/reset`           | POST      | I-reset ang mga circuit breaker ng provider                                                            |
+| `/api/resilience/model-cooldowns` | GET       | Ilista ang mga aktibong lockout bawat (provider, connection, model), na inayos ayon sa natitirang oras |
+| `/api/resilience/model-cooldowns` | DELETE    | Alisin ang lockout ng modelo — body na `{provider, model}` o `{all: true}` upang burahin ang lahat     |
+| `/api/rate-limits`                | GET       | Katayuan ng limitasyon sa rate bawat account                                                           |
+| `/api/rate-limit`                 | GET       | Pangkalahatang configuration ng limitasyon sa rate                                                     |
 
-> Kinakailangan ng **management auth** (`requireManagementAuth`) sa lahat ng apat na `/api/resilience/*` route. Tingnan ang [Katatagan (pinalawak)](#resilience-extended) para sa kumpletong paliwanag tungkol sa provider breaker, connection cooldown, at model lockout.
+> Ang lahat ng apat na route na `/api/resilience/*` ay nangangailangan ng **management auth** (`requireManagementAuth`). Tingnan ang [Katatagan (pinalawak)](#resilience-extended) para sa kumpletong paliwanag ng provider breaker kumpara sa connection cooldown kumpara sa model lockout.
 
-### Mga Ebalwasyon
+### Mga Eval
 
-| Endpoint     | Paraan   | Paglalarawan                                         |
+| Endpoint     | Method   | Paglalarawan                                         |
 | ------------ | -------- | ---------------------------------------------------- |
-| `/api/evals` | GET/POST | Ilista ang mga eval suite / magpatakbo ng ebalwasyon |
+| `/api/evals` | GET/POST | Ilista ang mga eval suite / magpatakbo ng evaluation |
 
 ### Mga Patakaran
 
-| Endpoint        | Paraan          | Paglalarawan                            |
+| Endpoint        | Method          | Paglalarawan                            |
 | --------------- | --------------- | --------------------------------------- |
 | `/api/policies` | GET/POST/DELETE | Pamahalaan ang mga patakaran sa routing |
 
 ### Pagsunod
 
-| Endpoint                    | Paraan | Paglalarawan                     |
+| Endpoint                    | Method | Paglalarawan                     |
 | --------------------------- | ------ | -------------------------------- |
 | `/api/compliance/audit-log` | GET    | Audit log ng pagsunod (huling N) |
 
-### v1beta (Tugma sa Gemini)
+### v1beta (Compatible sa Gemini)
 
-| Endpoint                   | Paraan | Paglalarawan                              |
+| Endpoint                   | Method | Paglalarawan                              |
 | -------------------------- | ------ | ----------------------------------------- |
 | `/v1beta/models`           | GET    | Ilista ang mga modelo sa format ng Gemini |
 | `/v1beta/models/{...path}` | POST   | Gemini `generateContent` endpoint         |
@@ -1067,15 +1071,15 @@ Ginagaya ng mga endpoint na ito ang format ng API ng Gemini para sa mga client n
 
 ### Mga Internal / System API
 
-| Endpoint                 | Paraan | Paglalarawan                                                                 |
-| ------------------------ | ------ | ---------------------------------------------------------------------------- |
-| `/api/init`              | GET    | Pagsusuri sa initialization ng application (ginagamit sa unang pagpapatakbo) |
-| `/api/tags`              | GET    | Mga tag ng modelo na tugma sa Ollama (para sa mga Ollama client)             |
-| `/api/restart`           | POST   | Mag-trigger ng maayos na pag-restart ng server                               |
-| `/api/shutdown`          | POST   | Mag-trigger ng maayos na pag-shutdown ng server                              |
-| `/api/system/env/repair` | POST   | Ayusin ang mga environment variable ng OAuth provider                        |
+| Endpoint                 | Method | Paglalarawan                                                        |
+| ------------------------ | ------ | ------------------------------------------------------------------- |
+| `/api/init`              | GET    | Pagsusuri sa initialization ng application (ginagamit sa unang run) |
+| `/api/tags`              | GET    | Mga model tag na compatible sa Ollama (para sa mga Ollama client)   |
+| `/api/restart`           | POST   | Magsimula ng maayos na pag-restart ng server                        |
+| `/api/shutdown`          | POST   | Magsimula ng maayos na pag-shutdown ng server                       |
+| `/api/system/env/repair` | POST   | Ayusin ang mga environment variable ng OAuth provider               |
 
-> **Tandaan:** Ginagamit ang mga endpoint na ito sa loob ng system o para sa compatibility sa Ollama client. Karaniwang hindi direktang tinatawag ang mga ito ng mga end user.
+> **Tandaan:** Ang mga endpoint na ito ay ginagamit sa loob ng system o para sa compatibility sa Ollama client. Karaniwang hindi direktang tinatawag ang mga ito ng mga end user.
 
 ### Pag-aayos ng OAuth Environment _(v3.6.1+)_
 

@@ -857,29 +857,38 @@ kunci API inferens biasa. Keluarga kelayakan, skop dan contoh curl:
 
 ### Pengurusan Penyedia
 
-| Titik Akhir                             | Kaedah                | Penerangan                                                                                                                                                                      |
-| --------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | Senaraikan / cipta penyedia                                                                                                                                                     |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Urus penyedia                                                                                                                                                                   |
-| `/api/providers/[id]/test`              | POST                  | Uji sambungan penyedia                                                                                                                                                          |
-| `/api/providers/[id]/models`            | GET                   | Senaraikan model penyedia                                                                                                                                                       |
-| `/api/providers/validate`               | POST                  | Sahkan konfigurasi penyedia                                                                                                                                                     |
-| `/api/providers/bulk`                   | POST                  | Tambah secara pukal kunci API untuk SATU penyedia                                                                                                                               |
-| `/api/providers/import`                 | POST                  | Import SENARAI penyedia heterogen daripada fail CSV/JSON yang telah dihuraikan (#6836); hasil kegagalan separa bagi setiap baris                                                |
-| `/api/provider-nodes*`                  | Pelbagai              | Pengurusan nod penyedia                                                                                                                                                         |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Model tersuai (tambah, kemas kini, sembunyikan/tunjukkan, padam)                                                                                                                |
-| `/api/provider-models/validate-and-add` | POST                  | Pengesahan sambungan ketat yang ikut serta, disahkan melalui pengurusan, serta pendaftaran model tersuai secara atomik; lihat [Pengesahan model](../guides/MODEL-VALIDATION.md) |
+| Titik Akhir                             | Kaedah                    | Penerangan                                                                                                                                                                                         |
+| --------------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | Senaraikan / cipta penyedia                                                                                                                                                                        |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Urus penyedia                                                                                                                                                                                      |
+| `/api/providers/[id]/test`              | POST                      | Uji sambungan penyedia                                                                                                                                                                             |
+| `/api/providers/[id]/models`            | GET                       | Senaraikan model penyedia                                                                                                                                                                          |
+| `/api/providers/validate`               | POST                      | Sahkan konfigurasi penyedia                                                                                                                                                                        |
+| `/api/providers/bulk`                   | POST                      | Tambah secara pukal kunci API untuk SATU penyedia                                                                                                                                                  |
+| `/api/providers/import`                 | POST                      | Import SENARAI penyedia heterogen daripada fail CSV/JSON yang telah dihuraikan (#6836); hasil kegagalan separa bagi setiap baris                                                                   |
+| `/api/provider-nodes*`                  | Pelbagai                  | Pengurusan nod penyedia                                                                                                                                                                            |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Model tersuai dan penggantian bagi setiap model (tambah, kemas kini, sembunyikan/tunjukkan, padam)                                                                                                 |
+| `/api/provider-models/validate-and-add` | POST                      | Pengesahan sambungan ketat yang diautentikasi oleh pengurusan dan memerlukan keikutsertaan, serta pendaftaran model tersuai secara atomik; lihat [Pengesahan model](../guides/MODEL-VALIDATION.md) |
 
-Nod Chat Completions tersuai menyesuaikan pilihan untuk tidak menggunakan penaakulan secara eksplisit kepada bahagian belakang huluan. Ujian
-sambungan yang berjaya memilih kawalan templat sembang secara automatik untuk setiap ID model tepat
+Bagi model yang disegerakkan/diimport, `PUT /api/provider-models` menerima `provider`, `modelId` dan
+`maxOutputTokenOverride`: integer positif menetapkan had token output manual, manakala `null`
+mengosongkannya untuk memulihkan nilai lalai. `GET /api/provider-models?provider=<provider>` mengembalikan
+nilai ini dalam `modelOutputOverrides`, termasuk model tanpa baris model tersuai. Penggantian tersebut
+menggunakan keupayaan masa jalan `max_output_tokens` dan kekal selepas penyegerakan semula model. Halaman
+penyedia yang serasi dengan OpenAI menawarkan kawalan edit/kosongkan yang sama dan menandakan model dengan
+sokongan penglihatan eksplisit.
+
+Nod Chat Completions tersuai menyesuaikan pilihan keluar penaakulan eksplisit kepada bahagian huluan.
+Ujian sambungan yang berjaya memilih kawalan templat sembang secara automatik bagi setiap ID model tepat
 yang entri `/models`-nya membuktikan nilai `owned_by` yang dikenali: `vllm`, `sglang` atau `llamacpp`.
-Pembalut serasi OpenAI yang telus mungkin mengekalkan entri model asal dalam objek `openai`
-bersarang; pengesanan mengikuti sehingga tiga lapisan pembalut tersebut. Model dengan pemilikan yang tiada, tidak diketahui atau
-bercanggah mengekalkan tingkah laku OpenAI biasa. Pengesanan menggunakan semula permintaan katalog sedia ada,
-tidak menjana token pelengkapan dan dibatalkan apabila titik akhir sambungan berubah.
+Pembalut telus yang serasi dengan OpenAI mungkin mengekalkan entri model asal dalam objek `openai`
+tersarang; pengesanan menelusuri sehingga tiga sampul sedemikian. Model dengan pemilikan yang tiada,
+tidak diketahui atau bercanggah mengekalkan tingkah laku OpenAI biasa. Pengesanan menggunakan semula
+permintaan katalog sedia ada, tidak menjana token pelengkapan dan dibatalkan apabila titik akhir
+sambungan berubah.
 
-Untuk menetapkan tingkah laku bagi bahagian belakang yang tidak mendedahkan metadata tersebut, gunakan API kemas kini
-separa penyedia yang sedia ada:
+Untuk menetapkan tingkah laku bagi bahagian belakang yang tidak mendedahkan metadata tersebut, gunakan
+API kemas kini separa penyedia yang sedia ada:
 
 ```json
 {
@@ -889,20 +898,21 @@ separa penyedia yang sedia ada:
 }
 ```
 
-Hantar kandungan tersebut dengan `PUT /api/providers/<connection-id>`. Pada sambungan itu, tahap usaha
+Hantar badan tersebut dengan `PUT /api/providers/<connection-id>`. Pada sambungan itu, usaha
 penaakulan eksplisit `none` dihantar sebagai `chat_template_kwargs.thinking=false` dan
-`chat_template_kwargs.enable_thinking=false`. Nilai templat natif yang eksplisit kekal berkuasa
-melainkan peraturan penaakulan pada sisi pelayan memaksa suatu tahap usaha. Tetapan ini hanya digunakan apabila sambungan
-serasi OpenAI tersuai menghantar kandungan Chat Completions; permintaan Responses dan penyedia
-biasa mengekalkan bentuk permintaan natif masing-masing. Tetapkan `reasoningControl` kepada `openai` untuk memaksa penerusan
-`reasoning_effort` OpenAI biasa, atau abaikannya/tetapkannya kepada `null` untuk menggunakan pengesanan automatik.
+`chat_template_kwargs.enable_thinking=false`. Nilai templat asli yang eksplisit kekal berkuat kuasa
+melainkan peraturan penaakulan pada pelayan memaksa suatu tahap usaha. Tetapan tersebut hanya terpakai
+apabila sambungan tersuai yang serasi dengan OpenAI menghantar badan Chat Completions; permintaan
+Responses dan penyedia biasa mengekalkan bentuk permintaan asli masing-masing. Tetapkan
+`reasoningControl` kepada `openai` untuk memaksa penghantaran terus `reasoning_effort` OpenAI biasa,
+atau abaikannya/tetapkannya kepada `null` untuk menggunakan pengesanan automatik.
 
-Permintaan pengelas mod automatik Claude Code menetapkan pemikiran natif kepada dilumpuhkan secara lalai apabila ia tidak mengandungi
-kawalan penaakulan yang eksplisit. Pengesanan menggunakan penanda sistem pengelas dalam permintaan berformat Claude,
-bukannya nama model atau had pelengkapan. Kawalan kandungan eksplisit, pengepala usaha/pemikiran
-yang disokong, peraturan penghalaan dan usaha model yang telah ditentukan mengekalkan keutamaan sedia ada. Kedua-dua peringkat pengelas
-mengekalkan gesaan, had pelengkapan, urutan henti dan keputusan kebenaran huluan sebenar
-masing-masing; peringkat kedua masih boleh menghasilkan penaakulan kelihatan yang diminta sebagai teks biasa.
+Permintaan pengelas mod auto Claude Code menetapkan pemikiran natif lalai kepada dilumpuhkan apabila permintaan tersebut
+tidak mengandungi kawalan penaakulan yang eksplisit. Pengesanan menggunakan penanda sistem pengelas dalam permintaan
+berformat Claude, bukannya nama model atau had pelengkapan. Kawalan badan yang eksplisit, pengepala usaha/pemikiran
+yang disokong, peraturan penghalaan dan usaha model yang telah ditentukan mengekalkan keutamaan sedia ada. Kedua-dua
+peringkat pengelas mengekalkan gesaan, had pelengkapan, jujukan henti dan keputusan kebenaran huluan sebenar masing-masing;
+peringkat kedua masih boleh menghasilkan penaakulan boleh lihat yang diminta sebagai teks biasa.
 
 ### Aliran OAuth
 
@@ -916,25 +926,25 @@ masing-masing; peringkat kedua masih boleh menghasilkan penaakulan kelihatan yan
 | --------------------- | -------- | ------------------------------------- |
 | `/api/models/alias`   | GET/POST | Alias model                           |
 | `/api/models/catalog` | GET      | Semua model mengikut penyedia + jenis |
-| `/api/combos*`        | Pelbagai | Pengurusan kombo                      |
+| `/api/combos*`        | Pelbagai | Pengurusan gabungan                   |
 | `/api/keys*`          | Pelbagai | Pengurusan kunci API                  |
 | `/api/pricing`        | GET      | Harga model                           |
 
 ### Penggunaan & Analitik
 
-| Titik Akhir                      | Kaedah          | Penerangan                                                                                                                                                                                                                                                                                                          |
-| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Sejarah penggunaan                                                                                                                                                                                                                                                                                                  |
-| `/api/usage/logs`                | GET             | Log penggunaan                                                                                                                                                                                                                                                                                                      |
-| `/api/usage/request-logs`        | GET             | Log peringkat permintaan                                                                                                                                                                                                                                                                                            |
-| `/api/usage/[connectionId]`      | GET             | Penggunaan bagi setiap sambungan                                                                                                                                                                                                                                                                                    |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Bajet had token bagi setiap kunci API                                                                                                                                                                                                                                                                               |
-| `/api/usage/model-latency-stats` | GET             | Agregat kependaman bergulir bagi setiap penyedia/model (purata/p50/p95/p99, kadar kejayaan); penapis: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                               |
-| `/api/usage/cache-health`        | GET             | Ringkasan kesihatan cache gesaan bagi `call_logs` — nisbah tulis/baca, taburan saiz tulis p50/p90/p99, kepekatan penulisan berat, pecahan bagi setiap model dan keputusan `healthy`/`degraded`/`thrash`/`no-data`; parameter pertanyaan `range` (`1h`\|`24h`\|`7d`\|`30d`, lalai `24h`) dan `model` pilihan (#8827) |
+| Titik Akhir                      | Kaedah          | Penerangan                                                                                                                                                                                                                                                                                                                |
+| -------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Sejarah penggunaan                                                                                                                                                                                                                                                                                                        |
+| `/api/usage/logs`                | GET             | Log penggunaan                                                                                                                                                                                                                                                                                                            |
+| `/api/usage/request-logs`        | GET             | Log peringkat permintaan                                                                                                                                                                                                                                                                                                  |
+| `/api/usage/[connectionId]`      | GET             | Penggunaan bagi setiap sambungan                                                                                                                                                                                                                                                                                          |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Belanjawan had token bagi setiap kunci API                                                                                                                                                                                                                                                                                |
+| `/api/usage/model-latency-stats` | GET             | Agregat latensi bergerak bagi setiap penyedia/model (purata/p50/p95/p99, kadar kejayaan); penapis: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                        |
+| `/api/usage/cache-health`        | GET             | Ringkasan kesihatan cache gesaan berdasarkan `call_logs` — nisbah tulis/baca, taburan saiz tulis p50/p90/p99, penumpuan penulisan berat, pecahan mengikut model dan keputusan `healthy`/`degraded`/`thrash`/`no-data`; parameter pertanyaan `range` (`1h`\|`24h`\|`7d`\|`30d`, lalai `24h`) serta `model` pilihan (#8827) |
 
 ### Tetapan
 
-| Titik akhir                           | Kaedah        | Penerangan                                                                                                                                                                                                 |
+| Titik Akhir                           | Kaedah        | Penerangan                                                                                                                                                                                                 |
 | ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/api/settings`                       | GET/PUT/PATCH | Tetapan umum                                                                                                                                                                                               |
 | `/api/settings/proxy`                 | GET/PUT       | Konfigurasi proksi rangkaian                                                                                                                                                                               |
@@ -947,7 +957,7 @@ masing-masing; peringkat kedua masih boleh menghasilkan penaakulan kelihatan yan
 
 ### Konteks & Pemampatan
 
-| Titik akhir                            | Kaedah         | Penerangan                                                                |
+| Titik Akhir                            | Kaedah         | Penerangan                                                                |
 | -------------------------------------- | -------------- | ------------------------------------------------------------------------- |
 | `/api/compression/preview`             | POST           | Pratonton pemampatan mati/ringan/standard/agresif/ultra/RTK/bertindan     |
 | `/api/compression/language-packs`      | GET            | Senaraikan pek bahasa Caveman yang tersedia                               |
@@ -956,27 +966,27 @@ masing-masing; peringkat kedua masih boleh menghasilkan penaakulan kelihatan yan
 | `/api/context/rtk/config`              | GET/PUT        | Tetapan khusus RTK, termasuk penapis tersuai dan pengekalan output mentah |
 | `/api/context/rtk/filters`             | GET            | Katalog penapis RTK dan diagnostik penapis tersuai                        |
 | `/api/context/rtk/test`                | POST           | Jalankan pratonton/ujian RTK terhadap muatan teks                         |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Baca output mentah tersunting yang dikekalkan berdasarkan id penuding     |
-| `/api/context/combos`                  | GET/POST       | Senaraikan/cipta kombo pemampatan                                         |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Butiran/kemas kini/padam kombo pemampatan                                 |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Tetapkan kombo pemampatan kepada kombo penghalaan                         |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Baca output mentah tersunting yang dikekalkan berdasarkan ID penuding     |
+| `/api/context/combos`                  | GET/POST       | Senarai/cipta gabungan pemampatan                                         |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Butiran/kemas kini/padam gabungan pemampatan                              |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Tetapkan gabungan pemampatan kepada gabungan penghalaan                   |
 | `/api/context/analytics`               | GET            | Alias analitik pemampatan                                                 |
 
 ### Pemantauan
 
-| Endpoint                             | Kaedah     | Penerangan                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Penjejakan sesi aktif                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/rate-limits`                   | GET        | Had kadar bagi setiap akaun                                                                                                                                                                                                                                                                                                                                                                                             |
-| `/api/monitoring/health`             | GET        | Pemeriksaan kesihatan + ringkasan penyedia (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Paparan pengurusan merangkumi `credentialHealth`: nilai skalar cache prob, `failedConnections` apabila `failed>0`, dan `staleDbNonOkCount` (`test_status` SQLite yang kekal, bukan tolok). Lihat [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Statistik cache / kosongkan                                                                                                                                                                                                                                                                                                                                                                                             |
-| `/api/modality-bridge/stats`         | GET        | `attempts` dalam memori, kejayaan/`bridged`, kegagalan, padanan cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` berasaskan bilangan sampel, dan masa penggunaan terakhir (ditetapkan semula apabila dimulakan semula; pengesahan pengurusan)                                                                                                                                                              |
-| `/api/modality-bridge/video/runtime` | GET        | Pemeriksaan gelung balik dipercayai yang ketat sebelum pengesahan/prob pengurusan; ketersediaan dan versi FFmpeg/ffprobe yang disanitasi (tanpa storan)                                                                                                                                                                                                                                                                 |
-| `/api/modality-bridge/video/extract` | POST       | Broker bait gelung balik dipercayai dalaman yang disahkan; input 50 MiB, baris gilir terhad/output 32 MiB, kapasiti `503`, pemutusan sambungan `499`, tarikh akhir `504`; bukan API muat naik awam                                                                                                                                                                                                                      |
+| Titik Akhir                          | Kaedah     | Penerangan                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/api/sessions`                      | GET        | Penjejakan sesi aktif                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `/api/rate-limits`                   | GET        | Had kadar bagi setiap akaun                                                                                                                                                                                                                                                                                                                                                                                              |
+| `/api/monitoring/health`             | GET        | Pemeriksaan kesihatan + ringkasan penyedia (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Paparan pengurusan merangkumi `credentialHealth`: nilai skalar cache siasatan, `failedConnections` apabila `failed>0`, dan `staleDbNonOkCount` (`test_status` melekat SQLite, bukan tolok). Lihat [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Statistik cache / kosongkan                                                                                                                                                                                                                                                                                                                                                                                              |
+| `/api/modality-bridge/stats`         | GET        | `attempts` dalam memori, kejayaan/`bridged`, kegagalan, capaian cache, `totalLatencyMs`, `latencySamples`, `averageLatencyMs` berasaskan sampel, dan masa penggunaan terakhir (ditetapkan semula apabila dimulakan semula; pengesahan pengurusan)                                                                                                                                                                        |
+| `/api/modality-bridge/video/runtime` | GET        | Semakan gelung balik dipercayai yang ketat sebelum pengesahan/siasatan pengurusan; ketersediaan dan versi FFmpeg/ffprobe yang disanitasi (tanpa storan)                                                                                                                                                                                                                                                                  |
+| `/api/modality-bridge/video/extract` | POST       | Broker bait gelung balik dipercayai dalaman yang disahkan; input 50 MiB, baris gilir terhad/output 32 MiB, kapasiti `503`, pemutusan sambungan `499`, tarikh akhir `504`; bukan API muat naik awam                                                                                                                                                                                                                       |
 
 ### Sandaran & Eksport/Import
 
-| Endpoint                    | Kaedah | Penerangan                                               |
+| Titik Akhir                 | Kaedah | Penerangan                                               |
 | --------------------------- | ------ | -------------------------------------------------------- |
 | `/api/db-backups`           | GET    | Senaraikan sandaran yang tersedia                        |
 | `/api/db-backups`           | PUT    | Cipta sandaran manual                                    |
@@ -987,7 +997,7 @@ masing-masing; peringkat kedua masih boleh menghasilkan penaakulan kelihatan yan
 
 ### Penyegerakan Awan
 
-| Endpoint               | Kaedah   | Penerangan                |
+| Titik Akhir            | Kaedah   | Penerangan                |
 | ---------------------- | -------- | ------------------------- |
 | `/api/sync/cloud`      | Pelbagai | Operasi penyegerakan awan |
 | `/api/sync/initialize` | POST     | Mulakan penyegerakan      |
@@ -995,7 +1005,7 @@ masing-masing; peringkat kedua masih boleh menghasilkan penaakulan kelihatan yan
 
 ### Terowong
 
-| Endpoint                   | Kaedah | Penerangan                                                                   |
+| Titik Akhir                | Kaedah | Penerangan                                                                   |
 | -------------------------- | ------ | ---------------------------------------------------------------------------- |
 | `/api/tunnels/cloudflared` | GET    | Baca status pemasangan/masa jalan Cloudflare Quick Tunnel untuk papan pemuka |
 | `/api/tunnels/cloudflared` | POST   | Dayakan atau nyahdayakan Cloudflare Quick Tunnel (`action=enable/disable`)   |
@@ -1006,42 +1016,42 @@ masing-masing; peringkat kedua masih boleh menghasilkan penaakulan kelihatan yan
 
 | Titik akhir                        | Kaedah | Penerangan             |
 | ---------------------------------- | ------ | ---------------------- |
-| `/api/cli-tools/claude-settings`   | GET    | Status Claude CLI      |
-| `/api/cli-tools/codex-settings`    | GET    | Status Codex CLI       |
-| `/api/cli-tools/droid-settings`    | GET    | Status Droid CLI       |
-| `/api/cli-tools/openclaw-settings` | GET    | Status OpenClaw CLI    |
+| `/api/cli-tools/claude-settings`   | GET    | Status CLI Claude      |
+| `/api/cli-tools/codex-settings`    | GET    | Status CLI Codex       |
+| `/api/cli-tools/droid-settings`    | GET    | Status CLI Droid       |
+| `/api/cli-tools/openclaw-settings` | GET    | Status CLI OpenClaw    |
 | `/api/cli-tools/runtime/[toolId]`  | GET    | Masa jalan CLI generik |
 
 Respons CLI merangkumi: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### Ejen ACP
 
-| Titik akhir       | Kaedah | Penerangan                                                                   |
-| ----------------- | ------ | ---------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET    | Senaraikan semua ejen yang dikesan (terbina dalam + tersuai) berserta status |
-| `/api/acp/agents` | POST   | Tambah ejen tersuai atau segarkan semula cache pengesanan                    |
-| `/api/acp/agents` | DELETE | Alih keluar ejen tersuai berdasarkan parameter pertanyaan `id`               |
+| Titik akhir       | Kaedah | Penerangan                                                                 |
+| ----------------- | ------ | -------------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | Senaraikan semua ejen yang dikesan (terbina dalam + tersuai) dengan status |
+| `/api/acp/agents` | POST   | Tambah ejen tersuai atau segar semula cache pengesanan                     |
+| `/api/acp/agents` | DELETE | Alih keluar ejen tersuai mengikut parameter pertanyaan `id`                |
 
 Respons GET merangkumi `agents[]` (id, name, binary, version, installed, protocol, isCustom) dan `summary` (total, installed, notFound, builtIn, custom).
 
 ### Ketahanan & Had Kadar
 
-| Titik akhir                       | Kaedah    | Penerangan                                                                                                  |
-| --------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Dapatkan/kemas kini baris gilir permintaan, tempoh bertenang sambungan, pemutus penyedia dan tetapan tunggu |
-| `/api/resilience/reset`           | POST      | Tetapkan semula pemutus litar penyedia                                                                      |
-| `/api/resilience/model-cooldowns` | GET       | Senaraikan sekatan aktif bagi setiap (penyedia, sambungan, model), diisih mengikut baki masa                |
-| `/api/resilience/model-cooldowns` | DELETE    | Kosongkan sekatan model — badan `{provider, model}` atau `{all: true}` untuk mengosongkan semuanya          |
-| `/api/rate-limits`                | GET       | Status had kadar bagi setiap akaun                                                                          |
-| `/api/rate-limit`                 | GET       | Konfigurasi had kadar global                                                                                |
+| Titik akhir                       | Kaedah    | Penerangan                                                                                                    |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------- |
+| `/api/resilience`                 | GET/PATCH | Dapatkan/kemas kini baris gilir permintaan, tempoh bertenang sambungan, pemutus penyedia dan tetapan menunggu |
+| `/api/resilience/reset`           | POST      | Tetapkan semula pemutus litar penyedia                                                                        |
+| `/api/resilience/model-cooldowns` | GET       | Senaraikan sekatan aktif bagi setiap (penyedia, sambungan, model), diisih mengikut baki masa                  |
+| `/api/resilience/model-cooldowns` | DELETE    | Kosongkan sekatan model — isi `{provider, model}` atau `{all: true}` untuk mengosongkan semuanya              |
+| `/api/rate-limits`                | GET       | Status had kadar bagi setiap akaun                                                                            |
+| `/api/rate-limit`                 | GET       | Konfigurasi had kadar global                                                                                  |
 
-> Keempat-empat laluan `/api/resilience/*` memerlukan **pengesahan pengurusan** (`requireManagementAuth`). Lihat [Ketahanan (lanjutan)](#resilience-extended) untuk huraian penuh tentang pemutus penyedia berbanding tempoh bertenang sambungan berbanding sekatan model.
+> Kesemua empat laluan `/api/resilience/*` memerlukan **pengesahan pengurusan** (`requireManagementAuth`). Lihat [Ketahanan (lanjutan)](#resilience-extended) untuk huraian lengkap tentang pemutus penyedia berbanding tempoh bertenang sambungan berbanding sekatan model.
 
 ### Penilaian
 
-| Titik akhir  | Kaedah   | Penerangan                                    |
-| ------------ | -------- | --------------------------------------------- |
-| `/api/evals` | GET/POST | Senaraikan set penilaian / jalankan penilaian |
+| Titik akhir  | Kaedah   | Penerangan                                     |
+| ------------ | -------- | ---------------------------------------------- |
+| `/api/evals` | GET/POST | Senaraikan suit penilaian / jalankan penilaian |
 
 ### Dasar
 
@@ -1055,26 +1065,26 @@ Respons GET merangkumi `agents[]` (id, name, binary, version, installed, protoco
 | --------------------------- | ------ | -------------------------------- |
 | `/api/compliance/audit-log` | GET    | Log audit pematuhan (N terakhir) |
 
-### v1beta (Serasi Gemini)
+### v1beta (Serasi dengan Gemini)
 
 | Titik akhir                | Kaedah | Penerangan                           |
 | -------------------------- | ------ | ------------------------------------ |
 | `/v1beta/models`           | GET    | Senaraikan model dalam format Gemini |
 | `/v1beta/models/{...path}` | POST   | Titik akhir `generateContent` Gemini |
 
-Titik akhir ini mencerminkan format API Gemini untuk klien yang mengharapkan keserasian SDK Gemini natif.
+Titik akhir ini mencerminkan format API Gemini untuk klien yang mengharapkan keserasian asli dengan SDK Gemini.
 
 ### API Dalaman / Sistem
 
 | Titik akhir              | Kaedah | Penerangan                                                           |
 | ------------------------ | ------ | -------------------------------------------------------------------- |
-| `/api/init`              | GET    | Semakan pengasalan aplikasi (digunakan pada kali pertama dijalankan) |
-| `/api/tags`              | GET    | Tag model serasi Ollama (untuk klien Ollama)                         |
-| `/api/restart`           | POST   | Cetuskan mula semula pelayan secara teratur                          |
-| `/api/shutdown`          | POST   | Cetuskan penutupan pelayan secara teratur                            |
+| `/api/init`              | GET    | Semakan pengawalan aplikasi (digunakan pada kali pertama dijalankan) |
+| `/api/tags`              | GET    | Tag model yang serasi dengan Ollama (untuk klien Ollama)             |
+| `/api/restart`           | POST   | Cetuskan mula semula pelayan secara lancar                           |
+| `/api/shutdown`          | POST   | Cetuskan penutupan pelayan secara lancar                             |
 | `/api/system/env/repair` | POST   | Baiki pemboleh ubah persekitaran penyedia OAuth                      |
 
-> **Nota:** Titik akhir ini digunakan secara dalaman oleh sistem atau untuk keserasian klien Ollama. Titik akhir ini biasanya tidak dipanggil oleh pengguna akhir.
+> **Nota:** Titik akhir ini digunakan secara dalaman oleh sistem atau untuk keserasian klien Ollama. Ia biasanya tidak dipanggil oleh pengguna akhir.
 
 ### Pembaikan Persekitaran OAuth _(v3.6.1+)_
 

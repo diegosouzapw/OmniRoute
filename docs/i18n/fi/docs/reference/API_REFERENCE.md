@@ -868,43 +868,50 @@ X-OmniRoute-No-Cache: true
 
 ## Hallintapaneeli ja hallinta
 
-Hallintareittejä (`/api/*` julkista todennusta/kirjautumista lukuun ottamatta) **ei** valtuuteta
-tavallisilla päättelyrajapinnan API-avaimilla. Tunnistetietoperheet, käyttöalueet ja curl-esimerkit:
+Hallintareittejä (`/api/*`, lukuun ottamatta julkista todennusta/kirjautumista) **ei** valtuuteta
+tavallisilla päättely-API-avaimilla. Tunnistetietotyypit, käyttöalueet ja curl-esimerkit:
 [Hallinnan todennus](../guides/MANAGEMENT-AUTH.md).
 
 ### Todennus
 
 | Päätepiste                    | Menetelmä | Kuvaus                          |
 | ----------------------------- | --------- | ------------------------------- |
-| `/api/auth/login`             | POST      | Kirjautuminen                   |
-| `/api/auth/logout`            | POST      | Uloskirjautuminen               |
+| `/api/auth/login`             | POST      | Kirjautuminen sisään            |
+| `/api/auth/logout`            | POST      | Kirjautuminen ulos              |
 | `/api/settings/require-login` | GET/PUT   | Pakollisen kirjautumisen vaihto |
 
 ### Palveluntarjoajien hallinta
 
-| Päätepiste                              | Menetelmä             | Kuvaus                                                                                                                                                         |
-| --------------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | Palveluntarjoajien luettelointi / luominen                                                                                                                     |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Palveluntarjoajan hallinta                                                                                                                                     |
-| `/api/providers/[id]/test`              | POST                  | Palveluntarjoajan yhteyden testaaminen                                                                                                                         |
-| `/api/providers/[id]/models`            | GET                   | Palveluntarjoajan mallien luettelointi                                                                                                                         |
-| `/api/providers/validate`               | POST                  | Palveluntarjoajan määritysten vahvistaminen                                                                                                                    |
-| `/api/providers/bulk`                   | POST                  | API-avainten joukko­lisäys YHDELLE palveluntarjoajalle                                                                                                         |
-| `/api/providers/import`                 | POST                  | Heterogeenisen palveluntarjoajaLUETTELON tuonti jäsennetystä CSV-/JSON-tiedostosta (#6836); rivikohtaiset osittaisen epäonnistumisen tulokset                  |
-| `/api/provider-nodes*`                  | Useita                | Palveluntarjoajasolmujen hallinta                                                                                                                              |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Mukautetut mallit (lisääminen, päivittäminen, piilottaminen/näyttäminen, poistaminen)                                                                          |
-| `/api/provider-models/validate-and-add` | POST                  | Hallintatodennettu, valinnainen tiukka yhteyden vahvistus ja atominen mukautetun mallin rekisteröinti; katso [Mallin vahvistus](../guides/MODEL-VALIDATION.md) |
+| Päätepiste                              | Menetelmä                 | Kuvaus                                                                                                                                                           |
+| --------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | Palveluntarjoajien luettelointi / luonti                                                                                                                         |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Palveluntarjoajan hallinta                                                                                                                                       |
+| `/api/providers/[id]/test`              | POST                      | Palveluntarjoajan yhteyden testaus                                                                                                                               |
+| `/api/providers/[id]/models`            | GET                       | Palveluntarjoajan mallien luettelointi                                                                                                                           |
+| `/api/providers/validate`               | POST                      | Palveluntarjoajan määritysten validointi                                                                                                                         |
+| `/api/providers/bulk`                   | POST                      | API-avainten massalisäys YHDELLE palveluntarjoajalle                                                                                                             |
+| `/api/providers/import`                 | POST                      | Heterogeenisen palveluntarjoajaLUETTELON tuonti jäsennetystä CSV/JSON-tiedostosta (#6836); rivikohtaiset osittaisten epäonnistumisten tulokset                   |
+| `/api/provider-nodes*`                  | Useita                    | Palveluntarjoajasolmujen hallinta                                                                                                                                |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Mukautetut mallit ja mallikohtaiset ohitukset (lisääminen, päivittäminen, piilottaminen/näyttäminen, poistaminen)                                                |
+| `/api/provider-models/validate-and-add` | POST                      | Hallintatodennettu, valinnainen tiukka yhteyden validointi ja atominen mukautetun mallin rekisteröinti; katso [Mallin validointi](../guides/MODEL-VALIDATION.md) |
 
-Mukautetut Chat Completions -solmut mukauttavat eksplisiittiset päättelyn käytöstäpoistot taustajärjestelmälle sopiviksi.
-Onnistunut yhteystesti valitsee automaattisesti keskustelumallin ohjaimet jokaiselle täsmälliselle mallitunnukselle,
+Synkronoitujen/tuotujen mallien tapauksessa `PUT /api/provider-models` hyväksyy kentät `provider`, `modelId` ja
+`maxOutputTokenOverride`: positiivinen kokonaisluku asettaa manuaalisen tulostustunnisteiden enimmäismäärän, ja `null`
+poistaa sen käytöstä oletusarvon palauttamiseksi. `GET /api/provider-models?provider=<provider>` palauttaa nämä
+arvot `modelOutputOverrides`-kentässä, mukaan lukien mallit, joilla ei ole mukautetun mallin riviä. Ohitus
+käyttää ajonaikaista `max_output_tokens`-ominaisuutta ja säilyy mallin uudelleensynkronoinnin jälkeen. OpenAI-yhteensopivan
+palveluntarjoajan sivu tarjoaa samat muokkaus- ja tyhjennysohjaimet sekä merkitsee mallit, joilla on nimenomainen näkötuki.
+
+Mukautetut Chat Completions -solmut mukauttavat nimenomaiset päättelyn käytöstäpoistot ylävirran taustajärjestelmään. Onnistunut
+yhteystesti valitsee automaattisesti keskustelumallipohjan ohjaimet jokaiselle täsmälliselle mallitunnukselle,
 jonka `/models`-merkintä todistaa tunnistetun `owned_by`-arvon: `vllm`, `sglang` tai `llamacpp`.
 Läpinäkyvät OpenAI-yhteensopivat kääreet voivat säilyttää alkuperäisen mallimerkinnän sisäkkäisessä
-`openai`-objektissa; tunnistus seuraa enintään kolmea tällaista käärettä. Mallit, joiden omistajuus puuttuu,
-on tuntematon tai ristiriitainen, säilyttävät tavallisen OpenAI-käyttäytymisen. Tunnistus käyttää uudelleen
-olemassa olevaa katalogipyyntöä, ei luo täydennystunnisteita, ja se mitätöidään yhteyden päätepisteen muuttuessa.
+`openai`-objektissa; tunnistus seuraa enintään kolmea tällaista käärettä. Mallit, joiden omistajuustieto puuttuu,
+on tuntematon tai ristiriitainen, säilyttävät tavallisen OpenAI-käyttäytymisen. Tunnistus käyttää uudelleen olemassa olevaa
+luettelopyyntöä, ei tuota täydennystunnisteita ja mitätöidään yhteyden päätepisteen muuttuessa.
 
-Jos haluat kiinnittää käyttäytymisen taustajärjestelmälle, joka ei tarjoa näitä metatietoja, käytä olemassa olevaa
-palveluntarjoajan osittaisen päivityksen API:a:
+Jos haluat kiinnittää käyttäytymisen taustajärjestelmälle, joka ei tarjoa kyseisiä metatietoja, käytä olemassa olevaa osittaista
+palveluntarjoajan päivitysrajapintaa:
 
 ```json
 {
@@ -914,21 +921,19 @@ palveluntarjoajan osittaisen päivityksen API:a:
 }
 ```
 
-Lähetä kyseinen runko pyynnöllä `PUT /api/providers/<connection-id>`. Tällä yhteydellä eksplisiittinen
-päättelypanos `none` lähetetään arvoina `chat_template_kwargs.thinking=false` ja
-`chat_template_kwargs.enable_thinking=false`. Eksplisiittiset alkuperäiset malliarvot pysyvät määräävinä,
-ellei palvelinpuolen päättelysääntö pakota tiettyä panosta. Asetusta sovelletaan vain, kun mukautettu
+Lähetä tämä runko pyynnöllä `PUT /api/providers/<connection-id>`. Kyseisessä yhteydessä nimenomainen
+päättelypanoksen arvo `none` lähetetään muodossa `chat_template_kwargs.thinking=false` ja
+`chat_template_kwargs.enable_thinking=false`. Nimenomaiset natiivin mallipohjan arvot pysyvät määräävinä,
+ellei palvelinpuolen päättelysääntö pakota tiettyä panosta. Asetusta käytetään vain, kun mukautettu
 OpenAI-yhteensopiva yhteys välittää Chat Completions -rungon; Responses-pyynnöt ja tavalliset
-palveluntarjoajat säilyttävät alkuperäisen pyyntörakenteensa. Aseta `reasoningControl` arvoon `openai`, jos haluat
-pakottaa tavallisen OpenAI:n `reasoning_effort`-arvon välityksen sellaisenaan, tai jätä se pois / aseta arvoksi
-`null`, jos haluat käyttää automaattista tunnistusta.
+palveluntarjoajat säilyttävät natiivin pyyntörakenteensa. Aseta `reasoningControl`-arvoksi `openai`, jos haluat pakottaa tavallisen OpenAI:n
+`reasoning_effort`-arvon välityksen sellaisenaan, tai jätä se pois / aseta arvoksi `null`, jos haluat käyttää automaattista tunnistusta.
 
-Claude Coden automaattisen tilan luokittelupyynnöt asettavat alkuperäisen ajattelun oletusarvoisesti pois käytöstä,
-kun ne eivät sisällä eksplisiittisiä päättelyohjaimia. Tunnistus käyttää luokittelijan järjestelmämerkintää
-Claude-muotoisissa pyynnöissä, ei mallien nimiä tai täydennysrajoja. Eksplisiittiset rungon ohjaimet, tuetut
-panos-/ajatteluotsakkeet, reitityssäännöt ja ratkaistu mallin panos säilyttävät nykyisen prioriteettinsa.
-Molemmat luokitteluvaiheet säilyttävät kehotteensa, täydennysrajansa, pysäytyssekvenssinsä ja todelliset
-ylävirran käyttöoikeuspäätöksensä; toinen vaihe voi edelleen tuottaa pyydetyn näkyvän päättelynsä tavallisena tekstinä.
+Claude Code -automaattitilan luokittelijapyynnöissä natiivi ajattelu poistetaan oletusarvoisesti käytöstä, jos ne eivät sisällä
+nimenomaisia päättelyn ohjausasetuksia. Tunnistus käyttää Claude-muotoisten pyyntöjen luokittelijan järjestelmämerkintää,
+ei mallien nimiä tai täydennysrajoja. Pyynnön eksplisiittiset ohjausasetukset, tuetut päättelyn vaativuustasoa ja ajattelua koskevat
+otsakkeet, reitityssäännöt sekä mallille määritetty vaativuustaso säilyttävät nykyisen prioriteettinsa. Luokittelijan
+molemmat vaiheet säilyttävät kehotteensa, täydennysrajansa, pysäytyssekvenssinsä ja todelliset ylävirran käyttöoikeuspäätöksensä; toinen vaihe voi edelleen tuottaa pyydetyn näkyvän päättelynsä tavallisena tekstinä.
 
 ### OAuth-kulut
 
@@ -938,32 +943,32 @@ ylävirran käyttöoikeuspäätöksensä; toinen vaihe voi edelleen tuottaa pyyd
 
 ### Reititys ja määritykset
 
-| Päätepiste            | Menetelmä | Kuvaus                                           |
-| --------------------- | --------- | ------------------------------------------------ |
-| `/api/models/alias`   | GET/POST  | Mallien aliakset                                 |
-| `/api/models/catalog` | GET       | Kaikki mallit palveluntarjoajan ja tyypin mukaan |
-| `/api/combos*`        | Useita    | Yhdistelmien hallinta                            |
-| `/api/keys*`          | Useita    | API-avainten hallinta                            |
-| `/api/pricing`        | GET       | Mallien hinnoittelu                              |
+| Päätepiste            | Menetelmä | Kuvaus                                             |
+| --------------------- | --------- | -------------------------------------------------- |
+| `/api/models/alias`   | GET/POST  | Mallien aliakset                                   |
+| `/api/models/catalog` | GET       | Kaikki mallit palveluntarjoajittain ja tyypeittäin |
+| `/api/combos*`        | Useita    | Yhdistelmien hallinta                              |
+| `/api/keys*`          | Useita    | API-avainten hallinta                              |
+| `/api/pricing`        | GET       | Mallien hinnoittelu                                |
 
 ### Käyttö ja analytiikka
 
-| Päätepiste                       | Menetelmä       | Kuvaus                                                                                                                                                                                                                                                                                                                              |
-| -------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Käyttöhistoria                                                                                                                                                                                                                                                                                                                      |
-| `/api/usage/logs`                | GET             | Käyttölokit                                                                                                                                                                                                                                                                                                                         |
-| `/api/usage/request-logs`        | GET             | Pyyntötason lokit                                                                                                                                                                                                                                                                                                                   |
-| `/api/usage/[connectionId]`      | GET             | Yhteyskohtainen käyttö                                                                                                                                                                                                                                                                                                              |
-| `/api/usage/token-limits`        | GET/POST/DELETE | API-avainkohtaiset tunnisterajabudjetit                                                                                                                                                                                                                                                                                             |
-| `/api/usage/model-latency-stats` | GET             | Liukuva palveluntarjoaja- ja mallikohtainen viivekooste (keskiarvo/p50/p95/p99, onnistumisaste); suodattimet: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                       |
-| `/api/usage/cache-health`        | GET             | Kehotevälimuistin kuntoyhteenveto `call_logs`-tiedoista — kirjoitus-/lukusuhde, kirjoituskoon p50/p90/p99-jakauma, raskaiden kirjoitusten keskittyminen, mallikohtainen erittely ja arvio `healthy`/`degraded`/`thrash`/`no-data`; kyselyparametrit `range` (`1h`\|`24h`\|`7d`\|`30d`, oletus `24h`) ja valinnainen `model` (#8827) |
+| Päätepiste                       | Menetelmä       | Kuvaus                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Käyttöhistoria                                                                                                                                                                                                                                                                                                                               |
+| `/api/usage/logs`                | GET             | Käyttölokit                                                                                                                                                                                                                                                                                                                                  |
+| `/api/usage/request-logs`        | GET             | Pyyntökohtaiset lokit                                                                                                                                                                                                                                                                                                                        |
+| `/api/usage/[connectionId]`      | GET             | Yhteyskohtainen käyttö                                                                                                                                                                                                                                                                                                                       |
+| `/api/usage/token-limits`        | GET/POST/DELETE | API-avainkohtaiset token-rajojen budjetit                                                                                                                                                                                                                                                                                                    |
+| `/api/usage/model-latency-stats` | GET             | Liukuva palveluntarjoaja- ja mallikohtainen viiveaggregaatti (keskiarvo/p50/p95/p99, onnistumisaste); suodattimet: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                           |
+| `/api/usage/cache-health`        | GET             | Kehotevälimuistin kuntoyhteenveto `call_logs`-tiedoista — kirjoitusten ja lukujen suhde, kirjoituskoon p50/p90/p99-jakauma, suurten kirjoitusten keskittyminen, mallikohtainen erittely sekä `healthy`/`degraded`/`thrash`/`no-data`-tulos; kyselyparametrit `range` (`1h`\|`24h`\|`7d`\|`30d`, oletus `24h`) ja valinnainen `model` (#8827) |
 
 ### Asetukset
 
 | Päätepiste                            | Menetelmä     | Kuvaus                                                                                                                                                                                                    |
 | ------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/api/settings`                       | GET/PUT/PATCH | Yleiset asetukset                                                                                                                                                                                         |
-| `/api/settings/proxy`                 | GET/PUT       | Verkkovälityspalvelimen määritykset                                                                                                                                                                       |
+| `/api/settings/proxy`                 | GET/PUT       | Verkon välityspalvelimen määritykset                                                                                                                                                                      |
 | `/api/settings/proxy/test`            | POST          | Testaa välityspalvelinyhteys                                                                                                                                                                              |
 | `/api/settings/ip-filter`             | GET/PUT       | IP-osoitteiden sallittujen/estettyjen luettelo                                                                                                                                                            |
 | `/api/settings/thinking-budget`       | GET/PUT       | Ajattelu-/päättely**pyynnön** uudelleenkirjoitustila (läpivienti / automaattinen poisto / mukautettu / adaptiivinen). Riippumaton pakkauksesta. Katso [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
@@ -973,20 +978,20 @@ ylävirran käyttöoikeuspäätöksensä; toinen vaihe voi edelleen tuottaa pyyd
 
 ### Konteksti ja pakkaus
 
-| Päätepiste                             | Menetelmä      | Kuvaus                                                                                       |
-| -------------------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
-| `/api/compression/preview`             | POST           | Esikatsele off/lite/standard/aggressive/ultra/RTK/stacked-pakkausta                          |
-| `/api/compression/language-packs`      | GET            | Luettele saatavilla olevat Caveman-kielipaketit                                              |
-| `/api/compression/rules`               | GET            | Luettele Caveman-sääntöjen metatiedot                                                        |
-| `/api/context/caveman/config`          | GET/PUT        | Caveman-kohtaisten asetusten alias                                                           |
-| `/api/context/rtk/config`              | GET/PUT        | RTK-kohtaiset asetukset, mukaan lukien mukautetut suodattimet ja raakasyötteen säilyttäminen |
-| `/api/context/rtk/filters`             | GET            | RTK-suodatinluettelo ja mukautettujen suodattimien diagnostiikka                             |
-| `/api/context/rtk/test`                | POST           | Suorita RTK-esikatselu/-testi tekstisisällölle                                               |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Lue säilytetty peitetty raakatuloste osoittimen tunnisteen perusteella                       |
-| `/api/context/combos`                  | GET/POST       | Pakkausyhdistelmien luettelointi/luonti                                                      |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Pakkausyhdistelmän tiedot/päivitys/poisto                                                    |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Määritä pakkausyhdistelmät reititysyhdistelmille                                             |
-| `/api/context/analytics`               | GET            | Pakkausanalytiikan alias                                                                     |
+| Päätepiste                             | Menetelmä      | Kuvaus                                                                                    |
+| -------------------------------------- | -------------- | ----------------------------------------------------------------------------------------- |
+| `/api/compression/preview`             | POST           | Esikatsele ei käytössä-/kevyt-/vakio-/aggressiivinen-/ultra-/RTK-/pinottu-pakkausta       |
+| `/api/compression/language-packs`      | GET            | Luettele saatavilla olevat Caveman-kielipaketit                                           |
+| `/api/compression/rules`               | GET            | Luettele Caveman-sääntöjen metatiedot                                                     |
+| `/api/context/caveman/config`          | GET/PUT        | Caveman-kohtaisten asetusten alias                                                        |
+| `/api/context/rtk/config`              | GET/PUT        | RTK-kohtaiset asetukset, mukaan lukien mukautetut suodattimet ja raakavastauksen säilytys |
+| `/api/context/rtk/filters`             | GET            | RTK-suodatinluettelo ja mukautettujen suodattimien diagnostiikka                          |
+| `/api/context/rtk/test`                | POST           | Suorita RTK-esikatselu/-testi tekstihyötykuormalle                                        |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Lue säilytetty, anonymisoitu raakavastaus osoittimen tunnuksen perusteella                |
+| `/api/context/combos`                  | GET/POST       | Pakkausyhdistelmien luettelo / uuden luominen                                             |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Pakkausyhdistelmän tiedot/päivitys/poisto                                                 |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Määritä pakkausyhdistelmät reititysyhdistelmille                                          |
+| `/api/context/analytics`               | GET            | Pakkausanalytiikan alias                                                                  |
 
 ### Valvonta
 
@@ -996,15 +1001,15 @@ ylävirran käyttöoikeuspäätöksensä; toinen vaihe voi edelleen tuottaa pyyd
 | `/api/rate-limits`                   | GET        | Tilikohtaiset nopeusrajoitukset                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `/api/monitoring/health`             | GET        | Kuntotarkistus ja palveluntarjoajien yhteenveto (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Hallintanäkymä sisältää `credentialHealth`-tiedot: tarkistusvälimuistin skalaariarvot, `failedConnections`, kun `failed>0`, sekä `staleDbNonOkCount` (SQLiten pysyvä `test_status`, ei mittari). Katso [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
 | `/api/cache/stats`                   | GET/DELETE | Välimuistin tilastot / tyhjennys                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/modality-bridge/stats`         | GET        | Muistissa olevat `attempts`, onnistumiset/`bridged`, epäonnistumiset, välimuistiosumat, `totalLatencyMs`, `latencySamples`, otoksiin perustuva `averageLatencyMs` sekä viimeisimmän käytön ajankohta (nollataan uudelleenkäynnistyksen yhteydessä; hallinnan todennus)                                                                                                                                                             |
-| `/api/modality-bridge/video/runtime` | GET        | Tiukka luotetun loopback-yhteyden tarkistus ennen hallinnan todennusta/tarkistusta; puhdistetut FFmpeg-/ffprobe-saatavuus- ja versiotiedot (ei tallennusta)                                                                                                                                                                                                                                                                        |
-| `/api/modality-bridge/video/extract` | POST       | Sisäinen todennettu luotetun loopback-yhteyden tavuvälittäjä; 50 MiB:n syöte, rajattu jono / 32 MiB:n tuloste, `503` kapasiteetin ylittyessä, `499` yhteyden katketessa, `504` määräajan ylittyessä; ei julkinen lataus-API                                                                                                                                                                                                        |
+| `/api/modality-bridge/stats`         | GET        | Muistissa olevat `attempts`, onnistumiset/`bridged`, epäonnistumiset, välimuistiosumat, `totalLatencyMs`, `latencySamples`, näytemäärään perustuva `averageLatencyMs` sekä viimeisimmän käytön ajankohta (nollautuvat uudelleenkäynnistyksen yhteydessä; hallinnan todennus)                                                                                                                                                       |
+| `/api/modality-bridge/video/runtime` | GET        | Tiukka luotetun loopback-yhteyden tarkistus ennen hallinnan todennusta/tarkistusta; puhdistetut FFmpeg/ffprobe-saatavuus- ja versiotiedot (ei tallennusta)                                                                                                                                                                                                                                                                         |
+| `/api/modality-bridge/video/extract` | POST       | Sisäinen todennettu, luotettuun loopback-yhteyteen perustuva tavuvälittäjä; 50 MiB:n syöte, rajattu jono / 32 MiB:n tuloste, `503` kapasiteetin täyttyessä, `499` yhteyden katketessa, `504` määräajan ylittyessä; ei julkinen latausrajapinta                                                                                                                                                                                     |
 
 ### Varmuuskopiointi ja vienti/tuonti
 
 | Päätepiste                  | Menetelmä | Kuvaus                                           |
 | --------------------------- | --------- | ------------------------------------------------ |
-| `/api/db-backups`           | GET       | Luettele saatavilla olevat varmuuskopiot         |
+| `/api/db-backups`           | GET       | Luettele käytettävissä olevat varmuuskopiot      |
 | `/api/db-backups`           | PUT       | Luo manuaalinen varmuuskopio                     |
 | `/api/db-backups`           | POST      | Palauta tietystä varmuuskopiosta                 |
 | `/api/db-backups/export`    | GET       | Lataa tietokanta .sqlite-tiedostona              |
@@ -1030,77 +1035,77 @@ ylävirran käyttöoikeuspäätöksensä; toinen vaihe voi edelleen tuottaa pyyd
 
 ### CLI-työkalut
 
-| Päätepiste                         | Menetelmä | Kuvaus                            |
-| ---------------------------------- | --------- | --------------------------------- |
-| `/api/cli-tools/claude-settings`   | GET       | Claude CLI:n tila                 |
-| `/api/cli-tools/codex-settings`    | GET       | Codex CLI:n tila                  |
-| `/api/cli-tools/droid-settings`    | GET       | Droid CLI:n tila                  |
-| `/api/cli-tools/openclaw-settings` | GET       | OpenClaw CLI:n tila               |
-| `/api/cli-tools/runtime/[toolId]`  | GET       | Yleinen CLI-ajoaikainen ympäristö |
+| Päätepiste                         | Metodi | Kuvaus                |
+| ---------------------------------- | ------ | --------------------- |
+| `/api/cli-tools/claude-settings`   | GET    | Claude CLI:n tila     |
+| `/api/cli-tools/codex-settings`    | GET    | Codex CLI:n tila      |
+| `/api/cli-tools/droid-settings`    | GET    | Droid CLI:n tila      |
+| `/api/cli-tools/openclaw-settings` | GET    | OpenClaw CLI:n tila   |
+| `/api/cli-tools/runtime/[toolId]`  | GET    | Yleinen CLI-ympäristö |
 
 CLI-vastaukset sisältävät seuraavat kentät: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### ACP-agentit
 
-| Päätepiste        | Menetelmä | Kuvaus                                                                     |
-| ----------------- | --------- | -------------------------------------------------------------------------- |
-| `/api/acp/agents` | GET       | Luettele kaikki havaitut agentit (sisäänrakennetut + mukautetut) tiloineen |
-| `/api/acp/agents` | POST      | Lisää mukautettu agentti tai päivitä tunnistusvälimuisti                   |
-| `/api/acp/agents` | DELETE    | Poista mukautettu agentti `id`-kyselyparametrin perusteella                |
+| Päätepiste        | Metodi | Kuvaus                                                                     |
+| ----------------- | ------ | -------------------------------------------------------------------------- |
+| `/api/acp/agents` | GET    | Luettele kaikki havaitut agentit (sisäänrakennetut + mukautetut) tiloineen |
+| `/api/acp/agents` | POST   | Lisää mukautettu agentti tai päivitä tunnistusvälimuisti                   |
+| `/api/acp/agents` | DELETE | Poista mukautettu agentti `id`-kyselyparametrin perusteella                |
 
-GET-vastaus sisältää kentät `agents[]` (id, name, binary, version, installed, protocol, isCustom) ja `summary` (total, installed, notFound, builtIn, custom).
+GET-vastaus sisältää `agents[]`-taulukon (id, name, binary, version, installed, protocol, isCustom) ja `summary`-yhteenvedon (total, installed, notFound, builtIn, custom).
 
 ### Vikasietoisuus ja nopeusrajoitukset
 
-| Päätepiste                        | Menetelmä | Kuvaus                                                                                                          |
+| Päätepiste                        | Metodi    | Kuvaus                                                                                                          |
 | --------------------------------- | --------- | --------------------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Hae/päivitä pyyntöjono, yhteyden jäähtymisaika, palveluntarjoajan katkaisija ja odotusasetukset                 |
+| `/api/resilience`                 | GET/PATCH | Hae/päivitä pyyntöjono, yhteyden jäähdytysaika, palveluntarjoajan katkaisija ja odotusasetukset                 |
 | `/api/resilience/reset`           | POST      | Nollaa palveluntarjoajien virtapiirikatkaisijat                                                                 |
 | `/api/resilience/model-cooldowns` | GET       | Luettele aktiiviset palveluntarjoaja-, yhteys- ja mallikohtaiset estot jäljellä olevan ajan mukaan lajiteltuina |
 | `/api/resilience/model-cooldowns` | DELETE    | Poista mallin esto — runko `{provider, model}` tai `{all: true}` kaiken poistamiseksi                           |
-| `/api/rate-limits`                | GET       | Tilikohtainen nopeusrajoituksen tila                                                                            |
-| `/api/rate-limit`                 | GET       | Yleinen nopeusrajoituksen määritys                                                                              |
+| `/api/rate-limits`                | GET       | Tilikohtainen nopeusrajoitusten tila                                                                            |
+| `/api/rate-limit`                 | GET       | Yleinen nopeusrajoitusten määritys                                                                              |
 
-> Kaikki neljä `/api/resilience/*`-reittiä edellyttävät **hallinnan todennusta** (`requireManagementAuth`). Katso kohdasta [Vikasietoisuus (laajennettu)](#resilience-extended) palveluntarjoajan katkaisimen, yhteyden jäähtymisajan ja mallin eston kattava erittely.
+> Kaikki neljä `/api/resilience/*`-reittiä edellyttävät **hallinnan todennusta** (`requireManagementAuth`). Katso [Vikasietoisuus (laajennettu)](#resilience-extended), jossa selitetään yksityiskohtaisesti palveluntarjoajan katkaisijan, yhteyden jäähdytysajan ja mallin eston erot.
 
 ### Arvioinnit
 
-| Päätepiste   | Menetelmä | Kuvaus                                              |
-| ------------ | --------- | --------------------------------------------------- |
-| `/api/evals` | GET/POST  | Luettele arviointikokonaisuudet / suorita arviointi |
+| Päätepiste   | Metodi   | Kuvaus                                              |
+| ------------ | -------- | --------------------------------------------------- |
+| `/api/evals` | GET/POST | Luettele arviointikokonaisuudet / suorita arviointi |
 
 ### Käytännöt
 
-| Päätepiste      | Menetelmä       | Kuvaus                      |
+| Päätepiste      | Metodi          | Kuvaus                      |
 | --------------- | --------------- | --------------------------- |
 | `/api/policies` | GET/POST/DELETE | Hallitse reitityskäytäntöjä |
 
 ### Vaatimustenmukaisuus
 
-| Päätepiste                  | Menetelmä | Kuvaus                                             |
-| --------------------------- | --------- | -------------------------------------------------- |
-| `/api/compliance/audit-log` | GET       | Vaatimustenmukaisuuden tarkastusloki (viimeiset N) |
+| Päätepiste                  | Metodi | Kuvaus                                                       |
+| --------------------------- | ------ | ------------------------------------------------------------ |
+| `/api/compliance/audit-log` | GET    | Vaatimustenmukaisuuden tarkastusloki (viimeiset N merkintää) |
 
 ### v1beta (Gemini-yhteensopiva)
 
-| Päätepiste                 | Menetelmä | Kuvaus                               |
-| -------------------------- | --------- | ------------------------------------ |
-| `/v1beta/models`           | GET       | Luettele mallit Gemini-muodossa      |
-| `/v1beta/models/{...path}` | POST      | Geminin `generateContent`-päätepiste |
+| Päätepiste                 | Metodi | Kuvaus                               |
+| -------------------------- | ------ | ------------------------------------ |
+| `/v1beta/models`           | GET    | Luettele mallit Gemini-muodossa      |
+| `/v1beta/models/{...path}` | POST   | Geminin `generateContent`-päätepiste |
 
-Nämä päätepisteet mukailevat Geminin API-muotoa asiakkaille, jotka edellyttävät yhteensopivuutta natiivin Gemini SDK:n kanssa.
+Nämä päätepisteet jäljittelevät Geminin API-muotoa asiakkaille, jotka edellyttävät yhteensopivuutta Geminin natiivin SDK:n kanssa.
 
 ### Sisäiset / järjestelmän API:t
 
-| Päätepiste               | Menetelmä | Kuvaus                                                                      |
-| ------------------------ | --------- | --------------------------------------------------------------------------- |
-| `/api/init`              | GET       | Sovelluksen alustuksen tarkistus (käytetään ensimmäisellä suorituskerralla) |
-| `/api/tags`              | GET       | Ollama-yhteensopivat mallitunnisteet (Ollama-asiakkaille)                   |
-| `/api/restart`           | POST      | Käynnistä palvelin hallitusti uudelleen                                     |
-| `/api/shutdown`          | POST      | Sammuta palvelin hallitusti                                                 |
-| `/api/system/env/repair` | POST      | Korjaa OAuth-palveluntarjoajan ympäristömuuttujat                           |
+| Päätepiste               | Metodi | Kuvaus                                                                      |
+| ------------------------ | ------ | --------------------------------------------------------------------------- |
+| `/api/init`              | GET    | Sovelluksen alustuksen tarkistus (käytetään ensimmäisellä suorituskerralla) |
+| `/api/tags`              | GET    | Ollama-yhteensopivat mallitunnisteet (Ollama-asiakkaille)                   |
+| `/api/restart`           | POST   | Käynnistä palvelin hallitusti uudelleen                                     |
+| `/api/shutdown`          | POST   | Käynnistä palvelimen hallittu sammutus                                      |
+| `/api/system/env/repair` | POST   | Korjaa OAuth-palveluntarjoajan ympäristömuuttujat                           |
 
-> **Huomautus:** Järjestelmä käyttää näitä päätepisteitä sisäisesti tai Ollama-asiakasyhteensopivuuteen. Loppukäyttäjät eivät yleensä kutsu niitä.
+> **Huomautus:** Järjestelmä käyttää näitä päätepisteitä sisäisesti, tai niitä käytetään Ollama-asiakasyhteensopivuutta varten. Loppukäyttäjät eivät tavallisesti kutsu niitä.
 
 ### OAuth-ympäristön korjaus _(v3.6.1+)_
 

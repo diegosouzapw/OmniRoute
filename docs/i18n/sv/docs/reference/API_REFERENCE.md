@@ -859,9 +859,9 @@ X-OmniRoute-No-Cache: true
 
 ## Kontrollpanel och hantering
 
-Hanteringsrutter (`/api/*` förutom offentlig autentisering/inloggning) auktoriseras **inte** med
-vanliga API-nycklar för inferens. Information om autentiseringsuppgifter, behörighetsomfång och curl-exempel:
-[Autentisering för hantering](../guides/MANAGEMENT-AUTH.md).
+Hanteringsvägar (`/api/*` förutom offentlig autentisering/inloggning) auktoriseras **inte** med
+vanliga API-nycklar för inferens. Information om typer av autentiseringsuppgifter, behörighetsomfång och curl-exempel:
+[Hanteringsautentisering](../guides/MANAGEMENT-AUTH.md).
 
 ### Autentisering
 
@@ -871,31 +871,38 @@ vanliga API-nycklar för inferens. Information om autentiseringsuppgifter, behö
 | `/api/auth/logout`            | POST    | Logga ut                 |
 | `/api/settings/require-login` | GET/PUT | Växla krav på inloggning |
 
-### Hantering av leverantörer
+### Leverantörshantering
 
-| Slutpunkt                               | Metod                 | Beskrivning                                                                                                                                                     |
-| --------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/providers`                        | GET/POST              | Lista/skapa leverantörer                                                                                                                                        |
-| `/api/providers/[id]`                   | GET/PUT/DELETE        | Hantera en leverantör                                                                                                                                           |
-| `/api/providers/[id]/test`              | POST                  | Testa leverantörsanslutningen                                                                                                                                   |
-| `/api/providers/[id]/models`            | GET                   | Lista leverantörens modeller                                                                                                                                    |
-| `/api/providers/validate`               | POST                  | Validera leverantörskonfigurationen                                                                                                                             |
-| `/api/providers/bulk`                   | POST                  | Lägg till flera API-nycklar för EN leverantör                                                                                                                   |
-| `/api/providers/import`                 | POST                  | Importera en heterogen LISTA över leverantörer från en parsad CSV-/JSON-fil (#6836); resultat med partiella fel per rad                                         |
-| `/api/provider-nodes*`                  | Diverse               | Hantering av leverantörsnoder                                                                                                                                   |
-| `/api/provider-models`                  | GET/POST/PATCH/DELETE | Anpassade modeller (lägg till, uppdatera, dölj/visa, ta bort)                                                                                                   |
-| `/api/provider-models/validate-and-add` | POST                  | Hanteringsautentiserad, valfri strikt anslutningsvalidering och atomär registrering av anpassade modeller; se [Modellvalidering](../guides/MODEL-VALIDATION.md) |
+| Slutpunkt                               | Metod                     | Beskrivning                                                                                                                                                     |
+| --------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/providers`                        | GET/POST                  | Lista/skapa leverantörer                                                                                                                                        |
+| `/api/providers/[id]`                   | GET/PUT/DELETE            | Hantera en leverantör                                                                                                                                           |
+| `/api/providers/[id]/test`              | POST                      | Testa leverantörsanslutningen                                                                                                                                   |
+| `/api/providers/[id]/models`            | GET                       | Lista leverantörens modeller                                                                                                                                    |
+| `/api/providers/validate`               | POST                      | Validera leverantörskonfigurationen                                                                                                                             |
+| `/api/providers/bulk`                   | POST                      | Lägg till API-nycklar i bulk för EN leverantör                                                                                                                  |
+| `/api/providers/import`                 | POST                      | Importera en heterogen leverantörsLISTA från en tolkad CSV/JSON-fil (#6836); resultat med partiella fel per rad                                                 |
+| `/api/provider-nodes*`                  | Diverse                   | Hantering av leverantörsnoder                                                                                                                                   |
+| `/api/provider-models`                  | GET/POST/PUT/PATCH/DELETE | Anpassade modeller och åsidosättningar per modell (lägg till, uppdatera, dölj/visa, ta bort)                                                                    |
+| `/api/provider-models/validate-and-add` | POST                      | Hanteringsautentiserad, valfri strikt anslutningsvalidering och atomär registrering av anpassade modeller; se [Modellvalidering](../guides/MODEL-VALIDATION.md) |
 
-Anpassade Chat Completions-noder anpassar uttryckliga bortval av resonemang till den överordnade serverdelen. Ett
+För synkroniserade/importerade modeller accepterar `PUT /api/provider-models` `provider`, `modelId` och
+`maxOutputTokenOverride`: ett positivt heltal anger den manuella gränsen för utmatningstoken, medan `null`
+tar bort den och återställer standardvärdet. `GET /api/provider-models?provider=<provider>` returnerar dessa
+värden i `modelOutputOverrides`, inklusive modeller utan en rad för en anpassad modell. Åsidosättningen
+använder körningsmiljöns `max_output_tokens`-funktion och kvarstår efter en ny modellsynkronisering. Sidan för
+OpenAI-kompatibla leverantörer erbjuder samma kontroller för redigering/borttagning och markerar modeller med explicit stöd för bildanalys.
+
+Anpassade Chat Completions-noder anpassar explicita bortval av resonemang till uppströmsserverdelen. Ett
 lyckat anslutningstest väljer automatiskt kontroller för chattmallar för varje exakt modell-ID
-vars `/models`-post bevisar ett identifierat `owned_by`-värde: `vllm`, `sglang` eller `llamacpp`.
-Transparenta OpenAI-kompatibla omslutningar kan bevara den ursprungliga modellposten i ett kapslat
-`openai`-objekt; identifieringen följer upp till tre sådana omslutningar. Modeller med saknad, okänd eller
-motstridig ägarinformation behåller det vanliga OpenAI-beteendet. Identifieringen återanvänder den befintliga katalogbegäran,
-genererar inga kompletteringstoken och ogiltigförklaras när anslutningens slutpunkt ändras.
+vars `/models`-post styrker ett känt `owned_by`-värde: `vllm`, `sglang` eller `llamacpp`.
+Transparenta OpenAI-kompatibla omslag kan bevara den ursprungliga modellposten i ett kapslat
+`openai`-objekt; identifieringen följer upp till tre sådana omslutningar. Modeller med saknat, okänt eller
+motstridigt ägarskap behåller det vanliga OpenAI-beteendet. Identifieringen återanvänder den befintliga katalogbegäran,
+genererar inga slutförandetoken och ogiltigförklaras när anslutningens slutpunkt ändras.
 
-Om du vill låsa beteendet för en serverdel som inte exponerar dessa metadata använder du det befintliga API:et
-för partiell uppdatering av leverantörer:
+För att låsa beteendet för en serverdel som inte exponerar dessa metadata använder du det befintliga API:et
+för partiell leverantörsuppdatering:
 
 ```json
 {
@@ -905,20 +912,20 @@ för partiell uppdatering av leverantörer:
 }
 ```
 
-Skicka denna body med `PUT /api/providers/<connection-id>`. För den anslutningen skickas en uttrycklig
+Skicka denna kropp med `PUT /api/providers/<connection-id>`. För den anslutningen skickas en explicit
 resonemangsnivå på `none` som `chat_template_kwargs.thinking=false` och
-`chat_template_kwargs.enable_thinking=false`. Uttryckliga inbyggda mallvärden har fortsatt företräde
+`chat_template_kwargs.enable_thinking=false`. Explicita inbyggda mallvärden förblir styrande
 såvida inte en resonemangsregel på serversidan framtvingar en nivå. Inställningen gäller endast när en anpassad
-OpenAI-kompatibel anslutning skickar en Chat Completions-body; Responses-begäranden och vanliga
+OpenAI-kompatibel anslutning skickar en Chat Completions-kropp; Responses-begäranden och vanliga
 leverantörer behåller sin inbyggda begärandestruktur. Ange `reasoningControl` som `openai` för att framtvinga vanlig OpenAI-
 vidarebefordran av `reasoning_effort`, eller utelämna det/ange det som `null` för att använda automatisk identifiering.
 
-Klassificeringsbegäranden i Claude Codes autoläge inaktiverar som standard inbyggt tänkande när de
-inte innehåller några uttryckliga resonemangskontroller. Identifieringen använder klassificerarens systemmarkör i begäranden
-i Claude-format, inte modellnamn eller kompletteringsgränser. Uttryckliga body-kontroller, stödda nivå-/tänkande-
-headers, dirigeringsregler och den fastställda modellnivån behåller sin befintliga prioritet. Båda klassificerings-
-stegen behåller sina prompter, kompletteringsgränser, stoppsekvenser och verkliga behörighets-
-beslut från den överordnade serverdelen; det andra steget kan fortfarande producera det begärda synliga resonemanget som vanlig text.
+Claude Code-klassificerarens förfrågningar inaktiverar som standard inbyggt tänkande när de
+inte innehåller några uttryckliga resonemangskontroller. Identifieringen använder klassificerarens systemmarkör i förfrågningar
+i Claude-format, inte modellnamn eller slutförandegränser. Uttryckliga kontroller i kroppen, stödda ansträngnings-/tänkande-
+huvuden, routningsregler och fastställd modellansträngning behåller sin befintliga prioritet. Båda klassificerarens
+steg behåller sina promptar, slutförandegränser, stoppsekvenser och verkliga behörighetsbeslut från uppströmsleverantören;
+det andra steget kan fortfarande generera sitt begärda synliga resonemang som vanlig text.
 
 ### OAuth-flöden
 
@@ -926,44 +933,44 @@ beslut från den överordnade serverdelen; det andra steget kan fortfarande prod
 | -------------------------------- | ------- | ------------------------- |
 | `/api/oauth/[provider]/[action]` | Diverse | Leverantörsspecifik OAuth |
 
-### Dirigering och konfiguration
+### Routning och konfiguration
 
-| Ändpunkt              | Metod    | Beskrivning                        |
-| --------------------- | -------- | ---------------------------------- |
-| `/api/models/alias`   | GET/POST | Modellaliaser                      |
-| `/api/models/catalog` | GET      | Alla modeller per leverantör + typ |
-| `/api/combos*`        | Diverse  | Hantering av kombinationer         |
-| `/api/keys*`          | Diverse  | Hantering av API-nycklar           |
-| `/api/pricing`        | GET      | Modellprissättning                 |
+| Slutpunkt             | Metod    | Beskrivning                          |
+| --------------------- | -------- | ------------------------------------ |
+| `/api/models/alias`   | GET/POST | Modellalias                          |
+| `/api/models/catalog` | GET      | Alla modeller efter leverantör + typ |
+| `/api/combos*`        | Diverse  | Hantering av kombinationer           |
+| `/api/keys*`          | Diverse  | Hantering av API-nycklar             |
+| `/api/pricing`        | GET      | Modellprissättning                   |
 
 ### Användning och analys
 
-| Ändpunkt                         | Metod           | Beskrivning                                                                                                                                                                                                                                                                                                                                          |
-| -------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/usage/history`             | GET             | Användningshistorik                                                                                                                                                                                                                                                                                                                                  |
-| `/api/usage/logs`                | GET             | Användningsloggar                                                                                                                                                                                                                                                                                                                                    |
-| `/api/usage/request-logs`        | GET             | Loggar på begärandenivå                                                                                                                                                                                                                                                                                                                              |
-| `/api/usage/[connectionId]`      | GET             | Användning per anslutning                                                                                                                                                                                                                                                                                                                            |
-| `/api/usage/token-limits`        | GET/POST/DELETE | Budgetar för tokenbegränsningar per API-nyckel                                                                                                                                                                                                                                                                                                       |
-| `/api/usage/model-latency-stats` | GET             | Löpande aggregerad latens per leverantör/modell (genomsnitt/p50/p95/p99, lyckandefrekvens); filter: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                                  |
-| `/api/usage/cache-health`        | GET             | Sammanfattning av promptcachehälsa baserad på `call_logs` — skriv-/läsförhållande, p50/p90/p99-fördelning av skrivstorlek, koncentration av omfattande skrivningar, uppdelning per modell samt bedömningen `healthy`/`degraded`/`thrash`/`no-data`; frågeparametrarna `range` (`1h`\|`24h`\|`7d`\|`30d`, standard `24h`) och valfria `model` (#8827) |
+| Slutpunkt                        | Metod           | Beskrivning                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/usage/history`             | GET             | Användningshistorik                                                                                                                                                                                                                                                                                                                                       |
+| `/api/usage/logs`                | GET             | Användningsloggar                                                                                                                                                                                                                                                                                                                                         |
+| `/api/usage/request-logs`        | GET             | Loggar på förfrågningsnivå                                                                                                                                                                                                                                                                                                                                |
+| `/api/usage/[connectionId]`      | GET             | Användning per anslutning                                                                                                                                                                                                                                                                                                                                 |
+| `/api/usage/token-limits`        | GET/POST/DELETE | Budgetar för tokengränser per API-nyckel                                                                                                                                                                                                                                                                                                                  |
+| `/api/usage/model-latency-stats` | GET             | Rullande sammanställning av latens per leverantör/modell (genomsnitt/p50/p95/p99, lyckandefrekvens); filter: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                                                              |
+| `/api/usage/cache-health`        | GET             | Sammanfattning av promptcachens hälsa över `call_logs` — skriv-/läsförhållande, p50/p90/p99-fördelning av skrivstorlek, koncentration av omfattande skrivningar, uppdelning per modell samt ett omdöme som `healthy`/`degraded`/`thrash`/`no-data`; frågeparametrarna `range` (`1h`\|`24h`\|`7d`\|`30d`, standardvärde `24h`) och valfria `model` (#8827) |
 
 ### Inställningar
 
-| Ändpunkt                              | Metod         | Beskrivning                                                                                                                                                                                                         |
-| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/settings`                       | GET/PUT/PATCH | Allmänna inställningar                                                                                                                                                                                              |
-| `/api/settings/proxy`                 | GET/PUT       | Konfiguration av nätverksproxy                                                                                                                                                                                      |
-| `/api/settings/proxy/test`            | POST          | Testa proxyanslutningen                                                                                                                                                                                             |
-| `/api/settings/ip-filter`             | GET/PUT       | Lista över tillåtna/blockerade IP-adresser                                                                                                                                                                          |
-| `/api/settings/thinking-budget`       | GET/PUT       | Omskrivningsläge för **begäranden** avseende tanke-/resonemangsbudget (oförändrad / automatisk borttagning / anpassad / adaptiv). Oberoende av komprimering. Se [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
-| `/api/settings/system-prompt`         | GET/PUT       | Global systemprompt                                                                                                                                                                                                 |
-| `/api/settings/compression`           | GET/PUT       | Global komprimeringskonfiguration                                                                                                                                                                                   |
-| `/api/settings/purge-request-history` | POST          | Rensa rader i begärandeloggen och lokala anropsloggar                                                                                                                                                               |
+| Slutpunkt                             | Metod         | Beskrivning                                                                                                                                                                                                            |
+| ------------------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/settings`                       | GET/PUT/PATCH | Allmänna inställningar                                                                                                                                                                                                 |
+| `/api/settings/proxy`                 | GET/PUT       | Konfiguration av nätverksproxy                                                                                                                                                                                         |
+| `/api/settings/proxy/test`            | POST          | Testa proxyanslutningen                                                                                                                                                                                                |
+| `/api/settings/ip-filter`             | GET/PUT       | Lista över tillåtna/blockerade IP-adresser                                                                                                                                                                             |
+| `/api/settings/thinking-budget`       | GET/PUT       | Omskrivningsläge för **förfrågningar** gällande tanke-/resonemangsbudget (oförändrad / automatisk borttagning / anpassad / adaptiv). Oberoende av komprimering. Se [THINKING_BUDGET.md](../guides/THINKING_BUDGET.md). |
+| `/api/settings/system-prompt`         | GET/PUT       | Global systemprompt                                                                                                                                                                                                    |
+| `/api/settings/compression`           | GET/PUT       | Global komprimeringskonfiguration                                                                                                                                                                                      |
+| `/api/settings/purge-request-history` | POST          | Rensa rader i förfrågningsloggen och lokala anropsloggar                                                                                                                                                               |
 
 ### Kontext och komprimering
 
-| Ändpunkt                               | Metod          | Beskrivning                                                                     |
+| Slutpunkt                              | Metod          | Beskrivning                                                                     |
 | -------------------------------------- | -------------- | ------------------------------------------------------------------------------- |
 | `/api/compression/preview`             | POST           | Förhandsgranska komprimering med off/lite/standard/aggressive/ultra/RTK/stacked |
 | `/api/compression/language-packs`      | GET            | Lista tillgängliga Caveman-språkpaket                                           |
@@ -972,27 +979,27 @@ beslut från den överordnade serverdelen; det andra steget kan fortfarande prod
 | `/api/context/rtk/config`              | GET/PUT        | RTK-specifika inställningar, inklusive anpassade filter och lagring av råutdata |
 | `/api/context/rtk/filters`             | GET            | RTK-filterkatalog och diagnostik för anpassade filter                           |
 | `/api/context/rtk/test`                | POST           | Kör RTK-förhandsgranskning/-test mot en textnyttolast                           |
-| `/api/context/rtk/raw-output/[id]`     | GET            | Läs lagrad, redigerad råutdata via pekar-ID                                     |
+| `/api/context/rtk/raw-output/[id]`     | GET            | Läs lagrade, maskerade råutdata via pekar-ID                                    |
 | `/api/context/combos`                  | GET/POST       | Lista/skapa komprimeringskombinationer                                          |
-| `/api/context/combos/[id]`             | GET/PUT/DELETE | Visa/uppdatera/ta bort information om en komprimeringskombination               |
-| `/api/context/combos/[id]/assignments` | GET/PUT        | Tilldela komprimeringskombinationer till routningskombinationer                 |
+| `/api/context/combos/[id]`             | GET/PUT/DELETE | Detaljer/uppdatering/borttagning för komprimeringskombination                   |
+| `/api/context/combos/[id]/assignments` | GET/PUT        | Tilldela komprimeringskombinationer till dirigeringskombinationer               |
 | `/api/context/analytics`               | GET            | Alias för komprimeringsanalys                                                   |
 
 ### Övervakning
 
-| Ändpunkt                             | Metod      | Beskrivning                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/api/sessions`                      | GET        | Spårning av aktiva sessioner                                                                                                                                                                                                                                                                                                                                                                                        |
-| `/api/rate-limits`                   | GET        | Hastighetsbegränsningar per konto                                                                                                                                                                                                                                                                                                                                                                                   |
-| `/api/monitoring/health`             | GET        | Hälsokontroll + leverantörssammanfattning (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Hanteringsvyn inkluderar `credentialHealth`: skalärvärden för probcachen, `failedConnections` när `failed>0` samt `staleDbNonOkCount` (beständigt `test_status` i SQLite, inte mätvärdet). Se [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
-| `/api/cache/stats`                   | GET/DELETE | Cachestatistik/rensning                                                                                                                                                                                                                                                                                                                                                                                             |
-| `/api/modality-bridge/stats`         | GET        | Minneslagrade `attempts`, lyckade/`bridged`, misslyckade, cacheträffar, `totalLatencyMs`, `latencySamples`, samplingsbaserad `averageLatencyMs` samt tidpunkt för senaste användning (återställs vid omstart; hanteringsautentisering)                                                                                                                                                                              |
-| `/api/modality-bridge/video/runtime` | GET        | Strikt kontroll av betrodd loopback före hanteringsautentisering/prob; sanerad tillgänglighets- och versionsinformation för FFmpeg/ffprobe (ingen lagring)                                                                                                                                                                                                                                                          |
-| `/api/modality-bridge/video/extract` | POST       | Intern autentiserad byteförmedlare via betrodd loopback; 50 MiB indata, begränsad kö/32 MiB utdata, `503` vid kapacitetsbrist, `499` vid frånkoppling, `504` vid överskriden tidsgräns; inte ett offentligt API för uppladdning                                                                                                                                                                                     |
+| Slutpunkt                            | Metod      | Beskrivning                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/sessions`                      | GET        | Spårning av aktiva sessioner                                                                                                                                                                                                                                                                                                                                                                                          |
+| `/api/rate-limits`                   | GET        | Hastighetsgränser per konto                                                                                                                                                                                                                                                                                                                                                                                           |
+| `/api/monitoring/health`             | GET        | Hälsokontroll + leverantörssammanfattning (`catalogCount`, `configuredCount`, `activeCount`, `monitoredCount`). Hanteringsvyn inkluderar `credentialHealth`: skalärvärden från probecachen, `failedConnections` när `failed>0` samt `staleDbNonOkCount` (beständigt `test_status` i SQLite, inte mätvärdet). Se [MONITORING_GUIDE.md](../ops/MONITORING_GUIDE.md#credentialhealth-probe-cache-vs-sqlite-test_status). |
+| `/api/cache/stats`                   | GET/DELETE | Cachestatistik/rensning                                                                                                                                                                                                                                                                                                                                                                                               |
+| `/api/modality-bridge/stats`         | GET        | Minnesbaserade `attempts`, lyckade/`bridged`, misslyckade, cacheträffar, `totalLatencyMs`, `latencySamples`, urvalsbaserade `averageLatencyMs` samt tidpunkt för senaste användning (återställs vid omstart; hanteringsautentisering)                                                                                                                                                                                 |
+| `/api/modality-bridge/video/runtime` | GET        | Strikt kontroll av betrodd loopback före hanteringsautentisering/prob; sanerad tillgänglighet och versioner för FFmpeg/ffprobe (no-store)                                                                                                                                                                                                                                                                             |
+| `/api/modality-bridge/video/extract` | POST       | Intern autentiserad byteförmedlare för betrodd loopback; indata på högst 50 MiB, begränsad kö/utdata på 32 MiB, `503` vid kapacitetsbrist, `499` vid frånkoppling, `504` vid överskriden tidsgräns; inte ett offentligt API för filuppladdning                                                                                                                                                                        |
 
 ### Säkerhetskopiering och export/import
 
-| Ändpunkt                    | Metod | Beskrivning                                               |
+| Slutpunkt                   | Metod | Beskrivning                                               |
 | --------------------------- | ----- | --------------------------------------------------------- |
 | `/api/db-backups`           | GET   | Lista tillgängliga säkerhetskopior                        |
 | `/api/db-backups`           | PUT   | Skapa en manuell säkerhetskopia                           |
@@ -1003,15 +1010,15 @@ beslut från den överordnade serverdelen; det andra steget kan fortfarande prod
 
 ### Molnsynkronisering
 
-| Ändpunkt               | Metod   | Beskrivning                     |
-| ---------------------- | ------- | ------------------------------- |
-| `/api/sync/cloud`      | Diverse | Åtgärder för molnsynkronisering |
-| `/api/sync/initialize` | POST    | Initiera synkronisering         |
-| `/api/cloud/*`         | Diverse | Molnhantering                   |
+| Slutpunkt              | Metod      | Beskrivning                     |
+| ---------------------- | ---------- | ------------------------------- |
+| `/api/sync/cloud`      | Varierande | Åtgärder för molnsynkronisering |
+| `/api/sync/initialize` | POST       | Initiera synkronisering         |
+| `/api/cloud/*`         | Varierande | Molnhantering                   |
 
 ### Tunnlar
 
-| Ändpunkt                   | Metod | Beskrivning                                                                        |
+| Slutpunkt                  | Metod | Beskrivning                                                                        |
 | -------------------------- | ----- | ---------------------------------------------------------------------------------- |
 | `/api/tunnels/cloudflared` | GET   | Läs installations-/körningsstatus för Cloudflare Quick Tunnel på instrumentpanelen |
 | `/api/tunnels/cloudflared` | POST  | Aktivera eller inaktivera Cloudflare Quick Tunnel (`action=enable/disable`)        |
@@ -1020,7 +1027,7 @@ beslut från den överordnade serverdelen; det andra steget kan fortfarande prod
 
 ### CLI-verktyg
 
-| Slutpunkt                          | Metod | Beskrivning                |
+| Ändpunkt                           | Metod | Beskrivning                |
 | ---------------------------------- | ----- | -------------------------- |
 | `/api/cli-tools/claude-settings`   | GET   | Status för Claude CLI      |
 | `/api/cli-tools/codex-settings`    | GET   | Status för Codex CLI       |
@@ -1028,69 +1035,69 @@ beslut från den överordnade serverdelen; det andra steget kan fortfarande prod
 | `/api/cli-tools/openclaw-settings` | GET   | Status för OpenClaw CLI    |
 | `/api/cli-tools/runtime/[toolId]`  | GET   | Generisk CLI-körningsmiljö |
 
-CLI-svar inkluderar: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
+CLI-svar innehåller: `installed`, `runnable`, `command`, `commandPath`, `runtimeMode`, `reason`.
 
 ### ACP-agenter
 
-| Slutpunkt         | Metod  | Beskrivning                                                        |
+| Ändpunkt          | Metod  | Beskrivning                                                        |
 | ----------------- | ------ | ------------------------------------------------------------------ |
 | `/api/acp/agents` | GET    | Lista alla identifierade agenter (inbyggda + anpassade) med status |
-| `/api/acp/agents` | POST   | Lägg till anpassad agent eller uppdatera identifieringscachen      |
+| `/api/acp/agents` | POST   | Lägg till en anpassad agent eller uppdatera identifieringscachen   |
 | `/api/acp/agents` | DELETE | Ta bort en anpassad agent via frågeparametern `id`                 |
 
-GET-svaret inkluderar `agents[]` (id, name, binary, version, installed, protocol, isCustom) och `summary` (total, installed, notFound, builtIn, custom).
+GET-svaret innehåller `agents[]` (id, name, binary, version, installed, protocol, isCustom) och `summary` (total, installed, notFound, builtIn, custom).
 
-### Motståndskraft och hastighetsgränser
+### Feltålighet och hastighetsgränser
 
-| Slutpunkt                         | Metod     | Beskrivning                                                                                         |
-| --------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
-| `/api/resilience`                 | GET/PATCH | Hämta/uppdatera inställningar för begärandekö, anslutningsspärrtid, leverantörsbrytare och väntetid |
-| `/api/resilience/reset`           | POST      | Återställ leverantörernas kretsbrytare                                                              |
-| `/api/resilience/model-cooldowns` | GET       | Lista aktiva spärrar per (leverantör, anslutning, modell), sorterade efter återstående tid          |
-| `/api/resilience/model-cooldowns` | DELETE    | Rensa en modellspärr – body `{provider, model}` eller `{all: true}` för att rensa allt              |
-| `/api/rate-limits`                | GET       | Status för hastighetsgränser per konto                                                              |
-| `/api/rate-limit`                 | GET       | Global konfiguration av hastighetsgränser                                                           |
+| Ändpunkt                          | Metod     | Beskrivning                                                                                            |
+| --------------------------------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| `/api/resilience`                 | GET/PATCH | Hämta/uppdatera förfrågningskö, anslutningens nedkylning, leverantörens brytare och vänteinställningar |
+| `/api/resilience/reset`           | POST      | Återställ leverantörernas kretsbrytare                                                                 |
+| `/api/resilience/model-cooldowns` | GET       | Lista aktiva spärrar per (leverantör, anslutning, modell), sorterade efter återstående tid             |
+| `/api/resilience/model-cooldowns` | DELETE    | Rensa en modellspärr — body `{provider, model}` eller `{all: true}` för att rensa allt                 |
+| `/api/rate-limits`                | GET       | Status för hastighetsgräns per konto                                                                   |
+| `/api/rate-limit`                 | GET       | Global konfiguration av hastighetsgränser                                                              |
 
-> Alla fyra `/api/resilience/*`-rutterna kräver **hanteringsautentisering** (`requireManagementAuth`). Se [Motståndskraft (utökad)](#resilience-extended) för en fullständig genomgång av leverantörsbrytare kontra anslutningsspärrtid kontra modellspärr.
+> Alla fyra `/api/resilience/*`-rutterna kräver **hanteringsautentisering** (`requireManagementAuth`). Se [Feltålighet (utökad)](#resilience-extended) för en fullständig genomgång av skillnaden mellan leverantörens brytare, anslutningens nedkylning och modellspärrar.
 
 ### Utvärderingar
 
-| Slutpunkt    | Metod    | Beskrivning                              |
+| Ändpunkt     | Metod    | Beskrivning                              |
 | ------------ | -------- | ---------------------------------------- |
 | `/api/evals` | GET/POST | Lista utvärderingssviter/kör utvärdering |
 
 ### Policyer
 
-| Slutpunkt       | Metod           | Beskrivning                 |
+| Ändpunkt        | Metod           | Beskrivning                 |
 | --------------- | --------------- | --------------------------- |
 | `/api/policies` | GET/POST/DELETE | Hantera dirigeringspolicyer |
 
 ### Regelefterlevnad
 
-| Slutpunkt                   | Metod | Beskrivning                                      |
+| Ändpunkt                    | Metod | Beskrivning                                      |
 | --------------------------- | ----- | ------------------------------------------------ |
 | `/api/compliance/audit-log` | GET   | Granskningslogg för regelefterlevnad (senaste N) |
 
 ### v1beta (Gemini-kompatibelt)
 
-| Slutpunkt                  | Metod | Beskrivning                            |
-| -------------------------- | ----- | -------------------------------------- |
-| `/v1beta/models`           | GET   | Lista modeller i Gemini-format         |
-| `/v1beta/models/{...path}` | POST  | Gemini-slutpunkt för `generateContent` |
+| Ändpunkt                   | Metod | Beskrivning                           |
+| -------------------------- | ----- | ------------------------------------- |
+| `/v1beta/models`           | GET   | Lista modeller i Gemini-format        |
+| `/v1beta/models/{...path}` | POST  | Gemini-ändpunkt för `generateContent` |
 
-Dessa slutpunkter speglar Geminis API-format för klienter som förväntar sig kompatibilitet med Geminis inbyggda SDK.
+Dessa ändpunkter speglar Geminis API-format för klienter som förväntar sig kompatibilitet med det inbyggda Gemini-SDK:t.
 
 ### Interna API:er/system-API:er
 
-| Slutpunkt                | Metod | Beskrivning                                                  |
+| Ändpunkt                 | Metod | Beskrivning                                                  |
 | ------------------------ | ----- | ------------------------------------------------------------ |
 | `/api/init`              | GET   | Kontroll av programinitiering (används vid första körningen) |
 | `/api/tags`              | GET   | Ollama-kompatibla modelltaggar (för Ollama-klienter)         |
-| `/api/restart`           | POST  | Initiera kontrollerad omstart av servern                     |
-| `/api/shutdown`          | POST  | Initiera kontrollerad avstängning av servern                 |
+| `/api/restart`           | POST  | Utlös en kontrollerad omstart av servern                     |
+| `/api/shutdown`          | POST  | Utlös en kontrollerad avstängning av servern                 |
 | `/api/system/env/repair` | POST  | Reparera miljövariabler för OAuth-leverantörer               |
 
-> **Obs!** Dessa slutpunkter används internt av systemet eller för kompatibilitet med Ollama-klienter. De anropas vanligtvis inte av slutanvändare.
+> **Obs!** Dessa ändpunkter används internt av systemet eller för kompatibilitet med Ollama-klienter. De anropas vanligtvis inte av slutanvändare.
 
 ### Reparation av OAuth-miljö _(v3.6.1+)_
 
