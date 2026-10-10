@@ -5,12 +5,12 @@
 ---
 
 > **Phiên bản:** v3.8.44
-> **Cập nhật lần cuối:** 2026-09-09
-> **Đối tượng:** Các kỹ sư bổ sung, bảo trì hoặc gỡ lỗi các dịch vụ nhúng (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **Cập nhật lần cuối:** 2026-09-16
+> **Đối tượng:** Các kỹ sư bổ sung, bảo trì hoặc gỡ lỗi các dịch vụ nhúng (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua).
 
-Dịch vụ nhúng là các công cụ tiến trình sidecar được cài đặt cục bộ mà OmniRoute cài đặt, giám sát và
-cung cấp như những đích định tuyến hạng nhất. Không giống các nhà cung cấp bên ngoài (được truy cập qua internet
-bằng API key), dịch vụ nhúng chạy trên cùng máy với OmniRoute và giao tiếp qua loopback.
+Dịch vụ nhúng là các công cụ sidecar tiến trình được cài đặt cục bộ mà OmniRoute cài đặt, giám sát và
+cung cấp dưới dạng các đích định tuyến hạng nhất. Không giống các nhà cung cấp bên ngoài (được truy cập qua internet
+bằng khóa API), dịch vụ nhúng chạy trên cùng máy với OmniRoute và giao tiếp qua giao diện loopback.
 
 ---
 
@@ -31,34 +31,35 @@ bằng API key), dịch vụ nhúng chạy trên cùng máy với OmniRoute và 
 
 ### Tại sao cần các dịch vụ nhúng?
 
-Sáu dịch vụ được nhúng:
+Bảy dịch vụ được nhúng:
 
-| Dịch vụ         | Gói npm                                           | Cổng mặc định | Mục đích                                                                                                                                                                                                                |
-| --------------- | ------------------------------------------------- | :-----------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                                         |     20130     | Bộ định tuyến AI mà OmniRoute có thể sử dụng như một nhà cung cấp phụ. Các mô hình được cung cấp dưới dạng `9router/{sub}/{model}`                                                                                      |
-| **CLIProxyAPI** | Tệp nhị phân từ bản phát hành GitHub (`cliproxy`) |     8317      | Bộ điều hợp proxy cục bộ cho các luồng xác thực Anthropic CLI. Cung cấp định tuyến dự phòng khi token OAuth hết hạn                                                                                                     |
-| **Mux**         | `mux` (`mux server` không giao diện)              |     8322      | Trình nền điều phối tác tử cục bộ (coder/mux). Chỉ được quản lý vòng đời — không phải là đích định tuyến (không proxy LLM).                                                                                             |
-| **Bifrost**     | `@maximhq/bifrost`                                |     8080      | Backend chuyển tiếp cổng AI viết bằng Go. Khi đang chạy, được tuyến chuyển tiếp (`/v1/relay/`) tự động chọn                                                                                                             |
-| **Dario**       | `@askalf/dario`                                   |     3456      | Proxy đăng ký Claude — phương án thay thế/dự phòng cho CLIProxyAPI đối với lưu lượng có cấu trúc Claude Code; khóa được chèn sẽ trở thành `DARIO_ADMIN_TOKEN`, bảo vệ mặt phẳng điều khiển OAuth `/admin/*` của dịch vụ |
-| **open-wa**     | `@open-wa/wa-automate`                            |     8323      | Tự động hóa WhatsApp Web (Chromium không giao diện thông qua Puppeteer). Chỉ được quản lý vòng đời — không phải là đích định tuyến.                                                                                     |
+| Dịch vụ         | Gói npm                                           | Cổng mặc định | Mục đích                                                                                                                                                                                                                                                                                                                                              |
+| --------------- | ------------------------------------------------- | :-----------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                                         |     20130     | Bộ định tuyến AI mà OmniRoute có thể sử dụng như một nhà cung cấp phụ. Các mô hình được cung cấp dưới dạng `9router/{sub}/{model}`                                                                                                                                                                                                                    |
+| **CLIProxyAPI** | Tệp nhị phân từ bản phát hành GitHub (`cliproxy`) |     8317      | Bộ điều hợp proxy cục bộ cho các luồng xác thực Anthropic CLI. Cung cấp định tuyến dự phòng khi token OAuth hết hạn                                                                                                                                                                                                                                   |
+| **Mux**         | `mux` (`mux server` không giao diện)              |     8322      | Trình nền điều phối tác nhân cục bộ (coder/mux). Chỉ được quản lý vòng đời — không phải mục tiêu định tuyến (không proxy LLM).                                                                                                                                                                                                                        |
+| **Bifrost**     | `@maximhq/bifrost`                                |     8080      | Backend chuyển tiếp cổng AI viết bằng Go. Khi đang chạy, được tuyến chuyển tiếp (`/v1/relay/`) tự động chọn                                                                                                                                                                                                                                           |
+| **Dario**       | `@askalf/dario`                                   |     3456      | Proxy gói đăng ký Claude — phương án thay thế/dự phòng cho CLIProxyAPI đối với lưu lượng có định dạng Claude Code; khóa được chèn trở thành `DARIO_ADMIN_TOKEN`, bảo vệ mặt phẳng điều khiển OAuth `/admin/*` của dịch vụ                                                                                                                             |
+| **open-wa**     | `@open-wa/wa-automate`                            |     8323      | Tự động hóa WhatsApp Web (Chromium không giao diện qua Puppeteer). Chỉ được quản lý vòng đời — không phải mục tiêu định tuyến.                                                                                                                                                                                                                        |
+| **LLMLingua**   | `@atjsh/llmlingua-2`                              |     20135     | Sidecar nén prompt — mô hình ONNX LLMLingua-2 thực (bản chuyển đổi JS/TS của thuật toán Microsoft). `open-sse/services/compression/engines/llmlingua/index.ts` gửi `/compress` đến dịch vụ này qua HTTP, rồi chuyển về backend luồng worker trong tiến trình khi sidecar ngừng hoạt động. Chỉ được quản lý vòng đời — không phải mục tiêu định tuyến. |
 
-Cả sáu dịch vụ đều tuân theo cùng một mô hình giám sát:
+Cả bảy dịch vụ đều tuân theo cùng một mô hình giám sát:
 
-- OmniRoute cài đặt chúng trong `DATA_DIR/services/{name}/` (tách biệt với `package.json` của chính OmniRoute)
-- OmniRoute khởi chạy và giám sát chúng dưới dạng các tiến trình con
-- OmniRoute chèn một khóa API tạm thời vào môi trường của tiến trình con và luân phiên khóa mà không gây thời gian ngừng hoạt động (khi có thể áp dụng)
-- Tất cả các tuyến quản lý (`/api/services/*`) đều là **LOCAL_ONLY** — chỉ có thể truy cập từ loopback (quy tắc bắt buộc #17)
+- OmniRoute cài đặt chúng trong `DATA_DIR/services/{name}/` (cách ly với `package.json` của chính OmniRoute)
+- OmniRoute khởi chạy và giám sát chúng dưới dạng tiến trình con
+- OmniRoute chèn một khóa API tạm thời vào môi trường của tiến trình con và luân chuyển khóa mà không gây gián đoạn (nếu áp dụng)
+- Tất cả các tuyến quản lý (`/api/services/*`) đều là **LOCAL_ONLY** — chỉ có thể truy cập từ loopback (quy tắc cứng #17)
 
 ### Các quyết định chính (từ kế hoạch thiết kế)
 
-| Quyết định                                             | Giá trị                                                                              |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| Quyền truy cập dashboard vào giao diện gốc của 9Router | Reverse proxy tại `/dashboard/providers/services/9router/embed/*`                    |
-| Cơ chế cài đặt                                         | `npm install {package}` thông qua `execFile` (không nội suy shell)                   |
-| Chế độ sử dụng                                         | Nhà cung cấp được đăng ký dưới dạng `9router/{sub}/{model}` trong công cụ định tuyến |
-| Quản lý khóa API                                       | OmniRoute tạo, mã hóa khi lưu trữ (AES-256-GCM) và chèn thông qua biến môi trường    |
-| Vị trí dashboard                                       | `/dashboard/providers/services` (ba tab)                                             |
-| Tự động khởi động                                      | Nút bật/tắt riêng cho từng dịch vụ, mặc định TẮT                                     |
+| Quyết định                                                 | Giá trị                                                                              |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Quyền truy cập của dashboard vào giao diện gốc của 9Router | Reverse proxy tại `/dashboard/providers/services/9router/embed/*`                    |
+| Cơ chế cài đặt                                             | `npm install {package}` qua `execFile` (không nội suy shell)                         |
+| Chế độ sử dụng                                             | Nhà cung cấp được đăng ký dưới dạng `9router/{sub}/{model}` trong công cụ định tuyến |
+| Quản lý khóa API                                           | OmniRoute tạo, mã hóa khi lưu trữ (AES-256-GCM) và chèn qua biến môi trường          |
+| Vị trí dashboard                                           | `/dashboard/providers/services` (ba tab)                                             |
+| Tự động khởi động                                          | Nút bật/tắt cho từng dịch vụ, mặc định TẮT                                           |
 
 ---
 
@@ -66,13 +67,13 @@ Cả sáu dịch vụ đều tuân theo cùng một mô hình giám sát:
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  Lớp 1 — UI                                                       │
+│  Lớp 1 — UI                                                        │
 │  /dashboard/providers/services  (tab: CLIProxyAPI | 9Router | Mux) │
 │  Nhật ký trực tiếp (SSE), Khởi động/Dừng/Khởi động lại/Cập nhật,   │
-│  Cài đặt, Thiết lập                                               │
+│  Cài đặt, Thiết lập                                                │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Khung + định tuyến tab theo ?tab=    │
+│    ├── page.tsx               Khung + định tuyến tab bằng ?tab=    │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -91,17 +92,17 @@ Cả sáu dịch vụ đều tuân theo cùng một mô hình giám sát:
 │  /dashboard/providers/services/9router/embed/[...path]             │
 │    (proxy ngược HTTP + WebSocket → upstream 9Router)               │
 │                                                                    │
-│  Cổng kiểm soát: LOCAL_ONLY_API_PREFIXES bao gồm "/api/services/" │
+│  Cổng kiểm soát: LOCAL_ONLY_API_PREFIXES bao gồm "/api/services/"  │
 │        và "/dashboard/providers/services/*/embed/"                 │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ các lệnh gọi trong cùng tiến trình
+                       │ lời gọi trong tiến trình
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  Lớp 3 — ServiceSupervisor (src/lib/services/)                     │
 │                                                                    │
-│  ServiceSupervisor.ts   Trình giám sát tổng quát (child_process.spawn)│
-│    ├── cài đặt:   execFile('npm', ['install', pkg, '--prefix'])    │
-│    ├── khởi động: spawn(node, [entrypoint], {env, cwd})            │
-│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
+│  ServiceSupervisor.ts   Trình giám sát chung (child_process.spawn) │
+│    ├── cài đặt:    execFile('npm', ['install', pkg, '--prefix'])   │
+│    ├── khởi động:  spawn(node, [entrypoint], {env, cwd})           │
+│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY │
 │    ├── cổng:       20130 cho 9Router (có thể cấu hình)             │
 │    ├── nhật ký:    bộ đệm vòng stdio 5 MB → sự kiện SSE            │
 │    ├── sức khỏe:   HTTP GET /health mỗi 2–5 giây, phục hồi lười    │
@@ -112,30 +113,29 @@ Cả sáu dịch vụ đều tuân theo cùng một mô hình giám sát:
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       GET /v1/models định kỳ → bảng service_models   │
 │  ringBuffer.ts      Bộ đệm nhật ký vòng (5 MB cho mỗi dịch vụ)     │
-│  healthCheck.ts     Thăm dò sức khỏe HTTP theo chu kỳ              │
+│  healthCheck.ts     Thăm dò tình trạng HTTP theo chu kỳ             │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
-│                      (các bộ điều hợp trình cài đặt)                │
+│                      (các bộ điều hợp cài đặt)                     │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP tương thích OpenAI (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  Lớp 4 — Nhà cung cấp / Định tuyến                                 │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    Tra cứu lại cổng và khóa API cho mỗi yêu cầu (không lưu đệm).  │
-│    Loại bỏ tiền tố "9router/" khỏi mã model trước khi proxy.       │
-│    Trả về 503 service_not_running nếu trình giám sát không ở       │
-│    trạng thái "running".                                           │
+│    Tra cứu lại cổng và khóa API theo từng yêu cầu (không cache).   │
+│    Loại bỏ tiền tố "9router/" khỏi model id trước khi proxy.        │
+│    Trả về 503 service_not_running nếu supervisor không "running".  │
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
-│    Mục nhập cho "9router": isEmbeddedService: true                 │
+│    Mục cho "9router": isEmbeddedService: true                      │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    Các model được lưu dưới dạng "9router/{sub}/{model}" (có tiền tố).│
+│    Model được lưu dưới dạng "9router/{sub}/{model}" (có tiền tố).  │
 │    Được modelSync.ts đồng bộ mỗi 5 phút.                           │
 │                                                                    │
 │  Mux CHỈ được quản lý vòng đời (Lớp 1-3) — đây là daemon điều phối │
-│  tác tử, không phải proxy LLM, vì vậy nó không có executor/mục nhà │
-│  cung cấp ở Lớp 4 và không bao giờ là đích định tuyến.             │
+│  agent, không phải proxy LLM, nên không có executor/mục nhà cung   │
+│  cấp ở Lớp 4 và không bao giờ là đích định tuyến.                  │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -148,12 +148,13 @@ Cả sáu dịch vụ đều tuân theo cùng một mô hình giám sát:
 | `src/lib/services/registry.ts`              | Ánh xạ singleton `tool → supervisor`                       |
 | `src/lib/services/apiKey.ts`                | Tạo khóa, mã hóa AES-256-GCM khi lưu trữ                   |
 | `src/lib/services/modelSync.ts`             | Đồng bộ mô hình định kỳ (5 phút) + theo yêu cầu            |
-| `src/lib/services/ringBuffer.ts`            | Bộ đệm nhật ký vòng 5 MB có hỗ trợ đăng ký SSE             |
+| `src/lib/services/ringBuffer.ts`            | Bộ đệm nhật ký vòng 5 MB với tính năng đăng ký SSE         |
 | `src/lib/services/healthCheck.ts`           | Thăm dò tình trạng HTTP (khoảng thời gian có thể cấu hình) |
 | `src/lib/services/installers/ninerouter.ts` | Cài đặt/cập nhật/gỡ cài đặt 9Router bằng npm               |
 | `src/lib/services/installers/cliproxy.ts`   | Cài đặt/cập nhật/gỡ cài đặt CLIProxyAPI bằng npm           |
 | `src/lib/services/installers/mux.ts`        | Cài đặt/cập nhật/gỡ cài đặt Mux bằng npm                   |
 | `src/lib/services/installers/openwa.ts`     | Cài đặt/cập nhật/gỡ cài đặt open-wa bằng npm               |
+| `src/lib/services/installers/llmlingua.ts`  | Cài đặt/cập nhật/gỡ cài đặt LLMLingua bằng npm             |
 | `src/app/api/services/9router/_lib.ts`      | Hàm trợ giúp `getOrInitSupervisor()`                       |
 | `src/app/api/services/[name]/logs/route.ts` | Điểm cuối nhật ký SSE dùng chung                           |
 | `open-sse/executors/ninerouter.ts`          | Trình thực thi nhà cung cấp (Lớp 4)                        |
@@ -219,8 +220,8 @@ Các yêu cầu không phải loopback sẽ nhận `403 LOCAL_ONLY` bất kể t
 
 #### `POST /api/services/9router/install`
 
-Cài đặt 9Router từ npm. Tạo `DATA_DIR/services/9router/` với
-`package.json` và `node_modules/` riêng. Không xung đột với các dependency của OmniRoute.
+Cài đặt 9Router từ npm. Tạo `DATA_DIR/services/9router/` với `package.json`
+và `node_modules/` riêng. Không xung đột với các dependency của OmniRoute.
 
 **Nội dung yêu cầu** (tất cả đều không bắt buộc):
 
@@ -241,15 +242,15 @@ Cài đặt 9Router từ npm. Tạo `DATA_DIR/services/9router/` với
 | `409`      | Đang cài đặt (khóa đang được giữ)                        |
 | `500`      | Cài đặt npm thất bại — xem `message` để biết lỗi dễ hiểu |
 
-**Ghi chú:** Sử dụng `execFile('npm', [...])` — không dùng shell, không nội suy (quy tắc bắt buộc #13).
+**Lưu ý:** Sử dụng `execFile('npm', [...])` — không dùng shell, không nội suy (quy tắc bắt buộc #13).
 Các lỗi EACCES được hiển thị dưới dạng thông báo dễ hiểu.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-Khởi động 9Router. Đăng ký supervisor nếu chưa được đăng ký, sau đó gọi
-`supervisor.start()`. Có tính lũy đẳng khi dịch vụ đã chạy.
+Khởi động 9Router. Đăng ký một supervisor nếu chưa được đăng ký, sau đó gọi
+`supervisor.start()`. Có tính lũy đẳng khi đã chạy.
 
 **Nội dung yêu cầu:** không có
 
@@ -280,16 +281,16 @@ Khởi động 9Router. Đăng ký supervisor nếu chưa được đăng ký, s
 #### `POST /api/services/9router/stop`
 
 Dừng 9Router một cách an toàn. Gửi SIGTERM, chờ 15 giây, sau đó gửi SIGKILL nếu tiến trình vẫn còn hoạt động.
-Có tính lũy đẳng khi dịch vụ đã dừng.
+Có tính lũy đẳng khi đã dừng.
 
 **Nội dung yêu cầu:** không có
 
 **Phản hồi:**
 
-| Trạng thái | Mô tả                               |
-| ---------- | ----------------------------------- |
-| `200`      | `ServiceStatus` (state: "stopped")  |
-| `503`      | Dừng dịch vụ thất bại ngoài dự kiến |
+| Trạng thái | Mô tả                              |
+| ---------- | ---------------------------------- |
+| `200`      | `ServiceStatus` (state: "stopped") |
+| `503`      | Dừng thất bại ngoài dự kiến        |
 
 ---
 
@@ -306,8 +307,8 @@ Tương đương với `stop()` rồi `start()` trong phạm vi khóa thao tác.
 #### `POST /api/services/9router/update`
 
 Cập nhật 9Router lên phiên bản npm mới hơn. Nếu dịch vụ đang chạy, dịch vụ sẽ được dừng
-trước, tiến hành cài đặt npm (cài đặt phiên bản mới hơn tại chỗ), sau đó
-dịch vụ được khởi động lại.
+trước, sau đó chạy cài đặt npm (cài phiên bản mới hơn tại chỗ), rồi
+khởi động lại dịch vụ.
 
 **Nội dung yêu cầu** (tất cả đều không bắt buộc):
 
@@ -327,7 +328,7 @@ dịch vụ được khởi động lại.
 
 #### `POST /api/services/9router/rotate-key`
 
-Tạo khóa API mới cho 9Router, mã hóa khóa khi lưu trữ và khởi động lại dịch vụ
+Tạo API key mới cho 9Router, mã hóa khi lưu trữ và khởi động lại dịch vụ
 (nếu đang chạy) để dịch vụ nhận khóa mới từ môi trường. Khóa cũ
 bị vô hiệu hóa ngay lập tức.
 
@@ -347,7 +348,7 @@ Khóa được lưu trữ dưới dạng mã hóa (AES-256-GCM) trong bảng `ve
 
 #### `GET /api/services/9router/status`
 
-Trả về trạng thái trực tiếp + trạng thái DB kết hợp, bao gồm siêu dữ liệu phiên bản và bản xem trước khóa API.
+Trả về trạng thái kết hợp từ dữ liệu trực tiếp + DB, bao gồm metadata phiên bản và bản xem trước API key.
 
 **Phản hồi:**
 
@@ -404,10 +405,10 @@ Luồng SSE chứa log trực tiếp từ bộ đệm vòng stdout/stderr của 
 
 **Tham số truy vấn:**
 
-| Tham số  | Kiểu      | Mặc định | Mô tả                                                                                    |
-| -------- | --------- | -------- | ---------------------------------------------------------------------------------------- |
-| `tail`   | `integer` | 200      | Số dòng lịch sử được gửi trước tiên (tối đa 1000)                                        |
-| `filter` | `string`  | không có | Bộ lọc chuỗi con không phân biệt chữ hoa/thường (không dùng regex — an toàn trước ReDoS) |
+| Tham số  | Kiểu      | Mặc định | Mô tả                                                                                |
+| -------- | --------- | -------- | ------------------------------------------------------------------------------------ |
+| `tail`   | `integer` | 200      | Số dòng lịch sử cần gửi trước (tối đa 1000)                                          |
+| `filter` | `string`  | không có | Bộ lọc chuỗi con không phân biệt hoa thường (không dùng regex — an toàn trước ReDoS) |
 
 **Sự kiện SSE:**
 
@@ -437,11 +438,11 @@ Luồng SSE chứa log trực tiếp từ bộ đệm vòng stdout/stderr của 
 
 ---
 
-### 4.2 Các endpoint CLIProxyAPI (10 route)
+### 4.2 Các điểm cuối CLIProxyAPI (10 tuyến)
 
-CLIProxyAPI có cấu trúc endpoint giống 9Router nhưng không có `rotate-key`, đồng thời có thêm
-`accounts`, `provider-expose` và `auto-restart-adopted`. Hiện tại, nó nhận một
-khóa API data-plane chuyên dụng được chèn khi khởi tạo (`needsApiKey: true` trong
+CLIProxyAPI có cấu trúc điểm cuối giống 9Router nhưng không có `rotate-key`, đồng thời
+bổ sung `accounts`, `provider-expose` và `auto-restart-adopted`. Giờ đây, nó nhận một
+khóa API mặt phẳng dữ liệu chuyên dụng được chèn khi khởi chạy (`needsApiKey: true` trong
 `bootstrap.ts`, được dùng để đồng bộ mô hình); `status` bao gồm ít trường hơn.
 
 | Phương thức | Đường dẫn                           | Mô tả                                               |
@@ -454,18 +455,18 @@ khóa API data-plane chuyên dụng được chèn khi khởi tạo (`needsApiKe
 | `GET`       | `/api/services/cliproxy/status`     | Trạng thái trực tiếp + DB (không có `apiKeyMasked`) |
 | `POST`      | `/api/services/cliproxy/auto-start` | Bật/tắt tự động khởi động                           |
 
-Endpoint dùng chung `GET /api/services/{name}/logs` (xem §4.1) hoạt động cho cả
+Điểm cuối dùng chung `GET /api/services/{name}/logs` (xem §4.1) hoạt động cho cả
 bốn dịch vụ bằng cách sử dụng phân đoạn động `[name]`.
 
 ---
 
-### 4.3 Các endpoint Mux (8 route)
+### 4.3 Các điểm cuối Mux (8 tuyến)
 
-Mux có cấu trúc endpoint giống CLIProxyAPI — không có route `rotate-key` trong bề mặt
-API (bearer token được tạo theo cùng cách với 9Router thông qua
+Mux có cấu trúc điểm cuối giống CLIProxyAPI — không có tuyến `rotate-key` trên bề mặt
+API (bearer token được tạo theo cách tương tự 9Router thông qua
 `getOrCreateApiKey("mux")` và được chèn qua biến môi trường `MUX_SERVER_AUTH_TOKEN`, nhưng
-hiện vẫn chưa có endpoint chuyên dụng để xoay vòng khóa). Mux chỉ được quản lý vòng đời: không giống
-9Router, nó không có trình thực thi Layer 4 và không bao giờ được đăng ký làm nhà cung cấp định tuyến.
+hiện chưa có điểm cuối chuyên dụng để luân chuyển khóa). Mux chỉ được quản lý vòng đời: không giống
+9Router, nó không có trình thực thi Lớp 4 và không bao giờ được đăng ký làm nhà cung cấp định tuyến.
 
 | Phương thức | Đường dẫn                      | Mô tả                              |
 | ----------- | ------------------------------ | ---------------------------------- |
@@ -479,43 +480,43 @@ hiện vẫn chưa có endpoint chuyên dụng để xoay vòng khóa). Mux ch�
 
 ---
 
-### 4.4 Các endpoint Bifrost (8 route)
+### 4.4 Các điểm cuối Bifrost (8 tuyến)
 
-Bifrost là backend chuyển tiếp cổng AI viết bằng Go (`@maximhq/bifrost`). Nó sử dụng cùng
-cấu trúc endpoint với CLIProxyAPI (không có `rotate-key` — Bifrost tự quản lý các khóa
-nhà cung cấp trong `config.json` thuộc `-app-dir` của nó).
+Bifrost là một backend chuyển tiếp cổng AI viết bằng Go (`@maximhq/bifrost`). Nó sử dụng cùng
+cấu trúc điểm cuối như CLIProxyAPI (không có `rotate-key` — Bifrost quản lý các khóa nhà cung cấp
+của riêng mình trong `config.json` thuộc `-app-dir`).
 
-| Phương thức | Đường dẫn                          | Mô tả                                                                 |
-| ----------- | ---------------------------------- | --------------------------------------------------------------------- |
-| `POST`      | `/api/services/bifrost/install`    | Cài đặt Bifrost từ npm (`@maximhq/bifrost`)                           |
-| `POST`      | `/api/services/bifrost/start`      | Khởi động Bifrost trên cổng 8080 (mặc định)                           |
-| `POST`      | `/api/services/bifrost/stop`       | Dừng Bifrost                                                          |
-| `POST`      | `/api/services/bifrost/restart`    | Khởi động lại Bifrost                                                 |
-| `POST`      | `/api/services/bifrost/update`     | Cập nhật lên phiên bản mới hơn                                        |
-| `GET`       | `/api/services/bifrost/status`     | Trạng thái trực tiếp + DB                                             |
-| `POST`      | `/api/services/bifrost/auto-start` | Bật/tắt tự động khởi động                                             |
-| `GET`       | `/api/services/bifrost/logs`       | Phần cuối log qua SSE (thông qua route động `[name]/logs` dùng chung) |
+| Phương thức | Đường dẫn                          | Mô tả                                                           |
+| ----------- | ---------------------------------- | --------------------------------------------------------------- |
+| `POST`      | `/api/services/bifrost/install`    | Cài đặt Bifrost từ npm (`@maximhq/bifrost`)                     |
+| `POST`      | `/api/services/bifrost/start`      | Khởi động Bifrost trên cổng 8080 (mặc định)                     |
+| `POST`      | `/api/services/bifrost/stop`       | Dừng Bifrost                                                    |
+| `POST`      | `/api/services/bifrost/restart`    | Khởi động lại Bifrost                                           |
+| `POST`      | `/api/services/bifrost/update`     | Cập nhật lên phiên bản mới hơn                                  |
+| `GET`       | `/api/services/bifrost/status`     | Trạng thái trực tiếp + DB                                       |
+| `POST`      | `/api/services/bifrost/auto-start` | Bật/tắt tự động khởi động                                       |
+| `GET`       | `/api/services/bifrost/logs`       | Phần cuối nhật ký SSE (qua tuyến động `[name]/logs` dùng chung) |
 
-**Kết nối định tuyến:** Khi `BIFROST_BASE_URL` chưa được đặt và phiên bản Bifrost
-do supervisor quản lý đang chạy, `getBifrostRoutingConfig()` (trong `routingBackend.ts`) tự động
-sử dụng `http://127.0.0.1:{port}` làm URL cơ sở chuyển tiếp. Biến môi trường
-`BIFROST_BASE_URL` được đặt rõ ràng luôn được ưu tiên.
+**Kết nối định tuyến:** Khi `BIFROST_BASE_URL` chưa được thiết lập và phiên bản Bifrost
+được giám sát đang chạy, `getBifrostRoutingConfig()` (trong `routingBackend.ts`) tự động
+sử dụng `http://127.0.0.1:{port}` làm URL cơ sở của bộ chuyển tiếp. Biến môi trường
+`BIFROST_BASE_URL` được thiết lập rõ ràng luôn được ưu tiên.
 
 ---
 
-### 4.5 Các endpoint Dario (12 route)
+### 4.5 Các điểm cuối Dario (12 tuyến)
 
 Có cùng cấu trúc vòng đời như các dịch vụ khác (`install`, `start`, `stop`, `restart`,
-`update`, `status`, `auto-start`, `auto-restart-adopted`), cùng với một control plane OAuth
-được bảo vệ bằng token trong `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`), cộng thêm một mặt phẳng
+điều khiển OAuth được bảo vệ bằng token dưới `admin/`: `admin/accounts`, `admin/import-from-omniroute`,
 `admin/login-start`, `admin/login-complete` (tất cả đều được bảo vệ bởi `DARIO_ADMIN_TOKEN`).
 
-### 4.6 Các endpoint open-wa (7 route)
+### 4.6 Các điểm cuối open-wa (7 tuyến)
 
-open-wa (`@open-wa/wa-automate`) điều khiển một phiên bản Chromium headless (thông qua
-Puppeteer) để tự động hóa WhatsApp Web. Nó sử dụng cùng cấu trúc endpoint như Mux (hiện chưa có
-route `rotate-key`). Nó chỉ được quản lý vòng đời — không phải mục tiêu định tuyến,
-không có trình thực thi Layer 4/mục nhà cung cấp.
+open-wa (`@open-wa/wa-automate`) điều khiển một phiên bản Chromium không giao diện (thông qua
+Puppeteer) để tự động hóa WhatsApp Web. Nó sử dụng cùng cấu trúc điểm cuối như Mux (hiện chưa có
+tuyến `rotate-key`). Nó chỉ được quản lý vòng đời — không phải là mục tiêu định tuyến,
+không có trình thực thi/nhà cung cấp Lớp 4.
 
 | Phương thức | Đường dẫn                         | Mô tả                                                                |
 | ----------- | --------------------------------- | -------------------------------------------------------------------- |
@@ -528,25 +529,59 @@ không có trình thực thi Layer 4/mục nhà cung cấp.
 | `POST`      | `/api/services/openwa/auto-start` | Bật/tắt tự động khởi động                                            |
 | `GET`       | `/api/services/openwa/logs`       | Theo dõi log qua SSE (thông qua route động `[name]/logs` dùng chung) |
 
-**Khóa API:** được chèn dưới dạng `WA_KEY` — cơ chế ghi đè biến môi trường chung có tiền tố `WA_*` của open-wa ánh xạ biến này tới tùy chọn CLI `--key`/`-k`
-(`dist/cli/setup.js::envArgs()`, đã xác minh với package 4.76.0 được cài đặt).
-Khóa được thêm tiền tố `ow_` khi được tạo bởi `generateServiceApiKey()`. open-wa
+**Khóa API:** được chèn dưới dạng `WA_KEY` — cơ chế ghi đè biến môi trường chung
+có tiền tố `WA_*` của open-wa ánh xạ biến này tới tùy chọn CLI `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, đã xác minh với package 4.76.0
+được cài đặt). Được thêm tiền tố `ow_` khi tạo bởi `generateServiceApiKey()`. open-wa
 đọc lại khóa từ header HTTP `key`/`api_key` (không phải `Authorization:
 Bearer`); `/api-docs*` được miễn kiểm tra một cách rõ ràng
-(`setupAuthenticationLayer` trong `dist/cli/server.js`), vì vậy phép thăm dò tình trạng
-không cần header xác thực.
+(`setupAuthenticationLayer` trong `dist/cli/server.js`), vì vậy phép thăm dò
+tình trạng hoạt động không cần header xác thực.
 
-**Ghép nối:** open-wa không chính thức và không liên kết với WhatsApp — số điện thoại
-được kết nối có nguy cơ bị cấm do cơ chế phát hiện tự động hóa của chính WhatsApp.
-Trong lần khởi động đầu tiên, mã QR ghép nối được in ra stdout và hiển thị thông qua
-bảng Logs/luồng SSE hiện có — hiện chưa có endpoint chuyên dụng cho ảnh QR
-trong tích hợp này.
+**Ghép nối:** open-wa là công cụ không chính thức và không liên kết với WhatsApp —
+số điện thoại được kết nối có nguy cơ bị WhatsApp cấm do cơ chế phát hiện tự động hóa
+của chính WhatsApp. Trong lần khởi động đầu tiên, mã QR ghép nối được in ra stdout và
+hiển thị thông qua bảng Logs/luồng SSE hiện có — tích hợp này hiện chưa có endpoint
+dành riêng cho ảnh QR.
 
 ---
 
-### 4.7 Proxy ngược (nhúng bảng điều khiển 9Router)
+### 4.7 Các endpoint LLMLingua (8 route)
 
-Bảng điều khiển nhúng giao diện web 9Router vào iframe thông qua một proxy ngược nội bộ
+LLMLingua là một sidecar nén prompt bao bọc `@atjsh/llmlingua-2` (mô hình
+phân loại token ONNX thực, được tải xuống từ Hugging Face trong lần gọi
+`/compress` đầu tiên). Nó sử dụng cùng cấu trúc endpoint như Bifrost (không có khóa API —
+`needsApiKey: false`, nó không bao giờ xử lý thông tin xác thực).
+
+| Phương thức | Đường dẫn                                      | Mô tả                                                                           |
+| ----------- | ---------------------------------------------- | ------------------------------------------------------------------------------- |
+| `POST`      | `/api/services/llmlingua/install`              | Cài đặt `@atjsh/llmlingua-2` + các peer bằng npm, ghi script máy chủ sidecar    |
+| `POST`      | `/api/services/llmlingua/start`                | Khởi động sidecar trên cổng 20135 (mặc định)                                    |
+| `POST`      | `/api/services/llmlingua/stop`                 | Dừng sidecar                                                                    |
+| `POST`      | `/api/services/llmlingua/restart`              | Khởi động lại sidecar                                                           |
+| `POST`      | `/api/services/llmlingua/update`               | Cập nhật lên phiên bản package mới hơn                                          |
+| `GET`       | `/api/services/llmlingua/status`               | Trạng thái trực tiếp + DB                                                       |
+| `POST`      | `/api/services/llmlingua/auto-start`           | Bật/tắt tự động khởi động                                                       |
+| `POST`      | `/api/services/llmlingua/auto-restart-adopted` | Bật/tắt tự động khởi động lại một instance được tiếp nhận (đã tồn tại từ trước) |
+| `GET`       | `/api/services/llmlingua/logs`                 | Theo dõi log qua SSE (thông qua route động `[name]/logs` dùng chung)            |
+
+**Hợp đồng sidecar:** script máy chủ cung cấp `GET /health` (tức thì — không
+chờ mô hình) và `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`). Mô hình được tải theo nhu cầu trong lần gọi
+`/compress` đầu tiên.
+
+**Cơ chế kết nối nén:** `httpSidecarBackend` của
+`open-sse/services/compression/engines/llmlingua/index.ts`
+gọi `LLMLINGUA_BASE_URL` (mặc định
+`http://127.0.0.1:20135`) và chỉ chấp nhận phản hồi của sidecar khi phản hồi đó
+ngắn hơn đầu vào một cách nghiêm ngặt; mọi lỗi (không chạy, hết thời gian chờ,
+phản hồi không tạo ra thay đổi) đều quay về backend worker-thread trong tiến trình (`./worker.ts`).
+
+---
+
+### 4.8 Proxy ngược (nhúng dashboard 9Router)
+
+Dashboard nhúng giao diện web 9Router vào trong iframe thông qua một proxy ngược nội bộ
 tại:
 
 ```
@@ -556,17 +591,17 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 Proxy này:
 
 - Chuyển tiếp yêu cầu tới `http://127.0.0.1:{port}/{path}` (chỉ loopback)
-- Loại bỏ các header `cookie` và `authorization` gửi đến (không làm rò rỉ phiên OmniRoute)
+- Loại bỏ các header `cookie` và `authorization` đến (không làm rò rỉ phiên OmniRoute)
 - Chèn `Authorization: Bearer {apiKey}` để xác thực 9Router
 - Loại bỏ `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` khỏi phản hồi
 - Ghi lại các phản hồi HTML để chèn `<base href>` và chuẩn hóa các đường dẫn tuyệt đối (`/foo` → `/dashboard/.../embed/foo`)
 
-Các yêu cầu nâng cấp WebSocket cho bảng điều khiển được nhúng được xử lý bởi một máy chủ đồng hành trên
+Các nâng cấp WebSocket cho dashboard được nhúng được xử lý bởi một máy chủ đồng hành trên
 một cổng chuyên dụng (xem `src/lib/services/embedWsProxy.ts`).
 
 **Bảo mật:** Các route proxy nhúng được phân loại trong `LOCAL_ONLY_API_PREFIXES`
 và chỉ có thể được truy cập từ loopback. Kẻ tấn công lấy được JWT thông qua
-đường hầm Cloudflare/Ngrok không thể dùng proxy để truy cập vào các dịch vụ được nhúng.
+tunnel Cloudflare/Ngrok không thể dùng proxy để truy cập các dịch vụ được nhúng.
 
 ---
 

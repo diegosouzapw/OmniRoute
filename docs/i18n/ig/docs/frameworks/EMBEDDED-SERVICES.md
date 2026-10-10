@@ -5,11 +5,11 @@
 ---
 
 > **Ụdị:** v3.8.44
-> **Emelitere ikpeazụ:** 2026-09-09
-> **Ndị e bu n’uche:** Ndị injinia na-agbakwụnye, na-elekọta, ma ọ bụ na-achọ ma na-edozi nsogbu dị na ọrụ agbakwunyere n’ime sistemụ (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **Emelitere ikpeazụ:** 2026-09-16
+> **Ndị e zubere maka ha:** Ndị injinia na-agbakwunye, na-elekọta, ma ọ bụ na-achọ ma na-edozi nsogbu n’ọrụ ndị agbakwunyere n’ime sistemụ (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua).
 
-Ọrụ agbakwunyere n’ime sistemụ bụ ngwa enyemaka usoro arụnyere na kọmputa mpaghara nke OmniRoute na-arụnye, na-elekọta, ma na-eme ka ha bụrụ ebe ntụgharị okporo ụzọ zuru oke. N’adịghị ka ndị na-eweta ọrụ mpụga (nke a na-enweta site na ịntanetị
-site na API keys), ọrụ agbakwunyere n’ime sistemụ na-arụ ọrụ n’otu kọmputa ahụ OmniRoute nọ na ya ma na-ekwurịta okwu site na loopback.
+Ọrụ ndị agbakwunyere n’ime sistemụ bụ ngwa process sidecar a rụnyere na kọmputa ahụ nke OmniRoute na-arụnye, na-elekọta, ma na-eme ka ha bụrụ ebumnuche routing zuru oke. N’adịghị ka ndị na-eweta ọrụ mpụga (ndị a na-enweta site n’ịntanetị
+site na API keys), ọrụ ndị agbakwunyere n’ime sistemụ na-arụ ọrụ n’otu kọmputa ahụ OmniRoute nọ na ya ma na-ekwurịta okwu site na loopback.
 
 ---
 
@@ -28,49 +28,50 @@ site na API keys), ọrụ agbakwunyere n’ime sistemụ na-arụ ọrụ n’o
 
 ## 1. Nchịkọta
 
-### Gịnị mere e ji eji ọrụ agbakwunyere?
+### Gịnị mere e ji eji ọrụ ndị agbakwunyere?
 
-E tinyere ọrụ isii:
+E tinyere ọrụ asaa:
 
-| Ọrụ             | ngwugwu npm                                        | Port ndabara | Ebumnuche                                                                                                                                                                                              |
-| --------------- | -------------------------------------------------- | :----------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **9Router**     | `9router`                                          |    20130     | Router AI nke OmniRoute nwere ike iji dị ka onye na-eweta ọrụ nta. A na-egosipụta model dị ka `9router/{sub}/{model}`                                                                                  |
-| **CLIProxyAPI** | Faịlụ binary sitere na mbipụta GitHub (`cliproxy`) |     8317     | Ihe nkwụnye proxy mpaghara maka usoro nkwenye Anthropic CLI. Ọ na-enye ụzọ ndabere mgbe token OAuth kubie ume                                                                                          |
-| **Mux**         | `mux` (`mux server` na-enweghị UI)                 |     8322     | Daemon mpaghara maka ịhazi agent (coder/mux). Naanị a na-achịkwa usoro ndụ ya — ọ bụghị ebe a na-eziga routing (enweghị proxy LLM).                                                                    |
-| **Bifrost**     | `@maximhq/bifrost`                                 |     8080     | Backend relay nke AI gateway e ji Go wuo. Mgbe ọ na-arụ ọrụ, ụzọ relay (`/v1/relay/`) na-ahọrọ ya na-akpaghị aka                                                                                       |
-| **Dario**       | `@askalf/dario`                                    |     3456     | Proxy ndenye aha Claude — nhọrọ ọzọ/ndabere maka CLIProxyAPI maka okporoụzọ e mere n'ụdị Claude Code; key etinyere na-aghọ `DARIO_ADMIN_TOKEN`, nke na-echekwa control plane OAuth ya dị na `/admin/*` |
-| **open-wa**     | `@open-wa/wa-automate`                             |     8323     | Akpaaka WhatsApp Web (Chromium na-enweghị UI site na Puppeteer). Naanị a na-achịkwa usoro ndụ ya — ọ bụghị ebe a na-eziga routing.                                                                     |
+| Ọrụ             | Ngwugwu npm                                        | Ọdụ ụgbọ ndabara | Ebumnuche                                                                                                                                                                                                                                                                                                                                                             |
+| --------------- | -------------------------------------------------- | :--------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                                          |      20130       | Ihe rawụta AI nke OmniRoute nwere ike iji dịka onye na-eweta ọrụ nọ n'okpuru. A na-ekpughe ụdịdị dịka `9router/{sub}/{model}`                                                                                                                                                                                                                                         |
+| **CLIProxyAPI** | Faịlụ binary sitere na GitHub release (`cliproxy`) |       8317       | Ihe nkwụnye proxy mpaghara maka usoro njirimara Anthropic CLI. Ọ na-enye ụzọ ndabere mgbe token OAuth kubie ume                                                                                                                                                                                                                                                       |
+| **Mux**         | `mux` (`mux server` na-enweghị UI)                 |       8322       | Daemon mpaghara maka ịhazi ndị nnọchi anya (coder/mux). Naanị usoro ndụ ya ka a na-achịkwa — ọ bụghị ebe a na-eziga arịrịọ (ọ naghị eme proxy LLM).                                                                                                                                                                                                                   |
+| **Bifrost**     | `@maximhq/bifrost`                                 |       8080       | Backend relay nke ọnụ ụzọ AI e ji Go rụọ. Mgbe ọ na-arụ ọrụ, ụzọ relay (`/v1/relay/`) na-ahọrọ ya na-akpaghị aka                                                                                                                                                                                                                                                      |
+| **Dario**       | `@askalf/dario`                                    |       3456       | Proxy ndenye aha Claude — nhọrọ ọzọ/usoro ndabere nye CLIProxyAPI maka okporo ụzọ yiri nke Claude-Code; igodo e tinyere na-aghọ `DARIO_ADMIN_TOKEN`, nke na-echekwa control plane OAuth ya dị na `/admin/*`                                                                                                                                                           |
+| **open-wa**     | `@open-wa/wa-automate`                             |       8323       | Akpaaka WhatsApp Web (Chromium na-enweghị UI site na Puppeteer). Naanị usoro ndụ ya ka a na-achịkwa — ọ bụghị ebe a na-eziga arịrịọ.                                                                                                                                                                                                                                  |
+| **LLMLingua**   | `@atjsh/llmlingua-2`                               |      20135       | Sidecar mkpakọ prompt — ezigbo ụdịdị ONNX LLMLingua-2 (mbufe JS/TS nke algọridim Microsoft). `open-sse/services/compression/engines/llmlingua/index.ts` na-eziga `/compress` site na HTTP gaa na ya, ma na-alaghachi na backend worker-thread nke dị n'ime usoro ahụ mgbe sidecar anaghị arụ ọrụ. Naanị usoro ndụ ya ka a na-achịkwa — ọ bụghị ebe a na-eziga arịrịọ. |
 
-Ọrụ isii niile na-agbaso otu usoro nlekọta a:
+Ha asaa niile na-agbaso otu usoro nlekọta a:
 
-- OmniRoute na-etinye ha n'okpuru `DATA_DIR/services/{name}/` (e kewapụrụ ya na `package.json` nke OmniRoute n'onwe ya)
-- OmniRoute na-amalite ma na-enyocha ha dị ka child process
-- OmniRoute na-etinye API key nwa oge n'ime environment nke child ma na-agbanwe ya n'enweghị nkwụsị ọrụ (ebe ọ dabara)
-- Ụzọ njikwa niile (`/api/services/*`) bụ **LOCAL_ONLY** — naanị loopback nwere ike ịnweta ha (iwu siri ike #17)
+- OmniRoute na-etinye ha n'okpuru `DATA_DIR/services/{name}/` (e kewapụrụ ha na `package.json` nke OmniRoute n'onwe ya)
+- OmniRoute na-amalite ma na-enyocha ha dịka child processes
+- OmniRoute na-etinye igodo API nwa oge n'ime environment nke child process ma na-atụgharị ya n'emeghị ka ọrụ kwụsị (ebe o kwesịrị)
+- Ụzọ nchịkwa niile (`/api/services/*`) bụ **LOCAL_ONLY** — naanị site na loopback ka a pụrụ iji ha (iwu siri ike #17)
 
-### Mkpebi ndị bụ isi (site na atụmatụ nhazi)
+### Mkpebi ndị bụ isi (sitere na atụmatụ nhazi)
 
 | Mkpebi                                   | Uru                                                                                             |
 | ---------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Nnweta dashboard na UI izizi nke 9Router | Reverse proxy na `/dashboard/providers/services/9router/embed/*`                                |
+| Dashboard iji nweta UI izizi nke 9Router | Reverse proxy na `/dashboard/providers/services/9router/embed/*`                                |
 | Usoro ntinye                             | `npm install {package}` site na `execFile` (enweghị shell interpolation)                        |
-| Ụdị ojiji                                | E debanyere provider dị ka `9router/{sub}/{model}` n'ime routing engine                         |
-| Njikwa API key                           | OmniRoute na-emepụta ya, na-ezo ya mgbe echekwara ya (AES-256-GCM), ma na-etinye ya site na env |
+| Ụdị ojiji                                | E debanyere onye na-eweta ọrụ dịka `9router/{sub}/{model}` n'ime routing engine                 |
+| Nchịkwa igodo API                        | OmniRoute na-emepụta ya, na-ezo ya mgbe echekwara ya (AES-256-GCM), ma na-etinye ya site na env |
 | Ebe dashboard dị                         | `/dashboard/providers/services` (taabụ atọ)                                                     |
-| Mmalite akpaaka                          | Toggle maka ọrụ ọ bụla, ndabara bụ OFF                                                          |
+| Mmalite akpaka                           | Toggle maka ọrụ ọ bụla, ndabara bụ OFF                                                          |
 
 ---
 
-## 2. Nhazi — oyi akwa 4
+## 2. Nhazi — ọkwa 4
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
-│  Oyi akwa 1 — UI                                                   │
+│  Ọkwa 1 — UI                                                       │
 │  /dashboard/providers/services  (taabụ: CLIProxyAPI | 9Router | Mux)│
-│  Ndekọ dị ndụ (SSE), Bido/Kwụsị/Malitegharị/Melite, Ntọala, Wụnye │
+│  Ndekọ ozugbo (SSE), Mbido/Nkwụsị/Malitegharị/Mmelite, Ntọala, Nwụnye│
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               Shell + iji ?tab= eduzi taabụ        │
+│    ├── page.tsx               Shell + ntụgharị taabụ site na ?tab= │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -78,7 +79,7 @@ E tinyere ọrụ isii:
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ HTTP (Next.js fetch)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Oyi akwa 2 — API (LOCAL_ONLY — naanị loopback)                    │
+│  Ọkwa 2 — API (LOCAL_ONLY — loopback naanị)                        │
 │                                                                    │
 │  /api/services/9router/{install|start|stop|restart|update|         │
 │                          rotate-key|status|auto-start|logs}        │
@@ -87,75 +88,75 @@ E tinyere ọrụ isii:
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (reverse HTTP + WebSocket proxy → 9Router upstream)             │
+│    (proxy HTTP + WebSocket ntụgharị-azụ → upstream 9Router)        │
 │                                                                    │
-│  Ọnụ ụzọ: LOCAL_ONLY_API_PREFIXES gụnyere "/api/services/" na      │
+│  Ọnụ ụzọ: LOCAL_ONLY_API_PREFIXES nwere "/api/services/" na        │
 │        "/dashboard/providers/services/*/embed/"                    │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ oku n'ime process
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Oyi akwa 3 — ServiceSupervisor (src/lib/services/)                │
+│  Ọkwa 3 — ServiceSupervisor (src/lib/services/)                    │
 │                                                                    │
 │  ServiceSupervisor.ts   Onye nlekọta izugbe (child_process.spawn)  │
-│    ├── wụnye:      execFile('npm', ['install', pkg, '--prefix'])   │
-│    ├── bido:       spawn(node, [entrypoint], {env, cwd})           │
-│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY │
-│    ├── ọdụ ụgbọ:   20130 maka 9Router (enwere ike ịhazi ya)        │
-│    ├── ndekọ:      stdio ring buffer 5 MB → mmemme SSE             │
-│    ├── ahụike:     HTTP GET /health kwa s 2–5, mgbake mgbe achọrọ │
-│    └── usoro ndụ:  SIGTERM s 15 → SIGKILL                          │
+│    ├── install:    execFile('npm', ['install', pkg, '--prefix'])    │
+│    ├── start:      spawn(node, [entrypoint], {env, cwd})           │
+│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
+│    ├── port:       20130 maka 9Router (enwere ike ịhazi ya)        │
+│    ├── logs:       stdio ring buffer 5 MB → mmemme SSE             │
+│    ├── health:     HTTP GET /health kwa s 2–5, mgbake mgbe achọrọ  │
+│    └── lifecycle:  SIGTERM s 15 → SIGKILL                          │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       Na-ebido SERVICES[] niile mgbe process bidoro │
+│  bootstrap.ts       Na-ebido SERVICES[] niile mgbe process malitere│
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
-│  modelSync.ts       GET /v1/models oge niile → tebụl service_models│
+│  modelSync.ts       GET /v1/models oge ụfọdụ → tebụl service_models│
 │  ringBuffer.ts      Ebe nchekwa ndekọ okirikiri (5 MB kwa ọrụ)     │
-│  healthCheck.ts     Nnyocha ahụike HTTP a na-eme ugboro ugboro     │
+│  healthCheck.ts     Nnyocha ahụike HTTP na-eme ugboro ugboro       │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (ihe nkwụnye installer)                       │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ HTTP dakọtara na OpenAI (loopback)
+                       │ HTTP kwekọrọ na OpenAI (loopback)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  Oyi akwa 4 — Provider / Nduzi ụzọ                                │
+│  Ọkwa 4 — Provider / Ntugharị                                      │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    Ọ na-achọgharị ọdụ ụgbọ na API key maka arịrịọ ọ bụla           │
-│    (enweghị caching).                                              │
-│    Ọ na-ewepụ prefix "9router/" na model id tupu proxying.         │
-│    Ọ na-eweghachi 503 service_not_running ma ọ bụrụ na onye        │
-│    nlekọta anọghị na "running".                                    │
+│    Na-achọgharị port na API key maka arịrịọ ọ bụla (enweghị cache).│
+│    Na-ewepụ prefix "9router/" na model id tupu proxying.           │
+│    Na-eweghachi 503 service_not_running ma ọ bụrụ na supervisor    │
+│    anọghị na "running".                                            │
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    Ndenye maka "9router": isEmbeddedService: true                  │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    A na-echekwa models dịka "9router/{sub}/{model}" (nwere prefix).│
+│    A na-echekwa model dịka "9router/{sub}/{model}" (nwere prefix). │
 │    modelSync.ts na-emekọrịta ha kwa nkeji 5.                       │
 │                                                                    │
-│  A na-achịkwa NANI usoro ndụ Mux (Oyi akwa 1-3) — ọ bụ daemon      │
-│  nhazi agent, ọ bụghị LLM proxy, ya mere o nweghị ndenye executor/ │
-│  provider nke Oyi akwa 4, ọ dịghịkwa mgbe ọ bụ ebumnuche nduzi ụzọ.│
+│  A na-ejikwa lifecycle Mux NANỊ (Ọkwa 1-3) — ọ bụ daemon maka      │
+│  ịhazi agent, ọ bụghị proxy LLM, ya mere ọ nweghị ndenye executor/ │
+│  provider n'Ọkwa 4, ọ dịghịkwa mgbe ọ bụ ebe ntugharị na-aga.      │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-### Faịlụ isi mmalite ndị bụ isi
+### Faịlụ isi mmalite ndị dị mkpa
 
-| Faịlụ                                       | Ọrụ                                                     |
-| ------------------------------------------- | ------------------------------------------------------- |
-| `src/lib/services/ServiceSupervisor.ts`     | Klas isi: usoro ndụ, mkpọchi, ahụike, ring buffer       |
-| `src/lib/services/bootstrap.ts`             | Ndebanye aha n'ogo process na mmalite akpaaka           |
-| `src/lib/services/registry.ts`              | Maapụ singleton `tool → supervisor`                     |
-| `src/lib/services/apiKey.ts`                | Mmepụta igodo, izochi AES-256-GCM mgbe echekwara        |
-| `src/lib/services/modelSync.ts`             | Mmekọrịta model kwa oge (nkeji 5) + mgbe achọrọ         |
-| `src/lib/services/ringBuffer.ts`            | Ring buffer ndekọ okirikiri nke 5 MB nwere ndebanye SSE |
-| `src/lib/services/healthCheck.ts`           | Nnwale ahụike HTTP (nkeji oge a pụrụ ịhazi)             |
-| `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall maka 9Router               |
-| `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall maka CLIProxyAPI           |
-| `src/lib/services/installers/mux.ts`        | npm install/update/uninstall maka Mux                   |
-| `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall maka open-wa               |
-| `src/app/api/services/9router/_lib.ts`      | Ihe enyemaka `getOrInitSupervisor()`                    |
-| `src/app/api/services/[name]/logs/route.ts` | Ebe njedebe ndekọ SSE a na-ekekọrịta                    |
-| `open-sse/executors/ninerouter.ts`          | Onye mmejuputa provider (Layer 4)                       |
+| Faịlụ                                       | Ọrụ                                                  |
+| ------------------------------------------- | ---------------------------------------------------- |
+| `src/lib/services/ServiceSupervisor.ts`     | Klas bụ isi: usoro ndụ, mkpọchi, ahụike, ring buffer |
+| `src/lib/services/bootstrap.ts`             | Ndebanye aha n'ogo proses na mbido akpaaka           |
+| `src/lib/services/registry.ts`              | Maapụ singleton `tool → supervisor`                  |
+| `src/lib/services/apiKey.ts`                | Mmepụta igodo, izo ya ezo AES-256-GCM mgbe echekwara |
+| `src/lib/services/modelSync.ts`             | Mmekọrịta model kwa oge (nkeji 5) + mgbe achọrọ      |
+| `src/lib/services/ringBuffer.ts`            | Ebe nchekwa ndekọ okirikiri 5 MB nwere ndenye SSE    |
+| `src/lib/services/healthCheck.ts`           | Nnyocha ahụike HTTP (oghere oge a pụrụ ịhazi)        |
+| `src/lib/services/installers/ninerouter.ts` | npm install/update/uninstall maka 9Router            |
+| `src/lib/services/installers/cliproxy.ts`   | npm install/update/uninstall maka CLIProxyAPI        |
+| `src/lib/services/installers/mux.ts`        | npm install/update/uninstall maka Mux                |
+| `src/lib/services/installers/openwa.ts`     | npm install/update/uninstall maka open-wa            |
+| `src/lib/services/installers/llmlingua.ts`  | npm install/update/uninstall maka LLMLingua          |
+| `src/app/api/services/9router/_lib.ts`      | Ihe enyemaka `getOrInitSupervisor()`                 |
+| `src/app/api/services/[name]/logs/route.ts` | Ebe njedebe ndekọ SSE a na-ekekọrịta                 |
+| `open-sse/executors/ninerouter.ts`          | Onye mmezu nke provider (Oyi akwa 4)                 |
 
 ---
 
@@ -212,53 +213,53 @@ otu mmalite usoro; onye kpọrọ nke abụọ na-echere ma weghachite ọnọd�
 ## 4. Ntụaka API
 
 Ụzọ niile dị n'okpuru `/api/services/` bụ **LOCAL_ONLY** (naanị loopback, iwu siri ike #17).
-Arịrịọ ndị na-abụghị loopback na-enweta `403 LOCAL_ONLY` n'agbanyeghị token nyocha njirimara.
+Arịrịọ ndị na-abụghị loopback na-enweta `403 LOCAL_ONLY` n'agbanyeghị token nkwenye.
 
 ### 4.1 Ebe njedebe 9Router (ụzọ 11)
 
 #### `POST /api/services/9router/install`
 
-Wụnye 9Router site na npm. Ọ na-emepụta `DATA_DIR/services/9router/` nwere
-`package.json` na `node_modules/` nke ya. Ọ naghị emegide deps nke OmniRoute n'onwe ya.
+Wụnye 9Router site na npm. Ọ na-emepụta `DATA_DIR/services/9router/` nke nwere
+`package.json` na `node_modules/` nke ya. Ọ naghị emegide dependencies nke OmniRoute n'onwe ya.
 
-**Ahụ arịrịọ** (ha niile bụ nke nhọrọ):
+**Ahụ arịrịọ** (ha niile bụ nhọrọ):
 
 ```json
 { "version": "latest" }
 ```
 
-| Mpaghara  | Ụdị      | Ndabara    | Nkọwa                                     |
-| --------- | -------- | ---------- | ----------------------------------------- |
-| `version` | `string` | `"latest"` | mkpado ụdị npm ma ọ bụ semver a ga-etinye |
+| Oghere    | Ụdị      | Ndabara    | Nkọwa                                  |
+| --------- | -------- | ---------- | -------------------------------------- |
+| `version` | `string` | `"latest"` | Tag ụdị npm ma ọ bụ semver a ga-etinye |
 
 **Nzaghachi:**
 
-| Ọnọdụ | Nkọwa                                                     |
-| ----- | --------------------------------------------------------- |
-| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`    |
-| `400` | Ahụ arịrịọ ezighi ezi (ọdịda nkwado Zod)                  |
-| `409` | Nwụnye amalitela (ejidere mkpọchi)                        |
-| `500` | Nwụnye npm dara — lee `message` maka njehie dị mfe nghọta |
+| Ọnọdụ | Nkọwa                                                         |
+| ----- | ------------------------------------------------------------- |
+| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`        |
+| `400` | Ahụ arịrịọ ezighi ezi (ọdịda nkwado Zod)                      |
+| `409` | Ntinye na-aga n'ihu ugbua (ejidere mkpọchi)                   |
+| `500` | Ntinye npm dara — lee `message` maka ozi njehie dị mfe nghọta |
 
-**Ihe edeturu:** Ọ na-eji `execFile('npm', [...])` — enweghị shell, enweghị interpolation (iwu siri ike #13).
-A na-egosipụta njehie EACCES dị ka ozi dị mfe nghọta.
+**Ndetu:** Ọ na-eji `execFile('npm', [...])` — enweghị shell, enweghị interpolation (iwu siri ike #13).
+A na-egosipụta njehie EACCES dịka ozi dị mfe nghọta.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-Malite 9Router. Ọ na-edebanye supervisor ma ọ bụrụ na edebanyebeghị ya, wee kpọọ
+Bido 9Router. Ọ na-edebanye supervisor ma ọ bụrụ na edebanyebeghị ya, wee kpọọ
 `supervisor.start()`. Ọ bụ idempotent mgbe ọ na-arụ ọrụ ugbua.
 
-**Ahụ arịrịọ:** ọ dịghị
+**Ahụ arịrịọ:** enweghị
 
 **Nzaghachi:**
 
-| Ọnọdụ | Nkọwa                                            |
-| ----- | ------------------------------------------------ |
-| `200` | Ọbjektị `ServiceStatus` (lee schema dị n'okpuru) |
-| `409` | Awụnyeghị 9Router (`status: "not_installed"`)    |
-| `503` | Mmalite dara (njehie process — lee `lastError`)  |
+| Ọnọdụ | Nkọwa                                         |
+| ----- | --------------------------------------------- |
+| `200` | Ihe `ServiceStatus` (lee schema dị n'okpuru)  |
+| `409` | Awụnyeghị 9Router (`status: "not_installed"`) |
+| `503` | Mbido dara (njehie process — lee `lastError`) |
 
 **Schema ServiceStatus:**
 
@@ -278,10 +279,10 @@ Malite 9Router. Ọ na-edebanye supervisor ma ọ bụrụ na edebanyebeghị ya
 
 #### `POST /api/services/9router/stop`
 
-Kwụsị 9Router n'ụzọ dị mma. Ọ na-eziga SIGTERM, chere 15 s, wee ziga SIGKILL ma ọ bụrụ na ọ ka na-arụ ọrụ.
+Kwụsị 9Router n'ụzọ dị nro. Ọ na-eziga SIGTERM, chere 15 s, wee ziga SIGKILL ma ọ bụrụ na ọ ka na-arụ ọrụ.
 Ọ bụ idempotent mgbe ọ kwụsịrị ugbua.
 
-**Ahụ arịrịọ:** ọ dịghị
+**Ahụ arịrịọ:** enweghị
 
 **Nzaghachi:**
 
@@ -294,21 +295,21 @@ Kwụsị 9Router n'ụzọ dị mma. Ọ na-eziga SIGTERM, chere 15 s, wee ziga
 
 #### `POST /api/services/9router/restart`
 
-Ọ bụ otu ihe na `stop()` e mesịa `start()` n'okpuru mkpọchi ọrụ ahụ.
+Ya na `stop()` wee soro `start()` n'okpuru mkpọchi ọrụ bụ otu ihe.
 
-**Ahụ arịrịọ:** ọ dịghị
+**Ahụ arịrịọ:** enweghị
 
-**Nzaghachi:** dị ka nke `start` (ọ na-eweghachi `ServiceStatus` ikpeazụ).
+**Nzaghachi:** otu ihe ahụ dị na `start` (ọ na-eweghachi `ServiceStatus` ikpeazụ).
 
 ---
 
 #### `POST /api/services/9router/update`
 
 Ọ na-emelite 9Router gaa na ụdị npm ọhụrụ. Ọ bụrụ na ọrụ ahụ na-arụ ọrụ, a ga-ebu ụzọ
-kwụsị ya, mee npm install (na-etinye ụdị ọhụrụ ahụ n'otu ebe), ma malitegharị
+kwụsị ya, mee npm install (na-etinye ụdị ọhụrụ ahụ n'otu ebe ahụ), wee maliteghachi
 ọrụ ahụ.
 
-**Ahụ arịrịọ** (ha niile bụ nke nhọrọ):
+**Ahụ arịrịọ** (ha niile bụ nhọrọ):
 
 ```json
 { "version": "latest" }
@@ -326,11 +327,11 @@ kwụsị ya, mee npm install (na-etinye ụdị ọhụrụ ahụ n'otu ebe), m
 
 #### `POST /api/services/9router/rotate-key`
 
-Ọ na-emepụta API key ọhụrụ maka 9Router, zoo ya mgbe echekwara ya, ma malitegharị ọrụ ahụ
-(ma ọ bụrụ na ọ na-arụ ọrụ) ka o wee nweta key ọhụrụ ahụ site na environment ya. A na-eme ka key ochie
-ghara ịdị irè ozugbo.
+Ọ na-emepụta igodo API ọhụrụ maka 9Router, na-ezobe ya mgbe echekwara ya, ma maliteghachi ọrụ ahụ
+(ọ bụrụ na ọ na-arụ ọrụ) ka o nwee ike inweta igodo ọhụrụ ahụ site na environment ya. A na-eme ka
+igodo ochie ghara ịdị irè ozugbo.
 
-**Ahụ arịrịọ:** ọ dịghị
+**Ahụ arịrịọ:** enweghị
 
 **Nzaghachi:**
 
@@ -339,14 +340,14 @@ ghara ịdị irè ozugbo.
 | `200` | `{ keyRotated: true, restarted: boolean }` |
 | `500` | Ntughari dara                              |
 
-**Nchekwa:** A naghị eweghachi key ọhụrụ ahụ na nzaghachi (enweghị ntapu credential).
+**Nchekwa:** A naghị eweghachi igodo ọhụrụ ahụ na nzaghachi (enweghị ntapu credential).
 A na-echekwa ya n'ụdị ezoro ezo (AES-256-GCM) na tebụl `version_manager`.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-Ọ na-eweghachi ọnọdụ live + DB ejikọtara ọnụ, gụnyere metadata ụdị na nlele API key.
+Ọ na-eweghachi ọnọdụ live + DB ejikọtara ọnụ, tinyere metadata ụdị na nlele igodo API.
 
 **Nzaghachi:**
 
@@ -379,8 +380,8 @@ A na-echekwa ya n'ụdị ezoro ezo (AES-256-GCM) na tebụl `version_manager`.
 
 #### `POST /api/services/9router/auto-start`
 
-Gbanye ma ọ bụ gbanyụọ ọkọlọtọ auto-start. Mgbe `enabled: true`, ọrụ ahụ na-amalite na-akpaghị aka
-oge ọzọ OmniRoute malitere (ma ọ bụrụ na awụnyela ọrụ ahụ).
+Gbanwee ọkọlọtọ mmalite akpaka. Mgbe `enabled: true`, ọrụ ahụ ga-amalite n'onwe ya
+oge ọzọ OmniRoute na-ebido (ọ bụrụ na awụnyela ọrụ ahụ).
 
 **Ahụ arịrịọ:**
 
@@ -399,21 +400,21 @@ oge ọzọ OmniRoute malitere (ma ọ bụrụ na awụnyela ọrụ ahụ).
 
 #### `GET /api/services/9router/logs`
 
-SSE stream nke log live sitere na stdout/stderr ring buffer nke 9Router.
+SSE stream nke ndekọ live sitere na ring buffer stdout/stderr nke 9Router.
 
-**Paramita query:**
+**Query parameters:**
 
-| Paramita | Ụdị       | Ndabara | Nkọwa                                                                                             |
-| -------- | --------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `tail`   | `integer` | 200     | Ọnụọgụ ahịrị akụkọ gara aga a ga-ebu ụzọ zipụ (kachasị 1000)                                      |
-| `filter` | `string`  | ọ dịghị | Nzacha substring na-adịghị ele nnukwu/obere mkpụrụedemede (enweghị regex — echedoro megide ReDoS) |
+| Param    | Ụdị       | Ndabara | Nkọwa                                                                                                      |
+| -------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| `tail`   | `integer` | 200     | Ọnụọgụ ahịrị akụkọ gara aga a ga-ebu ụzọ zipụ (kachasị 1000)                                               |
+| `filter` | `string`  | enweghị | Ihe nzacha substring na-adịghị ele mkpụrụedemede ukwu ma ọ bụ nta (enweghị regex — echekwara megide ReDoS) |
 
 **Ihe omume SSE:**
 
 | Ihe omume   | Data        | Nkọwa               |
 | ----------- | ----------- | ------------------- |
-| `snapshot`  | `LogLine[]` | Akụkọ tail mbụ      |
-| `log`       | `LogLine`   | Ahịrị log live      |
+| `snapshot`  | `LogLine[]` | Ọgwụgwụ akụkọ mbụ   |
+| `log`       | `LogLine`   | Ahịrị ndekọ live    |
 | `heartbeat` | `{}`        | Keep-alive kwa 15 s |
 
 **Schema LogLine:**
@@ -428,43 +429,43 @@ SSE stream nke log live sitere na stdout/stderr ring buffer nke 9Router.
 
 **Nzaghachi:**
 
-| Ọnọdụ | Nkọwa                                                    |
-| ----- | -------------------------------------------------------- |
-| `200` | `text/event-stream`                                      |
-| `400` | Paramita `filter` dị ogologo karịa (> mkpụrụedemede 200) |
-| `404` | Ahụghị ọrụ ahụ (edebanyeghị supervisor ahụ n'akwụkwọ)    |
+| Ọnọdụ | Nkọwa                                            |
+| ----- | ------------------------------------------------ |
+| `200` | `text/event-stream`                              |
+| `400` | Paramita `filter` toro oke (> mkpụrụedemede 200) |
+| `404` | Ahụghị ọrụ ahụ (edenyeghị supervisor ahụ)        |
 
 ---
 
 ### 4.2 Ebe njedebe CLIProxyAPI (ụzọ 10)
 
-CLIProxyAPI nwere otu nhazi ebe njedebe ahụ 9Router nwere ma e wepụ `rotate-key`, tinyekwara
+CLIProxyAPI nwere otu nhazi ebe njedebe ahụ dị ka 9Router ma e wepụ `rotate-key`, tinyere
 `accounts`, `provider-expose` na `auto-restart-adopted`. Ugbu a, ọ na-anata
-igodo API data-plane pụrụ iche nke a na-etinye mgbe a na-ebido ya (`needsApiKey: true` n'ime
+igodo API data-plane pụrụ iche nke a na-etinye mgbe a na-amalite ya (`needsApiKey: true` n'ime
 `bootstrap.ts`, nke a na-eji maka mmekọrịta model); `status` nwere field ole na ole.
 
-| Usoro  | Ụzọ                                 | Nkọwa                                            |
-| ------ | ----------------------------------- | ------------------------------------------------ |
-| `POST` | `/api/services/cliproxy/install`    | Wụnye CLIProxyAPI site na npm                    |
-| `POST` | `/api/services/cliproxy/start`      | Bido CLIProxyAPI                                 |
-| `POST` | `/api/services/cliproxy/stop`       | Kwụsị CLIProxyAPI                                |
-| `POST` | `/api/services/cliproxy/restart`    | Malitegharịa CLIProxyAPI                         |
-| `POST` | `/api/services/cliproxy/update`     | Melite gaa na ụdị ọhụrụ                          |
-| `GET`  | `/api/services/cliproxy/status`     | Ọnọdụ ozugbo + ọnọdụ DB (enweghị `apiKeyMasked`) |
-| `POST` | `/api/services/cliproxy/auto-start` | Gbanyụọ ma ọ bụ gbanye mbido akpaka              |
+| Usoro  | Ụzọ                                 | Nkọwa                                      |
+| ------ | ----------------------------------- | ------------------------------------------ |
+| `POST` | `/api/services/cliproxy/install`    | Wụnye CLIProxyAPI site na npm              |
+| `POST` | `/api/services/cliproxy/start`      | Bido CLIProxyAPI                           |
+| `POST` | `/api/services/cliproxy/stop`       | Kwụsị CLIProxyAPI                          |
+| `POST` | `/api/services/cliproxy/restart`    | Malitegharịa CLIProxyAPI                   |
+| `POST` | `/api/services/cliproxy/update`     | Melite gaa na ụdị ọhụrụ                    |
+| `GET`  | `/api/services/cliproxy/status`     | Ọnọdụ ozugbo + DB (enweghị `apiKeyMasked`) |
+| `POST` | `/api/services/cliproxy/auto-start` | Gbanwee auto-start                         |
 
-Ebe njedebe `GET /api/services/{name}/logs` a na-ekekọrịta (lee §4.1) na-arụ ọrụ maka
-ọrụ anọ niile site n'iji akụkụ dynamic `[name]`.
+Ebe njedebe nkekọrịta `GET /api/services/{name}/logs` (lee §4.1) na-arụ ọrụ maka
+ọrụ anọ ahụ niile site n'iji akụkụ dynamic `[name]`.
 
 ---
 
 ### 4.3 Ebe njedebe Mux (ụzọ 8)
 
-Mux nwere otu nhazi ebe njedebe ahụ CLIProxyAPI nwere — enweghị ụzọ `rotate-key` n'elu API
-(a na-emepụta bearer token n'otu ụzọ ahụ a na-emepụta nke 9Router site na
+Mux nwere otu nhazi ebe njedebe ahụ dị ka CLIProxyAPI — enweghị ụzọ `rotate-key` n'elu API
+(token bearer ahụ na-emepụta n'otu ụzọ ahụ nke 9Router si emepụta nke ya site na
 `getOrCreateApiKey("mux")`, a na-etinyekwa ya site na env var `MUX_SERVER_AUTH_TOKEN`, mana
-enwebeghị ebe njedebe pụrụ iche maka ịtụgharị ya). Naanị lifecycle ka a na-ejikwa maka Mux: n'adịghị ka
-9Router, o nweghị executor Layer 4, a naghị edebanyekwa ya dịka provider routing.
+enwebeghị ebe njedebe pụrụ iche maka ịtụgharị igodo). Naanị lifecycle ka a na-ejikwa maka Mux: n'adịghị ka
+9Router, o nweghị executor Layer 4, a dịghịkwa edebanye ya dịka provider maka routing.
 
 | Usoro  | Ụzọ                            | Nkọwa                               |
 | ------ | ------------------------------ | ----------------------------------- |
@@ -473,81 +474,113 @@ enwebeghị ebe njedebe pụrụ iche maka ịtụgharị ya). Naanị lifecycle
 | `POST` | `/api/services/mux/stop`       | Kwụsị Mux                           |
 | `POST` | `/api/services/mux/restart`    | Malitegharịa Mux                    |
 | `POST` | `/api/services/mux/update`     | Melite gaa na ụdị npm ọhụrụ         |
-| `GET`  | `/api/services/mux/status`     | Ọnọdụ ozugbo + ọnọdụ DB             |
-| `POST` | `/api/services/mux/auto-start` | Gbanyụọ ma ọ bụ gbanye mbido akpaka |
+| `GET`  | `/api/services/mux/status`     | Ọnọdụ ozugbo + DB                   |
+| `POST` | `/api/services/mux/auto-start` | Gbanwee auto-start                  |
 
 ---
 
 ### 4.4 Ebe njedebe Bifrost (ụzọ 8)
 
-Bifrost bụ backend relay nke ọnụ ụzọ AI e ji Go rụọ (`@maximhq/bifrost`). Ọ na-eji otu
-nhazi ebe njedebe ahụ CLIProxyAPI nwere (enweghị `rotate-key` — Bifrost na-ejikwa igodo
-provider nke ya n'ime `config.json` n'okpuru `-app-dir` ya).
+Bifrost bụ backend relay AI-gateway e ji Go rụọ (`@maximhq/bifrost`). Ọ na-eji otu
+nhazi ebe njedebe ahụ dị ka CLIProxyAPI (enweghị `rotate-key` — Bifrost na-ejikwa igodo provider
+nke ya n'ime `config.json` n'okpuru `-app-dir`).
 
-| Usoro  | Ụzọ                                | Nkọwa                                                          |
-| ------ | ---------------------------------- | -------------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | Wụnye Bifrost site na npm (`@maximhq/bifrost`)                 |
-| `POST` | `/api/services/bifrost/start`      | Bido Bifrost na port 8080 (ndabara)                            |
-| `POST` | `/api/services/bifrost/stop`       | Kwụsị Bifrost                                                  |
-| `POST` | `/api/services/bifrost/restart`    | Malitegharịa Bifrost                                           |
-| `POST` | `/api/services/bifrost/update`     | Melite gaa na ụdị ọhụrụ                                        |
-| `GET`  | `/api/services/bifrost/status`     | Ọnọdụ ozugbo + ọnọdụ DB                                        |
-| `POST` | `/api/services/bifrost/auto-start` | Gbanyụọ ma ọ bụ gbanye mbido akpaka                            |
-| `GET`  | `/api/services/bifrost/logs`       | Ọdụ log SSE (site na ụzọ dynamic `[name]/logs` a na-ekekọrịta) |
+| Usoro  | Ụzọ                                | Nkọwa                                                        |
+| ------ | ---------------------------------- | ------------------------------------------------------------ |
+| `POST` | `/api/services/bifrost/install`    | Wụnye Bifrost site na npm (`@maximhq/bifrost`)               |
+| `POST` | `/api/services/bifrost/start`      | Bido Bifrost na port 8080 (ndabara)                          |
+| `POST` | `/api/services/bifrost/stop`       | Kwụsị Bifrost                                                |
+| `POST` | `/api/services/bifrost/restart`    | Malitegharịa Bifrost                                         |
+| `POST` | `/api/services/bifrost/update`     | Melite gaa na ụdị ọhụrụ                                      |
+| `GET`  | `/api/services/bifrost/status`     | Ọnọdụ ozugbo + DB                                            |
+| `POST` | `/api/services/bifrost/auto-start` | Gbanwee auto-start                                           |
+| `GET`  | `/api/services/bifrost/logs`       | Ọgwụgwụ log SSE (site n'ụzọ dynamic `[name]/logs` nkekọrịta) |
 
-**Njikọ routing:** Mgbe edobeghị `BIFROST_BASE_URL` ma instance Bifrost a na-elekọta
+**Njikọ routing:** Mgbe edoghị `BIFROST_BASE_URL` ma instance Bifrost a na-elekọta
 na-arụ ọrụ, `getBifrostRoutingConfig()` (n'ime `routingBackend.ts`) na-eji
-`http://127.0.0.1:{port}` akpaghị aka dịka URL ntọala relay. Env
-`BIFROST_BASE_URL` e depụtara hoo haa na-ebute ụzọ mgbe niile.
+`http://127.0.0.1:{port}` na-akpaghị aka dịka URL ntọala relay. Env
+`BIFROST_BASE_URL` akọwapụtara hoo haa na-ebute ụzọ mgbe niile.
 
 ---
 
 ### 4.5 Ebe njedebe Dario (ụzọ 12)
 
-Otu nhazi lifecycle ahụ ọrụ ndị ọzọ nwere (`install`, `start`, `stop`, `restart`,
+Otu nhazi lifecycle ahụ dị ka ọrụ ndị ọzọ (`install`, `start`, `stop`, `restart`,
 `update`, `status`, `auto-start`, `auto-restart-adopted`) tinyere control plane OAuth
 n'okpuru `admin/` nke token na-echekwa: `admin/accounts`, `admin/import-from-omniroute`,
-`admin/login-start`, `admin/login-complete` (ha niile dị n'azụ `DARIO_ADMIN_TOKEN`).
+`admin/login-start`, `admin/login-complete` (ha niile nọ n'azụ `DARIO_ADMIN_TOKEN`).
 
 ### 4.6 Ebe njedebe open-wa (ụzọ 7)
 
-open-wa (`@open-wa/wa-automate`) na-achị instance Chromium na-enweghị isi (site na
-Puppeteer) iji mee WhatsApp Web akpaghị aka. Ọ na-eji otu nhazi ebe njedebe ahụ Mux nwere (enweghị
-ụzọ `rotate-key` ugbu a). Naanị lifecycle ka a na-ejikwa maka ya — ọ bụghị ebe routing na-aga,
-enweghị executor Layer 4/ntinye provider.
+open-wa (`@open-wa/wa-automate`) na-achịkwa instance Chromium headless (site na
+Puppeteer) iji mee WhatsApp Web ka ọ rụọ ọrụ na-akpaghị aka. Ọ na-eji otu nhazi ebe njedebe ahụ dị ka Mux (enwebeghị
+ụzọ `rotate-key`). Naanị lifecycle ka a na-ejikwa maka ya — ọ bụghị ebe routing na-aga,
+ọ nweghị ndenye executor/provider Layer 4.
 
-| Usoro  | Ụzọ                               | Nkọwa                                                          |
-| ------ | --------------------------------- | -------------------------------------------------------------- |
-| `POST` | `/api/services/openwa/install`    | Wụnye open-wa site na npm (`@open-wa/wa-automate`)             |
-| `POST` | `/api/services/openwa/start`      | Malite open-wa na port 8323 (nke ndabara)                      |
-| `POST` | `/api/services/openwa/stop`       | Kwụsị open-wa                                                  |
-| `POST` | `/api/services/openwa/restart`    | Malitegharịa open-wa                                           |
-| `POST` | `/api/services/openwa/update`     | Melite gaa na ụdị ọhụrụ                                        |
-| `GET`  | `/api/services/openwa/status`     | Ọnọdụ ozugbo + DB                                              |
-| `POST` | `/api/services/openwa/auto-start` | Gbanye ma ọ bụ gbanyụọ mmalite-akpaka                          |
-| `GET`  | `/api/services/openwa/logs`       | Ọgwụgwụ ndekọ SSE (site n'ụzọ mgbanwe `[name]/logs` nkekọrịta) |
+| Usoro  | Ụzọ                               | Nkọwa                                                               |
+| ------ | --------------------------------- | ------------------------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | Wụnye open-wa site na npm (`@open-wa/wa-automate`)                  |
+| `POST` | `/api/services/openwa/start`      | Malite open-wa na port 8323 (ndabara)                               |
+| `POST` | `/api/services/openwa/stop`       | Kwụsị open-wa                                                       |
+| `POST` | `/api/services/openwa/restart`    | Malitegharịa open-wa                                                |
+| `POST` | `/api/services/openwa/update`     | Melite gaa na ụdị ọhụrụ                                             |
+| `GET`  | `/api/services/openwa/status`     | Ọnọdụ ozugbo + DB                                                   |
+| `POST` | `/api/services/openwa/auto-start` | Gbanyụọ ma ọ bụ gbanye mmalite akpaaka                              |
+| `GET`  | `/api/services/openwa/logs`       | Ọgwụgwụ ndekọ SSE (site n’ụzọ mgbanwe `[name]/logs` a na-ekekọrịta) |
 
-**Igodo API:** a na-etinye ya dị ka `WA_KEY` — ngbanwe env izugbe nke open-wa
-nwere nganiihu `WA_*` na-etinye ya na nhọrọ CLI `--key`/`-k`
-(`dist/cli/setup.js::envArgs()`, nke e nyochara megide ngwugwu 4.76.0
+**Igodo API:** a na-etinye ya dịka `WA_KEY` — ngbanwe env izugbe nke open-wa
+nwere nganiihu `WA_*` na-ejikọta ya na nhọrọ CLI `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, nke e nyochara megide package 4.76.0
 arụnyere). A na-etinye nganiihu `ow_` mgbe `generateServiceApiKey()` mepụtara ya. open-wa
-na-agụghachi igodo ahụ site na nkụnyeisi HTTP `key`/`api_key` (ọ bụghị `Authorization:
-Bearer`); ewepụrụ `/api-docs*` n'ụzọ doro anya na nyocha ahụ
-(`setupAuthenticationLayer` n'ime `dist/cli/server.js`), ya mere nyocha ahụike
-achọghị nkụnyeisi nkwenye.
+na-agụghachi igodo ahụ site na nkụnyeisi HTTP `key`/`api_key` (ọ bụghị
+`Authorization: Bearer`); a napụrụ `/api-docs*` n'ụzọ doro anya na nyocha ahụ
+(`setupAuthenticationLayer` n’ime `dist/cli/server.js`), ya mere nyocha ahụike
+achọghị nkụnyeisi njirimara.
 
-**Njikọ:** open-wa abụghị nke gọọmentị ma ọ nweghị njikọ na WhatsApp — nọmba
-ejikọrọ nwere ihe ize ndụ nke WhatsApp igbochi ya site na nchọpụta akpaaka nke ha.
-Na mmalite mbụ, a na-ebipụta koodu QR njikọ na stdout ma gosipụta ya site na
-panel Ndekọ/SSE stream dị ugbu a — enweghị endpoint pụrụ iche maka onyonyo QR
-na njikọ a ugbu a.
+**Njikọ:** open-wa abụghị nke gọọmentị ma ọ nweghị njikọ na WhatsApp —
+nọmba ejikọrọ nwere ihe ize ndụ nke WhatsApp igbochi ya site na nchọpụta akpaaka nke ya.
+Mgbe a malitere ya na nke mbụ, a na-ebipụta koodu QR njikọ ahụ na stdout ma gosipụta ya site na
+ogwe Ndekọ/iyi SSE dị ugbu a — enwebeghị endpoint pụrụ iche maka onyonyo QR
+na njikọta a.
 
 ---
 
-### 4.7 Reverse proxy (ntinye dashboard 9Router)
+### 4.7 Endpoint LLMLingua (ụzọ 8)
 
-Dashboard ahụ na-etinye UI weebụ 9Router n'ime iframe site na reverse
-proxy dị n'ime na:
+LLMLingua bụ sidecar mkpakọ prompt nke na-ekpuchi `@atjsh/llmlingua-2` (model
+nhazi token ONNX n’ezie, nke a na-ebudata site na Hugging Face na oku
+`/compress` mbụ). Ọ na-eji otu nhazi endpoint ahụ Bifrost na-eji (enweghị igodo API —
+`needsApiKey: false`, ọ dịghị mgbe ọ na-ejikwa nzere).
+
+| Usoro  | Ụzọ                                            | Nkọwa                                                                         |
+| ------ | ---------------------------------------------- | ----------------------------------------------------------------------------- |
+| `POST` | `/api/services/llmlingua/install`              | Jiri npm wụnye `@atjsh/llmlingua-2` + ndị ibe ya, dee skrip sava sidecar      |
+| `POST` | `/api/services/llmlingua/start`                | Malite sidecar na port 20135 (ndabara)                                        |
+| `POST` | `/api/services/llmlingua/stop`                 | Kwụsị sidecar                                                                 |
+| `POST` | `/api/services/llmlingua/restart`              | Malitegharịa sidecar                                                          |
+| `POST` | `/api/services/llmlingua/update`               | Melite gaa na ụdị package ọhụrụ                                               |
+| `GET`  | `/api/services/llmlingua/status`               | Ọnọdụ ozugbo + DB                                                             |
+| `POST` | `/api/services/llmlingua/auto-start`           | Gbanyụọ ma ọ bụ gbanye mmalite akpaaka                                        |
+| `POST` | `/api/services/llmlingua/auto-restart-adopted` | Gbanyụọ ma ọ bụ gbanye mmalitegharị akpaaka nke instance e kuchiri (dịbu adị) |
+| `GET`  | `/api/services/llmlingua/logs`                 | Ọgwụgwụ ndekọ SSE (site n’ụzọ mgbanwe `[name]/logs` a na-ekekọrịta)           |
+
+**Nkwekọrịta sidecar:** skrip sava ahụ na-ekpughe `GET /health` (ozugbo —
+ọ naghị echere model ahụ) na `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`). Model ahụ na-eburu nwayọ naanị n’oku
+`/compress` mbụ.
+
+**Njikọ mkpakọ:** `httpSidecarBackend` nke `open-sse/services/compression/engines/llmlingua/index.ts`
+na-akpọ `LLMLINGUA_BASE_URL` (ndabara
+`http://127.0.0.1:20135`) ma na-anabata nzaghachi sidecar naanị mgbe ọ
+dị mkpụmkpụ karịa ntinye ahụ n’ezie; ọdịda ọ bụla (ọ naghị arụ ọrụ, oge agwụla, nzaghachi
+na-enweghị mgbanwe) na-alaghachi na backend worker-thread dị n’ime usoro (`./worker.ts`).
+
+---
+
+### 4.8 Proxy ntụgharị (ntinye dashboard 9Router)
+
+Dashboard ahụ na-etinye UI webụ 9Router n’ime iframe site na proxy ntụgharị dị n’ime
+na:
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -556,17 +589,17 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 Proxy a:
 
 - Na-ebuga arịrịọ ahụ na `http://127.0.0.1:{port}/{path}` (naanị loopback)
-- Na-ewepụ nkụnyeisi `cookie` na `authorization` ndị na-abata (ọ dịghị ntapu nke session OmniRoute)
-- Na-etinye `Authorization: Bearer {apiKey}` maka nkwenye 9Router
-- Na-ewepụ `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` na nzaghachi
-- Na-edegharị nzaghachi HTML iji tinye `<base href>` ma hazie ụzọ zuru oke ka ha bụrụ otu (`/foo` → `/dashboard/.../embed/foo`)
+- Na-ewepụ nkụnyeisi `cookie` na `authorization` ndị batara (enweghị mwepụ ozi session OmniRoute)
+- Na-etinye `Authorization: Bearer {apiKey}` maka njirimara 9Router
+- Na-ewepụ `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*` na nzaghachi ahụ
+- Na-edegharị nzaghachi HTML iji tinye `<base href>` ma mee ka ụzọ zuru oke bụrụ otu (`/foo` → `/dashboard/.../embed/foo`)
 
-Companion server dị na port pụrụ iche na-ahụ maka nkwalite WebSocket maka dashboard
-etinyere (lee `src/lib/services/embedWsProxy.ts`).
+Sava ibe dị na port pụrụ iche na-ejikwa nkwalite WebSocket maka dashboard etinyere
+(lee `src/lib/services/embedWsProxy.ts`).
 
-**Nchekwa:** A na-ekewa ụzọ embed proxy n'okpuru `LOCAL_ONLY_API_PREFIXES`
+**Nchekwa:** A na-ekewa ụzọ proxy ntinye ahụ n’okpuru `LOCAL_ONLY_API_PREFIXES`
 ma enwere ike iru ha naanị site na loopback. Onye mwakpo nwetara JWT site na
-tunnel Cloudflare/Ngrok enweghị ike iji proxy banye na ọrụ ndị etinyere.
+ọwara Cloudflare/Ngrok enweghị ike iji proxy banye n’ọrụ etinyere.
 
 ---
 

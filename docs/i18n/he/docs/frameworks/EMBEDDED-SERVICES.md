@@ -5,12 +5,12 @@
 ---
 
 > **גרסה:** v3.8.44
-> **עדכון אחרון:** 2026-09-09
-> **קהל יעד:** מהנדסים שמוסיפים, מתחזקים או מנפים שגיאות בשירותים מוטמעים (9Router, CLIProxyAPI, Mux, Bifrost, open-wa).
+> **עדכון אחרון:** 2026-09-16
+> **קהל יעד:** מהנדסים שמוסיפים, מתחזקים או מנפים שגיאות בשירותים מוטמעים (9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua).
 
-שירותים מוטמעים הם כלי sidecar המותקנים מקומית כתהליכים, שאותם OmniRoute מתקין, מפקח עליהם
-וחושף כיעדי ניתוב מהמעלה הראשונה. בניגוד לספקים חיצוניים (שהגישה אליהם מתבצעת דרך האינטרנט
-באמצעות מפתחות API), שירותים מוטמעים פועלים באותו מחשב שבו פועל OmniRoute ומתקשרים דרך loopback.
+שירותים מוטמעים הם כלי עזר מקומיים מסוג sidecar, המותקנים כתהליכים וש-OmniRoute מתקין, מפקח עליהם
+וחושף אותם כיעדי ניתוב מן המניין. בניגוד לספקים חיצוניים (שהגישה אליהם מתבצעת דרך האינטרנט
+באמצעות מפתחות API), שירותים מוטמעים פועלים באותו מחשב שבו פועל OmniRoute ומתקשרים דרך ממשק הלולאה החוזרת.
 
 ---
 
@@ -29,36 +29,37 @@
 
 ## 1. סקירה כללית
 
-### מדוע שירותים מוטמעים?
+### למה שירותים מוטמעים?
 
-שישה שירותים מוטמעים:
+שבעה שירותים מוטמעים:
 
-| שירות           | חבילת npm                               | פורט ברירת מחדל | מטרה                                                                                                                                                                |
-| --------------- | --------------------------------------- | :-------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                               |      20130      | נתב AI שבו OmniRoute יכול להשתמש כתת-ספק. המודלים נחשפים בתבנית `9router/{sub}/{model}`                                                                             |
-| **CLIProxyAPI** | קובץ בינארי ממהדורת GitHub (`cliproxy`) |      8317       | מתאם proxy מקומי עבור תהליכי אימות של Anthropic CLI. מספק ניתוב חלופי כאשר תוקפי OAuth פגים                                                                         |
-| **Mux**         | `mux` (`mux server` ללא ממשק גרפי)      |      8322       | daemon מקומי לתזמור סוכנים (coder/mux). מנוהל רק מבחינת מחזור החיים — אינו יעד ניתוב (ללא העברת LLM דרך proxy).                                                     |
-| **Bifrost**     | `@maximhq/bifrost`                      |      8080       | backend ממסר לשער AI ב-Go. כאשר הוא פועל, הוא נבחר אוטומטית על ידי נתיב הממסר (`/v1/relay/`)                                                                        |
-| **Dario**       | `@askalf/dario`                         |      3456       | proxy למינוי Claude — חלופה/גיבוי ל-CLIProxyAPI עבור תעבורה במבנה Claude Code; המפתח המוזרק הופך ל-`DARIO_ADMIN_TOKEN`, המגן על מישור הבקרה של OAuth תחת `/admin/*` |
-| **open-wa**     | `@open-wa/wa-automate`                  |      8323       | אוטומציה של WhatsApp Web‏ (Chromium ללא ממשק גרפי באמצעות Puppeteer). מנוהל רק מבחינת מחזור החיים — אינו יעד ניתוב.                                                 |
+| שירות           | חבילת npm                               | פורט ברירת מחדל | מטרה                                                                                                                                                                                                                                                                                                                         |
+| --------------- | --------------------------------------- | :-------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                               |      20130      | נתב AI שבו OmniRoute יכול להשתמש כספק משנה. המודלים נחשפים בתבנית `9router/{sub}/{model}`                                                                                                                                                                                                                                    |
+| **CLIProxyAPI** | קובץ בינארי ממהדורת GitHub (`cliproxy`) |      8317       | מתאם פרוקסי מקומי לתהליכי אימות של Anthropic CLI. מספק ניתוב גיבוי כאשר אסימוני OAuth פגים                                                                                                                                                                                                                                   |
+| **Mux**         | `mux` (`mux server` ללא ממשק גרפי)      |      8322       | דמון מקומי לתזמור סוכנים (coder/mux). מנוהל רק מבחינת מחזור החיים — אינו יעד לניתוב (ללא תיווך LLM).                                                                                                                                                                                                                         |
+| **Bifrost**     | `@maximhq/bifrost`                      |      8080       | מנוע ממסר לשער AI המבוסס על Go. כאשר הוא פועל, הוא נבחר אוטומטית על ידי נתיב הממסר (`/v1/relay/`)                                                                                                                                                                                                                            |
+| **Dario**       | `@askalf/dario`                         |      3456       | פרוקסי למינוי Claude — חלופה/גיבוי ל-CLIProxyAPI עבור תעבורה במבנה Claude Code; המפתח המוזרק הופך ל-`DARIO_ADMIN_TOKEN`, שמגן על מישור הבקרה של OAuth תחת `/admin/*`                                                                                                                                                         |
+| **open-wa**     | `@open-wa/wa-automate`                  |      8323       | אוטומציה של WhatsApp Web ‏(Chromium ללא ממשק גרפי באמצעות Puppeteer). מנוהל רק מבחינת מחזור החיים — אינו יעד לניתוב.                                                                                                                                                                                                         |
+| **LLMLingua**   | `@atjsh/llmlingua-2`                    |      20135      | שירות צד לדחיסת הנחיות — מודל ONNX אמיתי של LLMLingua-2 (מימוש JS/TS של האלגוריתם של Microsoft). הקובץ `open-sse/services/compression/engines/llmlingua/index.ts` שולח את `/compress` אליו דרך HTTP, וחוזר למנוע המבוסס על תהליכון עובד בתוך התהליך כאשר שירות הצד אינו זמין. מנוהל רק מבחינת מחזור החיים — אינו יעד לניתוב. |
 
-כל ששת השירותים פועלים לפי אותו מודל פיקוח:
+כל שבעת השירותים פועלים לפי אותו מודל פיקוח:
 
-- OmniRoute מתקין אותם תחת `DATA_DIR/services/{name}/` (בבידוד מה-`package.json` של OmniRoute עצמו)
-- OmniRoute מפעיל ומנטר אותם כתהליכי צאצא
-- OmniRoute מזריק מפתח API ארעי לסביבת תהליך הצאצא ומחליף אותו ללא זמן השבתה (כאשר הדבר רלוונטי)
-- כל נתיבי הניהול (`/api/services/*`) הם **LOCAL_ONLY** — נגישים רק מ-loopback (כלל קשיח מס' 17)
+- OmniRoute מתקין אותם תחת `DATA_DIR/services/{name}/` (בבידוד מקובץ ה-`package.json` של OmniRoute עצמו)
+- OmniRoute מפעיל ומנטר אותם כתהליכי משנה
+- OmniRoute מזריק מפתח API זמני לסביבת תהליך המשנה ומחליף אותו ללא זמן השבתה (כאשר הדבר רלוונטי)
+- כל נתיבי הניהול (`/api/services/*`) הם **LOCAL_ONLY** — נגישים רק דרך ממשק הלולאה החוזרת (כלל קשיח מס' 17)
 
 ### החלטות מרכזיות (מתוכנית התכנון)
 
-| החלטה                                     | ערך                                                                   |
-| ----------------------------------------- | --------------------------------------------------------------------- |
-| גישת לוח המחוונים לממשק המקורי של 9Router | Reverse proxy ב-`/dashboard/providers/services/9router/embed/*`       |
-| מנגנון התקנה                              | `npm install {package}` באמצעות `execFile` (ללא אינטרפולציית shell)   |
-| מצב צריכה                                 | הספק רשום כ-`9router/{sub}/{model}` במנוע הניתוב                      |
-| ניהול מפתחות API                          | OmniRoute יוצר, מצפין במנוחה (AES-256-GCM) ומזריק באמצעות משתני סביבה |
-| מיקום לוח המחוונים                        | `/dashboard/providers/services` (שלוש לשוניות)                        |
-| הפעלה אוטומטית                            | מתג נפרד לכל שירות, כבוי כברירת מחדל                                  |
+| החלטה                                            | ערך                                                                   |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| גישת לוח המחוונים לממשק המשתמש המקורי של 9Router | פרוקסי הפוך ב-`/dashboard/providers/services/9router/embed/*`         |
+| מנגנון ההתקנה                                    | `npm install {package}` באמצעות `execFile` (ללא אינטרפולציה של מעטפת) |
+| מצב השימוש                                       | הספק נרשם בתבנית `9router/{sub}/{model}` במנוע הניתוב                 |
+| ניהול מפתחות API                                 | OmniRoute יוצר, מצפין במנוחה (AES-256-GCM) ומזריק באמצעות משתני סביבה |
+| מיקום לוח המחוונים                               | `/dashboard/providers/services` (שלוש לשוניות)                        |
+| הפעלה אוטומטית                                   | מתג נפרד לכל שירות, כבוי כברירת מחדל                                  |
 
 ---
 
@@ -77,7 +78,7 @@
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
 │                               ServiceLogsPanel, ApiKeyCard, ...    │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ HTTP ‏(fetch של Next.js)
+                       │ HTTP ‏(Next.js fetch)
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  שכבה 2 — API ‏(LOCAL_ONLY — ממשק loopback בלבד)                   │
 │                                                                    │
@@ -88,7 +89,7 @@
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (פרוקסי HTTP + WebSocket הפוך → שירות 9Router במעלה הזרם)       │
+│    (פרוקסי HTTP + WebSocket הפוך → שירות ה־upstream של 9Router)    │
 │                                                                    │
 │  שער: LOCAL_ONLY_API_PREFIXES כולל את "/api/services/" ואת         │
 │        "/dashboard/providers/services/*/embed/"                    │
@@ -99,19 +100,19 @@
 │                                                                    │
 │  ServiceSupervisor.ts   מפקח כללי (child_process.spawn)            │
 │    ├── התקנה:     execFile('npm', ['install', pkg, '--prefix'])     │
-│    ├── הפעלה:     spawn(node, [entrypoint], {env, cwd})            │
+│    ├── הפעלה:     spawn(node, [entrypoint], {env, cwd})             │
 │    ├── מפתח API:  crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── פורט:      20130 עבור 9Router (ניתן להגדרה)                 │
+│    ├── יציאה:     20130 עבור 9Router (ניתנת להגדרה)                │
 │    ├── יומנים:    מאגר טבעתי של stdio בגודל 5 MB → אירועי SSE      │
 │    ├── תקינות:    HTTP GET /health כל 2–5 שניות, התאוששות עצלה     │
-│    └── מחזור חיים: SIGTERM‏ 15 שניות → SIGKILL                     │
+│    └── מחזור חיים: SIGTERM למשך 15 שניות → SIGKILL                 │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
 │  bootstrap.ts       מאתחל את כל SERVICES[] בעת הפעלת התהליך        │
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
-│  modelSync.ts       GET /v1/models מחזורי → הטבלה service_models   │
+│  modelSync.ts       GET /v1/models מחזורי → טבלת service_models    │
 │  ringBuffer.ts      מאגר יומנים מעגלי (5 MB לכל שירות)             │
-│  healthCheck.ts     בדיקת תקינות HTTP בתשאול מחזורי                │
+│  healthCheck.ts     בדיקת תקינות HTTP באמצעות תשאול                │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (מתאמי התקנה)                                 │
 └──────────────────────┬─────────────────────────────────────────────┘
@@ -120,16 +121,16 @@
 │  שכבה 4 — ספק / ניתוב                                              │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    מאתר מחדש את הפורט ומפתח ה-API בכל בקשה (ללא מטמון).           │
-│    מסיר את הקידומת "9router/" ממזהה המודל לפני העברה בפרוקסי.      │
+│    מאתר מחדש יציאה ומפתח API בכל בקשה (ללא מטמון).                 │
+│    מסיר את התחילית "9router/" ממזהה המודל לפני העברה דרך הפרוקסי.  │
 │    מחזיר 503 service_not_running אם המפקח אינו במצב "running".     │
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    רשומה עבור "9router": isEmbeddedService: true                   │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    המודלים נשמרים בתור "9router/{sub}/{model}" (עם קידומת).        │
-│    מסונכרנים כל 5 דקות על ידי modelSync.ts.                        │
+│    המודלים נשמרים בתבנית "9router/{sub}/{model}" (עם תחילית).      │
+│    מסונכרנים כל 5 דקות באמצעות modelSync.ts.                       │
 │                                                                    │
 │  Mux מנוהל מבחינת מחזור החיים בלבד (שכבות 1–3) — זהו daemon        │
 │  לתזמור סוכנים, ולא פרוקסי LLM, ולכן אין לו executor/רשומת ספק     │
@@ -141,20 +142,21 @@
 
 | קובץ                                        | תפקיד                                             |
 | ------------------------------------------- | ------------------------------------------------- |
-| `src/lib/services/ServiceSupervisor.ts`     | מחלקת ליבה: מחזור חיים, נעילה, תקינות, מאגר מעגלי |
+| `src/lib/services/ServiceSupervisor.ts`     | מחלקת ליבה: מחזור חיים, נעילה, תקינות, מאגר טבעתי |
 | `src/lib/services/bootstrap.ts`             | רישום ברמת התהליך והפעלה אוטומטית                 |
 | `src/lib/services/registry.ts`              | מפת יחידון `tool → supervisor`                    |
 | `src/lib/services/apiKey.ts`                | יצירת מפתחות, הצפנת AES-256-GCM במצב מנוחה        |
 | `src/lib/services/modelSync.ts`             | סנכרון מודלים תקופתי (5 דקות) + לפי דרישה         |
-| `src/lib/services/ringBuffer.ts`            | מאגר יומן מעגלי בנפח 5 MB עם הרשמת SSE            |
+| `src/lib/services/ringBuffer.ts`            | מאגר יומן מעגלי בנפח 5 MB עם הרשמה ל-SSE          |
 | `src/lib/services/healthCheck.ts`           | בדיקת תקינות HTTP (מרווח זמן ניתן להגדרה)         |
 | `src/lib/services/installers/ninerouter.ts` | התקנה/עדכון/הסרה באמצעות npm עבור 9Router         |
 | `src/lib/services/installers/cliproxy.ts`   | התקנה/עדכון/הסרה באמצעות npm עבור CLIProxyAPI     |
 | `src/lib/services/installers/mux.ts`        | התקנה/עדכון/הסרה באמצעות npm עבור Mux             |
 | `src/lib/services/installers/openwa.ts`     | התקנה/עדכון/הסרה באמצעות npm עבור open-wa         |
+| `src/lib/services/installers/llmlingua.ts`  | התקנה/עדכון/הסרה באמצעות npm עבור LLMLingua       |
 | `src/app/api/services/9router/_lib.ts`      | פונקציית העזר `getOrInitSupervisor()`             |
 | `src/app/api/services/[name]/logs/route.ts` | נקודת קצה משותפת ליומני SSE                       |
-| `open-sse/executors/ninerouter.ts`          | מפעיל ספק (שכבה 4)                                |
+| `open-sse/executors/ninerouter.ts`          | מבצע ספק (שכבה 4)                                 |
 
 ---
 
@@ -208,17 +210,17 @@
 
 ---
 
-## 4. מדריך עזר ל־API
+## 4. תיעוד API
 
-כל הנתיבים תחת `/api/services/` הם **LOCAL_ONLY** (ממשק loopback בלבד, כלל קשיח מס׳ 17).
-בקשות שאינן מ־loopback מקבלות `403 LOCAL_ONLY` ללא תלות באסימון האימות.
+כל הנתיבים תחת `/api/services/` הם **LOCAL_ONLY** (לולאת משוב בלבד, כלל קשיח מס' 17).
+בקשות שאינן מלולאת המשוב מקבלות `403 LOCAL_ONLY` ללא קשר לאסימון האימות.
 
-### 4.1 נקודות קצה של 9Router‏ (11 נתיבים)
+### 4.1 נקודות קצה של 9Router (11 נתיבים)
 
 #### `POST /api/services/9router/install`
 
-התקנת 9Router מ־npm. יוצרת את `DATA_DIR/services/9router/` עם
-`package.json` ו־`node_modules/` משלו. אינה מתנגשת עם יחסי התלות של OmniRoute.
+התקנת 9Router מ-npm. הפעולה יוצרת את `DATA_DIR/services/9router/` עם
+`package.json` ו-`node_modules/` משלו. אין התנגשות עם התלויות של OmniRoute עצמו.
 
 **גוף הבקשה** (כל השדות אופציונליים):
 
@@ -232,22 +234,22 @@
 
 **תגובות:**
 
-| סטטוס | תיאור                                                  |
-| ----- | ------------------------------------------------------ |
-| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }` |
-| `400` | גוף בקשה לא תקין (כשל אימות של Zod)                    |
-| `409` | התקנה כבר מתבצעת (הנעילה מוחזקת)                       |
-| `500` | התקנת npm נכשלה — ראו `message` לקבלת שגיאה ידידותית   |
+| סטטוס | תיאור                                                      |
+| ----- | ---------------------------------------------------------- |
+| `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }`     |
+| `400` | גוף בקשה לא תקין (כשל אימות של Zod)                        |
+| `409` | התקנה כבר מתבצעת (הנעילה מוחזקת)                           |
+| `500` | התקנת npm נכשלה — ראו `message` לקבלת הודעת שגיאה ידידותית |
 
-**הערות:** נעשה שימוש ב־`execFile('npm', [...])` — ללא מעטפת וללא אינטרפולציה (כלל קשיח מס׳ 13).
+**הערות:** נעשה שימוש ב-`execFile('npm', [...])` — ללא מעטפת וללא אינטרפולציה (כלל קשיח מס' 13).
 שגיאות EACCES מוצגות כהודעות ידידותיות.
 
 ---
 
 #### `POST /api/services/9router/start`
 
-הפעלת 9Router. רושמת מפקח אם עדיין לא נרשם, ולאחר מכן קוראת
-ל־`supervisor.start()`. הפעולה אידמפוטנטית כאשר השירות כבר פועל.
+הפעלת 9Router. רושם מפקח אם עדיין לא נרשם, ולאחר מכן קורא
+ל-`supervisor.start()`. הפעולה אידמפוטנטית כאשר השירות כבר פועל.
 
 **גוף הבקשה:** אין
 
@@ -255,7 +257,7 @@
 
 | סטטוס | תיאור                                          |
 | ----- | ---------------------------------------------- |
-| `200` | אובייקט `ServiceStatus` (ראו את הסכמה להלן)    |
+| `200` | אובייקט `ServiceStatus` (ראו סכמה להלן)        |
 | `409` | 9Router אינו מותקן (`status: "not_installed"`) |
 | `503` | ההפעלה נכשלה (שגיאת תהליך — ראו `lastError`)   |
 
@@ -277,23 +279,23 @@
 
 #### `POST /api/services/9router/stop`
 
-עצירה מסודרת של 9Router. שולחת SIGTERM, ממתינה 15 שניות ולאחר מכן שולחת SIGKILL אם התהליך עדיין פעיל.
+עצירה מסודרת של 9Router. שולח SIGTERM, ממתין 15 שניות ולאחר מכן שולח SIGKILL אם התהליך עדיין פעיל.
 הפעולה אידמפוטנטית כאשר השירות כבר עצור.
 
 **גוף הבקשה:** אין
 
 **תגובות:**
 
-| סטטוס | תיאור                            |
-| ----- | -------------------------------- |
-| `200` | `ServiceStatus` (מצב: "stopped") |
-| `503` | העצירה נכשלה באופן בלתי צפוי     |
+| סטטוס | תיאור                              |
+| ----- | ---------------------------------- |
+| `200` | `ServiceStatus` (מצב: `"stopped"`) |
+| `503` | העצירה נכשלה באופן בלתי צפוי       |
 
 ---
 
 #### `POST /api/services/9router/restart`
 
-שקול ל־`stop()` ולאחר מכן `start()` תחת נעילת הפעולות.
+שקול ל-`stop()` ולאחר מכן ל-`start()` תחת נעילת הפעולה.
 
 **גוף הבקשה:** אין
 
@@ -303,8 +305,8 @@
 
 #### `POST /api/services/9router/update`
 
-מעדכן את 9Router לגרסת npm חדשה יותר. אם השירות פועל, הוא נעצר
-תחילה, התקנת npm מופעלת (והגרסה החדשה יותר מותקנת במקום), ולאחר מכן
+עדכון 9Router לגרסת npm חדשה יותר. אם השירות פועל, הוא נעצר
+תחילה, מתבצעת התקנת npm (התקנת הגרסה החדשה יותר במקום), ולאחר מכן
 השירות מופעל מחדש.
 
 **גוף הבקשה** (כל השדות אופציונליים):
@@ -325,34 +327,34 @@
 
 #### `POST /api/services/9router/rotate-key`
 
-יוצר מפתח API חדש עבור 9Router, מצפין אותו במצב מנוחה ומפעיל מחדש את השירות
+יצירת מפתח API חדש עבור 9Router, הצפנתו בעת אחסון והפעלה מחדש של השירות
 (אם הוא פועל), כדי שיטען את המפתח החדש מהסביבה שלו. המפתח הישן
 מבוטל באופן מיידי.
 
-**גוף הבקשה:** ללא
+**גוף הבקשה:** אין
 
 **תגובות:**
 
 | סטטוס | תיאור                                      |
 | ----- | ------------------------------------------ |
 | `200` | `{ keyRotated: true, restarted: boolean }` |
-| `500` | סבב החלפת המפתח נכשל                       |
+| `500` | החלפת המפתח נכשלה                          |
 
 **אבטחה:** המפתח החדש לעולם אינו מוחזר בתגובה (אין דליפת פרטי גישה).
-הוא מאוחסן כשהוא מוצפן (AES-256-GCM) בטבלה `version_manager`.
+הוא נשמר באופן מוצפן (AES-256-GCM) בטבלה `version_manager`.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-מחזיר סטטוס משולב בזמן אמת + ממסד הנתונים, כולל מטא-נתוני גרסה ותצוגה מקדימה של מפתח ה-API.
+החזרת מצב משולב בזמן אמת + מצב ממסד הנתונים, כולל מטא-נתונים של הגרסה ותצוגה מקדימה של מפתח ה-API.
 
 **תגובות:**
 
-| סטטוס | תיאור              |
-| ----- | ------------------ |
-| `200` | ראו את הסכמה להלן  |
-| `500` | קריאת הסטטוס נכשלה |
+| סטטוס | תיאור            |
+| ----- | ---------------- |
+| `200` | ראו סכמה להלן    |
+| `500` | קריאת המצב נכשלה |
 
 **סכמת התגובה:**
 
@@ -378,8 +380,8 @@
 
 #### `POST /api/services/9router/auto-start`
 
-מחליף את מצב דגל ההפעלה האוטומטית. כאשר `enabled: true`, השירות יופעל אוטומטית
-בפעם הבאה ש-OmniRoute יאותחל (אם השירות מותקן).
+החלפת מצב דגל ההפעלה האוטומטית. כאשר `enabled: true`, השירות מופעל אוטומטית
+בפעם הבאה ש-OmniRoute עולה (אם השירות מותקן).
 
 **גוף הבקשה:**
 
@@ -400,20 +402,20 @@
 
 זרם SSE של יומנים בזמן אמת ממאגר הטבעת של stdout/stderr של 9Router.
 
-**פרמטרים של השאילתה:**
+**פרמטרי שאילתה:**
 
 | פרמטר    | סוג       | ברירת מחדל | תיאור                                                         |
 | -------- | --------- | ---------- | ------------------------------------------------------------- |
-| `tail`   | `integer` | 200        | מספר השורות ההיסטוריות שיישלחו תחילה (מקסימום 1000)           |
-| `filter` | `string`  | ללא        | מסנן מחרוזת משנה שאינו תלוי רישיות (ללא regex — מוגן מ-ReDoS) |
+| `tail`   | `integer` | 200        | מספר השורות ההיסטוריות שיישלחו תחילה (לכל היותר 1000)         |
+| `filter` | `string`  | אין        | מסנן מחרוזת משנה שאינו תלוי רישיות (ללא regex — מוגן מ-ReDoS) |
 
 **אירועי SSE:**
 
-| אירוע       | נתונים      | תיאור                        |
-| ----------- | ----------- | ---------------------------- |
-| `snapshot`  | `LogLine[]` | הסיומת ההיסטורית הראשונית    |
-| `log`       | `LogLine`   | שורת יומן בזמן אמת           |
-| `heartbeat` | `{}`        | שמירת חיבור פעיל כל 15 שניות |
+| אירוע       | נתונים      | תיאור                     |
+| ----------- | ----------- | ------------------------- |
+| `snapshot`  | `LogLine[]` | הסיומת ההיסטורית הראשונית |
+| `log`       | `LogLine`   | שורת יומן בזמן אמת        |
+| `heartbeat` | `{}`        | שמירת חיבור כל 15 שניות   |
 
 **סכמת LogLine:**
 
@@ -437,20 +439,20 @@
 
 ### 4.2 נקודות קצה של CLIProxyAPI‏ (10 נתיבים)
 
-ל-CLIProxyAPI יש אותו מבנה נקודות קצה כמו ל-9Router, למעט `rotate-key`, ובתוספת
-`accounts`,‏ `provider-expose` ו-`auto-restart-adopted`. כעת הוא מקבל
-מפתח API ייעודי למישור הנתונים שמוזרק בעת יצירת התהליך (`needsApiKey: true` בתוך
+ל-CLIProxyAPI יש מבנה נקודות קצה זהה לזה של 9Router, למעט `rotate-key`, ובתוספת
+`accounts`, `provider-expose` ו-`auto-restart-adopted`. כעת הוא מקבל
+מפתח API ייעודי למישור הנתונים, המוזרק בעת ההפעלה (`needsApiKey: true` בתוך
 `bootstrap.ts`, ומשמש לסנכרון מודלים); `status` כולל פחות שדות.
 
-| מתודה  | נתיב                                | תיאור                                              |
-| ------ | ----------------------------------- | -------------------------------------------------- |
-| `POST` | `/api/services/cliproxy/install`    | התקנת CLIProxyAPI מ-npm                            |
-| `POST` | `/api/services/cliproxy/start`      | הפעלת CLIProxyAPI                                  |
-| `POST` | `/api/services/cliproxy/stop`       | עצירת CLIProxyAPI                                  |
-| `POST` | `/api/services/cliproxy/restart`    | הפעלה מחדש של CLIProxyAPI                          |
-| `POST` | `/api/services/cliproxy/update`     | עדכון לגרסה חדשה יותר                              |
-| `GET`  | `/api/services/cliproxy/status`     | סטטוס בזמן אמת + ממסד הנתונים (ללא `apiKeyMasked`) |
-| `POST` | `/api/services/cliproxy/auto-start` | החלפת מצב ההפעלה האוטומטית                         |
+| שיטה   | נתיב                                | תיאור                                    |
+| ------ | ----------------------------------- | ---------------------------------------- |
+| `POST` | `/api/services/cliproxy/install`    | התקנת CLIProxyAPI מ-npm                  |
+| `POST` | `/api/services/cliproxy/start`      | הפעלת CLIProxyAPI                        |
+| `POST` | `/api/services/cliproxy/stop`       | עצירת CLIProxyAPI                        |
+| `POST` | `/api/services/cliproxy/restart`    | הפעלה מחדש של CLIProxyAPI                |
+| `POST` | `/api/services/cliproxy/update`     | עדכון לגרסה חדשה יותר                    |
+| `GET`  | `/api/services/cliproxy/status`     | סטטוס חי + סטטוס DB (ללא `apiKeyMasked`) |
+| `POST` | `/api/services/cliproxy/auto-start` | החלפת מצב ההפעלה האוטומטית               |
 
 נקודת הקצה המשותפת `GET /api/services/{name}/logs` (ראו §4.1) פועלת עבור כל
 ארבעת השירותים באמצעות המקטע הדינמי `[name]`.
@@ -459,93 +461,126 @@
 
 ### 4.3 נקודות קצה של Mux‏ (8 נתיבים)
 
-ל-Mux יש אותו מבנה נקודות קצה כמו ל-CLIProxyAPI — אין נתיב `rotate-key` בממשק
-ה-API (אסימון ה-bearer נוצר באותו אופן כמו זה של 9Router באמצעות
-`getOrCreateApiKey("mux")` ומוזרק דרך משתנה הסביבה `MUX_SERVER_AUTH_TOKEN`, אך
-עדיין אין נקודת קצה ייעודית להחלפתו). Mux מנוהל רק מבחינת מחזור החיים: בניגוד
-ל-9Router, אין לו מבצע שכבה 4 והוא לעולם אינו נרשם כספק ניתוב.
+ל-Mux יש מבנה נקודות קצה זהה לזה של CLIProxyAPI — אין נתיב `rotate-key` בממשק
+ה-API (אסימון ה-bearer נוצר באותו אופן כמו זה של 9Router, באמצעות
+`getOrCreateApiKey("mux")`, ומוזרק באמצעות משתנה הסביבה `MUX_SERVER_AUTH_TOKEN`, אך
+עדיין אין נקודת קצה ייעודית להחלפה). Mux מנוהל רק מבחינת מחזור החיים: בניגוד
+ל-9Router, אין לו executor בשכבה 4 והוא לעולם אינו נרשם כספק ניתוב.
 
-| מתודה  | נתיב                           | תיאור                          |
+| שיטה   | נתיב                           | תיאור                          |
 | ------ | ------------------------------ | ------------------------------ |
 | `POST` | `/api/services/mux/install`    | התקנת Mux מ-npm‏ (`npm i mux`) |
 | `POST` | `/api/services/mux/start`      | הפעלת Mux‏ (`mux server`)      |
 | `POST` | `/api/services/mux/stop`       | עצירת Mux                      |
 | `POST` | `/api/services/mux/restart`    | הפעלה מחדש של Mux              |
 | `POST` | `/api/services/mux/update`     | עדכון לגרסת npm חדשה יותר      |
-| `GET`  | `/api/services/mux/status`     | סטטוס בזמן אמת + ממסד הנתונים  |
+| `GET`  | `/api/services/mux/status`     | סטטוס חי + סטטוס DB            |
 | `POST` | `/api/services/mux/auto-start` | החלפת מצב ההפעלה האוטומטית     |
 
 ---
 
 ### 4.4 נקודות קצה של Bifrost‏ (8 נתיבים)
 
-Bifrost הוא backend ממסר של שער AI שנכתב ב-Go‏ (`@maximhq/bifrost`). הוא משתמש באותו
-מבנה נקודות קצה כמו CLIProxyAPI (ללא `rotate-key` —‏ Bifrost מנהל את מפתחות
-הספקים שלו בעצמו בתוך `config.json` תחת `-app-dir`).
+Bifrost הוא backend ממסר של שער AI ב-Go‏ (`@maximhq/bifrost`). הוא משתמש באותו
+מבנה נקודות קצה כמו CLIProxyAPI (ללא `rotate-key` —‏ Bifrost מנהל את מפתחות הספקים
+שלו בעצמו בתוך `config.json` תחת `-app-dir`).
 
-| מתודה  | נתיב                               | תיאור                                                        |
-| ------ | ---------------------------------- | ------------------------------------------------------------ |
-| `POST` | `/api/services/bifrost/install`    | התקנת Bifrost מ־npm (`@maximhq/bifrost`)                     |
-| `POST` | `/api/services/bifrost/start`      | הפעלת Bifrost בפורט 8080 (ברירת המחדל)                       |
-| `POST` | `/api/services/bifrost/stop`       | עצירת Bifrost                                                |
-| `POST` | `/api/services/bifrost/restart`    | הפעלה מחדש של Bifrost                                        |
-| `POST` | `/api/services/bifrost/update`     | עדכון לגרסה חדשה יותר                                        |
-| `GET`  | `/api/services/bifrost/status`     | מצב בזמן אמת + מצב מסד הנתונים                               |
-| `POST` | `/api/services/bifrost/auto-start` | הפעלה או השבתה של הפעלה אוטומטית                             |
-| `GET`  | `/api/services/bifrost/logs`       | זנב יומן דרך SSE (באמצעות הנתיב הדינמי המשותף `[name]/logs`) |
+| שיטה   | נתיב                               | תיאור                                                |
+| ------ | ---------------------------------- | ---------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | התקנת Bifrost מ-npm‏ (`@maximhq/bifrost`)            |
+| `POST` | `/api/services/bifrost/start`      | הפעלת Bifrost ביציאה 8080 (ברירת המחדל)              |
+| `POST` | `/api/services/bifrost/stop`       | עצירת Bifrost                                        |
+| `POST` | `/api/services/bifrost/restart`    | הפעלה מחדש של Bifrost                                |
+| `POST` | `/api/services/bifrost/update`     | עדכון לגרסה חדשה יותר                                |
+| `GET`  | `/api/services/bifrost/status`     | סטטוס חי + סטטוס DB                                  |
+| `POST` | `/api/services/bifrost/auto-start` | החלפת מצב ההפעלה האוטומטית                           |
+| `GET`  | `/api/services/bifrost/logs`       | זנב יומן SSE (דרך הנתיב הדינמי המשותף `[name]/logs`) |
 
-**חיווט ניתוב:** כאשר `BIFROST_BASE_URL` אינו מוגדר ומופע Bifrost
-המנוהל פועל, `getBifrostRoutingConfig()` (בתוך `routingBackend.ts`) משתמש אוטומטית
-ב־`http://127.0.0.1:{port}` ככתובת ה־URL הבסיסית של הממסר. משתנה הסביבה `BIFROST_BASE_URL` שמוגדר במפורש
-תמיד מקבל עדיפות.
+**חיווט ניתוב:** כאשר `BIFROST_BASE_URL` אינו מוגדר ומופע Bifrost המפוקח
+פועל, `getBifrostRoutingConfig()` (בתוך `routingBackend.ts`) משתמש אוטומטית
+ב-`http://127.0.0.1:{port}` ככתובת ה-URL הבסיסית של הממסר. משתנה סביבה מפורש
+`BIFROST_BASE_URL` מקבל תמיד עדיפות.
 
 ---
 
-### 4.5 נקודות קצה של Dario ‏(12 נתיבים)
+### 4.5 נקודות קצה של Dario‏ (12 נתיבים)
 
 אותו מבנה מחזור חיים כמו בשירותים האחרים (`install`, `start`, `stop`, `restart`,
 `update`, `status`, `auto-start`, `auto-restart-adopted`), ובנוסף מישור בקרה של OAuth
-המוגן באסימון תחת `admin/`:‏ `admin/accounts`,‏ `admin/import-from-omniroute`,
-`admin/login-start`,‏ `admin/login-complete` (כולם מוגנים באמצעות `DARIO_ADMIN_TOKEN`).
+המוגן באסימון תחת `admin/`:‏ `admin/accounts`, `admin/import-from-omniroute`,
+`admin/login-start`, `admin/login-complete` (כולם מוגנים באמצעות `DARIO_ADMIN_TOKEN`).
 
-### 4.6 נקודות קצה של open-wa ‏(7 נתיבים)
+### 4.6 נקודות קצה של open-wa‏ (7 נתיבים)
 
-open-wa (`@open-wa/wa-automate`) מפעיל מופע Chromium ללא ממשק גרפי (באמצעות
-Puppeteer) כדי לבצע אוטומציה של WhatsApp Web. הוא משתמש באותו מבנה נקודות קצה כמו Mux (עדיין אין
-נתיב `rotate-key`). הוא מנוהל רק ברמת מחזור החיים — אינו יעד ניתוב,
-ואין לו רשומת מבצע/ספק בשכבה 4.
+open-wa‏ (`@open-wa/wa-automate`) מפעיל מופע Chromium ללא ממשק גרפי (באמצעות
+Puppeteer) כדי להפוך את WhatsApp Web לאוטומטי. הוא משתמש באותו מבנה נקודות קצה כמו Mux (עדיין אין
+נתיב `rotate-key`). הוא מנוהל רק מבחינת מחזור החיים — אינו יעד ניתוב,
+ללא executor בשכבה 4 או רשומת ספק.
 
-| מתודה  | נתיב                              | תיאור                                                        |
-| ------ | --------------------------------- | ------------------------------------------------------------ |
-| `POST` | `/api/services/openwa/install`    | התקנת open-wa מ־npm (`@open-wa/wa-automate`)                 |
-| `POST` | `/api/services/openwa/start`      | הפעלת open-wa בפורט 8323 (ברירת המחדל)                       |
-| `POST` | `/api/services/openwa/stop`       | עצירת open-wa                                                |
-| `POST` | `/api/services/openwa/restart`    | הפעלה מחדש של open-wa                                        |
-| `POST` | `/api/services/openwa/update`     | עדכון לגרסה חדשה יותר                                        |
-| `GET`  | `/api/services/openwa/status`     | מצב בזמן אמת + מצב מסד הנתונים                               |
-| `POST` | `/api/services/openwa/auto-start` | הפעלה או השבתה של הפעלה אוטומטית                             |
-| `GET`  | `/api/services/openwa/logs`       | זנב יומן דרך SSE (באמצעות הנתיב הדינמי המשותף `[name]/logs`) |
+| שיטה   | נתיב                              | תיאור                                                |
+| ------ | --------------------------------- | ---------------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | התקנת open-wa מ-npm‏ (`@open-wa/wa-automate`)        |
+| `POST` | `/api/services/openwa/start`      | הפעלת open-wa ביציאה 8323 (ברירת מחדל)               |
+| `POST` | `/api/services/openwa/stop`       | עצירת open-wa                                        |
+| `POST` | `/api/services/openwa/restart`    | הפעלה מחדש של open-wa                                |
+| `POST` | `/api/services/openwa/update`     | עדכון לגרסה חדשה יותר                                |
+| `GET`  | `/api/services/openwa/status`     | סטטוס בזמן אמת + במסד הנתונים                        |
+| `POST` | `/api/services/openwa/auto-start` | הפעלה או השבתה של הפעלה אוטומטית                     |
+| `GET`  | `/api/services/openwa/logs`       | זנב יומן SSE (דרך הנתיב הדינמי המשותף `[name]/logs`) |
 
-**מפתח API:** מוזרק בתור `WA_KEY` — דריסת משתני הסביבה הגנרית של open-wa
-עם הקידומת `WA_*` ממפה אותו לאפשרות ה־CLI ‏`--key`/`-k`
-(`dist/cli/setup.js::envArgs()`, אומת מול החבילה המותקנת בגרסה 4.76.0).
-בעת יצירתו באמצעות `generateServiceApiKey()`, נוספת לו הקידומת `ow_`. ‏open-wa
-קורא את המפתח בחזרה מכותרת HTTP בשם `key`/`api_key` (ולא `Authorization:
-Bearer`);‏ `/api-docs*` מוחרג במפורש מהבדיקה
+**מפתח API:** מוזרק בתור `WA_KEY` — דריסת משתנה הסביבה הגנרית של open-wa
+עם הקידומת `WA_*` ממפה אותו לאפשרות ה-CLI‏ `--key`/`-k`
+(`dist/cli/setup.js::envArgs()`, אומת מול חבילה מותקנת בגרסה 4.76.0).
+הקידומת `ow_` נוספת כאשר הוא נוצר באמצעות `generateServiceApiKey()`. ‏open-wa
+קורא את המפתח מכותרת HTTP בשם `key`/`api_key` (ולא `Authorization:
+Bearer`); הנתיב `/api-docs*` פטור במפורש מהבדיקה
 (`setupAuthenticationLayer` בתוך `dist/cli/server.js`), ולכן בדיקת התקינות
 אינה זקוקה לכותרת אימות.
 
-**צימוד:** open-wa אינו רשמי ואינו משויך ל־WhatsApp —
-המספר המחובר חשוף לסכנת חסימה עקב מנגנון זיהוי האוטומציה של WhatsApp.
-בהפעלה הראשונה, קוד ה־QR לצימוד מודפס ל־stdout ומוצג דרך
-לוח היומנים/זרם ה־SSE הקיים — עדיין אין נקודת קצה ייעודית לתמונת QR
+**צימוד:** open-wa אינו רשמי ואינו משויך ל-WhatsApp — המספר
+המחובר חשוף לסיכון חסימה עקב מנגנון זיהוי האוטומציה של WhatsApp.
+בהפעלה הראשונה, קוד ה-QR לצימוד מודפס אל stdout ומוצג דרך
+לוח היומנים/זרם ה-SSE הקיים — עדיין אין נקודת קצה ייעודית לתמונת QR
 באינטגרציה זו.
 
 ---
 
-### 4.7 פרוקסי הפוך (הטמעת לוח הבקרה של 9Router)
+### 4.7 נקודות קצה של LLMLingua (8 נתיבים)
 
-לוח הבקרה מטמיע את ממשק האינטרנט של 9Router בתוך iframe באמצעות פרוקסי הפוך
+LLMLingua הוא שירות sidecar לדחיסת הנחיות העוטף את `@atjsh/llmlingua-2` (מודל
+אמיתי לסיווג טוקנים באמצעות ONNX, שמורד מ-Hugging Face בקריאה הראשונה
+ל-`/compress`). הוא משתמש באותו מבנה נקודות קצה כמו Bifrost (ללא מפתח API —
+`needsApiKey: false`, הוא לעולם אינו מטפל בפרטי גישה).
+
+| שיטה   | נתיב                                           | תיאור                                                                              |
+| ------ | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `POST` | `/api/services/llmlingua/install`              | התקנת `@atjsh/llmlingua-2` וחבילות עמיתות באמצעות npm, וכתיבת סקריפט שרת ה-sidecar |
+| `POST` | `/api/services/llmlingua/start`                | הפעלת ה-sidecar ביציאה 20135 (ברירת מחדל)                                          |
+| `POST` | `/api/services/llmlingua/stop`                 | עצירת ה-sidecar                                                                    |
+| `POST` | `/api/services/llmlingua/restart`              | הפעלה מחדש של ה-sidecar                                                            |
+| `POST` | `/api/services/llmlingua/update`               | עדכון לגרסת החבילה החדשה יותר                                                      |
+| `GET`  | `/api/services/llmlingua/status`               | סטטוס בזמן אמת + במסד הנתונים                                                      |
+| `POST` | `/api/services/llmlingua/auto-start`           | הפעלה או השבתה של הפעלה אוטומטית                                                   |
+| `POST` | `/api/services/llmlingua/auto-restart-adopted` | הפעלה או השבתה של הפעלה מחדש אוטומטית של מופע שאומץ (ושהיה קיים מראש)              |
+| `GET`  | `/api/services/llmlingua/logs`                 | זנב יומן SSE (דרך הנתיב הדינמי המשותף `[name]/logs`)                               |
+
+**חוזה ה-sidecar:** סקריפט השרת חושף את `GET /health` (מיידי — אינו
+ממתין למודל) ואת `POST /compress` ‏(`{ text, rate }` ←
+`{ text, compressed, ratio }`). המודל נטען באופן עצל בקריאה הראשונה
+ל-`/compress`.
+
+**חיווט הדחיסה:** `httpSidecarBackend` שב-
+`open-sse/services/compression/engines/llmlingua/index.ts` קורא אל
+`LLMLINGUA_BASE_URL` (ברירת מחדל
+`http://127.0.0.1:20135`) ומקבל את תגובת ה-sidecar רק כאשר היא
+קצרה מהקלט באופן מוחלט; כל כשל (השירות אינו פועל, פסק זמן, תגובה
+ללא שינוי) מוביל לחזרה למימוש החלופי הפועל בתהליכון עובד בתוך התהליך (`./worker.ts`).
+
+---
+
+### 4.8 פרוקסי הפוך (הטמעת לוח המחוונים של 9Router)
+
+לוח המחוונים מטמיע את ממשק האינטרנט של 9Router בתוך iframe באמצעות פרוקסי הפוך
 פנימי בכתובת:
 
 ```
@@ -554,17 +589,17 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 
 פרוקסי זה:
 
-- מעביר את הבקשה אל `http://127.0.0.1:{port}/{path}` (לולאת משוב בלבד)
-- מסיר את הכותרות הנכנסות `cookie` ו־`authorization` (ללא דליפה של הפעלת OmniRoute)
-- מזריק `Authorization: Bearer {apiKey}` לצורך אימות מול 9Router
+- מעביר את הבקשה אל `http://127.0.0.1:{port}/{path}` (ממשק loopback בלבד)
+- מסיר את הכותרות הנכנסות `cookie` ו-`authorization` (ללא דליפה של הפעלת OmniRoute)
+- מזריק את `Authorization: Bearer {apiKey}` לצורך אימות מול 9Router
 - מסיר מהתגובה את `set-cookie`,‏ `content-security-policy`,‏ `x-frame-options`,‏ `cross-origin-*`
 - משכתב תגובות HTML כדי להזריק `<base href>` ולנרמל נתיבים מוחלטים (`/foo` ← `/dashboard/.../embed/foo`)
 
-שדרוגי WebSocket עבור לוח הבקרה המוטמע מטופלים על ידי שרת נלווה
-בפורט ייעודי (ראו `src/lib/services/embedWsProxy.ts`).
+שדרוגי WebSocket עבור לוח המחוונים המוטמע מטופלים בידי שרת נלווה ביציאה
+ייעודית (ראו `src/lib/services/embedWsProxy.ts`).
 
 **אבטחה:** נתיבי פרוקסי ההטמעה מסווגים תחת `LOCAL_ONLY_API_PREFIXES`
-וניתן לגשת אליהם רק מלולאת המשוב. תוקף שמשיג JWT דרך
+וניתן לגשת אליהם רק מ-loopback. תוקף שמשיג JWT דרך
 מנהרת Cloudflare/Ngrok אינו יכול להשתמש בפרוקסי כדי לגשת לשירותים המוטמעים.
 
 ---

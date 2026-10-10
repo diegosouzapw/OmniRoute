@@ -5,10 +5,10 @@
 ---
 
 > **バージョン:** v3.8.44
-> **最終更新日:** 2026-09-09
-> **対象読者:** 組み込みサービス（9Router、CLIProxyAPI、Mux、Bifrost、open-wa）の追加、保守、またはデバッグを行うエンジニア。
+> **最終更新日:** 2026-09-16
+> **対象読者:** 組み込みサービス（9Router、CLIProxyAPI、Mux、Bifrost、open-wa、LLMLingua）の追加、保守、またはデバッグを行うエンジニア。
 
-組み込みサービスは、OmniRoute がインストール、監視し、第一級のルーティング先として公開する、ローカルにインストールされたプロセスサイドカーツールです。API キーを介してインターネット経由でアクセスする外部プロバイダーとは異なり、組み込みサービスは OmniRoute と同じマシン上で実行され、ループバック経由で通信します。
+組み込みサービスは、OmniRoute がインストール、監視し、第一級のルーティング先として公開する、ローカルにインストールされたプロセス・サイドカーツールです。外部プロバイダー（API キーを介してインターネット経由でアクセスするもの）とは異なり、組み込みサービスは OmniRoute と同じマシン上で実行され、ループバック経由で通信します。
 
 ---
 
@@ -27,36 +27,37 @@
 
 ## 1. 概要
 
-### なぜ組み込みサービスなのか？
+### なぜサービスを組み込むのか？
 
-6つのサービスが組み込まれています。
+7つのサービスが組み込まれています。
 
-| サービス        | npmパッケージ                        | デフォルトポート | 用途                                                                                                                                                                                                                                    |
-| --------------- | ------------------------------------ | :--------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **9Router**     | `9router`                            |      20130       | OmniRouteがサブプロバイダーとして使用できるAIルーター。モデルは`9router/{sub}/{model}`として公開されます                                                                                                                                |
-| **CLIProxyAPI** | GitHubリリースバイナリ（`cliproxy`） |       8317       | Anthropic CLI認証フロー用のローカルプロキシアダプター。OAuthトークンの有効期限が切れた場合にフォールバックルーティングを提供します                                                                                                      |
-| **Mux**         | `mux`（ヘッドレス`mux server`）      |       8322       | ローカルのエージェントオーケストレーションデーモン（coder/mux）。ライフサイクル管理のみを行い、ルーティング先ではありません（LLMプロキシ機能なし）。                                                                                    |
-| **Bifrost**     | `@maximhq/bifrost`                   |       8080       | Go製AIゲートウェイのリレーバックエンド。実行中は、リレールート（`/v1/relay/`）によって自動的に選択されます                                                                                                                              |
-| **Dario**       | `@askalf/dario`                      |       3456       | Claudeサブスクリプションプロキシ。Claude Code形式のトラフィックに対するCLIProxyAPIの代替／フェイルオーバーとして機能します。注入されたキーは`DARIO_ADMIN_TOKEN`となり、その`/admin/*` OAuthコントロールプレーンへのアクセスを制御します |
-| **open-wa**     | `@open-wa/wa-automate`               |       8323       | WhatsApp Web自動化（Puppeteer経由のヘッドレスChromium）。ライフサイクル管理のみを行い、ルーティング先ではありません。                                                                                                                   |
+| サービス        | npmパッケージ                        | デフォルトポート | 目的                                                                                                                                                                                                                                                                                                                                                                        |
+| --------------- | ------------------------------------ | :--------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                            |      20130       | OmniRouteがサブプロバイダーとして使用できるAIルーター。モデルは`9router/{sub}/{model}`として公開されます                                                                                                                                                                                                                                                                    |
+| **CLIProxyAPI** | GitHubリリースバイナリ（`cliproxy`） |       8317       | Anthropic CLI認証フロー用のローカルプロキシアダプター。OAuthトークンの有効期限が切れた場合にフォールバックルーティングを提供します                                                                                                                                                                                                                                          |
+| **Mux**         | `mux`（ヘッドレス`mux server`）      |       8322       | ローカルのエージェントオーケストレーションデーモン（coder/mux）。ライフサイクル管理のみで、ルーティング先ではありません（LLMプロキシ機能なし）。                                                                                                                                                                                                                            |
+| **Bifrost**     | `@maximhq/bifrost`                   |       8080       | Go製AIゲートウェイのリレーバックエンド。実行中は、リレールート（`/v1/relay/`）によって自動的に選択されます                                                                                                                                                                                                                                                                  |
+| **Dario**       | `@askalf/dario`                      |       3456       | Claudeサブスクリプションプロキシ。Claude Code形式のトラフィックに対するCLIProxyAPIの代替／フェイルオーバーであり、注入されたキーは`DARIO_ADMIN_TOKEN`となって、その`/admin/*` OAuthコントロールプレーンへのアクセスを制御します                                                                                                                                             |
+| **open-wa**     | `@open-wa/wa-automate`               |       8323       | WhatsApp Web自動化（Puppeteer経由のヘッドレスChromium）。ライフサイクル管理のみで、ルーティング先ではありません。                                                                                                                                                                                                                                                           |
+| **LLMLingua**   | `@atjsh/llmlingua-2`                 |      20135       | プロンプト圧縮サイドカー。実際のLLMLingua-2 ONNXモデル（MicrosoftのアルゴリズムのJS/TS移植版）です。`open-sse/services/compression/engines/llmlingua/index.ts`はHTTP経由で`/compress`をこのサービスにディスパッチし、サイドカーが停止している場合はプロセス内のワーカースレッドバックエンドにフォールバックします。ライフサイクル管理のみで、ルーティング先ではありません。 |
 
-6つすべてが同じ監視モデルに従います。
+7つすべてが同じ監視モデルに従います。
 
 - OmniRouteはこれらを`DATA_DIR/services/{name}/`配下にインストールします（OmniRoute自身の`package.json`から分離）
 - OmniRouteはこれらを子プロセスとして起動し、監視します
-- OmniRouteは一時的なAPIキーを子プロセスの環境に注入し、（該当する場合）ダウンタイムなしでローテーションします
-- すべての管理ルート（`/api/services/*`）は**LOCAL_ONLY**です。ループバックからのみアクセスできます（厳格ルール#17）
+- OmniRouteは一時的なAPIキーを子プロセスの環境に注入し、ダウンタイムなしでローテーションします（該当する場合）
+- すべての管理ルート（`/api/services/*`）は**LOCAL_ONLY**であり、ループバックからのみアクセスできます（厳格ルール#17）
 
 ### 主要な決定事項（設計計画より）
 
 | 決定事項                                      | 値                                                                        |
 | --------------------------------------------- | ------------------------------------------------------------------------- |
 | 9RouterネイティブUIへのダッシュボードアクセス | `/dashboard/providers/services/9router/embed/*`でのリバースプロキシ       |
-| インストール方式                              | `execFile`による`npm install {package}`（シェル展開なし）                 |
-| 利用モード                                    | ルーティングエンジンに`9router/{sub}/{model}`として登録されたプロバイダー |
+| インストール方式                              | `execFile`による`npm install {package}`（シェル補間なし）                 |
+| 利用モード                                    | ルーティングエンジンに`9router/{sub}/{model}`として登録されるプロバイダー |
 | APIキー管理                                   | OmniRouteが生成し、保存時に暗号化（AES-256-GCM）して、環境変数経由で注入  |
 | ダッシュボードの場所                          | `/dashboard/providers/services`（3つのタブ）                              |
-| 自動起動                                      | サービスごとのトグル、デフォルトはOFF                                     |
+| 自動起動                                      | サービスごとの切り替え、デフォルトはOFF                                   |
 
 ---
 
@@ -66,7 +67,7 @@
 ┌────────────────────────────────────────────────────────────────────┐
 │  レイヤー1 — UI                                                    │
 │  /dashboard/providers/services  (タブ: CLIProxyAPI | 9Router | Mux)│
-│  ライブログ (SSE)、開始/停止/再起動/更新、設定、インストール       │
+│  リアルタイムログ（SSE）、開始/停止/再起動/更新、設定、インストール│
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
 │    ├── page.tsx               シェル + ?tab= によるタブルーティング│
@@ -75,9 +76,9 @@
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
 │                               ServiceLogsPanel, ApiKeyCard, ...    │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ HTTP (Next.js fetch)
+                       │ HTTP（Next.js fetch）
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  レイヤー2 — API (LOCAL_ONLY — ループバックのみ)                   │
+│  レイヤー2 — API（LOCAL_ONLY — ループバック限定）                 │
 │                                                                    │
 │  /api/services/9router/{install|start|stop|restart|update|         │
 │                          rotate-key|status|auto-start|logs}        │
@@ -86,52 +87,52 @@
 │  /api/services/mux/{install|start|stop|restart|update|             │
 │                      status|auto-start|logs}                       │
 │  /dashboard/providers/services/9router/embed/[...path]             │
-│    (HTTP + WebSocket リバースプロキシ → 9Router アップストリーム)  │
+│    （リバースHTTP + WebSocketプロキシ → 9Routerアップストリーム） │
 │                                                                    │
-│  ゲート: LOCAL_ONLY_API_PREFIXES に "/api/services/" および        │
-│          "/dashboard/providers/services/*/embed/" を含める         │
+│  ゲート: LOCAL_ONLY_API_PREFIXES に "/api/services/" と            │
+│          "/dashboard/providers/services/*/embed/" を含む           │
 └──────────────────────┬─────────────────────────────────────────────┘
                        │ プロセス内呼び出し
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  レイヤー3 — ServiceSupervisor (src/lib/services/)                 │
+│  レイヤー3 — ServiceSupervisor（src/lib/services/）                │
 │                                                                    │
-│  ServiceSupervisor.ts   汎用スーパーバイザー (child_process.spawn) │
+│  ServiceSupervisor.ts   汎用スーパーバイザー（child_process.spawn）│
 │    ├── インストール: execFile('npm', ['install', pkg, '--prefix']) │
 │    ├── 開始:         spawn(node, [entrypoint], {env, cwd})         │
 │    ├── APIキー:      crypto.randomBytes(32) → env NINEROUTER_API_KEY│
-│    ├── ポート:       9Router は 20130 (設定可能)                   │
-│    ├── ログ:         stdio リングバッファ 5 MB → SSE イベント      │
-│    ├── ヘルス:       2～5秒ごとに HTTP GET /health、遅延リカバリー │
-│    └── ライフサイクル: SIGTERM 15秒 → SIGKILL                     │
+│    ├── ポート:       9Routerでは20130（設定可能）                  │
+│    ├── ログ:         stdioリングバッファー5 MB → SSEイベント      │
+│    ├── ヘルス:       2～5秒ごとにHTTP GET /health、遅延リカバリー │
+│    └── ライフサイクル: SIGTERM 15秒 → SIGKILL                    │
 │                                                                    │
 │  registry.ts        getSupervisor(name) / registerSupervisor()     │
-│  bootstrap.ts       プロセス開始時にすべての SERVICES[] を起動     │
+│  bootstrap.ts       プロセス起動時にすべてのSERVICES[]を初期化    │
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
-│  modelSync.ts       定期的に GET /v1/models → service_models テーブル│
-│  ringBuffer.ts      循環ログバッファ (サービスごとに 5 MB)         │
-│  healthCheck.ts     ポーリングによる HTTP ヘルスプローブ           │
+│  modelSync.ts       定期的なGET /v1/models → service_modelsテーブル│
+│  ringBuffer.ts      循環ログバッファー（サービスごとに5 MB）      │
+│  healthCheck.ts     ポーリング方式のHTTPヘルスプローブ            │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
-│                      (インストーラーアダプター)                    │
+│                      （インストーラーアダプター）                  │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ OpenAI互換 HTTP (ループバック)
+                       │ OpenAI互換HTTP（ループバック）
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  レイヤー4 — プロバイダー / ルーティング                           │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
-│    リクエストごとにポートとAPIキーを再取得 (キャッシュなし)。      │
-│    プロキシ前にモデルIDから "9router/" プレフィックスを削除。      │
-│    スーパーバイザーが "running" でなければ 503 service_not_running を返す。│
+│    リクエストごとにポートとAPIキーを再取得（キャッシュなし）。    │
+│    プロキシ前にモデルIDから"9router/"プレフィックスを除去。       │
+│    スーパーバイザーが"running"でない場合、503 service_not_runningを返す。│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
-│    "9router" のエントリ: isEmbeddedService: true                   │
+│    "9router"のエントリ: isEmbeddedService: true                    │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    モデルは "9router/{sub}/{model}" (プレフィックス付き) として保存。│
-│    modelSync.ts により5分ごとに同期。                              │
+│    モデルを"9router/{sub}/{model}"として保存（プレフィックス付き）。│
+│    modelSync.tsにより5分ごとに同期。                               │
 │                                                                    │
-│  Mux はライフサイクル管理のみ (レイヤー1～3) — LLMプロキシではなく│
-│  エージェントオーケストレーションデーモンであるため、レイヤー4の  │
-│  executor/provider エントリはなく、ルーティング対象にもならない。 │
+│  Muxはライフサイクル管理のみ（レイヤー1～3）— LLMプロキシではなく│
+│  エージェントオーケストレーションデーモンであるため、レイヤー4の │
+│  executor/providerエントリはなく、ルーティング対象にもならない。 │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -142,16 +143,17 @@
 | `src/lib/services/ServiceSupervisor.ts`     | コアクラス：ライフサイクル、ロック、ヘルス、リングバッファ |
 | `src/lib/services/bootstrap.ts`             | プロセスレベルの登録と自動起動                             |
 | `src/lib/services/registry.ts`              | シングルトンマップ `tool → supervisor`                     |
-| `src/lib/services/apiKey.ts`                | キー生成、保存時の AES-256-GCM 暗号化                      |
-| `src/lib/services/modelSync.ts`             | 定期的なモデル同期（5 分ごと）+ オンデマンド               |
-| `src/lib/services/ringBuffer.ts`            | SSE サブスクライブ機能付き 5 MB 循環ログバッファ           |
-| `src/lib/services/healthCheck.ts`           | HTTP ヘルスプローブ（間隔を設定可能）                      |
+| `src/lib/services/apiKey.ts`                | キー生成、AES-256-GCM による保存時暗号化                   |
+| `src/lib/services/modelSync.ts`             | 定期的なモデル同期（5 分間隔）+ オンデマンド               |
+| `src/lib/services/ringBuffer.ts`            | SSE サブスクライブ機能を備えた 5 MB の循環ログバッファ     |
+| `src/lib/services/healthCheck.ts`           | HTTP ヘルスプローブ（間隔設定可能）                        |
 | `src/lib/services/installers/ninerouter.ts` | 9Router の npm インストール／更新／アンインストール        |
 | `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI の npm インストール／更新／アンインストール    |
 | `src/lib/services/installers/mux.ts`        | Mux の npm インストール／更新／アンインストール            |
 | `src/lib/services/installers/openwa.ts`     | open-wa の npm インストール／更新／アンインストール        |
+| `src/lib/services/installers/llmlingua.ts`  | LLMLingua の npm インストール／更新／アンインストール      |
 | `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` ヘルパー                           |
-| `src/app/api/services/[name]/logs/route.ts` | 共有 SSE ログエンドポイント                                |
+| `src/app/api/services/[name]/logs/route.ts` | 共通 SSE ログエンドポイント                                |
 | `open-sse/executors/ninerouter.ts`          | プロバイダーエグゼキューター（レイヤー 4）                 |
 
 ---
@@ -233,18 +235,18 @@ npm から 9Router をインストールします。独自の `package.json` と
 | ステータス | 説明                                                               |
 | ---------- | ------------------------------------------------------------------ |
 | `200`      | `{ ok: true, installedVersion: "x.y.z", path: "..." }`             |
-| `400`      | 無効なリクエストボディ（Zod 検証失敗）                             |
+| `400`      | 無効なリクエストボディ（Zod バリデーション失敗）                   |
 | `409`      | インストール中（ロック取得済み）                                   |
-| `500`      | npm install に失敗 — 分かりやすいエラーについては `message` を参照 |
+| `500`      | npm install に失敗 — わかりやすいエラーについては `message` を参照 |
 
 **注:** `execFile('npm', [...])` を使用します — シェルも補間も使用しません（厳格なルール #13）。
-EACCES エラーは、分かりやすいメッセージとして提示されます。
+EACCES エラーは、わかりやすいメッセージとして提示されます。
 
 ---
 
 #### `POST /api/services/9router/start`
 
-9Router を起動します。まだ登録されていない場合は supervisor を登録してから、
+9Router を起動します。まだ登録されていない場合はスーパーバイザーを登録し、その後
 `supervisor.start()` を呼び出します。すでに実行中の場合は冪等です。
 
 **リクエストボディ:** なし
@@ -275,7 +277,7 @@ EACCES エラーは、分かりやすいメッセージとして提示されま�
 
 #### `POST /api/services/9router/stop`
 
-9Router を正常に停止します。SIGTERM を送信して 15 秒待機し、まだ稼働している場合は SIGKILL を送信します。
+9Router を正常に停止します。SIGTERM を送信して 15 秒待機し、それでも稼働している場合は SIGKILL を送信します。
 すでに停止している場合は冪等です。
 
 **リクエストボディ:** なし
@@ -301,9 +303,8 @@ EACCES エラーは、分かりやすいメッセージとして提示されま�
 
 #### `POST /api/services/9router/update`
 
-9Router を新しい npm バージョンに更新します。サービスが実行中の場合は、最初に停止し、
-npm install を実行して新しいバージョンをその場でインストールした後、
-サービスを再起動します。
+9Router を新しい npm バージョンに更新します。サービスが実行中の場合は最初に停止し、
+npm install を実行して新しいバージョンをその場でインストールした後、サービスを再起動します。
 
 **リクエストボディ**（すべて任意）:
 
@@ -323,9 +324,8 @@ npm install を実行して新しいバージョンをその場でインスト�
 
 #### `POST /api/services/9router/rotate-key`
 
-9Router 用の新しい API キーを生成し、保存時に暗号化します。また、サービスが実行中の場合は、
-環境から新しいキーを読み込むようにサービスを再起動します。古いキーは
-直ちに無効化されます。
+9Router 用の新しい API キーを生成し、保存時に暗号化して、サービスが実行中の場合は再起動します。
+これにより、環境から新しいキーが読み込まれます。古いキーは直ちに無効化されます。
 
 **リクエストボディ:** なし
 
@@ -336,7 +336,7 @@ npm install を実行して新しいバージョンをその場でインスト�
 | `200`      | `{ keyRotated: true, restarted: boolean }` |
 | `500`      | ローテーションに失敗                       |
 
-**セキュリティ:** 新しいキーがレスポンスで返されることはありません（認証情報の漏洩防止）。
+**セキュリティ:** 新しいキーがレスポンスで返されることはありません（認証情報の漏洩を防止）。
 キーは `version_manager` テーブルに暗号化（AES-256-GCM）して保存されます。
 
 ---
@@ -376,8 +376,8 @@ npm install を実行して新しいバージョンをその場でインスト�
 
 #### `POST /api/services/9router/auto-start`
 
-自動起動フラグを切り替えます。`enabled: true` の場合、次回 OmniRoute が起動するときに
-サービスが自動的に起動します（サービスがインストールされている場合）。
+自動起動フラグを切り替えます。`enabled: true` の場合、次回 OmniRoute が起動するときに、
+サービスがインストール済みであれば自動的に起動します。
 
 **リクエストボディ:**
 
@@ -396,22 +396,22 @@ npm install を実行して新しいバージョンをその場でインスト�
 
 #### `GET /api/services/9router/logs`
 
-9Router の stdout/stderr リングバッファからライブログを配信する SSE ストリームです。
+9Router の stdout/stderr リングバッファからライブログを送信する SSE ストリームです。
 
-**クエリパラメータ:**
+**クエリパラメーター:**
 
-| パラメータ | 型        | デフォルト | 説明                                                                                |
-| ---------- | --------- | ---------- | ----------------------------------------------------------------------------------- |
-| `tail`     | `integer` | 200        | 最初に送信する過去のログ行数（最大 1000）                                           |
-| `filter`   | `string`  | なし       | 大文字と小文字を区別しない部分文字列フィルター（正規表現は不使用 — ReDoS 対策済み） |
+| パラメーター | 型        | デフォルト | 説明                                                                                          |
+| ------------ | --------- | ---------- | --------------------------------------------------------------------------------------------- |
+| `tail`       | `integer` | 200        | 最初に送信する過去の行数（最大 1000）                                                         |
+| `filter`     | `string`  | なし       | 大文字と小文字を区別しない部分文字列フィルター（正規表現は使用しないため ReDoS に対して安全） |
 
 **SSE イベント:**
 
-| イベント    | データ      | 説明                      |
-| ----------- | ----------- | ------------------------- |
-| `snapshot`  | `LogLine[]` | 過去ログの初期末尾部分    |
-| `log`       | `LogLine`   | ライブのログ行            |
-| `heartbeat` | `{}`        | 15 秒ごとのキープアライブ |
+| イベント    | データ      | 説明                         |
+| ----------- | ----------- | ---------------------------- |
+| `snapshot`  | `LogLine[]` | 最初に送信する過去の末尾部分 |
+| `log`       | `LogLine`   | ライブログ行                 |
+| `heartbeat` | `{}`        | 15 秒ごとのキープアライブ    |
 
 **LogLine スキーマ:**
 
@@ -425,30 +425,30 @@ npm install を実行して新しいバージョンをその場でインスト�
 
 **レスポンス:**
 
-| ステータス | 説明                                         |
-| ---------- | -------------------------------------------- |
-| `200`      | `text/event-stream`                          |
-| `400`      | `filter` パラメーターが長すぎる（200文字超） |
-| `404`      | サービスが見つからない（supervisorに未登録） |
+| ステータス | 説明                                               |
+| ---------- | -------------------------------------------------- |
+| `200`      | `text/event-stream`                                |
+| `400`      | `filter` パラメーターが長すぎる（200文字超）       |
+| `404`      | サービスが見つからない（スーパーバイザーに未登録） |
 
 ---
 
 ### 4.2 CLIProxyAPIエンドポイント（10ルート）
 
 CLIProxyAPIは、9Routerから`rotate-key`を除き、`accounts`、`provider-expose`、
-`auto-restart-adopted`を加えたものと同じエンドポイント構成です。現在は起動時に
-専用のデータプレーンAPIキーが注入されます（`bootstrap.ts`の`needsApiKey: true`。
-モデル同期に使用）。`status`に含まれるフィールドは少なくなっています。
+`auto-restart-adopted`を追加したものと同じエンドポイント構成です。起動時に注入される
+専用のデータプレーンAPIキーを受け取るようになりました（`bootstrap.ts`内の
+`needsApiKey: true`。モデル同期に使用）。`status`に含まれるフィールドは少なくなっています。
 
-| メソッド | パス                                | 説明                                      |
-| -------- | ----------------------------------- | ----------------------------------------- |
-| `POST`   | `/api/services/cliproxy/install`    | npmからCLIProxyAPIをインストール          |
-| `POST`   | `/api/services/cliproxy/start`      | CLIProxyAPIを起動                         |
-| `POST`   | `/api/services/cliproxy/stop`       | CLIProxyAPIを停止                         |
-| `POST`   | `/api/services/cliproxy/restart`    | CLIProxyAPIを再起動                       |
-| `POST`   | `/api/services/cliproxy/update`     | 新しいバージョンへ更新                    |
-| `GET`    | `/api/services/cliproxy/status`     | ライブ状態 + DB状態（`apiKeyMasked`なし） |
-| `POST`   | `/api/services/cliproxy/auto-start` | 自動起動を切り替え                        |
+| メソッド | パス                                | 説明                                       |
+| -------- | ----------------------------------- | ------------------------------------------ |
+| `POST`   | `/api/services/cliproxy/install`    | npmからCLIProxyAPIをインストール           |
+| `POST`   | `/api/services/cliproxy/start`      | CLIProxyAPIを起動                          |
+| `POST`   | `/api/services/cliproxy/stop`       | CLIProxyAPIを停止                          |
+| `POST`   | `/api/services/cliproxy/restart`    | CLIProxyAPIを再起動                        |
+| `POST`   | `/api/services/cliproxy/update`     | より新しいバージョンに更新                 |
+| `GET`    | `/api/services/cliproxy/status`     | ライブ＋DBステータス（`apiKeyMasked`なし） |
+| `POST`   | `/api/services/cliproxy/auto-start` | 自動起動を切り替え                         |
 
 共有の`GET /api/services/{name}/logs`エンドポイント（§4.1を参照）は、
 `[name]`動的セグメントを使用して4つすべてのサービスで機能します。
@@ -458,10 +458,10 @@ CLIProxyAPIは、9Routerから`rotate-key`を除き、`accounts`、`provider-exp
 ### 4.3 Muxエンドポイント（8ルート）
 
 MuxはCLIProxyAPIと同じエンドポイント構成で、APIサーフェスに`rotate-key`ルートは
-ありません（ベアラートークンは9Routerと同様に`getOrCreateApiKey("mux")`を介して
+ありません（Bearerトークンは9Routerと同じ方法で`getOrCreateApiKey("mux")`を介して
 生成され、`MUX_SERVER_AUTH_TOKEN`環境変数を介して注入されますが、専用のローテーション
 エンドポイントはまだありません）。Muxはライフサイクル管理のみの対象です。9Routerとは異なり、
-Layer 4 executorを持たず、ルーティングプロバイダーとして登録されることもありません。
+Layer 4エグゼキューターを持たず、ルーティングプロバイダーとして登録されることもありません。
 
 | メソッド | パス                           | 説明                                    |
 | -------- | ------------------------------ | --------------------------------------- |
@@ -469,8 +469,8 @@ Layer 4 executorを持たず、ルーティングプロバイダーとして登�
 | `POST`   | `/api/services/mux/start`      | Muxを起動（`mux server`）               |
 | `POST`   | `/api/services/mux/stop`       | Muxを停止                               |
 | `POST`   | `/api/services/mux/restart`    | Muxを再起動                             |
-| `POST`   | `/api/services/mux/update`     | 新しいnpmバージョンへ更新               |
-| `GET`    | `/api/services/mux/status`     | ライブ状態 + DB状態                     |
+| `POST`   | `/api/services/mux/update`     | より新しいnpmバージョンに更新           |
+| `GET`    | `/api/services/mux/status`     | ライブ＋DBステータス                    |
 | `POST`   | `/api/services/mux/auto-start` | 自動起動を切り替え                      |
 
 ---
@@ -478,46 +478,46 @@ Layer 4 executorを持たず、ルーティングプロバイダーとして登�
 ### 4.4 Bifrostエンドポイント（8ルート）
 
 BifrostはGo製のAIゲートウェイ・リレーバックエンド（`@maximhq/bifrost`）です。
-CLIProxyAPIと同じエンドポイント構成を使用します（`rotate-key`はありません。
-Bifrostは、`-app-dir`配下の`config.json`で独自のプロバイダーキーを管理します）。
+CLIProxyAPIと同じエンドポイント構成を使用します（`rotate-key`はありません。Bifrostは
+`-app-dir`配下の`config.json`内で独自のプロバイダーキーを管理します）。
 
-| メソッド | パス                               | 説明                                                 |
-| -------- | ---------------------------------- | ---------------------------------------------------- |
-| `POST`   | `/api/services/bifrost/install`    | npmからBifrostをインストール（`@maximhq/bifrost`）   |
-| `POST`   | `/api/services/bifrost/start`      | ポート8080（デフォルト）でBifrostを起動              |
-| `POST`   | `/api/services/bifrost/stop`       | Bifrostを停止                                        |
-| `POST`   | `/api/services/bifrost/restart`    | Bifrostを再起動                                      |
-| `POST`   | `/api/services/bifrost/update`     | 新しいバージョンへ更新                               |
-| `GET`    | `/api/services/bifrost/status`     | ライブ状態 + DB状態                                  |
-| `POST`   | `/api/services/bifrost/auto-start` | 自動起動を切り替え                                   |
-| `GET`    | `/api/services/bifrost/logs`       | SSEログ末尾（共有の`[name]/logs`動的ルートを介して） |
+| メソッド | パス                               | 説明                                               |
+| -------- | ---------------------------------- | -------------------------------------------------- |
+| `POST`   | `/api/services/bifrost/install`    | npmからBifrostをインストール（`@maximhq/bifrost`） |
+| `POST`   | `/api/services/bifrost/start`      | ポート8080（デフォルト）でBifrostを起動            |
+| `POST`   | `/api/services/bifrost/stop`       | Bifrostを停止                                      |
+| `POST`   | `/api/services/bifrost/restart`    | Bifrostを再起動                                    |
+| `POST`   | `/api/services/bifrost/update`     | より新しいバージョンに更新                         |
+| `GET`    | `/api/services/bifrost/status`     | ライブ＋DBステータス                               |
+| `POST`   | `/api/services/bifrost/auto-start` | 自動起動を切り替え                                 |
+| `GET`    | `/api/services/bifrost/logs`       | SSEログ末尾（共有の`[name]/logs`動的ルートを使用） |
 
-**ルーティング接続:** `BIFROST_BASE_URL`が未設定で、監視対象のBifrostインスタンスが
-実行中の場合、`getBifrostRoutingConfig()`（`routingBackend.ts`内）は自動的に
-`http://127.0.0.1:{port}`をリレーのベースURLとして使用します。明示的に設定された
-`BIFROST_BASE_URL`環境変数が常に優先されます。
+**ルーティング連携：** `BIFROST_BASE_URL`が未設定で、監視対象のBifrostインスタンスが
+実行中の場合、`getBifrostRoutingConfig()`（`routingBackend.ts`内）はリレーのベースURLとして
+`http://127.0.0.1:{port}`を自動的に使用します。明示的に指定された`BIFROST_BASE_URL`環境変数が
+常に優先されます。
 
 ---
 
 ### 4.5 Darioエンドポイント（12ルート）
 
-他のサービスと同じライフサイクル構成（`install`、`start`、`stop`、`restart`、
-`update`、`status`、`auto-start`、`auto-restart-adopted`）に加え、`admin/`配下に
-トークンで保護されたOAuthコントロールプレーンがあります。`admin/accounts`、
+ほかのサービスと同じライフサイクル構成（`install`、`start`、`stop`、`restart`、
+`update`、`status`、`auto-start`、`auto-restart-adopted`）に加えて、`admin/`配下に
+トークンで保護されたOAuthコントロールプレーンがあります：`admin/accounts`、
 `admin/import-from-omniroute`、`admin/login-start`、`admin/login-complete`
-（すべて`DARIO_ADMIN_TOKEN`によって保護されています）。
+（すべて`DARIO_ADMIN_TOKEN`によって保護されます）。
 
 ### 4.6 open-waエンドポイント（7ルート）
 
-open-wa（`@open-wa/wa-automate`）は、WhatsApp Webを自動化するために
-ヘッドレスChromiumインスタンスを（Puppeteer経由で）操作します。Muxと同じ
+open-wa（`@open-wa/wa-automate`）は、WhatsApp Webを自動化するために、
+Puppeteer経由でヘッドレスChromiumインスタンスを操作します。Muxと同じ
 エンドポイント構成を使用します（`rotate-key`ルートはまだありません）。
 ライフサイクル管理のみの対象であり、ルーティング先ではなく、
-Layer 4 executor/providerエントリもありません。
+Layer 4エグゼキューター／プロバイダーのエントリもありません。
 
 | メソッド | パス                              | 説明                                                     |
 | -------- | --------------------------------- | -------------------------------------------------------- |
-| `POST`   | `/api/services/openwa/install`    | npm から open-wa（`@open-wa/wa-automate`）をインストール |
+| `POST`   | `/api/services/openwa/install`    | npm から open-wa (`@open-wa/wa-automate`) をインストール |
 | `POST`   | `/api/services/openwa/start`      | ポート 8323（デフォルト）で open-wa を起動               |
 | `POST`   | `/api/services/openwa/stop`       | open-wa を停止                                           |
 | `POST`   | `/api/services/openwa/restart`    | open-wa を再起動                                         |
@@ -526,21 +526,65 @@ Layer 4 executor/providerエントリもありません。
 | `POST`   | `/api/services/openwa/auto-start` | 自動起動を切り替え                                       |
 | `GET`    | `/api/services/openwa/logs`       | SSE ログ末尾（共有の `[name]/logs` 動的ルート経由）      |
 
-**API キー：** `WA_KEY` として注入されます。open-wa の汎用 `WA_*` プレフィックス付き環境変数オーバーライドにより、`--key`/`-k` CLI オプションへマッピングされます（`dist/cli/setup.js::envArgs()`、インストール済みの 4.76.0 パッケージで検証済み）。`generateServiceApiKey()` による生成時には `ow_` がプレフィックスとして付与されます。open-wa は `key`/`api_key` HTTP ヘッダーからキーを読み取ります（`Authorization: Bearer` ではありません）。`/api-docs*` はチェックから明示的に除外されているため（`dist/cli/server.js` の `setupAuthenticationLayer`）、ヘルスプローブに認証ヘッダーは不要です。
+**API キー:** `WA_KEY` として注入されます。open-wa の汎用的な `WA_*` 接頭辞付き環境変数
+オーバーライドにより、これは `--key`/`-k` CLI オプションへマッピングされます
+（`dist/cli/setup.js::envArgs()`、インストール済みの 4.76.0
+パッケージに対して検証済み）。`generateServiceApiKey()` によって生成される場合は `ow_`
+が接頭辞として付与されます。open-wa は `key`/`api_key` HTTP ヘッダーからキーを読み戻します
+（`Authorization: Bearer` ではありません）。`/api-docs*` はチェックから明示的に除外されているため
+（`dist/cli/server.js` の `setupAuthenticationLayer`）、ヘルスプローブに認証ヘッダーは
+必要ありません。
 
-**ペアリング：** open-wa は非公式であり、WhatsApp とは提携していません。そのため、接続された番号には WhatsApp 独自の自動化検出によって利用停止となるリスクがあります。初回起動時、ペアリング用 QR コードが stdout に出力され、既存のログパネル/SSE ストリームを通じて表示されます。この統合には、専用の QR 画像エンドポイントはまだありません。
+**ペアリング:** open-wa は非公式であり、WhatsApp とは提携していません。そのため、
+接続された番号は WhatsApp 独自の自動化検出によって BAN されるリスクがあります。
+初回起動時、ペアリング用 QR コードが stdout に出力され、既存の
+ログパネル/SSE ストリームを通じて表示されます。この統合には、現時点で専用の QR 画像エンドポイントは
+ありません。
 
 ---
 
-### 4.7 リバースプロキシ（9Router ダッシュボードの埋め込み）
+### 4.7 LLMLingua エンドポイント（8 ルート）
 
-ダッシュボードは、次の内部リバースプロキシを介して iframe 内に 9Router Web UI を埋め込みます：
+LLMLingua は `@atjsh/llmlingua-2` をラップするプロンプト圧縮サイドカーです（実際の
+ONNX トークン分類モデルであり、最初の
+`/compress` 呼び出し時に Hugging Face からダウンロードされます）。Bifrost と同じエンドポイント形式を使用します（API キーなし —
+`needsApiKey: false`、認証情報を扱うことはありません）。
+
+| メソッド | パス                                           | 説明                                                                                       |
+| -------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `POST`   | `/api/services/llmlingua/install`              | `@atjsh/llmlingua-2` とピアを npm でインストールし、サイドカーサーバースクリプトを書き込む |
+| `POST`   | `/api/services/llmlingua/start`                | ポート 20135（デフォルト）でサイドカーを起動                                               |
+| `POST`   | `/api/services/llmlingua/stop`                 | サイドカーを停止                                                                           |
+| `POST`   | `/api/services/llmlingua/restart`              | サイドカーを再起動                                                                         |
+| `POST`   | `/api/services/llmlingua/update`               | より新しいパッケージバージョンに更新                                                       |
+| `GET`    | `/api/services/llmlingua/status`               | ライブ + DB ステータス                                                                     |
+| `POST`   | `/api/services/llmlingua/auto-start`           | 自動起動を切り替え                                                                         |
+| `POST`   | `/api/services/llmlingua/auto-restart-adopted` | 引き継いだ（既存の）インスタンスの自動再起動を切り替え                                     |
+| `GET`    | `/api/services/llmlingua/logs`                 | SSE ログ末尾（共有の `[name]/logs` 動的ルート経由）                                        |
+
+**サイドカーのコントラクト:** サーバースクリプトは `GET /health`（即時応答 — モデルを
+待機しません）と `POST /compress`（`{ text, rate }` →
+`{ text, compressed, ratio }`）を公開します。モデルは最初の
+`/compress` 呼び出し時に遅延ロードされます。
+
+**圧縮の連携:** `open-sse/services/compression/engines/llmlingua/index.ts` の
+`httpSidecarBackend` は `LLMLINGUA_BASE_URL`（デフォルト:
+`http://127.0.0.1:20135`）を呼び出し、サイドカーのレスポンスが
+入力より厳密に短い場合にのみ受け入れます。何らかの失敗（未起動、タイムアウト、処理なしの
+レスポンス）が発生した場合は、インプロセスのワーカースレッドバックエンド（`./worker.ts`）にフォールバックします。
+
+---
+
+### 4.8 リバースプロキシ（9Router ダッシュボードの埋め込み）
+
+ダッシュボードは、次の内部リバースプロキシを介して 9Router Web UI を iframe 内に
+埋め込みます。
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 ```
 
-このプロキシは：
+このプロキシは以下を行います。
 
 - リクエストを `http://127.0.0.1:{port}/{path}` に転送します（ループバックのみ）
 - 受信した `cookie` および `authorization` ヘッダーを削除します（OmniRoute セッションの漏洩を防止）
@@ -548,9 +592,12 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 - レスポンスから `set-cookie`、`content-security-policy`、`x-frame-options`、`cross-origin-*` を削除します
 - HTML レスポンスを書き換えて `<base href>` を注入し、絶対パスを正規化します（`/foo` → `/dashboard/.../embed/foo`）
 
-埋め込みダッシュボードの WebSocket アップグレードは、専用ポート上の補助サーバーによって処理されます（`src/lib/services/embedWsProxy.ts` を参照）。
+埋め込みダッシュボードの WebSocket アップグレードは、専用ポート上の
+補助サーバーによって処理されます（`src/lib/services/embedWsProxy.ts` を参照）。
 
-**セキュリティ：** 埋め込みプロキシルートは `LOCAL_ONLY_API_PREFIXES` に分類され、ループバックからのみアクセスできます。Cloudflare/Ngrok トンネル経由で JWT を取得した攻撃者であっても、埋め込みサービスへのプロキシアクセスはできません。
+**セキュリティ:** 埋め込みプロキシルートは `LOCAL_ONLY_API_PREFIXES`
+配下に分類され、ループバックからのみアクセスできます。Cloudflare/Ngrok トンネル経由で
+JWT を取得した攻撃者であっても、埋め込みサービスへプロキシすることはできません。
 
 ---
 

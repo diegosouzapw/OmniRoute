@@ -5,10 +5,10 @@
 ---
 
 > **버전:** v3.8.44
-> **최종 업데이트:** 2026-09-09
-> **대상 독자:** 임베디드 서비스(9Router, CLIProxyAPI, Mux, Bifrost, open-wa)를 추가, 유지 관리 또는 디버깅하는 엔지니어.
+> **최종 업데이트:** 2026-09-16
+> **대상:** 임베디드 서비스(9Router, CLIProxyAPI, Mux, Bifrost, open-wa, LLMLingua)를 추가, 유지 관리 또는 디버깅하는 엔지니어.
 
-임베디드 서비스는 OmniRoute가 설치하고 감독하며 최상위 라우팅 대상으로 제공하는, 로컬에 설치된 프로세스 사이드카 도구입니다. API 키를 통해 인터넷으로 연결되는 외부 제공자와 달리, 임베디드 서비스는 OmniRoute와 동일한 시스템에서 실행되며 루프백을 통해 통신합니다.
+임베디드 서비스는 OmniRoute가 설치하고 감독하며 일급 라우팅 대상으로 노출하는, 로컬에 설치된 프로세스 사이드카 도구입니다. 외부 제공업체(API 키를 통해 인터넷으로 연결)와 달리, 임베디드 서비스는 OmniRoute와 동일한 머신에서 실행되며 루프백을 통해 통신합니다.
 
 ---
 
@@ -29,34 +29,35 @@
 
 ### 임베디드 서비스를 사용하는 이유
 
-6개의 서비스가 임베드됩니다:
+다음 7개 서비스가 임베드됩니다.
 
-| 서비스          | npm 패키지                         | 기본 포트 | 용도                                                                                                                                                                                             |
-| --------------- | ---------------------------------- | :-------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **9Router**     | `9router`                          |   20130   | OmniRoute가 하위 공급자로 사용할 수 있는 AI 라우터입니다. 모델은 `9router/{sub}/{model}` 형식으로 노출됩니다.                                                                                    |
-| **CLIProxyAPI** | GitHub 릴리스 바이너리(`cliproxy`) |   8317    | Anthropic CLI 인증 흐름을 위한 로컬 프록시 어댑터입니다. OAuth 토큰이 만료될 때 대체 라우팅을 제공합니다.                                                                                        |
-| **Mux**         | `mux`(헤드리스 `mux server`)       |   8322    | 로컬 에이전트 오케스트레이션 데몬(coder/mux)입니다. 수명 주기만 관리되며, 라우팅 대상이 아닙니다(LLM 프록시 없음).                                                                               |
-| **Bifrost**     | `@maximhq/bifrost`                 |   8080    | Go AI 게이트웨이 릴레이 백엔드입니다. 실행 중이면 릴레이 경로(`/v1/relay/`)에서 자동으로 선택됩니다.                                                                                             |
-| **Dario**       | `@askalf/dario`                    |   3456    | Claude 구독 프록시입니다. Claude-Code 형태의 트래픽에 대해 CLIProxyAPI의 대안/장애 조치 역할을 하며, 주입된 키는 `/admin/*` OAuth 제어 영역에 대한 접근을 제한하는 `DARIO_ADMIN_TOKEN`이 됩니다. |
-| **open-wa**     | `@open-wa/wa-automate`             |   8323    | WhatsApp Web 자동화(Puppeteer를 통한 헤드리스 Chromium)입니다. 수명 주기만 관리되며, 라우팅 대상이 아닙니다.                                                                                     |
+| 서비스          | npm 패키지                         | 기본 포트 | 용도                                                                                                                                                                                                                                                                                                                                |
+| --------------- | ---------------------------------- | :-------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **9Router**     | `9router`                          |   20130   | OmniRoute가 하위 공급자로 사용할 수 있는 AI 라우터입니다. 모델은 `9router/{sub}/{model}` 형식으로 노출됩니다.                                                                                                                                                                                                                       |
+| **CLIProxyAPI** | GitHub 릴리스 바이너리(`cliproxy`) |   8317    | Anthropic CLI 인증 흐름을 위한 로컬 프록시 어댑터입니다. OAuth 토큰이 만료될 때 대체 라우팅을 제공합니다.                                                                                                                                                                                                                           |
+| **Mux**         | `mux`(헤드리스 `mux server`)       |   8322    | 로컬 에이전트 오케스트레이션 데몬(coder/mux)입니다. 수명 주기만 관리되며 라우팅 대상이 아닙니다(LLM 프록시 기능 없음).                                                                                                                                                                                                              |
+| **Bifrost**     | `@maximhq/bifrost`                 |   8080    | Go AI 게이트웨이 릴레이 백엔드입니다. 실행 중이면 릴레이 경로(`/v1/relay/`)에서 자동으로 선택됩니다.                                                                                                                                                                                                                                |
+| **Dario**       | `@askalf/dario`                    |   3456    | Claude 구독 프록시로, Claude-Code 형식 트래픽에 대한 CLIProxyAPI의 대안/장애 조치 수단입니다. 주입된 키는 `/admin/*` OAuth 제어 영역에 대한 접근을 제한하는 `DARIO_ADMIN_TOKEN`이 됩니다.                                                                                                                                           |
+| **open-wa**     | `@open-wa/wa-automate`             |   8323    | WhatsApp Web 자동화(Puppeteer를 통한 헤드리스 Chromium)입니다. 수명 주기만 관리되며 라우팅 대상이 아닙니다.                                                                                                                                                                                                                         |
+| **LLMLingua**   | `@atjsh/llmlingua-2`               |   20135   | 프롬프트 압축 사이드카로, 실제 LLMLingua-2 ONNX 모델(Microsoft 알고리즘의 JS/TS 포트)을 사용합니다. `open-sse/services/compression/engines/llmlingua/index.ts`는 HTTP를 통해 `/compress` 요청을 이 서비스로 전달하며, 사이드카가 중단되면 프로세스 내 워커 스레드 백엔드로 대체됩니다. 수명 주기만 관리되며 라우팅 대상이 아닙니다. |
 
-6개 서비스 모두 동일한 관리 모델을 따릅니다:
+7개 서비스 모두 동일한 감독 모델을 따릅니다.
 
 - OmniRoute는 서비스를 `DATA_DIR/services/{name}/` 아래에 설치합니다(OmniRoute 자체 `package.json`과 격리됨).
-- OmniRoute는 서비스를 자식 프로세스로 생성하고 모니터링합니다.
-- OmniRoute는 임시 API 키를 자식 프로세스의 환경에 주입하고, 가능한 경우 중단 없이 교체합니다.
+- OmniRoute는 서비스를 자식 프로세스로 실행하고 모니터링합니다.
+- OmniRoute는 임시 API 키를 자식 프로세스의 환경에 주입하고, 해당되는 경우 중단 없이 교체합니다.
 - 모든 관리 경로(`/api/services/*`)는 **LOCAL_ONLY**입니다. 즉, 루프백에서만 접근할 수 있습니다(엄격한 규칙 #17).
 
-### 주요 결정 사항(설계 계획에서 발췌)
+### 주요 결정 사항(설계 계획 기준)
 
-| 결정 사항                                | 값                                                                           |
-| ---------------------------------------- | ---------------------------------------------------------------------------- |
-| 9Router 네이티브 UI에 대한 대시보드 접근 | `/dashboard/providers/services/9router/embed/*`의 리버스 프록시              |
-| 설치 메커니즘                            | `execFile`을 통한 `npm install {package}`(셸 보간 없음)                      |
-| 사용 모드                                | 라우팅 엔진에 `9router/{sub}/{model}`로 등록된 공급자                        |
-| API 키 관리                              | OmniRoute가 생성하고, 저장 시 암호화(AES-256-GCM)하며, 환경 변수를 통해 주입 |
-| 대시보드 위치                            | `/dashboard/providers/services`(탭 3개)                                      |
-| 자동 시작                                | 서비스별 토글, 기본값 OFF                                                    |
+| 결정                                     | 값                                                                          |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| 9Router 네이티브 UI에 대한 대시보드 접근 | `/dashboard/providers/services/9router/embed/*`의 리버스 프록시             |
+| 설치 메커니즘                            | `execFile`을 통한 `npm install {package}`(셸 보간 없음)                     |
+| 사용 모드                                | 라우팅 엔진에 `9router/{sub}/{model}` 형식으로 공급자 등록                  |
+| API 키 관리                              | OmniRoute가 생성하고 저장 시 암호화(AES-256-GCM)한 후 환경 변수를 통해 주입 |
+| 대시보드 위치                            | `/dashboard/providers/services`(탭 3개)                                     |
+| 자동 시작                                | 서비스별 토글, 기본값 OFF                                                   |
 
 ---
 
@@ -65,11 +66,11 @@
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │  계층 1 — UI                                                       │
-│  /dashboard/providers/services  (탭: CLIProxyAPI | 9Router | Mux)  │
+│  /dashboard/providers/services  (탭: CLIProxyAPI | 9Router | Mux) │
 │  실시간 로그(SSE), 시작/중지/재시작/업데이트, 설정, 설치           │
 │                                                                    │
 │  src/app/(dashboard)/dashboard/providers/services/                 │
-│    ├── page.tsx               셸 + ?tab= 기반 탭 라우팅            │
+│    ├── page.tsx               셸 + ?tab=을 통한 탭 라우팅          │
 │    ├── tabs/                  CliproxyServiceTab, NinerouterServiceTab,│
 │    │                          MuxServiceTab                        │
 │    └── components/            ServiceStatusCard, ServiceLifecycleButtons,│
@@ -91,15 +92,15 @@
 │  게이트: LOCAL_ONLY_API_PREFIXES에 "/api/services/" 및             │
 │          "/dashboard/providers/services/*/embed/" 포함             │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ 프로세스 내부 호출
+                       │ 프로세스 내 호출
 ┌──────────────────────▼─────────────────────────────────────────────┐
 │  계층 3 — ServiceSupervisor (src/lib/services/)                    │
 │                                                                    │
 │  ServiceSupervisor.ts   범용 슈퍼바이저(child_process.spawn)       │
-│    ├── 설치:       execFile('npm', ['install', pkg, '--prefix'])    │
+│    ├── 설치:       execFile('npm', ['install', pkg, '--prefix'])   │
 │    ├── 시작:       spawn(node, [entrypoint], {env, cwd})           │
-│    ├── API 키:     crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
-│    ├── 포트:       9Router는 20130(설정 가능)                      │
+│    ├── api_key:    crypto.randomBytes(32) → env NINEROUTER_API_KEY  │
+│    ├── 포트:       9Router에 20130 사용(구성 가능)                 │
 │    ├── 로그:       stdio 링 버퍼 5 MB → SSE 이벤트                │
 │    ├── 상태 확인:  2~5초마다 HTTP GET /health, 지연 복구           │
 │    └── 수명 주기:  SIGTERM 15초 → SIGKILL                         │
@@ -109,50 +110,51 @@
 │  apiKey.ts          getOrCreateApiKey(), generateServiceApiKey()   │
 │  modelSync.ts       주기적 GET /v1/models → service_models 테이블  │
 │  ringBuffer.ts      순환 로그 버퍼(서비스당 5 MB)                  │
-│  healthCheck.ts     폴링 방식의 HTTP 상태 프로브                   │
+│  healthCheck.ts     폴링 방식의 HTTP 상태 프로브                  │
 │  installers/        ninerouter.ts, cliproxy.ts, mux.ts, openwa.ts  │
 │                      (설치 프로그램 어댑터)                        │
 └──────────────────────┬─────────────────────────────────────────────┘
-                       │ OpenAI 호환 HTTP(루프백)
+                       │ OpenAI 호환 HTTP (루프백)
 ┌──────────────────────▼─────────────────────────────────────────────┐
-│  계층 4 — 제공자 / 라우팅                                         │
+│  계층 4 — 공급자 / 라우팅                                         │
 │                                                                    │
 │  open-sse/executors/ninerouter.ts                                  │
 │    요청마다 포트와 API 키를 다시 조회함(캐싱 없음).                │
-│    프록시하기 전에 모델 ID에서 "9router/" 접두사를 제거함.         │
+│    프록시 처리 전에 모델 ID에서 "9router/" 접두사를 제거함.        │
 │    슈퍼바이저가 "running" 상태가 아니면 503 service_not_running 반환.│
 │                                                                    │
 │  src/shared/constants/providers.ts                                 │
 │    "9router" 항목: isEmbeddedService: true                         │
 │                                                                    │
 │  open-sse/config/providerRegistry.ts                               │
-│    모델은 "9router/{sub}/{model}" 형식으로 저장됨(접두사 포함).    │
-│    modelSync.ts가 5분마다 동기화함.                                │
+│    모델은 "9router/{sub}/{model}" 형식으로 저장됨(접두사 포함).     │
+│    modelSync.ts를 통해 5분마다 동기화됨.                           │
 │                                                                    │
 │  Mux는 수명 주기만 관리됨(계층 1~3). Mux는 LLM 프록시가 아니라     │
-│  에이전트 오케스트레이션 데몬이므로 계층 4 실행기/제공자 항목이    │
+│  에이전트 오케스트레이션 데몬이므로 계층 4 실행기/공급자 항목이    │
 │  없으며 라우팅 대상이 되지 않음.                                  │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 주요 소스 파일
 
-| 파일                                        | 역할                                             |
-| ------------------------------------------- | ------------------------------------------------ |
-| `src/lib/services/ServiceSupervisor.ts`     | 핵심 클래스: 수명 주기, 잠금, 상태 확인, 링 버퍼 |
-| `src/lib/services/bootstrap.ts`             | 프로세스 수준 등록 및 자동 시작                  |
-| `src/lib/services/registry.ts`              | 싱글턴 맵 `tool → supervisor`                    |
-| `src/lib/services/apiKey.ts`                | 키 생성, AES-256-GCM 저장 시 암호화              |
-| `src/lib/services/modelSync.ts`             | 주기적 모델 동기화(5분) + 온디맨드               |
-| `src/lib/services/ringBuffer.ts`            | SSE 구독을 지원하는 5 MB 순환 로그 버퍼          |
-| `src/lib/services/healthCheck.ts`           | HTTP 상태 프로브(간격 구성 가능)                 |
-| `src/lib/services/installers/ninerouter.ts` | 9Router용 npm 설치/업데이트/제거                 |
-| `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI용 npm 설치/업데이트/제거             |
-| `src/lib/services/installers/mux.ts`        | Mux용 npm 설치/업데이트/제거                     |
-| `src/lib/services/installers/openwa.ts`     | open-wa용 npm 설치/업데이트/제거                 |
-| `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` 헬퍼                     |
-| `src/app/api/services/[name]/logs/route.ts` | 공유 SSE 로그 엔드포인트                         |
-| `open-sse/executors/ninerouter.ts`          | 프로바이더 실행기(계층 4)                        |
+| 파일                                        | 역할                                        |
+| ------------------------------------------- | ------------------------------------------- |
+| `src/lib/services/ServiceSupervisor.ts`     | 핵심 클래스: 수명 주기, 잠금, 상태, 링 버퍼 |
+| `src/lib/services/bootstrap.ts`             | 프로세스 수준 등록 및 자동 시작             |
+| `src/lib/services/registry.ts`              | 싱글턴 맵 `도구 → supervisor`               |
+| `src/lib/services/apiKey.ts`                | 키 생성, AES-256-GCM 저장 시 암호화         |
+| `src/lib/services/modelSync.ts`             | 주기적 모델 동기화(5분) + 주문형 실행       |
+| `src/lib/services/ringBuffer.ts`            | SSE 구독을 지원하는 5 MB 순환 로그 버퍼     |
+| `src/lib/services/healthCheck.ts`           | HTTP 상태 프로브(간격 설정 가능)            |
+| `src/lib/services/installers/ninerouter.ts` | 9Router용 npm 설치/업데이트/제거            |
+| `src/lib/services/installers/cliproxy.ts`   | CLIProxyAPI용 npm 설치/업데이트/제거        |
+| `src/lib/services/installers/mux.ts`        | Mux용 npm 설치/업데이트/제거                |
+| `src/lib/services/installers/openwa.ts`     | open-wa용 npm 설치/업데이트/제거            |
+| `src/lib/services/installers/llmlingua.ts`  | LLMLingua용 npm 설치/업데이트/제거          |
+| `src/app/api/services/9router/_lib.ts`      | `getOrInitSupervisor()` 헬퍼                |
+| `src/app/api/services/[name]/logs/route.ts` | 공유 SSE 로그 엔드포인트                    |
+| `open-sse/executors/ninerouter.ts`          | 공급자 실행기(레이어 4)                     |
 
 ---
 
@@ -209,7 +211,7 @@
 
 ## 4. API 참조
 
-`/api/services/` 아래의 모든 경로는 **LOCAL_ONLY**입니다(루프백 전용, 엄격 규칙 #17).
+`/api/services/` 아래의 모든 경로는 **LOCAL_ONLY**입니다(루프백 전용, 엄격한 규칙 #17).
 루프백이 아닌 요청은 인증 토큰과 관계없이 `403 LOCAL_ONLY` 응답을 받습니다.
 
 ### 4.1 9Router 엔드포인트(11개 경로)
@@ -217,7 +219,7 @@
 #### `POST /api/services/9router/install`
 
 npm에서 9Router를 설치합니다. 자체 `package.json` 및 `node_modules/`를 포함하는
-`DATA_DIR/services/9router/`를 생성합니다. OmniRoute 자체 종속성과 충돌하지 않습니다.
+`DATA_DIR/services/9router/`를 생성합니다. OmniRoute 자체 의존성과 충돌하지 않습니다.
 
 **요청 본문**(모두 선택 사항):
 
@@ -234,11 +236,11 @@ npm에서 9Router를 설치합니다. 자체 `package.json` 및 `node_modules/`�
 | 상태  | 설명                                                   |
 | ----- | ------------------------------------------------------ |
 | `200` | `{ ok: true, installedVersion: "x.y.z", path: "..." }` |
-| `400` | 잘못된 요청 본문(Zod 유효성 검사 실패)                 |
-| `409` | 이미 설치 중(잠금이 유지됨)                            |
-| `500` | npm 설치 실패 — 사용자 친화적 오류는 `message` 참조    |
+| `400` | 잘못된 요청 본문(Zod 검증 실패)                        |
+| `409` | 이미 설치 중(잠금 유지 중)                             |
+| `500` | npm 설치 실패 — 사용자 친화적인 오류는 `message` 참조  |
 
-**참고:** `execFile('npm', [...])`을 사용합니다 — 셸 및 보간 없음(엄격 규칙 #13).
+**참고:** `execFile('npm', [...])`을 사용합니다 — 셸 및 보간을 사용하지 않습니다(엄격한 규칙 #13).
 EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 
 ---
@@ -276,7 +278,7 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 
 #### `POST /api/services/9router/stop`
 
-9Router를 정상적으로 중지합니다. SIGTERM을 보내고 15초 동안 기다린 다음, 여전히 실행 중이면 SIGKILL을 보냅니다.
+9Router를 정상적으로 중지합니다. SIGTERM을 전송하고 15초 동안 기다린 다음, 여전히 실행 중이면 SIGKILL을 전송합니다.
 이미 중지된 경우에도 멱등성을 보장합니다.
 
 **요청 본문:** 없음
@@ -286,13 +288,13 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 | 상태  | 설명                                 |
 | ----- | ------------------------------------ |
 | `200` | `ServiceStatus` (`state: "stopped"`) |
-| `503` | 예기치 않은 중지 실패                |
+| `503` | 예기치 않게 중지 실패                |
 
 ---
 
 #### `POST /api/services/9router/restart`
 
-작업 잠금 내에서 `stop()`을 호출한 다음 `start()`를 호출하는 것과 같습니다.
+작업 잠금 상태에서 `stop()`을 실행한 다음 `start()`를 실행하는 것과 같습니다.
 
 **요청 본문:** 없음
 
@@ -302,9 +304,8 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 
 #### `POST /api/services/9router/update`
 
-9Router를 더 새로운 npm 버전으로 업데이트합니다. 서비스가 실행 중이면 먼저
-중지하고 npm install을 실행하여 새 버전을 기존 위치에 설치한 다음 서비스를
-다시 시작합니다.
+9Router를 더 최신 npm 버전으로 업데이트합니다. 서비스가 실행 중이면 먼저 중지한 후
+npm 설치를 실행하여 새 버전을 현재 위치에 설치하고 서비스를 다시 시작합니다.
 
 **요청 본문**(모두 선택 사항):
 
@@ -324,9 +325,8 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 
 #### `POST /api/services/9router/rotate-key`
 
-9Router용 새 API 키를 생성하고 저장 시 암호화한 후, 서비스가 실행 중인 경우
-환경에서 새 키를 가져오도록 서비스를 다시 시작합니다. 이전 키는 즉시
-무효화됩니다.
+9Router용 새 API 키를 생성하고 저장 시 암호화한 다음, 서비스가 실행 중인 경우
+환경에서 새 키를 가져오도록 서비스를 다시 시작합니다. 이전 키는 즉시 무효화됩니다.
 
 **요청 본문:** 없음
 
@@ -337,14 +337,14 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 | `200` | `{ keyRotated: true, restarted: boolean }` |
 | `500` | 키 교체 실패                               |
 
-**보안:** 새 키는 응답으로 절대 반환되지 않습니다(자격 증명 유출 방지).
+**보안:** 새 키는 응답으로 반환되지 않습니다(자격 증명 유출 방지).
 `version_manager` 테이블에 암호화되어(AES-256-GCM) 저장됩니다.
 
 ---
 
 #### `GET /api/services/9router/status`
 
-버전 메타데이터와 API 키 미리보기를 포함하여 실시간 상태와 DB 상태를 결합해 반환합니다.
+버전 메타데이터 및 API 키 미리보기를 포함하여 실시간 상태와 DB 상태를 결합해 반환합니다.
 
 **응답:**
 
@@ -377,8 +377,8 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 
 #### `POST /api/services/9router/auto-start`
 
-자동 시작 플래그를 전환합니다. `enabled: true`이면 다음에 OmniRoute가 부팅될 때
-서비스가 설치되어 있는 경우 자동으로 시작됩니다.
+자동 시작 플래그를 전환합니다. `enabled: true`인 경우 다음번에 OmniRoute가 부팅될 때
+서비스가 설치되어 있으면 자동으로 시작됩니다.
 
 **요청 본문:**
 
@@ -397,20 +397,20 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 
 #### `GET /api/services/9router/logs`
 
-9Router의 stdout/stderr 링 버퍼에서 실시간 로그를 전송하는 SSE 스트림입니다.
+9Router의 stdout/stderr 링 버퍼에서 실시간 로그를 제공하는 SSE 스트림입니다.
 
 **쿼리 매개변수:**
 
-| 매개변수 | 타입      | 기본값 | 설명                                                                  |
-| -------- | --------- | ------ | --------------------------------------------------------------------- |
-| `tail`   | `integer` | 200    | 처음에 전송할 과거 로그 줄 수(최대 1000)                              |
-| `filter` | `string`  | 없음   | 대소문자를 구분하지 않는 부분 문자열 필터(정규식 미사용 — ReDoS 안전) |
+| 매개변수 | 타입      | 기본값 | 설명                                                                        |
+| -------- | --------- | ------ | --------------------------------------------------------------------------- |
+| `tail`   | `integer` | 200    | 먼저 전송할 이전 로그 줄 수(최대 1000개)                                    |
+| `filter` | `string`  | 없음   | 대소문자를 구분하지 않는 부분 문자열 필터(정규식 미사용 — ReDoS로부터 안전) |
 
 **SSE 이벤트:**
 
 | 이벤트      | 데이터      | 설명                         |
 | ----------- | ----------- | ---------------------------- |
-| `snapshot`  | `LogLine[]` | 초기 과거 로그의 마지막 부분 |
+| `snapshot`  | `LogLine[]` | 초기 이전 로그의 마지막 부분 |
 | `log`       | `LogLine`   | 실시간 로그 줄               |
 | `heartbeat` | `{}`        | 15초마다 연결 유지           |
 
@@ -426,17 +426,20 @@ EACCES 오류는 사용자 친화적인 메시지로 표시됩니다.
 
 **응답:**
 
-| 상태  | 설명                                          |
-| ----- | --------------------------------------------- |
-| `200` | `text/event-stream`                           |
-| `400` | `filter` 매개변수가 너무 김(> 200자)          |
-| `404` | 서비스를 찾을 수 없음(감독자가 등록되지 않음) |
+| 상태  | 설명                                              |
+| ----- | ------------------------------------------------- |
+| `200` | `text/event-stream`                               |
+| `400` | `filter` 매개변수가 너무 김(> 200자)              |
+| `404` | 서비스를 찾을 수 없음(supervisor에 등록되지 않음) |
 
 ---
 
 ### 4.2 CLIProxyAPI 엔드포인트(10개 라우트)
 
-CLIProxyAPI는 9Router에서 `rotate-key`를 제외하고 `accounts`, `provider-expose`, `auto-restart-adopted`를 추가한 것과 동일한 엔드포인트 구조를 가집니다. 이제 생성 시 전용 데이터 플레인 API 키가 주입됩니다(`bootstrap.ts`에서 `needsApiKey: true`, 모델 동기화에 사용). `status`에는 더 적은 필드가 포함됩니다.
+CLIProxyAPI는 9Router에서 `rotate-key`를 제외하고 `accounts`, `provider-expose`,
+`auto-restart-adopted`를 추가한 것과 동일한 엔드포인트 구조를 가집니다. 이제 생성 시
+전용 데이터 플레인 API 키를 주입받으며(`bootstrap.ts`의 `needsApiKey: true`,
+모델 동기화에 사용), `status`에는 더 적은 필드가 포함됩니다.
 
 | 메서드 | 경로                                | 설명                                  |
 | ------ | ----------------------------------- | ------------------------------------- |
@@ -448,13 +451,18 @@ CLIProxyAPI는 9Router에서 `rotate-key`를 제외하고 `accounts`, `provider-
 | `GET`  | `/api/services/cliproxy/status`     | 실시간 + DB 상태(`apiKeyMasked` 없음) |
 | `POST` | `/api/services/cliproxy/auto-start` | 자동 시작 전환                        |
 
-공유 `GET /api/services/{name}/logs` 엔드포인트(§4.1 참조)는 `[name]` 동적 세그먼트를 사용하여 네 서비스 모두에서 작동합니다.
+공유 `GET /api/services/{name}/logs` 엔드포인트(§4.1 참조)는 `[name]` 동적
+세그먼트를 사용하여 네 서비스 모두에서 작동합니다.
 
 ---
 
 ### 4.3 Mux 엔드포인트(8개 라우트)
 
-Mux는 CLIProxyAPI와 동일한 엔드포인트 구조를 가지며 API 표면에 `rotate-key` 라우트가 없습니다(베어러 토큰은 9Router와 동일하게 `getOrCreateApiKey("mux")`를 통해 생성되고 `MUX_SERVER_AUTH_TOKEN` 환경 변수를 통해 주입되지만, 아직 전용 키 순환 엔드포인트는 없습니다). Mux는 수명 주기만 관리됩니다. 9Router와 달리 Layer 4 실행기가 없으며 라우팅 공급자로 등록되지 않습니다.
+Mux는 CLIProxyAPI와 동일한 엔드포인트 구조를 가지며, API 표면에 `rotate-key`
+라우트가 없습니다(베어러 토큰은 9Router와 동일하게 `getOrCreateApiKey("mux")`를
+통해 생성되고 `MUX_SERVER_AUTH_TOKEN` 환경 변수를 통해 주입되지만, 아직 전용
+순환 엔드포인트는 없습니다). Mux는 수명 주기만 관리됩니다. 9Router와 달리
+Layer 4 실행기가 없으며 라우팅 공급자로 등록되지 않습니다.
 
 | 메서드 | 경로                           | 설명                          |
 | ------ | ------------------------------ | ----------------------------- |
@@ -470,63 +478,109 @@ Mux는 CLIProxyAPI와 동일한 엔드포인트 구조를 가지며 API 표면�
 
 ### 4.4 Bifrost 엔드포인트(8개 라우트)
 
-Bifrost는 Go 기반 AI 게이트웨이 릴레이 백엔드(`@maximhq/bifrost`)입니다. CLIProxyAPI와 동일한 엔드포인트 구조를 사용합니다(`rotate-key` 없음 — Bifrost는 `-app-dir` 아래의 `config.json`에서 자체 공급자 키를 관리함).
+Bifrost는 Go 기반 AI 게이트웨이 릴레이 백엔드(`@maximhq/bifrost`)입니다.
+CLIProxyAPI와 동일한 엔드포인트 구조를 사용합니다(`rotate-key` 없음 — Bifrost는
+자체 공급자 키를 `-app-dir` 아래의 `config.json`에서 관리함).
 
-| 메서드 | 경로                               | 설명                                                      |
-| ------ | ---------------------------------- | --------------------------------------------------------- |
-| `POST` | `/api/services/bifrost/install`    | npm에서 Bifrost 설치(`@maximhq/bifrost`)                  |
-| `POST` | `/api/services/bifrost/start`      | 포트 8080에서 Bifrost 시작(기본값)                        |
-| `POST` | `/api/services/bifrost/stop`       | Bifrost 중지                                              |
-| `POST` | `/api/services/bifrost/restart`    | Bifrost 재시작                                            |
-| `POST` | `/api/services/bifrost/update`     | 최신 버전으로 업데이트                                    |
-| `GET`  | `/api/services/bifrost/status`     | 실시간 + DB 상태                                          |
-| `POST` | `/api/services/bifrost/auto-start` | 자동 시작 전환                                            |
-| `GET`  | `/api/services/bifrost/logs`       | SSE 로그 추적(공유 `[name]/logs` 동적 라우트를 통해 제공) |
+| 메서드 | 경로                               | 설명                                                 |
+| ------ | ---------------------------------- | ---------------------------------------------------- |
+| `POST` | `/api/services/bifrost/install`    | npm에서 Bifrost 설치(`@maximhq/bifrost`)             |
+| `POST` | `/api/services/bifrost/start`      | 포트 8080(기본값)에서 Bifrost 시작                   |
+| `POST` | `/api/services/bifrost/stop`       | Bifrost 중지                                         |
+| `POST` | `/api/services/bifrost/restart`    | Bifrost 재시작                                       |
+| `POST` | `/api/services/bifrost/update`     | 최신 버전으로 업데이트                               |
+| `GET`  | `/api/services/bifrost/status`     | 실시간 + DB 상태                                     |
+| `POST` | `/api/services/bifrost/auto-start` | 자동 시작 전환                                       |
+| `GET`  | `/api/services/bifrost/logs`       | SSE 로그 추적(공유 `[name]/logs` 동적 라우트를 통해) |
 
-**라우팅 연결:** `BIFROST_BASE_URL`이 설정되지 않았고 감독 대상 Bifrost 인스턴스가 실행 중이면 `getBifrostRoutingConfig()`(`routingBackend.ts`에 위치)는 자동으로 `http://127.0.0.1:{port}`를 릴레이 기본 URL로 사용합니다. 명시적인 `BIFROST_BASE_URL` 환경 변수가 항상 우선합니다.
+**라우팅 연결:** `BIFROST_BASE_URL`이 설정되지 않았고 supervisor가 관리하는
+Bifrost 인스턴스가 실행 중이면 `getBifrostRoutingConfig()`(`routingBackend.ts`에
+위치)는 자동으로 `http://127.0.0.1:{port}`를 릴레이 기본 URL로 사용합니다.
+명시적으로 설정된 `BIFROST_BASE_URL` 환경 변수가 항상 우선합니다.
 
 ---
 
 ### 4.5 Dario 엔드포인트(12개 라우트)
 
-다른 서비스와 동일한 수명 주기 구조(`install`, `start`, `stop`, `restart`, `update`, `status`, `auto-start`, `auto-restart-adopted`)에 더해 `admin/` 아래에 토큰으로 보호되는 OAuth 제어 플레인이 있습니다. 해당 제어 플레인에는 `admin/accounts`, `admin/import-from-omniroute`, `admin/login-start`, `admin/login-complete`가 포함되며, 모두 `DARIO_ADMIN_TOKEN`으로 보호됩니다.
+다른 서비스와 동일한 수명 주기 구조(`install`, `start`, `stop`, `restart`,
+`update`, `status`, `auto-start`, `auto-restart-adopted`)에 더해, `admin/` 아래에
+토큰으로 보호되는 OAuth 제어 플레인인 `admin/accounts`,
+`admin/import-from-omniroute`, `admin/login-start`, `admin/login-complete`가
+있습니다(모두 `DARIO_ADMIN_TOKEN`으로 보호됨).
 
 ### 4.6 open-wa 엔드포인트(7개 라우트)
 
-open-wa(`@open-wa/wa-automate`)는 Puppeteer를 통해 헤드리스 Chromium 인스턴스를 구동하여 WhatsApp Web을 자동화합니다. Mux와 동일한 엔드포인트 구조를 사용합니다(아직 `rotate-key` 라우트 없음). 수명 주기만 관리되며, 라우팅 대상이 아니고 Layer 4 실행기/공급자 항목도 없습니다.
+open-wa(`@open-wa/wa-automate`)는 WhatsApp Web을 자동화하기 위해
+(Puppeteer를 통해) 헤드리스 Chromium 인스턴스를 구동합니다. Mux와 동일한
+엔드포인트 구조를 사용합니다(아직 `rotate-key` 라우트 없음). 수명 주기만
+관리되며 라우팅 대상이 아니고, Layer 4 실행기/공급자 항목도 없습니다.
 
-| 메서드 | 경로                              | 설명                                                      |
-| ------ | --------------------------------- | --------------------------------------------------------- |
-| `POST` | `/api/services/openwa/install`    | npm에서 open-wa 설치 (`@open-wa/wa-automate`)             |
-| `POST` | `/api/services/openwa/start`      | 포트 8323에서 open-wa 시작(기본값)                        |
-| `POST` | `/api/services/openwa/stop`       | open-wa 중지                                              |
-| `POST` | `/api/services/openwa/restart`    | open-wa 재시작                                            |
-| `POST` | `/api/services/openwa/update`     | 최신 버전으로 업데이트                                    |
-| `GET`  | `/api/services/openwa/status`     | 실시간 + DB 상태                                          |
-| `POST` | `/api/services/openwa/auto-start` | 자동 시작 전환                                            |
-| `GET`  | `/api/services/openwa/logs`       | SSE 로그 테일(공유 `[name]/logs` 동적 라우트를 통해 제공) |
+| 메서드 | 경로                              | 설명                                          |
+| ------ | --------------------------------- | --------------------------------------------- |
+| `POST` | `/api/services/openwa/install`    | npm에서 open-wa 설치 (`@open-wa/wa-automate`) |
+| `POST` | `/api/services/openwa/start`      | 포트 8323에서 open-wa 시작(기본값)            |
+| `POST` | `/api/services/openwa/stop`       | open-wa 중지                                  |
+| `POST` | `/api/services/openwa/restart`    | open-wa 재시작                                |
+| `POST` | `/api/services/openwa/update`     | 최신 버전으로 업데이트                        |
+| `GET`  | `/api/services/openwa/status`     | 실시간 + DB 상태                              |
+| `POST` | `/api/services/openwa/auto-start` | 자동 시작 전환                                |
+| `GET`  | `/api/services/openwa/logs`       | SSE 로그 테일(공유 `[name]/logs` 동적 경유)   |
 
-**API 키:** `WA_KEY`로 주입됩니다. open-wa의 일반 `WA_*` 접두사 환경 변수
-오버라이드가 이를 `--key`/`-k` CLI 옵션에 매핑합니다
+**API 키:** `WA_KEY`로 주입됩니다. 이는 open-wa의 일반 `WA_*` 접두사 환경 변수
+재정의를 통해 `--key`/`-k` CLI 옵션에 매핑됩니다
 (`dist/cli/setup.js::envArgs()`, 설치된 4.76.0
-package에서 검증됨). `generateServiceApiKey()`로 생성할 때 `ow_` 접두사가 붙습니다. open-wa는
-`key`/`api_key` HTTP 헤더에서 키를 다시 읽습니다(`Authorization:
-Bearer`가 아님). `/api-docs*`는 검사에서 명시적으로 제외되므로
-(`dist/cli/server.js`의 `setupAuthenticationLayer`) 상태 확인 프로브에는
+패키지를 기준으로 검증됨). `generateServiceApiKey()`로 생성될 때 `ow_` 접두사가
+붙습니다. open-wa는 `Authorization:
+Bearer`가 아닌 `key`/`api_key` HTTP 헤더에서 키를 다시 읽습니다. `/api-docs*`는
+검사에서 명시적으로 제외되므로
+(`dist/cli/server.js`의 `setupAuthenticationLayer`) 상태 프로브에는
 인증 헤더가 필요하지 않습니다.
 
-**페어링:** open-wa는 비공식이며 WhatsApp과 제휴 관계가 없습니다.
-연결된 번호는 WhatsApp 자체 자동화 탐지로 인해 차단될 위험이 있습니다.
-처음 시작할 때 페어링 QR 코드가 stdout에 출력되고 기존 로그 패널/SSE
-스트림을 통해 표시됩니다. 아직 이 통합에는 전용 QR 이미지 엔드포인트가
+**페어링:** open-wa는 비공식이며 WhatsApp과 제휴 관계가 없습니다. 연결된
+번호는 WhatsApp 자체 자동화 탐지로 인해 차단될 위험이 있습니다.
+처음 시작할 때 페어링 QR 코드가 stdout에 출력되며 기존 로그 패널/SSE 스트림을
+통해 표시됩니다. 이 통합에는 아직 전용 QR 이미지 엔드포인트가
 없습니다.
 
 ---
 
-### 4.7 리버스 프록시(9Router 대시보드 임베드)
+### 4.7 LLMLingua 엔드포인트(8개 경로)
 
-대시보드는 다음 위치의 내부 리버스 프록시를 통해 9Router 웹 UI를 iframe
-내에 임베드합니다.
+LLMLingua는 `@atjsh/llmlingua-2`를 래핑하는 프롬프트 압축 사이드카입니다(실제
+ONNX 토큰 분류 모델은 첫 번째
+`/compress` 호출 시 Hugging Face에서 다운로드됨). Bifrost와 동일한 엔드포인트
+형식을 사용합니다(API 키 없음 —
+`needsApiKey: false`, 자격 증명을 처리하지 않음).
+
+| 메서드 | 경로                                           | 설명                                                                               |
+| ------ | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `POST` | `/api/services/llmlingua/install`              | `@atjsh/llmlingua-2` 및 피어 패키지를 npm으로 설치하고 사이드카 서버 스크립트 작성 |
+| `POST` | `/api/services/llmlingua/start`                | 포트 20135에서 사이드카 시작(기본값)                                               |
+| `POST` | `/api/services/llmlingua/stop`                 | 사이드카 중지                                                                      |
+| `POST` | `/api/services/llmlingua/restart`              | 사이드카 재시작                                                                    |
+| `POST` | `/api/services/llmlingua/update`               | 최신 패키지 버전으로 업데이트                                                      |
+| `GET`  | `/api/services/llmlingua/status`               | 실시간 + DB 상태                                                                   |
+| `POST` | `/api/services/llmlingua/auto-start`           | 자동 시작 전환                                                                     |
+| `POST` | `/api/services/llmlingua/auto-restart-adopted` | 채택된(기존) 인스턴스의 자동 재시작 전환                                           |
+| `GET`  | `/api/services/llmlingua/logs`                 | SSE 로그 테일(공유 `[name]/logs` 동적 경로를 통해 제공)                            |
+
+**사이드카 계약:** 서버 스크립트는 `GET /health`(즉시 응답 — 모델을
+기다리지 않음)와 `POST /compress` (`{ text, rate }` →
+`{ text, compressed, ratio }`)를 노출합니다. 모델은 첫 번째
+`/compress` 호출 시 지연 로드됩니다.
+
+**압축 연결:** `open-sse/services/compression/engines/llmlingua/index.ts`의
+`httpSidecarBackend`는 `LLMLINGUA_BASE_URL`(기본값
+`http://127.0.0.1:20135`)을 호출하며, 사이드카의 응답이 입력보다
+엄격히 짧은 경우에만 수락합니다. 모든 실패(실행되지 않음, 시간 초과, 무효과
+응답)는 인프로세스 워커 스레드 백엔드(`./worker.ts`)로 대체됩니다.
+
+---
+
+### 4.8 리버스 프록시(9Router 대시보드 임베드)
+
+대시보드는 다음 위치의 내부 리버스 프록시를 통해 iframe 안에 9Router 웹 UI를
+임베드합니다.
 
 ```
 GET|POST|... /dashboard/providers/services/9router/embed/[...path]
@@ -540,10 +594,10 @@ GET|POST|... /dashboard/providers/services/9router/embed/[...path]
 - 응답에서 `set-cookie`, `content-security-policy`, `x-frame-options`, `cross-origin-*`를 제거합니다.
 - HTML 응답을 재작성하여 `<base href>`를 주입하고 절대 경로를 정규화합니다(`/foo` → `/dashboard/.../embed/foo`).
 
-임베드된 대시보드의 WebSocket 업그레이드는 전용 포트의 컴패니언 서버에서
-처리합니다(`src/lib/services/embedWsProxy.ts` 참조).
+임베드된 대시보드의 WebSocket 업그레이드는 전용 포트에서 실행되는
+보조 서버가 처리합니다(`src/lib/services/embedWsProxy.ts` 참조).
 
-**보안:** 임베드 프록시 라우트는 `LOCAL_ONLY_API_PREFIXES`로 분류되며
+**보안:** 임베드 프록시 경로는 `LOCAL_ONLY_API_PREFIXES`에 포함되며
 루프백에서만 접근할 수 있습니다. 공격자가 Cloudflare/Ngrok 터널을 통해
 JWT를 획득하더라도 임베드된 서비스로 프록시할 수 없습니다.
 
