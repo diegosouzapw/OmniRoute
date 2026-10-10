@@ -1,0 +1,1 @@
+- **tests:** Provider icon regression coverage now awaits the real lazy icon catalog before asserting CDN fallbacks and unmounts React roots between cases, preserving the existing URL, prototype-guard, and asset-provenance assertions.

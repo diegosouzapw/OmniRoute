@@ -2,7 +2,7 @@
 // #2166 — ProviderIcon custom remote icon URL (`src` prop) support.
 import React from "react";
 import { act } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -22,9 +22,9 @@ const { default: ProviderIcon } = await import("@/shared/components/ProviderIcon
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-// Deliberately not registered in @lobehub/icons aliases or the KNOWN_PNGS/KNOWN_SVGS
-// static-asset sets, so tests exercise only the `src` override + fallback chain
-// (thesvg.org → generic icon). Never reaches the local SVG or @lobehub tiers.
+// Deliberately absent from the local assets and LobeHub aliases. After the real
+// lazy icon catalog loads, resolution reaches thesvg.org and then the generic
+// icon if that image fails; a custom `src` still takes priority.
 const UNKNOWN_PROVIDER_ID = "openai-compatible-test-node-xyz";
 
 const PROVIDER_IDS_WITHOUT_LOCAL_ASSET_PROVENANCE = [
@@ -108,14 +108,13 @@ const PROVIDER_IDS_WITHOUT_LOCAL_ASSET_PROVENANCE = [
   "qwen-cloud-token-plan",
 ] as const;
 
-const containers: HTMLElement[] = [];
+const renderedIcons: { container: HTMLElement; root: Root }[] = [];
 
 function renderIcon(props: Record<string, unknown>): HTMLElement {
   const container = document.createElement("div");
   document.body.appendChild(container);
-  containers.push(container);
-
   const root = createRoot(container);
+  renderedIcons.push({ container, root });
   act(() => {
     root.render(<ProviderIcon providerId={UNKNOWN_PROVIDER_ID} {...props} />);
   });
@@ -130,6 +129,12 @@ function fireImgError(container: HTMLElement) {
   });
 }
 
+async function settleIconImports() {
+  await act(async () => {
+    await vi.dynamicImportSettled();
+  });
+}
+
 beforeEach(() => {
   (
     globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -137,9 +142,12 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  while (containers.length > 0) {
-    containers.pop()?.remove();
-  }
+  act(() => {
+    for (const { container, root } of renderedIcons.splice(0)) {
+      root.unmount();
+      container.remove();
+    }
+  });
   document.body.innerHTML = "";
 });
 
@@ -153,8 +161,9 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     expect(img?.getAttribute("src")).toBe("https://example.com/logo.png");
   });
 
-  it("falls back to thesvg.org CDN when `src` is unset for an unknown provider", () => {
+  it("falls back to thesvg.org CDN when `src` is unset for an unknown provider", async () => {
     const container = renderIcon({});
+    await settleIconImports();
     const img = container.querySelector("img");
     expect(img).not.toBeNull();
     expect(img?.getAttribute("src")).toBe(
@@ -162,11 +171,12 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     );
   });
 
-  it("falls back through thesvg.org CDN then generic icon when `src` load fails and no fallbackText is given", () => {
+  it("falls back through thesvg.org CDN then generic icon when `src` load fails and no fallbackText is given", async () => {
     const container = renderIcon({ src: "https://example.com/broken.png" });
     expect(container.querySelector("img")).not.toBeNull();
 
     fireImgError(container);
+    await settleIconImports();
 
     // Falls back to thesvg.org
     const img = container.querySelector("img");
@@ -197,8 +207,9 @@ describe("ProviderIcon — custom remote icon URL (#2166)", () => {
     expect(container.textContent).toBe("OC");
   });
 
-  it("ignores a whitespace-only src and falls back to thesvg.org CDN", () => {
+  it("ignores a whitespace-only src and falls back to thesvg.org CDN", async () => {
     const container = renderIcon({ src: "   " });
+    await settleIconImports();
     const img = container.querySelector("img");
     expect(img).not.toBeNull();
     expect(img?.getAttribute("src")).toBe(
@@ -271,8 +282,9 @@ describe("ProviderIcon — unresolved local asset provenance", () => {
 describe("ProviderIcon — inherited object property ids", () => {
   it.each(["constructor", "valueOf", "hasOwnProperty", "__proto__"])(
     "renders provider id %s through the unknown-provider fallback",
-    (providerId) => {
+    async (providerId) => {
       const container = renderIcon({ providerId });
+      await settleIconImports();
       const img = container.querySelector("img");
 
       expect(img).not.toBeNull();
