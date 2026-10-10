@@ -564,18 +564,18 @@ faoi `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. CLI inmheánach OmniRoute
+## 10. CLI Inmheánach OmniRoute
 
-Soláthraíonn an dénártha `omniroute` orduithe do shaolré an fhreastalaí, don chumrú, do dhiagnóisic agus do bhainistiú soláthraithe. Pointe iontrála: `bin/omniroute.mjs`.
+Soláthraíonn an dénártha `omniroute` orduithe do shaolré an fhreastalaí, cumrú, diagnóisic agus bainistíocht soláthraithe. Pointe iontrála: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Tosaigh an freastalaí (port réamhshocraithe 20128)
 omniroute setup                        # Treoraí idirghníomhach cumraithe
-omniroute doctor                       # Seiceáil an chumraíocht, an bunachar sonraí, na poirt agus an timpeallacht rite
+omniroute doctor                       # Seiceáil an chumraíocht, an DB, na poirt agus an t-am rite
 omniroute providers list               # Naisc chumraithe soláthraithe
 omniroute providers test-all           # Tástáil gach nasc gníomhach
 omniroute reset-password               # Athshocraigh pasfhocal an riarthóra
-omniroute logs                         # Sruthaigh logaí iarratais
+omniroute logs                         # Sruthaigh logaí iarratas
 omniroute health                       # Sláinte mhionsonraithe (scoradáin, taisce, cuimhne)
 omniroute --version                    # Priontáil an leagan
 omniroute --help                       # Taispeáin gach ordú
@@ -590,35 +590,35 @@ omniroute setup --password '<value>'   # Socraigh pasfhocal an riarthóra go dí
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Cuir soláthraí leis agus tástáil é in aon chéim amháin
+  --test-provider                      # Cuir soláthraí leis agus tástáil é in aon iarraidh amháin
 ```
 
-Athróga timpeallachta a aithnítear don chumrú neamh-idirghníomhach:
+Athróga timpeallachta a aithnítear le haghaidh cumrú neamh-idirghníomhach:
 
 | Athróg              | Cuspóir                                                                      |
 | ------------------- | ---------------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | Eochair API an tsoláthraí (ceangailte le `--api-key` trí `.env()` Commander) |
-| `DATA_DIR`          | Sáraigh eolaire sonraí OmniRoute                                             |
+| `DATA_DIR`          | Sáraigh comhadlann sonraí OmniRoute                                          |
 
 Cuirtear gach ionchur neamh-idirghníomhach eile ar aghaidh mar bhratacha, ní mar athróga timpeallachta:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(féach ar na roghanna `omniroute setup` thuas).
+(féach roghanna `omniroute setup` thuas).
 
 ### Diagnóisic
 
 ```bash
-omniroute doctor                       # Seiceáil an chumraíocht, an bunachar sonraí, na poirt, an timpeallacht rite, an chuimhne agus an bheocht
+omniroute doctor                       # Seiceáil an chumraíocht, an DB, na poirt, an t-am rite, an chuimhne agus beocht
 omniroute doctor --json                # JSON atá inléite ag meaisín
 omniroute doctor --no-liveness         # Scipeáil an tóireadóir sláinte HTTP
-omniroute doctor --host 0.0.0.0        # Sáraigh óstach na beoachta
-omniroute doctor --liveness-url <url>  # Sárú URL iomlán chríochphointe na sláinte
+omniroute doctor --host 0.0.0.0        # Sáraigh óstach beoachta
+omniroute doctor --liveness-url <url>  # Sáraigh URL iomlán an chríochphointe sláinte
 ```
 
-Ritheann an dochtúir na seiceálacha seo: `Config`, `Database`, `Storage/encryption`,
+Ritheann an doctor na seiceálacha seo: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, agus `Server liveness`. Scoireann sé le cód neamh-nialasach más `fail` é aon seiceáil.
+`Memory`, agus `Server liveness`. Scoireann sé le cód neamh-nialasach má bhíonn aon seiceáil mar `fail`.
 
-### Bainistiú Soláthraithe
+### Bainistíocht Soláthraithe
 
 ```bash
 omniroute providers available                       # Catalóg soláthraithe OmniRoute
@@ -639,12 +639,24 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-Tá `providers add/import/auth/edit/remove` dírithe ar API ar dtús agus dá bhrí sin oibríonn siad i gcoinne
-an chomhthéacs ghníomhaigh áitiúil nó chianda. Ba cheart `--credential-stdin` nó
-`--credential-env` a úsáid le haghaidh ionchur dintiúr; ní thuairiscíonn `--dry-run --json` ach
+Tá `providers add/import/auth/edit/remove` dírithe ar an API ar dtús agus, dá bhrí sin, oibríonn siad i gcoinne
+an chomhthéacs ghníomhaigh áitiúil nó chianda. Ba cheart `--credential-stdin`
+nó `--credential-env` a úsáid chun dintiúir a ionchur; ní thuairiscíonn `--dry-run --json` ach
 láithreacht/cruth folaithe. Léann `providers available` catalóg OmniRoute;
 coinníonn `providers list/test/test-all/validate` a n-iompar áitiúil SQLite agus
 ní gá don fhreastalaí a bheith ag rith.
+
+Le haghaidh nód saincheaptha atá comhoiriúnach le OpenAI nó Anthropic, ceangail dintiúir leis
+an aitheantas nóid a sheolann `omniroute nodes add` ar ais, trí `omniroute keys add "$NODE_ID" --stdin` a úsáid.
+Éilíonn sé seo freastalaí atá ag rith agus fíordheimhniú bainistíochta don chomhthéacs gníomhach.
+Úsáideann an CLI `POST /api/providers`, a bhailíochtaíonn an nód agus a chóipeálann socruithe
+a chríochphointe isteach sa nasc. Má tá an nód ar iarraidh, má theipeann an t-údarú, nó mura bhfuil
+an freastalaí ar fáil, seoltar earráid ar ais gan dintiúr cúltaca áitiúil a chruthú.
+
+Socraíonn `nodes add --base-url` críochphointe an nóid; tá sé éagsúil le seoladh an fhreastalaí
+in `OMNIROUTE_BASE_URL`. Le haghaidh comhaid OpenAPI, úsáid
+`omniroute openapi dump --format json --out ./openapi.json`; roghnaíonn an `--output` domhanda
+formáidiú taispeána an CLI, ní ainm comhaid sprice.
 
 ### Aisghabháil & Athshocrú
 
@@ -654,22 +666,22 @@ omniroute reset-encrypted-columns       # Taispeáin rabhadh + rith thirim d'ath
 omniroute reset-encrypted-columns --force  # Cuir dintiúir chriptithe ar neamhní i SQLite i ndáiríre
 ```
 
-### Easpórtáil Dintiúr (⚠ bí cúramach)
+### Easpórtáil Dintiúr (⚠ láimhseáil go cúramach)
 
 ```bash
-omniroute auth export                                 # Taispeáin rabhadh + geata deimhnithe — gan rochtain ar an mbunachar sonraí
-omniroute auth export --force                          # Easpórtáil dintiúir DHÍCHRIPTITHE GACH naisc chuig stdout mar JSON
-omniroute auth export --force --id <id>                 # Easpórtáil an nasc comhoiriúnach amháin
-omniroute auth export --force --format env               # Aschuir línte OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export                                 # Taispeáin rabhadh + geata deimhnithe — gan rochtain ar an DB
+omniroute auth export --force                          # Easpórtáil dintiúir DHÍCHRIPTITHE GACH naisc chuig an aschur caighdeánach mar JSON
+omniroute auth export --force --id <id>                 # Ná heaspórtáil ach an nasc meaitseála
+omniroute auth export --force --format env               # Astaigh línte OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Scríobh chuig comhad (cruthaithe le ceadanna 0600)
 ```
 
-Tá `auth export` **áitiúil amháin** (léamh díreach SQLite, gan aon bhealach HTTP) agus priontálann/scríobhann sé
-luachanna **gnáth-théacs** `apiKey`/`accessToken`/`refreshToken`/`idToken` d'aon ghnó — sin an ghné, ní
-fabht. Ní léitear aon rud ón mbunachar sonraí, agus ní dhéantar aon rud a dhíchriptiú, gan `--force`. Priontáiltear
-meirge rabhaidh chuig stderr i gcónaí sula n-aschuirtear aon ghnáth-théacs. Éilíonn sé `STORAGE_ENCRYPTION_KEY` a
-bheith socraithe. Tuairiscítear réimse nach féidir a dhíchriptiú (eochair as dáta, sifrithéacs truaillithe) mar
-`<field>DecryptFailed: true` in ionad an easpórtáil iomlán a thobscor nó an earráid bhunúsach a sceitheadh.
+Tá `auth export` **áitiúil amháin** (léamh díreach SQLite, gan aon bhealach HTTP) agus priontálann/scríobhann sé luachanna
+**gnáth-théacs** `apiKey`/`accessToken`/`refreshToken`/`idToken` d'aon ghnó — sin í an ghné, ní
+fabht. Ní léitear aon rud ón mbunachar sonraí, agus ní dhíchriptítear aon rud, gan `--force`. Priontáiltear
+meirge rabhaidh chuig stderr i gcónaí sula n-aschuirtear aon ghnáth-théacs. Ní mór `STORAGE_ENCRYPTION_KEY` a
+bheith socraithe. Tuairiscítear réimse nach féidir a dhíchriptiú (eochair as dáta, cipirthéacs truaillithe) mar
+`<field>DecryptFailed: true` seachas an t-easpórtáil iomlán a thobscor nó an bhunearráid a sceitheadh.
 
 ### Fo-orduithe eile
 
@@ -680,14 +692,14 @@ omniroute status                       # Stádas cuimsitheach ag am rite
 omniroute logs                         # Sruthaigh logaí iarratais (--json, --search, --follow)
 omniroute config list                  # Taispeáin uirlisí CLI cumraithe
 
-omniroute provider list                # Liostaigh na soláthraithe atá ar fáil (ailias de providers list)
+omniroute provider list                # Liostaigh soláthraithe atá ar fáil (ailias de providers list)
 omniroute provider add                 # Cláraigh OmniRoute mar sholáthraí ar uirlis
 omniroute keys add | list | remove     # Bainistigh eochracha API
 omniroute models [provider]            # Liostaigh samhlacha (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Cruthaigh seat den chumraíocht + DB
-omniroute restore                      # Athchóirigh ó sheat roimhe seo
+omniroute backup                       # Glac pictiúr meandrach den chumraíocht + DB
+omniroute restore                      # Athchóirigh ó phictiúr meandrach roimhe seo
 
 omniroute health                       # Sláinte mhionsonraithe (scoradáin, taisce, cuimhne)
 omniroute quota                        # Úsáid chuóta an tsoláthraí
@@ -698,7 +710,7 @@ omniroute mcp status | restart         # Stádas / atosú fhreastalaí MCP
 omniroute a2a status | card            # Stádas fhreastalaí A2A / cárta gníomhaire
 
 omniroute tunnel list | create | stop  # Bainistigh tolláin (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Scrúdaigh / socraigh athróga timpeallachta (go sealadach)
+omniroute env show | get <k> | set <k> <v>  # Iniúch / socraigh athróga timpeallachta (sealadach)
 
 omniroute test                         # Tástáil thapa ar nascacht an tsoláthraí
 omniroute update                       # Seiceáil le haghaidh nuashonruithe
@@ -709,11 +721,11 @@ omniroute completion                   # Gin comhlánú blaoisce
 
 | Bratach             | Cur síos                                                     |
 | ------------------- | ------------------------------------------------------------ |
-| `--no-open`         | Ná hoscail an brabhsálaí go huathoibríoch ar thosú           |
-| `--port <n>`        | Sáraigh an port API (20128 de réir réamhshocraithe)          |
-| `--mcp`             | Rith mar fhreastalaí MCP thar stdio (le haghaidh IDEanna)    |
-| `--non-interactive` | Mód CI (gan leideanna; léann sé ó env/bratacha)              |
-| `--json`            | Aschur JSON atá inléite ag meaisín (doctor, providers, srl.) |
+| `--no-open`         | Ná hoscail an brabhsálaí go huathoibríoch ag an tús          |
+| `--port <n>`        | Sáraigh an port API (réamhshocrú 20128)                      |
+| `--mcp`             | Rith mar fhreastalaí MCP thar stdio (do IDEanna)             |
+| `--non-interactive` | Mód CI (gan leideanna; léann ó env/bratacha)                 |
+| `--json`            | Aschur JSON atá inléite ag meaisín (doctor, providers, etc.) |
 | `--help`, `-h`      | Taispeáin cabhair a bhaineann go sonrach leis an ordú        |
 | `--version`, `-v`   | Priontáil an leagan suiteáilte                               |
 

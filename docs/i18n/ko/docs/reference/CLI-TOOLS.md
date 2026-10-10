@@ -558,13 +558,13 @@ kiro-cli status
 
 ## 10. 내부 OmniRoute CLI
 
-`omniroute` 바이너리는 서버 수명 주기, 설정, 진단 및 프로바이더 관리를 위한 명령을 제공합니다. 진입점: `bin/omniroute.mjs`.
+`omniroute` 바이너리는 서버 수명 주기, 설정, 진단 및 공급자 관리를 위한 명령을 제공합니다. 진입점: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # 서버 시작(기본 포트 20128)
 omniroute setup                        # 대화형 설정 마법사
 omniroute doctor                       # 구성, DB, 포트, 런타임 확인
-omniroute providers list               # 구성된 프로바이더 연결
+omniroute providers list               # 구성된 공급자 연결
 omniroute providers test-all           # 모든 활성 연결 테스트
 omniroute reset-password               # 관리자 비밀번호 재설정
 omniroute logs                         # 요청 로그 스트리밍
@@ -582,17 +582,17 @@ omniroute setup --password '<value>'   # 관리자 비밀번호 직접 설정
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # 프로바이더 추가 및 테스트를 한 번에 수행
+  --test-provider                      # 한 번에 공급자 추가 및 테스트
 ```
 
 비대화형 설정에서 인식되는 환경 변수:
 
-| 변수                | 용도                                                            |
-| ------------------- | --------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | 프로바이더 API 키(Commander `.env()`를 통해 `--api-key`에 연결) |
-| `DATA_DIR`          | OmniRoute 데이터 디렉터리 재정의                                |
+| 변수                | 용도                                                          |
+| ------------------- | ------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | 공급자 API 키(Commander `.env()`를 통해 `--api-key`에 연결됨) |
+| `DATA_DIR`          | OmniRoute 데이터 디렉터리 재정의                              |
 
-그 밖의 모든 비대화형 입력은 환경 변수가 아닌 플래그로 전달됩니다:
+그 외 모든 비대화형 입력은 환경 변수가 아닌 플래그로 전달됩니다:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (위의 `omniroute setup` 옵션 참조).
 
@@ -600,25 +600,25 @@ omniroute setup --add-provider \
 
 ```bash
 omniroute doctor                       # 구성, DB, 포트, 런타임, 메모리, 활성 상태 확인
-omniroute doctor --json                # 머신 판독 가능 JSON
+omniroute doctor --json                # 기계 판독 가능 JSON
 omniroute doctor --no-liveness         # HTTP 상태 프로브 건너뛰기
 omniroute doctor --host 0.0.0.0        # 활성 상태 확인 호스트 재정의
 omniroute doctor --liveness-url <url>  # 전체 상태 엔드포인트 URL 재정의
 ```
 
-doctor는 다음 검사를 실행합니다: `Config`, `Database`, `Storage/encryption`,
+doctor는 다음 항목을 검사합니다: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary`(better-sqlite3),
-`Memory`, `Server liveness`. 검사 중 하나라도 `fail`이면 0이 아닌 종료 코드로 종료됩니다.
+`Memory`, `Server liveness`. 검사 결과 중 하나라도 `fail`이면 0이 아닌 종료 코드로 종료됩니다.
 
-### 프로바이더 관리
+### 공급자 관리
 
 ```bash
-omniroute providers available                       # OmniRoute 프로바이더 카탈로그
-omniroute providers available --search openai       # ID/이름/별칭/카테고리로 카탈로그 필터링
-omniroute providers available --category api-key    # 카테고리로 필터링(api-key, oauth, free, ...)
-omniroute providers available --json                # 머신 판독 가능 JSON
+omniroute providers available                       # OmniRoute 공급자 카탈로그
+omniroute providers available --search openai       # ID/이름/별칭/카테고리별로 카탈로그 필터링
+omniroute providers available --category api-key    # 카테고리별 필터링(api-key, oauth, free, ...)
+omniroute providers available --json                # 기계 판독 가능 JSON
 
-omniroute providers list                            # 구성된 프로바이더 연결
+omniroute providers list                            # 구성된 공급자 연결
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # 구성된 연결 하나 테스트
@@ -631,25 +631,37 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove`는 API 우선 방식이므로 활성
-로컬 또는 원격 컨텍스트를 대상으로 작동합니다. 자격 증명 입력에는
+`providers add/import/auth/edit/remove`는 API 우선 방식이므로
+활성 로컬 또는 원격 컨텍스트를 대상으로 작동합니다. 자격 증명 입력에는
 `--credential-stdin` 또는 `--credential-env`를 사용해야 하며, `--dry-run --json`은
-마스킹된 존재 여부/형태만 보고합니다. `providers available`은 OmniRoute 카탈로그를 읽습니다.
-`providers list/test/test-all/validate`는 기존 로컬 SQLite 동작을 유지하며
+민감 정보가 가려진 존재 여부/구조만 보고합니다. `providers available`은 OmniRoute 카탈로그를 읽습니다.
+`providers list/test/test-all/validate`는 로컬 SQLite 동작을 유지하며
 서버가 실행 중일 필요가 없습니다.
+
+사용자 지정 OpenAI 호환 또는 Anthropic 호환 노드의 경우 `omniroute nodes add`가
+반환한 노드 ID에 `omniroute keys add "$NODE_ID" --stdin`을 사용하여 자격 증명을 연결합니다.
+이를 위해서는 서버가 실행 중이어야 하며 활성 컨텍스트에 대한 관리 인증이 필요합니다.
+CLI는 `POST /api/providers`를 사용하며, 이 API는 노드를 검증하고 해당 엔드포인트
+설정을 연결에 복사합니다. 노드가 없거나, 인증에 실패하거나, 서버를 사용할 수 없는 경우
+로컬 대체 자격 증명을 생성하지 않고 오류를 반환합니다.
+
+`nodes add --base-url`은 노드 엔드포인트를 설정하며, `OMNIROUTE_BASE_URL`의 서버 주소와는
+별개입니다. OpenAPI 파일의 경우
+`omniroute openapi dump --format json --out ./openapi.json`을 사용합니다. 전역 `--output`은
+대상 파일 이름이 아니라 CLI 표시 형식을 선택합니다.
 
 ### 복구 및 재설정
 
 ```bash
 omniroute reset-password                # 관리자 비밀번호 재설정(별칭: omniroute-reset-password)
 omniroute reset-encrypted-columns       # 암호화된 자격 증명 재설정에 대한 경고 + 시험 실행 표시
-omniroute reset-encrypted-columns --force  # SQLite에서 암호화된 자격 증명을 실제로 null로 설정
+omniroute reset-encrypted-columns --force  # SQLite에서 암호화된 자격 증명을 실제로 null 처리
 ```
 
-### 자격 증명 내보내기(⚠ 취급 주의)
+### 자격 증명 내보내기(⚠ 주의해서 처리)
 
 ```bash
-omniroute auth export                                 # 경고 + 확인 단계 표시 — DB 접근 없음
+omniroute auth export                                 # 경고 + 확인 단계 표시 — DB에 접근하지 않음
 omniroute auth export --force                          # 모든 연결의 복호화된 자격 증명을 JSON으로 stdout에 내보내기
 omniroute auth export --force --id <id>                 # 일치하는 연결만 내보내기
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> 형식의 줄 출력
@@ -657,18 +669,18 @@ omniroute auth export --force --out creds.json           # 파일에 쓰기(0600
 ```
 
 `auth export`는 **로컬 전용**이며(HTTP 경로 없이 SQLite를 직접 읽음), 의도적으로
-**평문** `apiKey`/`accessToken`/`refreshToken`/`idToken` 값을 출력하거나 기록합니다. 이는 기능이며
-버그가 아닙니다. `--force` 없이는 데이터베이스에서 아무것도 읽지 않으며 아무것도 복호화하지 않습니다. 평문이
-출력되기 전에 항상 stderr에 경고 배너가 표시됩니다. `STORAGE_ENCRYPTION_KEY`가
-설정되어 있어야 합니다. 복호화에 실패한 필드(오래된 키, 손상된 암호문)는 전체 내보내기를 중단하거나
-내부 오류를 노출하는 대신 `<field>DecryptFailed: true`로 보고됩니다.
+**평문** `apiKey`/`accessToken`/`refreshToken`/`idToken` 값을 출력하거나 기록합니다. 이는
+버그가 아니라 기능입니다. `--force` 없이는 데이터베이스에서 아무것도 읽지 않으며 어떤 항목도 복호화하지 않습니다. 평문이 출력되기 전에는 항상 stderr에
+경고 배너가 표시됩니다. `STORAGE_ENCRYPTION_KEY`가 설정되어 있어야 합니다.
+복호화에 실패한 필드(오래된 키, 손상된 암호문)는 전체 내보내기를 중단하거나 내부 오류를 노출하는 대신
+`<field>DecryptFailed: true`로 보고됩니다.
 
 ### 기타 하위 명령
 
-별도로 명시하지 않는 한, 다음 명령은 실행 중인 OmniRoute 서버가 있다고 가정합니다:
+별도 언급이 없는 한, 다음 명령은 실행 중인 OmniRoute 서버가 있다고 가정합니다.
 
 ```bash
-omniroute status                       # 종합 런타임 상태
+omniroute status                       # 포괄적인 런타임 상태
 omniroute logs                         # 요청 로그 스트리밍(--json, --search, --follow)
 omniroute config list                  # 구성된 CLI 도구 표시
 
@@ -678,13 +690,13 @@ omniroute keys add | list | remove     # API 키 관리
 omniroute models [provider]            # 모델 목록 표시(--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # 구성 + DB 스냅샷
+omniroute backup                       # 구성 + DB 스냅샷 생성
 omniroute restore                      # 이전 스냅샷에서 복원
 
 omniroute health                       # 상세 상태(차단기, 캐시, 메모리)
-omniroute quota                        # 제공자 할당량 사용 현황
+omniroute quota                        # 제공자 할당량 사용량
 omniroute cache                        # 캐시 상태
-omniroute cache clear                  # 의미론적 + 시그니처 캐시 지우기
+omniroute cache clear                  # 시맨틱 + 서명 캐시 지우기
 
 omniroute mcp status | restart         # MCP 서버 상태 / 재시작
 omniroute a2a status | card            # A2A 서버 상태 / 에이전트 카드
@@ -699,15 +711,15 @@ omniroute completion                   # 셸 자동 완성 생성
 
 ### 공통 플래그
 
-| 플래그              | 설명                                              |
-| ------------------- | ------------------------------------------------- |
-| `--no-open`         | 시작 시 브라우저를 자동으로 열지 않음             |
-| `--port <n>`        | API 포트 재정의(기본값 20128)                     |
-| `--mcp`             | stdio를 통해 MCP 서버로 실행(IDE용)               |
-| `--non-interactive` | CI 모드(프롬프트 없음, 환경 변수/플래그에서 읽음) |
-| `--json`            | 머신 판독 가능 JSON 출력(doctor, providers 등)    |
-| `--help`, `-h`      | 명령어별 도움말 표시                              |
-| `--version`, `-v`   | 설치된 버전 출력                                  |
+| 플래그              | 설명                                             |
+| ------------------- | ------------------------------------------------ |
+| `--no-open`         | 시작 시 브라우저를 자동으로 열지 않음            |
+| `--port <n>`        | API 포트 재정의(기본값 20128)                    |
+| `--mcp`             | stdio를 통해 MCP 서버로 실행(IDE용)              |
+| `--non-interactive` | CI 모드(프롬프트 없이 환경 변수/플래그에서 읽음) |
+| `--json`            | 머신 판독 가능한 JSON 출력(doctor, providers 등) |
+| `--help`, `-h`      | 명령별 도움말 표시                               |
+| `--version`, `-v`   | 설치된 버전 출력                                 |
 
 ---
 

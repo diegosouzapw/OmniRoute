@@ -558,18 +558,18 @@ kiro-cli status
 
 ## 10. অভ্যন্তরীণ OmniRoute CLI
 
-`omniroute` বাইনারিটি সার্ভারের জীবনচক্র, সেটআপ, ডায়াগনস্টিকস এবং প্রোভাইডার ব্যবস্থাপনার জন্য কমান্ড প্রদান করে। এন্ট্রি পয়েন্ট: `bin/omniroute.mjs`।
+`omniroute` বাইনারিটি সার্ভারের জীবনচক্র, সেটআপ, ডায়াগনস্টিকস এবং প্রোভাইডার ব্যবস্থাপনার জন্য কমান্ড সরবরাহ করে। এন্ট্রি পয়েন্ট: `bin/omniroute.mjs`।
 
 ```bash
 omniroute                              # সার্ভার চালু করুন (ডিফল্ট পোর্ট 20128)
 omniroute setup                        # ইন্টার্যাক্টিভ সেটআপ উইজার্ড
-omniroute doctor                       # কনফিগ, DB, পোর্ট ও রানটাইম পরীক্ষা করুন
+omniroute doctor                       # কনফিগ, DB, পোর্ট, রানটাইম পরীক্ষা করুন
 omniroute providers list               # কনফিগার করা প্রোভাইডার সংযোগসমূহ
 omniroute providers test-all           # প্রতিটি সক্রিয় সংযোগ পরীক্ষা করুন
 omniroute reset-password               # অ্যাডমিন পাসওয়ার্ড রিসেট করুন
 omniroute logs                         # রিকোয়েস্ট লগ স্ট্রিম করুন
-omniroute health                       # বিস্তারিত স্বাস্থ্যতথ্য (ব্রেকার, ক্যাশ, মেমরি)
-omniroute --version                    # সংস্করণ দেখান
+omniroute health                       # বিস্তারিত স্বাস্থ্য-তথ্য (ব্রেকার, ক্যাশ, মেমরি)
+omniroute --version                    # ভার্সন প্রিন্ট করুন
 omniroute --help                       # সব কমান্ড দেখান
 ```
 
@@ -582,15 +582,15 @@ omniroute setup --password '<value>'   # সরাসরি অ্যাডম�
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # এক ধাপেই একটি প্রোভাইডার যোগ ও পরীক্ষা করুন
+  --test-provider                      # এক ধাপে একটি প্রোভাইডার যোগ ও পরীক্ষা করুন
 ```
 
 নন-ইন্টার্যাক্টিভ সেটআপের জন্য স্বীকৃত এনভায়রনমেন্ট ভেরিয়েবলসমূহ:
 
-| ভেরিয়েবল           | উদ্দেশ্য                                                                         |
-| ------------------- | -------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | প্রোভাইডারের API কী (Commander `.env()`-এর মাধ্যমে `--api-key`-এর সঙ্গে সংযুক্ত) |
-| `DATA_DIR`          | OmniRoute ডেটা ডিরেক্টরি ওভাররাইড করুন                                           |
+| ভেরিয়েবল           | উদ্দেশ্য                                                                     |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | প্রোভাইডার API কী (Commander `.env()`-এর মাধ্যমে `--api-key`-এর সঙ্গে যুক্ত) |
+| `DATA_DIR`          | OmniRoute ডেটা ডিরেক্টরি ওভাররাইড করা                                        |
 
 অন্যান্য সব নন-ইন্টার্যাক্টিভ ইনপুট এনভায়রনমেন্ট ভেরিয়েবল হিসেবে নয়, ফ্ল্যাগ হিসেবে পাস করা হয়:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
@@ -600,114 +600,125 @@ omniroute setup --add-provider \
 
 ```bash
 omniroute doctor                       # কনফিগ, DB, পোর্ট, রানটাইম, মেমরি ও লাইভনেস পরীক্ষা করুন
-omniroute doctor --json                # মেশিন-পঠনযোগ্য JSON
-omniroute doctor --no-liveness         # HTTP স্বাস্থ্য প্রোব এড়িয়ে যান
+omniroute doctor --json                # মেশিন-পাঠযোগ্য JSON
+omniroute doctor --no-liveness         # HTTP স্বাস্থ্য প্রোব বাদ দিন
 omniroute doctor --host 0.0.0.0        # লাইভনেস হোস্ট ওভাররাইড করুন
 omniroute doctor --liveness-url <url>  # সম্পূর্ণ স্বাস্থ্য এন্ডপয়েন্ট URL ওভাররাইড
 ```
 
 doctor এই পরীক্ষাগুলো চালায়: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` এবং `Server liveness`। কোনো পরীক্ষার ফল `fail` হলে এটি শূন্য নয় এমন কোডসহ প্রস্থান করে।
+`Memory`, এবং `Server liveness`। কোনো পরীক্ষার ফলাফল `fail` হলে এটি শূন্য-বহির্ভূত কোড দিয়ে প্রস্থান করে।
 
 ### প্রোভাইডার ব্যবস্থাপনা
 
 ```bash
 omniroute providers available                       # OmniRoute প্রোভাইডার ক্যাটালগ
 omniroute providers available --search openai       # id/name/alias/category অনুযায়ী ক্যাটালগ ফিল্টার করুন
-omniroute providers available --category api-key    # বিভাগ অনুযায়ী ফিল্টার করুন (api-key, oauth, free, ...)
-omniroute providers available --json                # মেশিন-পঠনযোগ্য JSON
+omniroute providers available --category api-key    # ক্যাটাগরি অনুযায়ী ফিল্টার করুন (api-key, oauth, free, ...)
+omniroute providers available --json                # মেশিন-পাঠযোগ্য JSON
 
 omniroute providers list                            # কনফিগার করা প্রোভাইডার সংযোগসমূহ
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # কনফিগার করা একটি সংযোগ পরীক্ষা করুন
+omniroute providers test <id|name>                  # একটি কনফিগার করা সংযোগ পরীক্ষা করুন
 omniroute providers test-all                        # প্রতিটি সক্রিয় সংযোগ পরীক্ষা করুন
-omniroute providers validate                        # শুধু লোকাল কাঠামোগত যাচাইকরণ
+omniroute providers validate                        # শুধু লোকাল স্ট্রাকচারাল ভ্যালিডেশন
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # বিদ্যমান OAuth প্রবাহ
+omniroute providers auth <provider>                 # বিদ্যমান OAuth ফ্লো
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` API-প্রথম এবং তাই সক্রিয় লোকাল বা রিমোট কনটেক্সটের বিপরীতে
-কাজ করে। ক্রেডেনশিয়াল ইনপুটের জন্য `--credential-stdin` বা `--credential-env` ব্যবহার করা উচিত;
-`--dry-run --json` শুধু রিড্যাক্ট করা উপস্থিতি/আকৃতি রিপোর্ট করে। `providers available` OmniRoute
-ক্যাটালগ পড়ে; `providers list/test/test-all/validate` তাদের লোকাল SQLite আচরণ বজায় রাখে এবং
+`providers add/import/auth/edit/remove` API-প্রথম এবং তাই সক্রিয় লোকাল বা রিমোট কনটেক্সটের বিপরীতে কাজ করে। ক্রেডেনশিয়াল ইনপুটের জন্য
+`--credential-stdin` বা `--credential-env` ব্যবহার করা উচিত; `--dry-run --json` শুধু
+রিড্যাক্ট করা উপস্থিতি/কাঠামো রিপোর্ট করে। `providers available` OmniRoute ক্যাটালগ পড়ে;
+`providers list/test/test-all/validate` তাদের লোকাল SQLite আচরণ বজায় রাখে এবং
 এগুলোর জন্য সার্ভার চালু থাকার প্রয়োজন নেই।
+
+কাস্টম OpenAI-সামঞ্জস্যপূর্ণ বা Anthropic-সামঞ্জস্যপূর্ণ নোডের ক্ষেত্রে, `omniroute nodes add` দ্বারা ফেরত দেওয়া
+নোড ID-তে ক্রেডেনশিয়াল সংযুক্ত করতে `omniroute keys add "$NODE_ID" --stdin` ব্যবহার করুন।
+এর জন্য সক্রিয় কনটেক্সটে একটি চলমান সার্ভার এবং ব্যবস্থাপনা-সংক্রান্ত অথেন্টিকেশন প্রয়োজন।
+CLI `POST /api/providers` ব্যবহার করে, যা নোডটি ভ্যালিডেট করে এবং এর এন্ডপয়েন্ট
+সেটিংস সংযোগে কপি করে। নোড অনুপস্থিত থাকলে, অনুমোদন ব্যর্থ হলে বা সার্ভার
+অনুপলভ্য হলে কোনো লোকাল ফলব্যাক ক্রেডেনশিয়াল তৈরি না করেই একটি এরর ফেরত দেওয়া হয়।
+
+`nodes add --base-url` নোড এন্ডপয়েন্ট সেট করে; এটি `OMNIROUTE_BASE_URL`-এ থাকা সার্ভার ঠিকানা থেকে
+আলাদা। OpenAPI ফাইলের জন্য
+`omniroute openapi dump --format json --out ./openapi.json` ব্যবহার করুন; গ্লোবাল `--output`
+কোনো গন্তব্য ফাইলের নাম নয়, বরং CLI প্রদর্শনের ফরম্যাট নির্বাচন করে।
 
 ### পুনরুদ্ধার ও রিসেট
 
 ```bash
 omniroute reset-password                # অ্যাডমিন পাসওয়ার্ড রিসেট করুন (এছাড়াও: omniroute-reset-password)
 omniroute reset-encrypted-columns       # এনক্রিপ্ট করা ক্রেডেনশিয়াল রিসেটের জন্য সতর্কতা + ড্রাই-রান দেখান
-omniroute reset-encrypted-columns --force  # SQLite-এ এনক্রিপ্ট করা ক্রেডেনশিয়ালগুলো সত্যিই null করুন
+omniroute reset-encrypted-columns --force  # SQLite-এ এনক্রিপ্ট করা ক্রেডেনশিয়ালগুলো সত্যিই null করে দিন
 ```
 
 ### ক্রেডেনশিয়াল এক্সপোর্ট (⚠ সতর্কতার সঙ্গে পরিচালনা করুন)
 
 ```bash
-omniroute auth export                                 # সতর্কতা + নিশ্চিতকরণ গেট দেখান — DB অ্যাক্সেস নয়
+omniroute auth export                                 # সতর্কতা + নিশ্চিতকরণ গেট দেখান — কোনো DB অ্যাক্সেস নয়
 omniroute auth export --force                          # সব সংযোগের ডিক্রিপ্ট করা ক্রেডেনশিয়াল JSON হিসেবে stdout-এ এক্সপোর্ট করুন
 omniroute auth export --force --id <id>                 # শুধু মিলে যাওয়া সংযোগটি এক্সপোর্ট করুন
-omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> লাইন আউটপুট করুন
+omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> লাইন নির্গত করুন
 omniroute auth export --force --out creds.json           # একটি ফাইলে লিখুন (0600 অনুমতিসহ তৈরি করা হয়)
 ```
 
-`auth export` **শুধু লোকাল** (সরাসরি SQLite পড়ে, কোনো HTTP রুট নয়) এবং ইচ্ছাকৃতভাবে
-**প্লেইনটেক্সট** `apiKey`/`accessToken`/`refreshToken`/`idToken` মান প্রিন্ট/লিখে — এটি একটি
-ফিচার, বাগ নয়। `--force` ছাড়া ডেটাবেস থেকে কিছুই পড়া হয় না এবং কিছুই ডিক্রিপ্ট করা হয় না।
-কোনো প্লেইনটেক্সট আউটপুট করার আগে সবসময় stderr-এ একটি সতর্কতামূলক ব্যানার প্রিন্ট করা হয়।
-`STORAGE_ENCRYPTION_KEY` সেট করা থাকা আবশ্যক। কোনো ফিল্ড ডিক্রিপ্ট করতে ব্যর্থ হলে (পুরোনো কী,
-বিকৃত সাইফারটেক্সট), সম্পূর্ণ এক্সপোর্ট বাতিল করা বা অন্তর্নিহিত ত্রুটি ফাঁস করার পরিবর্তে সেটি
+`auth export` **শুধু লোকালভাবে** কাজ করে (সরাসরি SQLite থেকে পড়ে, কোনো HTTP route নেই) এবং ইচ্ছাকৃতভাবে
+**প্লেইনটেক্সট** `apiKey`/`accessToken`/`refreshToken`/`idToken` মান প্রিন্ট/লিখে — এটিই ফিচার, কোনো
+বাগ নয়। `--force` ছাড়া ডেটাবেস থেকে কিছুই পড়া হয় না এবং কিছুই ডিক্রিপ্ট করা হয় না। কোনো প্লেইনটেক্সট নির্গত হওয়ার আগে stderr-এ
+সবসময় একটি সতর্কতামূলক ব্যানার প্রিন্ট করা হয়। `STORAGE_ENCRYPTION_KEY` সেট করা
+আবশ্যক। কোনো ফিল্ড ডিক্রিপ্ট করতে ব্যর্থ হলে (পুরোনো key, নষ্ট ciphertext), সম্পূর্ণ export বাতিল করা বা অন্তর্নিহিত error প্রকাশ করার পরিবর্তে
 `<field>DecryptFailed: true` হিসেবে রিপোর্ট করা হয়।
 
 ### অন্যান্য সাবকমান্ড
 
-অন্যভাবে উল্লেখ না থাকলে, এগুলো ধরে নেয় যে একটি OmniRoute সার্ভার চালু আছে:
+অন্যথায় উল্লেখ না থাকলে, এগুলো একটি চলমান OmniRoute server আছে ধরে নেয়:
 
 ```bash
 omniroute status                       # রানটাইমের বিস্তারিত অবস্থা
 omniroute logs                         # রিকোয়েস্ট লগ স্ট্রিম করুন (--json, --search, --follow)
-omniroute config list                  # কনফিগার করা CLI টুলগুলো প্রদর্শন করুন
+omniroute config list                  # কনফিগার করা CLI টুলগুলো দেখান
 
-omniroute provider list                # উপলভ্য প্রোভাইডারগুলোর তালিকা দেখান (providers list-এর উপনাম)
-omniroute provider add                 # কোনো টুলে OmniRoute-কে প্রোভাইডার হিসেবে নিবন্ধন করুন
-omniroute keys add | list | remove     # API কী পরিচালনা করুন
-omniroute models [provider]            # মডেলগুলোর তালিকা দেখান (--json, --search)
+omniroute provider list                # উপলভ্য provider-গুলোর তালিকা দেখান (providers list-এর alias)
+omniroute provider add                 # কোনো টুলে OmniRoute-কে provider হিসেবে নিবন্ধন করুন
+omniroute keys add | list | remove     # API key পরিচালনা করুন
+omniroute models [provider]            # মডেলের তালিকা দেখান (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # কনফিগারেশন + DB-এর স্ন্যাপশট নিন
-omniroute restore                      # আগের কোনো স্ন্যাপশট থেকে পুনরুদ্ধার করুন
+omniroute backup                       # কনফিগ + DB-এর snapshot তৈরি করুন
+omniroute restore                      # পূর্ববর্তী snapshot থেকে পুনরুদ্ধার করুন
 
-omniroute health                       # বিস্তারিত স্বাস্থ্য-অবস্থা (ব্রেকার, ক্যাশ, মেমরি)
-omniroute quota                        # প্রোভাইডারের কোটা ব্যবহার
-omniroute cache                        # ক্যাশের অবস্থা
-omniroute cache clear                  # সেমান্টিক + সিগনেচার ক্যাশ সাফ করুন
+omniroute health                       # বিস্তারিত health তথ্য (breaker, cache, memory)
+omniroute quota                        # Provider quota-এর ব্যবহার
+omniroute cache                        # Cache-এর অবস্থা
+omniroute cache clear                  # Semantic + signature cache পরিষ্কার করুন
 
-omniroute mcp status | restart         # MCP সার্ভারের অবস্থা / পুনরায় চালু করা
-omniroute a2a status | card            # A2A সার্ভারের অবস্থা / এজেন্ট কার্ড
+omniroute mcp status | restart         # MCP server-এর অবস্থা / পুনরায় চালু করা
+omniroute a2a status | card            # A2A server-এর অবস্থা / agent card
 
-omniroute tunnel list | create | stop  # টানেল পরিচালনা করুন (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # এনভায়রনমেন্ট ভ্যারিয়েবল পরিদর্শন / সেট করুন (অস্থায়ী)
+omniroute tunnel list | create | stop  # Tunnel পরিচালনা করুন (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Env var পরিদর্শন / সেট করুন (সাময়িক)
 
-omniroute test                         # প্রোভাইডার সংযোগের স্মোক টেস্ট
-omniroute update                       # আপডেট পরীক্ষা করুন
-omniroute completion                   # শেল কমপ্লিশন তৈরি করুন
+omniroute test                         # Provider connectivity-এর smoke test
+omniroute update                       # Update আছে কি না পরীক্ষা করুন
+omniroute completion                   # Shell completion তৈরি করুন
 ```
 
-### সাধারণ ফ্ল্যাগ
+### প্রচলিত ফ্ল্যাগ
 
-| ফ্ল্যাগ             | বিবরণ                                                   |
-| ------------------- | ------------------------------------------------------- |
-| `--no-open`         | শুরু করার সময় ব্রাউজার স্বয়ংক্রিয়ভাবে খুলবেন না      |
-| `--port <n>`        | API পোর্ট ওভাররাইড করুন (ডিফল্ট 20128)                  |
-| `--mcp`             | stdio-এর মাধ্যমে MCP সার্ভার হিসেবে চালান (IDE-এর জন্য) |
-| `--non-interactive` | CI মোড (কোনো প্রম্পট নেই; env/ফ্ল্যাগ থেকে পড়ে)        |
-| `--json`            | মেশিন-পঠনযোগ্য JSON আউটপুট (doctor, providers ইত্যাদি)  |
-| `--help`, `-h`      | কমান্ড-নির্দিষ্ট সহায়তা দেখান                          |
-| `--version`, `-v`   | ইনস্টল করা সংস্করণ প্রিন্ট করুন                         |
+| ফ্ল্যাগ             | বিবরণ                                                  |
+| ------------------- | ------------------------------------------------------ |
+| `--no-open`         | চালু হওয়ার সময় browser স্বয়ংক্রিয়ভাবে খুলবেন না    |
+| `--port <n>`        | API port ওভাররাইড করুন (ডিফল্ট 20128)                  |
+| `--mcp`             | stdio-এর মাধ্যমে MCP server হিসেবে চালান (IDE-এর জন্য) |
+| `--non-interactive` | CI mode (কোনো prompt নয়; env/flag থেকে পড়ে)          |
+| `--json`            | মেশিন-পাঠযোগ্য JSON output (doctor, providers ইত্যাদি) |
+| `--help`, `-h`      | কমান্ড-নির্দিষ্ট সহায়তা দেখান                         |
+| `--version`, `-v`   | ইনস্টল করা version প্রিন্ট করুন                        |
 
 ---
 

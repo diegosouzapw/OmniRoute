@@ -559,69 +559,69 @@ sa ilalim ng `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. Panloob na OmniRoute CLI
+## 10. Internal na OmniRoute CLI
 
-Ang `omniroute` binary ay nagbibigay ng mga command para sa lifecycle ng server, pag-setup, diagnostics, at pamamahala ng provider. Entry point: `bin/omniroute.mjs`.
+Ang binary na `omniroute` ay nagbibigay ng mga command para sa lifecycle ng server, pag-setup, diagnostic, at pamamahala ng provider. Entry point: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Simulan ang server (default na port 20128)
-omniroute setup                        # Interaktibong setup wizard
+omniroute setup                        # Interaktibong wizard sa pag-setup
 omniroute doctor                       # Suriin ang config, DB, mga port, at runtime
-omniroute providers list               # Mga naka-configure na koneksyon ng provider
+omniroute providers list               # Mga naka-configure na koneksyon sa provider
 omniroute providers test-all           # Subukan ang bawat aktibong koneksyon
-omniroute reset-password               # I-reset ang admin password
-omniroute logs                         # I-stream ang mga request log
+omniroute reset-password               # I-reset ang password ng admin
+omniroute logs                         # I-stream ang mga log ng request
 omniroute health                       # Detalyadong kalagayan (mga breaker, cache, memory)
-omniroute --version                    # I-print ang bersyon
+omniroute --version                    # Ipakita ang bersyon
 omniroute --help                       # Ipakita ang lahat ng command
 ```
 
-### Pag-setup at Pagsisimula
+### Pag-setup at Initialization
 
 ```bash
-omniroute setup                        # Interaktibong setup wizard
-omniroute setup --non-interactive      # CI/automation mode (nagbabasa ng mga env var + flag)
-omniroute setup --password '<value>'   # Direktang itakda ang admin password
+omniroute setup                        # Interaktibong wizard sa pag-setup
+omniroute setup --non-interactive      # Mode para sa CI/automation (binabasa ang mga env var + flag)
+omniroute setup --password '<value>'   # Direktang itakda ang password ng admin
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Magdagdag at sumubok ng provider nang minsanan
+  --test-provider                      # Magdagdag at sumubok ng provider sa iisang hakbang
 ```
 
-Mga kinikilalang environment variable para sa hindi interaktibong pag-setup:
+Mga kinikilalang environment variable para sa non-interactive na pag-setup:
 
-| Var                 | Layunin                                                                            |
-| ------------------- | ---------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API key ng provider (nakatali sa `--api-key` sa pamamagitan ng Commander `.env()`) |
-| `DATA_DIR`          | I-override ang direktoryo ng data ng OmniRoute                                     |
+| Var                 | Layunin                                                                             |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API key ng provider (naka-bind sa `--api-key` sa pamamagitan ng Commander `.env()`) |
+| `DATA_DIR`          | I-override ang direktoryo ng data ng OmniRoute                                      |
 
-Ang lahat ng iba pang hindi interaktibong input ay ipinapasa bilang mga flag, hindi bilang mga environment variable:
+Ang lahat ng iba pang non-interactive na input ay ipinapasa bilang mga flag, hindi bilang mga environment variable:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (tingnan ang mga opsyon ng `omniroute setup` sa itaas).
 
-### Diagnostics
+### Mga Diagnostic
 
 ```bash
 omniroute doctor                       # Suriin ang config, DB, mga port, runtime, memory, at liveness
-omniroute doctor --json                # JSON na nababasa ng makina
+omniroute doctor --json                # JSON na nababasa ng machine
 omniroute doctor --no-liveness         # Laktawan ang HTTP health probe
 omniroute doctor --host 0.0.0.0        # I-override ang liveness host
-omniroute doctor --liveness-url <url>  # I-override ang buong URL ng health endpoint
+omniroute doctor --liveness-url <url>  # Buong pag-override sa URL ng health endpoint
 ```
 
 Isinasagawa ng doctor ang mga pagsusuring ito: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory`, at `Server liveness`. Nag-e-exit ito nang non-zero kung ang alinmang pagsusuri ay `fail`.
+`Memory`, at `Server liveness`. Lalabas ito nang may non-zero na status kung ang anumang pagsusuri ay `fail`.
 
 ### Pamamahala ng Provider
 
 ```bash
 omniroute providers available                       # Catalog ng provider ng OmniRoute
-omniroute providers available --search openai       # I-filter ang catalog ayon sa id/pangalan/alias/kategorya
-omniroute providers available --category api-key    # I-filter ayon sa kategorya (api-key, oauth, free, ...)
-omniroute providers available --json                # JSON na nababasa ng makina
+omniroute providers available --search openai       # Salain ang catalog ayon sa id/pangalan/alias/kategorya
+omniroute providers available --category api-key    # Salain ayon sa kategorya (api-key, oauth, free, ...)
+omniroute providers available --json                # JSON na nababasa ng machine
 
-omniroute providers list                            # Mga naka-configure na koneksyon ng provider
+omniroute providers list                            # Mga naka-configure na koneksyon sa provider
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Subukan ang isang naka-configure na koneksyon
@@ -629,22 +629,34 @@ omniroute providers test-all                        # Subukan ang bawat aktibong
 omniroute providers validate                        # Lokal lamang na structural validation
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Umiiral na OAuth flow
+omniroute providers auth <provider>                 # Kasalukuyang OAuth flow
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-Ang `providers add/import/auth/edit/remove` ay API-first at samakatuwid ay gumagana laban sa
-aktibong lokal o remote na context. Dapat gamitin ng credential input ang
-`--credential-stdin` o `--credential-env`; ang `--dry-run --json` ay nag-uulat lamang ng
-na-redact na presence/shape. Binabasa ng `providers available` ang catalog ng OmniRoute;
-pinananatili ng `providers list/test/test-all/validate` ang kanilang lokal na gawi sa SQLite at
+Ang `providers add/import/auth/edit/remove` ay API-first kaya gumagana ang mga ito laban sa
+aktibong lokal o remote na context. Para sa input ng credential, gamitin ang
+`--credential-stdin` o `--credential-env`; ang `--dry-run --json` ay nag-uulat lamang
+ng na-redact na presensya/hugis. Binabasa ng `providers available` ang catalog ng OmniRoute;
+pinananatili ng `providers list/test/test-all/validate` ang lokal na gawi ng mga ito sa SQLite at
 hindi kinakailangang tumatakbo ang server.
+
+Para sa custom na OpenAI-compatible o Anthropic-compatible na node, ilakip ang mga credential sa
+node ID na ibinalik ng `omniroute nodes add`, gamit ang `omniroute keys add "$NODE_ID" --stdin`.
+Nangangailangan ito ng tumatakbong server at management authentication para sa aktibong context.
+Ginagamit ng CLI ang `POST /api/providers`, na nagva-validate sa node at kinokopya ang mga setting ng endpoint nito
+sa koneksyon. Ang nawawalang node, kabiguan sa authorization, o hindi available na
+server ay nagbabalik ng error nang hindi gumagawa ng lokal na fallback credential.
+
+Itinatakda ng `nodes add --base-url` ang endpoint ng node; naiiba ito sa address ng server
+sa `OMNIROUTE_BASE_URL`. Para sa mga OpenAPI file, gamitin ang
+`omniroute openapi dump --format json --out ./openapi.json`; pinipili ng global na `--output`
+ang formatting ng display ng CLI, hindi ang pangalan ng destination file.
 
 ### Pag-recover at Pag-reset
 
 ```bash
-omniroute reset-password                # I-reset ang admin password (gayundin: omniroute-reset-password)
+omniroute reset-password                # I-reset ang password ng admin (gayundin: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Ipakita ang babala + dry-run para sa pag-reset ng naka-encrypt na credential
 omniroute reset-encrypted-columns --force  # Aktuwal na gawing null ang mga naka-encrypt na credential sa SQLite
 ```
@@ -653,44 +665,39 @@ omniroute reset-encrypted-columns --force  # Aktuwal na gawing null ang mga naka
 
 ```bash
 omniroute auth export                                 # Ipakita ang babala + confirmation gate — walang access sa DB
-omniroute auth export --force                          # I-export ang mga NA-DECRYPT na credential ng LAHAT ng koneksyon sa stdout bilang JSON
+omniroute auth export --force                          # I-export ang NA-DECRYPT na credential ng LAHAT ng koneksyon sa stdout bilang JSON
 omniroute auth export --force --id <id>                 # I-export lamang ang tumutugmang koneksyon
 omniroute auth export --force --format env               # Maglabas ng mga linyang OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Isulat sa isang file (ginawa na may mga pahintulot na 0600)
+omniroute auth export --force --out creds.json           # Isulat sa isang file (gagawin gamit ang 0600 na permission)
 ```
 
-Ang `auth export` ay **lokal lamang** (direktang pagbasa sa SQLite, walang HTTP route) at sadyang nagpi-print/nagsusulat ng
-mga **plaintext** na value ng `apiKey`/`accessToken`/`refreshToken`/`idToken` — iyon ang feature, hindi isang
-bug. Walang binabasa mula sa database, at walang dini-decrypt, kung wala ang `--force`. Palaging
-nagpi-print ang warning banner sa stderr bago maglabas ng anumang plaintext. Kinakailangang nakatakda ang `STORAGE_ENCRYPTION_KEY`.
-Ang field na hindi ma-decrypt (lumang key, sirang ciphertext) ay iniuulat bilang
-`<field>DecryptFailed: true` sa halip na ihinto ang buong export o ilantad ang pinagbabatayang error.
+Ang `auth export` ay **lokal lamang** (direktang pagbabasa sa SQLite, walang HTTP route) at sadyang nagpi-print/nagsusulat ng mga value ng **plaintext** na `apiKey`/`accessToken`/`refreshToken`/`idToken` — iyon ang feature, hindi isang bug. Walang binabasa mula sa database, at walang dine-decrypt, nang walang `--force`. Palaging nagpi-print sa stderr ng banner ng babala bago maglabas ng anumang plaintext. Kinakailangang nakatakda ang `STORAGE_ENCRYPTION_KEY`. Ang field na hindi ma-decrypt (lumang key, sirang ciphertext) ay iniuulat bilang `<field>DecryptFailed: true` sa halip na ihinto ang buong export o ilantad ang pinagbabatayang error.
 
 ### Iba pang mga subcommand
 
 Ipinapalagay ng mga ito na may tumatakbong OmniRoute server, maliban kung may ibang nakasaad:
 
 ```bash
-omniroute status                       # Komprehensibong katayuan ng runtime
-omniroute logs                         # I-stream ang mga log ng kahilingan (--json, --search, --follow)
+omniroute status                       # Komprehensibong status ng runtime
+omniroute logs                         # I-stream ang mga log ng request (--json, --search, --follow)
 omniroute config list                  # Ipakita ang mga naka-configure na CLI tool
 
 omniroute provider list                # Ilista ang mga available na provider (alias ng providers list)
 omniroute provider add                 # Irehistro ang OmniRoute bilang provider sa isang tool
 omniroute keys add | list | remove     # Pamahalaan ang mga API key
-omniroute models [provider]            # Ilista ang mga modelo (--json, --search)
+omniroute models [provider]            # Ilista ang mga model (--json, --search)
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # Gumawa ng snapshot ng config + DB
 omniroute restore                      # Mag-restore mula sa nakaraang snapshot
 
-omniroute health                       # Detalyadong kalagayan (mga breaker, cache, memory)
+omniroute health                       # Detalyadong health (mga breaker, cache, memory)
 omniroute quota                        # Paggamit ng quota ng provider
-omniroute cache                        # Katayuan ng cache
-omniroute cache clear                  # I-clear ang mga semantic + signature cache
+omniroute cache                        # Status ng cache
+omniroute cache clear                  # I-clear ang semantic + signature cache
 
-omniroute mcp status | restart         # Katayuan / pag-restart ng MCP server
-omniroute a2a status | card            # Katayuan ng A2A server / agent card
+omniroute mcp status | restart         # Status / pag-restart ng MCP server
+omniroute a2a status | card            # Status ng A2A server / agent card
 
 omniroute tunnel list | create | stop  # Pamahalaan ang mga tunnel (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Suriin / itakda ang mga env var (pansamantala)
@@ -702,15 +709,15 @@ omniroute completion                   # Bumuo ng shell completion
 
 ### Mga karaniwang flag
 
-| Flag                | Paglalarawan                                                 |
-| ------------------- | ------------------------------------------------------------ |
-| `--no-open`         | Huwag awtomatikong buksan ang browser sa pagsisimula         |
-| `--port <n>`        | Palitan ang API port (default 20128)                         |
-| `--mcp`             | Patakbuhin bilang MCP server sa stdio (para sa mga IDE)      |
-| `--non-interactive` | CI mode (walang prompt; nagbabasa mula sa env/flags)         |
-| `--json`            | JSON output na nababasa ng makina (doctor, providers, atbp.) |
-| `--help`, `-h`      | Ipakita ang tulong na partikular sa command                  |
-| `--version`, `-v`   | I-print ang naka-install na bersyon                          |
+| Flag                | Paglalarawan                                                           |
+| ------------------- | ---------------------------------------------------------------------- |
+| `--no-open`         | Huwag awtomatikong buksan ang browser sa pagsisimula                   |
+| `--port <n>`        | Palitan ang API port (default na 20128)                                |
+| `--mcp`             | Patakbuhin bilang MCP server sa pamamagitan ng stdio (para sa mga IDE) |
+| `--non-interactive` | CI mode (walang mga prompt; nagbabasa mula sa env/mga flag)            |
+| `--json`            | Machine-readable na JSON output (doctor, providers, atbp.)             |
+| `--help`, `-h`      | Ipakita ang tulong na partikular sa command                            |
+| `--version`, `-v`   | I-print ang naka-install na bersyon                                    |
 
 ---
 

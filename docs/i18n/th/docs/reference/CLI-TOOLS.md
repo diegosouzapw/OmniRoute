@@ -585,27 +585,27 @@ kiro-cli status
 
 ```bash
 omniroute                              # เริ่มเซิร์ฟเวอร์ (พอร์ตเริ่มต้น 20128)
-omniroute setup                        # ตัวช่วยตั้งค่าแบบโต้ตอบ
-omniroute doctor                       # ตรวจสอบการกำหนดค่า DB พอร์ต และรันไทม์
+omniroute setup                        # วิซาร์ดการตั้งค่าแบบโต้ตอบ
+omniroute doctor                       # ตรวจสอบการกำหนดค่า, DB, พอร์ต และรันไทม์
 omniroute providers list               # การเชื่อมต่อผู้ให้บริการที่กำหนดค่าไว้
-omniroute providers test-all           # ทดสอบทุกการเชื่อมต่อที่เปิดใช้งาน
+omniroute providers test-all           # ทดสอบทุกการเชื่อมต่อที่ใช้งานอยู่
 omniroute reset-password               # รีเซ็ตรหัสผ่านผู้ดูแลระบบ
 omniroute logs                         # สตรีมบันทึกคำขอ
-omniroute health                       # สถานะสุขภาพโดยละเอียด (เบรกเกอร์ แคช หน่วยความจำ)
+omniroute health                       # สถานะสุขภาพโดยละเอียด (ตัวตัดวงจร, แคช, หน่วยความจำ)
 omniroute --version                    # แสดงเวอร์ชัน
 omniroute --help                       # แสดงคำสั่งทั้งหมด
 ```
 
-### การตั้งค่าและการเริ่มต้นใช้งาน
+### การตั้งค่าและการเริ่มต้นระบบ
 
 ```bash
-omniroute setup                        # ตัวช่วยตั้งค่าแบบโต้ตอบ
-omniroute setup --non-interactive      # โหมด CI/ระบบอัตโนมัติ (อ่านตัวแปรสภาพแวดล้อมและแฟล็ก)
+omniroute setup                        # วิซาร์ดการตั้งค่าแบบโต้ตอบ
+omniroute setup --non-interactive      # โหมด CI/ระบบอัตโนมัติ (อ่านตัวแปรสภาพแวดล้อม + แฟล็ก)
 omniroute setup --password '<value>'   # ตั้งรหัสผ่านผู้ดูแลระบบโดยตรง
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # เพิ่มและทดสอบผู้ให้บริการในขั้นตอนเดียว
+  --test-provider                      # เพิ่มและทดสอบผู้ให้บริการในครั้งเดียว
 ```
 
 ตัวแปรสภาพแวดล้อมที่รองรับสำหรับการตั้งค่าแบบไม่โต้ตอบ:
@@ -615,23 +615,23 @@ omniroute setup --add-provider \
 | `OMNIROUTE_API_KEY` | คีย์ API ของผู้ให้บริการ (เชื่อมกับ `--api-key` ผ่าน Commander `.env()`) |
 | `DATA_DIR`          | แทนที่ไดเรกทอรีข้อมูลของ OmniRoute                                       |
 
-อินพุตแบบไม่โต้ตอบอื่นทั้งหมดจะถูกส่งผ่านเป็นแฟล็ก ไม่ใช่ตัวแปรสภาพแวดล้อม:
+อินพุตแบบไม่โต้ตอบอื่นๆ ทั้งหมดจะส่งผ่านเป็นแฟล็ก ไม่ใช่ตัวแปรสภาพแวดล้อม:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (ดูตัวเลือก `omniroute setup` ด้านบน)
 
 ### การวินิจฉัย
 
 ```bash
-omniroute doctor                       # ตรวจสอบการกำหนดค่า DB พอร์ต รันไทม์ หน่วยความจำ และความพร้อมใช้งาน
+omniroute doctor                       # ตรวจสอบการกำหนดค่า, DB, พอร์ต, รันไทม์, หน่วยความจำ และสถานะการทำงาน
 omniroute doctor --json                # JSON ที่เครื่องอ่านได้
-omniroute doctor --no-liveness         # ข้ามการตรวจสอบสถานะผ่าน HTTP
-omniroute doctor --host 0.0.0.0        # แทนที่โฮสต์สำหรับตรวจสอบความพร้อมใช้งาน
-omniroute doctor --liveness-url <url>  # แทนที่ URL แบบเต็มของเอนด์พอยต์ตรวจสอบสถานะ
+omniroute doctor --no-liveness         # ข้ามการตรวจสอบสถานะสุขภาพผ่าน HTTP
+omniroute doctor --host 0.0.0.0        # แทนที่โฮสต์สำหรับตรวจสอบสถานะการทำงาน
+omniroute doctor --liveness-url <url>  # แทนที่ URL แบบเต็มของเอนด์พอยต์สถานะสุขภาพ
 ```
 
-คำสั่ง doctor จะดำเนินการตรวจสอบต่อไปนี้: `Config`, `Database`, `Storage/encryption`,
+คำสั่ง doctor จะเรียกใช้การตรวจสอบเหล่านี้: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` และ `Server liveness` โดยจะจบการทำงานด้วยรหัสที่ไม่ใช่ศูนย์หากมีการตรวจสอบใดเป็น `fail`
+`Memory` และ `Server liveness` โดยจะจบการทำงานด้วยรหัสที่ไม่ใช่ศูนย์ หากการตรวจสอบใดมีสถานะเป็น `fail`
 
 ### การจัดการผู้ให้บริการ
 
@@ -645,53 +645,65 @@ omniroute providers list                            # การเชื่อ�
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # ทดสอบการเชื่อมต่อที่กำหนดค่าไว้หนึ่งรายการ
-omniroute providers test-all                        # ทดสอบทุกการเชื่อมต่อที่เปิดใช้งาน
-omniroute providers validate                        # ตรวจสอบความถูกต้องเชิงโครงสร้างภายในเครื่องเท่านั้น
+omniroute providers test-all                        # ทดสอบทุกการเชื่อมต่อที่ใช้งานอยู่
+omniroute providers validate                        # การตรวจสอบความถูกต้องเชิงโครงสร้างเฉพาะภายในเครื่อง
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # ขั้นตอน OAuth ที่มีอยู่
+omniroute providers auth <provider>                 # โฟลว์ OAuth ที่มีอยู่
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` ใช้ API เป็นหลัก จึงทำงานกับ
-บริบทภายในเครื่องหรือระยะไกลที่กำลังใช้งานอยู่ได้ ควรป้อนข้อมูลประจำตัวโดยใช้
+`providers add/import/auth/edit/remove` ใช้ API เป็นหลัก ดังนั้นจึงทำงานกับ
+บริบทภายในเครื่องหรือระยะไกลที่กำลังใช้งานอยู่ ควรป้อนข้อมูลรับรองโดยใช้
 `--credential-stdin` หรือ `--credential-env`; `--dry-run --json` จะรายงานเฉพาะ
-สถานะการมีอยู่/รูปแบบโดยปกปิดข้อมูล `providers available` อ่านข้อมูลจากแค็ตตาล็อก OmniRoute;
-`providers list/test/test-all/validate` ยังคงใช้ลักษณะการทำงานกับ SQLite ภายในเครื่อง และ
-ไม่จำเป็นต้องให้เซิร์ฟเวอร์ทำงานอยู่
+การมีอยู่/รูปแบบที่ปกปิดข้อมูลแล้ว `providers available` จะอ่านแค็ตตาล็อกของ OmniRoute;
+`providers list/test/test-all/validate` ยังคงทำงานกับ SQLite ภายในเครื่อง
+และไม่จำเป็นต้องให้เซิร์ฟเวอร์ทำงานอยู่
+
+สำหรับโหนดแบบกำหนดเองที่เข้ากันได้กับ OpenAI หรือ Anthropic ให้แนบข้อมูลรับรองกับ
+ID โหนดที่ส่งคืนโดย `omniroute nodes add` โดยใช้ `omniroute keys add "$NODE_ID" --stdin`
+การดำเนินการนี้ต้องมีเซิร์ฟเวอร์ที่กำลังทำงานและการยืนยันตัวตนสำหรับการจัดการในบริบทที่ใช้งานอยู่
+CLI ใช้ `POST /api/providers` ซึ่งจะตรวจสอบความถูกต้องของโหนดและคัดลอกการตั้งค่าเอนด์พอยต์
+ไปยังการเชื่อมต่อ หากไม่พบโหนด การอนุญาตล้มเหลว หรือเซิร์ฟเวอร์ไม่พร้อมใช้งาน
+ระบบจะส่งคืนข้อผิดพลาดโดยไม่สร้างข้อมูลรับรองสำรองภายในเครื่อง
+
+`nodes add --base-url` ใช้ตั้งค่าเอนด์พอยต์ของโหนด ซึ่งแตกต่างจากที่อยู่เซิร์ฟเวอร์
+ใน `OMNIROUTE_BASE_URL` สำหรับไฟล์ OpenAPI ให้ใช้
+`omniroute openapi dump --format json --out ./openapi.json`; `--output` แบบส่วนกลาง
+ใช้เลือกรูปแบบการแสดงผลของ CLI ไม่ใช่ชื่อไฟล์ปลายทาง
 
 ### การกู้คืนและการรีเซ็ต
 
 ```bash
-omniroute reset-password                # รีเซ็ตรหัสผ่านผู้ดูแลระบบ (ใช้ได้เช่นกัน: omniroute-reset-password)
-omniroute reset-encrypted-columns       # แสดงคำเตือนและการทดลองดำเนินการสำหรับการรีเซ็ตข้อมูลประจำตัวที่เข้ารหัส
-omniroute reset-encrypted-columns --force  # ตั้งค่าข้อมูลประจำตัวที่เข้ารหัสใน SQLite เป็น null จริง
+omniroute reset-password                # รีเซ็ตรหัสผ่านผู้ดูแลระบบ (หรือใช้: omniroute-reset-password)
+omniroute reset-encrypted-columns       # แสดงคำเตือน + ทดลองดำเนินการสำหรับการรีเซ็ตข้อมูลรับรองที่เข้ารหัส
+omniroute reset-encrypted-columns --force  # ตั้งค่าข้อมูลรับรองที่เข้ารหัสใน SQLite เป็น null จริง
 ```
 
-### การส่งออกข้อมูลประจำตัว (⚠ โปรดจัดการอย่างระมัดระวัง)
+### การส่งออกข้อมูลรับรอง (⚠ โปรดจัดการด้วยความระมัดระวัง)
 
 ```bash
-omniroute auth export                                 # แสดงคำเตือนและขั้นตอนยืนยัน — ไม่มีการเข้าถึง DB
-omniroute auth export --force                          # ส่งออกข้อมูลประจำตัวที่ถอดรหัสแล้วของการเชื่อมต่อทั้งหมดไปยัง stdout ในรูปแบบ JSON
+omniroute auth export                                 # แสดงคำเตือน + จุดยืนยัน — ไม่มีการเข้าถึง DB
+omniroute auth export --force                          # ส่งออกข้อมูลรับรองที่ถอดรหัสแล้วของการเชื่อมต่อทั้งหมดไปยัง stdout ในรูปแบบ JSON
 omniroute auth export --force --id <id>                 # ส่งออกเฉพาะการเชื่อมต่อที่ตรงกัน
 omniroute auth export --force --format env               # แสดงบรรทัด OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # เขียนลงไฟล์ (สร้างด้วยสิทธิ์ 0600)
 ```
 
-`auth export` ทำงาน **ภายในเครื่องเท่านั้น** (อ่าน SQLite โดยตรง ไม่มีเส้นทาง HTTP) และจงใจแสดงผล/เขียนค่า
-`apiKey`/`accessToken`/`refreshToken`/`idToken` เป็น **ข้อความธรรมดา** — นี่คือคุณสมบัติ ไม่ใช่
-ข้อผิดพลาด ระบบจะไม่อ่านข้อมูลใดจากฐานข้อมูลและไม่ถอดรหัสข้อมูลใดหากไม่มี `--force` แบนเนอร์
-คำเตือนจะถูกแสดงผ่าน stderr ก่อนปล่อยข้อความธรรมดาเสมอ จำเป็นต้องตั้งค่า `STORAGE_ENCRYPTION_KEY`
-ฟิลด์ที่ถอดรหัสไม่สำเร็จ (คีย์เก่าเกินไป ข้อความเข้ารหัสเสียหาย) จะถูกรายงานเป็น
+`auth export` ทำงานแบบ **ภายในเครื่องเท่านั้น** (อ่าน SQLite โดยตรง ไม่มีเส้นทาง HTTP) และจงใจพิมพ์/เขียนค่า
+`apiKey`/`accessToken`/`refreshToken`/`idToken` แบบ **ข้อความธรรมดา** — นี่คือความสามารถ ไม่ใช่
+บั๊ก ระบบจะไม่อ่านข้อมูลใดๆ จากฐานข้อมูลและจะไม่ถอดรหัสข้อมูลใดๆ หากไม่มี `--force` แบนเนอร์คำเตือน
+จะถูกพิมพ์ไปยัง stderr ก่อนปล่อยข้อความธรรมดาออกมาเสมอ กำหนดให้ต้องตั้งค่า `STORAGE_ENCRYPTION_KEY`
+ฟิลด์ที่ถอดรหัสไม่สำเร็จ (คีย์เก่า ข้อความเข้ารหัสเสียหาย) จะถูกรายงานเป็น
 `<field>DecryptFailed: true` แทนที่จะยกเลิกการส่งออกทั้งหมดหรือเปิดเผยข้อผิดพลาดเบื้องหลัง
 
-### คำสั่งย่อยอื่น ๆ
+### คำสั่งย่อยอื่นๆ
 
 คำสั่งเหล่านี้ถือว่าเซิร์ฟเวอร์ OmniRoute กำลังทำงานอยู่ เว้นแต่จะระบุไว้เป็นอย่างอื่น:
 
 ```bash
-omniroute status                       # สถานะรันไทม์แบบครบถ้วน
+omniroute status                       # สถานะรันไทม์โดยละเอียด
 omniroute logs                         # สตรีมบันทึกคำขอ (--json, --search, --follow)
 omniroute config list                  # แสดงเครื่องมือ CLI ที่กำหนดค่าไว้
 
@@ -701,10 +713,10 @@ omniroute keys add | list | remove     # จัดการคีย์ API
 omniroute models [provider]            # แสดงรายการโมเดล (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # สร้างสแนปช็อตการกำหนดค่า + ฐานข้อมูล
+omniroute backup                       # สร้างสแนปช็อตการกำหนดค่า + DB
 omniroute restore                      # กู้คืนจากสแนปช็อตก่อนหน้า
 
-omniroute health                       # สถานะความพร้อมใช้งานโดยละเอียด (ตัวตัดวงจร, แคช, หน่วยความจำ)
+omniroute health                       # สถานะความพร้อมใช้งานโดยละเอียด (เบรกเกอร์ แคช หน่วยความจำ)
 omniroute quota                        # การใช้โควตาของผู้ให้บริการ
 omniroute cache                        # สถานะแคช
 omniroute cache clear                  # ล้างแคชเชิงความหมาย + แคชลายเซ็น
@@ -717,20 +729,20 @@ omniroute env show | get <k> | set <k> <v>  # ตรวจสอบ / ตั้�
 
 omniroute test                         # ทดสอบการเชื่อมต่อกับผู้ให้บริการแบบเบื้องต้น
 omniroute update                       # ตรวจสอบการอัปเดต
-omniroute completion                   # สร้างการเติมคำอัตโนมัติสำหรับเชลล์
+omniroute completion                   # สร้างการเติมคำสั่งอัตโนมัติสำหรับเชลล์
 ```
 
-### แฟล็กที่ใช้บ่อย
+### แฟล็กทั่วไป
 
-| แฟล็ก               | คำอธิบาย                                                 |
-| ------------------- | -------------------------------------------------------- |
-| `--no-open`         | ไม่เปิดเบราว์เซอร์โดยอัตโนมัติเมื่อเริ่มต้น              |
-| `--port <n>`        | แทนที่พอร์ต API (ค่าเริ่มต้น 20128)                      |
-| `--mcp`             | เรียกใช้เป็นเซิร์ฟเวอร์ MCP ผ่าน stdio (สำหรับ IDE)      |
-| `--non-interactive` | โหมด CI (ไม่มีพรอมต์; อ่านค่าจากตัวแปรสภาพแวดล้อม/แฟล็ก) |
-| `--json`            | เอาต์พุต JSON ที่เครื่องอ่านได้ (doctor, providers ฯลฯ)  |
-| `--help`, `-h`      | แสดงความช่วยเหลือเฉพาะคำสั่ง                             |
-| `--version`, `-v`   | แสดงเวอร์ชันที่ติดตั้ง                                   |
+| แฟล็ก               | คำอธิบาย                                                |
+| ------------------- | ------------------------------------------------------- |
+| `--no-open`         | ไม่เปิดเบราว์เซอร์โดยอัตโนมัติเมื่อเริ่มต้น             |
+| `--port <n>`        | แทนที่พอร์ต API (ค่าเริ่มต้น 20128)                     |
+| `--mcp`             | ทำงานเป็นเซิร์ฟเวอร์ MCP ผ่าน stdio (สำหรับ IDE)        |
+| `--non-interactive` | โหมด CI (ไม่มีพรอมต์ อ่านค่าจาก env/แฟล็ก)              |
+| `--json`            | เอาต์พุต JSON ที่เครื่องอ่านได้ (doctor, providers ฯลฯ) |
+| `--help`, `-h`      | แสดงความช่วยเหลือเฉพาะคำสั่ง                            |
+| `--version`, `-v`   | พิมพ์เวอร์ชันที่ติดตั้ง                                 |
 
 ---
 

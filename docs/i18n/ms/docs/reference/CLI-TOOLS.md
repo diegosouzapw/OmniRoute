@@ -547,7 +547,7 @@ di bawah `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. CLI Dalaman OmniRoute
+## 10. CLI OmniRoute Dalaman
 
 Binari `omniroute` menyediakan perintah untuk kitar hayat pelayan, persediaan, diagnostik dan pengurusan penyedia. Titik masuk: `bin/omniroute.mjs`.
 
@@ -578,10 +578,10 @@ omniroute setup --add-provider \
 
 Pemboleh ubah persekitaran yang dikenali untuk persediaan bukan interaktif:
 
-| Pemboleh ubah       | Tujuan                                                                    |
-| ------------------- | ------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Kunci API penyedia (diikat kepada `--api-key` melalui `.env()` Commander) |
-| `DATA_DIR`          | Gantikan direktori data OmniRoute                                         |
+| Pemboleh Ubah       | Tujuan                                                                       |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Kunci API penyedia (dipautkan kepada `--api-key` melalui `.env()` Commander) |
+| `DATA_DIR`          | Gantikan direktori data OmniRoute                                            |
 
 Semua input bukan interaktif yang lain dihantar sebagai bendera, bukan pemboleh ubah persekitaran:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
@@ -597,9 +597,9 @@ omniroute doctor --host 0.0.0.0        # Gantikan hos keaktifan
 omniroute doctor --liveness-url <url>  # Gantikan URL penuh titik akhir kesihatan
 ```
 
-Perintah doctor menjalankan semakan berikut: `Config`, `Database`, `Storage/encryption`,
+Doctor menjalankan pemeriksaan berikut: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` dan `Server liveness`. Ia keluar dengan kod bukan sifar jika mana-mana semakan ialah `fail`.
+`Memory` dan `Server liveness`. Ia keluar dengan kod bukan sifar jika mana-mana pemeriksaan berstatus `fail`.
 
 ### Pengurusan Penyedia
 
@@ -622,41 +622,53 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` mengutamakan API dan oleh itu berfungsi dengan
+`providers add/import/auth/edit/remove` mengutamakan API dan oleh itu berfungsi terhadap
 konteks setempat atau jauh yang aktif. Input kelayakan hendaklah menggunakan
 `--credential-stdin` atau `--credential-env`; `--dry-run --json` hanya melaporkan
-kehadiran/bentuk yang telah disunting. `providers available` membaca katalog OmniRoute;
+kewujudan/bentuk yang disunting. `providers available` membaca katalog OmniRoute;
 `providers list/test/test-all/validate` mengekalkan tingkah laku SQLite setempatnya dan
-tidak memerlukan pelayan berjalan.
+tidak memerlukan pelayan untuk berjalan.
+
+Untuk nod tersuai yang serasi dengan OpenAI atau Anthropic, lampirkan kelayakan pada
+ID nod yang dikembalikan oleh `omniroute nodes add`, menggunakan `omniroute keys add "$NODE_ID" --stdin`.
+Ini memerlukan pelayan yang sedang berjalan dan pengesahan pengurusan untuk konteks aktif.
+CLI menggunakan `POST /api/providers`, yang mengesahkan nod dan menyalin tetapan titik akhirnya
+ke dalam sambungan. Nod yang tiada, kegagalan kebenaran atau pelayan yang tidak tersedia
+akan mengembalikan ralat tanpa mencipta kelayakan sandaran setempat.
+
+`nodes add --base-url` menetapkan titik akhir nod; ia berbeza daripada alamat pelayan
+dalam `OMNIROUTE_BASE_URL`. Untuk fail OpenAPI, gunakan
+`omniroute openapi dump --format json --out ./openapi.json`; `--output` global
+memilih pemformatan paparan CLI, bukannya nama fail destinasi.
 
 ### Pemulihan & Penetapan Semula
 
 ```bash
 omniroute reset-password                # Tetapkan semula kata laluan pentadbir (juga: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Tunjukkan amaran + percubaan kering untuk penetapan semula kelayakan yang disulitkan
-omniroute reset-encrypted-columns --force  # Benar-benar tetapkan kelayakan yang disulitkan kepada nol dalam SQLite
+omniroute reset-encrypted-columns       # Tunjukkan amaran + percubaan kering untuk penetapan semula kelayakan tersulit
+omniroute reset-encrypted-columns --force  # Kosongkan kelayakan tersulit dalam SQLite kepada null
 ```
 
 ### Eksport Kelayakan (⚠ kendalikan dengan berhati-hati)
 
 ```bash
 omniroute auth export                                 # Tunjukkan amaran + gerbang pengesahan — tiada akses DB
-omniroute auth export --force                          # Eksport kelayakan DINYAHSULIT bagi SEMUA sambungan ke stdout sebagai JSON
+omniroute auth export --force                          # Eksport kelayakan DINYAHKRIP bagi SEMUA sambungan ke stdout sebagai JSON
 omniroute auth export --force --id <id>                 # Eksport hanya sambungan yang sepadan
 omniroute auth export --force --format env               # Keluarkan baris OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Tulis ke fail (dicipta dengan kebenaran 0600)
+omniroute auth export --force --out creds.json           # Tulis ke fail (dicipta dengan keizinan 0600)
 ```
 
-`auth export` adalah **setempat sahaja** (bacaan SQLite secara langsung, tiada laluan HTTP) dan sengaja mencetak/menulis
-nilai **teks biasa** `apiKey`/`accessToken`/`refreshToken`/`idToken` — itu ialah ciri, bukan
-pepijat. Tiada apa-apa dibaca daripada pangkalan data dan tiada apa-apa dinyahsulit tanpa `--force`. Sepanduk
+`auth export` adalah **setempat sahaja** (bacaan SQLite secara langsung, tanpa laluan HTTP) dan sengaja mencetak/menulis
+nilai `apiKey`/`accessToken`/`refreshToken`/`idToken` dalam **teks biasa** — itu ialah cirinya, bukan
+pepijat. Tiada apa-apa yang dibaca daripada pangkalan data dan tiada apa-apa yang dinyahsulitkan tanpa `--force`. Sepanduk
 amaran stderr sentiasa dicetak sebelum sebarang teks biasa dikeluarkan. Memerlukan `STORAGE_ENCRYPTION_KEY`
-ditetapkan. Medan yang gagal dinyahsulit (kunci lapuk, teks sifer rosak) dilaporkan sebagai
-`<field>DecryptFailed: true` dan bukannya membatalkan keseluruhan eksport atau membocorkan ralat asas.
+ditetapkan. Medan yang gagal dinyahsulitkan (kunci lapuk, teks sifir rosak) dilaporkan sebagai
+`<field>DecryptFailed: true` dan bukannya membatalkan keseluruhan eksport atau mendedahkan ralat yang mendasarinya.
 
 ### Subperintah lain
 
-Ini mengandaikan pelayan OmniRoute sedang berjalan, melainkan dinyatakan sebaliknya:
+Perintah berikut mengandaikan pelayan OmniRoute sedang berjalan, melainkan dinyatakan sebaliknya:
 
 ```bash
 omniroute status                       # Status masa jalan yang menyeluruh
@@ -669,8 +681,8 @@ omniroute keys add | list | remove     # Urus kunci API
 omniroute models [provider]            # Senaraikan model (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Petikan konfigurasi + DB
-omniroute restore                      # Pulihkan daripada petikan sebelumnya
+omniroute backup                       # Ambil petikan konfigurasi + DB
+omniroute restore                      # Pulihkan daripada petikan terdahulu
 
 omniroute health                       # Kesihatan terperinci (pemutus, cache, memori)
 omniroute quota                        # Penggunaan kuota penyedia
@@ -683,7 +695,7 @@ omniroute a2a status | card            # Status pelayan A2A / kad ejen
 omniroute tunnel list | create | stop  # Urus terowong (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Periksa / tetapkan pemboleh ubah persekitaran (sementara)
 
-omniroute test                         # Ujian ringkas kesambungan penyedia
+omniroute test                         # Ujian ringkas ketersambungan penyedia
 omniroute update                       # Semak kemas kini
 omniroute completion                   # Jana pelengkapan shell
 ```
@@ -692,13 +704,13 @@ omniroute completion                   # Jana pelengkapan shell
 
 | Bendera             | Penerangan                                                    |
 | ------------------- | ------------------------------------------------------------- |
-| `--no-open`         | Jangan buka pelayar secara automatik semasa permulaan         |
+| `--no-open`         | Jangan buka pelayar secara automatik semasa dimulakan         |
 | `--port <n>`        | Gantikan port API (lalai 20128)                               |
 | `--mcp`             | Jalankan sebagai pelayan MCP melalui stdio (untuk IDE)        |
-| `--non-interactive` | Mod CI (tanpa gesaan; membaca daripada env/bendera)           |
+| `--non-interactive` | Mod CI (tiada gesaan; membaca daripada env/bendera)           |
 | `--json`            | Output JSON yang boleh dibaca mesin (doctor, providers, dll.) |
 | `--help`, `-h`      | Tunjukkan bantuan khusus perintah                             |
-| `--version`, `-v`   | Paparkan versi yang dipasang                                  |
+| `--version`, `-v`   | Cetak versi yang dipasang                                     |
 
 ---
 

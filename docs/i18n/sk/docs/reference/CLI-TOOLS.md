@@ -106,9 +106,9 @@ jedného rozhrania bez pridania do ostatných spôsobí zlyhanie testovacej sady
 
 ---
 
-## 1. Katalóg nástrojov CLI kódu (26 nástrojov)
+## 1. Katalóg CLI nástrojov (26 nástrojov)
 
-Všetky nástroje, ktoré sa objavujú v `/dashboard/cli-code`. Tie s `baseUrlSupport: none` sú pripojené cez MITM alebo manuálneho sprievodcu namiesto vlastnej základnej URL:
+Všetky nástroje, ktoré sa zobrazujú v `/dashboard/cli-code`. Nástroje s hodnotou `baseUrlSupport: none` sú pripojené prostredníctvom MITM alebo manuálneho návodu namiesto vlastnej základnej URL:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -139,7 +139,7 @@ Všetky nástroje, ktoré sa objavujú v `/dashboard/cli-code`. Tie s `baseUrlSu
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Nástroje s `baseUrlSupport: "partial"` zobrazujú odznak "⚠ Čiastočná základná URL" na karte palubnej dosky.
+Nástroje s hodnotou `baseUrlSupport: "partial"` zobrazujú na karte ovládacieho panela odznak „⚠ Čiastočná základná URL“.
 ---
 
 ## 2. Katalóg CLI agentov (10 nástrojov)
@@ -571,28 +571,28 @@ v časti `/dashboard/cli-tools → Kiro`.
 Binárny súbor `omniroute` poskytuje príkazy na správu životného cyklu servera, nastavenie, diagnostiku a správu poskytovateľov. Vstupný bod: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Spustí server (predvolený port 20128)
+omniroute                              # Spustenie servera (predvolený port 20128)
 omniroute setup                        # Interaktívny sprievodca nastavením
-omniroute doctor                       # Skontroluje konfiguráciu, DB, porty a behové prostredie
+omniroute doctor                       # Kontrola konfigurácie, DB, portov a behového prostredia
 omniroute providers list               # Nakonfigurované pripojenia poskytovateľov
-omniroute providers test-all           # Otestuje každé aktívne pripojenie
-omniroute reset-password               # Obnoví heslo správcu
-omniroute logs                         # Priebežne zobrazuje protokoly požiadaviek
-omniroute health                       # Podrobný stav (ističe, vyrovnávacia pamäť, pamäť)
-omniroute --version                    # Vypíše verziu
-omniroute --help                       # Zobrazí všetky príkazy
+omniroute providers test-all           # Otestovanie každého aktívneho pripojenia
+omniroute reset-password               # Obnovenie hesla správcu
+omniroute logs                         # Priebežné zobrazovanie protokolov požiadaviek
+omniroute health                       # Podrobné informácie o stave (ističe, vyrovnávacia pamäť, pamäť)
+omniroute --version                    # Zobrazenie verzie
+omniroute --help                       # Zobrazenie všetkých príkazov
 ```
 
 ### Nastavenie a inicializácia
 
 ```bash
 omniroute setup                        # Interaktívny sprievodca nastavením
-omniroute setup --non-interactive      # Režim CI/automatizácie (číta premenné prostredia a príznaky)
-omniroute setup --password '<value>'   # Nastaví heslo správcu priamo
+omniroute setup --non-interactive      # Režim CI/automatizácie (číta premenné prostredia + príznaky)
+omniroute setup --password '<value>'   # Priame nastavenie hesla správcu
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Pridá a otestuje poskytovateľa v jednom kroku
+  --test-provider                      # Pridanie a otestovanie poskytovateľa v jednom kroku
 ```
 
 Rozpoznávané premenné prostredia pre neinteraktívne nastavenie:
@@ -600,7 +600,7 @@ Rozpoznávané premenné prostredia pre neinteraktívne nastavenie:
 | Premenná            | Účel                                                                     |
 | ------------------- | ------------------------------------------------------------------------ |
 | `OMNIROUTE_API_KEY` | Kľúč API poskytovateľa (naviazaný na `--api-key` cez Commander `.env()`) |
-| `DATA_DIR`          | Prepíše dátový adresár OmniRoute                                         |
+| `DATA_DIR`          | Prepísanie dátového adresára OmniRoute                                   |
 
 Všetky ostatné neinteraktívne vstupy sa odovzdávajú ako príznaky, nie ako premenné prostredia:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
@@ -609,31 +609,31 @@ Všetky ostatné neinteraktívne vstupy sa odovzdávajú ako príznaky, nie ako 
 ### Diagnostika
 
 ```bash
-omniroute doctor                       # Skontroluje konfiguráciu, DB, porty, behové prostredie, pamäť a dostupnosť
+omniroute doctor                       # Kontrola konfigurácie, DB, portov, behového prostredia, pamäte a dostupnosti
 omniroute doctor --json                # Strojovo čitateľný JSON
-omniroute doctor --no-liveness         # Preskočí sondu stavu HTTP
-omniroute doctor --host 0.0.0.0        # Prepíše hostiteľa kontroly dostupnosti
-omniroute doctor --liveness-url <url>  # Prepíše úplnú URL koncového bodu stavu
+omniroute doctor --no-liveness         # Preskočenie kontroly stavu cez HTTP
+omniroute doctor --host 0.0.0.0        # Prepísanie hostiteľa kontroly dostupnosti
+omniroute doctor --liveness-url <url>  # Prepísanie úplnej adresy URL koncového bodu stavu
 ```
 
-Príkaz doctor vykoná tieto kontroly: `Config`, `Database`, `Storage/encryption`,
+Príkaz doctor vykonáva tieto kontroly: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` a `Server liveness`. Skončí s nenulovým návratovým kódom, ak má ktorákoľvek kontrola stav `fail`.
+`Memory` a `Server liveness`. Ak má ktorákoľvek kontrola stav `fail`, skončí s nenulovým návratovým kódom.
 
 ### Správa poskytovateľov
 
 ```bash
 omniroute providers available                       # Katalóg poskytovateľov OmniRoute
-omniroute providers available --search openai       # Filtruje katalóg podľa ID/názvu/aliasu/kategórie
-omniroute providers available --category api-key    # Filtruje podľa kategórie (api-key, oauth, free, ...)
+omniroute providers available --search openai       # Filtrovanie katalógu podľa ID/názvu/aliasu/kategórie
+omniroute providers available --category api-key    # Filtrovanie podľa kategórie (api-key, oauth, free, ...)
 omniroute providers available --json                # Strojovo čitateľný JSON
 
 omniroute providers list                            # Nakonfigurované pripojenia poskytovateľov
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Otestuje jedno nakonfigurované pripojenie
-omniroute providers test-all                        # Otestuje každé aktívne pripojenie
-omniroute providers validate                        # Iba lokálne štrukturálne overenie
+omniroute providers test <id|name>                  # Otestovanie jedného nakonfigurovaného pripojenia
+omniroute providers test-all                        # Otestovanie každého aktívneho pripojenia
+omniroute providers validate                        # Iba lokálne overenie štruktúry
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Existujúci tok OAuth
@@ -641,54 +641,66 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-Príkazy `providers add/import/auth/edit/remove` primárne používajú API, a preto fungujú voči
-aktívnemu lokálnemu alebo vzdialenému kontextu. Na zadanie prihlasovacích údajov použite
+Príkazy `providers add/import/auth/edit/remove` primárne používajú API, a preto fungujú s
+aktívnym lokálnym alebo vzdialeným kontextom. Na zadanie prihlasovacích údajov použite
 `--credential-stdin` alebo `--credential-env`; `--dry-run --json` uvádza iba
-redigované informácie o prítomnosti/štruktúre. `providers available` číta katalóg OmniRoute;
-`providers list/test/test-all/validate` si zachovávajú svoje lokálne správanie s SQLite a
+redigované informácie o prítomnosti/štruktúre. Príkaz `providers available` číta katalóg OmniRoute;
+príkazy `providers list/test/test-all/validate` si zachovávajú svoje lokálne správanie SQLite a
 nevyžadujú spustený server.
 
-### Obnova a resetovanie
+V prípade vlastného uzla kompatibilného s OpenAI alebo Anthropic pripojte prihlasovacie údaje
+k ID uzla vrátenému príkazom `omniroute nodes add` pomocou `omniroute keys add "$NODE_ID" --stdin`.
+Vyžaduje to spustený server a overenie totožnosti na správu aktívneho kontextu.
+CLI používa `POST /api/providers`, ktorý overí uzol a skopíruje nastavenia jeho koncového bodu
+do pripojenia. Chýbajúci uzol, zlyhanie autorizácie alebo nedostupný
+server spôsobí chybu bez vytvorenia náhradných lokálnych prihlasovacích údajov.
+
+`nodes add --base-url` nastavuje koncový bod uzla; od adresy servera
+v `OMNIROUTE_BASE_URL` sa líši. Pre súbory OpenAPI použite
+`omniroute openapi dump --format json --out ./openapi.json`; globálny príznak `--output`
+vyberá formát zobrazenia CLI, nie názov cieľového súboru.
+
+### Obnovenie a resetovanie
 
 ```bash
-omniroute reset-password                # Obnoví heslo správcu (tiež: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Zobrazí upozornenie a skúšobné spustenie resetovania šifrovaných prihlasovacích údajov
-omniroute reset-encrypted-columns --force  # Skutočne nastaví šifrované prihlasovacie údaje v SQLite na hodnotu null
+omniroute reset-password                # Obnovenie hesla správcu (tiež: omniroute-reset-password)
+omniroute reset-encrypted-columns       # Zobrazenie upozornenia + skúšobné spustenie resetovania šifrovaných prihlasovacích údajov
+omniroute reset-encrypted-columns --force  # Skutočné nastavenie šifrovaných prihlasovacích údajov v SQLite na hodnotu null
 ```
 
 ### Export prihlasovacích údajov (⚠ zaobchádzajte s nimi opatrne)
 
 ```bash
-omniroute auth export                                 # Zobrazí upozornenie a vyžiada potvrdenie — bez prístupu k DB
-omniroute auth export --force                          # Exportuje DEŠIFROVANÉ prihlasovacie údaje VŠETKÝCH pripojení na štandardný výstup vo formáte JSON
-omniroute auth export --force --id <id>                 # Exportuje iba zodpovedajúce pripojenie
-omniroute auth export --force --format env               # Vypíše riadky OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Zapíše do súboru (vytvoreného s oprávneniami 0600)
+omniroute auth export                                 # Zobrazenie upozornenia + vyžiadanie potvrdenia — bez prístupu k DB
+omniroute auth export --force                          # Export DEŠIFROVANÝCH prihlasovacích údajov VŠETKÝCH pripojení do štandardného výstupu ako JSON
+omniroute auth export --force --id <id>                 # Export iba zodpovedajúceho pripojenia
+omniroute auth export --force --format env               # Výstup riadkov OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --out creds.json           # Zápis do súboru (vytvoreného s oprávneniami 0600)
 ```
 
-`auth export` funguje **iba lokálne** (priame čítanie zo SQLite, bez trasy HTTP) a zámerne vypisuje/zapisuje
-hodnoty `apiKey`/`accessToken`/`refreshToken`/`idToken` ako **obyčajný text** — je to funkcia, nie
-chyba. Bez `--force` sa z databázy nič nečíta ani nedešifruje. Pred vypísaním akéhokoľvek obyčajného textu sa
-na stderr vždy vypíše upozornenie. Vyžaduje nastavenie `STORAGE_ENCRYPTION_KEY`.
-Pole, ktoré sa nepodarí dešifrovať (neaktuálny kľúč, poškodený šifrovaný text), sa nahlási ako
-`<field>DecryptFailed: true` namiesto prerušenia celého exportu alebo odhalenia základnej chyby.
+`auth export` funguje **iba lokálne** (priame čítanie zo SQLite, bez HTTP trasy) a zámerne vypisuje/ukladá
+hodnoty `apiKey`/`accessToken`/`refreshToken`/`idToken` v **otvorenom texte** — je to funkcia, nie
+chyba. Bez `--force` sa z databázy nič nečíta ani sa nič nedešifruje. Pred vypísaním akéhokoľvek
+otvoreného textu sa na stderr vždy zobrazí varovný banner. Vyžaduje nastavenie
+`STORAGE_ENCRYPTION_KEY`. Pole, ktoré sa nepodarí dešifrovať (zastaraný kľúč, poškodený šifrovaný text),
+sa nahlási ako `<field>DecryptFailed: true` namiesto prerušenia celého exportu alebo odhalenia pôvodnej chyby.
 
 ### Ostatné podpríkazy
 
-Ak nie je uvedené inak, tieto príkazy predpokladajú spustený server OmniRoute:
+Ak nie je uvedené inak, predpokladajú spustený server OmniRoute:
 
 ```bash
-omniroute status                       # Súhrnný stav behu
+omniroute status                       # Podrobný stav za behu
 omniroute logs                         # Streamovanie protokolov požiadaviek (--json, --search, --follow)
 omniroute config list                  # Zobrazenie nakonfigurovaných nástrojov CLI
 
-omniroute provider list                # Zoznam dostupných poskytovateľov (alias príkazu providers list)
+omniroute provider list                # Zoznam dostupných poskytovateľov (alias pre providers list)
 omniroute provider add                 # Registrácia OmniRoute ako poskytovateľa v nástroji
 omniroute keys add | list | remove     # Správa kľúčov API
 omniroute models [provider]            # Zoznam modelov (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Snímka konfigurácie a databázy
+omniroute backup                       # Vytvorenie snímky konfigurácie a databázy
 omniroute restore                      # Obnovenie z predchádzajúcej snímky
 
 omniroute health                       # Podrobný stav systému (ističe, vyrovnávacia pamäť, pamäť)
@@ -700,23 +712,23 @@ omniroute mcp status | restart         # Stav/reštart servera MCP
 omniroute a2a status | card            # Stav servera A2A/karta agenta
 
 omniroute tunnel list | create | stop  # Správa tunelov (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Kontrola/nastavenie premenných prostredia (dočasné)
+omniroute env show | get <k> | set <k> <v>  # Kontrola/nastavenie premenných prostredia (dočasne)
 
-omniroute test                         # Rýchly test pripojenia k poskytovateľovi
+omniroute test                         # Základný test pripojenia k poskytovateľovi
 omniroute update                       # Kontrola aktualizácií
-omniroute completion                   # Generovanie automatického dopĺňania pre shell
+omniroute completion                   # Generovanie dopĺňania príkazov pre shell
 ```
 
 ### Bežné príznaky
 
 | Príznak             | Popis                                                   |
 | ------------------- | ------------------------------------------------------- |
-| `--no-open`         | Automaticky neotvoriť prehliadač pri spustení           |
-| `--port <n>`        | Prepísať port API (predvolene 20128)                    |
+| `--no-open`         | Neotvárať automaticky prehliadač pri spustení           |
+| `--port <n>`        | Prepísať port API (predvolený je 20128)                 |
 | `--mcp`             | Spustiť ako server MCP cez stdio (pre IDE)              |
-| `--non-interactive` | Režim CI (bez výziev; načítava z prostredia/príznakov)  |
+| `--non-interactive` | Režim CI (bez výziev; číta z prostredia/príznakov)      |
 | `--json`            | Strojovo čitateľný výstup JSON (doctor, providers atď.) |
-| `--help`, `-h`      | Zobraziť pomocníka pre konkrétny príkaz                 |
+| `--help`, `-h`      | Zobraziť pomoc pre konkrétny príkaz                     |
 | `--version`, `-v`   | Vypísať nainštalovanú verziu                            |
 
 ---

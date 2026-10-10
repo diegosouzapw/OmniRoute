@@ -558,7 +558,7 @@ pod `/dashboard/cli-tools → Kiro`.
 
 ## 10. Wewnętrzny interfejs CLI OmniRoute
 
-Plik binarny `omniroute` udostępnia polecenia do zarządzania cyklem życia serwera, konfiguracji, diagnostyki i dostawców. Punkt wejścia: `bin/omniroute.mjs`.
+Plik binarny `omniroute` udostępnia polecenia do zarządzania cyklem życia serwera, konfiguracją, diagnostyką i dostawcami. Punkt wejścia: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # Uruchom serwer (domyślny port 20128)
@@ -567,10 +567,10 @@ omniroute doctor                       # Sprawdź konfigurację, bazę danych, p
 omniroute providers list               # Skonfigurowane połączenia z dostawcami
 omniroute providers test-all           # Przetestuj każde aktywne połączenie
 omniroute reset-password               # Zresetuj hasło administratora
-omniroute logs                         # Wyświetlaj strumieniowo dzienniki żądań
+omniroute logs                         # Strumieniuj dzienniki żądań
 omniroute health                       # Szczegółowy stan (wyłączniki, pamięć podręczna, pamięć)
 omniroute --version                    # Wyświetl wersję
-omniroute --help                       # Pokaż wszystkie polecenia
+omniroute --help                       # Wyświetl wszystkie polecenia
 ```
 
 ### Konfiguracja i inicjalizacja
@@ -582,33 +582,33 @@ omniroute setup --password '<value>'   # Ustaw hasło administratora bezpośredn
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Dodaj i przetestuj dostawcę za jednym razem
+  --test-provider                      # Dodaj i przetestuj dostawcę w jednym kroku
 ```
 
 Rozpoznawane zmienne środowiskowe dla konfiguracji nieinteraktywnej:
 
-| Zmienna             | Przeznaczenie                                                                        |
-| ------------------- | ------------------------------------------------------------------------------------ |
-| `OMNIROUTE_API_KEY` | Klucz API dostawcy (powiązany z `--api-key` za pomocą `.env()` biblioteki Commander) |
-| `DATA_DIR`          | Zastępuje katalog danych OmniRoute                                                   |
+| Zmienna             | Przeznaczenie                                                         |
+| ------------------- | --------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Klucz API dostawcy (powiązany z `--api-key` przez Commander `.env()`) |
+| `DATA_DIR`          | Zastępuje katalog danych OmniRoute                                    |
 
 Wszystkie pozostałe dane wejściowe konfiguracji nieinteraktywnej są przekazywane jako flagi, a nie zmienne środowiskowe:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(zobacz powyższe opcje polecenia `omniroute setup`).
+(zobacz opcje `omniroute setup` powyżej).
 
 ### Diagnostyka
 
 ```bash
 omniroute doctor                       # Sprawdź konfigurację, bazę danych, porty, środowisko uruchomieniowe, pamięć i dostępność
 omniroute doctor --json                # JSON przeznaczony do odczytu maszynowego
-omniroute doctor --no-liveness         # Pomiń sondę kondycji HTTP
-omniroute doctor --host 0.0.0.0        # Zastąp hosta sondy dostępności
-omniroute doctor --liveness-url <url>  # Zastąp pełny adres URL punktu końcowego kondycji
+omniroute doctor --no-liveness         # Pomiń sondę stanu HTTP
+omniroute doctor --host 0.0.0.0        # Zastąp host używany do sprawdzania dostępności
+omniroute doctor --liveness-url <url>  # Zastąp pełny adres URL punktu końcowego stanu
 ```
 
 Polecenie doctor wykonuje następujące kontrole: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` oraz `Server liveness`. Kończy działanie z kodem różnym od zera, jeśli dowolna kontrola ma wynik `fail`.
+`Memory` oraz `Server liveness`. Kończy działanie z kodem różnym od zera, jeśli którakolwiek kontrola ma wynik `fail`.
 
 ### Zarządzanie dostawcami
 
@@ -623,7 +623,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # Przetestuj jedno skonfigurowane połączenie
 omniroute providers test-all                        # Przetestuj każde aktywne połączenie
-omniroute providers validate                        # Wyłącznie lokalna walidacja strukturalna
+omniroute providers validate                        # Walidacja strukturalna wyłącznie lokalnie
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Istniejący przepływ OAuth
@@ -631,60 +631,71 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-Polecenia `providers add/import/auth/edit/remove` korzystają przede wszystkim z API i dlatego działają względem
-aktywnego kontekstu lokalnego lub zdalnego. Dane uwierzytelniające należy przekazywać za pomocą
-`--credential-stdin` lub `--credential-env`; `--dry-run --json` zgłasza wyłącznie
-zanonimizowane informacje o obecności/strukturze. `providers available` odczytuje katalog OmniRoute;
-`providers list/test/test-all/validate` zachowują swoje lokalne działanie oparte na SQLite i
+Polecenia `providers add/import/auth/edit/remove` w pierwszej kolejności korzystają z API, dlatego działają w aktywnym kontekście lokalnym lub zdalnym. Dane uwierzytelniające należy przekazywać za pomocą
+`--credential-stdin` lub `--credential-env`; `--dry-run --json` raportuje jedynie
+zanonimizowaną informację o obecności i strukturze danych. Polecenie `providers available` odczytuje katalog OmniRoute;
+`providers list/test/test-all/validate` zachowują lokalne działanie oparte na SQLite i
 nie wymagają uruchomionego serwera.
+
+W przypadku niestandardowego węzła zgodnego z OpenAI lub Anthropic dołącz dane uwierzytelniające do
+identyfikatora węzła zwróconego przez `omniroute nodes add`, używając `omniroute keys add "$NODE_ID" --stdin`.
+Wymaga to uruchomionego serwera i uwierzytelnienia do zarządzania w aktywnym kontekście.
+CLI używa `POST /api/providers`, który waliduje węzeł i kopiuje ustawienia jego punktu końcowego
+do połączenia. Brak węzła, niepowodzenie autoryzacji lub niedostępność
+serwera powodują zwrócenie błędu bez utworzenia lokalnych zastępczych danych uwierzytelniających.
+
+Opcja `nodes add --base-url` ustawia punkt końcowy węzła; różni się on od adresu serwera
+w `OMNIROUTE_BASE_URL`. W przypadku plików OpenAPI użyj
+`omniroute openapi dump --format json --out ./openapi.json`; globalna opcja `--output`
+wybiera format wyświetlania CLI, a nie nazwę pliku docelowego.
 
 ### Odzyskiwanie i resetowanie
 
 ```bash
 omniroute reset-password                # Zresetuj hasło administratora (także: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Pokaż ostrzeżenie i wykonaj przebieg próbny resetowania zaszyfrowanych danych uwierzytelniających
+omniroute reset-encrypted-columns       # Wyświetl ostrzeżenie i przeprowadź próbę resetowania zaszyfrowanych danych uwierzytelniających
 omniroute reset-encrypted-columns --force  # Faktycznie ustaw zaszyfrowane dane uwierzytelniające w SQLite na null
 ```
 
 ### Eksport danych uwierzytelniających (⚠ zachowaj ostrożność)
 
 ```bash
-omniroute auth export                                 # Pokaż ostrzeżenie i monit o potwierdzenie — bez dostępu do bazy danych
+omniroute auth export                                 # Wyświetl ostrzeżenie i poproś o potwierdzenie — bez dostępu do bazy danych
 omniroute auth export --force                          # Wyeksportuj ODSZYFROWANE dane uwierzytelniające WSZYSTKICH połączeń do standardowego wyjścia jako JSON
 omniroute auth export --force --id <id>                 # Wyeksportuj tylko pasujące połączenie
-omniroute auth export --force --format env               # Wyemituj wiersze OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --format env               # Wygeneruj wiersze OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Zapisz do pliku (utworzonego z uprawnieniami 0600)
 ```
 
 `auth export` działa **wyłącznie lokalnie** (bezpośredni odczyt SQLite, bez trasy HTTP) i celowo wyświetla/zapisuje
-wartości `apiKey`/`accessToken`/`refreshToken`/`idToken` w postaci **zwykłego tekstu** — jest to funkcja, a nie
-błąd. Bez flagi `--force` nic nie jest odczytywane z bazy danych ani odszyfrowywane. Baner ostrzegawczy
-jest zawsze wyświetlany w stderr przed wyemitowaniem jakiegokolwiek zwykłego tekstu. Wymaga ustawienia
+wartości `apiKey`/`accessToken`/`refreshToken`/`idToken` jako **zwykły tekst** — jest to funkcja, a nie
+błąd. Bez opcji `--force` nic nie jest odczytywane z bazy danych ani odszyfrowywane. Baner ostrzegawczy
+jest zawsze wyświetlany na stderr przed wyemitowaniem jakichkolwiek danych w postaci zwykłego tekstu. Wymaga ustawienia
 `STORAGE_ENCRYPTION_KEY`. Pole, którego nie uda się odszyfrować (nieaktualny klucz, uszkodzony szyfrogram), jest zgłaszane jako
-`<field>DecryptFailed: true` zamiast przerwania całego eksportu lub ujawnienia bazowego błędu.
+`<field>DecryptFailed: true`, zamiast przerywać cały eksport lub ujawniać bazowy błąd.
 
 ### Inne podpolecenia
 
-Poniższe polecenia zakładają, że serwer OmniRoute jest uruchomiony, chyba że zaznaczono inaczej:
+O ile nie zaznaczono inaczej, zakładają one działający serwer OmniRoute:
 
 ```bash
 omniroute status                       # Kompleksowy stan środowiska uruchomieniowego
-omniroute logs                         # Strumieniowe wyświetlanie dzienników żądań (--json, --search, --follow)
+omniroute logs                         # Strumieniowe przesyłanie dzienników żądań (--json, --search, --follow)
 omniroute config list                  # Wyświetlanie skonfigurowanych narzędzi CLI
 
-omniroute provider list                # Lista dostępnych dostawców (alias polecenia providers list)
+omniroute provider list                # Wyświetlanie dostępnych dostawców (alias polecenia providers list)
 omniroute provider add                 # Rejestrowanie OmniRoute jako dostawcy w narzędziu
 omniroute keys add | list | remove     # Zarządzanie kluczami API
-omniroute models [provider]            # Lista modeli (--json, --search)
+omniroute models [provider]            # Wyświetlanie modeli (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Migawka konfiguracji i bazy danych
+omniroute backup                       # Tworzenie migawki konfiguracji i bazy danych
 omniroute restore                      # Przywracanie z poprzedniej migawki
 
 omniroute health                       # Szczegółowy stan (bezpieczniki, pamięć podręczna, pamięć)
-omniroute quota                        # Wykorzystanie limitów dostawców
+omniroute quota                        # Wykorzystanie limitów dostawcy
 omniroute cache                        # Stan pamięci podręcznej
-omniroute cache clear                  # Czyszczenie semantycznej pamięci podręcznej i pamięci podpisów
+omniroute cache clear                  # Czyszczenie semantycznej pamięci podręcznej i pamięci podręcznej sygnatur
 
 omniroute mcp status | restart         # Stan / ponowne uruchomienie serwera MCP
 omniroute a2a status | card            # Stan serwera A2A / karta agenta
@@ -692,22 +703,22 @@ omniroute a2a status | card            # Stan serwera A2A / karta agenta
 omniroute tunnel list | create | stop  # Zarządzanie tunelami (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Wyświetlanie / ustawianie zmiennych środowiskowych (tymczasowo)
 
-omniroute test                         # Podstawowy test łączności z dostawcami
+omniroute test                         # Podstawowy test łączności z dostawcą
 omniroute update                       # Sprawdzanie dostępności aktualizacji
 omniroute completion                   # Generowanie uzupełniania poleceń powłoki
 ```
 
-### Typowe flagi
+### Wspólne flagi
 
 | Flaga               | Opis                                                                |
 | ------------------- | ------------------------------------------------------------------- |
-| `--no-open`         | Nie otwieraj automatycznie przeglądarki przy uruchomieniu           |
-| `--port <n>`        | Zastąp port API (domyślnie 20128)                                   |
-| `--mcp`             | Uruchom jako serwer MCP przez stdio (dla IDE)                       |
+| `--no-open`         | Nie otwieraj automatycznie przeglądarki podczas uruchamiania        |
+| `--port <n>`        | Zastąpienie portu API (domyślnie 20128)                             |
+| `--mcp`             | Uruchomienie jako serwer MCP przez stdio (dla środowisk IDE)        |
 | `--non-interactive` | Tryb CI (bez monitów; odczyt ze środowiska/flag)                    |
 | `--json`            | Dane wyjściowe JSON do odczytu maszynowego (doctor, providers itp.) |
-| `--help`, `-h`      | Wyświetl pomoc dotyczącą danego polecenia                           |
-| `--version`, `-v`   | Wyświetl zainstalowaną wersję                                       |
+| `--help`, `-h`      | Wyświetlenie pomocy dotyczącej konkretnego polecenia                |
+| `--version`, `-v`   | Wyświetlenie zainstalowanej wersji                                  |
 
 ---
 

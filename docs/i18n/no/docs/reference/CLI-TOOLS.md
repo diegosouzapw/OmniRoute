@@ -581,7 +581,7 @@ omniroute --help                       # Vis alle kommandoer
 
 ```bash
 omniroute setup                        # Interaktiv oppsettsveiviser
-omniroute setup --non-interactive      # CI-/automatiseringsmodus (leser miljøvariabler + flagg)
+omniroute setup --non-interactive      # CI-/automatiseringsmodus (leser miljøvariabler og flagg)
 omniroute setup --password '<value>'   # Angi administratorpassordet direkte
 omniroute setup --add-provider \
   --provider openai \
@@ -591,10 +591,10 @@ omniroute setup --add-provider \
 
 Gjenkjente miljøvariabler for ikke-interaktivt oppsett:
 
-| Variabel            | Formål                                                                   |
-| ------------------- | ------------------------------------------------------------------------ |
-| `OMNIROUTE_API_KEY` | Leverandørens API-nøkkel (bundet til `--api-key` via Commander `.env()`) |
-| `DATA_DIR`          | Overstyr OmniRoute-datakatalogen                                         |
+| Variabel            | Formål                                                                      |
+| ------------------- | --------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API-nøkkel for leverandøren (bundet til `--api-key` via Commander `.env()`) |
+| `DATA_DIR`          | Overstyr OmniRoute-datakatalogen                                            |
 
 Alle andre ikke-interaktive inndata sendes som flagg, ikke som miljøvariabler:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
@@ -605,19 +605,19 @@ Alle andre ikke-interaktive inndata sendes som flagg, ikke som miljøvariabler:
 ```bash
 omniroute doctor                       # Kontroller konfigurasjon, database, porter, kjøretidsmiljø, minne og tilgjengelighet
 omniroute doctor --json                # Maskinlesbar JSON
-omniroute doctor --no-liveness         # Hopp over HTTP-tilstandskontrollen
-omniroute doctor --host 0.0.0.0        # Overstyr verten for tilgjengelighetskontroll
-omniroute doctor --liveness-url <url>  # Overstyr hele URL-en til tilstandsendepunktet
+omniroute doctor --no-liveness         # Hopp over HTTP-tilstandssonden
+omniroute doctor --host 0.0.0.0        # Overstyr verten for tilgjengelighetskontrollen
+omniroute doctor --liveness-url <url>  # Overstyr med full URL til tilstandsendepunktet
 ```
 
 Doctor kjører disse kontrollene: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` og `Server liveness`. Den avsluttes med en kode ulik null hvis en kontroll er `fail`.
+`Memory` og `Server liveness`. Den avsluttes med en statuskode som ikke er null, hvis en kontroll har statusen `fail`.
 
 ### Leverandøradministrasjon
 
 ```bash
-omniroute providers available                       # OmniRoute-leverandørkatalog
+omniroute providers available                       # OmniRoutes leverandørkatalog
 omniroute providers available --search openai       # Filtrer katalogen etter ID/navn/alias/kategori
 omniroute providers available --category api-key    # Filtrer etter kategori (api-key, oauth, free, ...)
 omniroute providers available --json                # Maskinlesbar JSON
@@ -636,36 +636,48 @@ omniroute providers remove <id|name> --yes
 ```
 
 `providers add/import/auth/edit/remove` er API-først og fungerer derfor mot
-den aktive lokale eller eksterne konteksten. Legitimasjonsinndata bør bruke
+den aktive lokale eller eksterne konteksten. Legitimasjon bør oppgis med
 `--credential-stdin` eller `--credential-env`; `--dry-run --json` rapporterer bare
-sladdet tilstedeværelse/struktur. `providers available` leser OmniRoute-katalogen;
+redigert forekomst/struktur. `providers available` leser OmniRoute-katalogen;
 `providers list/test/test-all/validate` beholder sin lokale SQLite-atferd og
 krever ikke at serveren kjører.
+
+For en egendefinert OpenAI-kompatibel eller Anthropic-kompatibel node knytter du legitimasjonen til
+node-ID-en som returneres av `omniroute nodes add`, ved å bruke `omniroute keys add "$NODE_ID" --stdin`.
+Dette krever en kjørende server og administrasjonsautentisering for den aktive konteksten.
+CLI-en bruker `POST /api/providers`, som validerer noden og kopierer innstillingene for endepunktet
+til tilkoblingen. En manglende node, mislykket autorisering eller utilgjengelig
+server returnerer en feil uten å opprette lokal reservelegitimasjon.
+
+`nodes add --base-url` angir nodeendepunktet; dette er forskjellig fra serveradressen
+i `OMNIROUTE_BASE_URL`. For OpenAPI-filer bruker du
+`omniroute openapi dump --format json --out ./openapi.json`; det globale `--output`
+velger visningsformatering for CLI-en, ikke navnet på målfilen.
 
 ### Gjenoppretting og tilbakestilling
 
 ```bash
 omniroute reset-password                # Tilbakestill administratorpassordet (også: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Vis advarsel + prøvekjøring for tilbakestilling av kryptert legitimasjon
+omniroute reset-encrypted-columns       # Vis advarsel og prøvekjøring for tilbakestilling av kryptert legitimasjon
 omniroute reset-encrypted-columns --force  # Nullstill faktisk kryptert legitimasjon i SQLite
 ```
 
-### Eksport av legitimasjon (⚠ håndter med forsiktighet)
+### Eksport av legitimasjon (⚠ håndter varsomt)
 
 ```bash
-omniroute auth export                                 # Vis advarsel + bekreftelsessteg — ingen databasetilgang
-omniroute auth export --force                          # Eksporter DEKRYPTERT legitimasjon for ALLE tilkoblinger til standardutdata som JSON
+omniroute auth export                                 # Vis advarsel og be om bekreftelse — ingen databasetilgang
+omniroute auth export --force                          # Eksporter DEKRYPTERT legitimasjon for ALLE tilkoblinger som JSON til stdout
 omniroute auth export --force --id <id>                 # Eksporter bare den samsvarende tilkoblingen
-omniroute auth export --force --format env               # Skriv ut linjer på formen OMNIROUTE_<PROVIDER>_<FIELD>=<value>
+omniroute auth export --force --format env               # Skriv ut linjer av typen OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Skriv til en fil (opprettet med 0600-tillatelser)
 ```
 
 `auth export` er **kun lokal** (direkte lesing fra SQLite, ingen HTTP-rute) og skriver med hensikt ut
-**klartekstverdier** for `apiKey`/`accessToken`/`refreshToken`/`idToken` — dette er funksjonen, ikke en
+**klartekstverdier** for `apiKey`/`accessToken`/`refreshToken`/`idToken` — dette er funksjonaliteten, ikke en
 feil. Ingenting leses fra databasen, og ingenting dekrypteres, uten `--force`. Et advarselsbanner
-skrives alltid til standardfeil før klartekst sendes ut. Krever at `STORAGE_ENCRYPTION_KEY` er
-angitt. Et felt som ikke kan dekrypteres (foreldet nøkkel, skadet chiffertekst), rapporteres som
-`<field>DecryptFailed: true` i stedet for å avbryte hele eksporten eller lekke den underliggende feilen.
+skrives alltid til stderr før klartekst sendes ut. Krever at `STORAGE_ENCRYPTION_KEY` er
+angitt. Et felt som ikke kan dekrypteres (gammel nøkkel, skadet chiffertekst), rapporteres som
+`<field>DecryptFailed: true` i stedet for å avbryte hele eksporten eller eksponere den underliggende feilen.
 
 ### Andre underkommandoer
 
@@ -682,10 +694,10 @@ omniroute keys add | list | remove     # Administrer API-nøkler
 omniroute models [provider]            # Vis modeller (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Øyeblikksbilde av konfigurasjon + database
+omniroute backup                       # Opprett øyeblikksbilde av konfigurasjon + database
 omniroute restore                      # Gjenopprett fra et tidligere øyeblikksbilde
 
-omniroute health                       # Detaljert tilstand (kretsbrytere, hurtigbuffer, minne)
+omniroute health                       # Detaljert helsestatus (sikringsmekanismer, hurtigbuffer, minne)
 omniroute quota                        # Leverandørens kvotebruk
 omniroute cache                        # Hurtigbufferstatus
 omniroute cache clear                  # Tøm semantiske hurtigbuffere og signaturhurtigbuffere
@@ -694,7 +706,7 @@ omniroute mcp status | restart         # Status for / omstart av MCP-server
 omniroute a2a status | card            # Status for A2A-server / agentkort
 
 omniroute tunnel list | create | stop  # Administrer tunneler (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Vis / angi miljøvariabler (midlertidig)
+omniroute env show | get <k> | set <k> <v>  # Inspiser / angi miljøvariabler (midlertidig)
 
 omniroute test                         # Enkel tilkoblingstest for leverandører
 omniroute update                       # Se etter oppdateringer
@@ -706,7 +718,7 @@ omniroute completion                   # Generer skallfullføring
 | Flagg               | Beskrivelse                                          |
 | ------------------- | ---------------------------------------------------- |
 | `--no-open`         | Ikke åpne nettleseren automatisk ved oppstart        |
-| `--port <n>`        | Overstyr API-porten (standard er 20128)              |
+| `--port <n>`        | Overstyr API-porten (standardverdi 20128)            |
 | `--mcp`             | Kjør som MCP-server over stdio (for IDE-er)          |
 | `--non-interactive` | CI-modus (ingen ledetekster; leser fra miljø/flagg)  |
 | `--json`            | Maskinlesbart JSON-resultat (doctor, providers osv.) |

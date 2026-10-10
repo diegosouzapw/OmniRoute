@@ -595,29 +595,29 @@ Variáveis de ambiente reconhecidas para a configuração não interativa:
 | `OMNIROUTE_API_KEY` | Chave de API do fornecedor (associada a `--api-key` através de `.env()` do Commander) |
 | `DATA_DIR`          | Substituir o diretório de dados do OmniRoute                                          |
 
-Todas as outras entradas não interativas são transmitidas como opções, e não como variáveis de ambiente:
+Todas as outras entradas não interativas são transmitidas como opções, não como variáveis de ambiente:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (consulte as opções de `omniroute setup` acima).
 
 ### Diagnóstico
 
 ```bash
-omniroute doctor                       # Verificar configuração, BD, portas, ambiente de execução, memória e disponibilidade
+omniroute doctor                       # Verificar configuração, BD, portas, ambiente de execução, memória e atividade
 omniroute doctor --json                # JSON legível por máquinas
-omniroute doctor --no-liveness         # Ignorar a sondagem HTTP do estado de funcionamento
-omniroute doctor --host 0.0.0.0        # Substituir o anfitrião da verificação de disponibilidade
-omniroute doctor --liveness-url <url>  # Substituir o URL completo do endpoint de estado
+omniroute doctor --no-liveness         # Ignorar a sonda HTTP de estado de funcionamento
+omniroute doctor --host 0.0.0.0        # Substituir o anfitrião da verificação de atividade
+omniroute doctor --liveness-url <url>  # Substituir o URL completo do ponto final de estado de funcionamento
 ```
 
 O doctor executa estas verificações: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` e `Server liveness`. Termina com um código diferente de zero se alguma verificação apresentar `fail`.
+`Memory` e `Server liveness`. Termina com um código diferente de zero se alguma verificação tiver o estado `fail`.
 
 ### Gestão de fornecedores
 
 ```bash
 omniroute providers available                       # Catálogo de fornecedores do OmniRoute
-omniroute providers available --search openai       # Filtrar o catálogo por id/nome/alias/categoria
+omniroute providers available --search openai       # Filtrar o catálogo por ID/nome/alias/categoria
 omniroute providers available --category api-key    # Filtrar por categoria (api-key, oauth, free, ...)
 omniroute providers available --json                # JSON legível por máquinas
 
@@ -626,7 +626,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # Testar uma ligação configurada
 omniroute providers test-all                        # Testar todas as ligações ativas
-omniroute providers validate                        # Validação estrutural apenas local
+omniroute providers validate                        # Validação estrutural exclusivamente local
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Fluxo OAuth existente
@@ -634,48 +634,60 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` dão prioridade à API e, por isso, funcionam no
+`providers add/import/auth/edit/remove` utilizam prioritariamente a API e, por conseguinte, funcionam no
 contexto local ou remoto ativo. A introdução de credenciais deve utilizar
 `--credential-stdin` ou `--credential-env`; `--dry-run --json` comunica apenas
-a presença/estrutura com os dados ocultados. `providers available` lê o catálogo do OmniRoute;
-`providers list/test/test-all/validate` mantêm o respetivo comportamento SQLite local e
-não requerem que o servidor esteja em execução.
+a presença/estrutura com dados ocultados. `providers available` lê o catálogo do OmniRoute;
+`providers list/test/test-all/validate` mantêm o respetivo comportamento local com SQLite e
+não exigem que o servidor esteja em execução.
+
+Para um nó personalizado compatível com OpenAI ou Anthropic, associe credenciais ao
+ID do nó devolvido por `omniroute nodes add`, utilizando `omniroute keys add "$NODE_ID" --stdin`.
+Isto requer um servidor em execução e autenticação de gestão para o contexto ativo.
+A CLI utiliza `POST /api/providers`, que valida o nó e copia as respetivas definições de ponto final
+para a ligação. Um nó em falta, uma falha de autorização ou um servidor indisponível
+devolve um erro sem criar uma credencial local alternativa.
+
+`nodes add --base-url` define o ponto final do nó; é distinto do endereço do servidor
+em `OMNIROUTE_BASE_URL`. Para ficheiros OpenAPI, utilize
+`omniroute openapi dump --format json --out ./openapi.json`; a opção global `--output`
+seleciona a formatação de apresentação da CLI, não o nome de um ficheiro de destino.
 
 ### Recuperação e reposição
 
 ```bash
 omniroute reset-password                # Repor a palavra-passe de administrador (também: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Mostrar aviso + simulação da reposição de credenciais encriptadas
-omniroute reset-encrypted-columns --force  # Efetivamente definir como nulas as credenciais encriptadas no SQLite
+omniroute reset-encrypted-columns --force  # Remover efetivamente as credenciais encriptadas no SQLite, definindo-as como nulas
 ```
 
-### Exportação de credenciais (⚠ manusear com cuidado)
+### Exportação de credenciais (⚠ utilizar com cuidado)
 
 ```bash
 omniroute auth export                                 # Mostrar aviso + pedido de confirmação — sem acesso à BD
-omniroute auth export --force                          # Exportar para stdout, como JSON, as credenciais DESENCRIPTADAS de TODAS as ligações
+omniroute auth export --force                          # Exportar as credenciais DESENCRIPTADAS de TODAS as ligações para stdout como JSON
 omniroute auth export --force --id <id>                 # Exportar apenas a ligação correspondente
 omniroute auth export --force --format env               # Emitir linhas OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Escrever num ficheiro (criado com permissões 0600)
 ```
 
-`auth export` é **apenas local** (leitura direta do SQLite, sem rota HTTP) e apresenta/escreve intencionalmente
-valores de `apiKey`/`accessToken`/`refreshToken`/`idToken` em **texto simples** — trata-se de uma funcionalidade, não de um
-erro. Nada é lido da base de dados e nada é desencriptado sem `--force`. É sempre apresentada uma faixa de
+`auth export` é **exclusivamente local** (leitura direta do SQLite, sem rota HTTP) e apresenta/escreve intencionalmente
+valores **em texto simples** de `apiKey`/`accessToken`/`refreshToken`/`idToken` — esta é a funcionalidade, não um
+erro. Nada é lido da base de dados e nada é desencriptado sem `--force`. É sempre apresentado um
 aviso em stderr antes da emissão de qualquer texto simples. Requer que `STORAGE_ENCRYPTION_KEY` esteja
-definida. Um campo cuja desencriptação falhe (chave obsoleta, texto cifrado corrompido) é comunicado como
+definida. Um campo cuja desencriptação falhe (chave obsoleta, texto cifrado corrompido) é indicado como
 `<field>DecryptFailed: true`, em vez de interromper toda a exportação ou expor o erro subjacente.
 
 ### Outros subcomandos
 
-Estes pressupõem um servidor OmniRoute em execução, salvo indicação em contrário:
+Estes pressupõem que está em execução um servidor OmniRoute, salvo indicação em contrário:
 
 ```bash
-omniroute status                       # Estado abrangente da execução
+omniroute status                       # Estado detalhado da execução
 omniroute logs                         # Transmitir registos de pedidos (--json, --search, --follow)
-omniroute config list                  # Apresentar ferramentas de CLI configuradas
+omniroute config list                  # Apresentar as ferramentas CLI configuradas
 
-omniroute provider list                # Listar fornecedores disponíveis (alias de providers list)
+omniroute provider list                # Listar os fornecedores disponíveis (alias de providers list)
 omniroute provider add                 # Registar o OmniRoute como fornecedor numa ferramenta
 omniroute keys add | list | remove     # Gerir chaves de API
 omniroute models [provider]            # Listar modelos (--json, --search)
@@ -684,32 +696,32 @@ omniroute combo list | switch | create | delete
 omniroute backup                       # Criar um instantâneo da configuração + BD
 omniroute restore                      # Restaurar a partir de um instantâneo anterior
 
-omniroute health                       # Estado detalhado (disjuntores, cache, memória)
+omniroute health                       # Estado de funcionamento detalhado (disjuntores, cache, memória)
 omniroute quota                        # Utilização da quota do fornecedor
 omniroute cache                        # Estado da cache
 omniroute cache clear                  # Limpar as caches semântica + de assinaturas
 
-omniroute mcp status | restart         # Estado / reinício do servidor MCP
-omniroute a2a status | card            # Estado do servidor A2A / cartão do agente
+omniroute mcp status | restart         # Estado/reinício do servidor MCP
+omniroute a2a status | card            # Estado do servidor A2A/cartão do agente
 
 omniroute tunnel list | create | stop  # Gerir túneis (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Consultar / definir variáveis de ambiente (temporárias)
+omniroute env show | get <k> | set <k> <v>  # Consultar/definir variáveis de ambiente (temporárias)
 
-omniroute test                         # Teste básico de conectividade do fornecedor
+omniroute test                         # Teste rápido da conectividade do fornecedor
 omniroute update                       # Procurar atualizações
-omniroute completion                   # Gerar conclusão automática da shell
+omniroute completion                   # Gerar a conclusão automática da shell
 ```
 
 ### Opções comuns
 
 | Opção               | Descrição                                                    |
 | ------------------- | ------------------------------------------------------------ |
-| `--no-open`         | Não abrir automaticamente o navegador ao iniciar             |
+| `--no-open`         | Não abrir automaticamente o browser ao iniciar               |
 | `--port <n>`        | Substituir a porta da API (predefinição: 20128)              |
 | `--mcp`             | Executar como servidor MCP através de stdio (para IDEs)      |
 | `--non-interactive` | Modo de CI (sem pedidos; lê a partir do ambiente/das opções) |
-| `--json`            | Saída JSON legível por máquinas (doctor, providers, etc.)    |
-| `--help`, `-h`      | Mostrar ajuda específica do comando                          |
+| `--json`            | Saída JSON legível por máquina (doctor, providers, etc.)     |
+| `--help`, `-h`      | Apresentar a ajuda específica do comando                     |
 | `--version`, `-v`   | Apresentar a versão instalada                                |
 
 ---

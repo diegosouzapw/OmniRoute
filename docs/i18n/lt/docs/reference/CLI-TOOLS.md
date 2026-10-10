@@ -604,41 +604,41 @@ esantį `/dashboard/cli-tools → Kiro`.
 
 ## 10. Vidinė OmniRoute CLI
 
-Vykdomasis failas `omniroute` suteikia komandas serverio gyvavimo ciklui, konfigūravimui, diagnostikai ir teikėjų valdymui. Įėjimo taškas: `bin/omniroute.mjs`.
+`omniroute` vykdomasis failas suteikia serverio gyvavimo ciklo, sąrankos, diagnostikos ir teikėjų valdymo komandas. Įvesties taškas: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Paleisti serverį (numatytasis prievadas – 20128)
-omniroute setup                        # Interaktyvus konfigūravimo vediklis
+omniroute                              # Paleisti serverį (numatytasis prievadas 20128)
+omniroute setup                        # Interaktyvus sąrankos vediklis
 omniroute doctor                       # Patikrinti konfigūraciją, DB, prievadus ir vykdymo aplinką
-omniroute providers list               # Sukonfigūruoti ryšiai su teikėjais
-omniroute providers test-all           # Patikrinti kiekvieną aktyvų ryšį
+omniroute providers list               # Sukonfigūruoti teikėjų ryšiai
+omniroute providers test-all           # Išbandyti kiekvieną aktyvų ryšį
 omniroute reset-password               # Iš naujo nustatyti administratoriaus slaptažodį
 omniroute logs                         # Srautu perduoti užklausų žurnalus
 omniroute health                       # Išsami būklė (grandinės pertraukikliai, podėlis, atmintis)
-omniroute --version                    # Išvesti versiją
-omniroute --help                       # Rodyti visas komandas
+omniroute --version                    # Parodyti versiją
+omniroute --help                       # Parodyti visas komandas
 ```
 
-### Konfigūravimas ir inicijavimas
+### Sąranka ir inicijavimas
 
 ```bash
-omniroute setup                        # Interaktyvus konfigūravimo vediklis
-omniroute setup --non-interactive      # CI / automatizavimo režimas (skaito aplinkos kintamuosius ir parametrus)
+omniroute setup                        # Interaktyvus sąrankos vediklis
+omniroute setup --non-interactive      # CI / automatizavimo režimas (skaito aplinkos kintamuosius ir parinktis)
 omniroute setup --password '<value>'   # Tiesiogiai nustatyti administratoriaus slaptažodį
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Vienu veiksmu pridėti ir patikrinti teikėją
+  --test-provider                      # Vienu veiksmu pridėti ir išbandyti teikėją
 ```
 
-Neinteraktyvaus konfigūravimo metu atpažįstami aplinkos kintamieji:
+Atpažįstami neinteraktyvios sąrankos aplinkos kintamieji:
 
 | Kintamasis          | Paskirtis                                                           |
 | ------------------- | ------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Teikėjo API raktas (su `--api-key` susietas per Commander `.env()`) |
+| `OMNIROUTE_API_KEY` | Teikėjo API raktas (susietas su `--api-key` per Commander `.env()`) |
 | `DATA_DIR`          | Pakeisti OmniRoute duomenų katalogą                                 |
 
-Visos kitos neinteraktyvios įvestys perduodamos kaip parametrai, o ne kaip aplinkos kintamieji:
+Visos kitos neinteraktyvios įvestys perduodamos kaip parinktys, o ne aplinkos kintamieji:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (žr. pirmiau pateiktas `omniroute setup` parinktis).
 
@@ -646,15 +646,15 @@ Visos kitos neinteraktyvios įvestys perduodamos kaip parametrai, o ne kaip apli
 
 ```bash
 omniroute doctor                       # Patikrinti konfigūraciją, DB, prievadus, vykdymo aplinką, atmintį ir pasiekiamumą
-omniroute doctor --json                # Kompiuterio skaitomas JSON
+omniroute doctor --json                # Mašininiu būdu skaitomas JSON
 omniroute doctor --no-liveness         # Praleisti HTTP būklės patikrą
-omniroute doctor --host 0.0.0.0        # Pakeisti pasiekiamumo patikros pagrindinį kompiuterį
+omniroute doctor --host 0.0.0.0        # Pakeisti pasiekiamumo tikrinimo pagrindinį kompiuterį
 omniroute doctor --liveness-url <url>  # Pakeisti visą būklės galinio taško URL
 ```
 
-Doctor vykdo šias patikras: `Config`, `Database`, `Storage/encryption`,
+Diagnostikos įrankis vykdo šias patikras: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` ir `Server liveness`. Jei kurios nors patikros rezultatas yra `fail`, procesas baigiamas nenuliniu išėjimo kodu.
+`Memory` ir `Server liveness`. Jei kurios nors patikros rezultatas yra `fail`, programa baigiama ne nuliniu kodu.
 
 ### Teikėjų valdymas
 
@@ -662,14 +662,14 @@ Doctor vykdo šias patikras: `Config`, `Database`, `Storage/encryption`,
 omniroute providers available                       # OmniRoute teikėjų katalogas
 omniroute providers available --search openai       # Filtruoti katalogą pagal ID / pavadinimą / alternatyvų pavadinimą / kategoriją
 omniroute providers available --category api-key    # Filtruoti pagal kategoriją (api-key, oauth, free, ...)
-omniroute providers available --json                # Kompiuterio skaitomas JSON
+omniroute providers available --json                # Mašininiu būdu skaitomas JSON
 
-omniroute providers list                            # Sukonfigūruoti ryšiai su teikėjais
+omniroute providers list                            # Sukonfigūruoti teikėjų ryšiai
 omniroute providers list --json
 
-omniroute providers test <id|name>                  # Patikrinti vieną sukonfigūruotą ryšį
-omniroute providers test-all                        # Patikrinti kiekvieną aktyvų ryšį
-omniroute providers validate                        # Tik vietinė struktūros patikra
+omniroute providers test <id|name>                  # Išbandyti vieną sukonfigūruotą ryšį
+omniroute providers test-all                        # Išbandyti kiekvieną aktyvų ryšį
+omniroute providers validate                        # Tik vietinis struktūros tikrinimas
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Esama OAuth eiga
@@ -678,48 +678,60 @@ omniroute providers remove <id|name> --yes
 ```
 
 `providers add/import/auth/edit/remove` pirmiausia naudoja API, todėl veikia su
-aktyviu vietiniu arba nuotoliniu kontekstu. Prisijungimo duomenys turėtų būti įvedami naudojant
+aktyviu vietiniu arba nuotoliniu kontekstu. Prisijungimo duomenims įvesti reikėtų naudoti
 `--credential-stdin` arba `--credential-env`; `--dry-run --json` pateikia tik
-užmaskuotą informaciją apie jų buvimą ir struktūrą. `providers available` skaito OmniRoute katalogą;
+užmaskuotą informaciją apie buvimą ir struktūrą. `providers available` skaito OmniRoute katalogą;
 `providers list/test/test-all/validate` išlaiko vietinę SQLite veikseną ir
 nereikalauja, kad serveris veiktų.
+
+Pasirinktiniam su OpenAI arba Anthropic suderinamam mazgui prisijungimo duomenis susiekite su
+mazgo ID, kurį grąžino `omniroute nodes add`, naudodami `omniroute keys add "$NODE_ID" --stdin`.
+Tam reikia veikiančio serverio ir aktyvaus konteksto valdymo autentifikavimo.
+CLI naudoja `POST /api/providers`, kuris patikrina mazgą ir nukopijuoja jo galinio taško
+nustatymus į ryšį. Jei mazgo nėra, nepavyksta autorizavimas arba serveris
+nepasiekiamas, grąžinama klaida nesukuriant vietinių atsarginių prisijungimo duomenų.
+
+`nodes add --base-url` nustato mazgo galinį tašką; jis skiriasi nuo serverio adreso,
+nurodyto `OMNIROUTE_BASE_URL`. OpenAPI failams naudokite
+`omniroute openapi dump --format json --out ./openapi.json`; visuotinė parinktis `--output`
+parenka CLI rodymo formatą, o ne paskirties failo pavadinimą.
 
 ### Atkūrimas ir nustatymas iš naujo
 
 ```bash
 omniroute reset-password                # Iš naujo nustatyti administratoriaus slaptažodį (taip pat: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Rodyti įspėjimą ir bandomąjį šifruotų prisijungimo duomenų nustatymo iš naujo vykdymą
-omniroute reset-encrypted-columns --force  # Iš tikrųjų nustatyti šifruotų SQLite prisijungimo duomenų reikšmę į null
+omniroute reset-encrypted-columns       # Parodyti įspėjimą ir atlikti bandomąjį šifruotų prisijungimo duomenų nustatymą iš naujo
+omniroute reset-encrypted-columns --force  # Iš tikrųjų SQLite nustatyti šifruotų prisijungimo duomenų reikšmes į „null“
 ```
 
 ### Prisijungimo duomenų eksportavimas (⚠ elkitės atsargiai)
 
 ```bash
-omniroute auth export                                 # Rodyti įspėjimą ir prašyti patvirtinimo — be prieigos prie DB
-omniroute auth export --force                          # Eksportuoti VISŲ ryšių IŠŠIFRUOTUS prisijungimo duomenis į stdout kaip JSON
+omniroute auth export                                 # Parodyti įspėjimą ir prašyti patvirtinimo — be prieigos prie DB
+omniroute auth export --force                          # Eksportuoti VISŲ ryšių IŠŠIFRUOTUS prisijungimo duomenis į stdout JSON formatu
 omniroute auth export --force --id <id>                 # Eksportuoti tik atitinkantį ryšį
 omniroute auth export --force --format env               # Išvesti OMNIROUTE_<PROVIDER>_<FIELD>=<value> eilutes
-omniroute auth export --force --out creds.json           # Įrašyti į failą (sukuriamas su 0600 leidimais)
+omniroute auth export --force --out creds.json           # Įrašyti į failą (sukuriamą su 0600 leidimais)
 ```
 
-`auth export` veikia **tik vietoje** (tiesiogiai skaito SQLite, nenaudodama HTTP maršruto) ir sąmoningai išveda arba įrašo
-**paprastojo teksto** `apiKey`/`accessToken`/`refreshToken`/`idToken` reikšmes — tai funkcija, o ne
-klaida. Be `--force` niekas neskaitoma iš duomenų bazės ir niekas neiššifruojama. Prieš išvedant bet kokį paprastąjį tekstą
-visada į stderr išvedama įspėjimo juosta. Būtina nustatyti `STORAGE_ENCRYPTION_KEY`.
-Jei lauko nepavyksta iššifruoti (pasenęs raktas arba sugadintas šifruotasis tekstas), vietoje viso eksportavimo nutraukimo ar pagrindinės klaidos atskleidimo pateikiama
-`<field>DecryptFailed: true`.
+`auth export` veikia **tik lokaliai** (tiesiogiai skaito SQLite, nenaudodama HTTP maršruto) ir sąmoningai išveda / įrašo
+**atvirojo teksto** `apiKey`/`accessToken`/`refreshToken`/`idToken` reikšmes — tai funkcija, o ne
+klaida. Be `--force` niekas neskaitoma iš duomenų bazės ir niekas neiššifruojama. Prieš išvedant bet kokį atvirąjį tekstą,
+visada stderr sraute parodomas įspėjamasis pranešimas. Būtina nustatyti `STORAGE_ENCRYPTION_KEY`.
+Laukas, kurio nepavyksta iššifruoti (pasenęs raktas, sugadintas šifruotasis tekstas), pateikiamas kaip
+`<field>DecryptFailed: true`, užuot nutraukus visą eksportavimą ar atskleidus pirminę klaidą.
 
-### Kitos pokomandės
+### Kitos antrinės komandos
 
-Jei nenurodyta kitaip, jos daro prielaidą, kad OmniRoute serveris veikia:
+Jei nenurodyta kitaip, šioms komandoms reikalingas veikiantis OmniRoute serveris:
 
 ```bash
 omniroute status                       # Išsami vykdymo būsenos informacija
 omniroute logs                         # Užklausų žurnalų srautas (--json, --search, --follow)
 omniroute config list                  # Rodyti sukonfigūruotus CLI įrankius
 
-omniroute provider list                # Išvardyti pasiekiamus teikėjus (komandos „providers list“ alternatyvus pavadinimas)
-omniroute provider add                 # Užregistruoti „OmniRoute“ kaip įrankio teikėją
+omniroute provider list                # Išvardyti pasiekiamus teikėjus (providers list pseudonimas)
+omniroute provider add                 # Užregistruoti OmniRoute kaip įrankio teikėją
 omniroute keys add | list | remove     # Tvarkyti API raktus
 omniroute models [provider]            # Išvardyti modelius (--json, --search)
 omniroute combo list | switch | create | delete
@@ -727,7 +739,7 @@ omniroute combo list | switch | create | delete
 omniroute backup                       # Sukurti konfigūracijos ir DB momentinę kopiją
 omniroute restore                      # Atkurti iš ankstesnės momentinės kopijos
 
-omniroute health                       # Išsami būklės informacija (pertraukikliai, podėlis, atmintis)
+omniroute health                       # Išsami veikimo būklė (grandinės pertraukikliai, podėlis, atmintis)
 omniroute quota                        # Teikėjo kvotos naudojimas
 omniroute cache                        # Podėlio būsena
 omniroute cache clear                  # Išvalyti semantinį ir parašų podėlius
@@ -740,20 +752,20 @@ omniroute env show | get <k> | set <k> <v>  # Peržiūrėti / nustatyti aplinkos
 
 omniroute test                         # Teikėjo ryšio bazinis patikrinimas
 omniroute update                       # Patikrinti, ar yra naujinių
-omniroute completion                   # Generuoti komandinio apvalkalo užbaigimo scenarijų
+omniroute completion                   # Sugeneruoti apvalkalo automatinį užbaigimą
 ```
 
 ### Bendrosios parinktys
 
-| Parinktis           | Aprašymas                                                          |
-| ------------------- | ------------------------------------------------------------------ |
-| `--no-open`         | Paleidžiant automatiškai neatverti naršyklės                       |
-| `--port <n>`        | Pakeisti API prievadą (numatytasis – 20128)                        |
-| `--mcp`             | Vykdyti kaip MCP serverį per stdio (IDE aplinkoms)                 |
-| `--non-interactive` | CI režimas (be raginimų; skaito iš aplinkos kintamųjų / parinkčių) |
-| `--json`            | Kompiuterio skaitoma JSON išvestis (doctor, providers ir kt.)      |
-| `--help`, `-h`      | Rodyti konkrečios komandos žinyną                                  |
-| `--version`, `-v`   | Išvesti įdiegtą versiją                                            |
+| Parinktis           | Aprašymas                                                     |
+| ------------------- | ------------------------------------------------------------- |
+| `--no-open`         | Paleidžiant automatiškai neatverti naršyklės                  |
+| `--port <n>`        | Pakeisti API prievadą (numatytasis 20128)                     |
+| `--mcp`             | Vykdyti kaip MCP serverį per stdio (IDE aplinkoms)            |
+| `--non-interactive` | CI režimas (be raginimų; skaito iš aplinkos / parinkčių)      |
+| `--json`            | Kompiuterio skaitoma JSON išvestis (doctor, providers ir kt.) |
+| `--help`, `-h`      | Rodyti konkrečios komandos žinyną                             |
+| `--version`, `-v`   | Išvesti įdiegtą versiją                                       |
 
 ---
 

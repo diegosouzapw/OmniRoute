@@ -145,9 +145,9 @@ akụkụ na-enweghị ndị ọzọ na-eme ka suite daa kama ikwe ka drift mee 
 
 ---
 
-## 1. Ndepụta Ngwaọrụ Koodu CLI (ngwaọrụ 26)
+## 1. Katalọgụ CLI Code (ngwaọrụ 26)
 
-Ngwaọrụ niile dị na `/dashboard/cli-code`. Ndị nwere `baseUrlSupport: none` ka ejikọrọ site na MITM ma ọ bụ ntuziaka aka kama iji URL isi omenala:
+Ngwaọrụ niile na-apụta na `/dashboard/cli-code`. A na-ejikọta ndị nwere `baseUrlSupport: none` site na MITM ma ọ bụ ntuziaka aka kama iji URL ntọala ahaziri iche:
 
 | id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
 | ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
@@ -178,7 +178,7 @@ Ngwaọrụ niile dị na `/dashboard/cli-code`. Ndị nwere `baseUrlSupport: no
 | kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
 | custom       | Custom CLI              | —                   | full           | custom-builder | false        |
 
-Ngwaọrụ nwere `baseUrlSupport: "partial"` na-egosi akara "⚠ Base URL parcial" na kaadị dashboard.
+Ngwaọrụ nwere `baseUrlSupport: "partial"` na-egosi baajị "⚠ URL ntọala ezughị ezu" na kaadị dashboard.
 ---
 
 ## 2. Katalọgụ Ndị nnọchi anya CLI (ngwaọrụ 10)
@@ -605,18 +605,18 @@ n'okpuru `/dashboard/cli-tools → Kiro`.
 
 ---
 
-## 10. OmniRoute CLI nke ime
+## 10. CLI OmniRoute nke Ime
 
-Faịlụ binary `omniroute` na-enye iwu maka usoro ndụ sava, nhazi, nchọpụta nsogbu, na njikwa ndị na-eweta ọrụ. Ebe mbido: `bin/omniroute.mjs`.
+Faịlụ binarị `omniroute` na-enye iwu maka okirikiri ndụ sava, nhazi, nyocha nsogbu, na njikwa ndị na-eweta ọrụ. Ebe mbido: `bin/omniroute.mjs`.
 
 ```bash
-omniroute                              # Bido sava (ọdụ ụgbọ mmiri ndabara bụ 20128)
-omniroute setup                        # Ọkachamara nhazi na-emekọrịta ihe
-omniroute doctor                       # Nyochaa nhazi, DB, ọdụ ụgbọ mmiri, na gburugburu oge nrụọrụ
+omniroute                              # Bido sava (ọdụ ndabara 20128)
+omniroute setup                        # Ọkachamara nhazi mmekọrịta
+omniroute doctor                       # Lelee nhazi, DB, ọdụ, na gburugburu ojiji
 omniroute providers list               # Njikọ ndị na-eweta ọrụ ahaziri
 omniroute providers test-all           # Nwalee njikọ ọ bụla na-arụ ọrụ
 omniroute reset-password               # Tọgharịa okwuntughe onye nchịkwa
-omniroute logs                         # Gbasaa ndekọ arịrịọ ozugbo
+omniroute logs                         # Zipụ ndekọ arịrịọ ozugbo
 omniroute health                       # Ọnọdụ ahụike zuru ezu (ndị nkwụsị, cache, ebe nchekwa)
 omniroute --version                    # Bipụta ụdị
 omniroute --help                       # Gosi iwu niile
@@ -625,7 +625,7 @@ omniroute --help                       # Gosi iwu niile
 ### Nhazi & Mbido
 
 ```bash
-omniroute setup                        # Ọkachamara nhazi na-emekọrịta ihe
+omniroute setup                        # Ọkachamara nhazi mmekọrịta
 omniroute setup --non-interactive      # Ọnọdụ CI/akpaaka (na-agụ env vars + flags)
 omniroute setup --password '<value>'   # Tọọ okwuntughe onye nchịkwa ozugbo
 omniroute setup --add-provider \
@@ -634,23 +634,23 @@ omniroute setup --add-provider \
   --test-provider                      # Tinye ma nwalee onye na-eweta ọrụ n'otu oge
 ```
 
-Mgbanwe gburugburu ebe a na-amata maka nhazi anaghị emekọrịta ihe:
+Mgbanwe gburugburu ndị a ka a na-amata maka nhazi na-enweghị mmekọrịta:
 
-| Var                 | Ebumnuche                                                                             |
-| ------------------- | ------------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Igodo API nke onye na-eweta ọrụ (ejikọtara na `--api-key` site na Commander `.env()`) |
-| `DATA_DIR`          | Dochie ndekọ data OmniRoute                                                           |
+| Var                 | Ebumnuche                                                                         |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Igodo API onye na-eweta ọrụ (ejikọtara na `--api-key` site na Commander `.env()`) |
+| `DATA_DIR`          | Dochie ndekọ data OmniRoute                                                       |
 
-A na-ebufe ntinye ndị ọzọ niile anaghị emekọrịta ihe dịka flags, ọ bụghị mgbanwe gburugburu:
+A na-ebufe ntinye ndị ọzọ niile na-enweghị mmekọrịta dịka flags, ọ bụghị mgbanwe gburugburu:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (lee nhọrọ `omniroute setup` ndị dị n'elu).
 
-### Nchọpụta nsogbu
+### Nnyocha Nsogbu
 
 ```bash
-omniroute doctor                       # Nyochaa nhazi, DB, ọdụ ụgbọ mmiri, oge nrụọrụ, ebe nchekwa, na ịdị ndụ
-omniroute doctor --json                # JSON igwe nwere ike ịgụ
-omniroute doctor --no-liveness         # Mafere nyocha ahụike HTTP
+omniroute doctor                       # Lelee nhazi, DB, ọdụ, gburugburu ojiji, ebe nchekwa, na ịdị ndụ
+omniroute doctor --json                # JSON nke igwe nwere ike ịgụ
+omniroute doctor --no-liveness         # Mafee nyocha ahụike HTTP
 omniroute doctor --host 0.0.0.0        # Dochie host maka nyocha ịdị ndụ
 omniroute doctor --liveness-url <url>  # Dochie URL zuru ezu nke endpoint ahụike
 ```
@@ -659,20 +659,20 @@ Doctor na-eme nyocha ndị a: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
 `Memory`, na `Server liveness`. Ọ na-eji koodu na-abụghị efu kwụsị ma ọ bụrụ na nyocha ọ bụla bụ `fail`.
 
-### Njikwa ndị na-eweta ọrụ
+### Njikwa Ndị Na-eweta Ọrụ
 
 ```bash
 omniroute providers available                       # Katalọgụ ndị na-eweta ọrụ OmniRoute
-omniroute providers available --search openai       # Nzacha katalọgụ site na id/name/alias/category
-omniroute providers available --category api-key    # Nzacha site na category (api-key, oauth, free, ...)
-omniroute providers available --json                # JSON igwe nwere ike ịgụ
+omniroute providers available --search openai       # Yocha katalọgụ site na id/aha/aha-ọzọ/ụdị
+omniroute providers available --category api-key    # Yocha site na ụdị (api-key, oauth, free, ...)
+omniroute providers available --json                # JSON nke igwe nwere ike ịgụ
 
 omniroute providers list                            # Njikọ ndị na-eweta ọrụ ahaziri
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # Nwalee otu njikọ ahaziri
 omniroute providers test-all                        # Nwalee njikọ ọ bụla na-arụ ọrụ
-omniroute providers validate                        # Nkwado nhazi nke mpaghara naanị
+omniroute providers validate                        # Nkwado nhazi nke ime obodo naanị
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Usoro OAuth dị adị
@@ -680,12 +680,24 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` na-ebu API ụzọ, ya mere ha na-arụ ọrụ megide
-ọnọdụ mpaghara ma ọ bụ nke ime obodo dị anya na-arụ ọrụ. Ntinye nzere kwesịrị iji
+`providers add/import/auth/edit/remove` na-ebute API ụzọ, ya mere ha na-arụ ọrụ megide
+ọnọdụ mpaghara ma ọ bụ nke dị anya na-arụ ọrụ ugbu a. Ntinye nzere kwesịrị iji
 `--credential-stdin` ma ọ bụ `--credential-env`; `--dry-run --json` na-akọ naanị
-ọnụnọ/ọdịdị ezoro ezo. `providers available` na-agụ katalọgụ OmniRoute;
+ọnụnọ/usoro e zoro akụkụ ya. `providers available` na-agụ katalọgụ OmniRoute;
 `providers list/test/test-all/validate` na-ejigide omume SQLite mpaghara ha ma
-ha anaghị achọ ka sava na-arụ ọrụ.
+ha achọghị ka sava na-agba ọsọ.
+
+Maka node omenala dakọtara na OpenAI ma ọ bụ Anthropic, jikọọ nzere na
+ID node nke `omniroute nodes add` weghachiri, site n'iji `omniroute keys add "$NODE_ID" --stdin`.
+Nke a chọrọ sava na-agba ọsọ na nkwenye njikwa maka ọnọdụ na-arụ ọrụ ugbu a.
+CLI na-eji `POST /api/providers`, nke na-akwado node ahụ ma detuo ntọala endpoint ya
+n'ime njikọ ahụ. Node na-adịghị, ọdịda ikike, ma ọ bụ sava na-adịghị
+ga-eweghachi mperi n'emeghị nzere mpaghara ndabere.
+
+`nodes add --base-url` na-edobe endpoint node; ọ dị iche na adreesị sava
+dị na `OMNIROUTE_BASE_URL`. Maka faịlụ OpenAPI, jiri
+`omniroute openapi dump --format json --out ./openapi.json`; `--output` zuru ụwa ọnụ
+na-ahọrọ nhazi ngosipụta CLI, ọ bụghị aha faịlụ ebe a ga-echekwa ya.
 
 ### Mweghachi & Ntọgharị
 
@@ -695,68 +707,68 @@ omniroute reset-encrypted-columns       # Gosi ịdọ aka ná ntị + dry-run m
 omniroute reset-encrypted-columns --force  # Wepụ nzere ezoro ezo n'ezie site n'itinye null na SQLite
 ```
 
-### Mbupụ Nzere (⚠ jiri nlezianya mee ya)
+### Mbupụ Nzere (⚠ jiri nlezianya)
 
 ```bash
 omniroute auth export                                 # Gosi ịdọ aka ná ntị + ọnụ ụzọ nkwenye — enweghị ohere DB
-omniroute auth export --force                          # Bupụ nzere E WEPUOLA NZOCHI nke njikọ NIILE gaa na stdout dịka JSON
+omniroute auth export --force                          # Bupụ nzere E MEGHERE EZORO EZO nke njikọ NIILE gaa stdout dịka JSON
 omniroute auth export --force --id <id>                 # Bupụ naanị njikọ dabara adaba
 omniroute auth export --force --format env               # Wepụta ahịrị OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Dee ya na faịlụ (e ji ikike 0600 kee ya)
+omniroute auth export --force --out creds.json           # Dee ya na faịlụ (e ji ikike 0600 mepụta)
 ```
 
-`auth export` bụ nke **mpaghara naanị** (ịgụ SQLite ozugbo, enweghị ụzọ HTTP), ma a kpachapụrụ anya mee ka ọ bipụta/dee
-ụkpụrụ `apiKey`/`accessToken`/`refreshToken`/`idToken` dịka **ederede doro anya** — nke ahụ bụ njirimara ahụ, ọ bụghị
-ntụpọ. A naghị agụ ihe ọ bụla site na database, a naghịkwa ewepụ nzuzo ihe ọ bụla, ma e wezụga mgbe e nyere `--force`. Akara
-ịdọ aka ná ntị stderr na-apụta mgbe niile tupu ewepụta ederede doro anya ọ bụla. Ọ chọrọ ka edobe `STORAGE_ENCRYPTION_KEY`.
-A na-akọ ubi nke mwepụ nzuzo ya dara (igodo ochie, ciphertext mebiri emebi) dịka
-`<field>DecryptFailed: true` kama ịkwụsị mbupụ ahụ niile ma ọ bụ ikpughe njehie kpatara ya.
+`auth export` bụ **naanị-mpaghara** (ọ na-agụ SQLite ozugbo, enweghị ụzọ HTTP) ma kpachara anya na-ebipụta/na-ede
+ụkpụrụ **ederede nkịtị** nke `apiKey`/`accessToken`/`refreshToken`/`idToken` — nke ahụ bụ atụmatụ ahụ, ọ bụghị
+ntụpọ. Ọ dịghị ihe a na-agụ site na nchekwa data, ọ dịghịkwa ihe a na-emeghe izo ya ezo, ma ọ bụrụ na enweghị `--force`. Ọkọlọtọ
+ịdọ aka ná ntị stderr na-apụta mgbe niile tupu e wepụta ederede nkịtị ọ bụla. Ọ chọrọ ka edobe
+`STORAGE_ENCRYPTION_KEY`. A na-akọ mpaghara nke a na-enweghị ike imeghe izo ya ezo (igodo ochie, ciphertext mebiri emebi) dị ka
+`<field>DecryptFailed: true` kama ịkwụsị mbupụ ahụ niile ma ọ bụ ikpughe njehie dị n'ime ya.
 
 ### Iwu nta ndị ọzọ
 
-Ndị a na-eche na sava OmniRoute na-arụ ọrụ, ma e wezụga ebe e kwuru ihe ọzọ:
+Ndị a na-eche na sava OmniRoute na-agba ọsọ, ma e wezụga ebe ekwuru ihe ọzọ:
 
 ```bash
-omniroute status                       # Ọnọdụ oge-ngagharị zuru ezu
-omniroute logs                         # Gosi ndekọ arịrịọ na-aga n'ihu (--json, --search, --follow)
-omniroute config list                  # Gosi ngwa CLI ahaziri
+omniroute status                       # Ọnọdụ oge-ọsọ zuru ezu
+omniroute logs                         # Gosipụta ndekọ arịrịọ na-aga n'ihu (--json, --search, --follow)
+omniroute config list                  # Gosipụta ngwa CLI ahaziri
 
-omniroute provider list                # Depụta ndị na-eweta dị (aha ọzọ maka providers list)
-omniroute provider add                 # Debanye OmniRoute dịka onye na-eweta na ngwa
+omniroute provider list                # Depụta ndị na-eweta dị (aha ọzọ nke providers list)
+omniroute provider add                 # Debanye OmniRoute dịka onye na-eweta n'ime ngwa
 omniroute keys add | list | remove     # Jikwaa igodo API
 omniroute models [provider]            # Depụta ụdị (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Mepụta foto-ọnọdụ nke nhazi + DB
-omniroute restore                      # Weghachite site na foto-ọnọdụ gara aga
+omniroute backup                       # Mepụta snapshot nke nhazi + DB
+omniroute restore                      # Weghachi site na snapshot gara aga
 
-omniroute health                       # Nkọwa ahụike zuru ezu (ndị nkwụsị, cache, ebe nchekwa)
-omniroute quota                        # Ojiji oke onye na-eweta
+omniroute health                       # Ahụike zuru ezu (breakers, cache, ebe nchekwa)
+omniroute quota                        # Ojiji oke nke onye na-eweta
 omniroute cache                        # Ọnọdụ cache
 omniroute cache clear                  # Hichapụ cache semantic + signature
 
-omniroute mcp status | restart         # Ọnọdụ / ịmalitegharị sava MCP
+omniroute mcp status | restart         # Ọnọdụ sava MCP / malitegharịa
 omniroute a2a status | card            # Ọnọdụ sava A2A / kaadị agent
 
-omniroute tunnel list | create | stop  # Jikwaa ọwara (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Nyochaa / tọọ mgbanwe gburugburu (nwa oge)
+omniroute tunnel list | create | stop  # Jikwaa tunnel (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Nyochaa / debe env vars (nwa oge)
 
 omniroute test                         # Nnwale ngwa ngwa nke njikọ onye na-eweta
 omniroute update                       # Lelee mmelite
 omniroute completion                   # Mepụta mmecha shell
 ```
 
-### Ọkọlọtọ ndị a na-ejikarị
+### Flag ndị a na-ejikarị
 
-| Ọkọlọtọ             | Nkọwa                                                     |
-| ------------------- | --------------------------------------------------------- |
-| `--no-open`         | Emeghela ihe nchọgharị n'onwe ya mgbe a malitere          |
-| `--port <n>`        | Dochie ọdụ API (ndabara 20128)                            |
-| `--mcp`             | Gbaa dịka sava MCP site na stdio (maka IDE)               |
-| `--non-interactive` | Ọnọdụ CI (enweghị ajụjụ; na-agụ site na env/ọkọlọtọ)      |
-| `--json`            | Mmepụta JSON igwe nwere ike ịgụ (doctor, providers, wdg.) |
-| `--help`, `-h`      | Gosi enyemaka metụtara iwu ahụ kpọmkwem                   |
-| `--version`, `-v`   | Bipụta ụdị arụnyere                                       |
+| Flag                | Nkọwa                                                          |
+| ------------------- | -------------------------------------------------------------- |
+| `--no-open`         | Emeghela ihe nchọgharị na-akpaghị aka mgbe amalitere           |
+| `--port <n>`        | Dochie port API (ndabara 20128)                                |
+| `--mcp`             | Gbaa dịka sava MCP site na stdio (maka IDE)                    |
+| `--non-interactive` | Ụdị CI (enweghị ajụjụ; na-agụ site na env/flag)                |
+| `--json`            | Nsonaazụ JSON nke igwe nwere ike ịgụ (doctor, providers, wdg.) |
+| `--help`, `-h`      | Gosipụta enyemaka metụtara otu iwu                             |
+| `--version`, `-v`   | Bipụta ụdị arụnyere                                            |
 
 ---
 

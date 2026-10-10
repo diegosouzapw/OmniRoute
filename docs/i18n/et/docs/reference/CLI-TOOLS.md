@@ -592,31 +592,31 @@ omniroute setup --password '<value>'   # Määra administraatori parool otse
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Lisa ja testi pakkujat ühe toiminguga
+  --test-provider                      # Lisa ja testi pakkujat ühe korraga
 ```
 
-Mitteinteraktiivse seadistamise jaoks tuvastatavad keskkonnamuutujad:
+Mitteinteraktiivse seadistamise tuvastatud keskkonnamuutujad:
 
-| Muutuja             | Otstarve                                                                   |
-| ------------------- | -------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Pakkuja API-võti (seotud suvandiga `--api-key` Commander'i `.env()` kaudu) |
-| `DATA_DIR`          | OmniRoute'i andmekataloogi alistamine                                      |
+| Muutuja             | Otstarve                                                              |
+| ------------------- | --------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | Pakkuja API-võti (seotud lipuga `--api-key` Commander `.env()` kaudu) |
+| `DATA_DIR`          | Kirjuta OmniRoute'i andmekataloog üle                                 |
 
 Kõik muud mitteinteraktiivsed sisendid edastatakse lippudena, mitte keskkonnamuutujatena:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(vt ülaltoodud `omniroute setup` suvandeid).
+(vt eespool käsu `omniroute setup` valikuid).
 
 ### Diagnostika
 
 ```bash
-omniroute doctor                       # Kontrolli konfiguratsiooni, andmebaasi, porte, käituskeskkonda, mälu ja elusolekut
+omniroute doctor                       # Kontrolli konfiguratsiooni, andmebaasi, porte, käituskeskkonda, mälu ja aktiivsust
 omniroute doctor --json                # Masinloetav JSON
-omniroute doctor --no-liveness         # Jäta HTTP-seisundikontroll vahele
-omniroute doctor --host 0.0.0.0        # Alista elusolekukontrolli host
-omniroute doctor --liveness-url <url>  # Alista seisundi lõpp-punkti täielik URL
+omniroute doctor --no-liveness         # Jäta HTTP-seisundiproov vahele
+omniroute doctor --host 0.0.0.0        # Kirjuta aktiivsuskontrolli host üle
+omniroute doctor --liveness-url <url>  # Kirjuta seisundi lõpp-punkti täielik URL üle
 ```
 
-Diagnostikakäsk teeb järgmised kontrollid: `Config`, `Database`, `Storage/encryption`,
+Doctor käivitab järgmised kontrollid: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
 `Memory` ja `Server liveness`. Kui mõne kontrolli tulemus on `fail`, lõpetab see nullist erineva väljumiskoodiga.
 
@@ -633,7 +633,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # Testi üht seadistatud ühendust
 omniroute providers test-all                        # Testi kõiki aktiivseid ühendusi
-omniroute providers validate                        # Ainult kohalik struktuuriline valideerimine
+omniroute providers validate                        # Ainult kohalik struktuurikontroll
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Olemasolev OAuth-voog
@@ -641,58 +641,70 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` kasutavad eelkõige API-t ja töötavad seetõttu
-aktiivse kohaliku või kaugkontekstiga. Autentimisandmete sisestamiseks tuleks kasutada
-`--credential-stdin` või `--credential-env`; `--dry-run --json` esitab ainult
-redigeeritud olemasolu-/kujuteabe. `providers available` loeb OmniRoute'i kataloogi;
-`providers list/test/test-all/validate` säilitavad oma kohaliku SQLite'i-põhise käitumise ega
-nõua töötavat serverit.
+`providers add/import/auth/edit/remove` kasutavad esmalt API-t ja töötavad seetõttu
+aktiivses kohalikus või kaugkontekstis. Autentimisandmete sisestamiseks tuleks kasutada
+`--credential-stdin` või `--credential-env`; `--dry-run --json` kuvab ainult
+redigeeritud olemasolu/kuju. `providers available` loeb OmniRoute'i kataloogi;
+`providers list/test/test-all/validate` säilitavad oma kohaliku SQLite'i käitumise ega
+nõua serveri töötamist.
+
+Kohandatud OpenAI-ühilduva või Anthropic-ühilduva sõlme puhul lisa autentimisandmed
+käsu `omniroute nodes add` tagastatud sõlme ID-le, kasutades käsku `omniroute keys add "$NODE_ID" --stdin`.
+See nõuab töötavat serverit ja aktiivse konteksti halduse autentimist.
+CLI kasutab `POST /api/providers`, mis valideerib sõlme ja kopeerib selle lõpp-punkti
+sätted ühendusse. Puuduv sõlm, autoriseerimistõrge või kättesaamatu
+server tagastab vea ilma kohalikku varuautentimisandmestikku loomata.
+
+`nodes add --base-url` määrab sõlme lõpp-punkti; see erineb serveri aadressist
+muutujas `OMNIROUTE_BASE_URL`. OpenAPI-failide puhul kasuta käsku
+`omniroute openapi dump --format json --out ./openapi.json`; globaalne `--output`
+valib CLI kuvavormingu, mitte sihtfaili nime.
 
 ### Taastamine ja lähtestamine
 
 ```bash
 omniroute reset-password                # Lähtesta administraatori parool (ka: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Kuva hoiatus ja krüpteeritud autentimisandmete lähtestamise proovikäivitus
-omniroute reset-encrypted-columns --force  # Määra krüpteeritud autentimisandmed SQLite'is tegelikult väärtuseks null
+omniroute reset-encrypted-columns --force  # Nulli krüpteeritud autentimisandmed SQLite'is tegelikult
 ```
 
-### Autentimisandmete eksport (⚠ käsitse ettevaatlikult)
+### Autentimisandmete eksportimine (⚠ käsitse ettevaatlikult)
 
 ```bash
-omniroute auth export                                 # Kuva hoiatus ja kinnituse nõue — andmebaasile ei pääseta juurde
-omniroute auth export --force                          # Ekspordi KÕIGI ühenduste DEKRÜPTEERITUD autentimisandmed JSON-ina standardväljundisse
+omniroute auth export                                 # Kuva hoiatus ja kinnitusetapp — ilma andmebaasile juurdepääsuta
+omniroute auth export --force                          # Ekspordi KÕIGI ühenduste DEKRÜPTEERITUD autentimisandmed standardväljundisse JSON-ina
 omniroute auth export --force --id <id>                 # Ekspordi ainult sobiv ühendus
 omniroute auth export --force --format env               # Väljasta read kujul OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Kirjuta faili (luuakse õigustega 0600)
 ```
 
-`auth export` töötab **ainult kohalikult** (SQLite'i otselugemine, HTTP-marsruuti pole) ning prindib/kirjutab sihilikult
+`auth export` on **ainult kohalik** (loeb otse SQLite'ist, HTTP-marsruuti pole) ning väljastab/kirjutab tahtlikult
 **lihttekstina** `apiKey`/`accessToken`/`refreshToken`/`idToken` väärtused — see on funktsioon, mitte
-viga. Ilma liputa `--force` ei loeta andmebaasist midagi ega dekrüpteerita midagi. Enne lihtteksti
-väljastamist prinditakse alati standardveavoogu hoiatav bänner. `STORAGE_ENCRYPTION_KEY` peab olema
-määratud. Väli, mille dekrüpteerimine ebaõnnestub (aegunud võti, rikutud šiffertekst), esitatakse kujul
-`<field>DecryptFailed: true`, selle asemel et kogu eksport katkestada või aluseks olev viga avaldada.
+viga. Ilma liputa `--force` ei loeta andmebaasist ega dekrüptita midagi. Enne mis tahes lihtteksti
+väljastamist kuvatakse alati stderr-is hoiatusbänner. Nõuab, et `STORAGE_ENCRYPTION_KEY` oleks
+määratud. Väli, mille dekrüptimine ebaõnnestub (aegunud võti, rikutud šifreeritud tekst), esitatakse kujul
+`<field>DecryptFailed: true`, selle asemel et katkestada kogu eksport või paljastada aluseks olev viga.
 
 ### Muud alamkäsud
 
 Need eeldavad töötavat OmniRoute'i serverit, kui pole märgitud teisiti:
 
 ```bash
-omniroute status                       # Põhjalik käitusoleku ülevaade
+omniroute status                       # Põhjalik käitusolek
 omniroute logs                         # Päringulogide voogedastus (--json, --search, --follow)
 omniroute config list                  # Seadistatud CLI-tööriistade kuvamine
 
-omniroute provider list                # Saadaolevate pakkujate loend (käsu providers list alias)
-omniroute provider add                 # OmniRoute'i registreerimine tööriistas pakkujana
+omniroute provider list                # Saadaolevate teenusepakkujate loend (käsu providers list alias)
+omniroute provider add                 # OmniRoute'i registreerimine tööriistas teenusepakkujana
 omniroute keys add | list | remove     # API-võtmete haldamine
 omniroute models [provider]            # Mudelite loend (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Seadistuse ja andmebaasi hetktõmmis
+omniroute backup                       # Konfiguratsiooni ja andmebaasi hetktõmmis
 omniroute restore                      # Taastamine varasemast hetktõmmisest
 
 omniroute health                       # Üksikasjalik seisund (kaitselülitid, vahemälu, mälu)
-omniroute quota                        # Pakkuja kvoodi kasutus
+omniroute quota                        # Teenusepakkuja kvoodi kasutus
 omniroute cache                        # Vahemälu olek
 omniroute cache clear                  # Semantilise ja signatuurivahemälu tühjendamine
 
@@ -702,17 +714,17 @@ omniroute a2a status | card            # A2A-serveri olek / agendikaart
 omniroute tunnel list | create | stop  # Tunnelite haldamine (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # Keskkonnamuutujate vaatamine / määramine (ajutine)
 
-omniroute test                         # Pakkuja ühenduvuse kiirtest
-omniroute update                       # Uuenduste kontrollimine
-omniroute completion                   # Kestautomaatteksti genereerimine
+omniroute test                         # Teenusepakkuja ühenduvuse kiirtest
+omniroute update                       # Värskenduste kontrollimine
+omniroute completion                   # Kestakäsu automaatse lõpetamise genereerimine
 ```
 
-### Levinud lipud
+### Üldised lipud
 
 | Lipp                | Kirjeldus                                          |
 | ------------------- | -------------------------------------------------- |
 | `--no-open`         | Brauserit ei avata käivitamisel automaatselt       |
-| `--port <n>`        | API-pordi muutmine (vaikimisi 20128)               |
+| `--port <n>`        | API-pordi alistamine (vaikimisi 20128)             |
 | `--mcp`             | Käitamine MCP-serverina stdio kaudu (IDE-de jaoks) |
 | `--non-interactive` | CI-režiim (viipadeta; loeb keskkonnast/lippudest)  |
 | `--json`            | Masinloetav JSON-väljund (doctor, providers jne)   |

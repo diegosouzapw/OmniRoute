@@ -142,40 +142,40 @@ a zapojení příznaku `--model` z něj. Ochrana proti odchylkám
 katalog, UI katalog a každý spotřebitelský povrch zůstávají synchronizovány — cíl přidaný do
 jednoho povrchu bez ostatních způsobí selhání testu místo tichého odchýlení.
 
-## 1. Katalog CLI kódů (26 nástrojů)
+## 1. Katalog CLI Code (26 nástrojů)
 
-Všechny nástroje, které se objevují v `/dashboard/cli-code`. Ty s `baseUrlSupport: none` jsou zapojeny přes MITM nebo manuální průvodce namísto vlastní základní URL:
+Všechny nástroje, které se zobrazují v `/dashboard/cli-code`. Nástroje s `baseUrlSupport: none` jsou připojeny prostřednictvím MITM nebo ručního návodu namísto vlastní základní adresy URL:
 
-| id           | name                    | vendor              | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | název                   | dodavatel              | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ---------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic              | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                 | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                   | none           | custom         | false        |
+| cline        | Cline                   | OSS (dříve Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org               | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)              | full           | guide          | false        |
+| continue     | Continue                | continue.dev           | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)      | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ            | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)         | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)      | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)           | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (dříve SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI             | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS              | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere              | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)      | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)       | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                    | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)            | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere              | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                 | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research          | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                 | none           | mitm           | false        |
+| custom       | Custom CLI              | —                      | full           | custom-builder | false        |
 
-Nástroje s `baseUrlSupport: "partial"` zobrazují na kartě panelu odznak "⚠ Base URL parcial".
+Nástroje s `baseUrlSupport: "partial"` zobrazují na kartě řídicího panelu odznak „⚠ Částečná podpora základní adresy URL“.
 ---
 
 ## 2. Katalog CLI agentů (8 nástrojů)
@@ -634,7 +634,7 @@ Rozpoznávané proměnné prostředí pro neinteraktivní nastavení:
 
 Všechny ostatní neinteraktivní vstupy se předávají jako příznaky, nikoli jako proměnné prostředí:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(viz možnosti příkazu `omniroute setup` výše).
+(viz možnosti `omniroute setup` výše).
 
 ### Diagnostika
 
@@ -643,12 +643,12 @@ omniroute doctor                       # Zkontrolovat konfiguraci, DB, porty, b�
 omniroute doctor --json                # Strojově čitelný JSON
 omniroute doctor --no-liveness         # Přeskočit kontrolu stavu přes HTTP
 omniroute doctor --host 0.0.0.0        # Přepsat hostitele kontroly dostupnosti
-omniroute doctor --liveness-url <url>  # Přepsat úplnou URL koncového bodu stavu
+omniroute doctor --liveness-url <url>  # Přepsat úplnou URL koncového bodu kontroly stavu
 ```
 
 Příkaz doctor provádí tyto kontroly: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` a `Server liveness`. Pokud má kterákoli kontrola stav `fail`, příkaz skončí s nenulovým návratovým kódem.
+`Memory` a `Server liveness`. Pokud má kterákoli kontrola stav `fail`, skončí s nenulovým návratovým kódem.
 
 ### Správa poskytovatelů
 
@@ -663,20 +663,32 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # Otestovat jedno nakonfigurované připojení
 omniroute providers test-all                        # Otestovat všechna aktivní připojení
-omniroute providers validate                        # Pouze místní strukturální validace
+omniroute providers validate                        # Pouze místní strukturální ověření
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # Stávající tok OAuth
+omniroute providers auth <provider>                 # Existující tok OAuth
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-Příkazy `providers add/import/auth/edit/remove` primárně používají API, a proto fungují vůči
+Příkazy `providers add/import/auth/edit/remove` primárně využívají API, a proto fungují vůči
 aktivnímu místnímu nebo vzdálenému kontextu. Přihlašovací údaje je vhodné zadávat pomocí
 `--credential-stdin` nebo `--credential-env`; `--dry-run --json` uvádí pouze
 redigované informace o přítomnosti a struktuře. `providers available` načítá katalog OmniRoute;
-`providers list/test/test-all/validate` zachovávají své místní chování se SQLite a
-nevyžadují spuštěný server.
+`providers list/test/test-all/validate` si zachovávají své místní chování založené na SQLite
+a nevyžadují spuštěný server.
+
+U vlastního uzlu kompatibilního s OpenAI nebo Anthropic připojte přihlašovací údaje
+k ID uzlu vrácenému příkazem `omniroute nodes add` pomocí `omniroute keys add "$NODE_ID" --stdin`.
+To vyžaduje spuštěný server a ověření pro správu aktivního kontextu.
+CLI používá `POST /api/providers`, který ověří uzel a zkopíruje nastavení jeho koncového bodu
+do připojení. Chybějící uzel, selhání autorizace nebo nedostupný server vrátí chybu,
+aniž by vytvořily záložní místní přihlašovací údaje.
+
+`nodes add --base-url` nastavuje koncový bod uzlu; ten se liší od adresy serveru
+v `OMNIROUTE_BASE_URL`. Pro soubory OpenAPI použijte
+`omniroute openapi dump --format json --out ./openapi.json`; globální příznak `--output`
+určuje formát zobrazení CLI, nikoli název cílového souboru.
 
 ### Obnova a resetování
 
@@ -686,68 +698,68 @@ omniroute reset-encrypted-columns       # Zobrazit varování a zkušební běh 
 omniroute reset-encrypted-columns --force  # Skutečně nastavit šifrované přihlašovací údaje v SQLite na hodnotu null
 ```
 
-### Export přihlašovacích údajů (⚠ zacházejte opatrně)
+### Export přihlašovacích údajů (⚠ zacházejte s nimi opatrně)
 
 ```bash
 omniroute auth export                                 # Zobrazit varování a vyžádat potvrzení — bez přístupu k DB
-omniroute auth export --force                          # Exportovat DEŠIFROVANÉ přihlašovací údaje VŠECH připojení do stdout jako JSON
+omniroute auth export --force                          # Exportovat DEŠIFROVANÉ přihlašovací údaje VŠECH připojení na standardní výstup jako JSON
 omniroute auth export --force --id <id>                 # Exportovat pouze odpovídající připojení
 omniroute auth export --force --format env               # Vypsat řádky OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Zapsat do souboru (vytvořeného s oprávněními 0600)
 ```
 
-`auth export` funguje **pouze místně** (přímé čtení ze SQLite, bez trasy HTTP) a záměrně vypisuje/zapisuje
-hodnoty `apiKey`/`accessToken`/`refreshToken`/`idToken` jako **prostý text** — jde o funkci, nikoli o
-chybu. Bez příznaku `--force` se z databáze nic nenačte ani nedešifruje. Před vypsáním jakéhokoli prostého textu
-se na stderr vždy zobrazí varovný banner. Vyžaduje nastavení proměnné `STORAGE_ENCRYPTION_KEY`.
-Pole, které se nepodaří dešifrovat (zastaralý klíč, poškozený šifrovaný text), je namísto přerušení celého exportu nebo odhalení původní chyby
-ohlášeno jako `<field>DecryptFailed: true`.
+`auth export` funguje **pouze lokálně** (přímé čtení ze SQLite, žádná HTTP trasa) a záměrně vypisuje/ukládá
+hodnoty `apiKey`/`accessToken`/`refreshToken`/`idToken` v **prostém textu** — jedná se o funkci, nikoli
+chybu. Bez `--force` se z databáze nic nečte ani nedešifruje. Před vypsáním jakýchkoli dat v prostém
+textu se na stderr vždy zobrazí varovný banner. Vyžaduje nastavení proměnné `STORAGE_ENCRYPTION_KEY`.
+Pole, které se nepodaří dešifrovat (zastaralý klíč, poškozený šifrovaný text), je označeno jako
+`<field>DecryptFailed: true`, namísto aby byl celý export přerušen nebo došlo k odhalení původní chyby.
 
 ### Ostatní dílčí příkazy
 
-Pokud není uvedeno jinak, tyto příkazy předpokládají spuštěný server OmniRoute:
+Pokud není uvedeno jinak, předpokládají spuštěný server OmniRoute:
 
 ```bash
-omniroute status                       # Souhrnný stav běhu
-omniroute logs                         # Průběžné protokoly požadavků (--json, --search, --follow)
-omniroute config list                  # Zobrazit nakonfigurované nástroje CLI
+omniroute status                       # Komplexní stav běhu
+omniroute logs                         # Streamování protokolů požadavků (--json, --search, --follow)
+omniroute config list                  # Zobrazení nakonfigurovaných nástrojů CLI
 
-omniroute provider list                # Vypsat dostupné poskytovatele (alias příkazu providers list)
-omniroute provider add                 # Zaregistrovat OmniRoute jako poskytovatele v nástroji
-omniroute keys add | list | remove     # Spravovat klíče API
-omniroute models [provider]            # Vypsat modely (--json, --search)
+omniroute provider list                # Seznam dostupných poskytovatelů (alias příkazu providers list)
+omniroute provider add                 # Registrace OmniRoute jako poskytovatele v nástroji
+omniroute keys add | list | remove     # Správa klíčů API
+omniroute models [provider]            # Seznam modelů (--json, --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # Vytvořit snímek konfigurace a databáze
-omniroute restore                      # Obnovit z předchozího snímku
+omniroute backup                       # Snímek konfigurace a databáze
+omniroute restore                      # Obnovení z předchozího snímku
 
-omniroute health                       # Podrobné informace o stavu (jističe, mezipaměť, paměť)
+omniroute health                       # Podrobný stav systému (jističe, mezipaměť, paměť)
 omniroute quota                        # Využití kvóty poskytovatele
 omniroute cache                        # Stav mezipaměti
-omniroute cache clear                  # Vymazat sémantickou mezipaměť a mezipaměť signatur
+omniroute cache clear                  # Vymazání sémantické mezipaměti a mezipaměti podpisů
 
 omniroute mcp status | restart         # Stav / restart serveru MCP
 omniroute a2a status | card            # Stav serveru A2A / karta agenta
 
-omniroute tunnel list | create | stop  # Spravovat tunely (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Zkontrolovat / nastavit proměnné prostředí (dočasně)
+omniroute tunnel list | create | stop  # Správa tunelů (cloudflare/tailscale/ngrok)
+omniroute env show | get <k> | set <k> <v>  # Kontrola / nastavení proměnných prostředí (dočasné)
 
-omniroute test                         # Rychlý test připojení k poskytovateli
-omniroute update                       # Zkontrolovat aktualizace
-omniroute completion                   # Vygenerovat automatické doplňování pro shell
+omniroute test                         # Základní test připojení k poskytovateli
+omniroute update                       # Kontrola aktualizací
+omniroute completion                   # Generování dokončování příkazů shellu
 ```
 
-### Běžné příznaky
+### Společné příznaky
 
-| Příznak             | Popis                                                     |
-| ------------------- | --------------------------------------------------------- |
-| `--no-open`         | Při spuštění automaticky neotevírat prohlížeč             |
-| `--port <n>`        | Přepsat port API (výchozí 20128)                          |
-| `--mcp`             | Spustit jako server MCP přes stdio (pro IDE)              |
-| `--non-interactive` | Režim CI (bez výzev; načítá hodnoty z prostředí/příznaků) |
-| `--json`            | Strojově čitelný výstup JSON (doctor, providers atd.)     |
-| `--help`, `-h`      | Zobrazit nápovědu pro konkrétní příkaz                    |
-| `--version`, `-v`   | Vypsat nainstalovanou verzi                               |
+| Příznak             | Popis                                                 |
+| ------------------- | ----------------------------------------------------- |
+| `--no-open`         | Při spuštění automaticky neotevírat prohlížeč         |
+| `--port <n>`        | Přepsat port API (výchozí je 20128)                   |
+| `--mcp`             | Spustit jako server MCP přes stdio (pro IDE)          |
+| `--non-interactive` | Režim CI (bez výzev; čte z prostředí/příznaků)        |
+| `--json`            | Strojově čitelný výstup JSON (doctor, providers atd.) |
+| `--help`, `-h`      | Zobrazit nápovědu pro konkrétní příkaz                |
+| `--version`, `-v`   | Vypsat nainstalovanou verzi                           |
 
 ---
 

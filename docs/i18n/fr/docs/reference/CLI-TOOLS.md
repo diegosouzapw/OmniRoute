@@ -624,28 +624,28 @@ omniroute setup --add-provider \
 
 Variables d’environnement reconnues pour la configuration non interactive :
 
-| Variable            | Objectif                                                              |
+| Variable            | Rôle                                                                  |
 | ------------------- | --------------------------------------------------------------------- |
 | `OMNIROUTE_API_KEY` | Clé API du fournisseur (liée à `--api-key` via `.env()` de Commander) |
 | `DATA_DIR`          | Remplacer le répertoire de données d’OmniRoute                        |
 
-Toutes les autres entrées non interactives sont transmises sous forme d’options et non de variables d’environnement :
+Toutes les autres entrées non interactives sont transmises sous forme d’options, et non de variables d’environnement :
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
-(voir les options de `omniroute setup` ci-dessus).
+(consultez les options de `omniroute setup` ci-dessus).
 
 ### Diagnostics
 
 ```bash
-omniroute doctor                       # Vérifier la configuration, la BDD, les ports, l’environnement d’exécution, la mémoire et la disponibilité
+omniroute doctor                       # Vérifier la configuration, la BDD, les ports, l’environnement d’exécution, la mémoire et l’activité
 omniroute doctor --json                # JSON lisible par une machine
-omniroute doctor --no-liveness         # Ignorer la sonde de santé HTTP
-omniroute doctor --host 0.0.0.0        # Remplacer l’hôte utilisé pour la vérification de disponibilité
+omniroute doctor --no-liveness         # Ignorer la vérification HTTP de l’état de santé
+omniroute doctor --host 0.0.0.0        # Remplacer l’hôte utilisé pour la vérification d’activité
 omniroute doctor --liveness-url <url>  # Remplacer l’URL complète du point de terminaison de santé
 ```
 
 La commande doctor exécute les vérifications suivantes : `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` et `Server liveness`. Elle se termine avec un code différent de zéro si une vérification est en état `fail`.
+`Memory` et `Server liveness`. Elle se termine avec un code différent de zéro si une vérification a l’état `fail`.
 
 ### Gestion des fournisseurs
 
@@ -669,43 +669,55 @@ omniroute providers remove <id|name> --yes
 ```
 
 `providers add/import/auth/edit/remove` utilisent l’API en priorité et fonctionnent donc avec
-le contexte actif, qu’il soit local ou distant. Les identifiants doivent être fournis via
-`--credential-stdin` ou `--credential-env` ; `--dry-run --json` indique uniquement
-leur présence et leur structure sous une forme expurgée. `providers available` lit le catalogue OmniRoute ;
+le contexte local ou distant actif. Les identifiants doivent être fournis avec
+`--credential-stdin` ou `--credential-env` ; `--dry-run --json` ne rapporte que
+leur présence et leur structure sous forme expurgée. `providers available` lit le catalogue OmniRoute ;
 `providers list/test/test-all/validate` conservent leur comportement SQLite local et
 ne nécessitent pas que le serveur soit en cours d’exécution.
+
+Pour un nœud personnalisé compatible avec OpenAI ou Anthropic, associez les identifiants à
+l’identifiant du nœud renvoyé par `omniroute nodes add`, à l’aide de `omniroute keys add "$NODE_ID" --stdin`.
+Cela nécessite un serveur en cours d’exécution et une authentification de gestion pour le contexte actif.
+La CLI utilise `POST /api/providers`, qui valide le nœud et copie les paramètres de son point de terminaison
+dans la connexion. Si le nœud est introuvable, si l’autorisation échoue ou si le serveur est indisponible,
+une erreur est renvoyée sans créer d’identifiant local de secours.
+
+`nodes add --base-url` définit le point de terminaison du nœud ; il est distinct de l’adresse du serveur
+dans `OMNIROUTE_BASE_URL`. Pour les fichiers OpenAPI, utilisez
+`omniroute openapi dump --format json --out ./openapi.json` ; l’option globale `--output`
+sélectionne le format d’affichage de la CLI, et non un nom de fichier de destination.
 
 ### Récupération et réinitialisation
 
 ```bash
 omniroute reset-password                # Réinitialiser le mot de passe administrateur (également : omniroute-reset-password)
 omniroute reset-encrypted-columns       # Afficher un avertissement et simuler la réinitialisation des identifiants chiffrés
-omniroute reset-encrypted-columns --force  # Définir réellement les identifiants chiffrés sur null dans SQLite
+omniroute reset-encrypted-columns --force  # Remplacer effectivement par null les identifiants chiffrés dans SQLite
 ```
 
 ### Exportation des identifiants (⚠ à manipuler avec précaution)
 
 ```bash
 omniroute auth export                                 # Afficher un avertissement et demander confirmation — aucun accès à la BDD
-omniroute auth export --force                          # Exporter les identifiants DÉCHIFFRÉS de TOUTES les connexions vers stdout au format JSON
+omniroute auth export --force                          # Exporter vers stdout les identifiants DÉCHIFFRÉS de TOUTES les connexions au format JSON
 omniroute auth export --force --id <id>                 # Exporter uniquement la connexion correspondante
 omniroute auth export --force --format env               # Émettre des lignes OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Écrire dans un fichier (créé avec les permissions 0600)
 ```
 
-`auth export` fonctionne **uniquement en local** (lecture directe de SQLite, sans route HTTP) et affiche/écrit intentionnellement
-les valeurs `apiKey`/`accessToken`/`refreshToken`/`idToken` **en clair** — il s’agit d’une fonctionnalité, pas d’un
-bogue. Aucune donnée n’est lue depuis la base de données et rien n’est déchiffré sans `--force`. Une bannière
-d’avertissement est toujours affichée sur stderr avant l’émission de toute donnée en clair. Nécessite que
+`auth export` est **exclusivement local** (lecture directe de SQLite, aucune route HTTP) et affiche/écrit intentionnellement
+les valeurs `apiKey`/`accessToken`/`refreshToken`/`idToken` **en clair** — c’est une fonctionnalité, pas un
+bug. Rien n’est lu depuis la base de données et rien n’est déchiffré sans `--force`. Une bannière
+d’avertissement est toujours affichée sur stderr avant toute émission de données en clair. Nécessite que
 `STORAGE_ENCRYPTION_KEY` soit définie. Un champ dont le déchiffrement échoue (clé obsolète, texte chiffré corrompu) est signalé par
-`<field>DecryptFailed: true` au lieu d’interrompre toute l’exportation ou de divulguer l’erreur sous-jacente.
+`<field>DecryptFailed: true` au lieu d’interrompre l’intégralité de l’exportation ou de divulguer l’erreur sous-jacente.
 
 ### Autres sous-commandes
 
 Celles-ci supposent qu’un serveur OmniRoute est en cours d’exécution, sauf indication contraire :
 
 ```bash
-omniroute status                       # État d’exécution complet
+omniroute status                       # État complet de l’exécution
 omniroute logs                         # Diffuser les journaux de requêtes (--json, --search, --follow)
 omniroute config list                  # Afficher les outils CLI configurés
 
@@ -716,7 +728,7 @@ omniroute models [provider]            # Répertorier les modèles (--json, --se
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # Créer un instantané de la configuration et de la BDD
-omniroute restore                      # Restaurer un instantané précédent
+omniroute restore                      # Restaurer à partir d’un instantané précédent
 
 omniroute health                       # État de santé détaillé (disjoncteurs, cache, mémoire)
 omniroute quota                        # Utilisation des quotas des fournisseurs
@@ -730,21 +742,21 @@ omniroute tunnel list | create | stop  # Gérer les tunnels (cloudflare/tailscal
 omniroute env show | get <k> | set <k> <v>  # Consulter / définir les variables d’environnement (temporaire)
 
 omniroute test                         # Test rapide de connectivité des fournisseurs
-omniroute update                       # Rechercher les mises à jour
+omniroute update                       # Rechercher des mises à jour
 omniroute completion                   # Générer l’autocomplétion du shell
 ```
 
 ### Options courantes
 
-| Option              | Description                                                         |
-| ------------------- | ------------------------------------------------------------------- |
-| `--no-open`         | Ne pas ouvrir automatiquement le navigateur au démarrage            |
-| `--port <n>`        | Remplacer le port de l’API (20128 par défaut)                       |
-| `--mcp`             | Exécuter comme serveur MCP via stdio (pour les IDE)                 |
-| `--non-interactive` | Mode CI (aucune invite ; lit les variables d’environnement/options) |
-| `--json`            | Sortie JSON lisible par machine (doctor, providers, etc.)           |
-| `--help`, `-h`      | Afficher l’aide propre à la commande                                |
-| `--version`, `-v`   | Afficher la version installée                                       |
+| Option              | Description                                                          |
+| ------------------- | -------------------------------------------------------------------- |
+| `--no-open`         | Ne pas ouvrir automatiquement le navigateur au démarrage             |
+| `--port <n>`        | Remplacer le port de l’API (20128 par défaut)                        |
+| `--mcp`             | Exécuter comme serveur MCP via stdio (pour les IDE)                  |
+| `--non-interactive` | Mode CI (aucune invite ; lecture depuis l’environnement/les options) |
+| `--json`            | Sortie JSON lisible par une machine (doctor, providers, etc.)        |
+| `--help`, `-h`      | Afficher l’aide propre à la commande                                 |
+| `--version`, `-v`   | Afficher la version installée                                        |
 
 ---
 

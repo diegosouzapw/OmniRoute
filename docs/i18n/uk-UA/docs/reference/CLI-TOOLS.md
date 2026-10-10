@@ -615,7 +615,7 @@ omniroute providers list               # Налаштовані підключе
 omniroute providers test-all           # Перевірити кожне активне підключення
 omniroute reset-password               # Скинути пароль адміністратора
 omniroute logs                         # Транслювати журнали запитів
-omniroute health                       # Детальний стан (запобіжники, кеш, пам’ять)
+omniroute health                       # Докладний стан (запобіжники, кеш, пам’ять)
 omniroute --version                    # Вивести версію
 omniroute --help                       # Показати всі команди
 ```
@@ -624,38 +624,38 @@ omniroute --help                       # Показати всі команди
 
 ```bash
 omniroute setup                        # Інтерактивний майстер налаштування
-omniroute setup --non-interactive      # Режим CI/автоматизації (зчитує змінні середовища та прапорці)
-omniroute setup --password '<value>'   # Установити пароль адміністратора безпосередньо
+omniroute setup --non-interactive      # Режим CI/автоматизації (читає змінні середовища та прапорці)
+omniroute setup --password '<value>'   # Задати пароль адміністратора безпосередньо
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Додати й перевірити провайдера за один крок
+  --test-provider                      # Додати й перевірити провайдера за одну операцію
 ```
 
 Розпізнавані змінні середовища для неінтерактивного налаштування:
 
 | Змінна              | Призначення                                                               |
 | ------------------- | ------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API-ключ провайдера (прив’язаний до `--api-key` через Commander `.env()`) |
-| `DATA_DIR`          | Перевизначає каталог даних OmniRoute                                      |
+| `OMNIROUTE_API_KEY` | Ключ API провайдера (прив’язаний до `--api-key` через Commander `.env()`) |
+| `DATA_DIR`          | Перевизначити каталог даних OmniRoute                                     |
 
-Усі інші вхідні дані для неінтерактивного режиму передаються як прапорці, а не змінні середовища:
+Усі інші неінтерактивні вхідні дані передаються як прапорці, а не як змінні середовища:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (див. параметри `omniroute setup` вище).
 
 ### Діагностика
 
 ```bash
-omniroute doctor                       # Перевірити конфігурацію, БД, порти, середовище виконання, пам’ять і працездатність
-omniroute doctor --json                # Машиночитаний JSON
+omniroute doctor                       # Перевірити конфігурацію, БД, порти, середовище виконання, пам’ять і доступність
+omniroute doctor --json                # Машиночитний JSON
 omniroute doctor --no-liveness         # Пропустити HTTP-перевірку працездатності
-omniroute doctor --host 0.0.0.0        # Перевизначити хост для перевірки працездатності
+omniroute doctor --host 0.0.0.0        # Перевизначити хост для перевірки доступності
 omniroute doctor --liveness-url <url>  # Перевизначити повну URL-адресу кінцевої точки стану
 ```
 
 Команда doctor виконує такі перевірки: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` і `Server liveness`. Вона завершує роботу з ненульовим кодом, якщо будь-яка перевірка має статус `fail`.
+`Memory` і `Server liveness`. Вона завершується з ненульовим кодом, якщо будь-яка перевірка має стан `fail`.
 
 ### Керування провайдерами
 
@@ -663,7 +663,7 @@ omniroute doctor --liveness-url <url>  # Перевизначити повну U
 omniroute providers available                       # Каталог провайдерів OmniRoute
 omniroute providers available --search openai       # Фільтрувати каталог за ідентифікатором/назвою/псевдонімом/категорією
 omniroute providers available --category api-key    # Фільтрувати за категорією (api-key, oauth, free, ...)
-omniroute providers available --json                # Машиночитаний JSON
+omniroute providers available --json                # Машиночитний JSON
 
 omniroute providers list                            # Налаштовані підключення до провайдерів
 omniroute providers list --json
@@ -679,45 +679,57 @@ omniroute providers remove <id|name> --yes
 ```
 
 `providers add/import/auth/edit/remove` насамперед використовують API, тому працюють з
-активним локальним або віддаленим контекстом. Облікові дані слід передавати через
+активним локальним або віддаленим контекстом. Для введення облікових даних слід використовувати
 `--credential-stdin` або `--credential-env`; `--dry-run --json` повідомляє лише
-замасковану інформацію про наявність/структуру. `providers available` зчитує каталог OmniRoute;
+редаговані відомості про наявність/структуру. `providers available` читає каталог OmniRoute;
 `providers list/test/test-all/validate` зберігають свою локальну поведінку SQLite і
 не потребують запущеного сервера.
+
+Для власного вузла, сумісного з OpenAI або Anthropic, прив’яжіть облікові дані до
+ідентифікатора вузла, повернутого командою `omniroute nodes add`, за допомогою `omniroute keys add "$NODE_ID" --stdin`.
+Для цього потрібні запущений сервер і автентифікація керування для активного контексту.
+CLI використовує `POST /api/providers`, який перевіряє вузол і копіює параметри його кінцевої точки
+до підключення. Якщо вузол відсутній, авторизація не вдалася або сервер недоступний,
+повертається помилка без створення резервних локальних облікових даних.
+
+`nodes add --base-url` задає кінцеву точку вузла; вона відрізняється від адреси сервера
+в `OMNIROUTE_BASE_URL`. Для файлів OpenAPI використовуйте
+`omniroute openapi dump --format json --out ./openapi.json`; глобальний параметр `--output`
+визначає формат відображення CLI, а не ім’я цільового файлу.
 
 ### Відновлення та скидання
 
 ```bash
 omniroute reset-password                # Скинути пароль адміністратора (також: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Показати попередження та пробний запуск скидання зашифрованих облікових даних
-omniroute reset-encrypted-columns --force  # Фактично встановити для зашифрованих облікових даних значення null у SQLite
+omniroute reset-encrypted-columns --force  # Фактично замінити зашифровані облікові дані в SQLite на null
 ```
 
 ### Експорт облікових даних (⚠ поводьтеся обережно)
 
 ```bash
 omniroute auth export                                 # Показати попередження та запит підтвердження — без доступу до БД
-omniroute auth export --force                          # Експортувати РОЗШИФРОВАНІ облікові дані ВСІХ підключень у stdout як JSON
+omniroute auth export --force                          # Експортувати РОЗШИФРОВАНІ облікові дані ВСІХ підключень до stdout у форматі JSON
 omniroute auth export --force --id <id>                 # Експортувати лише відповідне підключення
 omniroute auth export --force --format env               # Вивести рядки OMNIROUTE_<PROVIDER>_<FIELD>=<value>
-omniroute auth export --force --out creds.json           # Записати у файл (створюється з дозволами 0600)
+omniroute auth export --force --out creds.json           # Записати у файл (створюється з правами доступу 0600)
 ```
 
-`auth export` працює **лише локально** (безпосереднє читання SQLite, без HTTP-маршруту) і навмисно виводить/записує
-значення `apiKey`/`accessToken`/`refreshToken`/`idToken` як **звичайний текст** — це функція, а не
-помилка. Без `--force` нічого не зчитується з бази даних і нічого не розшифровується. Перед виведенням
-будь-якого звичайного тексту в stderr завжди друкується банер із попередженням. Потрібно встановити
-`STORAGE_ENCRYPTION_KEY`. Поле, яке не вдалося розшифрувати (застарілий ключ, пошкоджений шифротекст), позначається як
-`<field>DecryptFailed: true` замість переривання всього експорту або розкриття основної помилки.
+`auth export` працює **лише локально** (безпосередньо читає SQLite, без HTTP-маршруту) і навмисно виводить/записує
+значення `apiKey`/`accessToken`/`refreshToken`/`idToken` у вигляді **відкритого тексту** — це функція, а не
+помилка. Без `--force` нічого не зчитується з бази даних і нічого не розшифровується. Банер із
+попередженням завжди виводиться в stderr до виведення будь-якого відкритого тексту. Потрібно, щоб
+було задано `STORAGE_ENCRYPTION_KEY`. Поле, яке не вдалося розшифрувати (застарілий ключ, пошкоджений шифротекст), позначається як
+`<field>DecryptFailed: true` замість переривання всього експорту або розкриття базової помилки.
 
 ### Інші підкоманди
 
-Якщо не зазначено інше, вони передбачають наявність запущеного сервера OmniRoute:
+Якщо не зазначено інше, вони передбачають, що сервер OmniRoute запущено:
 
 ```bash
 omniroute status                       # Повний стан середовища виконання
-omniroute logs                         # Потокове виведення журналів запитів (--json, --search, --follow)
-omniroute config list                  # Показати налаштовані інструменти CLI
+omniroute logs                         # Потокове передавання журналів запитів (--json, --search, --follow)
+omniroute config list                  # Відобразити налаштовані інструменти CLI
 
 omniroute provider list                # Перелічити доступних провайдерів (псевдонім для providers list)
 omniroute provider add                 # Зареєструвати OmniRoute як провайдера в інструменті
@@ -728,33 +740,33 @@ omniroute combo list | switch | create | delete
 omniroute backup                       # Створити знімок конфігурації та БД
 omniroute restore                      # Відновити з попереднього знімка
 
-omniroute health                       # Докладний стан (запобіжники, кеш, пам’ять)
+omniroute health                       # Докладний стан справності (автоматичні вимикачі, кеш, пам’ять)
 omniroute quota                        # Використання квоти провайдера
 omniroute cache                        # Стан кешу
-omniroute cache clear                  # Очистити семантичний кеш і кеш сигнатур
+omniroute cache clear                  # Очистити семантичний кеш і кеш підписів
 
 omniroute mcp status | restart         # Стан / перезапуск сервера MCP
 omniroute a2a status | card            # Стан сервера A2A / картка агента
 
 omniroute tunnel list | create | stop  # Керувати тунелями (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Переглянути / встановити змінні середовища (тимчасово)
+omniroute env show | get <k> | set <k> <v>  # Переглянути / задати змінні середовища (тимчасово)
 
-omniroute test                         # Швидка перевірка підключення до провайдера
+omniroute test                         # Швидка перевірка з’єднання з провайдером
 omniroute update                       # Перевірити наявність оновлень
-omniroute completion                   # Згенерувати автодоповнення для оболонки
+omniroute completion                   # Згенерувати автодоповнення командної оболонки
 ```
 
-### Поширені прапорці
+### Загальні прапорці
 
-| Прапорець           | Опис                                                           |
-| ------------------- | -------------------------------------------------------------- |
-| `--no-open`         | Не відкривати браузер автоматично під час запуску              |
-| `--port <n>`        | Перевизначити порт API (за замовчуванням 20128)                |
-| `--mcp`             | Запустити як сервер MCP через stdio (для IDE)                  |
-| `--non-interactive` | Режим CI (без запитів; зчитує зі змінних середовища/прапорців) |
-| `--json`            | Машиночитаний вивід JSON (doctor, providers тощо)              |
-| `--help`, `-h`      | Показати довідку для конкретної команди                        |
-| `--version`, `-v`   | Вивести встановлену версію                                     |
+| Прапорець           | Опис                                                               |
+| ------------------- | ------------------------------------------------------------------ |
+| `--no-open`         | Не відкривати браузер автоматично під час запуску                  |
+| `--port <n>`        | Перевизначити порт API (за замовчуванням 20128)                    |
+| `--mcp`             | Запустити як сервер MCP через stdio (для IDE)                      |
+| `--non-interactive` | Режим CI (без запитів; зчитування зі змінних середовища/прапорців) |
+| `--json`            | Машиночитаний вивід JSON (doctor, providers тощо)                  |
+| `--help`, `-h`      | Показати довідку для конкретної команди                            |
+| `--version`, `-v`   | Вивести встановлену версію                                         |
 
 ---
 

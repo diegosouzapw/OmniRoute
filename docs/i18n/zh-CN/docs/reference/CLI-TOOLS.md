@@ -561,13 +561,13 @@ omniroute doctor                       # 检查配置、数据库、端口和运
 omniroute providers list               # 已配置的提供者连接
 omniroute providers test-all           # 测试每个活动连接
 omniroute reset-password               # 重置管理员密码
-omniroute logs                         # 实时输出请求日志
-omniroute health                       # 详细健康状况（断路器、缓存、内存）
+omniroute logs                         # 流式输出请求日志
+omniroute health                       # 详细健康状态（断路器、缓存、内存）
 omniroute --version                    # 输出版本
 omniroute --help                       # 显示所有命令
 ```
 
-### 设置和初始化
+### 设置与初始化
 
 ```bash
 omniroute setup                        # 交互式设置向导
@@ -586,7 +586,7 @@ omniroute setup --add-provider \
 | `OMNIROUTE_API_KEY` | 提供者 API 密钥（通过 Commander `.env()` 绑定到 `--api-key`） |
 | `DATA_DIR`          | 覆盖 OmniRoute 数据目录                                       |
 
-所有其他非交互式输入均通过标志传递，而非环境变量：
+所有其他非交互式输入均通过标志传递，而不是环境变量：
 `--password`、`--provider`、`--provider-name`、`--provider-base-url`、`--default-model`
 （请参阅上面的 `omniroute setup` 选项）。
 
@@ -602,13 +602,13 @@ omniroute doctor --liveness-url <url>  # 覆盖完整的健康端点 URL
 
 doctor 会运行以下检查：`Config`、`Database`、`Storage/encryption`、
 `Port availability`、`Node runtime`、`Native binary`（better-sqlite3）、
-`Memory` 和 `Server liveness`。如果任何检查结果为 `fail`，则以非零状态码退出。
+`Memory` 和 `Server liveness`。如果任何检查结果为 `fail`，它将以非零状态码退出。
 
 ### 提供者管理
 
 ```bash
 omniroute providers available                       # OmniRoute 提供者目录
-omniroute providers available --search openai       # 按 id/名称/别名/类别筛选目录
+omniroute providers available --search openai       # 按 id/name/alias/category 筛选目录
 omniroute providers available --category api-key    # 按类别筛选（api-key、oauth、free 等）
 omniroute providers available --json                # 机器可读的 JSON
 
@@ -620,22 +620,35 @@ omniroute providers test-all                        # 测试每个活动连接
 omniroute providers validate                        # 仅限本地的结构验证
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
-omniroute providers auth <provider>                 # 现有的 OAuth 流程
+omniroute providers auth <provider>                 # 现有 OAuth 流程
 omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` 以 API 为优先，因此可针对当前活动的本地或远程上下文运行。凭据输入应使用
+`providers add/import/auth/edit/remove` 采用 API 优先方式，因此可针对
+当前活动的本地或远程上下文运行。凭据输入应使用
 `--credential-stdin` 或 `--credential-env`；`--dry-run --json` 仅报告
-经过脱敏的存在性/结构信息。`providers available` 读取 OmniRoute 目录；
+经过脱敏处理的存在性/结构信息。`providers available` 读取 OmniRoute 目录；
 `providers list/test/test-all/validate` 保留其本地 SQLite 行为，
-无需运行服务器。
+不要求服务器处于运行状态。
 
-### 恢复和重置
+对于自定义的 OpenAI 兼容或 Anthropic 兼容节点，请使用 `omniroute keys add "$NODE_ID" --stdin`
+将凭据附加到 `omniroute nodes add` 返回的节点 ID。
+这要求服务器正在运行，并且当前活动上下文具有管理身份验证。
+CLI 使用 `POST /api/providers`，它会验证节点并将其端点
+设置复制到连接中。节点缺失、授权失败或服务器不可用时，
+将返回错误，而不会创建本地回退凭据。
+
+`nodes add --base-url` 设置节点端点；它与
+`OMNIROUTE_BASE_URL` 中的服务器地址不同。对于 OpenAPI 文件，请使用
+`omniroute openapi dump --format json --out ./openapi.json`；全局 `--output`
+用于选择 CLI 显示格式，而不是目标文件名。
+
+### 恢复与重置
 
 ```bash
 omniroute reset-password                # 重置管理员密码（也可使用：omniroute-reset-password）
-omniroute reset-encrypted-columns       # 显示警告并试运行加密凭据重置
+omniroute reset-encrypted-columns       # 显示警告并对加密凭据重置执行试运行
 omniroute reset-encrypted-columns --force  # 实际将 SQLite 中的加密凭据置空
 ```
 
@@ -643,51 +656,51 @@ omniroute reset-encrypted-columns --force  # 实际将 SQLite 中的加密凭据
 
 ```bash
 omniroute auth export                                 # 显示警告和确认步骤——不访问数据库
-omniroute auth export --force                          # 以 JSON 形式将所有连接的已解密凭据导出到 stdout
+omniroute auth export --force                          # 将所有连接的已解密凭据以 JSON 格式导出到 stdout
 omniroute auth export --force --id <id>                 # 仅导出匹配的连接
 omniroute auth export --force --format env               # 输出 OMNIROUTE_<PROVIDER>_<FIELD>=<value> 格式的行
 omniroute auth export --force --out creds.json           # 写入文件（以 0600 权限创建）
 ```
 
-`auth export` **仅限本地使用**（直接读取 SQLite，不经过 HTTP 路由），并会有意输出/写入
-**明文** `apiKey`/`accessToken`/`refreshToken`/`idToken` 值——这是功能，而不是
-缺陷。如果未使用 `--force`，则不会从数据库读取任何内容，也不会解密任何内容。在输出任何明文之前，
-始终会向 stderr 输出警告横幅。需要设置 `STORAGE_ENCRYPTION_KEY`。
+`auth export` **仅限本地使用**（直接读取 SQLite，不经过 HTTP 路由），并且会有意打印/写入
+**明文** `apiKey`/`accessToken`/`refreshToken`/`idToken` 值——这是功能特性，并非
+缺陷。如果没有使用 `--force`，则不会从数据库中读取任何内容，也不会解密任何内容。在输出任何明文之前，
+始终会先向 stderr 打印警告横幅。要求设置 `STORAGE_ENCRYPTION_KEY`。
 如果某个字段解密失败（密钥过期、密文损坏），则会报告为
-`<field>DecryptFailed: true`，而不会中止整个导出或泄露底层错误。
+`<field>DecryptFailed: true`，而不是中止整个导出过程或泄露底层错误。
 
 ### 其他子命令
 
-除非另有说明，否则这些命令均假定 OmniRoute 服务器正在运行：
+除非另有说明，否则以下命令均假定 OmniRoute 服务器正在运行：
 
 ```bash
 omniroute status                       # 全面的运行时状态
-omniroute logs                         # 流式输出请求日志（--json、--search、--follow）
+omniroute logs                         # 流式传输请求日志（--json、--search、--follow）
 omniroute config list                  # 显示已配置的 CLI 工具
 
 omniroute provider list                # 列出可用的提供者（providers list 的别名）
-omniroute provider add                 # 在工具中将 OmniRoute 注册为提供者
+omniroute provider add                 # 在工具上将 OmniRoute 注册为提供者
 omniroute keys add | list | remove     # 管理 API 密钥
 omniroute models [provider]            # 列出模型（--json、--search）
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # 创建配置和数据库快照
+omniroute backup                       # 创建配置和数据库的快照
 omniroute restore                      # 从先前的快照恢复
 
-omniroute health                       # 详细的运行状况（断路器、缓存、内存）
+omniroute health                       # 详细的健康状态（断路器、缓存、内存）
 omniroute quota                        # 提供者配额使用情况
 omniroute cache                        # 缓存状态
 omniroute cache clear                  # 清除语义缓存和签名缓存
 
-omniroute mcp status | restart         # MCP 服务器状态 / 重启
-omniroute a2a status | card            # A2A 服务器状态 / 智能体卡片
+omniroute mcp status | restart         # MCP 服务器状态/重启
+omniroute a2a status | card            # A2A 服务器状态/代理卡片
 
 omniroute tunnel list | create | stop  # 管理隧道（cloudflare/tailscale/ngrok）
-omniroute env show | get <k> | set <k> <v>  # 查看 / 设置环境变量（临时）
+omniroute env show | get <k> | set <k> <v>  # 查看/设置环境变量（临时）
 
 omniroute test                         # 提供者连接冒烟测试
 omniroute update                       # 检查更新
-omniroute completion                   # 生成 shell 自动补全脚本
+omniroute completion                   # 生成 shell 补全脚本
 ```
 
 ### 常用标志
@@ -695,11 +708,11 @@ omniroute completion                   # 生成 shell 自动补全脚本
 | 标志                | 说明                                         |
 | ------------------- | -------------------------------------------- |
 | `--no-open`         | 启动时不自动打开浏览器                       |
-| `--port <n>`        | 覆盖 API 端口（默认值为 20128）              |
+| `--port <n>`        | 覆盖 API 端口（默认为 20128）                |
 | `--mcp`             | 通过 stdio 作为 MCP 服务器运行（用于 IDE）   |
 | `--non-interactive` | CI 模式（无提示；从环境变量/标志读取）       |
 | `--json`            | 机器可读的 JSON 输出（doctor、providers 等） |
-| `--help`, `-h`      | 显示特定命令的帮助                           |
+| `--help`, `-h`      | 显示特定于命令的帮助                         |
 | `--version`, `-v`   | 输出已安装的版本                             |
 
 ---

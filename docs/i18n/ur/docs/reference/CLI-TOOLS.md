@@ -108,40 +108,40 @@ OmniRoute کنٹینر کے اندر چلائی گئی ایک `setup-*` کمان
 
 ---
 
-## 1. سی ایل آئی کوڈ کا کیٹلاگ (26 ٹولز)
+## 1. CLI Code کا کیٹلاگ (26 ٹولز)
 
-تمام ٹولز جو `/dashboard/cli-code` میں ظاہر ہوتے ہیں۔ وہ جن میں `baseUrlSupport: none` ہے، کسٹم بیس یو آر ایل کے بجائے MITM یا دستی گائیڈ کے ذریعے منسلک ہوتے ہیں:
+وہ تمام ٹولز جو `/dashboard/cli-code` میں ظاہر ہوتے ہیں۔ جن ٹولز میں `baseUrlSupport: none` ہے، وہ حسبِ ضرورت base URL کے بجائے MITM یا دستی رہنما کے ذریعے منسلک کیے جاتے ہیں:
 
-| id           | نام                     | وینڈر               | baseUrlSupport | configType     | acpSpawnable |
-| ------------ | ----------------------- | ------------------- | -------------- | -------------- | ------------ |
-| claude       | Claude Code             | Anthropic           | full           | env            | true         |
-| codex        | OpenAI Codex CLI        | OpenAI              | full           | custom         | true         |
-| zcode        | ZCode (GLM Coding Plan) | Z.ai                | none           | custom         | false        |
-| cline        | Cline                   | OSS (ex-Claude Dev) | full           | custom         | true         |
-| kilo         | Kilo Code               | Kilo-Org            | full           | custom         | false        |
-| roo          | Roo Code                | Roo (OSS)           | full           | guide          | false        |
-| continue     | Continue                | continue.dev        | full           | guide          | false        |
-| aider        | Aider                   | OSS (P. Gauthier)   | full           | guide          | true         |
-| forge        | ForgeCode               | Antinomy HQ         | full           | custom         | true         |
-| jcode        | jcode                   | 1jehuang (OSS)      | full           | custom         | false        |
-| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)   | full           | custom         | false        |
-| codewhale    | CodeWhale               | Hmbown (OSS)        | full           | custom         | false        |
-| opencode     | OpenCode                | Anomaly (ex-SST)    | full           | guide          | true         |
-| droid        | Factory Droid           | Factory AI          | partial        | guide          | false        |
-| copilot      | GitHub Copilot CLI      | GitHub/MS           | full           | custom         | false        |
-| cursor-cli   | Cursor CLI              | Anysphere           | partial        | guide          | true         |
-| smelt        | Smelt                   | leonardcser (OSS)   | full           | custom         | false        |
-| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)    | full           | custom         | false        |
-| grok-build   | Grok Build              | xAI                 | full           | custom         | false        |
-| crush        | Crush                   | OSS (Charm)         | full           | custom         | false        |
-| qwen         | Qwen Code               | Alibaba             | full           | guide          | true         |
-| cursor       | Cursor                  | Anysphere           | none           | guide          | false        |
-| antigravity  | Antigravity             | Google              | none           | mitm           | false        |
-| hermes       | Hermes                  | Nous Research       | none           | guide          | false        |
-| kiro         | Kiro AI                 | Amazon              | none           | mitm           | false        |
-| custom       | Custom CLI              | —                   | full           | custom-builder | false        |
+| id           | نام                     | فراہم کنندہ            | baseUrlSupport | configType     | acpSpawnable |
+| ------------ | ----------------------- | ---------------------- | -------------- | -------------- | ------------ |
+| claude       | Claude Code             | Anthropic              | full           | env            | true         |
+| codex        | OpenAI Codex CLI        | OpenAI                 | full           | custom         | true         |
+| zcode        | ZCode (GLM Coding Plan) | Z.ai                   | none           | custom         | false        |
+| cline        | Cline                   | OSS (سابقہ Claude Dev) | full           | custom         | true         |
+| kilo         | Kilo Code               | Kilo-Org               | full           | custom         | false        |
+| roo          | Roo Code                | Roo (OSS)              | full           | guide          | false        |
+| continue     | Continue                | continue.dev           | full           | guide          | false        |
+| aider        | Aider                   | OSS (P. Gauthier)      | full           | guide          | true         |
+| forge        | ForgeCode               | Antinomy HQ            | full           | custom         | true         |
+| jcode        | jcode                   | 1jehuang (OSS)         | full           | custom         | false        |
+| deepseek-tui | DeepSeek TUI            | Hunter Bown (OSS)      | full           | custom         | false        |
+| codewhale    | CodeWhale               | Hmbown (OSS)           | full           | custom         | false        |
+| opencode     | OpenCode                | Anomaly (سابقہ SST)    | full           | guide          | true         |
+| droid        | Factory Droid           | Factory AI             | partial        | guide          | false        |
+| copilot      | GitHub Copilot CLI      | GitHub/MS              | full           | custom         | false        |
+| cursor-cli   | Cursor CLI              | Anysphere              | partial        | guide          | true         |
+| smelt        | Smelt                   | leonardcser (OSS)      | full           | custom         | false        |
+| pi           | Pi (pi-coding-agent)    | M. Zechner (OSS)       | full           | custom         | false        |
+| grok-build   | Grok Build              | xAI                    | full           | custom         | false        |
+| crush        | Crush                   | OSS (Charm)            | full           | custom         | false        |
+| qwen         | Qwen Code               | Alibaba                | full           | guide          | true         |
+| cursor       | Cursor                  | Anysphere              | none           | guide          | false        |
+| antigravity  | Antigravity             | Google                 | none           | mitm           | false        |
+| hermes       | Hermes                  | Nous Research          | none           | guide          | false        |
+| kiro         | Kiro AI                 | Amazon                 | none           | mitm           | false        |
+| custom       | Custom CLI              | —                      | full           | custom-builder | false        |
 
-وہ ٹولز جن میں `baseUrlSupport: "partial"` ہے، ڈیش بورڈ کارڈ میں "⚠ Base URL parcial" کا بیج دکھاتے ہیں۔
+`baseUrlSupport: "partial"` والے ٹولز کے ڈیش بورڈ کارڈ پر "⚠ جزوی Base URL" بیج دکھایا جاتا ہے۔
 ---
 
 ## 2. CLI ایجنٹس کی فہرست (8 ٹولز)
@@ -564,17 +564,17 @@ kiro-cli status
 
 ## 10. اندرونی OmniRoute CLI
 
-`omniroute` بائنری سرور کی لائف سائیکل، سیٹ اپ، تشخیص، اور پرووائیڈر مینجمنٹ کے لیے کمانڈز فراہم کرتی ہے۔ انٹری پوائنٹ: `bin/omniroute.mjs`۔
+`omniroute` بائنری سرور لائف سائیکل، سیٹ اپ، تشخیص، اور پرووائیڈر مینجمنٹ کے لیے کمانڈز فراہم کرتی ہے۔ انٹری پوائنٹ: `bin/omniroute.mjs`۔
 
 ```bash
 omniroute                              # سرور شروع کریں (ڈیفالٹ پورٹ 20128)
 omniroute setup                        # انٹرایکٹو سیٹ اپ وزارڈ
-omniroute doctor                       # کنفیگ، DB، پورٹس، رن ٹائم چیک کریں
+omniroute doctor                       # کنفیگ، DB، پورٹس، اور رن ٹائم چیک کریں
 omniroute providers list               # کنفیگر کردہ پرووائیڈر کنکشنز
 omniroute providers test-all           # ہر فعال کنکشن کی جانچ کریں
 omniroute reset-password               # ایڈمن پاس ورڈ ری سیٹ کریں
-omniroute logs                         # ریکویسٹ لاگز اسٹریم کریں
-omniroute health                       # تفصیلی صحت (بریکرز، کیش، میموری)
+omniroute logs                         # ریکوئسٹ لاگز اسٹریم کریں
+omniroute health                       # تفصیلی صحت کی صورتحال (بریکرز، کیش، میموری)
 omniroute --version                    # ورژن پرنٹ کریں
 omniroute --help                       # تمام کمانڈز دکھائیں
 ```
@@ -588,33 +588,33 @@ omniroute setup --password '<value>'   # ایڈمن پاس ورڈ براہِ ر�
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # ایک ہی مرحلے میں پرووائیڈر شامل کرکے اس کی جانچ کریں
+  --test-provider                      # ایک ہی مرحلے میں پرووائیڈر شامل کریں اور جانچیں
 ```
 
-نان انٹرایکٹو سیٹ اپ کے لیے پہچانے جانے والے ماحولیاتی متغیرات:
+غیر انٹرایکٹو سیٹ اپ کے لیے تسلیم شدہ ماحولیاتی متغیرات:
 
 | متغیر               | مقصد                                                                  |
 | ------------------- | --------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | پرووائیڈر API کلید (Commander `.env()` کے ذریعے `--api-key` سے منسلک) |
+| `OMNIROUTE_API_KEY` | پرووائیڈر API کلید (`--api-key` سے Commander `.env()` کے ذریعے منسلک) |
 | `DATA_DIR`          | OmniRoute ڈیٹا ڈائریکٹری کو اوور رائیڈ کریں                           |
 
-دیگر تمام نان انٹرایکٹو ان پٹس ماحولیاتی متغیرات کے بجائے فلیگز کے طور پر پاس کیے جاتے ہیں:
+دیگر تمام غیر انٹرایکٹو ان پٹس ماحولیاتی متغیرات کے بجائے فلیگز کے طور پر پاس کیے جاتے ہیں:
 `--password`، `--provider`، `--provider-name`، `--provider-base-url`، `--default-model`
-(اوپر دیے گئے `omniroute setup` آپشنز دیکھیں)۔
+(اوپر دیے گئے `omniroute setup` اختیارات دیکھیں)۔
 
 ### تشخیص
 
 ```bash
-omniroute doctor                       # کنفیگ، DB، پورٹس، رن ٹائم، میموری، اور فعال ہونے کی حالت چیک کریں
-omniroute doctor --json                # مشین کے ذریعے پڑھنے کے قابل JSON
-omniroute doctor --no-liveness         # HTTP صحت کی جانچ چھوڑ دیں
-omniroute doctor --host 0.0.0.0        # فعال ہونے کی حالت کے ہوسٹ کو اوور رائیڈ کریں
-omniroute doctor --liveness-url <url>  # مکمل صحت اینڈ پوائنٹ URL کو اوور رائیڈ کریں
+omniroute doctor                       # کنفیگ، DB، پورٹس، رن ٹائم، میموری، اور لائیونیس چیک کریں
+omniroute doctor --json                # مشین کے لیے قابلِ مطالعہ JSON
+omniroute doctor --no-liveness         # HTTP ہیلتھ پروب چھوڑ دیں
+omniroute doctor --host 0.0.0.0        # لائیونیس ہوسٹ کو اوور رائیڈ کریں
+omniroute doctor --liveness-url <url>  # مکمل ہیلتھ اینڈ پوائنٹ URL کو اوور رائیڈ کریں
 ```
 
-ڈاکٹر یہ جانچیں چلاتا ہے: `Config`، `Database`، `Storage/encryption`،
+ڈاکٹر یہ چیکس چلاتا ہے: `Config`، `Database`، `Storage/encryption`،
 `Port availability`، `Node runtime`، `Native binary` (better-sqlite3)،
-`Memory`، اور `Server liveness`۔ اگر کوئی بھی جانچ `fail` ہو تو یہ نان زیرو کوڈ کے ساتھ بند ہو جاتا ہے۔
+`Memory`، اور `Server liveness`۔ اگر کوئی بھی چیک `fail` ہو تو یہ غیر صفر ایگزٹ کوڈ کے ساتھ بند ہوتا ہے۔
 
 ### پرووائیڈر مینجمنٹ
 
@@ -622,7 +622,7 @@ omniroute doctor --liveness-url <url>  # مکمل صحت اینڈ پوائنٹ U
 omniroute providers available                       # OmniRoute پرووائیڈر کیٹلاگ
 omniroute providers available --search openai       # کیٹلاگ کو id/name/alias/category کے لحاظ سے فلٹر کریں
 omniroute providers available --category api-key    # زمرے کے لحاظ سے فلٹر کریں (api-key، oauth، free، ...)
-omniroute providers available --json                # مشین کے ذریعے پڑھنے کے قابل JSON
+omniroute providers available --json                # مشین کے لیے قابلِ مطالعہ JSON
 
 omniroute providers list                            # کنفیگر کردہ پرووائیڈر کنکشنز
 omniroute providers list --json
@@ -637,45 +637,57 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` پہلے API استعمال کرتے ہیں، اس لیے یہ
+`providers add/import/auth/edit/remove` API کو ترجیح دیتے ہیں اور اسی لیے
 فعال مقامی یا ریموٹ کانٹیکسٹ کے ساتھ کام کرتے ہیں۔ اسناد کے ان پٹ کے لیے
-`--credential-stdin` یا `--credential-env` استعمال کیا جانا چاہیے؛ `--dry-run --json` صرف
-مخفی موجودگی/ساخت کی اطلاع دیتا ہے۔ `providers available` OmniRoute کیٹلاگ پڑھتا ہے؛
-`providers list/test/test-all/validate` اپنا مقامی SQLite طرزِ عمل برقرار رکھتے ہیں اور
+`--credential-stdin` یا `--credential-env` استعمال کرنا چاہیے؛ `--dry-run --json` صرف
+تحریف شدہ موجودگی/ساخت کی رپورٹ دیتا ہے۔ `providers available` OmniRoute کیٹلاگ پڑھتا ہے؛
+`providers list/test/test-all/validate` اپنا مقامی SQLite رویہ برقرار رکھتے ہیں اور
 ان کے لیے سرور کا چلنا ضروری نہیں ہے۔
 
-### بازیابی اور ری سیٹ
+کسی حسبِ ضرورت OpenAI-مطابقت پذیر یا Anthropic-مطابقت پذیر نوڈ کے لیے، اسناد کو
+`omniroute nodes add` کی جانب سے واپس کردہ نوڈ ID کے ساتھ `omniroute keys add "$NODE_ID" --stdin` استعمال کرتے ہوئے منسلک کریں۔
+اس کے لیے فعال کانٹیکسٹ کی خاطر چلتا ہوا سرور اور مینجمنٹ توثیق درکار ہے۔
+CLI، `POST /api/providers` استعمال کرتا ہے، جو نوڈ کی توثیق کرتا ہے اور اس کی اینڈ پوائنٹ
+سیٹنگز کو کنکشن میں کاپی کرتا ہے۔ نوڈ کی عدم موجودگی، اجازت کی ناکامی، یا غیر دستیاب
+سرور کی صورت میں مقامی فال بیک سند بنائے بغیر خرابی واپس کی جاتی ہے۔
+
+`nodes add --base-url` نوڈ اینڈ پوائنٹ سیٹ کرتا ہے؛ یہ `OMNIROUTE_BASE_URL` میں موجود سرور ایڈریس
+سے مختلف ہے۔ OpenAPI فائلوں کے لیے،
+`omniroute openapi dump --format json --out ./openapi.json` استعمال کریں؛ عالمی `--output`
+منزل کی فائل کا نام نہیں بلکہ CLI ڈسپلے فارمیٹنگ منتخب کرتا ہے۔
+
+### بحالی اور ری سیٹ
 
 ```bash
 omniroute reset-password                # ایڈمن پاس ورڈ ری سیٹ کریں (یہ بھی: omniroute-reset-password)
-omniroute reset-encrypted-columns       # انکرپٹڈ اسناد ری سیٹ کرنے کے لیے انتباہ + ڈرائی رن دکھائیں
-omniroute reset-encrypted-columns --force  # SQLite میں انکرپٹڈ اسناد کو حقیقتاً null کر دیں
+omniroute reset-encrypted-columns       # انکرپٹ شدہ اسناد کو ری سیٹ کرنے کے لیے انتباہ + ڈرائی رن دکھائیں
+omniroute reset-encrypted-columns --force  # SQLite میں انکرپٹ شدہ اسناد کو حقیقتاً null کر دیں
 ```
 
-### اسناد کی ایکسپورٹ (⚠ احتیاط سے سنبھالیں)
+### اسناد کی ایکسپورٹ (⚠ احتیاط سے استعمال کریں)
 
 ```bash
-omniroute auth export                                 # انتباہ + تصدیقی مرحلہ دکھائیں — DB تک کوئی رسائی نہیں
-omniroute auth export --force                          # تمام کنکشنز کی ڈکرپٹ شدہ اسناد JSON کے طور پر stdout پر ایکسپورٹ کریں
+omniroute auth export                                 # انتباہ + تصدیقی مرحلہ دکھائیں — DB تک رسائی نہیں
+omniroute auth export --force                          # تمام کنکشنز کی ڈکرپٹ شدہ اسناد کو JSON کی صورت میں stdout پر ایکسپورٹ کریں
 omniroute auth export --force --id <id>                 # صرف مماثل کنکشن ایکسپورٹ کریں
 omniroute auth export --force --format env               # OMNIROUTE_<PROVIDER>_<FIELD>=<value> لائنیں خارج کریں
 omniroute auth export --force --out creds.json           # فائل میں لکھیں (0600 اجازتوں کے ساتھ بنائی جاتی ہے)
 ```
 
 `auth export` **صرف مقامی** ہے (براہِ راست SQLite ریڈ، کوئی HTTP روٹ نہیں) اور دانستہ طور پر
-**سادہ متن** میں `apiKey`/`accessToken`/`refreshToken`/`idToken` ویلیوز پرنٹ/رائٹ کرتا ہے — یہ ایک فیچر ہے،
-بگ نہیں۔ `--force` کے بغیر ڈیٹا بیس سے کچھ بھی نہیں پڑھا جاتا، اور نہ ہی کچھ ڈکرپٹ کیا جاتا ہے۔ کسی بھی
-سادہ متن کے خارج ہونے سے پہلے stderr پر ہمیشہ ایک انتباہی بینر پرنٹ ہوتا ہے۔ `STORAGE_ENCRYPTION_KEY` کا
-سیٹ ہونا ضروری ہے۔ جس فیلڈ کو ڈکرپٹ کرنے میں ناکامی ہو (پرانی کلید، خراب سائفر ٹیکسٹ)، اسے
-پوری ایکسپورٹ روکنے یا بنیادی خرابی ظاہر کرنے کے بجائے `<field>DecryptFailed: true` کے طور پر رپورٹ کیا جاتا ہے۔
+**سادہ متن** میں `apiKey`/`accessToken`/`refreshToken`/`idToken` اقدار پرنٹ/تحریر کرتا ہے — یہ ایک خصوصیت ہے،
+بگ نہیں۔ `--force` کے بغیر ڈیٹابیس سے کچھ بھی نہیں پڑھا جاتا، اور نہ ہی کسی چیز کو ڈکرپٹ کیا جاتا ہے۔ کسی بھی سادہ متن کے اخراج سے پہلے stderr پر
+ایک انتباہی بینر ہمیشہ پرنٹ ہوتا ہے۔ `STORAGE_ENCRYPTION_KEY` کا سیٹ ہونا
+ضروری ہے۔ جس فیلڈ کی ڈکرپشن ناکام ہو جائے (پرانی کلید، خراب سائفر ٹیکسٹ)، پوری ایکسپورٹ کو منسوخ کرنے یا بنیادی خرابی افشا کرنے کے بجائے اسے
+`<field>DecryptFailed: true` کے طور پر رپورٹ کیا جاتا ہے۔
 
 ### دیگر ذیلی کمانڈز
 
-جب تک بصورتِ دیگر ذکر نہ کیا گیا ہو، یہ فرض کرتی ہیں کہ OmniRoute سرور چل رہا ہے:
+بصورتِ دیگر ذکر نہ ہونے پر، یہ فرض کرتی ہیں کہ OmniRoute سرور چل رہا ہے:
 
 ```bash
 omniroute status                       # رن ٹائم کی جامع حالت
-omniroute logs                         # درخواست کے لاگز اسٹریم کریں (--json، --search، --follow)
+omniroute logs                         # درخواست لاگز اسٹریم کریں (--json، --search، --follow)
 omniroute config list                  # کنفیگر کردہ CLI ٹولز دکھائیں
 
 omniroute provider list                # دستیاب پرووائیڈرز کی فہرست دکھائیں (providers list کا عرف)
@@ -684,36 +696,36 @@ omniroute keys add | list | remove     # API کلیدوں کا نظم کریں
 omniroute models [provider]            # ماڈلز کی فہرست دکھائیں (--json، --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # کنفیگریشن + DB کا اسنیپ شاٹ بنائیں
+omniroute backup                       # کنفیگ + DB کا اسنیپ شاٹ بنائیں
 omniroute restore                      # سابقہ اسنیپ شاٹ سے بحال کریں
 
 omniroute health                       # صحت کی تفصیلی حالت (بریکرز، کیش، میموری)
-omniroute quota                        # پرووائیڈر کوٹے کا استعمال
+omniroute quota                        # پرووائیڈر کوٹا کا استعمال
 omniroute cache                        # کیش کی حالت
 omniroute cache clear                  # سیمینٹک + سگنیچر کیشز صاف کریں
 
-omniroute mcp status | restart         # MCP سرور کی حالت / دوبارہ شروع کریں
+omniroute mcp status | restart         # MCP سرور کی حالت / دوبارہ آغاز
 omniroute a2a status | card            # A2A سرور کی حالت / ایجنٹ کارڈ
 
 omniroute tunnel list | create | stop  # ٹنلز کا نظم کریں (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # ماحولیاتی متغیرات دیکھیں / سیٹ کریں (عارضی)
+omniroute env show | get <k> | set <k> <v>  # ماحولیاتی متغیرات کا معائنہ / سیٹ کریں (عارضی)
 
 omniroute test                         # پرووائیڈر کنیکٹیویٹی کا اسموک ٹیسٹ
-omniroute update                       # اپ ڈیٹس کی جانچ کریں
+omniroute update                       # اپ ڈیٹس چیک کریں
 omniroute completion                   # شیل کمپلیشن تیار کریں
 ```
 
 ### عام فلیگز
 
-| فلیگ                | تفصیل                                                            |
-| ------------------- | ---------------------------------------------------------------- |
-| `--no-open`         | آغاز پر براؤزر خودکار طور پر نہ کھولیں                           |
-| `--port <n>`        | API پورٹ کو اوور رائیڈ کریں (ڈیفالٹ 20128)                       |
-| `--mcp`             | stdio پر MCP سرور کے طور پر چلائیں (IDEs کے لیے)                 |
-| `--non-interactive` | CI موڈ (کوئی پرامپٹ نہیں؛ env/flags سے پڑھتا ہے)                 |
-| `--json`            | مشین کے ذریعے قابلِ مطالعہ JSON آؤٹ پٹ (doctor، providers وغیرہ) |
-| `--help`, `-h`      | کمانڈ سے متعلق مخصوص مدد دکھائیں                                 |
-| `--version`, `-v`   | انسٹال شدہ ورژن پرنٹ کریں                                        |
+| فلیگ                | وضاحت                                                           |
+| ------------------- | --------------------------------------------------------------- |
+| `--no-open`         | آغاز پر براؤزر خودکار طور پر نہ کھولیں                          |
+| `--port <n>`        | API پورٹ کو اوور رائیڈ کریں (ڈیفالٹ 20128)                      |
+| `--mcp`             | stdio کے ذریعے MCP سرور کے طور پر چلائیں (IDEs کے لیے)          |
+| `--non-interactive` | CI موڈ (کوئی پرامپٹ نہیں؛ env/فلیگز سے پڑھتا ہے)                |
+| `--json`            | مشین کے لیے قابلِ مطالعہ JSON آؤٹ پٹ (doctor، providers، وغیرہ) |
+| `--help`, `-h`      | کمانڈ سے مخصوص مدد دکھائیں                                      |
+| `--version`, `-v`   | انسٹال شدہ ورژن پرنٹ کریں                                       |
 
 ---
 

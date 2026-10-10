@@ -577,7 +577,7 @@ omniroute providers list               # Настроенные подключе
 omniroute providers test-all           # Проверить каждое активное подключение
 omniroute reset-password               # Сбросить пароль администратора
 omniroute logs                         # Выводить журналы запросов в реальном времени
-omniroute health                       # Подробное состояние (предохранители, кеш, память)
+omniroute health                       # Подробное состояние (предохранители, кэш, память)
 omniroute --version                    # Вывести версию
 omniroute --help                       # Показать все команды
 ```
@@ -591,33 +591,33 @@ omniroute setup --password '<value>'   # Задать пароль админи�
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
-  --test-provider                      # Добавить и проверить провайдера за один шаг
+  --test-provider                      # Добавить и проверить провайдера за один раз
 ```
 
 Распознаваемые переменные среды для неинтерактивной настройки:
 
-| Переменная          | Назначение                                                            |
-| ------------------- | --------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | API-ключ провайдера (привязан к `--api-key` через Commander `.env()`) |
-| `DATA_DIR`          | Переопределить каталог данных OmniRoute                               |
+| Переменная          | Назначение                                                              |
+| ------------------- | ----------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | API-ключ провайдера (привязан к `--api-key` через `.env()` в Commander) |
+| `DATA_DIR`          | Переопределяет каталог данных OmniRoute                                 |
 
-Все остальные неинтерактивные входные данные передаются в виде флагов, а не переменных среды:
+Все остальные неинтерактивные входные данные передаются как флаги, а не как переменные среды:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (см. параметры `omniroute setup` выше).
 
 ### Диагностика
 
 ```bash
-omniroute doctor                       # Проверить конфигурацию, БД, порты, среду выполнения, память и работоспособность
-omniroute doctor --json                # JSON в машиночитаемом формате
+omniroute doctor                       # Проверить конфигурацию, БД, порты, среду выполнения, память и доступность
+omniroute doctor --json                # Машиночитаемый JSON
 omniroute doctor --no-liveness         # Пропустить HTTP-проверку работоспособности
-omniroute doctor --host 0.0.0.0        # Переопределить хост для проверки работоспособности
+omniroute doctor --host 0.0.0.0        # Переопределить хост проверки доступности
 omniroute doctor --liveness-url <url>  # Переопределить полный URL конечной точки проверки состояния
 ```
 
-Команда doctor выполняет следующие проверки: `Config`, `Database`, `Storage/encryption`,
-`Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` и `Server liveness`. Она завершается с ненулевым кодом, если какая-либо проверка имеет статус `fail`.
+Команда doctor выполняет следующие проверки: `Конфигурация`, `База данных`, `Хранилище/шифрование`,
+`Доступность порта`, `Среда выполнения Node`, `Нативный бинарный файл` (better-sqlite3),
+`Память` и `Доступность сервера`. Она завершается с ненулевым кодом, если результат любой проверки — `fail`.
 
 ### Управление провайдерами
 
@@ -625,7 +625,7 @@ omniroute doctor --liveness-url <url>  # Переопределить полны
 omniroute providers available                       # Каталог провайдеров OmniRoute
 omniroute providers available --search openai       # Фильтровать каталог по идентификатору/имени/псевдониму/категории
 omniroute providers available --category api-key    # Фильтровать по категории (api-key, oauth, free, ...)
-omniroute providers available --json                # JSON в машиночитаемом формате
+omniroute providers available --json                # Машиночитаемый JSON
 
 omniroute providers list                            # Настроенные подключения к провайдерам
 omniroute providers list --json
@@ -640,19 +640,31 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-`providers add/import/auth/edit/remove` в первую очередь используют API и поэтому работают с
-активным локальным или удалённым контекстом. Учётные данные следует передавать через
+Команды `providers add/import/auth/edit/remove` в первую очередь используют API и поэтому работают с
+активным локальным или удалённым контекстом. Учётные данные следует вводить через
 `--credential-stdin` или `--credential-env`; `--dry-run --json` сообщает только
-о наличии/структуре в отредактированном виде. `providers available` читает каталог OmniRoute;
-`providers list/test/test-all/validate` сохраняют локальное поведение SQLite и
+отредактированную информацию о наличии/структуре данных. `providers available` читает каталог OmniRoute;
+`providers list/test/test-all/validate` сохраняют своё локальное поведение с SQLite и
 не требуют запущенного сервера.
+
+Для пользовательского узла, совместимого с OpenAI или Anthropic, привяжите учётные данные к
+идентификатору узла, возвращённому командой `omniroute nodes add`, с помощью `omniroute keys add "$NODE_ID" --stdin`.
+Для этого требуется запущенный сервер и аутентификация управления для активного контекста.
+CLI использует `POST /api/providers`, который проверяет узел и копирует настройки его конечной точки
+в подключение. При отсутствии узла, ошибке авторизации или недоступности
+сервера возвращается ошибка без создания резервных локальных учётных данных.
+
+`nodes add --base-url` задаёт конечную точку узла; она отличается от адреса сервера
+в `OMNIROUTE_BASE_URL`. Для файлов OpenAPI используйте
+`omniroute openapi dump --format json --out ./openapi.json`; глобальный параметр `--output`
+выбирает формат отображения CLI, а не имя файла назначения.
 
 ### Восстановление и сброс
 
 ```bash
 omniroute reset-password                # Сбросить пароль администратора (также: omniroute-reset-password)
 omniroute reset-encrypted-columns       # Показать предупреждение и пробный запуск сброса зашифрованных учётных данных
-omniroute reset-encrypted-columns --force  # Фактически заменить зашифрованные учётные данные в SQLite значениями NULL
+omniroute reset-encrypted-columns --force  # Фактически заменить зашифрованные учётные данные в SQLite на null
 ```
 
 ### Экспорт учётных данных (⚠ обращайтесь с осторожностью)
@@ -665,45 +677,45 @@ omniroute auth export --force --format env               # Вывести стр
 omniroute auth export --force --out creds.json           # Записать в файл (создаётся с правами доступа 0600)
 ```
 
-`auth export` работает **только локально** (прямое чтение SQLite, без HTTP-маршрута) и намеренно выводит/записывает
-значения `apiKey`/`accessToken`/`refreshToken`/`idToken` в виде **открытого текста** — это функция, а не
-ошибка. Без `--force` из базы данных ничего не читается и ничего не расшифровывается. Перед выводом
-любого открытого текста в stderr всегда печатается предупреждающий баннер. Требуется, чтобы была
-задана переменная `STORAGE_ENCRYPTION_KEY`. Поле, которое не удалось расшифровать (устаревший ключ, повреждённый шифротекст), представляется как
-`<field>DecryptFailed: true` вместо прерывания всего экспорта или раскрытия базовой ошибки.
+`auth export` работает **только локально** (прямое чтение SQLite, без HTTP-маршрута) и намеренно выводит на экран или записывает
+значения `apiKey`/`accessToken`/`refreshToken`/`idToken` в виде **открытого текста** — это функциональность, а не
+ошибка. Без `--force` ничего не считывается из базы данных и ничего не расшифровывается. Перед выводом любых данных в виде открытого текста
+в stderr всегда выводится предупреждающий баннер. Необходимо задать `STORAGE_ENCRYPTION_KEY`.
+Если поле не удаётся расшифровать (устаревший ключ, повреждённый шифротекст), это обозначается как
+`<field>DecryptFailed: true` вместо прерывания всего экспорта или раскрытия исходной ошибки.
 
 ### Другие подкоманды
 
 Если не указано иное, для них требуется запущенный сервер OmniRoute:
 
 ```bash
-omniroute status                       # Подробное состояние во время выполнения
-omniroute logs                         # Потоковая передача журналов запросов (--json, --search, --follow)
+omniroute status                       # Полное состояние среды выполнения
+omniroute logs                         # Поток журналов запросов (--json, --search, --follow)
 omniroute config list                  # Показать настроенные инструменты CLI
 
-omniroute provider list                # Вывести список доступных провайдеров (псевдоним для providers list)
+omniroute provider list                # Вывести доступных провайдеров (псевдоним providers list)
 omniroute provider add                 # Зарегистрировать OmniRoute как провайдера в инструменте
-omniroute keys add | list | remove     # Управление API-ключами
-omniroute models [provider]            # Вывести список моделей (--json, --search)
+omniroute keys add | list | remove     # Управление ключами API
+omniroute models [provider]            # Вывести модели (--json, --search)
 omniroute combo list | switch | create | delete
 
 omniroute backup                       # Создать снимок конфигурации и БД
 omniroute restore                      # Восстановить из предыдущего снимка
 
-omniroute health                       # Подробное состояние системы (предохранители, кеш, память)
-omniroute quota                        # Использование квот провайдеров
-omniroute cache                        # Состояние кеша
-omniroute cache clear                  # Очистить семантический кеш и кеш сигнатур
+omniroute health                       # Подробное состояние работоспособности (предохранители, кэш, память)
+omniroute quota                        # Использование квоты провайдера
+omniroute cache                        # Состояние кэша
+omniroute cache clear                  # Очистить семантический кэш и кэш сигнатур
 
 omniroute mcp status | restart         # Состояние / перезапуск сервера MCP
 omniroute a2a status | card            # Состояние сервера A2A / карточка агента
 
 omniroute tunnel list | create | stop  # Управление туннелями (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Просмотр / установка переменных среды (временно)
+omniroute env show | get <k> | set <k> <v>  # Просмотр / задание переменных окружения (временно)
 
-omniroute test                         # Быстрая проверка подключения к провайдерам
+omniroute test                         # Быстрая проверка подключения к провайдеру
 omniroute update                       # Проверить наличие обновлений
-omniroute completion                   # Создать автодополнение для оболочки
+omniroute completion                   # Сгенерировать автодополнение для оболочки
 ```
 
 ### Общие флаги
@@ -713,9 +725,9 @@ omniroute completion                   # Создать автодополнен
 | `--no-open`         | Не открывать браузер автоматически при запуске        |
 | `--port <n>`        | Переопределить порт API (по умолчанию 20128)          |
 | `--mcp`             | Запустить как сервер MCP через stdio (для IDE)        |
-| `--non-interactive` | Режим CI (без запросов; чтение из среды/флагов)       |
+| `--non-interactive` | Режим CI (без запросов; чтение из окружения/флагов)   |
 | `--json`            | Машиночитаемый вывод JSON (doctor, providers и т. д.) |
-| `--help`, `-h`      | Показать справку по конкретной команде                |
+| `--help`, `-h`      | Показать справку для конкретной команды               |
 | `--version`, `-v`   | Вывести установленную версию                          |
 
 ---

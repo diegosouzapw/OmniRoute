@@ -611,12 +611,12 @@ kiro-cli status
 ```bash
 omniroute                              # Εκκίνηση διακομιστή (προεπιλεγμένη θύρα 20128)
 omniroute setup                        # Διαδραστικός οδηγός αρχικής ρύθμισης
-omniroute doctor                       # Έλεγχος ρυθμίσεων, βάσης δεδομένων, θυρών και περιβάλλοντος εκτέλεσης
+omniroute doctor                       # Έλεγχος ρυθμίσεων, ΒΔ, θυρών και περιβάλλοντος εκτέλεσης
 omniroute providers list               # Διαμορφωμένες συνδέσεις παρόχων
 omniroute providers test-all           # Δοκιμή κάθε ενεργής σύνδεσης
 omniroute reset-password               # Επαναφορά του κωδικού πρόσβασης διαχειριστή
 omniroute logs                         # Συνεχής ροή αρχείων καταγραφής αιτημάτων
-omniroute health                       # Αναλυτική κατάσταση εύρυθμης λειτουργίας (breakers, cache, μνήμη)
+omniroute health                       # Αναλυτική κατάσταση εύρυθμης λειτουργίας (διακόπτες κυκλώματος, κρυφή μνήμη, μνήμη)
 omniroute --version                    # Εμφάνιση έκδοσης
 omniroute --help                       # Εμφάνιση όλων των εντολών
 ```
@@ -625,7 +625,7 @@ omniroute --help                       # Εμφάνιση όλων των εντ
 
 ```bash
 omniroute setup                        # Διαδραστικός οδηγός αρχικής ρύθμισης
-omniroute setup --non-interactive      # Λειτουργία CI/αυτοματισμού (διαβάζει μεταβλητές περιβάλλοντος + flags)
+omniroute setup --non-interactive      # Λειτουργία CI/αυτοματοποίησης (διαβάζει μεταβλητές περιβάλλοντος + σημαίες)
 omniroute setup --password '<value>'   # Άμεσος ορισμός κωδικού πρόσβασης διαχειριστή
 omniroute setup --add-provider \
   --provider openai \
@@ -635,35 +635,35 @@ omniroute setup --add-provider \
 
 Αναγνωρισμένες μεταβλητές περιβάλλοντος για μη διαδραστική αρχική ρύθμιση:
 
-| Μεταβλητή           | Σκοπός                                                                                   |
-| ------------------- | ---------------------------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | Κλειδί API παρόχου (συνδέεται με το `--api-key` μέσω της μεθόδου `.env()` του Commander) |
-| `DATA_DIR`          | Παράκαμψη του καταλόγου δεδομένων του OmniRoute                                          |
+| Μεταβλητή           | Σκοπός                                                                         |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `OMNIROUTE_API_KEY` | Κλειδί API παρόχου (συνδεδεμένο με το `--api-key` μέσω του Commander `.env()`) |
+| `DATA_DIR`          | Παράκαμψη του καταλόγου δεδομένων του OmniRoute                                |
 
-Όλες οι άλλες μη διαδραστικές είσοδοι μεταβιβάζονται ως flags και όχι ως μεταβλητές περιβάλλοντος:
+Όλες οι άλλες μη διαδραστικές είσοδοι μεταβιβάζονται ως σημαίες και όχι ως μεταβλητές περιβάλλοντος:
 `--password`, `--provider`, `--provider-name`, `--provider-base-url`, `--default-model`
 (δείτε τις επιλογές του `omniroute setup` παραπάνω).
 
 ### Διαγνωστικά
 
 ```bash
-omniroute doctor                       # Έλεγχος ρυθμίσεων, βάσης δεδομένων, θυρών, περιβάλλοντος εκτέλεσης, μνήμης και διαθεσιμότητας
+omniroute doctor                       # Έλεγχος ρυθμίσεων, ΒΔ, θυρών, περιβάλλοντος εκτέλεσης, μνήμης και λειτουργίας
 omniroute doctor --json                # JSON αναγνώσιμο από μηχανή
-omniroute doctor --no-liveness         # Παράλειψη του ελέγχου εύρυθμης λειτουργίας μέσω HTTP
-omniroute doctor --host 0.0.0.0        # Παράκαμψη του host ελέγχου διαθεσιμότητας
-omniroute doctor --liveness-url <url>  # Παράκαμψη με πλήρες URL του endpoint εύρυθμης λειτουργίας
+omniroute doctor --no-liveness         # Παράλειψη του ελέγχου εύρυθμης λειτουργίας HTTP
+omniroute doctor --host 0.0.0.0        # Παράκαμψη κεντρικού υπολογιστή για τον έλεγχο λειτουργίας
+omniroute doctor --liveness-url <url>  # Παράκαμψη πλήρους URL τελικού σημείου εύρυθμης λειτουργίας
 ```
 
-Το doctor εκτελεί τους εξής ελέγχους: `Config`, `Database`, `Storage/encryption`,
+Η εντολή doctor εκτελεί τους εξής ελέγχους: `Config`, `Database`, `Storage/encryption`,
 `Port availability`, `Node runtime`, `Native binary` (better-sqlite3),
-`Memory` και `Server liveness`. Τερματίζεται με μη μηδενικό κωδικό εξόδου εάν οποιοσδήποτε έλεγχος έχει τιμή `fail`.
+`Memory` και `Server liveness`. Τερματίζεται με μη μηδενικό κωδικό, εάν οποιοσδήποτε έλεγχος έχει αποτέλεσμα `fail`.
 
 ### Διαχείριση παρόχων
 
 ```bash
 omniroute providers available                       # Κατάλογος παρόχων του OmniRoute
-omniroute providers available --search openai       # Φιλτράρισμα καταλόγου κατά id/όνομα/ψευδώνυμο/κατηγορία
-omniroute providers available --category api-key    # Φιλτράρισμα κατά κατηγορία (api-key, oauth, free, ...)
+omniroute providers available --search openai       # Φιλτράρισμα καταλόγου βάσει αναγνωριστικού/ονόματος/ψευδωνύμου/κατηγορίας
+omniroute providers available --category api-key    # Φιλτράρισμα βάσει κατηγορίας (api-key, oauth, free, ...)
 omniroute providers available --json                # JSON αναγνώσιμο από μηχανή
 
 omniroute providers list                            # Διαμορφωμένες συνδέσεις παρόχων
@@ -671,7 +671,7 @@ omniroute providers list --json
 
 omniroute providers test <id|name>                  # Δοκιμή μίας διαμορφωμένης σύνδεσης
 omniroute providers test-all                        # Δοκιμή κάθε ενεργής σύνδεσης
-omniroute providers validate                        # Δομική επικύρωση μόνο τοπικά
+omniroute providers validate                        # Τοπική μόνο δομική επικύρωση
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
 omniroute providers auth <provider>                 # Υπάρχουσα ροή OAuth
@@ -679,45 +679,57 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-Οι εντολές `providers add/import/auth/edit/remove` χρησιμοποιούν κατά προτεραιότητα το API και επομένως λειτουργούν με βάση
-το ενεργό τοπικό ή απομακρυσμένο context. Για την εισαγωγή διαπιστευτηρίων πρέπει να χρησιμοποιούνται
-τα `--credential-stdin` ή `--credential-env`· το `--dry-run --json` αναφέρει μόνο
-την παρουσία/μορφή με απόκρυψη ευαίσθητων δεδομένων. Το `providers available` διαβάζει τον κατάλογο του OmniRoute·
-τα `providers list/test/test-all/validate` διατηρούν την τοπική συμπεριφορά SQLite και
+Οι εντολές `providers add/import/auth/edit/remove` χρησιμοποιούν κατά προτεραιότητα το API και, επομένως, λειτουργούν με το
+ενεργό τοπικό ή απομακρυσμένο περιβάλλον. Για την εισαγωγή διαπιστευτηρίων πρέπει να χρησιμοποιείται το
+`--credential-stdin` ή το `--credential-env`· το `--dry-run --json` αναφέρει μόνο
+αποκρυμμένες πληροφορίες παρουσίας/δομής. Η εντολή `providers available` διαβάζει τον κατάλογο του OmniRoute·
+οι εντολές `providers list/test/test-all/validate` διατηρούν την τοπική συμπεριφορά SQLite και
 δεν απαιτούν την εκτέλεση του διακομιστή.
+
+Για έναν προσαρμοσμένο κόμβο συμβατό με OpenAI ή Anthropic, συσχετίστε τα διαπιστευτήρια με
+το αναγνωριστικό κόμβου που επιστρέφεται από την εντολή `omniroute nodes add`, χρησιμοποιώντας την εντολή `omniroute keys add "$NODE_ID" --stdin`.
+Αυτό απαιτεί διακομιστή σε λειτουργία και έλεγχο ταυτότητας διαχείρισης για το ενεργό περιβάλλον.
+Το CLI χρησιμοποιεί το `POST /api/providers`, το οποίο επικυρώνει τον κόμβο και αντιγράφει τις ρυθμίσεις
+τελικού σημείου του στη σύνδεση. Ένας κόμβος που λείπει, μια αποτυχία εξουσιοδότησης ή ένας μη διαθέσιμος
+διακομιστής επιστρέφει σφάλμα χωρίς τη δημιουργία τοπικού εφεδρικού διαπιστευτηρίου.
+
+Η επιλογή `nodes add --base-url` ορίζει το τελικό σημείο του κόμβου· διαφέρει από τη διεύθυνση διακομιστή
+στο `OMNIROUTE_BASE_URL`. Για αρχεία OpenAPI, χρησιμοποιήστε την εντολή
+`omniroute openapi dump --format json --out ./openapi.json`· η καθολική επιλογή `--output`
+επιλέγει τη μορφοποίηση εμφάνισης του CLI και όχι ένα όνομα αρχείου προορισμού.
 
 ### Ανάκτηση και επαναφορά
 
 ```bash
 omniroute reset-password                # Επαναφορά του κωδικού πρόσβασης διαχειριστή (επίσης: omniroute-reset-password)
-omniroute reset-encrypted-columns       # Εμφάνιση προειδοποίησης + dry-run για επαναφορά κρυπτογραφημένων διαπιστευτηρίων
-omniroute reset-encrypted-columns --force  # Πραγματικός μηδενισμός των κρυπτογραφημένων διαπιστευτηρίων στο SQLite
+omniroute reset-encrypted-columns       # Εμφάνιση προειδοποίησης + δοκιμαστική εκτέλεση για επαναφορά κρυπτογραφημένων διαπιστευτηρίων
+omniroute reset-encrypted-columns --force  # Πραγματική εκκαθάριση κρυπτογραφημένων διαπιστευτηρίων στο SQLite
 ```
 
 ### Εξαγωγή διαπιστευτηρίων (⚠ χειριστείτε με προσοχή)
 
 ```bash
-omniroute auth export                                 # Εμφάνιση προειδοποίησης + αίτημα επιβεβαίωσης — χωρίς πρόσβαση στη βάση δεδομένων
+omniroute auth export                                 # Εμφάνιση προειδοποίησης + αίτημα επιβεβαίωσης — χωρίς πρόσβαση στη ΒΔ
 omniroute auth export --force                          # Εξαγωγή των ΑΠΟΚΡΥΠΤΟΓΡΑΦΗΜΕΝΩΝ διαπιστευτηρίων ΟΛΩΝ των συνδέσεων στο stdout ως JSON
 omniroute auth export --force --id <id>                 # Εξαγωγή μόνο της σύνδεσης που αντιστοιχεί
 omniroute auth export --force --format env               # Παραγωγή γραμμών OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # Εγγραφή σε αρχείο (δημιουργείται με δικαιώματα 0600)
 ```
 
-Το `auth export` εκτελείται **μόνο τοπικά** (άμεση ανάγνωση SQLite, χωρίς διαδρομή HTTP) και σκοπίμως εμφανίζει/εγγράφει
-τιμές `apiKey`/`accessToken`/`refreshToken`/`idToken` σε **απλό κείμενο** — αυτό αποτελεί λειτουργία και όχι
-σφάλμα. Χωρίς το `--force`, δεν διαβάζεται τίποτα από τη βάση δεδομένων και δεν αποκρυπτογραφείται τίποτα. Ένα banner
-προειδοποίησης εμφανίζεται πάντοτε στο stderr πριν από την έξοδο οποιουδήποτε απλού κειμένου. Απαιτεί να έχει
-οριστεί το `STORAGE_ENCRYPTION_KEY`. Ένα πεδίο που αποτυγχάνει να αποκρυπτογραφηθεί (παρωχημένο κλειδί, κατεστραμμένο κρυπτοκείμενο) αναφέρεται ως
-`<field>DecryptFailed: true`, αντί να διακόπτεται ολόκληρη η εξαγωγή ή να αποκαλύπτεται το υποκείμενο σφάλμα.
+Η εντολή `auth export` είναι **μόνο τοπική** (άμεση ανάγνωση SQLite, χωρίς διαδρομή HTTP) και σκόπιμα εκτυπώνει/εγγράφει
+τιμές `apiKey`/`accessToken`/`refreshToken`/`idToken` σε **απλό κείμενο** — αυτό είναι το χαρακτηριστικό, όχι
+σφάλμα. Δεν διαβάζεται τίποτα από τη βάση δεδομένων και δεν αποκρυπτογραφείται τίποτα χωρίς το `--force`. Ένα προειδοποιητικό
+πλαίσιο εκτυπώνεται πάντα στο stderr πριν από την έξοδο οποιουδήποτε απλού κειμένου. Απαιτεί να έχει οριστεί το
+`STORAGE_ENCRYPTION_KEY`. Ένα πεδίο που αποτυγχάνει να αποκρυπτογραφηθεί (παρωχημένο κλειδί, κατεστραμμένο κρυπτοκείμενο) αναφέρεται ως
+`<field>DecryptFailed: true` αντί να ακυρώνεται ολόκληρη η εξαγωγή ή να διαρρέει το υποκείμενο σφάλμα.
 
 ### Άλλες υποεντολές
 
-Αυτές προϋποθέτουν ότι εκτελείται ένας διακομιστής OmniRoute, εκτός εάν αναφέρεται διαφορετικά:
+Αυτές προϋποθέτουν ότι εκτελείται ένας διακομιστής OmniRoute, εκτός αν αναφέρεται διαφορετικά:
 
 ```bash
 omniroute status                       # Αναλυτική κατάσταση χρόνου εκτέλεσης
-omniroute logs                         # Ροή καταγραφών αιτημάτων (--json, --search, --follow)
+omniroute logs                         # Ροή αρχείων καταγραφής αιτημάτων (--json, --search, --follow)
 omniroute config list                  # Εμφάνιση διαμορφωμένων εργαλείων CLI
 
 omniroute provider list                # Παράθεση διαθέσιμων παρόχων (ψευδώνυμο του providers list)
@@ -729,7 +741,7 @@ omniroute combo list | switch | create | delete
 omniroute backup                       # Στιγμιότυπο διαμόρφωσης + βάσης δεδομένων
 omniroute restore                      # Επαναφορά από προηγούμενο στιγμιότυπο
 
-omniroute health                       # Αναλυτική κατάσταση εύρυθμης λειτουργίας (διακόπτες, κρυφή μνήμη, μνήμη)
+omniroute health                       # Λεπτομερής κατάσταση εύρυθμης λειτουργίας (διακόπτες κυκλώματος, κρυφή μνήμη, μνήμη)
 omniroute quota                        # Χρήση ορίου παρόχου
 omniroute cache                        # Κατάσταση κρυφής μνήμης
 omniroute cache clear                  # Εκκαθάριση σημασιολογικής κρυφής μνήμης + κρυφής μνήμης υπογραφών
@@ -738,7 +750,7 @@ omniroute mcp status | restart         # Κατάσταση / επανεκκίν
 omniroute a2a status | card            # Κατάσταση διακομιστή A2A / κάρτα πράκτορα
 
 omniroute tunnel list | create | stop  # Διαχείριση σηράγγων (cloudflare/tailscale/ngrok)
-omniroute env show | get <k> | set <k> <v>  # Προβολή / ορισμός μεταβλητών περιβάλλοντος (προσωρινά)
+omniroute env show | get <k> | set <k> <v>  # Επιθεώρηση / ορισμός μεταβλητών περιβάλλοντος (προσωρινά)
 
 omniroute test                         # Γρήγορος έλεγχος συνδεσιμότητας παρόχου
 omniroute update                       # Έλεγχος για ενημερώσεις
@@ -753,8 +765,8 @@ omniroute completion                   # Δημιουργία συμπλήρωσ
 | `--port <n>`        | Παράκαμψη της θύρας API (προεπιλογή 20128)                                     |
 | `--mcp`             | Εκτέλεση ως διακομιστής MCP μέσω stdio (για IDE)                               |
 | `--non-interactive` | Λειτουργία CI (χωρίς προτροπές· ανάγνωση από μεταβλητές περιβάλλοντος/σημαίες) |
-| `--json`            | Έξοδος JSON αναγνώσιμη από μηχανή (doctor, providers κ.λπ.)                    |
-| `--help`, `-h`      | Εμφάνιση βοήθειας για τη συγκεκριμένη εντολή                                   |
+| `--json`            | Έξοδος JSON αναγνώσιμη από μηχανές (doctor, providers κ.λπ.)                   |
+| `--help`, `-h`      | Εμφάνιση βοήθειας ειδικά για την εντολή                                        |
 | `--version`, `-v`   | Εκτύπωση της εγκατεστημένης έκδοσης                                            |
 
 ---

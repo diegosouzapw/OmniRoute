@@ -550,27 +550,27 @@ kiro-cli status
 
 ## 10. رابط خط فرمان داخلی OmniRoute
 
-فایل اجرایی `omniroute` فرمانهایی را برای چرخه عمر سرور، راهاندازی، عیبیابی و مدیریت ارائهدهندگان فراهم میکند. نقطه ورود: `bin/omniroute.mjs`.
+فایل اجرایی `omniroute` فرمانهایی برای مدیریت چرخهٔ حیات سرور، راهاندازی، عیبیابی و مدیریت ارائهدهندگان فراهم میکند. نقطهٔ ورود: `bin/omniroute.mjs`.
 
 ```bash
 omniroute                              # راهاندازی سرور (پورت پیشفرض 20128)
-omniroute setup                        # جادوگر راهاندازی تعاملی
+omniroute setup                        # راهنمای تعاملی راهاندازی
 omniroute doctor                       # بررسی پیکربندی، پایگاه داده، پورتها و محیط اجرا
-omniroute providers list               # اتصالهای پیکربندیشده ارائهدهندگان
-omniroute providers test-all           # آزمایش همه اتصالهای فعال
-omniroute reset-password               # بازنشانی گذرواژه مدیر
-omniroute logs                         # پخش زنده گزارشهای درخواست
-omniroute health                       # جزئیات سلامت (مدارشکنها، حافظه نهان، حافظه)
+omniroute providers list               # اتصالهای پیکربندیشدهٔ ارائهدهندگان
+omniroute providers test-all           # آزمایش تمام اتصالهای فعال
+omniroute reset-password               # بازنشانی گذرواژهٔ مدیر
+omniroute logs                         # پخش زندهٔ گزارش درخواستها
+omniroute health                       # جزئیات سلامت (قطعکنندهها، حافظهٔ نهان، حافظه)
 omniroute --version                    # نمایش نسخه
-omniroute --help                       # نمایش همه فرمانها
+omniroute --help                       # نمایش تمام فرمانها
 ```
 
 ### راهاندازی و مقداردهی اولیه
 
 ```bash
-omniroute setup                        # جادوگر راهاندازی تعاملی
-omniroute setup --non-interactive      # حالت CI/خودکارسازی (خواندن متغیرهای محیطی و فلگها)
-omniroute setup --password '<value>'   # تنظیم مستقیم گذرواژه مدیر
+omniroute setup                        # راهنمای تعاملی راهاندازی
+omniroute setup --non-interactive      # حالت CI/خودکارسازی (خواندن متغیرهای محیطی و پرچمها)
+omniroute setup --password '<value>'   # تنظیم مستقیم گذرواژهٔ مدیر
 omniroute setup --add-provider \
   --provider openai \
   --api-key '<value>' \
@@ -579,12 +579,12 @@ omniroute setup --add-provider \
 
 متغیرهای محیطی شناختهشده برای راهاندازی غیرتعاملی:
 
-| متغیر               | هدف                                                                   |
-| ------------------- | --------------------------------------------------------------------- |
-| `OMNIROUTE_API_KEY` | کلید API ارائهدهنده (اتصال به `--api-key` از طریق Commander `.env()`) |
-| `DATA_DIR`          | بازنویسی مسیر پوشه داده OmniRoute                                     |
+| متغیر               | هدف                                                                     |
+| ------------------- | ----------------------------------------------------------------------- |
+| `OMNIROUTE_API_KEY` | کلید API ارائهدهنده (متصل به `--api-key` از طریق `.env()` در Commander) |
+| `DATA_DIR`          | بازنویسی مسیر پوشهٔ دادهٔ OmniRoute                                     |
 
-سایر ورودیهای غیرتعاملی بهصورت فلگ ارسال میشوند، نه متغیر محیطی:
+تمام ورودیهای غیرتعاملی دیگر بهصورت پرچم ارسال میشوند، نه متغیر محیطی:
 `--password`، `--provider`، `--provider-name`، `--provider-base-url`، `--default-model`
 (گزینههای `omniroute setup` در بالا را ببینید).
 
@@ -593,28 +593,28 @@ omniroute setup --add-provider \
 ```bash
 omniroute doctor                       # بررسی پیکربندی، پایگاه داده، پورتها، محیط اجرا، حافظه و زندهبودن
 omniroute doctor --json                # JSON قابلخواندن توسط ماشین
-omniroute doctor --no-liveness         # رد کردن کاوش سلامت HTTP
+omniroute doctor --no-liveness         # رد شدن از بررسی سلامت HTTP
 omniroute doctor --host 0.0.0.0        # بازنویسی میزبان بررسی زندهبودن
-omniroute doctor --liveness-url <url>  # بازنویسی کامل URL نقطه پایانی سلامت
+omniroute doctor --liveness-url <url>  # بازنویسی URL کامل نقطهٔ پایانی سلامت
 ```
 
 فرمان doctor این بررسیها را اجرا میکند: `Config`، `Database`، `Storage/encryption`،
 `Port availability`، `Node runtime`، `Native binary` (better-sqlite3)،
-`Memory` و `Server liveness`. اگر هر یک از بررسیها دارای وضعیت `fail` باشد، با کد خروج غیرصفر خاتمه مییابد.
+`Memory` و `Server liveness`. اگر نتیجهٔ هر یک از بررسیها `fail` باشد، با کد خروج غیرصفر خاتمه مییابد.
 
 ### مدیریت ارائهدهندگان
 
 ```bash
 omniroute providers available                       # کاتالوگ ارائهدهندگان OmniRoute
-omniroute providers available --search openai       # فیلتر کردن کاتالوگ بر اساس شناسه/نام/نام مستعار/دسته
-omniroute providers available --category api-key    # فیلتر بر اساس دسته (api-key، oauth، free، ...)
+omniroute providers available --search openai       # فیلتر کردن کاتالوگ بر اساس شناسه/نام/نام مستعار/دستهبندی
+omniroute providers available --category api-key    # فیلتر بر اساس دستهبندی (api-key، oauth، free، ...)
 omniroute providers available --json                # JSON قابلخواندن توسط ماشین
 
-omniroute providers list                            # اتصالهای پیکربندیشده ارائهدهندگان
+omniroute providers list                            # اتصالهای پیکربندیشدهٔ ارائهدهندگان
 omniroute providers list --json
 
 omniroute providers test <id|name>                  # آزمایش یک اتصال پیکربندیشده
-omniroute providers test-all                        # آزمایش همه اتصالهای فعال
+omniroute providers test-all                        # آزمایش تمام اتصالهای فعال
 omniroute providers validate                        # اعتبارسنجی ساختاری صرفاً محلی
 omniroute providers add <provider> --credential-env PROVIDER_KEY
 omniroute providers import ./providers.json --dry-run --json
@@ -623,45 +623,57 @@ omniroute providers edit <id|name> --default-model <model>
 omniroute providers remove <id|name> --yes
 ```
 
-فرمانهای `providers add/import/auth/edit/remove` در درجه اول مبتنی بر API هستند و بنابراین روی
-بافت فعال محلی یا راه دور کار میکنند. برای ورود اطلاعات اعتبارنامه باید از
+فرمانهای `providers add/import/auth/edit/remove` در وهلهٔ نخست از API استفاده میکنند و بنابراین در برابر
+زمینهٔ فعال محلی یا راه دور کار میکنند. برای وارد کردن اطلاعات اعتبارسنجی باید از
 `--credential-stdin` یا `--credential-env` استفاده شود؛ `--dry-run --json` فقط
-وجود/ساختار سانسورشده را گزارش میکند. `providers available` کاتالوگ OmniRoute را میخواند؛
-`providers list/test/test-all/validate` رفتار محلی SQLite خود را حفظ میکنند و
-به در حال اجرا بودن سرور نیاز ندارند.
+وجود/ساختار ویرایششده را گزارش میکند. `providers available` کاتالوگ OmniRoute را میخواند؛
+`providers list/test/test-all/validate` رفتار SQLite محلی خود را حفظ میکنند و
+نیازی به در حال اجرا بودن سرور ندارند.
+
+برای یک گره سفارشی سازگار با OpenAI یا Anthropic، اطلاعات اعتبارسنجی را با استفاده از
+`omniroute keys add "$NODE_ID" --stdin` به شناسهٔ گره بازگرداندهشده توسط `omniroute nodes add` متصل کنید.
+این کار به یک سرور در حال اجرا و احراز هویت مدیریتی برای زمینهٔ فعال نیاز دارد.
+رابط خط فرمان از `POST /api/providers` استفاده میکند که گره را اعتبارسنجی کرده و تنظیمات نقطهٔ پایانی آن را
+در اتصال کپی میکند. نبودن گره، شکست مجوزدهی یا در دسترس نبودن سرور،
+بدون ایجاد اطلاعات اعتبارسنجی جایگزین محلی، خطا برمیگرداند.
+
+`nodes add --base-url` نقطهٔ پایانی گره را تنظیم میکند؛ این نشانی با نشانی سرور
+در `OMNIROUTE_BASE_URL` متفاوت است. برای فایلهای OpenAPI از
+`omniroute openapi dump --format json --out ./openapi.json` استفاده کنید؛ گزینهٔ سراسری `--output`
+قالب نمایش رابط خط فرمان را انتخاب میکند، نه نام فایل مقصد را.
 
 ### بازیابی و بازنشانی
 
 ```bash
-omniroute reset-password                # بازنشانی گذرواژه مدیر (همچنین: omniroute-reset-password)
-omniroute reset-encrypted-columns       # نمایش هشدار و اجرای آزمایشی برای بازنشانی اعتبارنامههای رمزگذاریشده
-omniroute reset-encrypted-columns --force  # تهی کردن واقعی اعتبارنامههای رمزگذاریشده در SQLite
+omniroute reset-password                # بازنشانی گذرواژهٔ مدیر (همچنین: omniroute-reset-password)
+omniroute reset-encrypted-columns       # نمایش هشدار و اجرای آزمایشی بازنشانی اطلاعات اعتبارسنجی رمزنگاریشده
+omniroute reset-encrypted-columns --force  # تهی کردن واقعی اطلاعات اعتبارسنجی رمزنگاریشده در SQLite
 ```
 
-### صدور اعتبارنامهها (⚠ با احتیاط استفاده کنید)
+### صدور اطلاعات اعتبارسنجی (⚠ با احتیاط مدیریت شود)
 
 ```bash
-omniroute auth export                                 # نمایش هشدار و درخواست تأیید — بدون دسترسی به پایگاه داده
-omniroute auth export --force                          # صدور اعتبارنامههای رمزگشاییشده همه اتصالها به stdout در قالب JSON
+omniroute auth export                                 # نمایش هشدار و مرحلهٔ تأیید — بدون دسترسی به پایگاه داده
+omniroute auth export --force                          # صدور اطلاعات اعتبارسنجی رمزگشاییشدهٔ تمام اتصالها به stdout در قالب JSON
 omniroute auth export --force --id <id>                 # صدور فقط اتصال منطبق
 omniroute auth export --force --format env               # تولید خطوط OMNIROUTE_<PROVIDER>_<FIELD>=<value>
 omniroute auth export --force --out creds.json           # نوشتن در فایل (ایجادشده با مجوزهای 0600)
 ```
 
-`auth export` **صرفاً محلی** است (خواندن مستقیم SQLite، بدون مسیر HTTP) و عمداً مقادیر
-**متن ساده** `apiKey`/`accessToken`/`refreshToken`/`idToken` را نمایش میدهد یا مینویسد — این یک قابلیت است، نه
-اشکال. بدون `--force` هیچ چیزی از پایگاه داده خوانده و هیچ چیزی رمزگشایی نمیشود. پیش از تولید
-هرگونه متن ساده، همیشه یک نوار هشدار در stderr نمایش داده میشود. لازم است `STORAGE_ENCRYPTION_KEY`
-تنظیم شده باشد. فیلدی که رمزگشایی آن ناموفق باشد (کلید قدیمی، متن رمز خراب) بهجای متوقف کردن
-کل فرایند صدور یا افشای خطای زیربنایی، بهصورت `<field>DecryptFailed: true` گزارش میشود.
+`auth export` **فقط بهصورت محلی** عمل میکند (خواندن مستقیم SQLite، بدون مسیر HTTP) و عمداً مقادیر
+**متن سادهٔ** `apiKey`/`accessToken`/`refreshToken`/`idToken` را چاپ میکند/در فایل مینویسد — این یک قابلیت است، نه
+یک باگ. بدون `--force` هیچچیزی از پایگاه داده خوانده و رمزگشایی نمیشود. پیش از انتشار هرگونه متن ساده، همیشه
+یک نوار هشدار در stderr چاپ میشود. لازم است `STORAGE_ENCRYPTION_KEY`
+تنظیم شده باشد. فیلدی که رمزگشایی آن ناموفق باشد (کلید قدیمی، متن رمز خراب) بهشکل
+`<field>DecryptFailed: true` گزارش میشود؛ بهجای اینکه کل فرایند خروجی گرفتن متوقف شود یا خطای زیربنایی افشا شود.
 
-### سایر زیرفرمانها
+### زیرفرمانهای دیگر
 
-این فرمانها، مگر آنکه خلاف آن ذکر شده باشد، مستلزم در حال اجرا بودن سرور OmniRoute هستند:
+این موارد، مگر آنکه خلافش ذکر شده باشد، نیازمند یک سرور OmniRoute در حال اجرا هستند:
 
 ```bash
 omniroute status                       # وضعیت جامع زمان اجرا
-omniroute logs                         # پخش زندهٔ گزارش درخواستها (--json، --search، --follow)
+omniroute logs                         # پخش جریانی گزارش درخواستها (--json، --search، --follow)
 omniroute config list                  # نمایش ابزارهای CLI پیکربندیشده
 
 omniroute provider list                # فهرست ارائهدهندگان موجود (نام مستعار providers list)
@@ -670,13 +682,13 @@ omniroute keys add | list | remove     # مدیریت کلیدهای API
 omniroute models [provider]            # فهرست مدلها (--json، --search)
 omniroute combo list | switch | create | delete
 
-omniroute backup                       # تهیهٔ اسنپشات از پیکربندی و DB
-omniroute restore                      # بازیابی از یک اسنپشات قبلی
+omniroute backup                       # تهیهٔ تصویر لحظهای از پیکربندی + پایگاه داده
+omniroute restore                      # بازیابی از یک تصویر لحظهای قبلی
 
-omniroute health                       # جزئیات سلامت (قطعکنندهها، کش، حافظه)
+omniroute health                       # جزئیات سلامت (قطعکنندهها، حافظهٔ نهان، حافظه)
 omniroute quota                        # میزان استفاده از سهمیهٔ ارائهدهنده
-omniroute cache                        # وضعیت کش
-omniroute cache clear                  # پاکسازی کشهای معنایی و امضا
+omniroute cache                        # وضعیت حافظهٔ نهان
+omniroute cache clear                  # پاکسازی حافظههای نهان معنایی + امضا
 
 omniroute mcp status | restart         # وضعیت / راهاندازی مجدد سرور MCP
 omniroute a2a status | card            # وضعیت سرور A2A / کارت عامل
@@ -684,20 +696,20 @@ omniroute a2a status | card            # وضعیت سرور A2A / کارت عا
 omniroute tunnel list | create | stop  # مدیریت تونلها (cloudflare/tailscale/ngrok)
 omniroute env show | get <k> | set <k> <v>  # بررسی / تنظیم متغیرهای محیطی (موقت)
 
-omniroute test                         # آزمون سریع اتصال به ارائهدهنده
+omniroute test                         # آزمون سریع اتصال ارائهدهنده
 omniroute update                       # بررسی بهروزرسانیها
 omniroute completion                   # تولید تکمیل خودکار پوسته
 ```
 
-### پرچمهای متداول
+### پرچمهای رایج
 
 | پرچم                | توضیحات                                                     |
 | ------------------- | ----------------------------------------------------------- |
-| `--no-open`         | جلوگیری از باز شدن خودکار مرورگر هنگام شروع                 |
-| `--port <n>`        | بازنویسی پورت API (پیشفرض 20128)                            |
-| `--mcp`             | اجرا بهعنوان سرور MCP از طریق stdio (برای IDEها)            |
-| `--non-interactive` | حالت CI (بدون اعلان؛ خواندن از متغیرهای محیطی/پرچمها)       |
-| `--json`            | خروجی JSON قابلخواندن توسط ماشین (doctor، providers و غیره) |
+| `--no-open`         | مرورگر هنگام شروع بهطور خودکار باز نشود                     |
+| `--port <n>`        | بازنویسی درگاه API (پیشفرض 20128)                           |
+| `--mcp`             | اجرا بهعنوان سرور MCP روی stdio (برای IDEها)                |
+| `--non-interactive` | حالت CI (بدون پرسش؛ خواندن از متغیرهای محیطی/پرچمها)        |
+| `--json`            | خروجی JSON قابلخواندن برای ماشین (doctor، providers و غیره) |
 | `--help`, `-h`      | نمایش راهنمای مختص فرمان                                    |
 | `--version`, `-v`   | چاپ نسخهٔ نصبشده                                            |
 
