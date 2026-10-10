@@ -1,5 +1,6 @@
 import { generateModels, generateAliasMap, type RegistryModel } from "./providerRegistry.ts";
 import { getVertexModelTargetFormat } from "./vertexModels.ts";
+import { resolveFactoryModelContract } from "./factory.ts";
 
 // Lazy PROVIDER_MODELS: deferred until first property access to speed up startup.
 // The Proxy defers `generateModels()` from module-evaluation time to the first read.
@@ -275,6 +276,9 @@ export function getModelTargetFormat(aliasOrId: string, modelId: string): string
   // and OpenAI-shaped Mistral/Open-MaaS requests. Resource names retain enough publisher data to
   // route future dynamically-synced models without adding another pinned prefix here.
   if (alias === "vertex" || alias === "vp") return getVertexModelTargetFormat(bareModelId);
+  if (alias === "factory") {
+    return resolveFactoryModelContract(bareModelId)?.targetFormat ?? null;
+  }
   // #14575: GitHub/GHE Copilot's own executors (github.ts, ghe-copilot.ts) route ANY
   // claude-named model to Copilot's Anthropic-native /v1/messages endpoint via an
   // unconditional /claude/i name match, regardless of curated-catalog coverage. When

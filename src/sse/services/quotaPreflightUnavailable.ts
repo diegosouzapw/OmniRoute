@@ -1,5 +1,6 @@
 import { persistCodexChildCooldown } from "@omniroute/open-sse/services/codexAccount/index.ts";
 import { persistAntigravityPreflightFamilyLock } from "@omniroute/open-sse/services/antigravityFamilyCooldown.ts";
+import { persistFactoryPreflightTierLock } from "@omniroute/open-sse/services/factoryTierCooldown.ts";
 import { isAntigravityQuotaProvider } from "@omniroute/open-sse/services/antigravityQuotaFamily.ts";
 import { cooldownUntilMs } from "@omniroute/open-sse/services/accountFallback.ts";
 import { updateProviderConnection } from "@/lib/db/providers";
@@ -34,6 +35,16 @@ export async function markQuotaPreflightAccountUnavailable(
 
   if (isAntigravityQuotaProvider(provider) && requestedModel?.trim()) {
     await persistAntigravityPreflightFamilyLock({
+      provider,
+      connectionId,
+      model: requestedModel,
+      unavailableUntil,
+    });
+    return unavailableUntil;
+  }
+
+  if (provider === "factory" && requestedModel?.trim()) {
+    await persistFactoryPreflightTierLock({
       provider,
       connectionId,
       model: requestedModel,

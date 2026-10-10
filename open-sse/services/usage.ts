@@ -93,6 +93,7 @@ import { getSyntxUsage } from "./usage/syntx.ts";
 import { getAgentrouterUsage } from "./usage/agentrouter.ts";
 import { getKilocodeUsage } from "./usage/kilocode.ts";
 import { getChatPlaygroundUsage } from "./usage/chatplayground.ts";
+import { getFactoryUsage } from "./usage/factory.ts";
 
 type JsonRecord = Record<string, unknown>;
 type UsageProviderConnection = JsonRecord & {
@@ -168,6 +169,8 @@ export async function getUsageForProvider(
       // shared gate wait at most one more interval.
       await throttleQuotaFetch();
       return await getCodexUsage(accessToken, providerSpecificData);
+    case "factory":
+      return await getFactoryUsage(accessToken, providerSpecificData);
     case "cursor":
       return await getCursorUsage(accessToken || "", providerSpecificData);
     case "kiro":

@@ -69,6 +69,10 @@ import {
   rehydrateAntigravityFamilyLocksForConnections,
   persistAntigravityFamilyCooldownIfQuota,
 } from "@omniroute/open-sse/services/antigravityFamilyCooldown.ts";
+import {
+  rehydrateFactoryTierLocksForConnections,
+  persistFactoryTierCooldownIfQuota,
+} from "@omniroute/open-sse/services/factoryTierCooldown.ts";
 import { markQuotaPreflightAccountUnavailable } from "./quotaPreflightUnavailable.ts";
 import { buildNoAuthModelCooldown, pauseCooldownIfPaused } from "./noAuthModelCooldown.ts";
 import { getCreditsMode } from "@omniroute/open-sse/services/antigravityCredits.ts";
@@ -1167,6 +1171,11 @@ export async function getProviderCredentials(
     let connections = (Array.isArray(connectionsRaw) ? connectionsRaw : [])
       .map(createLazyConnectionView)
       .filter((conn) => conn.id.length > 0);
+    if (provider === "factory") {
+      connections = connections.filter(
+        (conn) => conn.authType === "oauth" && Boolean(conn.accessToken)
+      );
+    }
     if (isAlibabaModelStudioProvider(provider)) {
       for (const conn of connections) {
         rehydrateAlibabaFreeDrainedModelLocks(
@@ -1177,6 +1186,7 @@ export async function getProviderCredentials(
       }
     }
     rehydrateAntigravityFamilyLocksForConnections(provider, connections);
+    rehydrateFactoryTierLocksForConnections(provider, connections);
     // allowedConnections: restrict to specific connection IDs (from API key policy, #363)
     if (allowedConnections && allowedConnections.length > 0) {
       connections = connections.filter((conn) => allowedConnections.includes(conn.id));
@@ -1198,8 +1208,12 @@ export async function getProviderCredentials(
       });
       explicitProbeKind = decision.kind;
       if (decision.kind === "probe" && pinnedRow) {
-        noteExplicitProbe(forcedConnectionId, nowMs);
-        connections = [pinnedRow];
+        if (provider === "factory" && (pinnedRow.authType !== "oauth" || !pinnedRow.accessToken)) {
+          // Exclude legacy non-OAuth Factory row from inactive probe
+        } else {
+          noteExplicitProbe(forcedConnectionId, nowMs);
+          connections = [pinnedRow];
+        }
       }
     }
     const probeStamp =
@@ -1452,6 +1466,10 @@ export async function getProviderCredentials(
     );
     // Filter out unavailable accounts and excluded connection
     let availableConnections = connections.filter((c) => {
+      if (provider === "factory" && (c.authType !== "oauth" || !c.accessToken)) {
+        connectionFilterStatus.set(c.id, "legacyApiKeyNotSupported");
+        return false;
+      }
       if (excludedConnectionIds.has(c.id)) {
         connectionFilterStatus.set(c.id, "excluded");
         return false;
@@ -2363,8 +2381,12 @@ export async function getProviderCredentialsWithQuotaPreflight(
     };
     // #6842: openrouter also needs requestedModel, for the :free-window check.
     // agy/antigravity need it so Claude weekly cannot cool a Gemini request.
+    // Factory needs it so Core windows cannot cool a Standard request.
     const modelAwarePreflight =
-      provider === "codex" || provider === "openrouter" || isAntigravityQuotaProvider(provider);
+      provider === "codex" ||
+      provider === "openrouter" ||
+      provider === "factory" ||
+      isAntigravityQuotaProvider(provider);
     const preflightCredentials =
       requestedModel && modelAwarePreflight ? { ...credentials, requestedModel } : credentials;
     let preflight;
@@ -3059,6 +3081,13 @@ export async function markAccountUnavailable(
         `Model-only lockout for ${provider}:${model} — ${status} ${reason} ${Math.ceil(lockout.cooldownMs / 1000)}s (failureCount=${lockout.failureCount}, connection stays active)`
       );
       persistAntigravityFamilyCooldownIfQuota({
+        provider,
+        connectionId,
+        model,
+        cooldownMs: lockout.cooldownMs,
+        reason,
+      });
+      persistFactoryTierCooldownIfQuota({
         provider,
         connectionId,
         model,

@@ -295,6 +295,11 @@
       "configSource": "<custom-config>",
       "provider": "duckduckgo-web"
     },
+    "factory": {
+      "className": "FactoryExecutor",
+      "configSource": "<custom-config>",
+      "provider": "factory"
+    },
     "fb": {
       "className": "FreebuffExecutor",
       "configSource": "freebuff",
@@ -706,6 +711,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 141,
+  "keyCount": 142,
   "sharedInstances": []
 }

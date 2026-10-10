@@ -569,10 +569,8 @@ export async function createProviderConnection(data: JsonRecord) {
       // (legacy rows created before this disambiguation existed).
       const incomingUsername = toStringOrNull(providerSpecificData.username);
       const incomingProfileArn = toStringOrNull(providerSpecificData.profileArn);
-      // Claude: one identity reaches its personal workspace and every Team
-      // organization with the same email and the same accountUUID, so
-      // organizationUUID is what separates the accounts.
       const incomingOrganizationUuid = toStringOrNull(providerSpecificData.organizationUUID);
+      const incomingFactoryOrgId = toStringOrNull(providerSpecificData.orgId);
       const emailMatches = db
         .prepare(
           "SELECT * FROM provider_connections WHERE provider = ? AND auth_type = 'oauth' AND email = ?"
@@ -584,7 +582,8 @@ export async function createProviderConnection(data: JsonRecord) {
             row,
             incomingUsername,
             incomingProfileArn,
-            incomingOrganizationUuid
+            incomingOrganizationUuid,
+            incomingFactoryOrgId
           )
         ) || null;
     }
@@ -1010,11 +1009,29 @@ export async function updateProviderConnection(id: string, data: JsonRecord, opt
   await assertApiKeyIsNotManagementPassword(data.apiKey);
 
   const existingCamel = toRecord(rowToCamel(existing));
+  const incomingSpecificData = data.providerSpecificData;
   const merged: JsonRecord = {
     ...existingCamel,
     ...data,
     updatedAt: new Date().toISOString(),
   };
+  if (
+    opts?.mergeProviderSpecificData &&
+    incomingSpecificData &&
+    typeof incomingSpecificData === "object" &&
+    !Array.isArray(incomingSpecificData)
+  ) {
+    const existingSpecific =
+      existingCamel.providerSpecificData &&
+      typeof existingCamel.providerSpecificData === "object" &&
+      !Array.isArray(existingCamel.providerSpecificData)
+        ? (existingCamel.providerSpecificData as Record<string, unknown>)
+        : {};
+    merged.providerSpecificData = {
+      ...existingSpecific,
+      ...(incomingSpecificData as Record<string, unknown>),
+    };
+  }
   merged.providerSpecificData = applyCodexChildCooldownClearOnUpdate(
     data,
     normalizeConnectionProviderSpecificData(

@@ -1,3 +1,5 @@
+import { factoryQuotaTierFor } from "../config/factory.ts";
+
 const ANTIGRAVITY_PROVIDER_ID = "antigravity";
 
 export type AntigravityQuotaFamily = "gemini" | "claude" | "other";
@@ -42,6 +44,10 @@ export function getQuotaScopedModelForProvider(
   model: string | null | undefined
 ): string | null {
   if (!model) return null;
+  if (provider === "factory") {
+    const tier = factoryQuotaTierFor(model);
+    return tier ? `tier:${tier}` : model;
+  }
   if (provider !== "antigravity" && provider !== "agy") return model;
   const family = getAntigravityQuotaFamily(model);
   return family === "other" ? model : `family:${family}`;
@@ -51,6 +57,7 @@ export function getQuotaScopeLabelForProvider(
   provider: string | null | undefined,
   model: string | null | undefined
 ): string {
+  if (provider === "factory") return factoryQuotaTierFor(model) ? "tier" : "model";
   if (provider !== "antigravity" && provider !== "agy") return "model";
   return getAntigravityQuotaFamily(model) === "other" ? "model" : "family";
 }
@@ -59,6 +66,7 @@ export function getQuotaFetchScope(
   provider: string | null | undefined,
   model: string | null | undefined
 ): string {
+  if (provider === "factory") return getQuotaScopedModelForProvider(provider, model) ?? "*";
   if (provider !== "antigravity" && provider !== "agy") return "*";
   return getQuotaScopedModelForProvider(provider, model) ?? "*";
 }
@@ -71,9 +79,23 @@ export function quotaWindowNamesForScope(
   names: string[],
   scope?: { provider?: string | null; requestedModel?: string | null }
 ): string[] {
-  if (!scope?.requestedModel || !isAntigravityQuotaProvider(scope.provider)) return names;
+  if (!scope?.requestedModel) return names;
+  if (scope.provider === "factory") {
+    return selectFactoryQuotaWindowNames(names, scope.requestedModel);
+  }
+  if (!isAntigravityQuotaProvider(scope.provider)) return names;
   const scoped = selectAntigravityQuotaWindowNames(names, scope.requestedModel);
   return scoped.length > 0 ? scoped : names;
+}
+
+export function selectFactoryQuotaWindowNames(
+  quotaNames: string[],
+  requestedModel: string | null | undefined
+): string[] {
+  const tier = factoryQuotaTierFor(requestedModel || "");
+  if (!tier) return [];
+  const prefix = `${tier}_`;
+  return quotaNames.filter((name) => name.startsWith(prefix));
 }
 
 /**
@@ -97,6 +119,9 @@ export function remainingPercentFromQuotaWindows(
 ): number | null {
   const names = Object.keys(rawWindows);
   const namesToScan = quotaWindowNamesForScope(names, scope);
+  if (scope?.provider === "factory" && scope.requestedModel && namesToScan.length === 0) {
+    return null;
+  }
   let minRemaining: number | null = null;
   for (const name of namesToScan) {
     const windowInfo = rawWindows[name];

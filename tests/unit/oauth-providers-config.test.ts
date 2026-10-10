@@ -48,6 +48,7 @@ const {
   OPENFERENCE_CONFIG,
   ZED_HOSTED_CONFIG,
   MUSE_CODE_CONFIG,
+  FACTORY_CONFIG,
 } = oauthModule;
 const { getAntigravityLoadCodeAssistMetadata } = antigravityHeadersModule;
 
@@ -81,6 +82,7 @@ const EXPECTED_PROVIDER_KEYS = [
   "zed",
   "zed-hosted",
   "muse-code",
+  "factory",
 ];
 
 const browserUrl = "http://localhost:20128/callback";
@@ -118,6 +120,7 @@ const EXPECTED_CONFIG_BY_PROVIDER = {
   zed: ZED_CONFIG,
   "zed-hosted": ZED_HOSTED_CONFIG,
   "muse-code": MUSE_CODE_CONFIG,
+  factory: FACTORY_CONFIG,
 };
 
 const KIRO_REQUIRED_FIELDS = [
@@ -168,6 +171,7 @@ const REQUIRED_FIELDS_BY_PROVIDER = {
   // prettier-ignore
   "zed-hosted": ["webBaseUrl", "cloudBaseUrl", "llmBaseUrl", "userInfoUrl", "llmTokenUrl", "modelsUrl"],
   "muse-code": ["deviceCodeUrl", "tokenUrl", "clientId", "mintUrl"],
+  factory: ["deviceCodeUrl", "tokenUrl", "clientId", "verificationUrl"],
 };
 
 function getByPath(object, path) {
@@ -465,6 +469,7 @@ test("device and import-token providers expose the flow-specific fields expected
     "kilocode",
     "workbuddy",
     "muse-code",
+    "factory",
   ];
 
   for (const providerId of deviceProviders) {

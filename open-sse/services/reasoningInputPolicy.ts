@@ -1,6 +1,7 @@
 import { REGISTRY } from "../config/providerRegistry.ts";
 import type { ReasoningTransport } from "../config/providerRegistry.ts";
 import { isValidResponsesItemId } from "./responsesItemId.ts";
+import { resolveFactoryModelContract } from "../config/factory.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -30,6 +31,7 @@ export interface ReasoningStateInspection {
 
 export interface ReasoningInputPolicyOptions {
   provider?: string | null;
+  model?: string | null;
   preserveEncryptedReasoning?: boolean;
   preserveWebSearchCalls?: boolean;
   onIncompatibleReasoning?: "reject" | "drop";
@@ -40,9 +42,18 @@ export interface ReasoningInputPolicyResult {
 }
 export function resolveReasoningTransport(
   provider: string | null | undefined,
-  preserveEncryptedReasoning = false
+  preserveEncryptedReasoning = false,
+  model?: string | null
 ): ReasoningTransport {
   const normalized = typeof provider === "string" ? provider.trim().toLowerCase() : "";
+  if (normalized === "factory") {
+    const targetFormat = resolveFactoryModelContract(
+      typeof model === "string" ? model : ""
+    )?.targetFormat;
+    if (targetFormat === "openai-responses") return "opaque";
+    if (targetFormat === "openai") return "plaintext";
+    return preserveEncryptedReasoning ? "opaque" : "plaintext";
+  }
   const transport = REASONING_TRANSPORTS.get(normalized);
   if (transport) return transport;
   // #12128: Generic Responses-protocol endpoints (e.g. openai-compatible-responses-*,
@@ -322,7 +333,11 @@ export function applyReasoningInputPolicy(
   inputFormat: ReasoningInputFormat,
   options: ReasoningInputPolicyOptions = {}
 ): ReasoningInputPolicyResult {
-  const transport = resolveReasoningTransport(options.provider, options.preserveEncryptedReasoning);
+  const transport = resolveReasoningTransport(
+    options.provider,
+    options.preserveEncryptedReasoning,
+    options.model
+  );
   const inspection =
     inputFormat === "responses"
       ? inspectResponsesReasoning(body.input)

@@ -165,9 +165,24 @@ export const formatProviderCredentials = (provider: string, credentials: any) =>
 export const getAllAccessTokens = (userInfo: any) => _getAllAccessTokens(userInfo, log);
 
 // Local-specific: Update credentials in localDb
-export async function updateProviderCredentials(connectionId: string, newCredentials: any) {
+type CredentialUpdate = {
+  accessToken?: string;
+  refreshToken?: string;
+  expiresIn?: number;
+  expiresAt?: string;
+  providerSpecificData?: Record<string, unknown>;
+  apiKey?: string;
+  testStatus?: string;
+  isActive?: boolean;
+};
+
+export async function updateProviderCredentials(
+  connectionId: string,
+  newCredentials: CredentialUpdate,
+  opts?: { mergeProviderSpecificData?: boolean }
+) {
   try {
-    const updates: Record<string, any> = {};
+    const updates: Record<string, unknown> = {};
 
     if (newCredentials.accessToken) {
       updates.accessToken = newCredentials.accessToken;
@@ -226,10 +241,14 @@ export async function updateProviderCredentials(connectionId: string, newCredent
     // catalog-relevant state, so those updates keep the default invalidation.
     const catalogRelevant =
       updates.isActive !== undefined || updates.providerSpecificData !== undefined;
+    const updateOpts = {
+      ...(catalogRelevant ? {} : { skipModelCatalog: true }),
+      ...(opts?.mergeProviderSpecificData ? { mergeProviderSpecificData: true } : {}),
+    };
     const result = await updateProviderConnection(
       connectionId,
       updates,
-      catalogRelevant ? undefined : { skipModelCatalog: true }
+      Object.keys(updateOpts).length > 0 ? updateOpts : undefined
     );
     log.info("TOKEN_REFRESH", "Credentials updated in localDb", {
       connectionId,
@@ -239,7 +258,7 @@ export async function updateProviderCredentials(connectionId: string, newCredent
   } catch (error) {
     log.error("TOKEN_REFRESH", "Error updating credentials in localDb", {
       connectionId,
-      error: (error as any).message,
+      error: error instanceof Error ? error.message : String(error),
     });
     return false;
   }
@@ -273,8 +292,16 @@ export async function checkAndRefreshToken(provider: string, credentials: any) {
       // and re-uses a rotated refresh token (refresh_token_reused on Codex/OpenAI).
       // The separate withConnectionRefreshMutex wrapper is no longer needed here.
       const persistCallback = connectionId
-        ? async (result: any) => {
-            await updateProviderCredentials(connectionId, result);
+        ? async (result: CredentialUpdate) => {
+            const saved =
+              provider === "factory"
+                ? await updateProviderCredentials(connectionId, result, {
+                    mergeProviderSpecificData: true,
+                  })
+                : await updateProviderCredentials(connectionId, result);
+            if (provider === "factory" && !saved) {
+              throw new Error("Factory credentials could not be committed");
+            }
           }
         : undefined;
 

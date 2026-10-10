@@ -27,6 +27,7 @@ export const USAGE_FETCHER_PROVIDERS = [
   "claude",
   "anthropic",
   "codex",
+  "factory",
   "cursor",
   "kiro",
   "amazon-q",

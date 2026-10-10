@@ -33,6 +33,7 @@ const ROTATION_LOCK_GROUP: Record<string, string> = {
   // already listed in tokenHealthCheck's ROTATING_REFRESH_PROVIDERS, so sibling
   // connections could refresh concurrently and present superseded tokens.
   cline: "cline",
+  factory: "factory-workos",
 };
 
 // Protective settle gap (ms) between two consecutive sibling refreshes when the
@@ -115,7 +116,7 @@ export async function serializeRefresh<T>(
   // rejection handled while the lane releases for queued siblings.
   let laneTimer: ReturnType<typeof setTimeout> | null = null;
   try {
-    return await Promise.race([
+    return (await Promise.race([
       fn(),
       new Promise<null>((resolve) => {
         laneTimer = setTimeout(() => {
@@ -127,7 +128,7 @@ export async function serializeRefresh<T>(
         }, refreshLaneMaxMs);
         (laneTimer as { unref?: () => void })?.unref?.();
       }),
-    ]) as T;
+    ])) as T;
   } finally {
     if (laneTimer) clearTimeout(laneTimer);
     // Only pay the settle gap when a sibling is already queued behind us — a

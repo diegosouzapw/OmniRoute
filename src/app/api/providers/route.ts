@@ -219,6 +219,12 @@ export async function POST(request: Request) {
       rejectRetiredCommonChatGptWebProvider(requestedProvider) ??
       rejectRetiredCommonChatGptWebProvider(provider);
     if (retirementResponse) return retirementResponse;
+    if (provider === "factory") {
+      return NextResponse.json(
+        { error: "Factory requires subscription OAuth; connect through /api/oauth/factory." },
+        { status: 400 }
+      );
+    }
     if (allowNoCredential === true && !providerAllowsOptionalApiKey(provider)) {
       return NextResponse.json(
         { error: "This provider does not allow a connection without a credential" },

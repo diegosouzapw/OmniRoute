@@ -82,6 +82,29 @@ function isSameClaudeAccount(
   return true;
 }
 
+function factoryIdentity(data: Record<string, any> | null | undefined) {
+  const psd = data?.providerSpecificData || data || {};
+  return {
+    orgId: typeof psd.orgId === "string" ? psd.orgId.trim() : "",
+    userId: typeof psd.userId === "string" ? psd.userId.trim() : "",
+  };
+}
+
+function isSameFactoryAccount(
+  existing: Record<string, any>,
+  incoming: Record<string, any>
+): boolean {
+  const existingIdentity = factoryIdentity(existing);
+  const incomingIdentity = factoryIdentity(incoming);
+  if (!existingIdentity.orgId || !incomingIdentity.orgId) return false;
+  if (!safeEqual(existingIdentity.orgId, incomingIdentity.orgId)) return false;
+  if (existingIdentity.userId && incomingIdentity.userId) {
+    return safeEqual(existingIdentity.userId, incomingIdentity.userId);
+  }
+  if (!incoming.email || !existing.email) return false;
+  return safeEqual(existing.email, incoming.email);
+}
+
 /**
  * Find the existing OAuth connection (if any) that an incoming token payload
  * should be merged into, shared by every OAuth-completion call site
@@ -100,9 +123,9 @@ export function findExistingOAuthConnectionMatch(
 ): Record<string, any> | undefined {
   return existing.find((c) => {
     if (c.id && safeEqual(connectionId, c.id)) return true;
-    // Email dedup only when the payload actually carries an email. Without this
-    // guard `safeEqual(undefined, undefined)` is true, so an email-less payload
-    // would false-match the first email-less connection of the provider.
+    if (provider === "factory") {
+      return isSameFactoryAccount(c, tokenData);
+    }
     if (!tokenData.email) return false;
     if (!safeEqual(c.email, tokenData.email) || c.authType !== "oauth") return false;
     if (provider === "codex") {
@@ -182,6 +205,15 @@ export async function persistOAuthConnection(
   tokenData: any,
   connectionId?: string
 ) {
+  if (provider === "factory") {
+    const accessToken =
+      typeof tokenData?.accessToken === "string" ? tokenData.accessToken.trim() : "";
+    const refreshToken =
+      typeof tokenData?.refreshToken === "string" ? tokenData.refreshToken.trim() : "";
+    if (!accessToken || !refreshToken) {
+      throw new Error("Factory OAuth tokens must include nonempty accessToken and refreshToken");
+    }
+  }
   // Normalize: if name is missing, use email or displayName as fallback label.
   if (!tokenData.name && (tokenData.email || tokenData.displayName)) {
     tokenData.name = tokenData.email || tokenData.displayName;
@@ -198,16 +230,29 @@ export async function persistOAuthConnection(
   // top-level email. Some providers (e.g. GitHub Copilot) keep identity under
   // providerSpecificData, so gating dedup on tokenData.email alone created a
   // duplicate connection on every refresh (#8059).
-  if (connectionId || tokenData.email) {
+  if (
+    connectionId ||
+    tokenData.email ||
+    (provider === "factory" && factoryIdentity(tokenData).orgId)
+  ) {
     const existing = await getProviderConnections({ provider });
     const match = findExistingOAuthConnectionMatch(existing, provider, tokenData, connectionId);
     const matchId = typeof match?.id === "string" ? match.id : null;
     if (matchId) {
-      connection = await updateProviderConnection(matchId, {
-        ...buildOAuthTokenUpdate(tokenData, expiresAt),
-        ...antigravityPersistStatus(degradedProject),
-        isActive: true,
-      });
+      const tokenUpdate = buildOAuthTokenUpdate(tokenData, expiresAt);
+      if (provider === "factory") {
+        delete tokenUpdate.name;
+        delete tokenUpdate.displayName;
+      }
+      connection = await updateProviderConnection(
+        matchId,
+        {
+          ...tokenUpdate,
+          ...antigravityPersistStatus(degradedProject),
+          isActive: true,
+        },
+        provider === "factory" ? { mergeProviderSpecificData: true } : undefined
+      );
     }
   }
   if (!connection) {

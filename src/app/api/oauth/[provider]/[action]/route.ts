@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
+import { createHash } from "node:crypto";
 import {
   getProvider,
   generateAuthData,
@@ -42,6 +43,8 @@ import {
 } from "@/shared/validation/schemas";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
 import { requireManagementAuth } from "@/lib/api/requireManagementAuth";
+import { AUTHZ_HEADER_AUTH_KIND, AUTHZ_HEADER_AUTH_ID } from "@/server/authz/headers";
+import { DASHBOARD_SESSION_COOKIE } from "@/shared/utils/dashboardSessionToken";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { GITLAB_DUO_OAUTH_SETUP_MESSAGE } from "@/shared/constants/gitlabDuoSetupMessage";
 import { keychainImportOnlyGuard } from "./keychainImportOnly";
@@ -73,6 +76,7 @@ const NO_PKCE_DEVICE_CODE_PROVIDERS = new Set([
   "grok-cli",
   "ghe-copilot",
   "muse-code",
+  "factory",
 ]);
 
 /**
@@ -82,6 +86,50 @@ const NO_PKCE_DEVICE_CODE_PROVIDERS = new Set([
  * gone and points them at /import-token.
  */
 const RETIRED_PKCE_PROVIDERS = new Set(["devin-desktop", "devin-cli"]);
+
+function resolveFactoryOwnerBinding(request: Request): string | null {
+  const kind = request.headers.get(AUTHZ_HEADER_AUTH_KIND)?.trim();
+  const id = request.headers.get(AUTHZ_HEADER_AUTH_ID)?.trim();
+  if (kind && id) return `${kind}:${id}`;
+
+  const cookieHeader = request.headers.get("cookie") || "";
+  const cookieMatch = cookieHeader.match(
+    new RegExp(`(?:^|;\\s*)${DASHBOARD_SESSION_COOKIE}=([^;]+)`)
+  );
+  const cookieValue = cookieMatch?.[1]?.trim();
+  if (cookieValue) {
+    return `cookie:${createHash("sha256").update(cookieValue).digest("hex")}`;
+  }
+
+  const authorization = request.headers.get("authorization")?.trim();
+  if (authorization) {
+    return `authorization:${createHash("sha256").update(authorization).digest("hex")}`;
+  }
+  return null;
+}
+
+function factoryPollExtraData(
+  extraData: unknown,
+  connectionId: unknown,
+  ownerBinding: string | null
+): Record<string, unknown> {
+  const parsed =
+    extraData && typeof extraData === "object" && !Array.isArray(extraData)
+      ? (extraData as Record<string, unknown>)
+      : {};
+  const extra: Record<string, unknown> = {};
+  if (typeof parsed.organizationSession === "string") {
+    extra.organizationSession = parsed.organizationSession.trim();
+  }
+  if (typeof parsed.organizationId === "string") {
+    extra.organizationId = parsed.organizationId.trim();
+  }
+  if (typeof connectionId === "string" && connectionId.trim()) {
+    extra.connectionId = connectionId.trim();
+  }
+  extra.ownerBinding = ownerBinding;
+  return extra;
+}
 
 /** Providers that allow direct import of a raw API token (no OAuth exchange). */
 const IMPORT_TOKEN_PROVIDERS = new Set(["devin-desktop", "devin-cli", "grok-cli", "claude"]);
@@ -599,13 +647,10 @@ export async function POST(
     if (action === "poll") {
       const { deviceCode, connectionId, codeVerifier, extraData } = body;
 
-      // Resolve proxy for this provider (provider-level → global → direct)
       const proxy = await resolveProxyForProvider(provider);
 
-      // Poll for token (through proxy if configured)
       let result;
       if (provider === "ghe-copilot") {
-        // GHE Copilot needs gheUrl threaded through poll → postExchange
         const gheUrl =
           extraData && typeof extraData === "object" ? (extraData as any).gheUrl : undefined;
         if (typeof gheUrl === "string" && gheUrl && !isValidGheUrl(gheUrl)) {
@@ -614,18 +659,47 @@ export async function POST(
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, gheUrl ? { gheUrl } : undefined)
         );
+      } else if (provider === "factory") {
+        const ownerBinding = resolveFactoryOwnerBinding(request);
+        if (!ownerBinding) {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        if (extraData != null) {
+          const extras =
+            typeof extraData === "object" && !Array.isArray(extraData)
+              ? (extraData as Record<string, unknown>)
+              : null;
+          if (
+            !extras ||
+            Object.keys(extras).some(
+              (key) => key !== "organizationSession" && key !== "organizationId"
+            ) ||
+            typeof extras.organizationSession !== "string" ||
+            extras.organizationSession.trim().length < 1 ||
+            extras.organizationSession.length > 100 ||
+            typeof extras.organizationId !== "string" ||
+            extras.organizationId.trim().length < 1 ||
+            extras.organizationId.length > 200
+          ) {
+            return NextResponse.json(
+              { error: "Invalid Factory organization selection" },
+              { status: 400 }
+            );
+          }
+        }
+        const factoryExtra = factoryPollExtraData(extraData, connectionId, ownerBinding);
+        result = await runWithProxyContextOrDirect(proxy, () =>
+          (pollForToken as any)(provider, deviceCode, null, factoryExtra)
+        );
       } else if (NO_PKCE_DEVICE_CODE_PROVIDERS.has(provider)) {
-        // Non-PKCE device providers do not receive a code verifier.
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode)
         );
       } else if (provider === "kiro" || provider === "amazon-q") {
-        // Kiro needs extraData (clientId, clientSecret) from device code response
         result = await runWithProxyContextOrDirect(proxy, () =>
           (pollForToken as any)(provider, deviceCode, null, extraData)
         );
       } else {
-        // Qwen and other providers use PKCE
         if (!codeVerifier) {
           return NextResponse.json({ error: "Missing code verifier" }, { status: 400 });
         }
@@ -635,43 +709,42 @@ export async function POST(
       }
 
       if (result.success) {
-        // Normalize: if name is missing, use email as fallback display label
         if (!result.tokens.name && (result.tokens.email || result.tokens.displayName)) {
           result.tokens.name = result.tokens.email || result.tokens.displayName;
         }
 
-        // Upsert: update existing connection if same provider+email, else create new
-        const expiresAt = result.tokens.expiresIn
-          ? new Date(Date.now() + result.tokens.expiresIn * 1000).toISOString()
-          : null;
-
         let connection: any;
-        if (result.tokens.email) {
-          const existing = await getProviderConnections({ provider });
-          // Codex accounts sharing an email require workspaceId/chatgptUserId
-          // agreement to be treated as the same account (#7737).
-          const match = findExistingOAuthConnectionMatch(
-            existing,
-            provider,
-            result.tokens,
-            connectionId
-          );
-          const matchId = typeof match?.id === "string" ? match.id : null;
-          if (matchId) {
-            connection = await updateProviderConnection(matchId, {
-              ...buildOAuthTokenUpdate(result.tokens, expiresAt),
-              testStatus: "active",
-              isActive: true,
-            });
+        if (provider === "factory") {
+          connection = await persistOAuthConnection(provider, result.tokens, connectionId);
+        } else {
+          const expiresAt = result.tokens.expiresIn
+            ? new Date(Date.now() + result.tokens.expiresIn * 1000).toISOString()
+            : null;
+
+          if (result.tokens.email) {
+            const existing = await getProviderConnections({ provider });
+            const match = findExistingOAuthConnectionMatch(
+              existing,
+              provider,
+              result.tokens,
+              connectionId
+            );
+            const matchId = typeof match?.id === "string" ? match.id : null;
+            if (matchId) {
+              connection = await updateProviderConnection(matchId, {
+                ...buildOAuthTokenUpdate(result.tokens, expiresAt),
+                testStatus: "active",
+                isActive: true,
+              });
+            }
+          }
+          if (!connection) {
+            connection = await createProviderConnection(
+              buildOAuthConnectionCreatePayload(provider, result.tokens, expiresAt)
+            );
           }
         }
-        if (!connection) {
-          connection = await createProviderConnection(
-            buildOAuthConnectionCreatePayload(provider, result.tokens, expiresAt)
-          );
-        }
 
-        // Auto sync to Cloud if enabled
         await syncToCloudIfEnabled();
 
         return NextResponse.json({
@@ -683,16 +756,37 @@ export async function POST(
         });
       }
 
-      // Still pending or error - don't create connection for pending states
       const isPending =
         result.pending || result.error === "authorization_pending" || result.error === "slow_down";
+      const status =
+        result.error === "pending_login_expired"
+          ? 410
+          : result.error === "login_in_progress" ||
+              result.error === "invalid_owner" ||
+              result.error === "invalid_device_code" ||
+              result.error === "invalid_connection" ||
+              result.error === "invalid_organization" ||
+              result.error === "organization_mismatch"
+            ? 409
+            : result.error === "transient_error"
+              ? 503
+              : 200;
 
-      return NextResponse.json({
-        success: false,
-        error: result.error,
-        errorDescription: result.errorDescription,
-        pending: isPending,
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: result.error,
+          errorDescription: result.errorDescription,
+          pending: isPending,
+          ...(result.error === "organization_selection_required"
+            ? {
+                organizationSession: result.organizationSession,
+                organizations: result.organizations,
+              }
+            : {}),
+        },
+        { status }
+      );
     }
 
     if (action === "poll-callback") {

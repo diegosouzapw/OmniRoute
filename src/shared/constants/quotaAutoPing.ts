@@ -1,48 +1,39 @@
 /**
- * quotaAutoPing.ts — config for the opt-in Codex quota auto-ping (#6977).
+ * quotaAutoPing.ts — config for opt-in quota window warm-up.
  *
- * Phase 1 (this file): Codex only — resetAt is inferred by watching the
- * "session" window slide forward (Codex has no explicit reset event; an
- * inactive window quietly rolls to a fresh one on the next usage read).
- * Antigravity (2 buckets, no upstream reference) is a follow-up — see the
- * PR body for #6977.
+ * Codex infers resetAt by watching the session window slide forward.
+ * Factory warms the Standard 5h window with Claude Haiku 4.5; Factory applies
+ * Standard quota first and falls back to Core after Standard is exhausted.
  */
 
 export const QUOTA_AUTOPING_TICK_INTERVAL_MS = 60_000;
-// How long a connection must stay quiet after a failed ping before we retry it.
 export const QUOTA_AUTOPING_FAILURE_COOLDOWN_MS = 15 * 60 * 1000;
-// Once a resetAt is observed and cached, skip re-fetching usage until we're
-// within this window of it (Codex resetAt slides constantly while idle, so we
-// still poll every tick, but this bounds how eagerly we ping right after a slide).
 export const QUOTA_AUTOPING_REFRESH_AHEAD_MS = 5 * 60 * 1000;
-// #13601: never ping to warm a window whose reset is further out than this.
-// The Codex session window rolls every ~5h; a reset days away means the
-// account is long-term exhausted/disabled and the ping can only fail —
-// previously one such account produced 146 futile `ping failed` warns.
 export const QUOTA_AUTOPING_FAR_RESET_SKIP_MS = 24 * 60 * 60 * 1000;
+
+export const FACTORY_PING_MODEL = "claude-haiku-4-5-20251001";
+
+export type QuotaAutoPingProviderId = "codex" | "factory";
 
 export type QuotaAutoPingProviderConfig = {
   settingsKey: string;
   quotaKey: string;
-  /** Codex has no fixed reset schedule — ping whenever resetAt slides forward. */
-  pingWhenResetAtSlides: true;
-  /** Minimum forward drift (ms) before a slide counts as "the window rolled". */
-  resetAtDriftMs: number;
-  /** Never re-ping the same connection more often than this, even across resets. */
+  pingWhenResetAtSlides?: boolean;
+  pingWhenWindowInactive?: boolean;
+  resetAtDriftMs?: number;
   minPingIntervalMs: number;
-  /** Skip the ping when a non-session quota (e.g. weekly) is already exhausted. */
   skipWhenBlockingQuotaExhausted: true;
-  // The ping model is deliberately NOT part of this config (#11905): a pinned id
-  // outlives its vendor lifecycle (`gpt-5.1-codex-mini` was shut down 2026-07-23
-  // while still hardcoded here). It is resolved per tick from the live provider
-  // catalog + lifecycle registry — see resolveQuotaAutoPingModel in
-  // src/lib/services/quotaAutoPing.ts.
   pingText: string;
-  pingInstructions: string;
-  pingReasoningEffort: string;
+  pingInstructions?: string;
+  pingReasoningEffort?: string;
+  pingMaxTokens?: number;
+  pingModel?: string;
 };
 
-export const QUOTA_AUTOPING_PROVIDERS: Record<"codex", QuotaAutoPingProviderConfig> = {
+export const QUOTA_AUTOPING_PROVIDERS: Record<
+  QuotaAutoPingProviderId,
+  QuotaAutoPingProviderConfig
+> = {
   codex: {
     settingsKey: "codexAutoPing",
     quotaKey: "session",
@@ -53,5 +44,15 @@ export const QUOTA_AUTOPING_PROVIDERS: Record<"codex", QuotaAutoPingProviderConf
     pingText: "hi",
     pingInstructions: "Reply with OK.",
     pingReasoningEffort: "none",
+  },
+  factory: {
+    settingsKey: "factoryAutoPing",
+    quotaKey: "standard_5h",
+    pingWhenWindowInactive: true,
+    minPingIntervalMs: 10 * 60 * 1000,
+    skipWhenBlockingQuotaExhausted: true,
+    pingText: "hi",
+    pingMaxTokens: 1,
+    pingModel: FACTORY_PING_MODEL,
   },
 };

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import Modal from "./Modal";
 import Button from "./Button";
 import Input from "./Input";
+import Select from "./Select";
 import {
   OAuthDeviceCodePanel,
   OAuthLoopbackMismatchPanel,
@@ -54,6 +55,7 @@ const DEVICE_CODE_PROVIDERS = new Set([
   "ghe-copilot",
   "grok-cli",
   "muse-code",
+  "factory",
 ]);
 
 const TOKEN_PASTE_PROVIDERS = new Set(["devin-desktop", "devin-cli", "grok-cli", "claude"]);
@@ -93,7 +95,15 @@ type OAuthModalProps = {
 };
 
 type DevicePollResult =
-  { status: "pending" | "slow_down" | "success" } | { status: "error"; message: string };
+  | { status: "pending" | "slow_down" | "success" }
+  | {
+      status: "organization_selection_required";
+      organizationSession: string;
+      organizations: string[];
+    }
+  | { status: "transient_retry"; message: string }
+  | { status: "expired"; message: string }
+  | { status: "error"; message: string };
 
 function positiveNumberOr(value: unknown, fallback: number): number {
   return Math.max(1, Number(value) || fallback);
@@ -114,6 +124,37 @@ async function pollDeviceCodeOnce(
 
     if (data.success) return { status: "success" };
     if (data.error === "slow_down") return { status: "slow_down" };
+
+    if (provider === "factory") {
+      if (
+        data.error === "organization_selection_required" &&
+        typeof data.organizationSession === "string" &&
+        Array.isArray(data.organizations)
+      ) {
+        return {
+          status: "organization_selection_required",
+          organizationSession: data.organizationSession,
+          organizations: data.organizations as string[],
+        };
+      }
+      if (res.status === 503 || data.error === "transient_error") {
+        return {
+          status: "transient_retry",
+          message: String(
+            data.errorDescription || errorMessageFromBody(data, fallbackErrorMessage)
+          ),
+        };
+      }
+      if (res.status === 410 || data.error === "pending_login_expired") {
+        return {
+          status: "expired",
+          message: String(
+            data.errorDescription || errorMessageFromBody(data, fallbackErrorMessage)
+          ),
+        };
+      }
+    }
+
     if (data.error && !data.pending) {
       return {
         status: "error",
@@ -167,6 +208,32 @@ export default function OAuthModal({
   // #8046 follow-up: structured diagnosis for the LAN-IP loopback mismatch, rendered
   // by its own step instead of as prose inside the generic red error step.
   const [loopbackHint, setLoopbackHint] = useState<PkceLoopbackMismatchHint | null>(null);
+  type FactoryOrgPending = {
+    deviceCode: string;
+    organizationSession: string;
+    organizations: string[];
+  };
+
+  const [factoryOrgPending, setFactoryOrgPending] = useState<FactoryOrgPending | null>(null);
+  const [selectedOrgId, setSelectedOrgId] = useState("");
+  const [submittingOrgSelect, setSubmittingOrgSelect] = useState(false);
+  const [orgSelectError, setOrgSelectError] = useState<string | null>(null);
+  const [isOrgSelectTransientError, setIsOrgSelectTransientError] = useState(false);
+
+  const factoryProbeRef = useRef(0);
+  const [factoryLocalSession, setFactoryLocalSession] = useState<{
+    found: boolean;
+    displayName?: string;
+    email?: string;
+    orgId?: string;
+    region?: string;
+    hasRefreshToken?: boolean;
+  } | null>(null);
+  const [importingFactorySession, setImportingFactorySession] = useState(false);
+  const [factoryImportError, setFactoryImportError] = useState<string | null>(null);
+  const [factoryImportWarning, setFactoryImportWarning] = useState<string | null>(null);
+
+  const startOAuthFlowRef = useRef<() => Promise<void>>(() => Promise.resolve());
 
   const supportsTokenPaste = TOKEN_PASTE_PROVIDERS.has(provider);
   const importTokenOnly = IMPORT_TOKEN_ONLY_PROVIDERS.has(provider);
@@ -214,8 +281,13 @@ export default function OAuthModal({
 
   const invalidateDeviceFlow = useCallback(() => {
     deviceFlowRunRef.current += 1;
+    factoryProbeRef.current += 1;
     setPolling(false);
     setDeviceCodeExpiresAt(null);
+    setFactoryOrgPending(null);
+    setSelectedOrgId("");
+    setOrgSelectError(null);
+    setIsOrgSelectTransientError(false);
   }, []);
 
   // Define all useCallback hooks BEFORE the useEffects that reference them
@@ -365,6 +437,32 @@ export default function OAuthModal({
           continue;
         }
 
+        if (provider === "factory" && result.status === "organization_selection_required") {
+          setPolling(false);
+          setFactoryOrgPending({
+            deviceCode,
+            organizationSession: result.organizationSession,
+            organizations: result.organizations,
+          });
+          setSelectedOrgId("");
+          setOrgSelectError(null);
+          setIsOrgSelectTransientError(false);
+          setStep("factory-org-select");
+          return;
+        }
+
+        if (provider === "factory" && result.status === "expired") {
+          setPolling(false);
+          setDeviceCodeExpiresAt(null);
+          setFactoryOrgPending(null);
+          void startOAuthFlowRef.current();
+          return;
+        }
+
+        if (provider === "factory" && result.status === "transient_retry") {
+          continue;
+        }
+
         if (result.status === "error") {
           setError(result.message);
           setStep("error");
@@ -383,6 +481,117 @@ export default function OAuthModal({
     },
     [provider, onSuccess, reauthConnection, t]
   );
+  // Factory multi-org resumption
+  const handleResumeFactoryOrgLogin = useCallback(async () => {
+    if (!factoryOrgPending || !selectedOrgId) return;
+    const runId = deviceFlowRunRef.current;
+    setSubmittingOrgSelect(true);
+    setOrgSelectError(null);
+    setIsOrgSelectTransientError(false);
+
+    try {
+      const result = await pollDeviceCodeOnce(
+        "factory",
+        {
+          deviceCode: factoryOrgPending.deviceCode,
+          connectionId: reauthConnection?.id,
+          extraData: {
+            organizationSession: factoryOrgPending.organizationSession,
+            organizationId: selectedOrgId,
+          },
+        },
+        t("errorAuthorizationFailed")
+      );
+      if (runId !== deviceFlowRunRef.current) return;
+
+      if (result.status === "success") {
+        setStep("success");
+        setPolling(false);
+        setDeviceCodeExpiresAt(null);
+        setFactoryOrgPending(null);
+        onSuccess?.();
+        return;
+      }
+
+      if (result.status === "expired") {
+        setFactoryOrgPending(null);
+        setSelectedOrgId("");
+        setOrgSelectError(null);
+        setIsOrgSelectTransientError(false);
+        void startOAuthFlowRef.current();
+        return;
+      }
+
+      if (result.status === "transient_retry") {
+        setIsOrgSelectTransientError(true);
+        setOrgSelectError(result.message || t("errorRequestFailed"));
+        return;
+      }
+
+      if (result.status === "error") {
+        setOrgSelectError(result.message);
+        return;
+      }
+    } catch (err) {
+      if (runId !== deviceFlowRunRef.current) return;
+      setIsOrgSelectTransientError(true);
+      setOrgSelectError(err instanceof Error ? err.message : t("errorRequestFailed"));
+    } finally {
+      if (runId === deviceFlowRunRef.current) setSubmittingOrgSelect(false);
+    }
+  }, [factoryOrgPending, selectedOrgId, reauthConnection, onSuccess, t]);
+
+  // Factory local Droid CLI auto-import
+  const handleImportFactorySession = useCallback(async () => {
+    setImportingFactorySession(true);
+    setFactoryImportError(null);
+    const runId = deviceFlowRunRef.current;
+    setFactoryImportWarning(null);
+
+    try {
+      const bodyPayload = reauthConnection?.id ? { connectionId: reauthConnection.id } : {};
+
+      const res = await fetch("/api/oauth/factory/auto-import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyPayload),
+      });
+
+      const data = (await parseResponseBody(res)) as Record<string, unknown>;
+      if (runId !== deviceFlowRunRef.current) return;
+
+      if (res.status === 404) {
+        throw new Error(
+          typeof data.error === "string" && data.error
+            ? data.error
+            : t("factoryLocalImportUnavailable")
+        );
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(
+          typeof data.error === "string" && data.error ? data.error : t("factoryLocalImportError")
+        );
+      }
+
+      invalidateDeviceFlow();
+      setPolling(false);
+      setDeviceCodeExpiresAt(null);
+      setFactoryOrgPending(null);
+
+      if (typeof data.warning === "string" && data.warning) {
+        setFactoryImportWarning(data.warning);
+      }
+
+      setStep("success");
+      onSuccess?.();
+    } catch (err) {
+      if (runId !== deviceFlowRunRef.current) return;
+      setFactoryImportError(err instanceof Error ? err.message : t("factoryLocalImportError"));
+    } finally {
+      if (runId === deviceFlowRunRef.current) setImportingFactorySession(false);
+    }
+  }, [reauthConnection, invalidateDeviceFlow, onSuccess, t]);
 
   // Start OAuth flow. Options let method buttons select a branch synchronously
   // instead of reading a just-set state value through a stale closure.
@@ -645,6 +854,9 @@ export default function OAuthModal({
       t,
     ]
   );
+  useEffect(() => {
+    startOAuthFlowRef.current = startOAuthFlow;
+  }, [startOAuthFlow]);
 
   useEffect(() => {
     if (!deviceCodeExpiresAt) return;
@@ -667,10 +879,19 @@ export default function OAuthModal({
     setPolling(false);
     setDeviceCodeExpiresAt(null);
     setGrokBrowserMode(false);
+    setFactoryOrgPending(null);
+    setSelectedOrgId("");
+    setOrgSelectError(null);
+    setIsOrgSelectTransientError(false);
+    setFactoryLocalSession(null);
+    setImportingFactorySession(false);
+    setFactoryImportError(null);
+    setFactoryImportWarning(null);
   }
 
   useEffect(() => {
     deviceFlowRunRef.current += 1;
+    factoryProbeRef.current += 1;
     flowStartedRef.current = false;
   }, [provider]);
 
@@ -682,12 +903,21 @@ export default function OAuthModal({
     if (!isOpen) {
       setPolling(false);
       setDeviceCodeExpiresAt(null);
+      setFactoryOrgPending(null);
+      setSelectedOrgId("");
+      setOrgSelectError(null);
+      setIsOrgSelectTransientError(false);
+      setFactoryLocalSession(null);
+      setImportingFactorySession(false);
+      setFactoryImportError(null);
+      setFactoryImportWarning(null);
     }
   }
 
   useEffect(() => {
     if (!isOpen) {
       deviceFlowRunRef.current += 1;
+      factoryProbeRef.current += 1;
       flowStartedRef.current = false;
     }
   }, [isOpen]);
@@ -716,6 +946,14 @@ export default function OAuthModal({
       setIsDeviceCode(false);
       setDeviceData(null);
       setPolling(false);
+      setFactoryOrgPending(null);
+      setSelectedOrgId("");
+      setOrgSelectError(null);
+      setIsOrgSelectTransientError(false);
+      setFactoryLocalSession(null);
+      setImportingFactorySession(false);
+      setFactoryImportError(null);
+      setFactoryImportWarning(null);
       // #8688: show GitLab Duo OAuth app / env setup before authorize error. Every other
       // provider restarts at "waiting", or a paste-first reopen would show the last success.
       setStep(provider === "gitlab-duo" ? "gitlab-duo-setup" : "waiting");
@@ -737,6 +975,41 @@ export default function OAuthModal({
     };
     run();
   }, [isOpen, provider, startOAuthFlow]);
+  // Best-effort local session detection for Factory Droid CLI
+  useEffect(() => {
+    if (!isOpen || provider !== "factory") return;
+
+    const probeId = ++factoryProbeRef.current;
+    const controller = new AbortController();
+
+    fetch("/api/oauth/factory/auto-import", { signal: controller.signal })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return (await parseResponseBody(res)) as Record<string, unknown>;
+      })
+      .then((data) => {
+        if (factoryProbeRef.current === probeId && data?.found) {
+          setFactoryLocalSession(
+            data as {
+              found: boolean;
+              displayName?: string;
+              email?: string;
+              orgId?: string;
+              region?: string;
+              hasRefreshToken?: boolean;
+            }
+          );
+        }
+      })
+      .catch(() => {
+        // Ignored or aborted probe
+      });
+
+    return () => {
+      factoryProbeRef.current += 1;
+      controller.abort();
+    };
+  }, [isOpen, provider]);
 
   // Listen for OAuth callback via multiple methods
   useEffect(() => {
@@ -807,7 +1080,7 @@ export default function OAuthModal({
     try {
       channel = new BroadcastChannel("oauth_callback");
       channel.onmessage = (event) => handleCallback(event.data);
-    } catch (e) {
+    } catch {
       console.log("BroadcastChannel not supported");
     }
 
@@ -818,7 +1091,7 @@ export default function OAuthModal({
           const data = JSON.parse(event.newValue);
           handleCallback(data);
           localStorage.removeItem("oauth_callback");
-        } catch (e) {
+        } catch {
           console.log("Failed to parse localStorage data");
         }
       }
@@ -853,7 +1126,6 @@ export default function OAuthModal({
   useEffect(() => {
     if (step !== "waiting" || isDeviceCode || !popupRef.current) return;
 
-    let closed = false;
     const popupClosedInterval = setInterval(() => {
       if (callbackProcessedRef.current) {
         clearInterval(popupClosedInterval);
@@ -861,7 +1133,6 @@ export default function OAuthModal({
       }
       try {
         if (popupRef.current?.closed) {
-          closed = true;
           clearInterval(popupClosedInterval);
           // Popup was closed without completing OAuth — switch to manual input mode
           // so user can paste the callback URL from their browser address bar
@@ -1100,6 +1371,53 @@ export default function OAuthModal({
               <GitlabDuoSetupStep onContinue={() => void startOAuthFlow()} onClose={handleClose} />
             )}
 
+            {/* Factory Organization Selection Step */}
+            {step === "factory-org-select" && factoryOrgPending && (
+              <div className="flex flex-col gap-4">
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold">{t("factoryOrganizationTitle")}</h3>
+                  <p className="text-sm text-text-muted">{t("factoryOrganizationDescription")}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Select
+                    label={t("factoryOrganizationSelectLabel")}
+                    placeholder={t("factoryOrganizationSelectPrompt")}
+                    value={selectedOrgId}
+                    onChange={(e) => {
+                      setSelectedOrgId(e.target.value);
+                      setOrgSelectError(null);
+                      setIsOrgSelectTransientError(false);
+                    }}
+                    options={factoryOrgPending.organizations.map((org) => ({
+                      value: org,
+                      label: org,
+                    }))}
+                    disabled={submittingOrgSelect}
+                    required
+                  />
+                </div>
+
+                {orgSelectError && <p className="text-sm text-red-500">{orgSelectError}</p>}
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleResumeFactoryOrgLogin}
+                    disabled={!selectedOrgId || submittingOrgSelect}
+                    fullWidth
+                  >
+                    {submittingOrgSelect
+                      ? t("saving")
+                      : isOrgSelectTransientError
+                        ? t("factoryOrganizationRetry")
+                        : t("factoryOrganizationContinue")}
+                  </Button>
+                  <Button onClick={handleClose} variant="ghost" fullWidth>
+                    {t("cancel")}
+                  </Button>
+                </div>
+              </div>
+            )}
             {step === "waiting" && !isDeviceCode && (
               <OAuthWaitingStep
                 waitingLabel={t("waiting")}
@@ -1112,12 +1430,59 @@ export default function OAuthModal({
 
             {/* Device Code Flow - Waiting */}
             {step === "waiting" && isDeviceCode && deviceData && (
-              <OAuthDeviceCodePanel
-                deviceData={deviceData}
-                verificationUrl={deviceVerificationUrl}
-                secondsRemaining={deviceCodeSecondsRemaining}
-                polling={polling}
-              />
+              <>
+                {provider === "factory" && factoryLocalSession?.found && (
+                  <div className="p-4 rounded-lg border border-primary/30 bg-primary/5 space-y-3 mb-3 text-left">
+                    <div>
+                      <p className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-base">smart_toy</span>
+                        {t("factoryLocalImportButton")}
+                      </p>
+                      <p className="text-xs text-text-muted mt-1">
+                        {t("factoryLocalImportDescription")}
+                      </p>
+                      {(factoryLocalSession.email ||
+                        factoryLocalSession.displayName ||
+                        factoryLocalSession.orgId) && (
+                        <p className="text-xs text-text-muted mt-1">
+                          <span className="font-mono font-medium text-foreground">
+                            {factoryLocalSession.email ||
+                              factoryLocalSession.displayName ||
+                              "Local Droid User"}
+                          </span>
+                          {factoryLocalSession.orgId ? ` (${factoryLocalSession.orgId})` : ""}
+                        </p>
+                      )}
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        {t("factoryLocalImportSyncWarning")}
+                      </p>
+                    </div>
+
+                    {factoryImportError && (
+                      <p role="alert" className="text-sm text-red-600">
+                        {factoryImportError}
+                      </p>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleImportFactorySession}
+                        disabled={importingFactorySession}
+                        icon={importingFactorySession ? "progress_activity" : "download"}
+                      >
+                        {importingFactorySession ? t("saving") : t("factoryLocalImportButton")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <OAuthDeviceCodePanel
+                  deviceData={deviceData}
+                  verificationUrl={deviceVerificationUrl}
+                  secondsRemaining={deviceCodeSecondsRemaining}
+                  polling={polling}
+                />
+              </>
             )}
 
             {/* Manual Input Step */}
@@ -1155,6 +1520,11 @@ export default function OAuthModal({
             <p className="text-sm text-text-muted mb-4">
               {t("successMessage", { providerName: providerInfo.name })}
             </p>
+            {factoryImportWarning && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mb-4">
+                {factoryImportWarning}
+              </p>
+            )}
             <Button onClick={handleClose} fullWidth>
               {t("done")}
             </Button>

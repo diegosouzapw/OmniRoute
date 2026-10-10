@@ -309,7 +309,7 @@ export function isConnectionRuntimeStateUpdate(data: Record<string, unknown>): b
   return keys.length > 0 && keys.every((key) => CONNECTION_RUNTIME_STATE_FIELDS.has(key));
 }
 
-export type UpdateOpts = { skipModelCatalog?: boolean };
+export type UpdateOpts = { skipModelCatalog?: boolean; mergeProviderSpecificData?: boolean };
 
 /**
  * Cache invalidation for `updateProviderConnection()`: runtime-state-only

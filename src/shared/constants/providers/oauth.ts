@@ -359,4 +359,19 @@ export const OAUTH_PROVIDERS = {
     authHint:
       "Sign in with the Muse Code device flow (same as `muse login` / CLIProxyAPI `-meta-login`) to use a Muse subscription, or paste a META_API_KEY. Device login keeps the durable dca token and mints the inference key; a 401 remints that key. Wire format is OpenAI Responses (POST /responses).",
   },
+  factory: {
+    id: "factory",
+    serviceKinds: ["llm"],
+    alias: "factory",
+    name: "Factory",
+    icon: "smart_toy",
+    color: "#0F172A",
+    textIcon: "FA",
+    website: "https://factory.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    passthroughModels: true,
+    authHint:
+      "Sign in with your Factory Droid subscription via device login, or import an existing local Droid session. Importing a local session synchronizes rotated tokens with that same store.",
+  },
 };

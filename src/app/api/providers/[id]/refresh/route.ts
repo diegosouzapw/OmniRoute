@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCachedProviderConnectionById } from "@/lib/db/readCache";
-import { updateProviderConnection } from "@/lib/db/providers";
+import { getProviderConnectionById, updateProviderConnection } from "@/lib/db/providers";
 import {
   getAccessToken,
   updateProviderCredentials,
@@ -151,7 +151,14 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     // between the network call and the DB update.
     let persistedCredentials: RefreshResult | null = null;
     const newCredentials = (await getAccessToken(provider, credentials, async (result) => {
-      await updateProviderCredentials(id, result);
+      const saved = await updateProviderCredentials(
+        id,
+        result,
+        provider === "factory" ? { mergeProviderSpecificData: true } : undefined
+      );
+      if (provider === "factory" && !saved) {
+        throw new Error("Factory credential persistence failed");
+      }
       persistedCredentials = result;
     })) as RefreshResult | null;
 
@@ -197,7 +204,29 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       );
     }
 
-    // If onPersist was not called (e.g. no connectionId in credentials path), persist now.
+    // A Factory CAS skip is a win for a concurrent writer, not permission to
+    // write the stale refresh result after the per-connection mutex releases.
+    if (provider === "factory" && !persistedCredentials) {
+      const winner = await getProviderConnectionById(id);
+      if (
+        winner?.provider !== "factory" ||
+        !winner.accessToken ||
+        (winner.accessToken === connection.accessToken &&
+          winner.refreshToken === connection.refreshToken)
+      ) {
+        return NextResponse.json(
+          { error: "Factory credential refresh was not committed" },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        connectionId: id,
+        provider,
+        expiresAt: winner.tokenExpiresAt || winner.expiresAt || null,
+        refreshedAt: new Date().toISOString(),
+      });
+    }
     if (!persistedCredentials) {
       await updateProviderCredentials(id, newCredentials);
     }

@@ -110,6 +110,7 @@ function isPublicCloudApiRoute(pathname: string, method: string): boolean {
 const LOCAL_ONLY_OAUTH_IMPORT_ROUTES = [
   "/api/oauth/cursor/auto-import",
   "/api/oauth/kiro/auto-import",
+  "/api/oauth/factory/auto-import",
 ];
 
 /**
