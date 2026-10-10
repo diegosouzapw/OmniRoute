@@ -32,8 +32,17 @@ const NUMERIC_SCHEMA_FIELDS = [
 // before the schema reaches the Codex/OpenAI upstream.
 const REGEX_LOOKAROUND_PATTERN = /\(\?<?[=!]/;
 
-function hasUnsupportedRegexLookaround(pattern: unknown): boolean {
-  return typeof pattern === "string" && REGEX_LOOKAROUND_PATTERN.test(pattern);
+// Fix (9router#3922): the Codex backend also rejects Unicode property escapes
+// (`\p{...}` / `\P{...}`, e.g. `^\p{Cc}$` from the Codex CLI `Artifact` tool) with
+// "'^\\p{Cc}$' is not a 'regex'.". Match only an unescaped backslash (odd run).
+const REGEX_UNICODE_PROPERTY_ESCAPE = /(?<!\\)(?:\\\\)*\\[pP]\{/;
+
+const UNSUPPORTED_REGEX_SYNTAX = [REGEX_LOOKAROUND_PATTERN, REGEX_UNICODE_PROPERTY_ESCAPE];
+
+function hasUnsupportedRegexSyntax(pattern: unknown): boolean {
+  return (
+    typeof pattern === "string" && UNSUPPORTED_REGEX_SYNTAX.some((regex) => regex.test(pattern))
+  );
 }
 
 function isPlainObject(value: unknown): value is JsonRecord {
@@ -93,8 +102,8 @@ export function coerceSchemaNumericFields(schema: unknown): unknown {
     delete result.default;
   }
 
-  // Fix (9router#1556): drop unsupported regex lookaround from `pattern`.
-  if (hasUnsupportedRegexLookaround(result.pattern)) {
+  // Fix (9router#1556, #3922): drop unsupported regex syntax from `pattern`.
+  if (hasUnsupportedRegexSyntax(result.pattern)) {
     delete result.pattern;
   }
 
@@ -192,7 +201,7 @@ export function stripUnsupportedRegexPatterns(schema: unknown): unknown {
 
   const result: JsonRecord = { ...schema };
 
-  if (hasUnsupportedRegexLookaround(result.pattern)) {
+  if (hasUnsupportedRegexSyntax(result.pattern)) {
     delete result.pattern;
   }
 
