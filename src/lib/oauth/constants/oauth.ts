@@ -206,6 +206,14 @@ export const KIMI_CODING_CONFIG = {
   tokenUrl: "https://auth.kimi.com/api/oauth/token",
 };
 
+// Factory AI OAuth Configuration (Device Code Flow via WorkOS)
+export const FACTORY_CONFIG = {
+  clientId: resolvePublicCred("factory_id", "FACTORY_OAUTH_CLIENT_ID"),
+  deviceCodeUrl: "https://api.workos.com/user_management/authorize/device",
+  tokenUrl: "https://api.workos.com/user_management/authenticate",
+  verificationUrl: "https://auth.factory.ai/device",
+};
+
 // KiloCode OAuth Configuration (Custom Device Auth Flow)
 export const KILOCODE_CONFIG = {
   apiBaseUrl: "https://api.kilo.ai",
@@ -546,4 +554,5 @@ export const PROVIDERS = {
   ZED: "zed",
   ZED_HOSTED: "zed-hosted",
   MUSE_CODE: "muse-code",
+  FACTORY: "factory",
 };
