@@ -49,6 +49,17 @@ async function seedGeminiConnection() {
   });
 }
 
+async function seedEligibleAutoConnection() {
+  // A family-specific account alone is not an eligible default-auto fixture.
+  // Keep the shipped ToS exclusion enabled and supply an official API account.
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    apiKey: "sk-test-auto-route-official-provider",
+    isActive: true,
+  });
+}
+
 function postTest(comboName: string) {
   return testRoute.POST(
     new Request("http://localhost/api/combos/test", {
@@ -163,6 +174,7 @@ test("GET /api/combos/auto?id= materializes one virtual combo for the control ce
 
 test("GET /api/combos/auto?id= handles the bare default and rejects non-auto ids", async () => {
   await seedGeminiConnection();
+  await seedEligibleAutoConnection();
 
   const bare = await getAuto("id=auto");
   assert.equal(bare.status, 200);
@@ -179,6 +191,7 @@ test("GET /api/combos/auto?id= handles the bare default and rejects non-auto ids
 
 test("GET /api/combos/auto list still emits every kind including families", async () => {
   await seedGeminiConnection();
+  await seedEligibleAutoConnection();
   const response = await getAuto("");
   assert.equal(response.status, 200);
   const { combos } = (await response.json()) as {
