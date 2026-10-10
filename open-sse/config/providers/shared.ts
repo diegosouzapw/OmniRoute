@@ -427,6 +427,8 @@ export const CHAT_OPENAI_COMPAT_MODELS: Record<string, RegistryModel[]> = {
     "Llama-4-Maverick-17B-128E-Instruct",
     "Meta-Llama-3.3-70B-Instruct",
     "gpt-oss-120b",
+    "DeepSeek-V3.1",
+    "gemma-4-31B-it",
   ]),
   nscale: buildModels([
     "moonshotai/Kimi-K2.5",
