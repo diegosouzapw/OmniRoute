@@ -4,64 +4,61 @@
 
 ---
 
-> **Lühidalt**: OmniRoute registreerib 357 teenusepakkuja ID-d, millest **152 teenusepakkujate kataloogi kirjet on märgitud väärtusega `hasFree`**. Rangem auditeeritud tasuta mudelite kataloog hõlmab **35 korduva ressursikogumi võtit / 482 kirjet** (475 aktiivset + 7 kasutuselt kõrvaldatud). Laiema varuvõimsuse tagamiseks ühendage mitu sobivat teenusepakkujat; endiselt kehtivad kõik kvoodid, kinnitamisreeglid, privaatsuspõhimõtted ja tasulise ülekasutuse tingimused.
+> **Lühidalt**: Kasutage oma nõuetele vastavaid teenusepakkujate kontosid. OmniRoute ühendab teie seadistatud ühendused; see ei väljasta reklaamitud summaarset tokenieelarvet. Tasuta juurdepääs võib nõuda registreerumist, API-võtit, heakskiitu või makseviisi. Teenusepakkujate piirangud, privaatsuspoliitikad ja tingimused kehtivad endiselt.
 
 ---
 
-## Mis on tasuta kasutustasemed?
+## Mis on tasuta paketid?
 
-Paljud tehisintellekti pakkujad pakuvad mingis vormis **tasuta juurdepääsu**. Olenevalt pakkujast võib
-see tähendada autentimiseta lõpp-punkti, korduvat kvooti, kiiruspiiranguga piiramatut juurdepääsu, registreerumisboonust,
-käsitsi heakskiitmist või ajutist kampaaniat. Mõni valik nõuab kontot, API-võtit,
-krediitkaarti, KYC-protseduuri või pakkujapõhiste tingimustega nõustumist.
+Paljud AI-teenusepakkujad pakuvad mingil kujul **tasuta juurdepääsu**. Olenevalt teenusepakkujast võib see tähendada autentimiseta lõpp-punkti, perioodiliselt uuenevat kvooti, kiirusega piiratud, kuid mahupiiranguta juurdepääsu, registreerumisboonust, käsitsi kinnitamist või ajutist sooduspakkumist. Mõne valiku kasutamiseks on vaja kontot, API-võtit, krediitkaarti, KYC-protseduuri läbimist või teenusepakkuja eritingimustega nõustumist.
 
-OmniRoute **koondab** need tasuta kasutustasemed ühe lõpp-punkti alla. Selle asemel et registreeruda 10 eri teenuses, ühendate need kõik OmniRoute’iga ja kasutate seadet `model: "auto"`, et valida iga päringu jaoks automaatselt parim tasuta valik.
+OmniRoute **koondab** seadistatud ühendused ühte lõpp-punkti. Peate endiselt eraldi registreeruma iga teenusepakkuja juures, kes nõuab kontot. Ühendage need kontod ja kasutage sobivate sihtkohtade vahel marsruutimiseks parameetrit `model: "auto"`. Värskel installil ei pruugi olla ühtegi sobivat võtmeta sihtkohta; ainuüksi OmniRoute'i installimine ei taga vestluspäringule edukat vastust.
 
 ---
 
-## Näited tasuta juurdepääsu pakkujatest
+## Tüüpilised tasuta juurdepääsuga teenusepakkujad
 
 ### Korduv, võtmeta või piiramata juurdepääs
 
-Nendel pakkujatel on auditeeritud kataloogis korduva kasutusega, võtmeta või piiramata tasuta juurdepääsu võimalus. „Piiramata” tähendab, et avaldatud tokenipiirang puudub; kiiruse, samaaegsuse, konto, piirkonna ja poliitikaga seotud piirangud võivad siiski kehtida:
+Nendel teenusepakkujatel on auditeeritud kataloogis korduv, võtmeta või piiramata tasuta juurdepääsu võimalus. „Piiramata” tähendab, et avaldatud tokenilimiit puudub; siiski võivad kehtida päringusageduse, samaaegsuse, konto, piirkonna ja eeskirjadega seotud piirangud:
 
-| Pakkuja           | Mudelid                                                                                       | Kvoot                                                                                                                                         | Ühendamine                                                                                                                     |
-| ----------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ja teised                                         | Auditeeritud kataloogi hinnangul 25K-tokenine jagatud kuukogum                                                                                | OAuthi-/kontovoog; kasutustingimused on kataloogis märgitud tähisega `avoid`                                                   |
-| **OpenCode Free** | Pakkujate registri praegune `*-free` mudelikomplekt                                           | Võtmeta; avaldatud tokenipiirang puudub                                                                                                       | Pakkuja autentimisteavet pole vaja; kasutustingimused on märgitud tähisega `avoid`                                             |
-| **Pollinations**  | Praegune võtmeta mudelikomplekt; mõni varasem mudel on kasutuselt kõrvaldatud või nõuab võtit | Võtmeta; avaldatud tokenipiirang puudub                                                                                                       | Võtmeta mudelite jaoks pole pakkuja autentimisteavet vaja                                                                      |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ja teised                         | Tasuta API-võti (kiiruspiiranguteta, kaarti pole vaja); **iga päring logitakse** teadusuuringute jaoks (loobuge aadressil logfare.ai/consent) | Kohene võti aadressilt logfare.ai/register; kasutustingimused/privaatsusteave aadressidel logfare.ai/tos ja logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI kataloog                                                                           | Auditeeritud kogumi hinnangul ~30M tokenit kuus, lähtudes avaldatud kasutusühikutest                                                          | Cloudflare’i konto ja API autentimisteave                                                                                      |
-| **Gemini**        | Gemini Flash mudeliperekond                                                                   | Auditeeritud kogumi hinnangul ~60M tokenit kuus                                                                                               | Google AI Studio API-võti; kehtivad kiiruspiirangud                                                                            |
-| **Groq**          | Llama, GPT-OSS ja Qwen mudelid                                                                | Auditeeritud kogumi hinnangul ~15M tokenit kuus                                                                                               | Groq API-võti; kehtivad kiiruspiirangud                                                                                        |
-| **Cerebras**      | GLM 4.7 ja GPT-OSS 120B                                                                       | Auditeeritud kogumi hinnangul ~30M tokenit kuus                                                                                               | Cerebras API-võti; kehtivad kiiruspiirangud                                                                                    |
+| Teenusepakkuja    | Mudelid                                                                                 | Kvoot                                                                                                                                                     | Ühenduse loomine                                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ja teised                                   | Auditeeritud kataloogi hinnangul ühine 25K-tokeniline kuine maht                                                                                          | OAuthi-/kontovoog; teenusetingimused on kataloogis tähistatud kui `avoid`                                                       |
+| **OpenCode Free** | Praegune `*-free` mudelikomplekt teenusepakkujate registris                             | Võtmeta; avaldatud tokenilimiit puudub                                                                                                                    | Teenusepakkuja pääsukinnitus pole vajalik; teenusetingimused on tähistatud kui `avoid`                                          |
+| **Pollinations**  | Praegune võtmeta mudelikomplekt; mõned varasemad mudelid on lõpetatud või nõuavad võtit | Võtmeta; avaldatud tokenilimiit puudub                                                                                                                    | Võtmeta mudelite jaoks pole teenusepakkuja pääsukinnitust vaja                                                                  |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ja teised                   | Tasuta API-võti (päringusageduse piiranguteta, kaarti pole vaja); **iga päring logitakse** teadusuuringute jaoks (loobumine aadressil logfare.ai/consent) | Võti kohe aadressilt logfare.ai/register; teenusetingimused ja privaatsusteave aadressidel logfare.ai/tos ja logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI kataloog                                                                     | Auditeeritud mahu hinnang on avaldatud kasutusühikute põhjal ~30M tokenit kuus                                                                            | Cloudflare'i konto ja API pääsukinnitused                                                                                       |
+| **Gemini**        | Gemini Flashi mudelipere                                                                | Projektist/mudelist sõltuvad päringusageduse piirangud; põhipakkumine ei sisalda kindlat kuist tokenitoetust                                              | Google AI Studio API-võti; kontrollige projekti aktiivseid piiranguid                                                           |
+| **Groq**          | Llama, GPT-OSS ja Qwen mudelid                                                          | Auditeeritud mahu hinnang on ~15M tokenit kuus                                                                                                            | Groqi API-võti; kehtivad päringusageduse piirangud                                                                              |
 
-### Registreerumisboonused ja pakkujapõhised krediidid
+### Registreerumistoetused ja teenusepakkujapõhised krediidid
 
-Need pakkujad annavad registreerumisel **tasuta krediiti**:
+Need teenusepakkujad pakuvad registreerumistoetusi või sooduskrediite, millele kehtivad nende nõuetele vastavuse reeglid. 2026-10-08 seisuga nõuab [Cerebrase hinnakiri](https://www.cerebras.ai/pricing) ühekordse 5 $ krediidi saamiseks makseviisi ning krediit aegub 30 päeva pärast; see ei ole korduv tokenikvoot. [Gemini päringusageduse piirangud](https://ai.google.dev/gemini-api/docs/rate-limits) erinevad projekti, mudeli ja taseme järgi, mistõttu neid ei teisendata garanteeritud kuiseks tokenitoetuseks.
 
-| Pakkuja       | Tasuta krediit                                                       | Mudelid                  | Hankimine                                                   |
-| ------------- | -------------------------------------------------------------------- | ------------------------ | ----------------------------------------------------------- |
-| **DeepSeek**  | 5M tasuta tokenit                                                    | DeepSeek V4              | Registreeruge aadressil platform.deepseek.com               |
-| **LongCat**   | Ühekordne 10M-tokenine boonus                                        | LongCat 2.0              | API-võti + KYC; pärast boonuse lõppemist jooksvalt tasuline |
-| **Vertex AI** | $300 registreerumiskrediit, mis vastab eelarvemudelis ~300M tokenile | Gemini ja partnermudelid | Google Cloudi konto; kehtivad arvelduse ja sobivuse reeglid |
+| Teenusepakkuja | Tasuta krediidid                                                      | Mudelid                     | Kuidas saada                                                          |
+| -------------- | --------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------------- |
+| **Cerebras**   | Ühekordne 5 $ sooduskrediit; aegub 30 päeva pärast                    | Praegune inferentsikataloog | Konto ja kehtiv makseviis                                             |
+| **DeepSeek**   | 5M tasuta tokenit                                                     | DeepSeek V4                 | Registreeruge aadressil platform.deepseek.com                         |
+| **LongCat**    | Ühekordne 10M-tokeniline toetus                                       | LongCat 2.0                 | API-võti + KYC; pärast toetuse lõppemist kasutuspõhine tasu           |
+| **Vertex AI**  | 300 $ registreerumiskrediit, mis vastab eelarvemudelis ~300M tokenile | Gemini ja partnermudelid    | Google Cloudi konto; kehtivad arvelduse ja nõuetele vastavuse reeglid |
 
 ### Muu piiratud juurdepääs
 
-Nendel pakkujatel on konkreetsete piirangutega **tasuta kasutustasemed**:
+Nendel teenusepakkujatel on konkreetsete piirangutega **tasuta paketid**:
 
-| Pakkuja                        | Tasuta kasutuse limiit                                                                         | Mudelid                             | Sobib kõige paremini |
-| ------------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------- | -------------------- |
-| **GitHub Models**              | Kontrollitud jagatud mahu hinnanguliseks piiriks on ~18M tokenit kuus                          | Mitmesuguste mudelite hindamine     |
-| **Hugging Face**               | Väike igakuiselt uuenev maht                                                                   | Katsetused ja mudelite mitmekesisus |
-| **OpenRouteri tasuta mudelid** | Jagatud päringupiiranguga maht; valikuline ühekordne lisamakse suurendab uuenevat kasutusmahtu | Lai valik varumudeleid              |
-| **AI Horde**                   | Võtmeta kogukonnaressurss; saadavus varieerub                                                  | Juhupõhine hajutatud inferents      |
+| Teenusepakkuja                 | Tasuta limiit                                                                                | Mudelid                                | Sobib kõige paremini |
+| ------------------------------ | -------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------- |
+| **GitHub Models**              | Auditeeritud ühise mahu hinnang on ~18M tokenit kuus                                         | Mitmesuguste mudelite hindamine        |
+| **Hugging Face**               | Väike korduv kuine maht                                                                      | Eksperimendid ja mudelite mitmekesisus |
+| **OpenRouteri tasuta mudelid** | Ühine päringupiiranguga maht; valikuline ühekordne lisamakse suurendab korduvat kasutusmahtu | Lai varumudelite kataloog              |
+| **AI Horde**                   | Võtmeta kogukonnaressurss; saadavus varieerub                                                | Võimalusepõhine hajutatud inferents    |
 
 ---
 
 ## Kuidas tasuta tasemeid kombineerida
 
-OmniRoute’i võlu seisneb **tasuta tasemete kombineerimises**. Ühele teenusepakkujale lootmise asemel ühendate mitu tasuta teenusepakkujat ja lasete OmniRoute’il iga päringu jaoks automaatselt parima valida.
+OmniRoute’i võlu seisneb **tasuta tasemete kombineerimises**. Selle asemel et tugineda ühele teenusepakkujale, ühendate mitu tasuta teenusepakkujat ja lasete OmniRoute’il iga päringu jaoks automaatselt parima valida.
 
 ### Näide: tasuta tasemete laiem katvus
 
@@ -69,25 +66,25 @@ OmniRoute’i võlu seisneb **tasuta tasemete kombineerimises**. Ühele teenusep
 
 1. **Gemini** — korduv API-võtme kvoot
 2. **Groq** — korduv API-võtme kvoot
-3. **Pollinations** — võtmeta, päringusagedusega piiratud juurdepääs
-4. **LongCat** — ühekordne registreerumistoetus (nõuab KYC-d)
+3. **Pollinations** — võtmeta, päringusageduse piiranguga juurdepääs
+4. **LongCat** — ühekordne registreerumisboonus (nõuab KYC-d)
 
 Seejärel kasutage `model: "auto"` ja OmniRoute teeb järgmist:
 
-- Proovib esmalt kõrgeima asetusega sobivat ühendust
-- Kui selle kvoot on ammendunud või seisundikontroll ebaõnnestub → proovib järgmist seadistatud teenusepakkujat
+- Proovib esmalt kõrgeima prioriteediga sobivat ühendust
+- Kui selle kvoodi- või seisundikontroll ebaõnnestub → proovib järgmist konfigureeritud teenusepakkujat
 - Kui võtmeta teenusepakkuja pole saadaval → jätkab ülejäänud sihtkohtade proovimist
-- Kui kõik ebaõnnestuvad → kasutab varuvariandina LongCati
+- Kui ükski sobiv ühendus ei õnnestu → tagastab vea; registreerumiskrediiti saab kasutada ainult seni, kuni see kehtib ja on saadaval
 
-**Tulemus**: tasuta tasemete laiem katvus koos automaatse varuvariandile lülitumisega — see ei garanteeri piiramatut mahtu.
+**Tulemus**: tasuta tasemete laiem katvus koos automaatse varuvariandile ümberlülitumisega — mitte piiramatu võimsuse garantii.
 
 ---
 
-## Kuidas tasuta teenusepakkujaid ühendada
+## Kuidas ühendada tasuta teenusepakkujaid
 
 ### 1. samm: avage juhtpaneel
 
-Minge brauseris aadressile `http://localhost:20128`.
+Avage brauseris `http://localhost:20128`.
 
 ### 2. samm: avage teenusepakkujate jaotis
 
@@ -99,32 +96,31 @@ Klõpsake nuppu **+ Lisa teenusepakkuja**.
 
 ### 4. samm: valige tasuta teenusepakkuja
 
-Sirvige kataloogi ning vaadake iga teenusepakkuja praeguseid `hasFree`, autentimise, kvoodi, privaatsuse ja kasutustingimuste metaandmeid. Teenusepakkuja kaart ja
-[tasuta tasemete teatmik](../reference/FREE_TIERS.md) eristavad korduvaid ressursikogumeid,
-piiranguta/võtmeta juurdepääsu, registreerumiskrediiti, lõpetatud kirjeid ja suurema riskiga allikaid.
+Sirvige kataloogi ning kontrollige iga teenusepakkuja praeguseid `hasFree`-metaandmeid, autentimist, kvooti, privaatsust ja kasutustingimusi. Teenusepakkuja kaart ja
+[tasuta pakettide viited](../reference/FREE_TIERS.md) eristavad perioodiliselt uuenevaid ressursikogumeid,
+piiramata või võtmeta juurdepääsu, registreerumiskrediiti, lõpetatud pakkumisi ja suurema riskiga allikaid.
 
 ### 5. samm: klõpsake ühendamisnuppu
 
-`NOAUTH` teenusepakkuja puhul pole autentimisteavet vaja. OAuthi ja API-võtmega teenusepakkujad tuleb
-ühendada nende dokumenteeritud kontoprotsessi kaudu.
+`NOAUTH`-teenusepakkuja puhul ei küsi OmniRoute välise teenuse identimisteavet. See ei taga, et väline teenus aktsepteerib kolmandate osapoolte kliente või et sellel on vaba läbilaskevõimsust. OAuthi ja API-võtmega teenusepakkujad tuleb ühendada nende dokumenteeritud kontoprotsessi kaudu. Kui ruuteri autentimine on lubatud, kasutab teie klient endiselt OmniRoute'i API-võtit, mis on kuvatud jaotises **Juhtpaneel → Lõpp-punktid**.
 
-### 6. samm: korrake
+### 6. samm: korrake toimingut
 
-Ühendage mitu teenusepakkujat, kelle tingimused ja privaatsusmudel sobivad teie kasutusjuhuga.
+Ühendage mitu teenusepakkujat, kelle tingimused ja privaatsusmudel sobivad teie kasutusotstarbega.
 
 ---
 
-## Kuidas kataloogi õigesti tõlgendada
+## Kataloogi õige lugemine
 
-- `NOAUTH` tähendab, et OmniRoute ei küsi teilt teenusepakkuja autentimisteavet; see ei
-  garanteeri töökindlust, privaatsust ega piiramatut mahtu.
+- `NOAUTH` tähendab, et OmniRoute ei küsi teilt teenusepakkuja autentimisandmeid; see ei
+  taga töökindlust, privaatsust ega piiramatut võimsust.
 - `hasFree` on avastamist hõlbustav metaandmestik. See võib tähistada korduvat kvooti, võtmeta juurdepääsu,
-  registreerumiskrediiti, kinnitust nõudvat programmi või kampaaniat.
-- `recurring-uncapped` tähendab, et avaldatud tokenipiirangut polnud saadaval; päringusageduse ja
-  samaaegsuse piirangud kehtivad siiski.
-- `one-time-initial` ei kordu pärast registreerumistoetuse ammendumist.
-- `tos: avoid` on hoiatus, et enne kasutamist tuleb üle vaadata teenusepakkuja tingimused ja kontoga seotud riskid.
-- Märkega `discontinued` kirjed säilitatakse ajaloolise tõendusmaterjalina ja neid ei tohi esitada
+  registreerimiskrediiti, heakskiiduprogrammi või kampaaniat.
+- `recurring-uncapped` tähendab, et avaldatud tokenite ülempiiri ei olnud saadaval; päringusageduse ja
+  samaaegsuse piirangud kehtivad endiselt.
+- `one-time-initial` ei kordu pärast registreerumisel saadud krediidi ammendumist.
+- Teenusepakkujad märkega `tos: avoid` jäetakse vaikimisi automaatsest marsruutimisest välja (`excludeTosAvoid`). Konto ühendamine ei eira seda filtrit. Operaatori tehtav erand peaks põhinema teenusepakkuja tingimuste ja kontoga seotud riski ülevaatusel.
+- Kirjed märkega `discontinued` säilitatakse ajaloolise tõendusmaterjalina ja neid ei tohi esitada
   praegu tasuta olevatena.
 
 ---
@@ -157,20 +153,17 @@ kvoodist või juurdepääsupoliitikast möödahiilimiseks.
 
 ---
 
-## Tasuta taseme arvutused
+## Tasuta taseme arvutus
 
-Reaalajas, ühiskvootide duplikaate eemaldav kataloog esitab praegu järgmised andmed:
+Aktiivne ja jagatud kogumite dubleerimist vältiv kataloog näitab praegu järgmist:
 
-| Mõõdik                                                       |                         Praegune auditeeritud väärtus | Tõlgendus                                                                                                                                        |
-| ------------------------------------------------------------ | ----------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Korduv mõõdetav kvoot                                        |                               **~1.62B tokenit kuus** | Ühiskvoote arvestatakse üks kord; piiramata teenusepakkujad jäetakse summast välja                                                               |
-| Esimene kuu koos registreerumiskvootidega                    |                                    **~2.22B tokenit** | Korduv kogumaht koos ühekordsete ja korduvate krediitidega                                                                                       |
-| Auditeeritud tasuta mudelite varu                            | **35 korduva ühiskvoodi võtit / 482 kataloogikirjet** | 475 aktiivset + 7 kasutuselt kõrvaldatud; erineb 357 teenusepakkuja kataloogist                                                                  |
-| Esindatud korduvad / võtmeta igavesti tasuta teenusepakkujad |                                                **53** | Unikaalsed teenusepakkujad korduvate päeva-, kuu-, krediidi-, piiramata ja võtmeta kataloogitüüpide lõikes; sobivusnõuetega read on välja jäetud |
-| Teenusepakkujate kataloogikirjed märkega `hasFree`           |                                         **152 / 357** | Laiemad teenusepakkujate metaandmed; kõigil pole mõõdetavat korduvat kvooti                                                                      |
+| Mõõdik                               | Praegune auditeeritud väärtus | Tõlgendus                                                                                 |
+| ------------------------------------ | ----------------------------: | ----------------------------------------------------------------------------------------- |
+| Korduv mõõdetav limiit               |       **~1.62B tokenit kuus** | Jagatud kogumeid arvestatakse üks kord; piiramata teenusepakkujad on summast välja jäetud |
+| Esimene kuu registreerumisboonustega |            **~2.22B tokenit** | Korduv kogusumma koos ühekordsete ja korduvate krediitidega                               |
 
-Need väärtused arvutatakse failist `open-sse/config/freeModelCatalog.ts`; ühiskvootide duplikaatide eemaldamise, kasutustingimuste märgiste,
-kasutuselt kõrvaldatud kirjete ja registreerumiskrediidi metoodika kohta vaadake
+Need on kogu kataloogi hõlmavad hinnangud eraldi sobilike kontode kohta, mitte OmniRoute'i pakutav limiit ega prognoos uue installatsiooni jaoks. Teie kasutatav maht sõltub ühendatud teenusepakkujatest ja nende kehtivatest tingimustest. Väärtused arvutatakse faili `open-sse/config/freeModelCatalog.ts` põhjal; jagatud kogumite dubleerimise vältimise, kasutustingimuste märgiste,
+lõpetatud kirjete ja registreerumiskrediidi metoodika kohta vaadake
 [tasuta tasemete teatmikku](../reference/FREE_TIERS.md).
 
 ---

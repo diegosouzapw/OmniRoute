@@ -4,18 +4,18 @@
 
 ---
 
-> **Kort sagt**: OmniRoute registrerar 357 leverantörs-ID:n, med **152 poster i leverantörskatalogen markerade som `hasFree`**. Den striktare granskade katalogen över kostnadsfria modeller omfattar **35 återkommande poolnycklar / 482 poster** (475 aktiva + 7 utgångna). Anslut flera lämpliga leverantörer för större reservkapacitet; alla kvoter, godkännanderegler, integritetspolicyer och villkor för avgiftsbelagd överförbrukning gäller fortfarande.
+> **Kort sagt**: Använd dina egna berättigade leverantörskonton. OmniRoute kombinerar de anslutningar du konfigurerar; tjänsten tillhandahåller inte den annonserade sammanlagda tokenbudgeten. Kostnadsfri åtkomst kan kräva registrering, en API-nyckel, godkännande eller en betalningsmetod. Leverantörernas begränsningar, integritetspolicyer och villkor gäller fortfarande.
 
 ---
 
 ## Vad är kostnadsfria nivåer?
 
-Många AI-leverantörer erbjuder någon form av **kostnadsfri åtkomst**. Beroende på leverantör kan det
+Många AI-leverantörer erbjuder någon form av **kostnadsfri åtkomst**. Beroende på leverantören kan det
 innebära en slutpunkt utan autentisering, en återkommande kvot, obegränsad åtkomst med hastighetsbegränsning, en registreringsbonus,
 manuellt godkännande eller en tillfällig kampanj. Vissa alternativ kräver ett konto, en API-nyckel,
 ett kreditkort, KYC eller godkännande av leverantörsspecifika villkor.
 
-OmniRoute **sammanställer** dessa kostnadsfria nivåer i en enda slutpunkt. I stället för att registrera dig hos 10 olika tjänster ansluter du dem alla till OmniRoute och använder `model: "auto"` för att automatiskt välja det bästa kostnadsfria alternativet för varje begäran.
+OmniRoute **sammanför** konfigurerade anslutningar i en enda slutpunkt. Du måste fortfarande registrera dig separat hos varje leverantör som kräver ett konto. Anslut dessa konton och använd `model: "auto"` för att dirigera mellan behöriga mål. En ny installation kan sakna ett behörigt mål utan nyckel; att enbart installera OmniRoute garanterar inte ett lyckat chattsvar.
 
 ---
 
@@ -23,63 +23,63 @@ OmniRoute **sammanställer** dessa kostnadsfria nivåer i en enda slutpunkt. I s
 
 ### Återkommande, nyckelfri eller obegränsad åtkomst
 
-Dessa leverantörer har en återkommande, nyckelfri eller obegränsad väg till kostnadsfri åtkomst i den granskade katalogen. ”Obegränsad” innebär att det inte finns något publicerat tak för antal token; begränsningar för anropsfrekvens, samtidighet, konto, region och policy kan fortfarande gälla:
+Dessa leverantörer erbjuder en återkommande, nyckelfri eller obegränsad väg till kostnadsfri åtkomst i den granskade katalogen. ”Obegränsad” innebär att ingen tokengräns har publicerats; begränsningar för anropsfrekvens, samtidighet, konto, region och policy kan fortfarande gälla:
 
-| Leverantör        | Modeller                                                                                           | Kvot                                                                                                                                              | Så ansluter du                                                                                                      |
-| ----------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 och andra                                              | Den granskade katalogen uppskattar en delad månadspool på 25 000 token                                                                            | OAuth-/kontoflöde; användarvillkoren är flaggade med `avoid` i katalogen                                            |
-| **OpenCode Free** | Aktuell uppsättning `*-free`-modeller i leverantörsregistret                                       | Nyckelfri; inget publicerat tak för antal token                                                                                                   | Inga leverantörsuppgifter krävs; användarvillkoren är flaggade med `avoid`                                          |
-| **Pollinations**  | Aktuell uppsättning nyckelfria modeller; vissa tidigare modeller är avvecklade eller kräver nyckel | Nyckelfri; inget publicerat tak för antal token                                                                                                   | Inga leverantörsuppgifter krävs för de nyckelfria modellerna                                                        |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 med flera                              | Kostnadsfri API-nyckel (inga hastighetsbegränsningar, inget kort); **varje begäran loggas** för forskning (välj bort detta på logfare.ai/consent) | Omedelbar nyckel på logfare.ai/register; användarvillkor/integritetspolicy på logfare.ai/tos och logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI-katalogen                                                                               | Den granskade poolen uppskattar ~30 miljoner token/månad utifrån publicerade användningsenheter                                                   | Cloudflare-konto och API-autentiseringsuppgifter                                                                    |
-| **Gemini**        | Gemini Flash-familjen                                                                              | Den granskade poolen uppskattar ~60 miljoner token/månad                                                                                          | API-nyckel från Google AI Studio; hastighetsbegränsningar gäller                                                    |
-| **Groq**          | Modellerna Llama, GPT-OSS och Qwen                                                                 | Den granskade poolen uppskattar ~15 miljoner token/månad                                                                                          | Groq API-nyckel; hastighetsbegränsningar gäller                                                                     |
-| **Cerebras**      | GLM 4.7 och GPT-OSS 120B                                                                           | Den granskade poolen uppskattar ~30 miljoner token/månad                                                                                          | Cerebras API-nyckel; hastighetsbegränsningar gäller                                                                 |
+| Leverantör        | Modeller                                                                                              | Kvot                                                                                                                                       | Så ansluter du                                                                                                      |
+| ----------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 och andra                                                 | Den granskade katalogen uppskattar en delad månadspott på 25K tokens                                                                       | OAuth-/kontoflöde; användarvillkoren är markerade med `avoid` i katalogen                                           |
+| **OpenCode Free** | Aktuell uppsättning av `*-free`-modeller i leverantörsregistret                                       | Nyckelfri; ingen publicerad tokengräns                                                                                                     | Inga leverantörsuppgifter krävs; användarvillkoren är markerade med `avoid`                                         |
+| **Pollinations**  | Aktuell uppsättning av nyckelfria modeller; vissa tidigare modeller har lagts ned eller kräver nyckel | Nyckelfri; ingen publicerad tokengräns                                                                                                     | Inga leverantörsuppgifter krävs för de nyckelfria modellerna                                                        |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 med flera                                 | Kostnadsfri API-nyckel (inga frekvensgränser, inget kort); **varje begäran loggas** för forskning (avregistrera dig på logfare.ai/consent) | Omedelbar nyckel på logfare.ai/register; användarvillkor/integritetspolicy på logfare.ai/tos och logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI-katalogen                                                                                  | Den granskade potten uppskattas till ~30M tokens/månad utifrån publicerade användningsenheter                                              | Cloudflare-konto och API-uppgifter                                                                                  |
+| **Gemini**        | Gemini Flash-familjen                                                                                 | Varierande frekvensgränser per projekt/modell; inget fast månatligt tokenbidrag ingår i huvuduppgiften                                     | API-nyckel för Google AI Studio; kontrollera projektets aktiva gränser                                              |
+| **Groq**          | Llama-, GPT-OSS- och Qwen-modeller                                                                    | Den granskade potten uppskattas till ~15M tokens/månad                                                                                     | Groq-API-nyckel; frekvensgränser gäller                                                                             |
 
-### Registreringsbonusar och leverantörsspecifika krediter
+### Registreringsbidrag och leverantörsspecifika krediter
 
-Dessa leverantörer ger dig **kostnadsfria krediter** när du registrerar dig:
+Dessa leverantörer erbjuder registreringsbidrag eller kampanjkrediter enligt sina behörighetsregler. Enligt verifieringen den 2026-10-08 kräver [Cerebras prissättning](https://www.cerebras.ai/pricing) en betalningsmetod för en engångskredit på $5 som löper ut efter 30 dagar; det är inte en återkommande tokenkvot. [Geminis frekvensgränser](https://ai.google.dev/gemini-api/docs/rate-limits) varierar beroende på projekt, modell och nivå, så de omvandlas inte till ett garanterat månatligt tokenbidrag.
 
-| Leverantör    | Kostnadsfria krediter                                                               | Modeller                    | Så får du dem                                                    |
-| ------------- | ----------------------------------------------------------------------------------- | --------------------------- | ---------------------------------------------------------------- |
-| **DeepSeek**  | 5 miljoner kostnadsfria token                                                       | DeepSeek V4                 | Registrera dig på platform.deepseek.com                          |
-| **LongCat**   | Engångsbonus på 10 miljoner token                                                   | LongCat 2.0                 | API-nyckel + KYC; användningsbaserad betalning efter bonusen     |
-| **Vertex AI** | Registreringskredit på $300, representerad som ~300 miljoner token i budgetmodellen | Gemini- och partnermodeller | Google Cloud-konto; regler för fakturering och behörighet gäller |
+| Leverantör    | Kostnadsfria krediter                                                  | Modeller                    | Så får du dem                                                  |
+| ------------- | ---------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------------- |
+| **Cerebras**  | Engångskampanjkredit på $5; löper ut efter 30 dagar                    | Aktuell inferenskatalog     | Konto och giltig betalningsmetod                               |
+| **DeepSeek**  | 5M kostnadsfria tokens                                                 | DeepSeek V4                 | Registrera dig på platform.deepseek.com                        |
+| **LongCat**   | Engångsbidrag på 10M tokens                                            | LongCat 2.0                 | API-nyckel + KYC; användningsbaserad betalning efter bidraget  |
+| **Vertex AI** | Registreringskredit på $300, motsvarande ~300M tokens i budgetmodellen | Gemini- och partnermodeller | Google Cloud-konto; fakturerings- och behörighetsregler gäller |
 
 ### Annan begränsad åtkomst
 
-Dessa leverantörer har **kostnadsfria nivåer** med specifika begränsningar:
+Dessa leverantörer har **kostnadsfria nivåer** med särskilda begränsningar:
 
-| Leverantör                 | Kostnadsfri gräns                                                                                    | Modeller                             | Passar bäst för |
-| -------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------- |
-| **GitHub Models**          | Granskad uppskattning för den delade poolen: ~18M token/månad                                        | Utvärdering av ett brett modellutbud |
-| **Hugging Face**           | Liten återkommande månadspool                                                                        | Experiment och modellvariation       |
-| **OpenRouter free models** | Delad pool med begärandebegränsning; en valfri engångspåfyllning ökar den återkommande tilldelningen | Bred reservkatalog                   |
-| **AI Horde**               | Nyckelfri gemenskapskapacitet; tillgängligheten varierar                                             | Opportunistisk distribuerad inferens |
+| Leverantör                 | Kostnadsfri gräns                                                                                          | Modeller                             | Passar bäst för |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------- |
+| **GitHub Models**          | Den granskade delade potten uppskattas till ~18M tokens/månad                                              | Utvärdering av ett brett modellutbud |
+| **Hugging Face**           | Liten återkommande månadspott                                                                              | Experiment och modellvariation       |
+| **OpenRouter free models** | Delad pott med begränsat antal begäranden; en valfri engångspåfyllning ökar den återkommande tilldelningen | Bred reservkatalog                   |
+| **AI Horde**               | Nyckelfri gemenskapskapacitet; tillgängligheten varierar                                                   | Opportunistisk distribuerad inferens |
 
 ---
 
-## Så staplar du kostnadsfria nivåer
+## Så kombinerar du kostnadsfria nivåer
 
-Det smarta med OmniRoute är att **stapla kostnadsfria nivåer**. I stället för att förlita dig på en enda leverantör ansluter du flera kostnadsfria leverantörer och låter OmniRoute automatiskt välja den bästa för varje begäran.
+Det smarta med OmniRoute är att **kombinera kostnadsfria nivåer**. I stället för att förlita dig på en enda leverantör ansluter du flera kostnadsfria leverantörer och låter OmniRoute automatiskt välja den bästa för varje begäran.
 
 ### Exempel: Bredare täckning med kostnadsfria nivåer
 
 Anslut flera leverantörer för att minska beroendet av en enskild kvot:
 
-1. **Gemini** — återkommande API-nyckelkvot
-2. **Groq** — återkommande API-nyckelkvot
+1. **Gemini** — återkommande kvot för API-nycklar
+2. **Groq** — återkommande kvot för API-nycklar
 3. **Pollinations** — nyckelfri, hastighetsbegränsad åtkomst
-4. **LongCat** — engångskrediter vid registrering (kräver KYC)
+4. **LongCat** — engångskredit vid registrering (kräver KYC)
 
-Använd sedan `model: "auto"` så kommer OmniRoute att:
+Använd sedan `model: "auto"`, så kommer OmniRoute att:
 
-- Först prova den högst rankade behöriga anslutningen
-- Om dess kvot är förbrukad eller hälsokontrollen misslyckas → prova nästa konfigurerade leverantör
+- Först prova den högst rankade kvalificerade anslutningen
+- Om dess kvot- eller hälsokontroll misslyckas → prova nästa konfigurerade leverantör
 - Om den nyckelfria leverantören inte är tillgänglig → fortsätta genom de återstående målen
-- Om alla misslyckas → använda LongCat som reserv
+- Om ingen kvalificerad anslutning lyckas → returnera ett fel; registreringskrediter kan endast användas så länge de är giltiga och tillgängliga
 
-**Resultat**: bredare täckning med kostnadsfria nivåer och automatisk reservväxling — inte en garanti för obegränsad kapacitet.
+**Resultat**: bredare täckning med kostnadsfria nivåer och automatisk reservlösning — inte en garanti för obegränsad kapacitet.
 
 ---
 
@@ -87,7 +87,7 @@ Använd sedan `model: "auto"` så kommer OmniRoute att:
 
 ### Steg 1: Öppna kontrollpanelen
 
-Gå till `http://localhost:20128` i webbläsaren.
+Gå till `http://localhost:20128` i din webbläsare.
 
 ### Steg 2: Gå till Leverantörer
 
@@ -101,13 +101,12 @@ Klicka på knappen **+ Lägg till leverantör**.
 
 Bläddra i katalogen och granska varje leverantörs aktuella metadata för `hasFree`, autentisering, kvot, integritet
 och användarvillkor. Leverantörskortet och
-[Referens för kostnadsfria nivåer](../reference/FREE_TIERS.md) skiljer mellan återkommande pooler,
+[Referens för kostnadsfria nivåer](../reference/FREE_TIERS.md) skiljer mellan återkommande potter,
 obegränsad/nyckelfri åtkomst, registreringskrediter, utgångna poster och källor med högre risk.
 
 ### Steg 5: Klicka på Anslut
 
-För en `NOAUTH`-leverantör krävs inga autentiseringsuppgifter. Leverantörer med OAuth och API-nycklar måste
-anslutas via deras dokumenterade kontoflöde.
+För en `NOAUTH`-leverantör begär OmniRoute inga autentiseringsuppgifter för den externa tjänsten. Detta garanterar inte att den externa tjänsten accepterar tredjepartsklienter eller har tillgänglig kapacitet. Leverantörer som använder OAuth och API-nycklar måste anslutas via deras dokumenterade kontoflöde. Din klient använder fortfarande OmniRoute API-nyckeln som visas under **Kontrollpanel → Slutpunkter** när routerautentisering är aktiverad.
 
 ### Steg 6: Upprepa
 
@@ -115,17 +114,17 @@ Anslut flera leverantörer vars villkor och integritetsmodell passar ditt använ
 
 ---
 
-## Så tolkar du katalogen korrekt
+## Läs katalogen korrekt
 
-- `NOAUTH` innebär att OmniRoute inte ber dig om autentiseringsuppgifter för leverantören; det
+- `NOAUTH` innebär att OmniRoute inte ber dig om autentiseringsuppgifter för en leverantör; det
   garanterar inte drifttid, integritet eller obegränsad kapacitet.
-- `hasFree` är metadata för identifiering. Det kan avse en återkommande kvot, nyckelfri åtkomst,
+- `hasFree` är metadata för identifiering. Det kan avse en återkommande kvot, åtkomst utan nyckel,
   registreringskredit, godkännandeprogram eller kampanj.
-- `recurring-uncapped` innebär att ingen publicerad tokengräns var tillgänglig; begränsningar för hastighet och
-  samtidighet gäller fortfarande.
-- `one-time-initial` återkommer inte efter att registreringskrediten har förbrukats.
-- `tos: avoid` är en varning om att granska leverantörens villkor och kontorisker före användning.
-- Poster markerade med `discontinued` finns kvar som historiskt underlag och får inte presenteras som
+- `recurring-uncapped` innebär att ingen publicerad tokengräns fanns tillgänglig; hastighets- och
+  samtidighetsgränser gäller fortfarande.
+- `one-time-initial` återkommer inte efter att registreringstilldelningen har förbrukats.
+- Leverantörer med `tos: avoid` utesluts som standard från automatisk dirigering (`excludeTosAvoid`). Att ansluta ett konto kringgår inte detta filter. Varje operatörsåsidosättning bör föregås av en granskning av leverantörens villkor och kontorisken.
+- Poster markerade med `discontinued` finns kvar som historisk dokumentation och får inte presenteras som
   kostnadsfria i nuläget.
 
 ---
@@ -158,21 +157,18 @@ leverantörs kvot- eller åtkomstpolicy.
 
 ---
 
-## Matematik för gratisnivån
+## Beräkning för kostnadsfria nivåer
 
-Den aktuella, pooldeduplicerade katalogen rapporterar för närvarande:
+Den aktiva katalogen, där delade pooler har deduplicerats, rapporterar för närvarande:
 
-| Mått                                                                 |                             Aktuellt granskat värde | Tolkning                                                                                                                                         |
-| -------------------------------------------------------------------- | --------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Återkommande kvantifierat tilldelning                                |                             **~1.62B tokens/månad** | Delade pooler räknas en gång; leverantörer utan tak ingår inte i summan                                                                          |
-| Första månaden med registreringstilldelningar                        |                                   **~2.22B tokens** | Återkommande totalsumma plus engångskrediter och återkommande krediter                                                                           |
-| Granskat lager av gratismodeller                                     | **35 återkommande poolnycklar / 482 katalogposter** | 475 aktiva + 7 avvecklade; skiljer sig från katalogen med 357 leverantörer                                                                       |
-| Representerade återkommande/nyckellösa gratisleverantörer för alltid |                                              **53** | Unika leverantörer för katalogtyperna återkommande dagliga/månatliga/kreditbaserade/utan tak samt nyckellösa; behörighetsstyrda rader exkluderas |
-| Leverantörskatalogposter markerade med `hasFree`                     |                                       **152 / 357** | Bredare leverantörsmetadata; alla har inte en kvantifierbar återkommande kvot                                                                    |
+| Mått                                     | Nuvarande granskade värde | Tolkning                                                                |
+| ---------------------------------------- | ------------------------: | ----------------------------------------------------------------------- |
+| Återkommande kvantifierad kvot           |   **~1.62B tokens/månad** | Delade pooler räknas en gång; leverantörer utan tak ingår inte i summan |
+| Första månaden med registreringskrediter |         **~2.22B tokens** | Återkommande total plus engångskrediter och återkommande krediter       |
 
-Dessa värden beräknas från `open-sse/config/freeModelCatalog.ts`; se
-[Referens för gratisnivåer](../reference/FREE_TIERS.md) för pooldeduplicering, ToS-flaggor,
-avvecklade poster och metodik för registreringskrediter.
+Detta är uppskattningar för hela katalogen, fördelade över separata berättigade konton, inte en kvot som tillhandahålls av OmniRoute eller en prognos för en ny installation. Din användbara kapacitet beror på vilka leverantörer du ansluter och deras aktuella villkor. Värdena beräknas från `open-sse/config/freeModelCatalog.ts`; se
+[Referens för kostnadsfria nivåer](../reference/FREE_TIERS.md) för deduplicering av pooler, flaggor för användarvillkor,
+avslutade poster och metodiken för registreringskrediter.
 
 ---
 

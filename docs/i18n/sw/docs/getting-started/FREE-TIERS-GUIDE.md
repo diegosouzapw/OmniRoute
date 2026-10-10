@@ -4,92 +4,89 @@
 
 ---
 
-> **Kwa ufupi**: OmniRoute husajili vitambulisho 357 vya watoa huduma, huku **maingizo 152 ya katalogi ya watoa huduma yakiwa yamewekewa alama ya `hasFree`**. Katalogi kali zaidi ya modeli zisizolipishwa iliyokaguliwa inajumuisha **funguo 35 za hifadhi zinazojirudia / maingizo 482** (475 yanayotumika + 7 yaliyositishwa). Unganisha watoa huduma kadhaa wanaofaa ili kupata uwezo mpana zaidi wa kutumia mbadala; kila kikomo cha matumizi, kanuni ya uidhinishaji, sera ya faragha na sharti la gharama za ziada zinazolipiwa bado hutumika.
+> **Kwa ufupi**: Tumia akaunti zako mwenyewe za watoa huduma zinazostahiki. OmniRoute huunganisha miunganisho unayosanidi; haitoi bajeti ya jumla ya tokeni iliyotangazwa. Ufikiaji bila malipo unaweza kuhitaji kujisajili, API key, idhini, au njia ya malipo. Vikomo, sera za faragha na masharti ya watoa huduma bado yanatumika.
 
 ---
 
-## Viwango Visizolipishwa Ni Nini?
+## Viwango vya Bure ni Nini?
 
-Watoa huduma wengi wa AI hutoa aina fulani ya **ufikiaji bila malipo**. Kulingana na mtoa huduma, hii inaweza
-kumaanisha endpoint isiyohitaji uthibitishaji, kiwango cha matumizi kinachojirudia, ufikiaji usio na kikomo cha jumla lakini wenye ukomo wa kasi, ruzuku ya kujisajili,
-uidhinishaji wa mtu, au ofa ya muda. Baadhi ya chaguo huhitaji akaunti, ufunguo wa API,
-kadi ya mkopo, KYC, au kukubali masharti mahususi ya mtoa huduma.
+Watoa huduma wengi wa AI hutoa aina fulani ya **ufikiaji bila malipo**. Kulingana na mtoa huduma, hii inaweza kumaanisha endpoint isiyohitaji uthibitishaji, kiasi cha matumizi kinachosasishwa mara kwa mara, ufikiaji usio na kikomo lakini wenye kikomo cha kasi, ruzuku ya kujisajili, idhini ya mwenyewe, au ofa ya muda. Baadhi ya chaguo huhitaji akaunti, API key, kadi ya mkopo, KYC, au ukubali masharti mahususi ya mtoa huduma.
 
-OmniRoute **hujumuisha** viwango hivi visizolipishwa katika endpoint moja. Badala ya kujisajili katika huduma 10 tofauti, unaziunganisha zote na OmniRoute na kutumia `model: "auto"` ili kuchagua kiotomatiki chaguo bora zaidi lisilolipishwa kwa kila ombi.
+OmniRoute **hujumuisha** miunganisho iliyosanidiwa katika endpoint moja. Bado unajisajili kando kwa kila mtoa huduma anayehitaji akaunti. Unganisha akaunti hizo na utumie `model: "auto"` kuelekeza maombi miongoni mwa malengo yanayostahiki. Usakinishaji mpya unaweza kukosa lengo lolote linalostahiki ambalo halihitaji key; kusakinisha OmniRoute pekee hakuhakikishi jibu la mazungumzo litakalofanikiwa.
 
 ---
 
-## Watoa Huduma Wawakilishi Wenye Ufikiaji Bila Malipo
+## Watoa Huduma Wakilishi wenye Ufikiaji Bila Malipo
 
-### Ufikiaji Unaorudiwa, Usiohitaji Ufunguo, au Usio na Kikomo cha Jumla
+### Ufikiaji Unaorudiwa, Usiohitaji Ufunguo, au Usio na Kikomo
 
-Watoa huduma hawa wana njia ya ufikiaji bila malipo inayojirudia, isiyohitaji ufunguo, au isiyo na kikomo cha jumla katika katalogi iliyokaguliwa. “Usio na kikomo cha jumla” humaanisha hakuna kikomo kilichochapishwa cha tokeni; vikomo vya kasi, matumizi ya wakati mmoja, akaunti, eneo na sera bado vinaweza kutumika:
+Watoa huduma hawa wana njia ya ufikiaji bila malipo inayorudiwa, isiyohitaji ufunguo, au isiyo na kikomo katika katalogi iliyokaguliwa. “Isiyo na kikomo” inamaanisha hakuna kikomo cha tokeni kilichochapishwa; vikomo vya kasi, miunganisho ya wakati mmoja, akaunti, maeneo na sera bado vinaweza kutumika:
 
-| Mtoa Huduma       | Modeli                                                                                                     | Kiwango cha Matumizi                                                                                                                                 | Jinsi ya Kuunganisha                                                                                        |
-| ----------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, na nyinginezo                                                 | Katalogi iliyokaguliwa inakadiria hifadhi ya pamoja ya tokeni 25K kwa mwezi                                                                          | Mtiririko wa OAuth/akaunti; ToS imewekewa alama `avoid` katika katalogi                                     |
-| **OpenCode Free** | Seti ya sasa ya modeli za `*-free` katika sajili ya mtoa huduma                                            | Haihitaji ufunguo; hakuna kikomo kilichochapishwa cha tokeni                                                                                         | Hakuna kitambulisho cha mtoa huduma; ToS imewekewa alama `avoid`                                            |
-| **Pollinations**  | Seti ya sasa ya modeli zisizohitaji ufunguo; baadhi ya modeli za zamani zimesitishwa au zinahitaji ufunguo | Haihitaji ufunguo; hakuna kikomo kilichochapishwa cha tokeni                                                                                         | Hakuna kitambulisho cha mtoa huduma kwa modeli zisizohitaji ufunguo                                         |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, na nyinginezo                                 | Ufunguo wa API bila malipo (hakuna vikomo vya kasi, hakuna kadi); **kila ombi hurekodiwa** kwa ajili ya utafiti (jiondoe kupitia logfare.ai/consent) | Pata ufunguo papo hapo kupitia logfare.ai/register; ToS/faragha katika logfare.ai/tos na logfare.ai/privacy |
-| **Cloudflare AI** | Katalogi ya Workers AI                                                                                     | Hifadhi iliyokaguliwa inakadiria ~30M za tokeni/mwezi kutokana na vipimo vya matumizi vilivyochapishwa                                               | Akaunti ya Cloudflare na vitambulisho vya API                                                               |
-| **Gemini**        | Familia ya Gemini Flash                                                                                    | Hifadhi iliyokaguliwa inakadiria ~60M za tokeni/mwezi                                                                                                | Ufunguo wa API wa Google AI Studio; vikomo vya kasi vinatumika                                              |
-| **Groq**          | Modeli za Llama, GPT-OSS, na Qwen                                                                          | Hifadhi iliyokaguliwa inakadiria ~15M za tokeni/mwezi                                                                                                | Ufunguo wa API wa Groq; vikomo vya kasi vinatumika                                                          |
-| **Cerebras**      | GLM 4.7 na GPT-OSS 120B                                                                                    | Hifadhi iliyokaguliwa inakadiria ~30M za tokeni/mwezi                                                                                                | Ufunguo wa API wa Cerebras; vikomo vya kasi vinatumika                                                      |
+| Mtoa Huduma       | Modeli                                                                                                     | Kiwango                                                                                                                                               | Jinsi ya Kuunganisha                                                                                       |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, na nyinginezo                                                 | Katalogi iliyokaguliwa inakadiria hazina ya pamoja ya tokeni 25K kwa mwezi                                                                            | Mtiririko wa OAuth/akaunti; ToS imetiwa alama `avoid` katika katalogi                                      |
+| **OpenCode Free** | Seti ya sasa ya modeli za `*-free` katika sajili ya mtoa huduma                                            | Haihitaji ufunguo; hakuna kikomo cha tokeni kilichochapishwa                                                                                          | Hakuna kitambulisho cha mtoa huduma; ToS imetiwa alama `avoid`                                             |
+| **Pollinations**  | Seti ya sasa ya modeli zisizohitaji ufunguo; baadhi ya modeli za zamani zimesitishwa au zinahitaji ufunguo | Haihitaji ufunguo; hakuna kikomo cha tokeni kilichochapishwa                                                                                          | Hakuna kitambulisho cha mtoa huduma kwa modeli zisizohitaji ufunguo                                        |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, na nyinginezo                                 | Ufunguo wa API bila malipo (hakuna vikomo vya kasi, hakuna kadi); **kila ombi linarekodiwa** kwa ajili ya utafiti (jiondoe katika logfare.ai/consent) | Pata ufunguo papo hapo katika logfare.ai/register; ToS/faragha katika logfare.ai/tos na logfare.ai/privacy |
+| **Cloudflare AI** | Katalogi ya Workers AI                                                                                     | Hazina iliyokaguliwa inakadiria takriban tokeni 30M kwa mwezi kutokana na vipimo vya matumizi vilivyochapishwa                                        | Akaunti ya Cloudflare na vitambulisho vya API                                                              |
+| **Gemini**        | Familia ya Gemini Flash                                                                                    | Vikomo vya kasi vinavyotofautiana kulingana na mradi/modeli; hakuna mgao maalumu wa kila mwezi wa tokeni uliojumuishwa katika muhtasari               | Ufunguo wa API wa Google AI Studio; angalia vikomo vinavyotumika vya mradi                                 |
+| **Groq**          | Modeli za Llama, GPT-OSS, na Qwen                                                                          | Hazina iliyokaguliwa inakadiria takriban tokeni 15M kwa mwezi                                                                                         | Ufunguo wa API wa Groq; vikomo vya kasi vinatumika                                                         |
 
-### Ruzuku za Kujisajili na Salio Mahususi la Mtoa Huduma
+### Migawo ya Kujisajili na Salio Maalumu kwa Watoa Huduma
 
-Watoa huduma hawa hukupa **salio lisilolipishwa** unapojisajili:
+Watoa huduma hawa hutoa migawo ya kujisajili au salio la matangazo, kulingana na masharti yao ya ustahiki. Kama ilivyothibitishwa tarehe 2026-10-08, [bei za Cerebras](https://www.cerebras.ai/pricing) zinahitaji njia ya malipo ili kupata salio la mara moja la $5 ambalo muda wake unaisha baada ya siku 30; si kiwango cha tokeni kinachorudiwa. [Vikomo vya kasi vya Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) hutofautiana kulingana na mradi, modeli na daraja, kwa hivyo havibadilishwi kuwa mgao wa tokeni wa kila mwezi uliohakikishwa.
 
-| Mtoa Huduma   | Salio Lisilolipishwa                                                                       | Modeli                        | Jinsi ya Kulipata                                                |
-| ------------- | ------------------------------------------------------------------------------------------ | ----------------------------- | ---------------------------------------------------------------- |
-| **DeepSeek**  | Tokeni 5M bila malipo                                                                      | DeepSeek V4                   | Jisajili kupitia platform.deepseek.com                           |
-| **LongCat**   | Ruzuku ya mara moja ya tokeni 10M                                                          | LongCat 2.0                   | Ufunguo wa API + KYC; lipia kadiri unavyotumia baada ya ruzuku   |
-| **Vertex AI** | Salio la kujisajili la $300, linalowakilishwa kama ~300M za tokeni katika modeli ya bajeti | Gemini na modeli za washirika | Akaunti ya Google Cloud; kanuni za malipo na ustahiki zinatumika |
+| Mtoa Huduma   | Salio Bila Malipo                                                                              | Modeli                         | Jinsi ya Kulipata                                                 |
+| ------------- | ---------------------------------------------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------- |
+| **Cerebras**  | Salio la matangazo la mara moja la $5; muda wake unaisha baada ya siku 30                      | Katalogi ya sasa ya uinferensi | Akaunti na njia halali ya malipo                                  |
+| **DeepSeek**  | Tokeni 5M bila malipo                                                                          | DeepSeek V4                    | Jisajili katika platform.deepseek.com                             |
+| **LongCat**   | Mgao wa mara moja wa tokeni 10M                                                                | LongCat 2.0                    | Ufunguo wa API + KYC; lipa kadiri unavyotumia baada ya mgao       |
+| **Vertex AI** | Salio la kujisajili la $300 linalowakilishwa kama takriban tokeni 300M katika modeli ya bajeti | Gemini na modeli za washirika  | Akaunti ya Google Cloud; sheria za utozaji na ustahiki zinatumika |
 
-### Ufikiaji Mwingine Wenye Kikomo
+### Ufikiaji Mwingine wenye Vikomo
 
-Watoa huduma hawa wana **viwango visizolipishwa** vyenye vikomo mahususi:
+Watoa huduma hawa wana **madaraja ya bila malipo** yenye vikomo maalumu:
 
-| Mtoa huduma                | Kikomo cha Bure                                                                                   | Miundo                                 | Inafaa Zaidi Kwa |
-| -------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------- |
-| **GitHub Models**          | Makadirio ya kundi la pamoja lililokaguliwa ni takriban tokeni milioni 18 kwa mwezi               | Tathmini pana ya miundo                |
-| **Hugging Face**           | Kundi dogo linalojirudia kila mwezi                                                               | Majaribio na aina mbalimbali za miundo |
-| **OpenRouter free models** | Kundi la pamoja lenye kikomo cha maombi; nyongeza ya hiari ya mara moja huongeza mgao unaojirudia | Orodha pana ya chaguo mbadala          |
-| **AI Horde**               | Uwezo wa jumuiya usiohitaji ufunguo; upatikanaji hutofautiana                                     | Utekelezaji wa fursa uliosambazwa      |
+| Mtoa Huduma                | Kikomo cha Bila Malipo                                                                            | Modeli                                   | Inafaa Zaidi Kwa |
+| -------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------- |
+| **GitHub Models**          | Hazina ya pamoja iliyokaguliwa inakadiria takriban tokeni 18M kwa mwezi                           | Tathmini pana ya modeli                  |
+| **Hugging Face**           | Hazina ndogo inayorudiwa kila mwezi                                                               | Majaribio na aina mbalimbali za modeli   |
+| **OpenRouter free models** | Hazina ya pamoja yenye kikomo cha maombi; nyongeza ya hiari ya mara moja huongeza mgao unaorudiwa | Katalogi pana ya akiba                   |
+| **AI Horde**               | Uwezo wa jumuiya usiohitaji ufunguo; upatikanaji hutofautiana                                     | Uinferensi uliosambazwa wa kutumia fursa |
 
 ---
 
-## Jinsi ya Kukusanya Viwango vya Bure
+## Jinsi ya Kuunganisha Viwango vya Bila Malipo
 
-Uwezo wa kipekee wa OmniRoute ni **kukusanya viwango vya bure**. Badala ya kutegemea mtoa huduma mmoja, unaunganisha watoa huduma wengi wa bure na kuiruhusu OmniRoute kuchagua kiotomatiki aliye bora zaidi kwa kila ombi.
+Uwezo wa kipekee wa OmniRoute ni **kuunganisha viwango vya bila malipo**. Badala ya kutegemea mtoa huduma mmoja, unaunganisha watoa huduma wengi wa bila malipo na kuiruhusu OmniRoute ichague kiotomatiki mtoa huduma bora kwa kila ombi.
 
-### Mfano: Wigo Mpana wa Viwango vya Bure
+### Mfano: Ufikiaji Mpana Zaidi wa Viwango vya Bila Malipo
 
-Unganisha watoa huduma kadhaa ili kupunguza utegemezi wa kikomo chochote kimoja:
+Unganisha watoa huduma kadhaa ili kupunguza utegemezi wa kiwango chochote kimoja cha matumizi:
 
-1. **Gemini** — kikomo kinachojirudia cha ufunguo wa API
-2. **Groq** — kikomo kinachojirudia cha ufunguo wa API
-3. **Pollinations** — ufikiaji usiohitaji ufunguo, wenye kiwango kilichowekewa kikomo
-4. **LongCat** — mgao wa mara moja wa kujisajili (unahitaji KYC)
+1. **Gemini** — kiwango cha matumizi cha ufunguo wa API kinachojirudia
+2. **Groq** — kiwango cha matumizi cha ufunguo wa API kinachojirudia
+3. **Pollinations** — ufikiaji usiohitaji ufunguo, wenye kikomo cha kasi ya maombi
+4. **LongCat** — mgao wa mara moja baada ya kujisajili (unahitaji KYC)
 
 Kisha tumia `model: "auto"` na OmniRoute itafanya yafuatayo:
 
-- Kujaribu kwanza muunganisho unaostahiki uliopewa nafasi ya juu zaidi
-- Ikiwa kikomo chake au ukaguzi wa hali utashindwa → kujaribu mtoa huduma anayefuata aliyesanidiwa
+- Kujaribu kwanza muunganisho unaostahiki wenye nafasi ya juu zaidi
+- Ikiwa kiwango chake cha matumizi kimefikiwa au ukaguzi wa hali unashindwa → kujaribu mtoa huduma anayefuata aliyesanidiwa
 - Ikiwa mtoa huduma asiyehitaji ufunguo hapatikani → kuendelea kupitia malengo yaliyosalia
-- Ikiwa yote yatashindwa → kutumia LongCat kama chaguo la akiba
+- Ikiwa hakuna muunganisho unaostahiki unaofanikiwa → kurejesha hitilafu; salio la kujisajili linaweza kutumika tu wakati bado ni halali na linapatikana
 
-**Matokeo**: wigo mpana wa viwango vya bure wenye urejeshaji wa kiotomatiki — si hakikisho la uwezo usio na kikomo.
+**Matokeo**: ufikiaji mpana zaidi wa viwango vya bila malipo wenye mbinu ya kiotomatiki ya kutumia chaguo mbadala — si hakikisho la uwezo usio na kikomo.
 
 ---
 
-## Jinsi ya Kuunganisha Watoa Huduma wa Bure
+## Jinsi ya Kuunganisha Watoa Huduma Bila Malipo
 
 ### Hatua ya 1: Fungua Dashibodi
 
 Nenda kwenye `http://localhost:20128` katika kivinjari chako.
 
-### Hatua ya 2: Nenda kwa Watoa Huduma
+### Hatua ya 2: Nenda kwenye Watoa Huduma
 
 Bofya **Watoa Huduma** katika utepe wa pembeni.
 
@@ -97,36 +94,35 @@ Bofya **Watoa Huduma** katika utepe wa pembeni.
 
 Bofya kitufe cha **+ Ongeza Mtoa Huduma**.
 
-### Hatua ya 4: Chagua Mtoa Huduma wa Bure
+### Hatua ya 4: Chagua Mtoa Huduma Bila Malipo
 
-Vinjari katalogi na uchunguze metadata ya sasa ya `hasFree`, uthibitishaji, kikomo, faragha,
-na ToS ya kila mtoa huduma. Kadi ya mtoa huduma na
-[Rejeleo la Viwango vya Bure](../reference/FREE_TIERS.md) hutofautisha makundi yanayojirudia,
-ufikiaji usio na kikomo/usiotumia ufunguo, salio la kujisajili, maingizo yaliyositishwa, na vyanzo vyenye hatari kubwa zaidi.
+Vinjari katalogi na ukague metadata ya sasa ya `hasFree`, uthibitishaji, kikomo cha matumizi, faragha,
+na Masharti ya Huduma ya kila mtoa huduma. Kadi ya mtoa huduma na
+[Marejeleo ya Viwango vya Bila Malipo](../reference/FREE_TIERS.md) hutofautisha mgao unaojirudia,
+ufikiaji usio na kikomo/usiohitaji ufunguo, salio la kujisajili, vipengee vilivyositishwa, na vyanzo vyenye hatari kubwa zaidi.
 
 ### Hatua ya 5: Bofya Unganisha
 
-Kwa mtoa huduma wa `NOAUTH`, kitambulisho hakihitajiki. Watoa huduma wa OAuth na ufunguo wa API lazima
-waunganishwe kupitia mchakato wao wa akaunti uliowekwa kwenye nyaraka.
+Kwa mtoa huduma wa `NOAUTH`, OmniRoute haiombi kitambulisho cha ufikiaji cha huduma ya juu. Hii haihakikishi kwamba huduma ya juu inakubali programu za wahusika wengine au ina uwezo unaopatikana. Watoa huduma wa OAuth na API-key lazima waunganishwe kupitia mtiririko wao wa akaunti ulioandikwa. Programu yako bado hutumia ufunguo wa API wa OmniRoute unaoonyeshwa katika **Dashibodi → Vituo vya Mwisho** wakati uthibitishaji wa kipanga-njia umewashwa.
 
 ### Hatua ya 6: Rudia
 
-Unganisha watoa huduma kadhaa ambao masharti na muundo wao wa faragha unafaa hali yako ya matumizi.
+Unganisha watoa huduma kadhaa ambao masharti na muundo wao wa faragha unafaa matumizi yako.
 
 ---
 
 ## Kusoma Katalogi kwa Usahihi
 
 - `NOAUTH` inamaanisha OmniRoute haikuombi kitambulisho cha mtoa huduma; haihakikishi
-  muda wa upatikanaji, faragha, au uwezo usio na kikomo.
-- `hasFree` ni metadata ya ugunduzi. Inaweza kuwakilisha kikomo kinachojirudia, ufikiaji usiotumia ufunguo,
-  salio la kujisajili, mpango wa idhini, au ofa.
-- `recurring-uncapped` inamaanisha kuwa hakuna kiwango cha juu cha tokeni kilichochapishwa kilichopatikana; vikomo vya kiwango na
-  matumizi sambamba bado vinatumika.
-- `one-time-initial` haijirudii baada ya mgao wa kujisajili kutumika.
-- `tos: avoid` ni onyo la kukagua masharti ya mtoa huduma na hatari ya akaunti kabla ya matumizi.
-- Maingizo yaliyowekwa alama ya `discontinued` yanasalia kama ushahidi wa kihistoria na hayapaswi kuwasilishwa kama
-  yanayopatikana bure kwa sasa.
+  muda wa huduma, faragha, au uwezo usio na kikomo.
+- `hasFree` ni metadata ya ugunduzi. Inaweza kuwakilisha mgao unaojirudia, ufikiaji usiohitaji ufunguo,
+  salio la kujisajili, mpango wa kuidhinishwa, au ofa.
+- `recurring-uncapped` inamaanisha kwamba hakuna kikomo cha tokeni kilichochapishwa kilichopatikana; vikomo vya kasi na
+  miunganisho ya wakati mmoja bado vinatumika.
+- `one-time-initial` haijirudii baada ya mgao wa kujisajili kuisha.
+- Watoa huduma wenye alama ya `tos: avoid` huondolewa kwenye uelekezaji wa kiotomatiki kwa chaguo-msingi (`excludeTosAvoid`). Kuunganisha akaunti hakupuuzi kichujio hiki. Ubatilishaji wowote wa opereta unapaswa kufanywa baada ya kukagua masharti ya mtoa huduma na hatari ya akaunti.
+- Maingizo yenye alama ya `discontinued` hubaki kama ushahidi wa kihistoria na hayapaswi kuwasilishwa kama
+  yanayopatikana bila malipo kwa sasa.
 
 ---
 
@@ -158,21 +154,18 @@ kikomo au sera ya ufikiaji ya mtoa huduma.
 
 ---
 
-## Hesabu za Kiwango cha Bure
+## Hesabu za Kiwango cha Bila Malipo
 
-Katalogi hai, iliyoondolewa marudio kulingana na hifadhi za pamoja, kwa sasa inaripoti:
+Katalogi inayotumika sasa, baada ya kuondoa nakala katika hifadhi shirikishi, inaripoti:
 
-| Kipimo                                                                       |                                     Thamani ya sasa iliyokaguliwa | Ufafanuzi                                                                                                                                                                       |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Mgao unaojirudia uliokokotolewa                                              |                                    **~tokeni bilioni 1.62/mwezi** | Hifadhi za pamoja zimehesabiwa mara moja; watoa huduma wasio na kikomo wameondolewa kwenye jumla                                                                                |
-| Mwezi wa kwanza wenye mgao wa kujisajili                                     |                                          **~tokeni bilioni 2.22** | Jumla inayojirudia pamoja na salio la mara moja na linalojirudia                                                                                                                |
-| Orodha ya modeli za bure iliyokaguliwa                                       | **funguo 35 za hifadhi zinazojirudia / maingizo 482 ya katalogi** | 475 yanayotumika + 7 yaliyositishwa; ni tofauti na katalogi ya watoa huduma 357                                                                                                 |
-| Watoa huduma wa bure milele wanaojirudia/wasiohitaji ufunguo waliowakilishwa |                                                            **53** | Watoa huduma wa kipekee katika aina za katalogi zinazojirudia kila siku/kila mwezi/kwa salio/bila kikomo na zisizohitaji ufunguo; safu zinazodhibitiwa na ustahiki zimeondolewa |
-| Maingizo ya katalogi ya watoa huduma yaliyowekwa alama ya `hasFree`          |                                                     **152 / 357** | Metadata pana zaidi ya watoa huduma; si zote zina kiasi kinachojirudia kinachoweza kukokotolewa                                                                                 |
+| Kipimo                                   | Thamani ya sasa iliyokaguliwa | Ufafanuzi                                                                                            |
+| ---------------------------------------- | ----------------------------: | ---------------------------------------------------------------------------------------------------- |
+| Mgao unaojirudia uliokokotolewa          |       **~1.62B tokeni/mwezi** | Hifadhi shirikishi zimehesabiwa mara moja; watoa huduma wasio na kikomo hawajajumuishwa kwenye jumla |
+| Mwezi wa kwanza wenye mgao wa kujisajili |             **~2.22B tokeni** | Jumla inayojirudia pamoja na mikopo ya mara moja na inayojirudia                                     |
 
-Thamani hizi zimekokotolewa kutoka `open-sse/config/freeModelCatalog.ts`; tazama
-[Marejeleo ya Viwango vya Bure](../reference/FREE_TIERS.md) kwa uondoaji wa marudio ya hifadhi za pamoja, alama za ToS,
-maingizo yaliyositishwa, na mbinu ya salio la kujisajili.
+Haya ni makadirio ya katalogi nzima katika akaunti tofauti zinazostahiki, si mgao unaotolewa na OmniRoute wala utabiri wa usakinishaji mpya. Kiwango unachoweza kutumia kinategemea watoa huduma unaowaunganisha na masharti yao ya sasa. Thamani hizi hukokotolewa kutoka `open-sse/config/freeModelCatalog.ts`; angalia
+[Rejeleo la Viwango vya Bila Malipo](../reference/FREE_TIERS.md) kwa uondoaji wa nakala katika hifadhi shirikishi, viashiria vya ToS,
+vipengee vilivyositishwa, na mbinu ya kukokotoa mikopo ya kujisajili.
 
 ---
 

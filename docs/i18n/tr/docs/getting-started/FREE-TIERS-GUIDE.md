@@ -4,94 +4,91 @@
 
 ---
 
-> **Kısaca**: OmniRoute, **`hasFree` olarak işaretlenmiş 152 sağlayıcı kataloğu girdisiyle** 357 sağlayıcı kimliği kaydeder. Daha sıkı şekilde denetlenmiş ücretsiz model kataloğu, **35 yinelenen havuz anahtarını / 482 girdiyi** (475 etkin + 7 kullanımdan kaldırılmış) kapsar. Daha geniş yedek kapasitesi için uygun birkaç sağlayıcıyı bağlayın; tüm kota, onay kuralı, gizlilik politikası ve ücretli kota aşımı koşulları geçerliliğini korur.
+> **Kısaca**: Uygun sağlayıcı hesaplarınızı kendiniz getirin. OmniRoute, yapılandırdığınız bağlantıları birleştirir; ilan edilen toplam token bütçesini kendisi sağlamaz. Ücretsiz erişim; kayıt, API anahtarı, onay veya ödeme yöntemi gerektirebilir. Sağlayıcı limitleri, gizlilik politikaları ve kullanım koşulları geçerliliğini korur.
 
 ---
 
 ## Ücretsiz Katmanlar Nedir?
 
-Birçok yapay zekâ sağlayıcısı bir tür **ücretsiz erişim** sunar. Sağlayıcıya bağlı olarak bu;
-kimlik doğrulaması gerektirmeyen bir uç nokta, yinelenen kota, hız sınırlamalı ancak üst sınırı olmayan erişim, kayıt hibesi,
-manuel onay veya geçici bir promosyon anlamına gelebilir. Bazı seçenekler hesap, API anahtarı,
-kredi kartı, KYC veya sağlayıcıya özgü koşulların kabulünü gerektirir.
+Birçok yapay zekâ sağlayıcısı bir tür **ücretsiz erişim** sunar. Sağlayıcıya bağlı olarak bu; kimlik doğrulama gerektirmeyen bir uç nokta, yenilenen kota, hız sınırlı ancak kullanım kotası olmayan erişim, kayıt bonusu, manuel onay veya geçici bir promosyon anlamına gelebilir. Bazı seçenekler hesap, API anahtarı, kredi kartı, KYC veya sağlayıcıya özel koşulların kabul edilmesini gerektirir.
 
-OmniRoute, bu ücretsiz katmanları tek bir uç noktada **bir araya getirir**. 10 farklı hizmete ayrı ayrı kaydolmak yerine hepsini OmniRoute'a bağlayabilir ve her istek için en iyi ücretsiz seçeneğin otomatik olarak belirlenmesi amacıyla `model: "auto"` kullanabilirsiniz.
+OmniRoute, yapılandırılmış bağlantıları tek bir uç noktada **birleştirir**. Hesap gerektiren her sağlayıcıya yine ayrı ayrı kaydolmanız gerekir. Bu hesapları bağlayın ve uygun hedefler arasında yönlendirme yapmak için `model: "auto"` kullanın. Yeni bir kurulumda anahtarsız uygun bir hedef bulunmayabilir; yalnızca OmniRoute'u kurmak, başarılı bir sohbet yanıtını garanti etmez.
 
 ---
 
-## Ücretsiz Erişim Sunan Temsilî Sağlayıcılar
+## Temsili Ücretsiz Erişim Sağlayıcıları
 
 ### Yinelenen, Anahtarsız veya Üst Sınırsız Erişim
 
-Bu sağlayıcılar, denetlenmiş katalogda yinelenen, anahtarsız veya üst sınırsız bir ücretsiz erişim yoluna sahiptir. “Üst sınırsız”, yayımlanmış bir token üst sınırı olmadığı anlamına gelir; hız, eşzamanlılık, hesap, bölge ve politika sınırları yine de geçerli olabilir:
+Bu sağlayıcılar, denetlenen katalogda yinelenen, anahtarsız veya üst sınırı olmayan bir ücretsiz erişim yolu sunar. “Üst sınırsız”, yayımlanmış bir token üst sınırı olmadığı anlamına gelir; hız, eşzamanlılık, hesap, bölge ve politika sınırları yine de geçerli olabilir:
 
-| Sağlayıcı         | Modeller                                                                                              | Kota                                                                                                                                                                           | Nasıl Bağlanılır                                                                                      |
-| ----------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ve diğerleri                                              | Denetlenmiş katalog, aylık 25K tokenlık ortak bir havuz öngörür                                                                                                                | OAuth/hesap akışı; ToS katalogda `avoid` olarak işaretlenmiştir                                       |
-| **OpenCode Free** | Sağlayıcı kayıt defterindeki mevcut `*-free` model kümesi                                             | Anahtarsız; yayımlanmış bir token üst sınırı yoktur                                                                                                                            | Sağlayıcı kimlik bilgisi gerekmez; ToS `avoid` olarak işaretlenmiştir                                 |
-| **Pollinations**  | Mevcut anahtarsız model kümesi; bazı eski modeller kullanımdan kaldırılmıştır veya anahtar gerektirir | Anahtarsız; yayımlanmış bir token üst sınırı yoktur                                                                                                                            | Anahtarsız modeller için sağlayıcı kimlik bilgisi gerekmez                                            |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ve diğerleri                              | Ücretsiz API anahtarı (hız sınırı ve kart gerekmez); araştırma amacıyla **her istek günlüğe kaydedilir** (logfare.ai/consent adresinden kapsam dışında kalmayı seçebilirsiniz) | logfare.ai/register adresinden anında anahtar; ToS/gizlilik için logfare.ai/tos ve logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI kataloğu                                                                                   | Denetlenmiş havuz, yayımlanmış kullanım birimlerine göre ayda ~30M token öngörür                                                                                               | Cloudflare hesabı ve API kimlik bilgileri                                                             |
-| **Gemini**        | Gemini Flash ailesi                                                                                   | Denetlenmiş havuz ayda ~60M token öngörür                                                                                                                                      | Google AI Studio API anahtarı; hız sınırları geçerlidir                                               |
-| **Groq**          | Llama, GPT-OSS ve Qwen modelleri                                                                      | Denetlenmiş havuz ayda ~15M token öngörür                                                                                                                                      | Groq API anahtarı; hız sınırları geçerlidir                                                           |
-| **Cerebras**      | GLM 4.7 ve GPT-OSS 120B                                                                               | Denetlenmiş havuz ayda ~30M token öngörür                                                                                                                                      | Cerebras API anahtarı; hız sınırları geçerlidir                                                       |
+| Sağlayıcı         | Modeller                                                                                              | Kota                                                                                                                                                      | Nasıl Bağlanılır                                                                                                                         |
+| ----------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ve diğerleri                                              | Denetlenen katalog, aylık 25K tokenlık paylaşılan bir havuz öngörüyor                                                                                     | OAuth/hesap akışı; Hizmet Koşulları katalogda `avoid` olarak işaretlenmiş                                                                |
+| **OpenCode Free** | Sağlayıcı kayıt defterindeki mevcut `*-free` model kümesi                                             | Anahtarsız; yayımlanmış token üst sınırı yok                                                                                                              | Sağlayıcı kimlik bilgisi gerekmez; Hizmet Koşulları `avoid` olarak işaretlenmiş                                                          |
+| **Pollinations**  | Mevcut anahtarsız model kümesi; önceki bazı modeller kullanımdan kaldırıldı veya anahtar gerektiriyor | Anahtarsız; yayımlanmış token üst sınırı yok                                                                                                              | Anahtarsız modeller için sağlayıcı kimlik bilgisi gerekmez                                                                               |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ve daha fazlası                           | Ücretsiz API anahtarı (hız sınırı ve kart gerekmez); araştırma amacıyla **her istek kaydedilir** (logfare.ai/consent adresinden devre dışı bırakılabilir) | logfare.ai/register adresinden anında anahtar; Hizmet Koşulları ve gizlilik bilgileri logfare.ai/tos ile logfare.ai/privacy adreslerinde |
+| **Cloudflare AI** | Workers AI kataloğu                                                                                   | Denetlenen havuz, yayımlanmış kullanım birimlerine göre ayda yaklaşık 30M token öngörüyor                                                                 | Cloudflare hesabı ve API kimlik bilgileri                                                                                                |
+| **Gemini**        | Gemini Flash ailesi                                                                                   | Projeye/modele göre değişen hız sınırları; başlıkta sabit bir aylık token tahsisi belirtilmemiştir                                                        | Google AI Studio API anahtarı; projenin etkin sınırlarını kontrol edin                                                                   |
+| **Groq**          | Llama, GPT-OSS ve Qwen modelleri                                                                      | Denetlenen havuz, ayda yaklaşık 15M token öngörüyor                                                                                                       | Groq API anahtarı; hız sınırları geçerlidir                                                                                              |
 
 ### Kayıt Hibeleri ve Sağlayıcıya Özgü Krediler
 
-Bu sağlayıcılar kaydolduğunuzda size **ücretsiz kredi** verir:
+Bu sağlayıcılar, uygunluk kurallarına tabi olarak kayıt hibeleri veya promosyon kredileri sunar. 2026-10-08 tarihinde doğrulandığı üzere, [Cerebras fiyatlandırması](https://www.cerebras.ai/pricing), 30 gün sonra sona eren tek seferlik $5 kredi için bir ödeme yöntemi gerektirir; bu, yinelenen bir token kotası değildir. [Gemini hız sınırları](https://ai.google.dev/gemini-api/docs/rate-limits) projeye, modele ve katmana göre değiştiğinden, garantili aylık token tahsisine dönüştürülmez.
 
-| Sağlayıcı     | Ücretsiz Krediler                                                   | Modeller                      | Nasıl Alınır                                                         |
-| ------------- | ------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------- |
-| **DeepSeek**  | 5M ücretsiz token                                                   | DeepSeek V4                   | platform.deepseek.com adresinden kaydolun                            |
-| **LongCat**   | Tek seferlik 10M token hibesi                                       | LongCat 2.0                   | API anahtarı + KYC; hibe sonrasında kullandıkça ödeme                |
-| **Vertex AI** | Bütçe modelinde ~300M token olarak temsil edilen $300 kayıt kredisi | Gemini ve iş ortağı modelleri | Google Cloud hesabı; faturalandırma ve uygunluk kuralları geçerlidir |
+| Sağlayıcı     | Ücretsiz Krediler                                                        | Modeller                      | Nasıl Alınır                                                         |
+| ------------- | ------------------------------------------------------------------------ | ----------------------------- | -------------------------------------------------------------------- |
+| **Cerebras**  | Tek seferlik $5 promosyon kredisi; 30 gün sonra sona erer                | Mevcut çıkarım kataloğu       | Hesap ve geçerli ödeme yöntemi                                       |
+| **DeepSeek**  | 5M ücretsiz token                                                        | DeepSeek V4                   | platform.deepseek.com adresinden kaydolun                            |
+| **LongCat**   | Tek seferlik 10M token hibesi                                            | LongCat 2.0                   | API anahtarı + KYC; hibe sonrasında kullandıkça öde                  |
+| **Vertex AI** | Bütçe modelinde yaklaşık 300M token olarak gösterilen $300 kayıt kredisi | Gemini ve iş ortağı modelleri | Google Cloud hesabı; faturalandırma ve uygunluk kuralları geçerlidir |
 
 ### Diğer Sınırlı Erişim Seçenekleri
 
-Bu sağlayıcılar, belirli sınırlara sahip **ücretsiz katmanlar** sunar:
+Bu sağlayıcıların belirli sınırlara sahip **ücretsiz katmanları** vardır:
 
-| Sağlayıcı                  | Ücretsiz Limit                                                                                                    | Modeller                             | En Uygun Olduğu Alan |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------------- |
-| **GitHub Models**          | Denetlenen ortak havuz tahmini: ayda ~18 milyon token                                                             | Geniş kapsamlı model değerlendirmesi |
-| **Hugging Face**           | Aylık olarak yenilenen küçük havuz                                                                                | Deneyler ve model çeşitliliği        |
-| **OpenRouter free models** | İstek sayısıyla sınırlı ortak havuz; isteğe bağlı tek seferlik bakiye yükleme, yinelenen kullanım hakkını artırır | Geniş kapsamlı yedek model kataloğu  |
-| **AI Horde**               | Anahtarsız topluluk kapasitesi; kullanılabilirlik değişiklik gösterir                                             | Fırsata dayalı dağıtık çıkarım       |
+| Sağlayıcı                         | Ücretsiz Sınır                                                                                      | Modeller                             | En Uygun Kullanım |
+| --------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ | ----------------- |
+| **GitHub Models**                 | Denetlenen paylaşılan havuz, ayda yaklaşık 18M token öngörüyor                                      | Geniş kapsamlı model değerlendirmesi |
+| **Hugging Face**                  | Küçük, yinelenen aylık havuz                                                                        | Deneyler ve model çeşitliliği        |
+| **OpenRouter ücretsiz modelleri** | Paylaşılan, istek sınırlı havuz; isteğe bağlı tek seferlik bakiye yükleme, yinelenen kotayı artırır | Geniş kapsamlı yedek model kataloğu  |
+| **AI Horde**                      | Anahtarsız topluluk kapasitesi; kullanılabilirlik değişir                                           | Fırsata dayalı dağıtılmış çıkarım    |
 
 ---
 
 ## Ücretsiz Katmanlar Nasıl Birleştirilir?
 
-OmniRoute'un sihri, **ücretsiz katmanları birleştirmesinde** yatar. Tek bir sağlayıcıya bağlı kalmak yerine birden fazla ücretsiz sağlayıcı bağlar ve OmniRoute'un her istek için en uygun olanı otomatik olarak seçmesini sağlarsınız.
+OmniRoute'un sihri, **ücretsiz katmanları birleştirmesinde** yatar. Tek bir sağlayıcıya güvenmek yerine birden fazla ücretsiz sağlayıcı bağlarsınız ve OmniRoute'un her istek için en uygun olanı otomatik olarak seçmesini sağlarsınız.
 
 ### Örnek: Daha Geniş Ücretsiz Katman Kapsamı
 
-Tek bir kotaya bağımlılığı azaltmak için birkaç sağlayıcı bağlayın:
+Herhangi bir kotaya bağımlılığı azaltmak için birkaç sağlayıcı bağlayın:
 
-1. **Gemini** — yinelenen API anahtarı kotası
-2. **Groq** — yinelenen API anahtarı kotası
+1. **Gemini** — yenilenen API anahtarı kotası
+2. **Groq** — yenilenen API anahtarı kotası
 3. **Pollinations** — anahtarsız, hız sınırlamalı erişim
 4. **LongCat** — tek seferlik kayıt hibesi (KYC gerektirir)
 
-Ardından `model: "auto"` kullanın; OmniRoute şunları yapar:
+Ardından `model: "auto"` kullanın; OmniRoute şunları yapacaktır:
 
-- Önce en yüksek sıralamaya sahip uygun bağlantıyı dener
-- Bağlantının kotası tükenmişse veya durum denetimi başarısız olursa → yapılandırılmış bir sonraki sağlayıcıyı dener
+- Önce en yüksek sıradaki uygun bağlantıyı dener
+- Bağlantının kotası tükenmişse veya sistem durumu denetimi başarısız olursa → yapılandırılmış bir sonraki sağlayıcıyı dener
 - Anahtarsız sağlayıcı kullanılamıyorsa → kalan hedefleri denemeye devam eder
-- Tümü başarısız olursa → LongCat'i yedek olarak kullanır
+- Uygun hiçbir bağlantı başarılı olmazsa → hata döndürür; kayıt kredileri yalnızca geçerli ve kullanılabilir oldukları sürece kullanılabilir
 
-**Sonuç**: otomatik geri dönüş mekanizmasıyla daha geniş ücretsiz katman kapsamı — sınırsız kapasite garantisi değildir.
+**Sonuç**: otomatik yedek sağlayıcıya geçişle daha geniş ücretsiz katman kapsamı — sınırsız kapasite garantisi değildir.
 
 ---
 
-## Ücretsiz Sağlayıcılar Nasıl Bağlanır?
+## Ücretsiz Sağlayıcılara Nasıl Bağlanılır
 
-### Adım 1: Kontrol Panelini Açın
+### Adım 1: Panoyu Açın
 
 Tarayıcınızda `http://localhost:20128` adresine gidin.
 
-### Adım 2: Sağlayıcılara Gidin
+### Adım 2: Sağlayıcılar Bölümüne Gidin
 
-Kenar çubuğunda **Sağlayıcılar** seçeneğine tıklayın.
+Kenar çubuğunda **Sağlayıcılar**'a tıklayın.
 
 ### Adım 3: Sağlayıcı Ekle'ye Tıklayın
 
@@ -99,34 +96,28 @@ Kenar çubuğunda **Sağlayıcılar** seçeneğine tıklayın.
 
 ### Adım 4: Ücretsiz Bir Sağlayıcı Seçin
 
-Kataloğa göz atın ve her sağlayıcının güncel `hasFree`, kimlik doğrulama, kota, gizlilik
-ve Hizmet Şartları meta verilerini inceleyin. Sağlayıcı kartı ve
-[Ücretsiz Katmanlar Referansı](../reference/FREE_TIERS.md); yinelenen havuzlar,
-sınırsız/anahtarsız erişim, kayıt kredileri, kullanımdan kaldırılmış girdiler ve daha yüksek riskli kaynaklar arasındaki farkları gösterir.
+Kataloğa göz atın ve her sağlayıcının mevcut `hasFree`, kimlik doğrulama, kota, gizlilik ve kullanım koşulları meta verilerini inceleyin. Sağlayıcı kartı ve
+[Ücretsiz Katmanlar Referansı](../reference/FREE_TIERS.md); yenilenen kullanım havuzlarını,
+sınırsız/anahtarsız erişimi, kayıt kredilerini, kullanımdan kaldırılmış girdileri ve daha yüksek riskli kaynakları birbirinden ayırır.
 
 ### Adım 5: Bağlan'a Tıklayın
 
-Bir `NOAUTH` sağlayıcısı için kimlik bilgisi gerekmez. OAuth ve API anahtarı kullanan sağlayıcılar,
-belgelerinde açıklanan hesap akışı aracılığıyla bağlanmalıdır.
+Bir `NOAUTH` sağlayıcısı için OmniRoute, yukarı akış hizmetine ait kimlik bilgilerini talep etmez. Bu, yukarı akış hizmetinin üçüncü taraf istemcileri kabul ettiğini veya kullanılabilir kapasiteye sahip olduğunu garanti etmez. OAuth ve API anahtarı kullanan sağlayıcılara, belgelerinde açıklanan hesap akışı üzerinden bağlanılmalıdır. Yönlendirici kimlik doğrulaması etkinleştirildiğinde istemciniz yine **Pano → Uç Noktalar** bölümünde gösterilen OmniRoute API anahtarını kullanır.
 
 ### Adım 6: Tekrarlayın
 
-Koşulları ve gizlilik modeli kullanım senaryonuza uygun olan birkaç sağlayıcıyı bağlayın.
+Koşulları ve gizlilik modeli kullanım senaryonuza uygun olan birkaç sağlayıcıya bağlanın.
 
 ---
 
-## Katalog Nasıl Doğru Okunur?
+## Kataloğu Doğru Okuma
 
-- `NOAUTH`, OmniRoute'un sizden sağlayıcı kimlik bilgisi istemediği anlamına gelir; çalışma süresini,
-  gizliliği veya sınırsız kapasiteyi garanti etmez.
-- `hasFree`, keşif meta verisidir. Yinelenen bir kotayı, anahtarsız erişimi,
-  kayıt kredisini, onay programını veya promosyonu temsil edebilir.
-- `recurring-uncapped`, yayımlanmış bir token üst sınırının bulunmadığı anlamına gelir; hız ve
-  eşzamanlılık sınırları yine de geçerlidir.
-- `one-time-initial`, kayıt hibesi tüketildikten sonra yinelenmez.
-- `tos: avoid`, kullanımdan önce sağlayıcı koşullarını ve hesap riskini incelemeniz gerektiğine dair bir uyarıdır.
-- `discontinued` olarak işaretlenen girdiler geçmişe dönük kanıt olarak kalır ve
-  hâlen ücretsizmiş gibi sunulmamalıdır.
+- `NOAUTH`, OmniRoute'un sizden bir sağlayıcı kimlik bilgisi istemediği anlamına gelir; çalışma süresi, gizlilik veya sınırsız kapasite garantisi vermez.
+- `hasFree`, keşif meta verisidir. Yinelenen bir kotayı, anahtarsız erişimi, kayıt kredisini, onay programını veya promosyonu temsil edebilir.
+- `recurring-uncapped`, yayımlanmış bir token üst sınırının bulunmadığı anlamına gelir; hız ve eşzamanlılık sınırları yine de geçerlidir.
+- `one-time-initial`, kayıt hibesi tükendikten sonra yinelenmez.
+- `tos: avoid` olarak işaretlenen sağlayıcılar, varsayılan olarak otomatik yönlendirmeden hariç tutulur (`excludeTosAvoid`). Bir hesap bağlamak bu filtreyi atlamaz. Operatör tarafından yapılacak herhangi bir geçersiz kılma işlemi, sağlayıcı koşulları ve hesap riski incelendikten sonra gerçekleştirilmelidir.
+- `discontinued` olarak işaretlenen girdiler tarihsel kanıt olarak kalır ve hâlihazırda ücretsizmiş gibi sunulmamalıdır.
 
 ---
 
@@ -160,18 +151,14 @@ erişim politikasını aşmak amacıyla ek hesaplar oluşturmayın.
 
 ## Ücretsiz Katman Hesaplaması
 
-Canlı, havuz bazında yinelenen kayıtları kaldırılmış katalog şu anda şunları bildiriyor:
+Canlı, havuz bazında yinelenen kayıtları ayıklanmış katalog şu anda aşağıdaki değerleri bildiriyor:
 
-| Metrik                                                            |                              Güncel denetlenmiş değer | Yorum                                                                                                                                        |
-| ----------------------------------------------------------------- | ----------------------------------------------------: | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Yinelenen nicelendirilmiş tahsisat                                |                                   **~1.62B token/ay** | Paylaşılan havuzlar bir kez sayılır; sınırsız sağlayıcılar toplama dahil edilmez                                                             |
-| Kayıt tahsisatlarıyla ilk ay                                      |                                      **~2.22B token** | Yinelenen toplam ile tek seferlik ve yinelenen kredilerin toplamı                                                                            |
-| Denetlenmiş ücretsiz model envanteri                              | **35 yinelenen havuz anahtarı / 482 katalog girdisi** | 475 etkin + 7 kullanımdan kaldırılmış; 357 sağlayıcılı katalogdan farklıdır                                                                  |
-| Temsil edilen yinelenen/anahtarsız, süresiz ücretsiz sağlayıcılar |                                                **53** | Yinelenen günlük/aylık/kredi/sınırsız ve anahtarsız katalog türlerindeki benzersiz sağlayıcılar; uygunluk koşullu satırlar hariç tutulmuştur |
-| `hasFree` olarak işaretlenen sağlayıcı katalog girdileri          |                                         **152 / 357** | Daha geniş sağlayıcı meta verileri; tümünün nicelendirilebilir yinelenen kotası yoktur                                                       |
+| Metrik                         | Mevcut denetlenmiş değer | Açıklama                                                                         |
+| ------------------------------ | -----------------------: | -------------------------------------------------------------------------------- |
+| Yinelenen nicel kullanım hakkı |      **~1.62B token/ay** | Paylaşılan havuzlar bir kez sayılır; sınırsız sağlayıcılar toplama dahil edilmez |
+| Kayıt hibeleriyle ilk ay       |         **~2.22B token** | Yinelenen toplam ile tek seferlik ve yinelenen kredilerin toplamı                |
 
-Bu değerler `open-sse/config/freeModelCatalog.ts` dosyasından hesaplanır; havuz bazında yinelenen kayıtların kaldırılması, ToS işaretleri,
-kullanımdan kaldırılmış girdiler ve kayıt kredisi metodolojisi için
+Bunlar, birbirinden ayrı uygun hesaplar genelinde katalog çapında tahminlerdir; OmniRoute tarafından sağlanan bir kullanım hakkı veya yeni bir kurulum için öngörü değildir. Kullanılabilir kapasiteniz, bağladığınız sağlayıcılara ve bunların mevcut koşullarına bağlıdır. Değerler `open-sse/config/freeModelCatalog.ts` dosyasından hesaplanır; havuz bazında yinelenen kayıtların ayıklanması, Hizmet Şartları işaretleri, kullanımdan kaldırılan girdiler ve kayıt kredisi metodolojisi için
 [Ücretsiz Katmanlar Referansı](../reference/FREE_TIERS.md) belgesine bakın.
 
 ---

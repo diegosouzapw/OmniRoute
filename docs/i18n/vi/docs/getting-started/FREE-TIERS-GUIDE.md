@@ -4,129 +4,120 @@
 
 ---
 
-> **Tóm tắt**: OmniRoute đăng ký 357 ID nhà cung cấp, với **152 mục trong danh mục nhà cung cấp được đánh dấu `hasFree`**. Danh mục mô hình miễn phí được kiểm tra nghiêm ngặt hơn bao gồm **35 khóa nhóm định kỳ / 482 mục** (475 đang hoạt động + 7 đã ngừng cung cấp). Hãy kết nối nhiều nhà cung cấp phù hợp để mở rộng khả năng dự phòng; mọi hạn ngạch, quy tắc phê duyệt, chính sách quyền riêng tư và điều kiện tính phí vượt mức vẫn được áp dụng.
+> **Tóm tắt**: Hãy sử dụng các tài khoản nhà cung cấp đủ điều kiện của riêng bạn. OmniRoute kết hợp các kết nối mà bạn cấu hình; dịch vụ này không tự cung cấp tổng hạn mức token được quảng bá. Quyền truy cập miễn phí có thể yêu cầu đăng ký, khóa API, phê duyệt hoặc phương thức thanh toán. Các giới hạn, chính sách quyền riêng tư và điều khoản của nhà cung cấp vẫn được áp dụng.
 
 ---
 
-## Gói miễn phí là gì?
+## Các gói miễn phí là gì?
 
-Nhiều nhà cung cấp AI cung cấp một số hình thức **truy cập miễn phí**. Tùy thuộc vào nhà cung cấp, hình thức đó có thể
-là điểm cuối không cần xác thực, hạn ngạch định kỳ, quyền truy cập không giới hạn dung lượng nhưng bị giới hạn tốc độ, khoản tặng khi đăng ký,
-phê duyệt thủ công hoặc chương trình khuyến mãi tạm thời. Một số tùy chọn yêu cầu tài khoản, khóa API,
-thẻ tín dụng, KYC hoặc chấp nhận các điều khoản riêng của nhà cung cấp.
+Nhiều nhà cung cấp AI cung cấp một hình thức **truy cập miễn phí** nào đó. Tùy thuộc vào nhà cung cấp, hình thức này có thể là điểm cuối không cần xác thực, hạn mức được cấp lại định kỳ, quyền truy cập không giới hạn tổng dung lượng nhưng bị giới hạn tốc độ, ưu đãi khi đăng ký, phê duyệt thủ công hoặc chương trình khuyến mãi tạm thời. Một số tùy chọn yêu cầu tài khoản, khóa API, thẻ tín dụng, KYC hoặc chấp nhận các điều khoản riêng của nhà cung cấp.
 
-OmniRoute **tổng hợp** các gói miễn phí này vào một điểm cuối duy nhất. Thay vì đăng ký 10 dịch vụ khác nhau, bạn kết nối tất cả các dịch vụ đó với OmniRoute và sử dụng `model: "auto"` để tự động chọn tùy chọn miễn phí tốt nhất cho từng yêu cầu.
+OmniRoute **tổng hợp** các kết nối đã được cấu hình vào một điểm cuối duy nhất. Bạn vẫn cần đăng ký riêng với từng nhà cung cấp yêu cầu tài khoản. Hãy kết nối các tài khoản đó và sử dụng `model: "auto"` để định tuyến giữa các đích đủ điều kiện. Một bản cài đặt mới có thể không có đích không cần khóa nào đủ điều kiện; chỉ cài đặt OmniRoute không đảm bảo sẽ nhận được phản hồi trò chuyện thành công.
 
 ---
 
 ## Các nhà cung cấp quyền truy cập miễn phí tiêu biểu
 
-### Quyền truy cập định kỳ, không cần khóa hoặc không giới hạn dung lượng
+### Quyền truy cập định kỳ, không cần khóa hoặc không giới hạn
 
-Các nhà cung cấp này có phương thức truy cập miễn phí định kỳ, không cần khóa hoặc không giới hạn dung lượng trong danh mục đã được kiểm tra. “Không giới hạn dung lượng” có nghĩa là không có giới hạn token được công bố; các giới hạn về tốc độ, đồng thời, tài khoản, khu vực và chính sách vẫn có thể được áp dụng:
+Các nhà cung cấp này có phương thức truy cập miễn phí định kỳ, không cần khóa hoặc không giới hạn trong danh mục đã được kiểm tra. “Không giới hạn” có nghĩa là không có giới hạn token được công bố; các giới hạn về tốc độ, xử lý đồng thời, tài khoản, khu vực và chính sách vẫn có thể được áp dụng:
 
-| Nhà cung cấp      | Mô hình                                                                                               | Hạn ngạch                                                                                                                                             | Cách kết nối                                                                                        |
-| ----------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 và các mô hình khác                                       | Danh mục đã kiểm tra ước tính nhóm dùng chung 25K token mỗi tháng                                                                                     | Luồng OAuth/tài khoản; ToS được gắn cờ `avoid` trong danh mục                                       |
-| **OpenCode Free** | Tập hợp mô hình `*-free` hiện tại trong sổ đăng ký nhà cung cấp                                       | Không cần khóa; không có giới hạn token được công bố                                                                                                  | Không cần thông tin xác thực của nhà cung cấp; ToS được gắn cờ `avoid`                              |
-| **Pollinations**  | Tập hợp mô hình không cần khóa hiện tại; một số mô hình trước đây đã ngừng cung cấp hoặc yêu cầu khóa | Không cần khóa; không có giới hạn token được công bố                                                                                                  | Không cần thông tin xác thực của nhà cung cấp đối với các mô hình không cần khóa                    |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 và nhiều mô hình khác                     | Khóa API miễn phí (không giới hạn tốc độ, không cần thẻ); **mọi yêu cầu đều được ghi nhật ký** để phục vụ nghiên cứu (từ chối tại logfare.ai/consent) | Nhận khóa ngay tại logfare.ai/register; ToS/quyền riêng tư tại logfare.ai/tos và logfare.ai/privacy |
-| **Cloudflare AI** | Danh mục Workers AI                                                                                   | Nhóm đã kiểm tra ước tính ~30M token/tháng dựa trên các đơn vị sử dụng được công bố                                                                   | Tài khoản Cloudflare và thông tin xác thực API                                                      |
-| **Gemini**        | Dòng Gemini Flash                                                                                     | Nhóm đã kiểm tra ước tính ~60M token/tháng                                                                                                            | Khóa API Google AI Studio; áp dụng giới hạn tốc độ                                                  |
-| **Groq**          | Các mô hình Llama, GPT-OSS và Qwen                                                                    | Nhóm đã kiểm tra ước tính ~15M token/tháng                                                                                                            | Khóa API Groq; áp dụng giới hạn tốc độ                                                              |
-| **Cerebras**      | GLM 4.7 và GPT-OSS 120B                                                                               | Nhóm đã kiểm tra ước tính ~30M token/tháng                                                                                                            | Khóa API Cerebras; áp dụng giới hạn tốc độ                                                          |
+| Nhà cung cấp      | Mô hình                                                                                    | Hạn mức                                                                                                                                                        | Cách kết nối                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 và các mô hình khác                            | Danh mục đã kiểm tra ước tính một hạn mức dùng chung 25K token mỗi tháng                                                                                       | Quy trình OAuth/tài khoản; ToS được đánh dấu `avoid` trong danh mục                                    |
+| **OpenCode Free** | Bộ mô hình `*-free` hiện tại trong registry của nhà cung cấp                               | Không cần khóa; không có giới hạn token được công bố                                                                                                           | Không cần thông tin xác thực của nhà cung cấp; ToS được đánh dấu `avoid`                               |
+| **Pollinations**  | Bộ mô hình không cần khóa hiện tại; một số mô hình cũ đã ngừng hoạt động hoặc yêu cầu khóa | Không cần khóa; không có giới hạn token được công bố                                                                                                           | Không cần thông tin xác thực của nhà cung cấp đối với các mô hình không cần khóa                       |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 và nhiều mô hình khác          | Khóa API miễn phí (không giới hạn tốc độ, không cần thẻ); **mọi yêu cầu đều được ghi nhật ký** để phục vụ nghiên cứu (từ chối tham gia tại logfare.ai/consent) | Nhận khóa tức thì tại logfare.ai/register; ToS/quyền riêng tư tại logfare.ai/tos và logfare.ai/privacy |
+| **Cloudflare AI** | Danh mục Workers AI                                                                        | Hạn mức đã kiểm tra ước tính khoảng 30M token/tháng dựa trên các đơn vị sử dụng được công bố                                                                   | Tài khoản Cloudflare và thông tin xác thực API                                                         |
+| **Gemini**        | Dòng Gemini Flash                                                                          | Giới hạn tốc độ thay đổi theo dự án/mô hình; mức công bố chính không bao gồm hạn mức token cố định hằng tháng                                                  | Khóa API Google AI Studio; kiểm tra các giới hạn đang áp dụng của dự án                                |
+| **Groq**          | Các mô hình Llama, GPT-OSS và Qwen                                                         | Hạn mức đã kiểm tra ước tính khoảng 15M token/tháng                                                                                                            | Khóa API Groq; có áp dụng giới hạn tốc độ                                                              |
 
-### Khoản tặng khi đăng ký và tín dụng riêng của nhà cung cấp
+### Khoản tặng khi đăng ký và tín dụng dành riêng cho từng nhà cung cấp
 
-Các nhà cung cấp này tặng bạn **tín dụng miễn phí** khi đăng ký:
+Các nhà cung cấp này cung cấp khoản tặng khi đăng ký hoặc tín dụng khuyến mãi, tùy thuộc vào các quy định về tính đủ điều kiện của họ. Theo xác minh vào 2026-10-08, [bảng giá Cerebras](https://www.cerebras.ai/pricing) yêu cầu phương thức thanh toán để nhận khoản tín dụng một lần trị giá $5, hết hạn sau 30 ngày; đây không phải là hạn mức token định kỳ. [Giới hạn tốc độ của Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) thay đổi theo dự án, mô hình và cấp độ, vì vậy chúng không được quy đổi thành hạn mức token hằng tháng được đảm bảo.
 
-| Nhà cung cấp  | Tín dụng miễn phí                                                                  | Mô hình                       | Cách nhận                                                                            |
-| ------------- | ---------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
-| **DeepSeek**  | 5M token miễn phí                                                                  | DeepSeek V4                   | Đăng ký tại platform.deepseek.com                                                    |
-| **LongCat**   | Khoản tặng một lần 10M token                                                       | LongCat 2.0                   | Khóa API + KYC; trả theo mức sử dụng sau khi dùng hết khoản tặng                     |
-| **Vertex AI** | Tín dụng đăng ký $300, được biểu thị dưới dạng ~300M token trong mô hình ngân sách | Gemini và các mô hình đối tác | Tài khoản Google Cloud; áp dụng các quy tắc về thanh toán và điều kiện đủ tiêu chuẩn |
+| Nhà cung cấp  | Tín dụng miễn phí                                                                          | Mô hình                       | Cách nhận                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------------- |
+| **Cerebras**  | Khoản tín dụng khuyến mãi một lần trị giá $5; hết hạn sau 30 ngày                          | Danh mục suy luận hiện tại    | Tài khoản và phương thức thanh toán hợp lệ                                      |
+| **DeepSeek**  | 5M token miễn phí                                                                          | DeepSeek V4                   | Đăng ký tại platform.deepseek.com                                               |
+| **LongCat**   | Khoản tặng một lần 10M token                                                               | LongCat 2.0                   | Khóa API + KYC; trả phí theo mức sử dụng sau khi hết khoản tặng                 |
+| **Vertex AI** | Tín dụng đăng ký $300, được biểu thị tương đương khoảng 300M token trong mô hình ngân sách | Gemini và các mô hình đối tác | Tài khoản Google Cloud; áp dụng các quy định về thanh toán và tính đủ điều kiện |
 
-### Quyền truy cập giới hạn khác
+### Quyền truy cập hạn chế khác
 
-Các nhà cung cấp này có **gói miễn phí** với những giới hạn cụ thể:
+Các nhà cung cấp này có **gói miễn phí** với các giới hạn cụ thể:
 
-| Nhà cung cấp               | Giới hạn miễn phí                                                                         | Mô hình                       | Phù hợp nhất cho |
-| -------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------- | ---------------- |
-| **GitHub Models**          | Ước tính nhóm tài nguyên dùng chung được kiểm toán là ~18M token/tháng                    | Đánh giá đa dạng mô hình      |
-| **Hugging Face**           | Nhóm tài nguyên nhỏ được cấp lại hằng tháng                                               | Thử nghiệm và đa dạng mô hình |
-| **OpenRouter free models** | Nhóm dùng chung bị giới hạn số yêu cầu; nạp thêm một lần tùy chọn sẽ tăng hạn mức định kỳ | Danh mục dự phòng đa dạng     |
-| **AI Horde**               | Năng lực cộng đồng không cần khóa; mức độ sẵn sàng thay đổi                               | Suy luận phân tán theo cơ hội |
+| Nhà cung cấp               | Giới hạn miễn phí                                                                                                  | Mô hình                       | Phù hợp nhất cho |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------------- | ---------------- |
+| **GitHub Models**          | Hạn mức dùng chung đã kiểm tra ước tính khoảng 18M token/tháng                                                     | Đánh giá nhiều loại mô hình   |
+| **Hugging Face**           | Hạn mức nhỏ định kỳ hằng tháng                                                                                     | Thử nghiệm và đa dạng mô hình |
+| **OpenRouter free models** | Hạn mức dùng chung bị giới hạn theo số yêu cầu; khoản nạp thêm một lần không bắt buộc sẽ tăng mức cho phép định kỳ | Danh mục dự phòng đa dạng     |
+| **AI Horde**               | Năng lực cộng đồng không cần khóa; mức độ sẵn sàng thay đổi                                                        | Suy luận phân tán theo cơ hội |
 
 ---
 
-## Cách Kết Hợp Các Gói Miễn Phí
+## Cách kết hợp các gói miễn phí
 
 Điểm đặc biệt của OmniRoute là khả năng **kết hợp các gói miễn phí**. Thay vì phụ thuộc vào một nhà cung cấp, bạn kết nối nhiều nhà cung cấp miễn phí và để OmniRoute tự động chọn nhà cung cấp phù hợp nhất cho từng yêu cầu.
 
-### Ví dụ: Mở Rộng Phạm Vi Sử Dụng Gói Miễn Phí
+### Ví dụ: Mở rộng phạm vi sử dụng gói miễn phí
 
-Kết nối nhiều nhà cung cấp để giảm sự phụ thuộc vào hạn mức của bất kỳ nhà cung cấp đơn lẻ nào:
+Kết nối nhiều nhà cung cấp để giảm sự phụ thuộc vào hạn mức của bất kỳ nhà cung cấp nào:
 
 1. **Gemini** — hạn mức khóa API được cấp lại định kỳ
 2. **Groq** — hạn mức khóa API được cấp lại định kỳ
-3. **Pollinations** — quyền truy cập không cần khóa, có giới hạn tốc độ
-4. **LongCat** — khoản cấp một lần khi đăng ký (yêu cầu KYC)
+3. **Pollinations** — truy cập không cần khóa, có giới hạn tốc độ
+4. **LongCat** — khoản tín dụng cấp một lần khi đăng ký (yêu cầu KYC)
 
 Sau đó, sử dụng `model: "auto"` và OmniRoute sẽ:
 
-- Thử kết nối đủ điều kiện có thứ hạng cao nhất trước
-- Nếu hạn mức đã hết hoặc bước kiểm tra tình trạng không thành công → thử nhà cung cấp tiếp theo đã được cấu hình
+- Trước tiên, thử kết nối đủ điều kiện có thứ hạng cao nhất
+- Nếu hạn mức đã hết hoặc kiểm tra tình trạng không thành công → thử nhà cung cấp tiếp theo đã được cấu hình
 - Nếu nhà cung cấp không cần khóa không khả dụng → tiếp tục thử các đích còn lại
-- Nếu tất cả đều không thành công → sử dụng LongCat làm phương án dự phòng
+- Nếu không có kết nối đủ điều kiện nào thành công → trả về lỗi; tín dụng đăng ký chỉ có thể sử dụng khi còn hiệu lực và còn số dư
 
-**Kết quả**: phạm vi sử dụng gói miễn phí rộng hơn với cơ chế tự động chuyển đổi dự phòng — không đảm bảo dung lượng không giới hạn.
+**Kết quả**: phạm vi sử dụng gói miễn phí rộng hơn nhờ cơ chế dự phòng tự động — không đảm bảo dung lượng không giới hạn.
 
 ---
 
-## Cách Kết Nối Các Nhà Cung Cấp Miễn Phí
+## Cách kết nối các nhà cung cấp miễn phí
 
-### Bước 1: Mở Bảng Điều Khiển
+### Bước 1: Mở Dashboard
 
 Truy cập `http://localhost:20128` trong trình duyệt của bạn.
 
-### Bước 2: Đi Đến Mục Nhà Cung Cấp
+### Bước 2: Đi tới Providers
 
 Nhấp vào **Providers** trong thanh bên.
 
-### Bước 3: Nhấp Vào Thêm Nhà Cung Cấp
+### Bước 3: Nhấp vào Add Provider
 
 Nhấp vào nút **+ Add Provider**.
 
-### Bước 4: Chọn Một Nhà Cung Cấp Miễn Phí
+### Bước 4: Chọn một nhà cung cấp miễn phí
 
-Duyệt danh mục và kiểm tra metadata hiện tại về `hasFree`, phương thức xác thực, hạn mức, quyền riêng tư,
-và ToS của từng nhà cung cấp. Thẻ nhà cung cấp và tài liệu
-[Tham Chiếu Các Gói Miễn Phí](../reference/FREE_TIERS.md) phân biệt các hạn mức được cấp lại định kỳ,
-quyền truy cập không giới hạn/không cần khóa, tín dụng đăng ký, các mục đã ngừng cung cấp và các nguồn có rủi ro cao hơn.
+Duyệt qua danh mục và kiểm tra metadata hiện tại về `hasFree`, phương thức xác thực, hạn ngạch, quyền riêng tư và Điều khoản dịch vụ của từng nhà cung cấp. Thẻ nhà cung cấp và
+[Tài liệu tham khảo về các gói miễn phí](../reference/FREE_TIERS.md) phân biệt các hạn mức được cấp lại định kỳ,
+quyền truy cập không giới hạn/không cần khóa, tín dụng đăng ký, các mục đã ngừng cung cấp và các nguồn có mức rủi ro cao hơn.
 
-### Bước 5: Nhấp Vào Kết Nối
+### Bước 5: Nhấp vào Connect
 
-Đối với nhà cung cấp `NOAUTH`, bạn không cần cung cấp thông tin xác thực. Các nhà cung cấp sử dụng OAuth và khóa API phải được
-kết nối thông qua quy trình tài khoản được hướng dẫn trong tài liệu của họ.
+Đối với nhà cung cấp `NOAUTH`, OmniRoute không yêu cầu thông tin xác thực của dịch vụ nguồn. Điều này không đảm bảo rằng dịch vụ nguồn chấp nhận các ứng dụng khách bên thứ ba hoặc còn dung lượng khả dụng. Các nhà cung cấp sử dụng OAuth và API key phải được kết nối thông qua quy trình tài khoản đã được tài liệu hóa của họ. Ứng dụng khách của bạn vẫn sử dụng API key OmniRoute hiển thị trong **Dashboard → Endpoints** khi tính năng xác thực bộ định tuyến được bật.
 
-### Bước 6: Lặp Lại
+### Bước 6: Lặp lại
 
-Kết nối nhiều nhà cung cấp có điều khoản và mô hình quyền riêng tư phù hợp với trường hợp sử dụng của bạn.
+Kết nối với một số nhà cung cấp có điều khoản và mô hình quyền riêng tư phù hợp với trường hợp sử dụng của bạn.
 
 ---
 
-## Cách Đọc Danh Mục Chính Xác
+## Đọc Danh mục cho Đúng
 
-- `NOAUTH` có nghĩa là OmniRoute không yêu cầu bạn cung cấp thông tin xác thực của nhà cung cấp; điều này không
-  đảm bảo thời gian hoạt động, quyền riêng tư hoặc dung lượng không giới hạn.
-- `hasFree` là metadata phục vụ việc khám phá. Nó có thể đại diện cho hạn mức định kỳ, quyền truy cập không cần khóa,
-  tín dụng đăng ký, chương trình xét duyệt hoặc chương trình khuyến mãi.
-- `recurring-uncapped` có nghĩa là không có mức trần token nào được công bố; các giới hạn về tốc độ và
-  số lượng yêu cầu đồng thời vẫn được áp dụng.
-- `one-time-initial` không được cấp lại sau khi khoản cấp ban đầu khi đăng ký đã được sử dụng hết.
-- `tos: avoid` là cảnh báo yêu cầu bạn xem xét các điều khoản của nhà cung cấp và rủi ro đối với tài khoản trước khi sử dụng.
-- Các mục được đánh dấu `discontinued` chỉ được giữ lại làm bằng chứng lịch sử và không được trình bày là
-  hiện vẫn miễn phí.
+- `NOAUTH` có nghĩa là OmniRoute không yêu cầu bạn cung cấp thông tin xác thực của nhà cung cấp; điều này không đảm bảo thời gian hoạt động, quyền riêng tư hoặc dung lượng không giới hạn.
+- `hasFree` là siêu dữ liệu phục vụ việc khám phá. Nó có thể biểu thị hạn mức định kỳ, quyền truy cập không cần khóa, tín dụng khi đăng ký, chương trình phê duyệt hoặc chương trình khuyến mãi.
+- `recurring-uncapped` có nghĩa là không có mức trần token nào được công bố; các giới hạn về tốc độ và số lượng yêu cầu đồng thời vẫn được áp dụng.
+- `one-time-initial` không được cấp lại sau khi khoản cấp ban đầu lúc đăng ký đã được sử dụng hết.
+- Các nhà cung cấp có `tos: avoid` mặc định bị loại khỏi quá trình định tuyến tự động (`excludeTosAvoid`). Việc kết nối một tài khoản không bỏ qua bộ lọc này. Mọi quyết định ghi đè của đơn vị vận hành đều phải được thực hiện sau khi xem xét các điều khoản của nhà cung cấp và rủi ro tài khoản.
+- Các mục được đánh dấu `discontinued` chỉ được lưu lại làm bằng chứng lịch sử và không được trình bày là hiện vẫn miễn phí.
 
 ---
 
@@ -158,21 +149,18 @@ truy cập của nhà cung cấp.
 
 ---
 
-## Phép tính cho gói miễn phí
+## Phép tính gói miễn phí
 
-Danh mục trực tiếp, đã loại bỏ trùng lặp theo pool hiện báo cáo:
+Danh mục đang hoạt động, đã loại bỏ trùng lặp theo nhóm dùng chung, hiện ghi nhận:
 
-| Chỉ số                                                                   |                Giá trị đã kiểm tra hiện tại | Diễn giải                                                                                                                                                                             |
-| ------------------------------------------------------------------------ | ------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hạn mức định lượng định kỳ                                               |                      **~1.62B token/tháng** | Các pool dùng chung chỉ được tính một lần; không bao gồm các nhà cung cấp không giới hạn trong tổng số                                                                                |
-| Tháng đầu tiên có hạn mức đăng ký                                        |                            **~2.22B token** | Tổng định kỳ cộng với tín dụng một lần và tín dụng định kỳ                                                                                                                            |
-| Kho mô hình miễn phí đã kiểm tra                                         | **35 khóa pool định kỳ / 482 mục danh mục** | 475 đang hoạt động + 7 đã ngừng cung cấp; khác với danh mục gồm 357 nhà cung cấp                                                                                                      |
-| Số nhà cung cấp miễn phí vĩnh viễn, định kỳ/không cần khóa được đại diện |                                      **53** | Các nhà cung cấp duy nhất thuộc các loại danh mục định kỳ hằng ngày/hằng tháng/tín dụng/không giới hạn và không cần khóa; không bao gồm các hàng bị giới hạn bởi điều kiện đủ tư cách |
-| Các mục trong danh mục nhà cung cấp được đánh dấu `hasFree`              |                               **152 / 357** | Siêu dữ liệu nhà cung cấp rộng hơn; không phải tất cả đều có hạn mức định kỳ có thể định lượng                                                                                        |
+| Chỉ số                           | Giá trị hiện tại đã kiểm tra | Diễn giải                                                                                              |
+| -------------------------------- | ---------------------------: | ------------------------------------------------------------------------------------------------------ |
+| Hạn mức định kỳ được định lượng  |       **~1.62B token/tháng** | Các nhóm dùng chung chỉ được tính một lần; không bao gồm các nhà cung cấp không giới hạn trong tổng số |
+| Tháng đầu tiên có ưu đãi đăng ký |             **~2.22B token** | Tổng định kỳ cộng với các khoản tín dụng một lần và định kỳ                                            |
 
-Các giá trị này được tính từ `open-sse/config/freeModelCatalog.ts`; xem
-[Tài liệu tham khảo về các gói miễn phí](../reference/FREE_TIERS.md) để biết về việc loại bỏ trùng lặp theo pool, các cờ ToS,
-các mục đã ngừng cung cấp và phương pháp tính tín dụng đăng ký.
+Đây là các ước tính trên toàn danh mục cho các tài khoản đủ điều kiện riêng biệt, không phải hạn mức do OmniRoute cung cấp hay dự đoán cho một bản cài đặt mới. Dung lượng bạn có thể sử dụng phụ thuộc vào các nhà cung cấp mà bạn kết nối và điều kiện hiện tại của họ. Các giá trị được tính từ `open-sse/config/freeModelCatalog.ts`; xem
+[Tài liệu tham khảo về các gói miễn phí](../reference/FREE_TIERS.md) để biết thông tin về việc loại bỏ trùng lặp theo nhóm dùng chung, các cờ ToS,
+các mục đã ngừng cung cấp và phương pháp tính khoản tín dụng đăng ký.
 
 ---
 

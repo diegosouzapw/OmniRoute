@@ -4,64 +4,61 @@
 
 ---
 
-> **Go hachomair**: Cláraíonn OmniRoute 357 aitheantas soláthraí, agus tá **152 iontráil sa chatalóg soláthraithe marcáilte mar `hasFree`**. Cuimsíonn an chatalóg níos déine de shamhlacha saor in aisce a ndearnadh iniúchadh uirthi **35 eochair linn athfhillteacha / 482 iontráil** (475 gníomhach + 7 scortha). Ceangail roinnt soláthraithe oiriúnacha chun acmhainn chúltaca níos leithne a fháil; tá feidhm fós ag gach cuóta, riail cheadaithe, beartas príobháideachais agus coinníoll maidir le ró-úsáid íoctha.
+> **Go hachomair**: Tabhair leat do chuntais soláthraithe incháilithe féin. Comhcheanglaíonn OmniRoute na naisc a chumraíonn tú; ní eisíonn sé an buiséad comhiomlán dearbhán fógraithe. D’fhéadfadh clárú, eochair API, faomhadh nó modh íocaíochta a bheith riachtanach chun rochtain saor in aisce a fháil. Tá teorainneacha, beartais phríobháideachais agus téarmaí na soláthraithe fós i bhfeidhm.
 
 ---
 
-## Cad is Sraitheanna Saor in Aisce Ann?
+## Cad is Sraitheanna Saor in Aisce ann?
 
-Cuireann go leor soláthraithe IS cineál éigin **rochtana saor in aisce** ar fáil. Ag brath ar an soláthraí, d’fhéadfadh
-sé sin críochphointe gan fíordheimhniú, cuóta athfhillteach, rochtain gan uasteorainn ach faoi theorainn ráta, deontas clárúcháin,
-ceadú láimhe, nó ardú céime sealadach a chiallaíonn. Éilíonn roinnt roghanna cuntas, eochair API,
-cárta creidmheasa, KYC, nó glacadh le téarmaí a bhaineann go sonrach leis an soláthraí.
+Cuireann go leor soláthraithe IS cineál éigin **rochtana saor in aisce** ar fáil. Ag brath ar an soláthraí, d’fhéadfadh críochphointe gan fíordheimhniú, cuóta athfhillteach, rochtain gan teorainn ach faoi theorainn ráta, deontas clárúcháin, faomhadh de láimh, nó cur chun cinn sealadach a bheith i gceist leis sin. Éilíonn roinnt roghanna cuntas, eochair API, cárta creidmheasa, KYC, nó glacadh le téarmaí a bhaineann go sonrach leis an soláthraí.
 
-Déanann OmniRoute na sraitheanna saor in aisce seo a **chomhiomlánú** in aon chríochphointe amháin. In ionad clárú le haghaidh 10 seirbhís éagsúla, ceanglaíonn tú iad go léir le OmniRoute agus úsáideann tú `model: "auto"` chun an rogha shaor in aisce is fearr a roghnú go huathoibríoch do gach iarratas.
+Déanann OmniRoute na naisc chumraithe a **chomhiomlánú** in aon chríochphointe amháin. Ní mór duit fós clárú ar leithligh le gach soláthraí a éilíonn cuntas. Ceangail na cuntais sin agus úsáid `model: "auto"` chun iarratais a ródú i measc spriocanna incháilithe. D’fhéadfadh sé nach mbeadh aon sprioc incháilithe gan eochair ar fáil i suiteáil úr; ní ráthaíonn suiteáil OmniRoute amháin go bhfaighfear freagra comhrá rathúil.
 
 ---
 
-## Soláthraithe Ionadaíocha Rochtana Saor in Aisce
+## Soláthraithe Ionadaíocha Saor-Rochtana
 
-### Rochtain Athfhillteach, Gan Eochair nó Gan Uasteorainn
+### Rochtain Athfhillteach, Gan Eochair, nó Gan Teorainn
 
-Tá conair rochtana saor in aisce atá athfhillteach, gan eochair nó gan uasteorainn ag na soláthraithe seo sa chatalóg iniúchta. Ciallaíonn “gan uasteorainn” nach bhfuil aon uasteorainn fhoilsithe ar líon na dtócan; d’fhéadfadh teorainneacha ráta, comhthráthachta, cuntais, réigiúin agus polasaí a bheith i bhfeidhm fós:
+Tá conair saor-rochtana athfhillteach, gan eochair, nó gan teorainn ag na soláthraithe seo sa chatalóg iniúchta. Ciallaíonn “Gan teorainn” nach bhfuil aon uasteorainn fhoilsithe ar thócain; féadfaidh teorainneacha ráta, comhthreomhaireachta, cuntais, réigiúnacha agus beartais a bheith i bhfeidhm fós:
 
-| Soláthraí         | Samhlacha                                                                                                     | Cuóta                                                                                                                                                 | Conas Ceangal                                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, agus cinn eile                                                   | Measann an chatalóg iniúchta comhthiomsú míosúil roinnte de 25K tócan                                                                                 | Sreabhadh OAuth/cuntais; tá ToS marcáilte mar `avoid` sa chatalóg                                        |
-| **OpenCode Free** | An tacar reatha samhlacha `*-free` i gclárlann na soláthraithe                                                | Gan eochair; gan aon uasteorainn fhoilsithe ar líon na dtócan                                                                                         | Níl dintiúr soláthraí ag teastáil; tá ToS marcáilte mar `avoid`                                          |
-| **Pollinations**  | An tacar reatha samhlacha gan eochair; tá roinnt samhlacha roimhe seo scortha nó tá eochair ag teastáil uathu | Gan eochair; gan aon uasteorainn fhoilsithe ar líon na dtócan                                                                                         | Níl dintiúr soláthraí ag teastáil do na samhlacha gan eochair                                            |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, agus tuilleadh                                   | Eochair API saor in aisce (gan teorainneacha ráta, gan chárta); **logáiltear gach iarratas** le haghaidh taighde (diúltaigh dó ag logfare.ai/consent) | Eochair láithreach ag logfare.ai/register; ToS/príobháideachas ag logfare.ai/tos agus logfare.ai/privacy |
-| **Cloudflare AI** | Catalóg Workers AI                                                                                            | Measann an comhthiomsú iniúchta ~30M tócan/mí bunaithe ar aonaid úsáide fhoilsithe                                                                    | Cuntas Cloudflare agus dintiúir API                                                                      |
-| **Gemini**        | Fine Gemini Flash                                                                                             | Measann an comhthiomsú iniúchta ~60M tócan/mí                                                                                                         | Eochair API Google AI Studio; tá teorainneacha ráta i bhfeidhm                                           |
-| **Groq**          | Samhlacha Llama, GPT-OSS, agus Qwen                                                                           | Measann an comhthiomsú iniúchta ~15M tócan/mí                                                                                                         | Eochair API Groq; tá teorainneacha ráta i bhfeidhm                                                       |
-| **Cerebras**      | GLM 4.7 agus GPT-OSS 120B                                                                                     | Measann an comhthiomsú iniúchta ~30M tócan/mí                                                                                                         | Eochair API Cerebras; tá teorainneacha ráta i bhfeidhm                                                   |
+| Soláthraí         | Samhlacha                                                                                                         | Cuóta                                                                                                                                                 | Conas Ceangal a Dhéanamh                                                                                               |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, agus cinn eile                                                       | Measann an chatalóg iniúchta linn mhíosúil chomhroinnte 25K tócan                                                                                     | Sreabhadh OAuth/cuntais; marcáiltear na Téarmaí Seirbhíse mar `avoid` sa chatalóg                                      |
+| **OpenCode Free** | An tacar reatha samhlacha `*-free` i gclárlann an tsoláthraí                                                      | Gan eochair; gan uasteorainn fhoilsithe ar thócain                                                                                                    | Níl dintiúr soláthraí ag teastáil; marcáiltear na Téarmaí Seirbhíse mar `avoid`                                        |
+| **Pollinations**  | An tacar reatha samhlacha gan eochair; tá deireadh curtha le roinnt iarshamhlacha nó tá eochair ag teastáil dóibh | Gan eochair; gan uasteorainn fhoilsithe ar thócain                                                                                                    | Níl dintiúr soláthraí ag teastáil do na samhlacha gan eochair                                                          |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, agus tuilleadh                                       | Eochair API saor in aisce (gan teorainneacha ráta, gan chárta); **logáiltear gach iarratas** le haghaidh taighde (diúltaigh dó ag logfare.ai/consent) | Eochair láithreach ag logfare.ai/register; Téarmaí Seirbhíse/príobháideachas ag logfare.ai/tos agus logfare.ai/privacy |
+| **Cloudflare AI** | Catalóg Workers AI                                                                                                | Measann an linn iniúchta ~30M tócan/mí bunaithe ar aonaid úsáide fhoilsithe                                                                           | Cuntas Cloudflare agus dintiúir API                                                                                    |
+| **Gemini**        | Fine samhlacha Gemini Flash                                                                                       | Teorainneacha ráta athraitheacha de réir tionscadail/samhla; níl aon deontas seasta míosúil tócan san áireamh sa phríomhthairiscint                   | Eochair API Google AI Studio; seiceáil teorainneacha gníomhacha an tionscadail                                         |
+| **Groq**          | Samhlacha Llama, GPT-OSS, agus Qwen                                                                               | Measann an linn iniúchta ~15M tócan/mí                                                                                                                | Eochair API Groq; tá teorainneacha ráta i bhfeidhm                                                                     |
 
-### Deontais Chlárúcháin agus Creidmheasanna a Bhaineann go Sonrach le Soláthraithe
+### Deontais Chláraithe agus Creidmheasanna a Bhaineann go Sonrach le Soláthraithe
 
-Tugann na soláthraithe seo **creidmheasanna saor in aisce** duit nuair a chláraíonn tú:
+Tairgeann na soláthraithe seo deontais chláraithe nó creidmheasanna cur chun cinn, faoi réir a rialacha incháilitheachta. Mar a fíoraíodh ar 2026-10-08, éilíonn [praghsáil Cerebras](https://www.cerebras.ai/pricing) modh íocaíochta le haghaidh creidmheas aonuaire $5 a théann in éag tar éis 30 lá; ní cuóta athfhillteach tócan é. Athraíonn [teorainneacha ráta Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) de réir tionscadail, samhla agus sraithe, mar sin ní dhéantar iad a thiontú ina ndeontas ráthaithe míosúil tócan.
 
-| Soláthraí     | Creidmheasanna Saor in Aisce                                              | Samhlacha                              | Conas Iad a Fháil                                                          |
-| ------------- | ------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------- |
-| **DeepSeek**  | 5M tócan saor in aisce                                                    | DeepSeek V4                            | Cláraigh ag platform.deepseek.com                                          |
-| **LongCat**   | Deontas aonuaire de 10M tócan                                             | LongCat 2.0                            | Eochair API + KYC; íoc de réir úsáide tar éis an deontais                  |
-| **Vertex AI** | Creidmheas clárúcháin $300, léirithe mar ~300M tócan sa tsamhail bhuiséid | Gemini agus samhlacha comhpháirtíochta | Cuntas Google Cloud; tá rialacha billeála agus incháilitheachta i bhfeidhm |
+| Soláthraí     | Creidmheasanna Saor in Aisce                                               | Samhlacha                            | Conas Iad a Fháil                                                          |
+| ------------- | -------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------- |
+| **Cerebras**  | Creidmheas cur chun cinn aonuaire $5; téann sé in éag tar éis 30 lá        | An chatalóg reatha tátail            | Cuntas agus modh bailí íocaíochta                                          |
+| **DeepSeek**  | 5M tócan saor in aisce                                                     | DeepSeek V4                          | Cláraigh ag platform.deepseek.com                                          |
+| **LongCat**   | Deontas aonuaire 10M tócan                                                 | LongCat 2.0                          | Eochair API + KYC; íocaíocht de réir úsáide tar éis an deontais            |
+| **Vertex AI** | Creidmheas cláraithe $300 arna léiriú mar ~300M tócan sa tsamhail bhuiséid | Samhlacha Gemini agus comhpháirtithe | Cuntas Google Cloud; tá rialacha billeála agus incháilitheachta i bhfeidhm |
 
 ### Rochtain Theoranta Eile
 
-Tá **sraitheanna saor in aisce** ag na soláthraithe seo, faoi réir teorainneacha sonracha:
+Tá **sraitheanna saor in aisce** le teorainneacha sonracha ag na soláthraithe seo:
 
-| Soláthraí                  | Teorainn In Aisce                                                                                                       | Samhlacha                           | Is Fearr Do |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------- |
-| **GitHub Models**          | Meastacháin iniúchta don chomhthiomsú comhroinnte: ~18M comhartha/mí                                                    | Meastóireacht leathan ar shamhlacha |
-| **Hugging Face**           | Comhthiomsú beag míosúil athfhillteach                                                                                  | Turgnaimh agus éagsúlacht samhlacha |
-| **OpenRouter free models** | Comhthiomsú comhroinnte atá teoranta ó thaobh iarratas de; méadaíonn breisiú aonuaire roghnach an liúntas athfhillteach | Catalóg leathan chúltaca            |
-| **AI Horde**               | Acmhainn phobail gan eochair; athraíonn an infhaighteacht                                                               | Tátal dáilte failleach              |
+| Soláthraí                  | Teorainn Saor in Aisce                                                                                            | Samhlacha                           | Is Fearr Do |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------- |
+| **GitHub Models**          | Measann an linn chomhroinnte iniúchta ~18M tócan/mí                                                               | Meastóireacht leathan samhlacha     |
+| **Hugging Face**           | Linn bheag mhíosúil athfhillteach                                                                                 | Turgnaimh agus éagsúlacht samhlacha |
+| **OpenRouter free models** | Linn chomhroinnte atá teoranta ó thaobh iarratas de; méadaíonn breisiú roghnach aonuaire an liúntas athfhillteach | Catalóg leathan chúltaca            |
+| **AI Horde**               | Acmhainn phobail gan eochair; athraíonn infhaighteacht                                                            | Tátal dáilte faille                 |
 
 ---
 
 ## Conas Sraitheanna Saor in Aisce a Chruachadh
 
-Is í an ghné speisialta de OmniRoute ná **sraitheanna saor in aisce a chruachadh**. In ionad brath ar sholáthraí amháin, nascann tú roinnt soláthraithe saor in aisce agus ligeann tú do OmniRoute an ceann is fearr a roghnú go huathoibríoch do gach iarratas.
+Is é draíocht OmniRoute ná **sraitheanna saor in aisce a chruachadh**. In ionad brath ar sholáthraí amháin, nascann tú roinnt soláthraithe saor in aisce agus ligeann tú do OmniRoute an ceann is fearr a roghnú go huathoibríoch do gach iarratas.
 
 ### Sampla: Clúdach Níos Leithne ó Shraitheanna Saor in Aisce
 
@@ -69,15 +66,15 @@ Ceangail roinnt soláthraithe chun an spleáchas ar aon chuóta aonair a laghdú
 
 1. **Gemini** — cuóta athfhillteach eochrach API
 2. **Groq** — cuóta athfhillteach eochrach API
-3. **Pollinations** — rochtain gan eochair, faoi réir teorainn ráta
-4. **LongCat** — deontas aonuaire clárúcháin (KYC riachtanach)
+3. **Pollinations** — rochtain gan eochair, faoi theorainn ráta
+4. **LongCat** — deontas aonuaire clárúcháin (éilíonn KYC)
 
 Ansin úsáid `model: "auto"` agus déanfaidh OmniRoute an méid seo a leanas:
 
-- Bainfidh sé triail as an nasc incháilithe is airde rangú ar dtús
+- Bainfidh sé triail ar dtús as an nasc incháilithe is airde rangú
 - Má theipeann ar a chuóta nó ar a sheiceáil sláinte → bainfidh sé triail as an gcéad soláthraí cumraithe eile
 - Mura bhfuil an soláthraí gan eochair ar fáil → leanfaidh sé ar aghaidh trí na spriocanna atá fágtha
-- Má theipeann orthu uile → úsáidfidh sé LongCat mar chúltaca
+- Mura n-éiríonn le haon nasc incháilithe → tabharfaidh sé earráid ar ais; ní féidir creidmheasanna clárúcháin a úsáid ach fad atá siad bailí agus ar fáil
 
 **Toradh**: clúdach níos leithne ó shraitheanna saor in aisce le cúltaca uathoibríoch — ní ráthaíocht ar acmhainn neamhtheoranta é.
 
@@ -101,32 +98,31 @@ Cliceáil an cnaipe **+ Cuir Soláthraí Leis**.
 
 Brabhsáil an chatalóg agus scrúdaigh meiteashonraí reatha `hasFree`, fíordheimhnithe, cuóta, príobháideachais,
 agus ToS gach soláthraí. Déanann cárta an tsoláthraí agus an
-[Tagairt do Shraitheanna Saor in Aisce](../reference/FREE_TIERS.md) idirdhealú idir linnte athfhillteacha,
-rochtain gan teorainn uachtarach/gan eochair, creidmheasanna clárúcháin, iontrálacha scortha, agus foinsí lena mbaineann riosca níos airde.
+[Tagairt do Shraitheanna Saor in Aisce](../reference/FREE_TIERS.md) idirdhealú idir comhthiomsuithe athfhillteacha,
+rochtain gan teorainn/gan eochair, creidmheasanna clárúcháin, iontrálacha scortha, agus foinsí lena mbaineann riosca níos airde.
 
 ### Céim 5: Cliceáil Nasc
 
-I gcás soláthraí `NOAUTH`, ní theastaíonn aon dintiúr. Ní mór soláthraithe OAuth agus soláthraithe eochrach API a
-nascadh trína sreabhadh cuntais doiciméadaithe.
+I gcás soláthraí `NOAUTH`, ní iarrann OmniRoute dintiúr réamhtheachtach. Ní ráthaíonn sé seo go nglacann an tseirbhís réamhtheachtach le cliaint tríú páirtí ná go bhfuil acmhainn ar fáil aici. Ní mór soláthraithe OAuth agus eochrach API a nascadh trína sreabhadh cuntais doiciméadaithe. Úsáideann do chliant an eochair API OmniRoute a thaispeántar in **Deais → Críochphointí** nuair atá fíordheimhniú an ródaire cumasaithe.
 
 ### Céim 6: Déan Arís É
 
-Ceangail roinnt soláthraithe a bhfuil a dtéarmaí agus a samhail phríobháideachais oiriúnach do do chás úsáide.
+Nasc roinnt soláthraithe a bhfuil a dtéarmaí agus a samhail phríobháideachais oiriúnach do do chás úsáide.
 
 ---
 
 ## An Chatalóg a Léamh i gCeart
 
 - Ciallaíonn `NOAUTH` nach n-iarrann OmniRoute dintiúr soláthraí ort; ní thugann sé
-  ráthaíocht maidir le ham feidhme, príobháideachas ná acmhainn neamhtheoranta.
-- Is meiteashonraí fionnachtana é `hasFree`. Is féidir leis cuóta athfhillteach, rochtain gan eochair,
-  creidmheas clárúcháin, clár ceadaithe nó cur chun cinn a léiriú.
-- Ciallaíonn `recurring-uncapped` nach raibh uasteorainn fhoilsithe chomharthaí ar fáil; tá teorainneacha ráta agus
-  comhthreomhaireachta fós i bhfeidhm.
+  ráthaíocht maidir le ham oibriúcháin, príobháideachas ná acmhainn neamhtheoranta.
+- Is meiteashonraí fionnachtana é `hasFree`. Féadfaidh sé cuóta athfhillteach, rochtain gan eochair,
+  creidmheas clárúcháin, clár formheasa nó cur chun cinn a léiriú.
+- Ciallaíonn `recurring-uncapped` nach raibh aon uasteorainn fhoilsithe comharthaí ar fáil; tá teorainneacha
+  ráta agus comhthráthachta fós i bhfeidhm.
 - Ní athfhilleann `one-time-initial` tar éis an deontas clárúcháin a ídiú.
-- Is rabhadh é `tos: avoid` chun téarmaí an tsoláthraí agus riosca an chuntais a athbhreithniú roimh úsáid.
-- Coinnítear iontrálacha marcáilte `discontinued` mar fhianaise stairiúil agus ní mór gan iad a chur i láthair mar
-  iontrálacha atá saor in aisce faoi láthair.
+- Fágtar soláthraithe `tos: avoid` as ródú uathoibríoch de réir réamhshocraithe (`excludeTosAvoid`). Ní sheachnaítear an scagaire seo trí chuntas a nascadh. Ba cheart aon sárú ag oibreoir a dhéanamh tar éis athbhreithniú ar théarmaí an tsoláthraí agus ar riosca an chuntais.
+- Fanann iontrálacha a bhfuil `discontinued` marcáilte orthu mar fhianaise stairiúil agus ní mór gan iad a chur i láthair mar
+  chinn atá saor in aisce faoi láthair.
 
 ---
 
@@ -160,18 +156,15 @@ chuóta nó ar bheartas rochtana soláthraí.
 
 ## Matamaitic na Sraithe Saor in Aisce
 
-Tuairiscíonn an chatalóg bheo, agus dí-dhúbailt déanta de réir linnte, na luachanna seo a leanas faoi láthair:
+Tuairiscíonn an chatalóg bheo, ina ndéantar dí-dhúbailt ar chomhthiomsuithe, na luachanna seo a leanas faoi láthair:
 
-| Méadracht                                                                             |                                          Luach iniúchta reatha | Léirmhíniú                                                                                                                                                                            |
-| ------------------------------------------------------------------------------------- | -------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Deontas cainníochtaithe athfhillteach                                                 |                                        **~1.62B comhartha/mí** | Ní áirítear linnte comhroinnte ach uair amháin; fágtar soláthraithe gan teorainn as an tsuim                                                                                          |
-| An chéad mhí le deontais chlárúcháin                                                  |                                           **~2.22B comhartha** | An t-iomlán athfhillteach móide creidmheasanna aonuaire agus athfhillteacha                                                                                                           |
-| Fardal iniúchta na samhlacha saor in aisce                                            | **35 eochair linnte athfhillteacha / 482 iontráil chatalóige** | 475 gníomhach + 7 scortha; éagsúil ón gcatalóg 357 soláthraí                                                                                                                          |
-| Soláthraithe athfhillteacha/gan eochair atá saor go deo agus a bhfuil ionadaíocht acu |                                                         **53** | Soláthraithe uathúla ar fud cineálacha catalóige athfhillteacha laethúla/míosúla/creidmheasa/gan teorainn agus gan eochair; fágtar rónna atá faoi réir incháilitheachta as an áireamh |
-| Iontrálacha i gcatalóg na soláthraithe marcáilte `hasFree`                            |                                                  **152 / 357** | Meiteashonraí níos leithne faoi sholáthraithe; níl cuóta athfhillteach inchainníochtaithe acu uile                                                                                    |
+| Méadracht                             |   Luach iniúchta reatha | Léirmhíniú                                                                                            |
+| ------------------------------------- | ----------------------: | ----------------------------------------------------------------------------------------------------- |
+| Deontas cainníochtaithe athfhillteach | **~1.62B comhartha/mí** | Ní áirítear comhthiomsuithe comhroinnte ach uair amháin; fágtar soláthraithe gan teorainn as an tsuim |
+| An chéad mhí le deontais chlárúcháin  |    **~2.22B comhartha** | An t-iomlán athfhillteach móide creidmheasanna aonuaire agus athfhillteacha                           |
 
-Ríomhtar na luachanna seo ó `open-sse/config/freeModelCatalog.ts`; féach an
-[Tagairt do Shraitheanna Saor in Aisce](../reference/FREE_TIERS.md) le haghaidh dí-dhúbailt linnte, bratacha ToS,
+Is meastacháin iad seo don chatalóg iomlán thar chuntais incháilithe ar leith, agus ní liúntas iad a sholáthraíonn OmniRoute ná réamh-mheastachán do shuiteáil úr. Braitheann an acmhainn is féidir leat a úsáid ar na soláthraithe a nascann tú agus ar a gcoinníollacha reatha. Ríomhtar na luachanna ó `open-sse/config/freeModelCatalog.ts`; féach an
+[Tagairt do Shraitheanna Saor in Aisce](../reference/FREE_TIERS.md) le haghaidh dí-dhúbailt comhthiomsuithe, bratacha ToS,
 iontrálacha scortha, agus mhodheolaíocht na gcreidmheasanna clárúcháin.
 
 ---

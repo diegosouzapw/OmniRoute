@@ -4,127 +4,124 @@
 
 ---
 
-> **Trumpai**: „OmniRoute“ registruoja 357 teikėjų ID, o **152 teikėjų katalogo įrašai pažymėti `hasFree`**. Griežčiau audituojamas nemokamų modelių katalogas apima **35 pasikartojančius telkinio raktus / 482 įrašus** (475 aktyvius ir 7 nebeteikiamus). Prijunkite kelis tinkamus teikėjus, kad padidintumėte atsarginį pajėgumą; vis tiek taikomos visos kvotos, patvirtinimo taisyklės, privatumo politikos ir mokamo limito viršijimo sąlygos.
+> **Trumpai**: Naudokite savo tinkamas teikėjų paskyras. „OmniRoute“ sujungia jūsų sukonfigūruotus ryšius; ji nesuteikia reklamuojamo bendro žetonų biudžeto. Norint gauti nemokamą prieigą, gali reikėti užsiregistruoti, gauti API raktą, patvirtinimą arba nurodyti mokėjimo būdą. Teikėjų apribojimai, privatumo politikos ir sąlygos ir toliau taikomi.
 
 ---
 
 ## Kas yra nemokami planai?
 
-Daugelis DI paslaugų teikėjų siūlo tam tikros formos **nemokamą prieigą**. Priklausomai nuo paslaugų teikėjo, tai gali
-būti galinis taškas be autentifikavimo, periodiškai atnaujinama kvota, neribota prieiga su užklausų dažnio apribojimu, registracijos metu suteikiamas kreditas,
-rankinis patvirtinimas arba laikina akcija. Kai kurioms parinktims būtina paskyra, API raktas,
-kredito kortelė, KYC patikra arba sutikimas su konkretaus paslaugų teikėjo sąlygomis.
+Daugelis DI paslaugų teikėjų siūlo tam tikrą **nemokamą prieigą**. Priklausomai nuo teikėjo, tai gali reikšti galinį tašką, kuriam nereikia autentifikavimo, periodiškai atnaujinamą kvotą, neribotą prieigą su užklausų dažnio apribojimu, registracijos metu suteikiamą kreditą, neautomatinį patvirtinimą arba laikiną akciją. Kai kurioms parinktims reikia paskyros, API rakto, kredito kortelės, KYC patikros arba sutikimo su konkretaus teikėjo sąlygomis.
 
-„OmniRoute“ **sujungia** šiuos nemokamus planus į vieną galinį tašką. Užuot registravęsi 10 skirtingų paslaugų, prijungiate jas visas prie „OmniRoute“ ir naudojate `model: "auto"`, kad kiekvienai užklausai būtų automatiškai parinkta geriausia nemokama parinktis.
+OmniRoute **sujungia** sukonfigūruotus ryšius į vieną galinį tašką. Vis tiek turite atskirai užsiregistruoti pas kiekvieną teikėją, reikalaujantį paskyros. Prijunkite šias paskyras ir naudokite `model: "auto"`, kad užklausos būtų nukreipiamos į tinkamus tikslinius modelius. Naujoje įdiegtyje gali nebūti nė vieno tinkamo tikslinio modelio, kuriam nereikia rakto; vien tik OmniRoute įdiegimas negarantuoja sėkmingo pokalbio atsakymo.
 
 ---
 
-## Pagrindiniai nemokamos prieigos paslaugų teikėjai
+## Reprezentatyvūs nemokamos prieigos teikėjai
 
-### Periodinė, rakto nereikalaujanti arba neribota prieiga
+### Pasikartojanti, rakto nereikalaujanti arba neribota prieiga
 
-Šie paslaugų teikėjai audituojamame kataloge turi periodinės, rakto nereikalaujančios arba neribotos nemokamos prieigos būdą. „Neribota“ reiškia, kad nėra paskelbto žetonų limito; užklausų dažnio, vienalaikiškumo, paskyros, regioniniai ir politikos apribojimai vis tiek gali būti taikomi:
+Šie teikėjai audituotame kataloge turi pasikartojančios, rakto nereikalaujančios arba neribotos nemokamos prieigos galimybę. „Neribota“ reiškia, kad nėra paskelbto žetonų limito; vis tiek gali būti taikomi užklausų dažnio, lygiagretumo, paskyros, regioniniai ir politikos apribojimai:
 
-| Paslaugų teikėjas | Modeliai                                                                                                              | Kvota                                                                                                                                                                | Kaip prisijungti                                                                                                                       |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ir kiti                                                                   | Audituojamame kataloge numatomas bendras 25K žetonų mėnesinis telkinys                                                                                               | OAuth / paskyros procesas; kataloge ToS pažymėtos `avoid`                                                                              |
-| **OpenCode Free** | Dabartinis `*-free` modelių rinkinys paslaugų teikėjų registre                                                        | Rakto nereikia; paskelbto žetonų limito nėra                                                                                                                         | Paslaugų teikėjo prisijungimo duomenų nereikia; ToS pažymėtos `avoid`                                                                  |
-| **Pollinations**  | Dabartinis rakto nereikalaujančių modelių rinkinys; kai kurie ankstesni modeliai nebeteikiami arba jiems reikia rakto | Rakto nereikia; paskelbto žetonų limito nėra                                                                                                                         | Rakto nereikalaujantiems modeliams paslaugų teikėjo prisijungimo duomenų nereikia                                                      |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ir daugiau                                                | Nemokamas API raktas (nėra dažnio apribojimų, nereikia kortelės); **kiekviena užklausa registruojama** tyrimų tikslais (atsisakyti galima adresu logfare.ai/consent) | Raktas iš karto gaunamas adresu logfare.ai/register; ToS / privatumo politika pateikiama adresais logfare.ai/tos ir logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI katalogas                                                                                                  | Audituojamo telkinio įvertis pagal paskelbtus naudojimo vienetus – ~30M žetonų per mėnesį                                                                            | Cloudflare paskyra ir API prisijungimo duomenys                                                                                        |
-| **Gemini**        | Gemini Flash šeima                                                                                                    | Audituojamo telkinio įvertis – ~60M žetonų per mėnesį                                                                                                                | Google AI Studio API raktas; taikomi dažnio apribojimai                                                                                |
-| **Groq**          | Llama, GPT-OSS ir Qwen modeliai                                                                                       | Audituojamo telkinio įvertis – ~15M žetonų per mėnesį                                                                                                                | Groq API raktas; taikomi dažnio apribojimai                                                                                            |
-| **Cerebras**      | GLM 4.7 ir GPT-OSS 120B                                                                                               | Audituojamo telkinio įvertis – ~30M žetonų per mėnesį                                                                                                                | Cerebras API raktas; taikomi dažnio apribojimai                                                                                        |
+| Teikėjas          | Modeliai                                                                                                              | Kvota                                                                                                                                                                       | Kaip prisijungti                                                                                                                                                 |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ir kiti                                                                   | Audituotame kataloge įvertinta, kad bendras mėnesinis fondas yra 25K žetonų                                                                                                 | OAuth / paskyros procesas; kataloge paslaugų teikimo sąlygos pažymėtos `avoid`                                                                                   |
+| **OpenCode Free** | Dabartinis `*-free` modelių rinkinys teikėjų registre                                                                 | Rakto nereikia; nėra paskelbto žetonų limito                                                                                                                                | Teikėjo prisijungimo duomenų nereikia; paslaugų teikimo sąlygos pažymėtos `avoid`                                                                                |
+| **Pollinations**  | Dabartinis rakto nereikalaujančių modelių rinkinys; kai kurie ankstesni modeliai nebeteikiami arba jiems reikia rakto | Rakto nereikia; nėra paskelbto žetonų limito                                                                                                                                | Rakto nereikalaujantiems modeliams teikėjo prisijungimo duomenų nereikia                                                                                         |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ir kiti                                                   | Nemokamas API raktas (be užklausų dažnio apribojimų, kortelės nereikia); **kiekviena užklausa registruojama** tyrimų tikslais (atsisakyti galima adresu logfare.ai/consent) | Raktas iš karto suteikiamas adresu logfare.ai/register; paslaugų teikimo sąlygos ir privatumo politika pateikiamos adresais logfare.ai/tos ir logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI katalogas                                                                                                  | Remiantis paskelbtais naudojimo vienetais, audituotas fondas įvertintas maždaug 30M žetonų per mėnesį                                                                       | Cloudflare paskyra ir API prisijungimo duomenys                                                                                                                  |
+| **Gemini**        | Gemini Flash šeima                                                                                                    | Kintami projekto / modelio užklausų dažnio apribojimai; nurodytame pasiūlyme nėra fiksuotos mėnesinės žetonų dotacijos                                                      | Google AI Studio API raktas; patikrinkite aktyvius projekto apribojimus                                                                                          |
+| **Groq**          | Llama, GPT-OSS ir Qwen modeliai                                                                                       | Audituotas fondas įvertintas maždaug 15M žetonų per mėnesį                                                                                                                  | Groq API raktas; taikomi užklausų dažnio apribojimai                                                                                                             |
 
-### Registracijos metu suteikiami kreditai ir konkrečių paslaugų teikėjų kreditai
+### Registracijos dotacijos ir konkrečių teikėjų kreditai
 
-Šie paslaugų teikėjai jums užsiregistravus suteikia **nemokamų kreditų**:
+Šie teikėjai siūlo registracijos dotacijas arba reklaminius kreditus, kuriems taikomos jų tinkamumo taisyklės. Kaip patikrinta 2026-10-08, pagal [Cerebras kainodarą](https://www.cerebras.ai/pricing) vienkartiniam $5 kreditui, kurio galiojimas baigiasi po 30 dienų, reikalingas mokėjimo būdas; tai nėra pasikartojanti žetonų kvota. [Gemini užklausų dažnio apribojimai](https://ai.google.dev/gemini-api/docs/rate-limits) priklauso nuo projekto, modelio ir pakopos, todėl jie nėra perskaičiuojami į garantuotą mėnesinę žetonų dotaciją.
 
-| Paslaugų teikėjas | Nemokami kreditai                                                           | Modeliai                     | Kaip gauti                                                         |
-| ----------------- | --------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------ |
-| **DeepSeek**      | 5M nemokamų žetonų                                                          | DeepSeek V4                  | Užsiregistruokite adresu platform.deepseek.com                     |
-| **LongCat**       | Vienkartinis 10M žetonų kreditas                                            | LongCat 2.0                  | API raktas + KYC; išnaudojus kreditą mokama pagal naudojimą        |
-| **Vertex AI**     | $300 registracijos kreditas, biudžeto modelyje išreikštas kaip ~300M žetonų | Gemini ir partnerių modeliai | Google Cloud paskyra; taikomos atsiskaitymo ir tinkamumo taisyklės |
+| Teikėjas      | Nemokami kreditai                                                                   | Modeliai                     | Kaip gauti                                                         |
+| ------------- | ----------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------ |
+| **Cerebras**  | Vienkartinis $5 reklaminis kreditas; galioja 30 dienų                               | Dabartinis išvadų katalogas  | Paskyra ir galiojantis mokėjimo būdas                              |
+| **DeepSeek**  | 5M nemokamų žetonų                                                                  | DeepSeek V4                  | Užsiregistruokite adresu platform.deepseek.com                     |
+| **LongCat**   | Vienkartinė 10M žetonų dotacija                                                     | LongCat 2.0                  | API raktas + KYC; išnaudojus dotaciją mokama pagal naudojimą       |
+| **Vertex AI** | $300 registracijos kreditas, biudžeto modelyje pateikiamas kaip maždaug 300M žetonų | Gemini ir partnerių modeliai | Google Cloud paskyra; taikomos atsiskaitymo ir tinkamumo taisyklės |
 
 ### Kita ribota prieiga
 
-Šie paslaugų teikėjai turi **nemokamus planus** su konkrečiais apribojimais:
+Šie teikėjai turi **nemokamas pakopas** su konkrečiais apribojimais:
 
-| Teikėjas                         | Nemokamas limitas                                                                                   | Modeliai                             | Kam geriausiai tinka |
-| -------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ | -------------------- |
-| **GitHub Models**                | Audituoto bendro fondo įvertis – apie 18 mln. žetonų per mėnesį                                     | Platus modelių vertinimas            |
-| **Hugging Face**                 | Nedidelis kas mėnesį atnaujinamas fondas                                                            | Eksperimentai ir modelių įvairovė    |
-| **OpenRouter nemokami modeliai** | Bendras užklausomis ribojamas fondas; pasirenkamas vienkartinis papildymas padidina periodinę kvotą | Platus atsarginių modelių katalogas  |
-| **AI Horde**                     | Bendruomenės pajėgumai be rakto; prieinamumas kinta                                                 | Oportunistinė paskirstytoji išvestis |
+| Teikėjas                         | Nemokamos prieigos limitas                                                                                       | Modeliai                                         | Geriausiai tinka |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---------------- |
+| **GitHub Models**                | Audituotas bendras fondas įvertintas maždaug 18M žetonų per mėnesį                                               | Įvairių modelių vertinimas                       |
+| **Hugging Face**                 | Nedidelis pasikartojantis mėnesinis fondas                                                                       | Eksperimentai ir modelių įvairovė                |
+| **OpenRouter nemokami modeliai** | Bendras užklausų skaičiumi ribojamas fondas; pasirenkamas vienkartinis papildymas padidina pasikartojančią normą | Platus atsarginių modelių katalogas              |
+| **AI Horde**                     | Rakto nereikalaujantys bendruomenės ištekliai; prieinamumas skiriasi                                             | Oportunistinis paskirstytasis išvadų generavimas |
 
 ---
 
 ## Kaip sujungti nemokamus planus
 
-„OmniRoute“ privalumas – galimybė **sujungti nemokamus planus**. Užuot pasikliovę vienu paslaugų teikėju, galite prijungti kelis nemokamus paslaugų teikėjus ir leisti „OmniRoute“ automatiškai parinkti tinkamiausią kiekvienai užklausai.
+„OmniRoute“ esmė – **nemokamų planų sujungimas**. Užuot pasikliovę vienu teikėju, prijungiate kelis nemokamus teikėjus ir leidžiate „OmniRoute“ automatiškai parinkti tinkamiausią kiekvienai užklausai.
 
 ### Pavyzdys: platesnė nemokamų planų aprėptis
 
-Prijunkite kelis paslaugų teikėjus, kad sumažintumėte priklausomybę nuo vienos kvotos:
+Prijunkite kelis teikėjus, kad sumažintumėte priklausomybę nuo vienos kvotos:
 
-1. **Gemini** — pasikartojanti API rakto kvota
-2. **Groq** — pasikartojanti API rakto kvota
-3. **Pollinations** — prieiga be rakto, ribojama pagal užklausų dažnį
-4. **LongCat** — vienkartinė registracijos dotacija (būtina KYC patikra)
+1. **Gemini** — periodiškai atnaujinama API rakto kvota
+2. **Groq** — periodiškai atnaujinama API rakto kvota
+3. **Pollinations** — prieiga be rakto, ribojamas užklausų dažnis
+4. **LongCat** — vienkartinis registracijos kreditas (reikalingas KYC)
 
 Tada naudokite `model: "auto"`, o „OmniRoute“:
 
-- Pirmiausia bandys aukščiausią reitingą turintį tinkamą ryšį
-- Jei jo kvota išnaudota arba veikimo patikra nepavyksta → bandys kitą sukonfigūruotą paslaugų teikėją
-- Jei paslaugų teikėjas be rakto nepasiekiamas → toliau bandys likusius tikslinius paslaugų teikėjus
-- Jei nepavyks nė vienas bandymas → kaip atsarginį variantą naudos „LongCat“
+- Pirmiausia išbandys aukščiausiai įvertintą tinkamą ryšį
+- Jei jo kvota išnaudota arba būklės patikra nepavyksta → išbandys kitą sukonfigūruotą teikėją
+- Jei teikėjas be rakto nepasiekiamas → toliau bandys likusius tikslinius teikėjus
+- Jei nė vienas tinkamas ryšys nesuveikia → grąžins klaidą; registracijos kreditais galima naudotis tik tol, kol jie galioja ir yra prieinami
 
-**Rezultatas**: platesnė nemokamų planų aprėptis su automatiniu perjungimu – tai nėra neribotų pajėgumų garantija.
+**Rezultatas**: platesnė nemokamų planų aprėptis su automatiniu atsarginiu perjungimu, tačiau tai nėra neribotų pajėgumų garantija.
 
 ---
 
-## Kaip prijungti nemokamus paslaugų teikėjus
+## Kaip prisijungti prie nemokamų teikėjų
 
 ### 1 veiksmas: atidarykite valdymo skydą
 
 Naršyklėje eikite į `http://localhost:20128`.
 
-### 2 veiksmas: eikite į paslaugų teikėjų skiltį
+### 2 veiksmas: eikite į teikėjų skiltį
 
-Šoninėje juostoje spustelėkite **Paslaugų teikėjai**.
+Šoninėje juostoje spustelėkite **Teikėjai**.
 
-### 3 veiksmas: spustelėkite „Pridėti paslaugų teikėją“
+### 3 veiksmas: spustelėkite „Pridėti teikėją“
 
-Spustelėkite mygtuką **+ Pridėti paslaugų teikėją**.
+Spustelėkite mygtuką **+ Pridėti teikėją**.
 
-### 4 veiksmas: pasirinkite nemokamą paslaugų teikėją
+### 4 veiksmas: pasirinkite nemokamą teikėją
 
-Peržiūrėkite katalogą ir patikrinkite kiekvieno paslaugų teikėjo dabartinius `hasFree`, autentifikavimo, kvotos, privatumo bei paslaugų teikimo sąlygų metaduomenis. Paslaugų teikėjo kortelėje ir
-[Nemokamų planų žinyne](../reference/FREE_TIERS.md) atskiriami pasikartojantys išteklių fondai,
-neribojama arba rakto nereikalaujanti prieiga, registracijos kreditai, nebeteikiami pasiūlymai ir didesnės rizikos šaltiniai.
+Peržiūrėkite katalogą ir patikrinkite kiekvieno teikėjo dabartinius `hasFree`, autentifikavimo, kvotos, privatumo
+ir naudojimo sąlygų metaduomenis. Teikėjo kortelėje ir
+[Nemokamų planų žinyne](../reference/FREE_TIERS.md) atskiriami periodiškai atnaujinami išteklių kiekiai,
+neribojama prieiga arba prieiga be rakto, registracijos kreditai, nebetęsiami pasiūlymai ir didesnės rizikos šaltiniai.
 
 ### 5 veiksmas: spustelėkite „Prisijungti“
 
-`NOAUTH` paslaugų teikėjui prisijungimo duomenų nereikia. OAuth ir API raktą naudojantys paslaugų teikėjai turi būti
-prijungiami pagal jų dokumentuotą paskyros susiejimo procedūrą.
+`NOAUTH` teikėjo atveju „OmniRoute“ neprašo išorinio teikėjo prisijungimo duomenų. Tai negarantuoja, kad išorinis teikėjas priima trečiųjų šalių klientus arba turi laisvų pajėgumų. „OAuth“ ir API rakto teikėjai turi būti prijungti pagal jų dokumentuotą paskyros susiejimo procesą. Jūsų klientas vis tiek naudoja „OmniRoute“ API raktą, rodomą skiltyje **Valdymo skydas → Galiniai taškai**, kai įjungtas maršruto parinktuvo autentifikavimas.
 
 ### 6 veiksmas: pakartokite
 
-Prijunkite kelis paslaugų teikėjus, kurių sąlygos ir privatumo modelis atitinka jūsų naudojimo atvejį.
+Prijunkite kelis teikėjus, kurių sąlygos ir privatumo modelis atitinka jūsų naudojimo scenarijų.
 
 ---
 
-## Kaip teisingai suprasti katalogą
+## Kaip teisingai skaityti katalogą
 
-- `NOAUTH` reiškia, kad „OmniRoute“ neprašo paslaugų teikėjo prisijungimo duomenų; tai
-  negarantuoja pasiekiamumo, privatumo ar neribotų pajėgumų.
-- `hasFree` yra paieškos metaduomenys. Jie gali reikšti pasikartojančią kvotą, prieigą be rakto,
-  registracijos kreditą, patvirtinimo programą arba akciją.
-- `recurring-uncapped` reiškia, kad nebuvo nurodyta viešai skelbiama žetonų riba; užklausų dažnio ir
-  lygiagretumo apribojimai vis tiek taikomi.
-- `one-time-initial` nebepasikartoja išnaudojus registracijos dotaciją.
-- `tos: avoid` yra įspėjimas prieš naudojant peržiūrėti paslaugų teikėjo sąlygas ir paskyros riziką.
-- Įrašai, pažymėti `discontinued`, paliekami kaip istoriniai duomenys ir neturi būti pristatomi kaip
+- `NOAUTH` reiškia, kad OmniRoute neprašo pateikti paslaugų teikėjo prisijungimo duomenų; tai
+  negarantuoja veikimo nepertraukiamumo, privatumo ar neribotų pajėgumų.
+- `hasFree` yra paieškai skirti metaduomenys. Jie gali reikšti periodiškai atnaujinamą kvotą, prieigą be rakto,
+  registracijos kreditą, patvirtinimo programą ar akciją.
+- `recurring-uncapped` reiškia, kad nebuvo nurodytas joks viešai paskelbtas žetonų limitas; užklausų dažnio ir
+  lygiagrečių užklausų apribojimai vis tiek taikomi.
+- `one-time-initial` pasibaigus registracijos metu suteiktam kreditui neatsinaujina.
+- Paslaugų teikėjai, pažymėti `tos: avoid`, pagal numatytuosius nustatymus neįtraukiami į automatinį maršruto parinkimą (`excludeTosAvoid`). Paskyros prijungimas neapeina šio filtro. Bet koks operatoriaus atliekamas išimties taikymas turėtų būti vykdomas peržiūrėjus paslaugų teikėjo sąlygas ir paskyros riziką.
+- Įrašai, pažymėti `discontinued`, lieka kaip istoriniai duomenys ir negali būti pateikiami kaip
   šiuo metu nemokami.
 
 ---
@@ -159,18 +156,15 @@ paslaugų teikėjo kvotos ar prieigos politiką.
 
 ## Nemokamo plano skaičiavimai
 
-Aktyvus, pagal bendrus limitų telkinius deduplikuotas katalogas šiuo metu pateikia:
+Dabartiniame kataloge, kuriame pašalinti bendrų fondų dublikatai, šiuo metu nurodoma:
 
-| Metrika                                                                                       |                                    Dabartinė audituota vertė | Paaiškinimas                                                                                                                                                                               |
-| --------------------------------------------------------------------------------------------- | -----------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Pasikartojantis kiekybiškai įvertintas limitas                                                |                                       **~1.62B žetonų/mėn.** | Bendri telkiniai skaičiuojami vieną kartą; į sumą neįtraukiami neribotų paslaugų teikėjai                                                                                                  |
-| Pirmasis mėnuo su registracijos kreditais                                                     |                                            **~2.22B žetonų** | Pasikartojanti suma ir vienkartiniai bei pasikartojantys kreditai                                                                                                                          |
-| Audituotas nemokamų modelių sąrašas                                                           | **35 pasikartojančių telkinių raktai / 482 katalogo įrašai** | 475 aktyvūs + 7 nebeteikiami; tai nėra tas pats, kas 357 paslaugų teikėjų katalogas                                                                                                        |
-| Atstovaujami pasikartojantys / rakto nereikalaujantys visam laikui nemokami paslaugų teikėjai |                                                       **53** | Unikalūs paslaugų teikėjai pasikartojančių dienos / mėnesio / kreditų / neribotų ir rakto nereikalaujančių katalogo tipų kategorijose; tinkamumo kriterijais apribotos eilutės neįtrauktos |
-| Paslaugų teikėjų katalogo įrašai, pažymėti `hasFree`                                          |                                                **152 / 357** | Platesni paslaugų teikėjų metaduomenys; ne visi turi kiekybiškai įvertinamą pasikartojančią kvotą                                                                                          |
+| Rodiklis                                  | Dabartinė audituota vertė | Paaiškinimas                                                                  |
+| ----------------------------------------- | ------------------------: | ----------------------------------------------------------------------------- |
+| Pasikartojantis kiekybinis limitas        |    **~1.62B žetonų/mėn.** | Bendri fondai skaičiuojami vieną kartą; neriboti teikėjai į sumą neįtraukiami |
+| Pirmasis mėnuo su registracijos kreditais |         **~2.22B žetonų** | Pasikartojanti bendra suma bei vienkartiniai ir pasikartojantys kreditai      |
 
-Šios vertės apskaičiuotos pagal `open-sse/config/freeModelCatalog.ts`; daugiau informacijos apie
-bendrų limitų telkinių deduplikavimą, paslaugų teikimo sąlygų žymas, nebeteikiamus įrašus ir registracijos kreditų metodiką rasite
+Tai viso katalogo apytikriai įverčiai, taikomi atskiroms tinkamoms paskyroms, o ne „OmniRoute“ suteikiamas limitas ar prognozė naujam diegimui. Jūsų turimas pajėgumas priklauso nuo prijungtų teikėjų ir jų dabartinių sąlygų. Vertės apskaičiuojamos pagal `open-sse/config/freeModelCatalog.ts`; informacijos apie bendrų fondų dublikatų šalinimą, ToS žymas,
+nebeteikiamus pasiūlymus ir registracijos kreditų metodiką rasite
 [Nemokamų planų žinyne](../reference/FREE_TIERS.md).
 
 ---

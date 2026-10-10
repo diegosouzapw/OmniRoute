@@ -4,66 +4,66 @@
 
 ---
 
-> **In breve**: OmniRoute registra 357 ID di provider, con **152 voci del catalogo dei provider contrassegnate come `hasFree`**. Il catalogo dei modelli gratuiti, sottoposto a controlli più rigorosi, comprende **35 chiavi di pool ricorrenti / 482 voci** (475 attive + 7 non più disponibili). Collega diversi provider adatti per ampliare la capacità di fallback; continuano ad applicarsi tutte le quote, le regole di approvazione, le informative sulla privacy e le condizioni relative agli addebiti per il superamento dei limiti.
+> **In breve**: Usa i tuoi account idonei presso i provider. OmniRoute combina le connessioni che configuri; non fornisce il budget aggregato di token pubblicizzato. L'accesso gratuito può richiedere la registrazione, una chiave API, l'approvazione o un metodo di pagamento. Continuano ad applicarsi i limiti, le politiche sulla privacy e i termini dei provider.
 
 ---
 
-## Cosa sono i piani gratuiti?
+## Cosa sono i livelli gratuiti?
 
 Molti provider di IA offrono qualche forma di **accesso gratuito**. A seconda del provider, ciò può
-significare un endpoint senza autenticazione, una quota ricorrente, un accesso senza limiti di utilizzo ma soggetto a limiti di frequenza, un credito di registrazione,
+significare un endpoint senza autenticazione, una quota ricorrente, un accesso senza limite complessivo ma con frequenza limitata, un credito di registrazione,
 un'approvazione manuale o una promozione temporanea. Alcune opzioni richiedono un account, una chiave API,
 una carta di credito, la verifica KYC o l'accettazione di termini specifici del provider.
 
-OmniRoute **aggrega** questi piani gratuiti in un unico endpoint. Anziché registrarti a 10 servizi diversi, puoi collegarli tutti a OmniRoute e usare `model: "auto"` per selezionare automaticamente la migliore opzione gratuita per ogni richiesta.
+OmniRoute **aggrega** le connessioni configurate in un unico endpoint. È comunque necessario registrarsi separatamente presso ciascun provider che richiede un account. Collega tali account e utilizza `model: "auto"` per instradare le richieste tra le destinazioni idonee. Una nuova installazione potrebbe non disporre di alcuna destinazione idonea senza chiave; la sola installazione di OmniRoute non garantisce una risposta corretta dalla chat.
 
 ---
 
-## Provider rappresentativi con accesso gratuito
+## Fornitori rappresentativi con accesso gratuito
 
-### Accesso ricorrente, senza chiave o senza limiti di utilizzo
+### Accesso ricorrente, senza chiave o senza limiti
 
-Questi provider offrono un percorso di accesso gratuito ricorrente, senza chiave o senza limiti di utilizzo nel catalogo verificato. “Senza limiti di utilizzo” significa che non è pubblicato alcun limite di token; possono comunque applicarsi limiti di frequenza, concorrenza, account, area geografica e policy:
+Questi fornitori offrono, nel catalogo sottoposto a verifica, una modalità di accesso gratuito ricorrente, senza chiave o senza limiti. “Senza limiti” significa che non è pubblicato alcun limite di token; possono comunque essere applicati limiti relativi a frequenza, concorrenza, account, area geografica e criteri:
 
-| Provider          | Modelli                                                                                                             | Quota                                                                                                                                                                       | Come collegarlo                                                                                               |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 e altri                                                                 | Il catalogo verificato stima un pool mensile condiviso di 25K token                                                                                                         | Flusso OAuth/account; termini di servizio contrassegnati come `avoid` nel catalogo                            |
-| **OpenCode Free** | Attuale insieme di modelli `*-free` nel registro dei provider                                                       | Senza chiave; nessun limite di token pubblicato                                                                                                                             | Nessuna credenziale del provider; termini di servizio contrassegnati come `avoid`                             |
-| **Pollinations**  | Attuale insieme di modelli senza chiave; alcuni modelli precedenti non sono più disponibili o richiedono una chiave | Senza chiave; nessun limite di token pubblicato                                                                                                                             | Nessuna credenziale del provider per i modelli senza chiave                                                   |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 e altri                                                 | Chiave API gratuita (nessun limite di frequenza, nessuna carta); **ogni richiesta viene registrata** per scopi di ricerca (puoi revocare il consenso su logfare.ai/consent) | Chiave immediata su logfare.ai/register; termini di servizio e privacy su logfare.ai/tos e logfare.ai/privacy |
-| **Cloudflare AI** | Catalogo Workers AI                                                                                                 | Il pool verificato stima ~30M token/mese in base alle unità di utilizzo pubblicate                                                                                          | Account Cloudflare e credenziali API                                                                          |
-| **Gemini**        | Famiglia Gemini Flash                                                                                               | Il pool verificato stima ~60M token/mese                                                                                                                                    | Chiave API di Google AI Studio; si applicano limiti di frequenza                                              |
-| **Groq**          | Modelli Llama, GPT-OSS e Qwen                                                                                       | Il pool verificato stima ~15M token/mese                                                                                                                                    | Chiave API Groq; si applicano limiti di frequenza                                                             |
-| **Cerebras**      | GLM 4.7 e GPT-OSS 120B                                                                                              | Il pool verificato stima ~30M token/mese                                                                                                                                    | Chiave API Cerebras; si applicano limiti di frequenza                                                         |
+| Fornitore         | Modelli                                                                                                    | Quota                                                                                                                                                              | Modalità di connessione                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 e altri                                                        | Il catalogo sottoposto a verifica stima un pool mensile condiviso di 25K token                                                                                     | Flusso OAuth/account; i ToS sono contrassegnati come `avoid` nel catalogo                   |
+| **OpenCode Free** | Set attuale di modelli `*-free` nel registro del fornitore                                                 | Senza chiave; nessun limite di token pubblicato                                                                                                                    | Nessuna credenziale del fornitore; ToS contrassegnati come `avoid`                          |
+| **Pollinations**  | Set attuale di modelli senza chiave; alcuni modelli precedenti sono stati dismessi o richiedono una chiave | Senza chiave; nessun limite di token pubblicato                                                                                                                    | Nessuna credenziale del fornitore per i modelli senza chiave                                |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 e altri                                        | Chiave API gratuita (nessun limite di frequenza, nessuna carta); **ogni richiesta viene registrata** per finalità di ricerca (disattivabile su logfare.ai/consent) | Chiave immediata su logfare.ai/register; ToS/privacy su logfare.ai/tos e logfare.ai/privacy |
+| **Cloudflare AI** | Catalogo Workers AI                                                                                        | Il pool sottoposto a verifica stima ~30M token/mese in base alle unità di utilizzo pubblicate                                                                      | Account Cloudflare e credenziali API                                                        |
+| **Gemini**        | Famiglia Gemini Flash                                                                                      | Limiti di frequenza variabili per progetto/modello; la cifra principale non include un'assegnazione mensile fissa di token                                         | Chiave API di Google AI Studio; verificare i limiti attivi del progetto                     |
+| **Groq**          | Modelli Llama, GPT-OSS e Qwen                                                                              | Il pool sottoposto a verifica stima ~15M token/mese                                                                                                                | Chiave API Groq; si applicano limiti di frequenza                                           |
 
-### Crediti di registrazione e crediti specifici dei provider
+### Bonus di registrazione e crediti specifici dei fornitori
 
-Questi provider offrono **crediti gratuiti** al momento della registrazione:
+Questi fornitori offrono bonus di registrazione o crediti promozionali, soggetti ai rispettivi requisiti di idoneità. Come verificato il 2026-10-08, i [prezzi di Cerebras](https://www.cerebras.ai/pricing) richiedono un metodo di pagamento per ottenere un credito una tantum di $5, che scade dopo 30 giorni; non si tratta di una quota ricorrente di token. I [limiti di frequenza di Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) variano in base a progetto, modello e livello, pertanto non vengono convertiti in un'assegnazione mensile garantita di token.
 
-| Provider      | Crediti gratuiti                                                                       | Modelli                      | Come ottenerli                                                                |
-| ------------- | -------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------- |
-| **DeepSeek**  | 5M token gratuiti                                                                      | DeepSeek V4                  | Registrati su platform.deepseek.com                                           |
-| **LongCat**   | Credito una tantum di 10M token                                                        | LongCat 2.0                  | Chiave API + KYC; pagamento in base al consumo dopo l'esaurimento del credito |
-| **Vertex AI** | Credito di registrazione di $300, rappresentato come ~300M token nel modello di budget | Gemini e modelli dei partner | Account Google Cloud; si applicano regole di fatturazione e idoneità          |
+| Fornitore     | Crediti gratuiti                                                                       | Modelli                       | Come ottenerli                                                       |
+| ------------- | -------------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------- |
+| **Cerebras**  | Credito promozionale una tantum di $5; scade dopo 30 giorni                            | Catalogo di inferenza attuale | Account e metodo di pagamento valido                                 |
+| **DeepSeek**  | 5M token gratuiti                                                                      | DeepSeek V4                   | Registrarsi su platform.deepseek.com                                 |
+| **LongCat**   | Assegnazione una tantum di 10M token                                                   | LongCat 2.0                   | Chiave API + KYC; pagamento in base al consumo dopo l'assegnazione   |
+| **Vertex AI** | Credito di registrazione di $300, rappresentato come ~300M token nel modello di budget | Gemini e modelli dei partner  | Account Google Cloud; si applicano regole di fatturazione e idoneità |
 
 ### Altri accessi limitati
 
-Questi provider offrono **piani gratuiti** con limiti specifici:
+Questi fornitori dispongono di **piani gratuiti** con limiti specifici:
 
-| Provider                   | Limite gratuito                                                                                        | Modelli                                  | Ideale per |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------- | ---------- |
-| **GitHub Models**          | Pool condiviso soggetto a verifica, stimato in ~18M token/mese                                         | Valutazione di un'ampia gamma di modelli |
-| **Hugging Face**           | Piccolo pool mensile ricorrente                                                                        | Esperimenti e varietà di modelli         |
-| **OpenRouter free models** | Pool condiviso con richieste limitate; una ricarica una tantum facoltativa aumenta la quota ricorrente | Ampio catalogo di modelli alternativi    |
-| **AI Horde**               | Capacità della community senza chiave; la disponibilità varia                                          | Inferenza distribuita opportunistica     |
+| Fornitore                  | Limite gratuito                                                                                               | Modelli                                  | Ideale per |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------- |
+| **GitHub Models**          | Il pool condiviso sottoposto a verifica stima ~18M token/mese                                                 | Valutazione di un'ampia gamma di modelli |
+| **Hugging Face**           | Piccolo pool mensile ricorrente                                                                               | Esperimenti e varietà di modelli         |
+| **OpenRouter free models** | Pool condiviso con limite di richieste; una ricarica una tantum facoltativa aumenta l'assegnazione ricorrente | Ampio catalogo di riserva                |
+| **AI Horde**               | Capacità della community senza chiave; la disponibilità varia                                                 | Inferenza distribuita opportunistica     |
 
 ---
 
-## Come combinare i livelli gratuiti
+## Come combinare i piani gratuiti
 
-La caratteristica speciale di OmniRoute è la **combinazione dei livelli gratuiti**. Invece di affidarti a un solo provider, puoi collegare più provider gratuiti e lasciare che OmniRoute scelga automaticamente quello migliore per ogni richiesta.
+La caratteristica vincente di OmniRoute è la **combinazione dei piani gratuiti**. Invece di affidarti a un solo provider, puoi collegare più provider gratuiti e lasciare che OmniRoute scelga automaticamente quello migliore per ogni richiesta.
 
-### Esempio: copertura più ampia dei livelli gratuiti
+### Esempio: maggiore copertura dei piani gratuiti
 
 Collega diversi provider per ridurre la dipendenza da una singola quota:
 
@@ -74,58 +74,57 @@ Collega diversi provider per ridurre la dipendenza da una singola quota:
 
 Quindi usa `model: "auto"` e OmniRoute:
 
-- Proverà prima la connessione idonea con la priorità più alta
-- Se la relativa quota è esaurita o il controllo di integrità non riesce → proverà il provider configurato successivo
+- Proverà per prima la connessione idonea con la priorità più alta
+- Se la quota è esaurita o il controllo di integrità non riesce → proverà il provider configurato successivo
 - Se il provider senza chiave non è disponibile → continuerà con le destinazioni rimanenti
-- Se tutti falliscono → userà LongCat come opzione di riserva
+- Se nessuna connessione idonea ha esito positivo → restituirà un errore; i crediti di registrazione sono utilizzabili solo finché sono validi e disponibili
 
-**Risultato**: una copertura più ampia dei livelli gratuiti con fallback automatico, non una garanzia di capacità illimitata.
+**Risultato**: maggiore copertura dei piani gratuiti con fallback automatico, non una garanzia di capacità illimitata.
 
 ---
 
-## Come collegare i provider gratuiti
+## Come connettere i provider gratuiti
 
-### Passaggio 1: apri la dashboard
+### Passaggio 1: Apri la dashboard
 
 Vai a `http://localhost:20128` nel browser.
 
-### Passaggio 2: vai a Provider
+### Passaggio 2: Vai a Provider
 
 Fai clic su **Provider** nella barra laterale.
 
-### Passaggio 3: fai clic su Aggiungi provider
+### Passaggio 3: Fai clic su Aggiungi provider
 
 Fai clic sul pulsante **+ Aggiungi provider**.
 
-### Passaggio 4: seleziona un provider gratuito
+### Passaggio 4: Seleziona un provider gratuito
 
-Sfoglia il catalogo ed esamina i metadati aggiornati di ogni provider relativi a `hasFree`, autenticazione, quota, privacy
-e Termini di servizio. La scheda del provider e il
-[Riferimento sui livelli gratuiti](../reference/FREE_TIERS.md) distinguono tra quote ricorrenti,
+Sfoglia il catalogo e verifica per ciascun provider i metadati correnti relativi a `hasFree`, autenticazione, quota, privacy
+e termini di servizio. La scheda del provider e il
+[Riferimento dei livelli gratuiti](../reference/FREE_TIERS.md) distinguono tra pool ricorrenti,
 accesso illimitato/senza chiave, crediti di registrazione, voci non più disponibili e fonti a rischio più elevato.
 
-### Passaggio 5: fai clic su Connetti
+### Passaggio 5: Fai clic su Connetti
 
-Per un provider `NOAUTH` non sono necessarie credenziali. I provider OAuth e quelli che richiedono una chiave API devono essere
-collegati tramite il flusso dell'account indicato nella relativa documentazione.
+Per un provider `NOAUTH`, OmniRoute non richiede credenziali per il servizio upstream. Ciò non garantisce che il servizio upstream accetti client di terze parti o disponga di capacità disponibile. I provider OAuth e con chiave API devono essere connessi tramite il flusso dell'account documentato. Il client continua a utilizzare la chiave API di OmniRoute mostrata in **Dashboard → Endpoint** quando l'autenticazione del router è abilitata.
 
-### Passaggio 6: ripeti
+### Passaggio 6: Ripeti
 
-Collega diversi provider i cui termini e il cui modello di privacy siano adatti al tuo caso d'uso.
+Connetti diversi provider i cui termini e il cui modello di privacy siano adatti al tuo caso d'uso.
 
 ---
 
-## Come interpretare correttamente il catalogo
+## Interpretare correttamente il catalogo
 
-- `NOAUTH` significa che OmniRoute non richiede le credenziali del provider; non
+- `NOAUTH` significa che OmniRoute non richiede una credenziale del provider; non
   garantisce disponibilità, privacy o capacità illimitata.
-- `hasFree` è un metadato di rilevamento. Può rappresentare una quota ricorrente, l'accesso senza chiave,
-  un credito di registrazione, un programma soggetto ad approvazione o una promozione.
-- `recurring-uncapped` significa che non era disponibile alcun limite massimo pubblicato per i token; continuano comunque ad applicarsi
-  i limiti di frequenza e concorrenza.
-- `one-time-initial` non si rinnova dopo l'esaurimento del credito di registrazione.
-- `tos: avoid` è un avviso che invita a esaminare i termini del provider e i rischi per l'account prima dell'uso.
-- Le voci contrassegnate come `discontinued` vengono mantenute come documentazione storica e non devono essere presentate come
+- `hasFree` è un metadato di individuazione. Può rappresentare una quota ricorrente, accesso senza chiave,
+  credito di registrazione, programma di approvazione o promozione.
+- `recurring-uncapped` significa che non era disponibile alcun limite massimo di token pubblicato; i limiti di frequenza e
+  concorrenza continuano ad applicarsi.
+- `one-time-initial` non si ripete dopo che il credito di registrazione è stato consumato.
+- I provider con `tos: avoid` sono esclusi per impostazione predefinita dall'instradamento automatico (`excludeTosAvoid`). Il collegamento di un account non elude questo filtro. Qualsiasi eccezione da parte dell'operatore dovrebbe essere applicata dopo aver esaminato i termini del provider e i rischi associati all'account.
+- Le voci contrassegnate come `discontinued` rimangono come evidenza storica e non devono essere presentate come
   attualmente gratuite.
 
 ---
@@ -160,19 +159,16 @@ la quota o i criteri di accesso di un provider.
 
 ## Calcolo del piano gratuito
 
-Il catalogo live, con deduplicazione dei pool, riporta attualmente:
+Il catalogo attivo, con deduplicazione dei pool, riporta attualmente:
 
-| Metrica                                                            |                              Valore corrente verificato | Interpretazione                                                                                                                                                        |
-| ------------------------------------------------------------------ | ------------------------------------------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Assegnazione ricorrente quantificata                               |                             **~1,62 mld di token/mese** | I pool condivisi vengono conteggiati una sola volta; i provider senza limiti sono esclusi dalla somma                                                                  |
-| Primo mese con assegnazioni alla registrazione                     |                                  **~2,22 mld di token** | Totale ricorrente più crediti una tantum e ricorrenti                                                                                                                  |
-| Inventario verificato dei modelli gratuiti                         | **35 chiavi di pool ricorrenti / 482 voci di catalogo** | 475 attive + 7 non più disponibili; distinto dal catalogo di 357 provider                                                                                              |
-| Provider gratuiti permanenti ricorrenti/senza chiave rappresentati |                                                  **53** | Provider univoci tra i tipi di catalogo ricorrenti giornalieri/mensili, basati su crediti, senza limiti e senza chiave; righe soggette a requisiti di idoneità escluse |
-| Voci del catalogo dei provider contrassegnate con `hasFree`        |                                           **152 / 357** | Metadati più ampi sui provider; non tutti dispongono di una quota ricorrente quantificabile                                                                            |
+| Metrica                                 | Valore attuale verificato | Interpretazione                                                                                           |
+| --------------------------------------- | ------------------------: | --------------------------------------------------------------------------------------------------------- |
+| Quota ricorrente quantificata           |     **~1.62B token/mese** | I pool condivisi vengono conteggiati una sola volta; i provider senza limiti non sono inclusi nella somma |
+| Primo mese con crediti di registrazione |          **~2.22B token** | Totale ricorrente più crediti una tantum e ricorrenti                                                     |
 
-Questi valori sono calcolati da `open-sse/config/freeModelCatalog.ts`; consulta il
-[Riferimento sui piani gratuiti](../reference/FREE_TIERS.md) per la deduplicazione dei pool, gli indicatori dei ToS,
-le voci non più disponibili e la metodologia relativa ai crediti di registrazione.
+Si tratta di stime relative all'intero catalogo, calcolate su account idonei distinti, non di una quota fornita da OmniRoute né di una previsione per una nuova installazione. La capacità utilizzabile dipende dai provider collegati e dalle loro condizioni attuali. I valori vengono calcolati a partire da `open-sse/config/freeModelCatalog.ts`; consulta il
+[Riferimento sui piani gratuiti](../reference/FREE_TIERS.md) per informazioni sulla deduplicazione dei pool, sulle segnalazioni relative ai ToS,
+sulle voci non più disponibili e sulla metodologia dei crediti di registrazione.
 
 ---
 

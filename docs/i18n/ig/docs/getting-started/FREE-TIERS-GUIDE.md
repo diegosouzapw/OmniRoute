@@ -4,128 +4,122 @@
 
 ---
 
-> **Na nkenke**: OmniRoute na-edebanye ID ndị na-eweta ọrụ 357, ebe **ntinye 152 na katalọgụ ndị na-eweta ọrụ nwere akara `hasFree`**. Katalọgụ ụdị efu ahụ e nyochachara nke ọma karị nwere **igodo pool na-emegharị ugboro ugboro 35 / ntinye 482** (475 na-arụ ọrụ + 7 a kwụsịrị). Jikọọ ọtụtụ ndị na-eweta ọrụ kwesịrị ekwesị iji nweta ikike fallback sara mbara karị; oke ojiji, iwu nkwado, amụma nzuzo, na ọnọdụ ịkwụ ụgwọ maka ojiji gafere oke ka na-emetụta.
+> **TL;DR**: Jiri akaụntụ ndị na-eweta ọrụ tozuru etozu nke gị. OmniRoute na-ejikọta njikọ ndị ị haziri; ọ naghị enye mkpokọta oke token a kpọsara. Ịnweta ya n’efu nwere ike ịchọ ndebanye aha, API key, nkwado, ma ọ bụ usoro ịkwụ ụgwọ. Oke ndị na-eweta ọrụ, iwu nzuzo, na usoro ojiji ka na-emetụta.
 
 ---
 
-## Gịnị Bụ Ọkwa Efụ?
+## Gịnị Bụ Ọkwa Ndị A Na-eji n’Efughị Ego?
 
-Ọtụtụ ndị na-eweta AI na-enye ụdị ụfọdụ nke **nnweta efu**. Dabere na onye na-eweta ya, nke ahụ nwere ike
-ịpụta endpoint na-achọghị njirimara, oke ojiji na-emegharị ugboro, nnweta na-enweghị oke token mana nwere oke ọsọ, onyinye mgbe
-e debanyere aha, nkwado aka, ma ọ bụ nkwalite nwa oge. Ụfọdụ nhọrọ chọrọ akaụntụ, igodo API,
-kaadị kredit, KYC, ma ọ bụ ịnakwere usoro ndị onye na-eweta ọrụ ahụ kpọmkwem nyere.
+Ọtụtụ ndị na-eweta AI na-enye ụdị ụfọdụ nke **nnweta n’efu**. Dabere na onye na-eweta ya, nke ahụ nwere ike ịpụta endpoint na-achọghị nkwenye njirimara, oke ojiji a na-emegharị kwa oge, nnweta na-enweghị oke nke a na-amachibido ọsọ ya, onyinye e nyere mgbe e debanyere aha, nkwado mmadụ ji aka enye, ma ọ bụ nkwalite nwa oge. Ụfọdụ nhọrọ chọrọ akaụntụ, API key, kaadị kredit, KYC, ma ọ bụ ịnakwere usoro ndị akọwapụtara maka onye na-eweta ahụ.
 
-OmniRoute **na-achịkọta** ọkwa efu ndị a n’otu endpoint. Kama idebanye aha maka ọrụ 10 dị iche iche, ị na-ejikọta ha niile na OmniRoute ma jiri `model: "auto"` họrọ nhọrọ efu kacha mma na-akpaghị aka maka arịrịọ ọ bụla.
+OmniRoute na-**achịkọta** njikọ ndị ahaziri ka ha bụrụ otu endpoint. Ị ka ga-edebanye aha iche iche n’aka onye na-eweta ọ bụla chọrọ akaụntụ. Jikọọ akaụntụ ndị ahụ ma jiri `model: "auto"` duzie arịrịọ n’etiti ebe ndị tozuru etozu. Nwụnye ọhụrụ nwere ike ghara inwe ebe ọ bụla tozuru etozu nke na-achọghị key; naanị ịwụnye OmniRoute anaghị ekwe nkwa na a ga-enweta nzaghachi nkata nke ọma.
 
 ---
 
-## Ndị Na-eweta Nnweta Efụ Ndị Nọchitere Anya
+## Ndị Nnọchiteanya Na-enye Ọrụ Nnweta N’efu
 
-### Nnweta Na-emegharị Ugboro, Na-enweghị Igodo, ma ọ bụ Na-enweghị Oke
+### Nnweta Na-emegharị Kwa Oge, Nke Na-achọghị Igodo, ma ọ bụ Nke Enweghị Oke
 
-Ndị na-eweta ọrụ ndị a nwere ụzọ nnweta efu na-emegharị ugboro, na-enweghị igodo, ma ọ bụ na-enweghị oke n’ime katalọgụ e nyochara. “Na-enweghị oke” pụtara na e bipụtaghị oke token; oke ọsọ, arịrịọ ndị na-aga n’otu oge, akaụntụ, mpaghara, na amụma ka nwere ike imetụta:
+Ndị na-enye ọrụ ndị a nwere ụzọ nnweta n’efu nke na-emegharị kwa oge, nke na-achọghị igodo, ma ọ bụ nke enweghị oke n’ime katalọgụ enyochara. “Enweghị oke” pụtara na e bipụtaghị oke token ọ bụla; oke ọsọ, ọrụ ndị na-aga n’otu oge, akaụntụ, mpaghara, na iwu ka nwere ike ịdị:
 
-| Onye Na-eweta Ọrụ | Ụdị                                                                                       | Oke Ojiji                                                                                                                        | Otu E Si Jikọọ                                                                               |
-| ----------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, na ndị ọzọ                                   | Katalọgụ e nyochara na-eme atụmatụ ọdọ mmiri token 25K a na-ekekọrịta kwa ọnwa                                                   | Usoro OAuth/akaụntụ; akara ToS bụ `avoid` n’ime katalọgụ                                     |
-| **OpenCode Free** | Nchịkọta ụdị `*-free` dị ugbu a n’ime ndekọ ndị na-eweta ọrụ                              | Achọghị igodo; e bipụtaghị oke token                                                                                             | Achọghị ozi nzere onye na-eweta ọrụ; akara ToS bụ `avoid`                                    |
-| **Pollinations**  | Nchịkọta ụdị na-achọghị igodo dị ugbu a; a kwụsịrị ụfọdụ ụdị ochie ma ọ bụ ha chọrọ igodo | Achọghị igodo; e bipụtaghị oke token                                                                                             | Achọghị ozi nzere onye na-eweta ọrụ maka ụdị ndị na-achọghị igodo                            |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, na ndị ọzọ                   | Igodo API efu (enweghị oke ọsọ, enweghị kaadị); **a na-edekọ arịrịọ ọ bụla** maka nyocha (kwụsị ikere òkè na logfare.ai/consent) | Nweta igodo ozugbo na logfare.ai/register; ToS/nzuzo na logfare.ai/tos na logfare.ai/privacy |
-| **Cloudflare AI** | Katalọgụ Workers AI                                                                       | Ọdọ mmiri e nyochara na-eme atụmatụ ihe dị ka token 30M/ọnwa site na nkeji ojiji e bipụtara                                      | Akaụntụ Cloudflare na ozi nzere API                                                          |
-| **Gemini**        | Ezinụlọ Gemini Flash                                                                      | Ọdọ mmiri e nyochara na-eme atụmatụ ihe dị ka token 60M/ọnwa                                                                     | Igodo API Google AI Studio; oke ọsọ na-emetụta                                               |
-| **Groq**          | Ụdị Llama, GPT-OSS, na Qwen                                                               | Ọdọ mmiri e nyochara na-eme atụmatụ ihe dị ka token 15M/ọnwa                                                                     | Igodo API Groq; oke ọsọ na-emetụta                                                           |
-| **Cerebras**      | GLM 4.7 na GPT-OSS 120B                                                                   | Ọdọ mmiri e nyochara na-eme atụmatụ ihe dị ka token 30M/ọnwa                                                                     | Igodo API Cerebras; oke ọsọ na-emetụta                                                       |
+| Onye Na-enye Ọrụ  | Ụdị                                                                                           | Oke                                                                                                                          | Otu E Si Jikọọ                                                                                      |
+| ----------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2, na ndị ọzọ                                       | Katalọgụ enyochara na-eme atụmatụ na e nwere ọdọ token 25K a na-ekekọrịta kwa ọnwa                                           | Usoro OAuth/akaụntụ; akara ToS bụ `avoid` n’ime katalọgụ                                            |
+| **OpenCode Free** | Nchịkọta ụdị `*-free` dị ugbu a n’akwụkwọ ndekọ onye na-enye ọrụ                              | Achọghị igodo; e bipụtaghị oke token                                                                                         | Achọghị nzere onye na-enye ọrụ; akara ToS bụ `avoid`                                                |
+| **Pollinations**  | Nchịkọta ụdị ndị na-achọghị igodo dị ugbu a; a kwụsịla ụfọdụ ụdị ochie ma ọ bụ ha chọrọ igodo | Achọghị igodo; e bipụtaghị oke token                                                                                         | Achọghị nzere onye na-enye ọrụ maka ụdị ndị na-achọghị igodo                                        |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3, na ndị ọzọ                       | Igodo API n’efu (enweghị oke ọsọ, enweghị kaadị); **a na-edekọ arịrịọ ọ bụla** maka nyocha (jụ isonye na logfare.ai/consent) | Nweta igodo ozugbo na logfare.ai/register; ToS/iwu nzuzo dị na logfare.ai/tos na logfare.ai/privacy |
+| **Cloudflare AI** | Katalọgụ Workers AI                                                                           | Ọdọ enyochara na-eme atụmatụ ihe dị ka token 30M kwa ọnwa site na nkeji ojiji e bipụtara                                     | Akaụntụ Cloudflare na nzere API                                                                     |
+| **Gemini**        | Ezinụlọ Gemini Flash                                                                          | Oke ọsọ na-agbanwe dabere na ọrụ/ụdị; enweghị onyinye token kwa ọnwa a kapịrị ọnụ n’isiokwu ahụ                              | Igodo API Google AI Studio; lelee oke ndị na-arụ ọrụ ugbu a n’ọrụ ahụ                               |
+| **Groq**          | Ụdị Llama, GPT-OSS, na Qwen                                                                   | Ọdọ enyochara na-eme atụmatụ ihe dị ka token 15M kwa ọnwa                                                                    | Igodo API Groq; oke ọsọ na-emetụta ya                                                               |
 
-### Onyinye Ndebanye Aha na Kredit Ndị Kpọmkwem Maka Onye Na-eweta Ọrụ
+### Onyinye Ndebanye Aha na Kredit Pụrụ Iche nke Ndị Na-enye Ọrụ
 
-Ndị na-eweta ọrụ ndị a na-enye gị **kredit efu** mgbe ị debanyere aha:
+Ndị na-enye ọrụ ndị a na-enye onyinye ndebanye aha ma ọ bụ kredit nkwado, dabere n’iwu ntozu ha. Dịka e kwadoro na 2026-10-08, [ọnụahịa Cerebras](https://www.cerebras.ai/pricing) chọrọ usoro ịkwụ ụgwọ iji nweta kredit $5 otu ugboro nke ga-agwụ mgbe ụbọchị 30 gachara; ọ bụghị oke token na-emegharị kwa oge. [Oke ọsọ Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) na-agbanwe dabere na ọrụ, ụdị, na ọkwa, ya mere anaghị agbanwe ha ka ha bụrụ onyinye token kwa ọnwa e kwere nkwa.
 
-| Onye Na-eweta Ọrụ | Kredit Efụ                                                                      | Ụdị                     | Otu E Si Nweta                                                       |
-| ----------------- | ------------------------------------------------------------------------------- | ----------------------- | -------------------------------------------------------------------- |
-| **DeepSeek**      | Token efu 5M                                                                    | DeepSeek V4             | Debanye aha na platform.deepseek.com                                 |
-| **LongCat**       | Onyinye token 10M otu ugboro                                                    | LongCat 2.0             | Igodo API + KYC; kwụọ ụgwọ dịka ojiji si dị mgbe onyinye ahụ gwụsịrị |
-| **Vertex AI**     | Kredit ndebanye aha $300 nke egosiri dị ka ihe dị ka token 300M n’ụdị mmefu ego | Gemini na ụdị ndị mmekọ | Akaụntụ Google Cloud; iwu ịgba ụgwọ na ntozu na-emetụta              |
+| Onye Na-enye Ọrụ | Kredit N’efu                                                                        | Ụdị                          | Otu E Si Nweta Ya                                                    |
+| ---------------- | ----------------------------------------------------------------------------------- | ---------------------------- | -------------------------------------------------------------------- |
+| **Cerebras**     | Kredit nkwado $5 otu ugboro; ọ ga-agwụ mgbe ụbọchị 30 gachara                       | Katalọgụ inference dị ugbu a | Akaụntụ na usoro ịkwụ ụgwọ ziri ezi                                  |
+| **DeepSeek**     | Token 5M n’efu                                                                      | DeepSeek V4                  | Debanye aha na platform.deepseek.com                                 |
+| **LongCat**      | Onyinye token 10M otu ugboro                                                        | LongCat 2.0                  | Igodo API + KYC; kwụọ ụgwọ dịka i si eji ya mgbe onyinye ahụ gwụsịrị |
+| **Vertex AI**    | Kredit ndebanye aha $300 nke e gosipụtara dịka ihe dị ka token 300M n’ụdị mmefu ego | Gemini na ụdị ndị mmekọ      | Akaụntụ Google Cloud; iwu ịgba ụgwọ na ntozu na-emetụta ya           |
 
 ### Nnweta Ndị Ọzọ Nwere Oke
 
-Ndị na-eweta ọrụ ndị a nwere **ọkwa efu** nwere oke akọwapụtara:
+Ndị na-enye ọrụ ndị a nwere **ọkwa n’efu** nwere oke ndị a kapịrị ọnụ:
 
-| Onye na-eweta              | Oke efu                                                                                               | Ụdịdị                                     | Kachasị mma maka |
-| -------------------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------- | ---------------- |
-| **GitHub Models**          | Atụmatụ ọdọ ojiji a na-enyocha nke a na-ekekọrịta bụ ihe dịka token nde 18 kwa ọnwa                   | Ntụle ụdịdị dịgasị iche iche              |
-| **Hugging Face**           | Obere ọdọ ojiji a na-enyeghachi kwa ọnwa                                                              | Nnwale na ụdịdị dịgasị iche iche          |
-| **OpenRouter free models** | Ọdọ arịrịọ a na-ekekọrịta nwere oke; ịgbakwunye ego otu ugboro nwere ike ịbawanye oke a na-enyeghachi | Ndepụta ụdịdị ndabere sara mbara          |
-| **AI Horde**               | Ikike obodo na-achọghị key; nnweta ya na-agbanwe                                                      | Nrụpụta nkwubi okwu ekesara mgbe ohere dị |
+| Onye Na-enye Ọrụ           | Oke N’efu                                                                                                               | Ụdị                                          | Nke Ọ Kacha Mma Maka |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | -------------------- |
+| **GitHub Models**          | Ọdọ a na-ekekọrịta enyochara na-eme atụmatụ ihe dị ka token 18M kwa ọnwa                                                | Ntụle ụdị dịgasị iche iche                   |
+| **Hugging Face**           | Obere ọdọ kwa ọnwa na-emegharị                                                                                          | Nnwale na ụdị dịgasị iche iche               |
+| **OpenRouter free models** | Ọdọ a na-ekekọrịta nke oke arịrịọ na-achịkwa; ịgbakwunye ego otu ugboro n’ụzọ nhọrọ na-abawanye oke na-emegharị kwa oge | Katalọgụ nkwado ndabere sara mbara           |
+| **AI Horde**               | Ikike obodo na-achọghị igodo; nnweta na-agbanwe                                                                         | Inference ekesara nke a na-eji mgbe ohere dị |
 
 ---
 
-## Otu E Si Ejikọ Ọkwa N'efu Ọtụtụ
+## Otu E Si Ejikọta Ọkwa Ojiji Efụ
 
-Ihe pụrụ iche gbasara OmniRoute bụ **ijikọ ọkwa n'efu ọtụtụ ọnụ**. Kama ịdabere n'otu onye na-eweta ọrụ, ị na-ejikọta ọtụtụ ndị na-eweta ọrụ n'efu ma hapụ OmniRoute ka ọ họrọ nke kachasị mma na-akpaghị aka maka arịrịọ ọ bụla.
+Ihe anwansi dị na OmniRoute bụ **ijikọta ọkwa ojiji efụ ọnụ**. Kama ịdabere n’otu onye na-enye ọrụ, ị na-ejikọta ọtụtụ ndị na-enye ọrụ efụ ma kwe ka OmniRoute họrọ nke kacha mma na-akpaghị aka maka arịrịọ ọ bụla.
 
-### Ọmụmaatụ: Mkpuchi Ọkwa N'efu Sara Mbara
+### Ọmụmaatụ: Mkpuchi Ọkwa Ojiji Efụ Sara Mbara
 
-Jikọọ ọtụtụ ndị na-eweta ọrụ iji belata ịdabere n'oke ojiji nke otu onye:
+Jikọọ ọtụtụ ndị na-enye ọrụ iji belata ịdabere na oke ojiji nke naanị otu n’ime ha:
 
 1. **Gemini** — oke ojiji API-key na-emegharị ugboro ugboro
 2. **Groq** — oke ojiji API-key na-emegharị ugboro ugboro
-3. **Pollinations** — nnweta na-enweghị igodo, nke nwere mmachi ọsọ
-4. **LongCat** — onyinye otu ugboro mgbe edebanyere aha (chọrọ KYC)
+3. **Pollinations** — nnweta na-enweghị igodo, nke nwere mmachi n’ọnụọgụ arịrịọ
+4. **LongCat** — onyinye ndebanye aha a na-enye otu ugboro (chọrọ KYC)
 
-Mgbe ahụ, jiri `model: "auto"` ma OmniRoute ga-eme ihe ndị a:
+Mgbe ahụ, jiri `model: "auto"` mee ihe, OmniRoute ga-eme ihe ndị a:
 
-- Buru ụzọ nwalee njikọ tozuru etozu nke nọ n'ọkwa kachasị elu
-- Ọ bụrụ na oke ojiji ya agwụla ma ọ bụ nyocha ọnọdụ ya ada → nwalee onye na-eweta ọrụ ọzọ ahaziri
-- Ọ bụrụ na onye na-eweta ọrụ na-enweghị igodo adịghị → gaa n'ihu site na ndị fọdụrụ e debere ka ebumnuche
-- Ọ bụrụ na ha niile ada → jiri LongCat dị ka nkwado
+- Buru ụzọ nwaa njikọ tozuru etozu nke nwere ọkwa kachasị elu
+- Ọ bụrụ na oke ojiji ya agwụla ma ọ bụ nyocha ọnọdụ ya ada → nwaa onye na-enye ọrụ ọzọ ahaziri
+- Ọ bụrụ na onye na-enye ọrụ na-enweghị igodo adịghị → gaa n’ihu site na ebe ndị ọzọ fọdụrụ
+- Ọ bụrụ na ọ nweghị njikọ tozuru etozu gara nke ọma → weghachite njehie; kredit ndebanye aha bụ naanị mgbe ha ka dị irè ma dị
 
-**Nsonaazụ**: mkpuchi ọkwa n'efu sara mbara nke nwere ntụgharị nkwado na-akpaghị aka — ọ bụghị nkwa nke ikike ojiji na-enweghị oke.
+**Nsonaazụ**: mkpuchi ọkwa ojiji efụ sara mbara nke nwere usoro ndabere akpaka — ọ bụghị nkwa nke ikike ojiji na-enweghị oke.
 
 ---
 
-## Otu E Si Ejikọ Ndị Na-eweta Ọrụ N'efu
+## Otu esi Jikọọ Ndị Na-enye Ọrụ n’efu
 
 ### Nzọụkwụ 1: Mepee Dashboard
 
-Gaa na `http://localhost:20128` n'ihe nchọgharị gị.
+Gaa na `http://localhost:20128` na ihe nchọgharị gị.
 
-### Nzọụkwụ 2: Gaa na Providers
+### Nzọụkwụ 2: Gaa na Ndị Na-enye Ọrụ
 
-Pịa **Providers** n'akụkụ menu.
+Pịa **Providers** n’akụkụ ihuenyo.
 
-### Nzọụkwụ 3: Pịa Add Provider
+### Nzọụkwụ 3: Pịa Tinye Onye Na-enye Ọrụ
 
 Pịa bọtịnụ **+ Add Provider**.
 
-### Nzọụkwụ 4: Họrọ Onye Na-eweta Ọrụ N'efu
+### Nzọụkwụ 4: Họrọ Onye Na-enye Ọrụ n’efu
 
-Chọgharịa katalọgụ ahụ ma nyochaa `hasFree`, usoro nkwenye njirimara, oke ojiji, nzuzo,
-na metadata ToS nke onye na-eweta ọrụ ọ bụla ugbu a. Kaadị onye na-eweta ọrụ na
-[Ndụmọdụ Maka Ọkwa N'efu](../reference/FREE_TIERS.md) na-egosi ọdịiche dị n'etiti ọdọ ikike na-emegharị ugboro ugboro,
-nnweta na-enweghị oke/na-enweghị igodo, kredit ndebanye aha, ndenye ndị a kwụsịrị, na isi mmalite nwere nnukwu ihe ize ndụ.
+Chọgharịa katalọgụ ahụ ma nyochaa metadata `hasFree`, auth, quota, privacy,
+na ToS nke onye na-enye ọrụ ọ bụla ugbu a. Kaadị onye na-enye ọrụ na
+[Etụaka Ọkwa Ọrụ n’efu](../reference/FREE_TIERS.md) na-ekewa ọdọ akụ ndị a na-emegharị ugboro ugboro,
+ohere ojiji na-enweghị oke/na-enweghị igodo, kredit ndebanye aha, ndenye ndị a kwụsịrị, na isi mmalite ndị nwere nnukwu ihe ize ndụ.
 
-### Nzọụkwụ 5: Pịa Connect
+### Nzọụkwụ 5: Pịa Jikọọ
 
-Maka onye na-eweta ọrụ `NOAUTH`, achọghị ihe nzere. A ga-ejikọta ndị na-eweta ọrụ OAuth na API-key
-site n'usoro akaụntụ edepụtara n'akwụkwọ ha.
+Maka onye na-enye ọrụ `NOAUTH`, OmniRoute anaghị arịọ nzere nnweta nke ọrụ dị n’elu. Nke a anaghị ekwe nkwa na ọrụ dị n’elu ga-anabata ndị ahịa sitere n’aka ndị ọzọ ma ọ bụ nwee ikike dịnụ. A ga-ejikọta ndị na-enye ọrụ OAuth na API-key site n’usoro akaụntụ ha depụtara. Ngwa ahịa gị ka na-eji igodo API OmniRoute egosiri na **Dashboard → Endpoints** mgbe agbanyere njirimara rawụta.
 
 ### Nzọụkwụ 6: Tinyegharịa
 
-Jikọọ ọtụtụ ndị na-eweta ọrụ ndị usoro ọrụ na ụdị nzuzo ha dabara n'ihe ịchọrọ iji ha mee.
+Jikọọ ọtụtụ ndị na-enye ọrụ ndị usoro ojiji na ụdị nzuzo ha dabara n’ojiji ị chọrọ.
 
----
+## Ịgụ Katalọgụ ahụ nke Ọma
 
-## Otu E Si Gụọ Katalọgụ Ahụ Nke Ọma
-
-- `NOAUTH` pụtara na OmniRoute agaghị arịọ gị ihe nzere onye na-eweta ọrụ; ọ naghị
-  ekwe nkwa na ọrụ ga-adị mgbe niile, na a ga-echekwa nzuzo, ma ọ bụ na ikike ojiji agaghị enwe oke.
-- `hasFree` bụ metadata maka nchọta. Ọ nwere ike ịnọchite anya oke ojiji na-emegharị ugboro ugboro, nnweta na-enweghị igodo,
+- `NOAUTH` pụtara na OmniRoute anaghị arịọ gị maka nzere onye na-eweta ọrụ; nke a anaghị
+  ekwe nkwa na ọrụ ga-adị mgbe niile, na nzuzo ga-adị, ma ọ bụ na ikike agaghị enwe oke.
+- `hasFree` bụ metadata maka nchọpụta. Ọ nwere ike ịnọchite anya oke ojiji na-emegharị ugboro ugboro, nnweta na-enweghị igodo,
   kredit ndebanye aha, mmemme nkwado, ma ọ bụ nkwalite.
-- `recurring-uncapped` pụtara na enweghị oke token e bipụtara; mmachi ọsọ na
-  ọnụ ọgụgụ ọrụ enwere ike ime n'otu oge ka dị.
-- `one-time-initial` anaghị emegharị ọzọ mgbe e jirichara onyinye ndebanye aha ahụ.
-- `tos: avoid` bụ ịdọ aka ná ntị ka ị nyochaa usoro onye na-eweta ọrụ na ihe ize ndụ akaụntụ tupu iji ya.
-- Ndenye akara `discontinued` ka bụ ihe akaebe akụkọ ihe mere eme, a gaghịkwa egosi ha dị ka
+- `recurring-uncapped` pụtara na enweghị oke token e bipụtara nke dị; oke ọsọ na
+  oke ọrụ ndị a na-eme n'otu oge ka na-emetụta ya.
+- `one-time-initial` anaghị emegharị ọzọ mgbe e richara onyinye ndebanye aha ahụ.
+- A na-ewepụ ndị na-eweta ọrụ nwere `tos: avoid` na ntụgharị akpaka na ndabara (`excludeTosAvoid`). Ijikọ akaụntụ anaghị agafe nzacha a. Mgbanwe ọ bụla onye njikwa mere kwesịrị ịgbaso nyocha nke usoro onye na-eweta ọrụ na ihe ize ndụ akaụntụ.
+- Ndenye ndị akara `discontinued` ka bụ ihe akaebe akụkọ ihe mere eme, a gaghịkwa egosi ha dị ka
   ndị ka bụ n'efu ugbu a.
 
 ---
@@ -158,21 +152,18 @@ oke ojiji ma ọ bụ iwu nnweta nke onye na-eweta ọrụ.
 
 ---
 
-## Mgbakọ Ọkwa N'efu
+## Mgbakọ Ọkwa N’efu
 
-Katalọgụ dị ugbu a, nke na-arụ ọrụ ma wepụkwa ngụkọ ugboro abụọ n'ime otu ọdọ, na-akọ ugbu a:
+Katalọgụ dị ndụ, nke e wepụrụ ihe ndị megharịrị n’otu ọdọ mmiri, na-akọ ugbu a:
 
-| Ihe a na-atụ                                                                                        |                                         Uru enyochara ugbu a | Nkọwa                                                                                                                                           |
-| --------------------------------------------------------------------------------------------------- | -----------------------------------------------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Onyinye a tụrụ ọnụ ọgụgụ ya nke na-emegharị oge niile                                               |                                        **~1.62B token/ọnwa** | A gụrụ ọdọ ndị a na-ekekọrịta naanị otu ugboro; ewepụghị ndị na-enye ọrụ na-enweghị oke na nchikọta ahụ                                         |
-| Ọnwa mbụ nwere onyinye ndebanye aha                                                                 |                                             **~2.22B token** | Ngụkọta na-emegharị oge niile tinyere kredit otu oge na ndị na-emegharị oge niile                                                               |
-| Ndepụta model n'efu e nyochara                                                                      | **Igodo ọdọ 35 na-emegharị oge niile / ndenye katalọgụ 482** | 475 na-arụ ọrụ + 7 a kwụsịrị; ọ dị iche na katalọgụ ndị na-enye ọrụ 357                                                                         |
-| Ndị na-enye ọrụ n'efu-ruo-mgbe-ebighị-ebi na-emegharị oge niile/na-achọghị igodo ndị nọchitere anya |                                                       **53** | Ndị na-enye ọrụ pụrụ iche n'ofe ụdị katalọgụ kwa ụbọchị/kwa ọnwa/kredit/enweghị oke na ndị na-achọghị igodo; ewepụghị ahịrị ndị dabere na ntozu |
-| Ndenye katalọgụ ndị na-enye ọrụ akara `hasFree`                                                     |                                                **152 / 357** | Metadata sara mbara nke ndị na-enye ọrụ; ọ bụghị ha niile nwere oke na-emegharị oge niile nke a pụrụ ịtụ ọnụ ọgụgụ ya                           |
+| Ihe atụ                                          | Uru a nyochara ugbu a | Nkọwa                                                                                                         |
+| ------------------------------------------------ | --------------------: | ------------------------------------------------------------------------------------------------------------- |
+| Onyinye a tụrụ ọnụ nke na-emegharị ugboro ugboro | **~1.62B token/ọnwa** | A gụrụ ọdọ mmiri ndị a na-ekekọrịta naanị otu ugboro; ewepụrụ ndị na-eweta ọrụ na-enweghị oke na mkpokọta ahụ |
+| Ọnwa mbụ nwere onyinye ndebanye aha              |      **~2.22B token** | Mkpokọta na-emegharị ugboro ugboro tinyere kredit otu oge na kredit ndị na-emegharị ugboro ugboro             |
 
-A na-agbakọ uru ndị a site na `open-sse/config/freeModelCatalog.ts`; lee
-[Ọrụ Ntụaka Ọkwa N'efu](../reference/FREE_TIERS.md) maka iwepụ ngụkọ ugboro abụọ n'ime ọdọ, ọkọlọtọ ToS,
-ndenye ndị a kwụsịrị, na usoro kredit ndebanye aha.
+Ndị a bụ atụmatụ metụtara katalọgụ niile n’ofe akaụntụ dị iche iche tozuru oke, ọ bụghị oke ojiji OmniRoute nyere ma ọ bụ amụma maka nrụnye ọhụrụ. Ikike ị nwere ike iji dabere na ndị na-eweta ọrụ ị jikọtara na ọnọdụ ha dị ugbu a. A na-agbakọ uru ndị a site na `open-sse/config/freeModelCatalog.ts`; lee
+[Ntụaka Ọkwa N’efu](../reference/FREE_TIERS.md) maka iwepụ mmegharị n’ọdọ mmiri, ọkọlọtọ ToS,
+ndekọ ndị a kwụsịrị, na usoro mgbakọ kredit ndebanye aha.
 
 ---
 

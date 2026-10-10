@@ -4,88 +4,85 @@
 
 ---
 
-> **Īsumā**: OmniRoute reģistrē 357 pakalpojumu sniedzēju ID, un **152 pakalpojumu sniedzēju kataloga ieraksti ir atzīmēti ar `hasFree`**. Stingrākais auditētais bezmaksas modeļu katalogs aptver **35 periodiski pieejamu resursu kopu atslēgas / 482 ierakstus** (475 aktīvus + 7 pārtrauktus). Savienojiet vairākus piemērotus pakalpojumu sniedzējus, lai nodrošinātu plašākas rezerves iespējas; joprojām ir spēkā visas kvotas, apstiprināšanas noteikumi, privātuma politikas un maksas pārtēriņa nosacījumi.
+> **Īsumā**: Izmantojiet savus atbilstošos pakalpojumu sniedzēju kontus. OmniRoute apvieno jūsu konfigurētos savienojumus; tas nepiešķir reklamēto kopējo marķieru budžetu. Bezmaksas piekļuvei var būt nepieciešama reģistrācija, API atslēga, apstiprinājums vai maksājuma veids. Joprojām ir spēkā pakalpojumu sniedzēju ierobežojumi, privātuma politikas un noteikumi.
 
 ---
 
 ## Kas ir bezmaksas līmeņi?
 
-Daudzi AI pakalpojumu sniedzēji piedāvā kāda veida **bezmaksas piekļuvi**. Atkarībā no pakalpojumu sniedzēja tā var
-būt galapunkta izmantošana bez autentifikācijas, periodiski atjaunojama kvota, neierobežota piekļuve ar pieprasījumu biežuma ierobežojumu, reģistrācijas bonuss,
-manuāla apstiprināšana vai pagaidu akcija. Dažām iespējām ir nepieciešams konts, API atslēga,
-kredītkarte, KYC pārbaude vai piekrišana konkrētā pakalpojumu sniedzēja noteikumiem.
+Daudzi AI pakalpojumu sniedzēji piedāvā kādu **bezmaksas piekļuves** veidu. Atkarībā no pakalpojumu sniedzēja tas var nozīmēt galapunktu bez autentifikācijas, periodiski atjaunojamu kvotu, ātruma ierobežotu piekļuvi bez kopējā apjoma ierobežojuma, reģistrācijas bonusu, manuālu apstiprināšanu vai īslaicīgu akciju. Dažām iespējām ir nepieciešams konts, API atslēga, kredītkarte, KYC vai piekrišana pakalpojumu sniedzēja īpašajiem noteikumiem.
 
-OmniRoute **apkopo** šos bezmaksas līmeņus vienā galapunktā. Tā vietā, lai reģistrētos 10 dažādos pakalpojumos, jūs tos visus savienojat ar OmniRoute un izmantojat `model: "auto"`, lai katram pieprasījumam automātiski izvēlētos labāko bezmaksas iespēju.
+OmniRoute **apkopo** konfigurētos savienojumus vienā galapunktā. Jums joprojām ir atsevišķi jāreģistrējas pie katra pakalpojumu sniedzēja, kas pieprasa kontu. Savienojiet šos kontus un izmantojiet `model: "auto"`, lai maršrutētu pieprasījumus starp atbilstošajiem mērķiem. Svaigā instalācijā var nebūt neviena atbilstoša mērķa, kam nav nepieciešama atslēga; tikai OmniRoute instalēšana negarantē veiksmīgas tērzēšanas atbildes saņemšanu.
 
 ---
 
-## Raksturīgākie bezmaksas piekļuves pakalpojumu sniedzēji
+## Reprezentatīvi bezmaksas piekļuves nodrošinātāji
 
-### Periodiski atjaunojama, bezatslēgas vai neierobežota piekļuve
+### Atkārtota, bezatslēgas vai neierobežota piekļuve
 
-Šiem pakalpojumu sniedzējiem auditētajā katalogā ir periodiski atjaunojams, bezatslēgas vai neierobežots bezmaksas piekļuves veids. “Neierobežots” nozīmē, ka nav publicēta tokenu ierobežojuma; joprojām var būt spēkā pieprasījumu biežuma, vienlaicīgu pieprasījumu, konta, reģionālie un politiku ierobežojumi:
+Šiem nodrošinātājiem auditētajā katalogā ir atkārtotas, bezatslēgas vai neierobežotas bezmaksas piekļuves iespēja. “Neierobežota” nozīmē, ka nav publicēts tokenu ierobežojums; joprojām var būt spēkā pieprasījumu biežuma, vienlaicīguma, konta, reģionālie un politikas ierobežojumi:
 
-| Pakalpojumu sniedzējs | Modeļi                                                                                                     | Kvota                                                                                                                                                                                     | Kā izveidot savienojumu                                                                                          |
-| --------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**           | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 un citi                                                        | Auditētajā katalogā aplēsta koplietojama ikmēneša kopa ar 25K tokenu                                                                                                                      | OAuth/konta plūsma; katalogā ToS atzīmēti ar `avoid`                                                             |
-| **OpenCode Free**     | Pašreizējais `*-free` modeļu komplekts pakalpojumu sniedzēju reģistrā                                      | Bez atslēgas; nav publicēta tokenu ierobežojuma                                                                                                                                           | Pakalpojumu sniedzēja akreditācijas dati nav nepieciešami; ToS atzīmēti ar `avoid`                               |
-| **Pollinations**      | Pašreizējais bezatslēgas modeļu komplekts; daži agrākie modeļi ir pārtraukti vai tiem nepieciešama atslēga | Bez atslēgas; nav publicēta tokenu ierobežojuma                                                                                                                                           | Bezatslēgas modeļiem pakalpojumu sniedzēja akreditācijas dati nav nepieciešami                                   |
-| **Logfare**           | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 un citi                                        | Bezmaksas API atslēga (bez pieprasījumu biežuma ierobežojumiem, nav vajadzīga karte); **katrs pieprasījums tiek reģistrēts** pētniecības nolūkiem (atteikšanās vietnē logfare.ai/consent) | Tūlītēja atslēga vietnē logfare.ai/register; ToS/privātuma politika vietnēs logfare.ai/tos un logfare.ai/privacy |
-| **Cloudflare AI**     | Workers AI katalogs                                                                                        | Auditētajā kopā no publicētajām lietojuma vienībām aplēsti ~30M tokenu mēnesī                                                                                                             | Cloudflare konts un API akreditācijas dati                                                                       |
-| **Gemini**            | Gemini Flash saime                                                                                         | Auditētajā kopā aplēsti ~60M tokenu mēnesī                                                                                                                                                | Google AI Studio API atslēga; spēkā ir pieprasījumu biežuma ierobežojumi                                         |
-| **Groq**              | Llama, GPT-OSS un Qwen modeļi                                                                              | Auditētajā kopā aplēsti ~15M tokenu mēnesī                                                                                                                                                | Groq API atslēga; spēkā ir pieprasījumu biežuma ierobežojumi                                                     |
-| **Cerebras**          | GLM 4.7 un GPT-OSS 120B                                                                                    | Auditētajā kopā aplēsti ~30M tokenu mēnesī                                                                                                                                                | Cerebras API atslēga; spēkā ir pieprasījumu biežuma ierobežojumi                                                 |
+| Nodrošinātājs     | Modeļi                                                                                                       | Kvota                                                                                                                                                                                | Kā izveidot savienojumu                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 un citi                                                          | Auditētajā katalogā aplēsts kopīgs 25K tokenu mēneša fonds                                                                                                                           | OAuth/konta plūsma; pakalpojuma noteikumi katalogā atzīmēti kā `avoid`                                                                |
+| **OpenCode Free** | Pašreizējais `*-free` modeļu kopums nodrošinātāju reģistrā                                                   | Bez atslēgas; nav publicēta tokenu ierobežojuma                                                                                                                                      | Nav nepieciešami nodrošinātāja akreditācijas dati; pakalpojuma noteikumi atzīmēti kā `avoid`                                          |
+| **Pollinations**  | Pašreizējais bezatslēgas modeļu kopums; daži iepriekšējie modeļi vairs netiek piedāvāti vai pieprasa atslēgu | Bez atslēgas; nav publicēta tokenu ierobežojuma                                                                                                                                      | Bezatslēgas modeļiem nav nepieciešami nodrošinātāja akreditācijas dati                                                                |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 un citi                                          | Bezmaksas API atslēga (bez pieprasījumu biežuma ierobežojumiem un bez kartes); **katrs pieprasījums tiek reģistrēts** pētniecības nolūkos (atteikties var vietnē logfare.ai/consent) | Tūlītēja atslēga vietnē logfare.ai/register; pakalpojuma noteikumi un privātuma politika vietnēs logfare.ai/tos un logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI katalogs                                                                                          | Auditētā fonda aplēse ir ~30M tokenu mēnesī, pamatojoties uz publicētajām lietojuma vienībām                                                                                         | Cloudflare konts un API akreditācijas dati                                                                                            |
+| **Gemini**        | Gemini Flash saime                                                                                           | Mainīgi projekta/modeļa pieprasījumu biežuma ierobežojumi; kopsavilkumā nav iekļirts fiksēts mēneša tokenu piešķīrums                                                                | Google AI Studio API atslēga; pārbaudiet projekta aktīvos ierobežojumus                                                               |
+| **Groq**          | Llama, GPT-OSS un Qwen modeļi                                                                                | Auditētā fonda aplēse ir ~15M tokenu mēnesī                                                                                                                                          | Groq API atslēga; spēkā ir pieprasījumu biežuma ierobežojumi                                                                          |
 
-### Reģistrācijas bonusi un pakalpojumu sniedzēju īpašie kredīti
+### Reģistrācijas piešķīrumi un nodrošinātājiem specifiski kredīti
 
-Šie pakalpojumu sniedzēji pēc reģistrēšanās piešķir **bezmaksas kredītus**:
+Šie nodrošinātāji piedāvā reģistrācijas piešķīrumus vai reklāmas kredītus, uz kuriem attiecas to atbilstības noteikumi. Kā pārbaudīts 2026-10-08, [Cerebras cenu informācija](https://www.cerebras.ai/pricing) pieprasa maksājuma metodi, lai saņemtu vienreizēju $5 kredītu, kura derīguma termiņš beidzas pēc 30 dienām; tā nav atkārtota tokenu kvota. [Gemini pieprasījumu biežuma ierobežojumi](https://ai.google.dev/gemini-api/docs/rate-limits) atšķiras atkarībā no projekta, modeļa un līmeņa, tāpēc tie netiek pārvērsti garantētā mēneša tokenu piešķīrumā.
 
-| Pakalpojumu sniedzējs | Bezmaksas kredīti                                                       | Modeļi                    | Kā tos saņemt                                                            |
-| --------------------- | ----------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------ |
-| **DeepSeek**          | 5M bezmaksas tokenu                                                     | DeepSeek V4               | Reģistrējieties vietnē platform.deepseek.com                             |
-| **LongCat**           | Vienreizējs 10M tokenu bonuss                                           | LongCat 2.0               | API atslēga + KYC; pēc bonusa izmantošanas — maksa atbilstoši lietojumam |
-| **Vertex AI**         | $300 reģistrācijas kredīts, kas budžeta modelī attēlots kā ~300M tokenu | Gemini un partneru modeļi | Google Cloud konts; spēkā ir norēķinu un atbilstības noteikumi           |
+| Nodrošinātājs | Bezmaksas kredīti                                                       | Modeļi                          | Kā iegūt                                                        |
+| ------------- | ----------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------------------- |
+| **Cerebras**  | Vienreizējs $5 reklāmas kredīts; derīguma termiņš beidzas pēc 30 dienām | Pašreizējais inferenču katalogs | Konts un derīga maksājuma metode                                |
+| **DeepSeek**  | 5M bezmaksas tokenu                                                     | DeepSeek V4                     | Reģistrējieties vietnē platform.deepseek.com                    |
+| **LongCat**   | Vienreizējs 10M tokenu piešķīrums                                       | LongCat 2.0                     | API atslēga + KYC; pēc piešķīruma — maksa atbilstoši lietojumam |
+| **Vertex AI** | $300 reģistrācijas kredīts, kas budžeta modelī attēlots kā ~300M tokenu | Gemini un partneru modeļi       | Google Cloud konts; spēkā ir norēķinu un atbilstības noteikumi  |
 
 ### Cita ierobežota piekļuve
 
-Šiem pakalpojumu sniedzējiem ir **bezmaksas līmeņi** ar konkrētiem ierobežojumiem:
+Šiem nodrošinātājiem ir **bezmaksas līmeņi** ar konkrētiem ierobežojumiem:
 
-| Nodrošinātājs                   | Bezmaksas limits                                                                                                | Modeļi                              | Vispiemērotākais |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ---------------- |
-| **GitHub Models**               | Auditēta koplietojamā fonda aptuvenais apjoms: ~18 milj. marķieru mēnesī                                        | Plaša modeļu izvērtēšana            |
-| **Hugging Face**                | Neliels, regulāri atjaunots ikmēneša fonds                                                                      | Eksperimenti un modeļu daudzveidība |
-| **OpenRouter bezmaksas modeļi** | Koplietojams fonds ar pieprasījumu ierobežojumu; vienreizēja papildu iemaksa palielina regulāri pieejamo apjomu | Plašs rezerves modeļu katalogs      |
-| **AI Horde**                    | Kopienas nodrošināta jauda bez atslēgas; pieejamība var atšķirties                                              | Oportūnistiska sadalītā inferēšana  |
+| Nodrošinātājs                   | Bezmaksas ierobežojums                                                                                              | Modeļi                              | Vispiemērotākais |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ---------------- |
+| **GitHub Models**               | Auditētā kopīgā fonda aplēse ir ~18M tokenu mēnesī                                                                  | Plaša modeļu izvērtēšana            |
+| **Hugging Face**                | Neliels atkārtots mēneša fonds                                                                                      | Eksperimenti un modeļu daudzveidība |
+| **OpenRouter bezmaksas modeļi** | Kopīgs ar pieprasījumu skaitu ierobežots fonds; neobligāta vienreizēja papildināšana palielina atkārtoto piešķīrumu | Plašs rezerves modeļu katalogs      |
+| **AI Horde**                    | Bezatslēgas kopienas jauda; pieejamība atšķiras                                                                     | Oportūnistiska sadalītā inference   |
 
 ---
 
 ## Kā apvienot bezmaksas līmeņus
 
-OmniRoute priekšrocība ir **bezmaksas līmeņu apvienošana**. Tā vietā, lai paļautos uz vienu pakalpojumu sniedzēju, jūs savienojat vairākus bezmaksas pakalpojumu sniedzējus un ļaujat OmniRoute automātiski izvēlēties labāko katram pieprasījumam.
+OmniRoute galvenā priekšrocība ir **bezmaksas līmeņu apvienošana**. Tā vietā, lai paļautos uz vienu pakalpojumu sniedzēju, jūs pievienojat vairākus bezmaksas pakalpojumu sniedzējus un ļaujat OmniRoute automātiski izvēlēties katram pieprasījumam piemērotāko.
 
 ### Piemērs: plašāks bezmaksas līmeņu pārklājums
 
-Savienojiet vairākus pakalpojumu sniedzējus, lai mazinātu atkarību no vienas konkrētas kvotas:
+Pievienojiet vairākus pakalpojumu sniedzējus, lai mazinātu atkarību no vienas kvotas:
 
 1. **Gemini** — periodiski atjaunojama API atslēgas kvota
 2. **Groq** — periodiski atjaunojama API atslēgas kvota
 3. **Pollinations** — piekļuve bez atslēgas ar pieprasījumu biežuma ierobežojumu
-4. **LongCat** — vienreizējs reģistrācijas piešķīrums (nepieciešama KYC pārbaude)
+4. **LongCat** — vienreizējs reģistrācijas kredīts (nepieciešama KYC)
 
 Pēc tam izmantojiet `model: "auto"`, un OmniRoute:
 
-- Vispirms izmēģinās visaugstāk novērtēto piemēroto savienojumu
-- Ja tā kvota ir izsmelta vai darbspējas pārbaude neizdodas → izmēģinās nākamo konfigurēto pakalpojumu sniedzēju
-- Ja pakalpojumu sniedzējs bez atslēgas nav pieejams → turpinās pārbaudīt pārējos mērķus
-- Ja visi mēģinājumi neizdodas → izmantos LongCat kā rezerves risinājumu
+- Vispirms mēģinās izmantot visaugstāk novērtēto atbilstošo savienojumu
+- Ja tā kvota ir izsmelta vai darbspējas pārbaude neizdodas → mēģinās izmantot nākamo konfigurēto pakalpojumu sniedzēju
+- Ja pakalpojumu sniedzējs bez atslēgas nav pieejams → turpinās izmēģināt pārējos mērķus
+- Ja neviens atbilstošais savienojums nedarbojas → atgriezīs kļūdu; reģistrācijas kredītus var izmantot tikai tik ilgi, kamēr tie ir derīgi un pieejami
 
-**Rezultāts**: plašāks bezmaksas līmeņu pārklājums ar automātisku pārslēgšanos — nevis neierobežotas jaudas garantija.
+**Rezultāts**: plašāks bezmaksas līmeņu pārklājums ar automātisku pārslēgšanos uz rezerves risinājumu — nevis neierobežotas jaudas garantija.
 
 ---
 
 ## Kā savienot bezmaksas pakalpojumu sniedzējus
 
-### 1. darbība: atveriet informācijas paneli
+### 1. darbība: atveriet vadības paneli
 
 Pārlūkprogrammā atveriet `http://localhost:20128`.
 
@@ -99,15 +96,14 @@ Noklikšķiniet uz pogas **+ Pievienot pakalpojumu sniedzēju**.
 
 ### 4. darbība: atlasiet bezmaksas pakalpojumu sniedzēju
 
-Pārlūkojiet katalogu un pārbaudiet katra pakalpojumu sniedzēja pašreizējos `hasFree`, autentifikācijas, kvotas, privātuma
+Pārlūkojiet katalogu un pārbaudiet katra pakalpojumu sniedzēja pašreizējos `hasFree`, autentifikācijas, kvotu, privātuma
 un pakalpojumu sniegšanas noteikumu metadatus. Pakalpojumu sniedzēja kartīte un
-[Bezmaksas līmeņu uzziņu materiāls](../reference/FREE_TIERS.md) nošķir periodiski atjaunojamos resursu kopumus,
+[Bezmaksas līmeņu uzziņa](../reference/FREE_TIERS.md) nošķir periodiski atjaunojamus resursu apjomus,
 neierobežotu piekļuvi vai piekļuvi bez atslēgas, reģistrācijas kredītus, pārtrauktus piedāvājumus un augstāka riska avotus.
 
 ### 5. darbība: noklikšķiniet uz Savienot
 
-`NOAUTH` pakalpojumu sniedzējam nav nepieciešami akreditācijas dati. OAuth un API atslēgas pakalpojumu sniedzēji ir
-jāsavieno, izmantojot to dokumentēto konta savienošanas procesu.
+`NOAUTH` pakalpojumu sniedzējam OmniRoute nepieprasa ārējā pakalpojuma piekļuves datus. Tas negarantē, ka ārējais pakalpojums pieņem trešo pušu klientus vai ka tam ir pieejama jauda. OAuth un API atslēgas pakalpojumu sniedzēji ir jāsavieno, izmantojot to dokumentēto konta savienošanas procesu. Ja ir iespējota maršrutētāja autentifikācija, jūsu klients joprojām izmanto OmniRoute API atslēgu, kas redzama sadaļā **Vadības panelis → Galapunkti**.
 
 ### 6. darbība: atkārtojiet
 
@@ -115,18 +111,14 @@ Savienojiet vairākus pakalpojumu sniedzējus, kuru noteikumi un privātuma mode
 
 ---
 
-## Kā pareizi lasīt katalogu
+## Pareiza kataloga interpretēšana
 
-- `NOAUTH` nozīmē, ka OmniRoute neprasa pakalpojumu sniedzēja akreditācijas datus; tas
-  negarantē darbības nepārtrauktību, privātumu vai neierobežotu jaudu.
-- `hasFree` ir atklāšanas metadati. Tas var apzīmēt periodiski atjaunojamu kvotu, piekļuvi bez atslēgas,
-  reģistrācijas kredītu, apstiprināšanas programmu vai akciju.
-- `recurring-uncapped` nozīmē, ka nebija pieejams publicēts marķieru limits; pieprasījumu biežuma un
-  vienlaicīguma ierobežojumi joprojām ir spēkā.
-- `one-time-initial` netiek atjaunots pēc reģistrācijas piešķīruma izlietošanas.
-- `tos: avoid` ir brīdinājums pirms lietošanas pārskatīt pakalpojumu sniedzēja noteikumus un ar kontu saistītos riskus.
-- Ieraksti ar atzīmi `discontinued` tiek saglabāti kā vēsturiskas liecības, un tos nedrīkst norādīt kā
-  pašlaik bezmaksas piedāvājumus.
+- `NOAUTH` nozīmē, ka OmniRoute nepieprasa pakalpojumu sniedzēja piekļuves datus; tas negarantē darbības nepārtrauktību, privātumu vai neierobežotu jaudu.
+- `hasFree` ir atklāšanas metadati. Tas var apzīmēt periodiski atjaunojamu kvotu, piekļuvi bez atslēgas, reģistrācijas kredītu, apstiprināšanas programmu vai akciju.
+- `recurring-uncapped` nozīmē, ka nebija pieejama publicēta tokenu augšējā robeža; joprojām ir spēkā pieprasījumu biežuma un paralēlas izpildes ierobežojumi.
+- `one-time-initial` neatjaunojas pēc reģistrācijas piešķīruma izlietošanas.
+- Pakalpojumu sniedzēji ar atzīmi `tos: avoid` pēc noklusējuma tiek izslēgti no automātiskās maršrutēšanas (`excludeTosAvoid`). Konta pievienošana neapiet šo filtru. Operatoram, veicot izņēmumu, vispirms jāpārskata pakalpojumu sniedzēja noteikumi un ar kontu saistītie riski.
+- Ieraksti ar atzīmi `discontinued` tiek saglabāti kā vēsturiskas liecības, un tos nedrīkst uzrādīt kā pašlaik bezmaksas piedāvājumus.
 
 ---
 
@@ -158,19 +150,16 @@ pakalpojumu sniedzēja kvotas vai piekļuves politiku.
 
 ---
 
-## Bezmaksas līmeņa aprēķini
+## Bezmaksas līmeņa aprēķins
 
-Aktuālais katalogs, kurā dublikāti koplietotajos resursu fondos ir novērsti, pašlaik uzrāda:
+Aktīvajā katalogā, kurā kopīgie limiti tiek uzskaitīti bez dublēšanās, pašlaik ir norādīts:
 
-| Metrika                                                                 |                                    Pašreizējā auditētā vērtība | Interpretācija                                                                                                                                               |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Regulāri piešķirtais kvantificētais apjoms                              |                                       **~1.62B tokenu mēnesī** | Koplietotie resursu fondi uzskaitīti vienreiz; summā nav iekļauti pakalpojumu sniedzēji bez ierobežojumiem                                                   |
-| Pirmais mēnesis ar reģistrācijas piešķīrumiem                           |                                              **~2.22B tokenu** | Regulārā kopsumma plus vienreizējie un regulārie kredīti                                                                                                     |
-| Auditētais bezmaksas modeļu klāsts                                      | **35 regulāro resursu fondu atslēgas / 482 kataloga ieraksti** | 475 aktīvi + 7 pārtraukti; atšķiras no 357 pakalpojumu sniedzēju kataloga                                                                                    |
-| Pārstāvētie regulārie/bezatslēgas mūžam bezmaksas pakalpojumu sniedzēji |                                                         **53** | Unikāli pakalpojumu sniedzēji regulārajos dienas/mēneša/kredītu/neierobežotajos un bezatslēgas kataloga veidos; rindas ar atbilstības prasībām nav iekļautas |
-| Pakalpojumu sniedzēju kataloga ieraksti, kas atzīmēti ar `hasFree`      |                                                  **152 / 357** | Plašāki pakalpojumu sniedzēju metadati; ne visiem ir kvantificējama regulārā kvota                                                                           |
+| Metrika                                       | Pašreizējā auditētā vērtība | Interpretācija                                                                                |
+| --------------------------------------------- | --------------------------: | --------------------------------------------------------------------------------------------- |
+| Periodiski piešķirtais apjoms                 |  **~1.62B marķieru mēnesī** | Kopīgie limiti uzskaitīti vienreiz; summā nav iekļauti pakalpojumu sniedzēji bez ierobežojuma |
+| Pirmais mēnesis ar reģistrācijas piešķīrumiem |         **~2.22B marķieru** | Periodiskā kopsumma kopā ar vienreizējiem un periodiskiem kredītiem                           |
 
-Šīs vērtības ir aprēķinātas no `open-sse/config/freeModelCatalog.ts`; informāciju par resursu fondu dublikātu novēršanu, pakalpojumu sniegšanas noteikumu karodziņiem, pārtrauktajiem ierakstiem un reģistrācijas kredītu metodoloģiju skatiet
+Tās ir visa kataloga aplēses atsevišķiem prasībām atbilstošiem kontiem, nevis OmniRoute nodrošināts limits vai prognoze jaunai instalācijai. Jūsu izmantojamā kapacitāte ir atkarīga no pievienotajiem pakalpojumu sniedzējiem un to pašreizējiem nosacījumiem. Vērtības tiek aprēķinātas no `open-sse/config/freeModelCatalog.ts`; informāciju par kopīgo limitu uzskaiti bez dublēšanās, pakalpojumu sniegšanas noteikumu karodziņiem, pārtrauktajiem ierakstiem un reģistrācijas kredītu metodoloģiju skatiet
 [Bezmaksas līmeņu uzziņā](../reference/FREE_TIERS.md).
 
 ---

@@ -4,86 +4,86 @@
 
 ---
 
-> **Lyhyesti**: OmniRoute rekisteröi 357 palveluntarjoajatunnusta, joista **152 palveluntarjoajaluettelon merkintää on merkitty `hasFree`-tunnisteella**. Tiukemmin auditoitu ilmaismalliluettelo kattaa **35 toistuvaa pool-avainta / 482 merkintää** (475 aktiivista + 7 lopetettua). Yhdistä useita sopivia palveluntarjoajia laajemman varakapasiteetin saamiseksi; kaikki kiintiöt, hyväksyntäsäännöt, tietosuojakäytännöt ja maksullista ylikäyttöä koskevat ehdot ovat edelleen voimassa.
+> **Lyhyesti**: Käytä omia ehdot täyttäviä palveluntarjoajatilejäsi. OmniRoute yhdistää määrittämäsi yhteydet; se ei tarjoa mainostettua yhteenlaskettua token-budjettia. Maksuton käyttö voi edellyttää rekisteröitymistä, API-avainta, hyväksyntää tai maksutapaa. Palveluntarjoajien rajoitukset, tietosuojakäytännöt ja käyttöehdot ovat edelleen voimassa.
 
 ---
 
-## Mitä ilmaiset käyttöportaat ovat?
+## Mitä ilmaiset käyttöoikeudet ovat?
 
-Monet tekoälypalveluntarjoajat tarjoavat jonkinlaisen **maksuttoman käyttömahdollisuuden**. Palveluntarjoajasta riippuen tämä voi
-tarkoittaa tunnistautumista vaatimatonta päätepistettä, toistuvasti uusiutuvaa kiintiötä, nopeusrajoitettua mutta muuten rajoittamatonta käyttöä, rekisteröitymisetua,
-manuaalista hyväksyntää tai väliaikaista kampanjaa. Jotkin vaihtoehdot edellyttävät tiliä, API-avainta,
+Monet tekoälypalveluntarjoajat tarjoavat jonkinlaisen **ilmaisen käyttöoikeuden**. Palveluntarjoajasta riippuen se voi
+tarkoittaa tunnistautumista vaatimatonta päätepistettä, toistuvaa kiintiötä, nopeusrajoitettua mutta määrältään rajoittamatonta käyttöä, rekisteröitymisetua,
+manuaalista hyväksyntää tai väliaikaista kampanjaa. Jotkin vaihtoehdot edellyttävät käyttäjätiliä, API-avainta,
 luottokorttia, KYC-tunnistautumista tai palveluntarjoajakohtaisten ehtojen hyväksymistä.
 
-OmniRoute **kokoaa** nämä ilmaiset käyttöportaat yhteen päätepisteeseen. Sen sijaan, että rekisteröityisit 10 eri palveluun, yhdistät ne kaikki OmniRouteen ja käytät asetusta `model: "auto"`, jolloin kullekin pyynnölle valitaan automaattisesti paras ilmainen vaihtoehto.
+OmniRoute **yhdistää** määritetyt yhteydet yhdeksi päätepisteeksi. Sinun on silti rekisteröidyttävä erikseen jokaiselle palveluntarjoajalle, joka edellyttää käyttäjätiliä. Yhdistä nämä tilit ja käytä asetusta `model: "auto"` reitittääksesi pyynnöt soveltuvien kohteiden välillä. Uudessa asennuksessa ei välttämättä ole yhtään soveltuvaa avaimetonta kohdetta; pelkkä OmniRouten asentaminen ei takaa onnistunutta chat-vastausta.
 
 ---
 
-## Esimerkkejä maksuttoman käytön palveluntarjoajista
+## Edustavat maksutta käytettävät palveluntarjoajat
 
-### Toistuva, avaimeton tai ilman ennalta määritettyä ylärajaa tarjottava käyttö
+### Toistuva, avaimeton tai rajoittamaton käyttö
 
-Näillä palveluntarjoajilla on auditoidussa luettelossa toistuva, avaimeton tai ilman ennalta määritettyä ylärajaa tarjottava maksuton käyttövaihtoehto. ”Ilman ennalta määritettyä ylärajaa” tarkoittaa, ettei julkaistua token-rajaa ole; nopeutta, samanaikaisuutta, tiliä, aluetta ja käytäntöjä koskevia rajoituksia voidaan silti soveltaa:
+Näillä palveluntarjoajilla on tarkastetussa luettelossa toistuva, avaimeton tai rajoittamaton maksuton käyttötapa. ”Rajoittamaton” tarkoittaa, ettei julkaistua token-rajaa ole; nopeus-, rinnakkaisuus-, tili-, alue- ja käytäntökohtaisia rajoituksia voidaan silti soveltaa:
 
-| Palveluntarjoaja  | Mallit                                                                                              | Kiintiö                                                                                                                                                   | Yhdistäminen                                                                                                                          |
-| ----------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ja muita                                                | Auditoidun luettelon arvio on 25 000 tokenin jaettu kuukausittainen resurssipooli                                                                         | OAuth-/tiliprosessi; käyttöehdot merkitty luettelossa arvolla `avoid`                                                                 |
-| **OpenCode Free** | Palveluntarjoajarekisterin nykyinen `*-free`-mallivalikoima                                         | Avaimeton; ei julkaistua token-rajaa                                                                                                                      | Ei palveluntarjoajan tunnistetietoja; käyttöehdot merkitty arvolla `avoid`                                                            |
-| **Pollinations**  | Nykyinen avaimeton mallivalikoima; osa aiemmista malleista on poistettu käytöstä tai vaatii avaimen | Avaimeton; ei julkaistua token-rajaa                                                                                                                      | Avaimettomat mallit eivät vaadi palveluntarjoajan tunnistetietoja                                                                     |
-| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ja muita                                | Ilmainen API-avain (ei nopeusrajoituksia eikä korttia); **jokainen pyyntö lokitetaan** tutkimusta varten (voit kieltäytyä osoitteessa logfare.ai/consent) | Saat avaimen heti osoitteesta logfare.ai/register; käyttöehdot ja tietosuojakäytäntö osoitteissa logfare.ai/tos ja logfare.ai/privacy |
-| **Cloudflare AI** | Workers AI -luettelo                                                                                | Auditoidun resurssipoolin arvio on noin 30M tokenia kuukaudessa julkaistujen käyttöyksiköiden perusteella                                                 | Cloudflare-tili ja API-tunnistetiedot                                                                                                 |
-| **Gemini**        | Gemini Flash -malliperhe                                                                            | Auditoidun resurssipoolin arvio on noin 60M tokenia kuukaudessa                                                                                           | Google AI Studio -API-avain; nopeusrajoituksia sovelletaan                                                                            |
-| **Groq**          | Llama-, GPT-OSS- ja Qwen-mallit                                                                     | Auditoidun resurssipoolin arvio on noin 15M tokenia kuukaudessa                                                                                           | Groq-API-avain; nopeusrajoituksia sovelletaan                                                                                         |
-| **Cerebras**      | GLM 4.7 ja GPT-OSS 120B                                                                             | Auditoidun resurssipoolin arvio on noin 30M tokenia kuukaudessa                                                                                           | Cerebras-API-avain; nopeusrajoituksia sovelletaan                                                                                     |
+| Palveluntarjoaja  | Mallit                                                                                     | Kiintiö                                                                                                                                                  | Yhdistäminen                                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Kiro AI**       | Claude Sonnet 4.5, Haiku 4.5, DeepSeek V3.2 ja muita                                       | Tarkastetun luettelon arvion mukaan yhteinen kuukausittainen 25K tokenin varanto                                                                         | OAuth-/tiliprosessi; käyttöehdot merkitty luettelossa tunnisteella `avoid`                                                        |
+| **OpenCode Free** | Palveluntarjoajarekisterin nykyinen `*-free`-mallivalikoima                                | Avaimeton; ei julkaistua token-rajaa                                                                                                                     | Ei palveluntarjoajan tunnistetietoja; käyttöehdot merkitty tunnisteella `avoid`                                                   |
+| **Pollinations**  | Nykyinen avaimeton mallivalikoima; osa aiemmista malleista on lopetettu tai vaatii avaimen | Avaimeton; ei julkaistua token-rajaa                                                                                                                     | Avaimettomat mallit eivät tarvitse palveluntarjoajan tunnistetietoja                                                              |
+| **Logfare**       | kimi-k3, deepseek-v4-pro, glm-5.2, gpt-5.6-luna, minimax-m3 ja muita                       | Maksuton API-avain (ei nopeusrajoituksia eikä korttia); **jokainen pyyntö lokitetaan** tutkimusta varten (kieltäytyminen osoitteessa logfare.ai/consent) | Välitön avain osoitteesta logfare.ai/register; käyttöehdot ja tietosuojakäytäntö osoitteissa logfare.ai/tos ja logfare.ai/privacy |
+| **Cloudflare AI** | Workers AI -luettelo                                                                       | Tarkastetun varannon arvion mukaan ~30M tokenia kuukaudessa julkaistujen käyttöyksiköiden perusteella                                                    | Cloudflare-tili ja API-tunnistetiedot                                                                                             |
+| **Gemini**        | Gemini Flash -malliperhe                                                                   | Vaihtelevat projekti- ja mallikohtaiset nopeusrajoitukset; ilmoitettuun etuun ei sisälly kiinteää kuukausittaista token-määrää                           | Google AI Studio API -avain; tarkista projektin aktiiviset rajoitukset                                                            |
+| **Groq**          | Llama-, GPT-OSS- ja Qwen-mallit                                                            | Tarkastetun varannon arvion mukaan ~15M tokenia kuukaudessa                                                                                              | Groq API -avain; nopeusrajoituksia sovelletaan                                                                                    |
 
-### Rekisteröitymisedut ja palveluntarjoajakohtaiset krediitit
+### Rekisteröitymisedut ja palveluntarjoajakohtaiset hyvitykset
 
-Nämä palveluntarjoajat antavat **ilmaisia krediittejä**, kun rekisteröidyt:
+Nämä palveluntarjoajat tarjoavat rekisteröitymisetuja tai kampanjahyvityksiä omien kelpoisuusehtojensa mukaisesti. Päivämääränä 2026-10-08 tarkistettu [Cerebrasin hinnoittelu](https://www.cerebras.ai/pricing) edellyttää maksutapaa 5 $:n kertaluonteista hyvitystä varten, joka vanhenee 30 päivän kuluttua; kyseessä ei ole toistuva token-kiintiö. [Geminin nopeusrajoitukset](https://ai.google.dev/gemini-api/docs/rate-limits) vaihtelevat projektin, mallin ja tason mukaan, joten niitä ei muunneta taatuksi kuukausittaiseksi token-määräksi.
 
-| Palveluntarjoaja | Ilmaiset krediitit                                                            | Mallit                    | Hankkiminen                                                     |
-| ---------------- | ----------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------- |
-| **DeepSeek**     | 5M ilmaista tokenia                                                           | DeepSeek V4               | Rekisteröidy osoitteessa platform.deepseek.com                  |
-| **LongCat**      | 10M tokenin kertaluonteinen etu                                               | LongCat 2.0               | API-avain + KYC; käytön mukaan laskutettava edun jälkeen        |
-| **Vertex AI**    | $300 rekisteröitymiskrediitti, joka vastaa budjettimallissa noin 300M tokenia | Gemini- ja kumppanimallit | Google Cloud -tili; laskutus- ja kelpoisuussääntöjä sovelletaan |
+| Palveluntarjoaja | Maksuttomat hyvitykset                                                     | Mallit                    | Saaminen                                                         |
+| ---------------- | -------------------------------------------------------------------------- | ------------------------- | ---------------------------------------------------------------- |
+| **Cerebras**     | Kertaluonteinen 5 $:n kampanjahyvitys; vanhenee 30 päivän kuluttua         | Nykyinen päättelyluettelo | Tili ja voimassa oleva maksutapa                                 |
+| **DeepSeek**     | 5M maksutonta tokenia                                                      | DeepSeek V4               | Rekisteröidy osoitteessa platform.deepseek.com                   |
+| **LongCat**      | Kertaluonteinen 10M tokenin hyvitys                                        | LongCat 2.0               | API-avain + KYC; käytön mukaan laskutettava hyvityksen päätyttyä |
+| **Vertex AI**    | 300 $:n rekisteröitymishyvitys, joka vastaa budjettimallissa ~300M tokenia | Gemini- ja kumppanimallit | Google Cloud -tili; laskutus- ja kelpoisuusehtoja sovelletaan    |
 
 ### Muu rajoitettu käyttö
 
-Näillä palveluntarjoajilla on **ilmaisia käyttöportaita**, joihin liittyy erityisiä rajoituksia:
+Näillä palveluntarjoajilla on **maksuttomia tasoja**, joihin sovelletaan erityisiä rajoituksia:
 
-| Palveluntarjoaja           | Ilmaisraja                                                                                                            | Mallit                                                 | Soveltuu parhaiten |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------ |
-| **GitHub Models**          | Valvotun yhteisen kiintiön arvio on noin 18M tokenia kuukaudessa                                                      | Laaja mallien arviointi                                |
-| **Hugging Face**           | Pieni kuukausittain uusiutuva kiintiö                                                                                 | Kokeilut ja mallien monipuolisuus                      |
-| **OpenRouter free models** | Yhteinen pyyntömäärältään rajattu kiintiö; valinnainen kertaluonteinen saldon lisäys kasvattaa uusiutuvaa käyttörajaa | Laaja varamallivalikoima                               |
-| **AI Horde**               | Avaimeton yhteisökapasiteetti; saatavuus vaihtelee                                                                    | Tilaisuuden mukaan hyödynnettävä hajautettu inferenssi |
+| Palveluntarjoaja           | Maksuton raja                                                                                                            | Mallit                                            | Soveltuu parhaiten |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- | ------------------ |
+| **GitHub Models**          | Tarkastetun yhteisen varannon arvion mukaan ~18M tokenia kuukaudessa                                                     | Laaja mallien arviointi                           |
+| **Hugging Face**           | Pieni toistuva kuukausittainen varanto                                                                                   | Kokeilut ja mallien monipuolisuus                 |
+| **OpenRouter free models** | Yhteinen pyyntömäärältään rajoitettu varanto; valinnainen kertaluonteinen saldon lisäys kasvattaa toistuvaa käyttömäärää | Laaja varamallien luettelo                        |
+| **AI Horde**               | Avaimeton yhteisökapasiteetti; saatavuus vaihtelee                                                                       | Tilaisuuden mukaan käytettävä hajautettu päättely |
 
 ---
 
-## Näin yhdistät ilmaiskiintiöitä
+## Näin yhdistät ilmaistasoja
 
-OmniRouten ydinominaisuus on **ilmaiskiintiöiden yhdistäminen**. Sen sijaan, että turvautuisit yhteen palveluntarjoajaan, yhdistät useita ilmaisia palveluntarjoajia ja annat OmniRouten valita automaattisesti parhaan vaihtoehdon kuhunkin pyyntöön.
+OmniRouten teho perustuu **ilmaistasojen yhdistämiseen**. Sen sijaan, että turvautuisit yhteen palveluntarjoajaan, yhdistät useita ilmaisia palveluntarjoajia ja annat OmniRouten valita automaattisesti parhaan vaihtoehdon kuhunkin pyyntöön.
 
-### Esimerkki: Laajempi ilmaiskiintiöiden kattavuus
+### Esimerkki: Kattavampi ilmaistasojen hyödyntäminen
 
 Yhdistä useita palveluntarjoajia vähentääksesi riippuvuutta yksittäisestä kiintiöstä:
 
 1. **Gemini** — uusiutuva API-avainkiintiö
 2. **Groq** — uusiutuva API-avainkiintiö
 3. **Pollinations** — avaimeton käyttö nopeusrajoituksella
-4. **LongCat** — kertaluonteinen rekisteröitymisetu (edellyttää KYC-tunnistautumista)
+4. **LongCat** — rekisteröitymisen yhteydessä saatava kertaluonteinen etu (edellyttää KYC-tunnistautumista)
 
 Käytä sitten asetusta `model: "auto"`, jolloin OmniRoute:
 
 - Kokeilee ensin korkeimmalle sijoitettua kelvollista yhteyttä
-- Jos sen kiintiö tai kuntotarkistus epäonnistuu → kokeilee seuraavaa määritettyä palveluntarjoajaa
+- Jos sen kiintiö on täynnä tai kuntotarkistus epäonnistuu → kokeilee seuraavaa määritettyä palveluntarjoajaa
 - Jos avaimeton palveluntarjoaja ei ole käytettävissä → jatkaa jäljellä olevien kohteiden läpikäyntiä
-- Jos kaikki epäonnistuvat → käyttää LongCatia varavaihtoehtona
+- Jos mikään kelvollinen yhteys ei onnistu → palauttaa virheen; rekisteröitymiskrediittejä voi käyttää vain niin kauan kuin ne ovat voimassa ja käytettävissä
 
-**Tulos**: laajempi ilmaiskiintiöiden kattavuus automaattisella varajärjestelyllä — ei takuuta rajattomasta kapasiteetista.
+**Tulos**: kattavampi ilmaistasojen hyödyntäminen automaattisella varajärjestelyllä — ei tae rajattomasta kapasiteetista.
 
 ---
 
-## Ilmaisten palveluntarjoajien yhdistäminen
+## Maksuttomien palveluntarjoajien yhdistäminen
 
 ### Vaihe 1: Avaa hallintapaneeli
 
@@ -97,17 +97,15 @@ Napsauta sivupalkissa kohtaa **Palveluntarjoajat**.
 
 Napsauta **+ Lisää palveluntarjoaja** -painiketta.
 
-### Vaihe 4: Valitse ilmainen palveluntarjoaja
+### Vaihe 4: Valitse maksuton palveluntarjoaja
 
-Selaa luetteloa ja tarkista kunkin palveluntarjoajan nykyiset `hasFree`-, todennus-, kiintiö-, tietosuoja-
-ja käyttöehtometatiedot. Palveluntarjoajakortti ja
-[Ilmaiskiintiöiden viite](../reference/FREE_TIERS.md) erottelevat uusiutuvat resurssipoolit,
-rajoittamattoman/avaimettoman käytön, rekisteröitymiskrediitit, lopetetut vaihtoehdot ja suuremman riskin lähteet.
+Selaa luetteloa ja tarkista kunkin palveluntarjoajan nykyiset `hasFree`-, todennus-, kiintiö-, tietosuoja- ja käyttöehtometatiedot. Palveluntarjoajakortti ja
+[Maksuttomien palvelutasojen viite](../reference/FREE_TIERS.md) erottelevat toistuvasti uusiutuvat käyttökiintiöt,
+rajoittamattoman tai ilman avainta toimivan käytön, rekisteröitymishyvitykset, lopetetut vaihtoehdot ja suuremman riskin lähteet.
 
 ### Vaihe 5: Napsauta Yhdistä
 
-`NOAUTH`-palveluntarjoaja ei edellytä tunnistetietoa. OAuth- ja API-avainpalveluntarjoajat on
-yhdistettävä niiden dokumentoidun tiliprosessin kautta.
+`NOAUTH`-palveluntarjoajan tapauksessa OmniRoute ei pyydä ulkoisen palvelun tunnistetietoa. Tämä ei takaa, että ulkoinen palvelu hyväksyy kolmannen osapuolen asiakasohjelmat tai että sillä on vapaata kapasiteettia. OAuth- ja API-avainpohjaiset palveluntarjoajat on yhdistettävä niiden dokumentoidun tiliprosessin kautta. Asiakasohjelmasi käyttää edelleen kohdassa **Hallintapaneeli → Päätepisteet** näkyvää OmniRoute-API-avainta, kun reitittimen todennus on käytössä.
 
 ### Vaihe 6: Toista
 
@@ -115,18 +113,18 @@ Yhdistä useita palveluntarjoajia, joiden ehdot ja tietosuojamalli sopivat käyt
 
 ---
 
-## Luettelon tulkitseminen oikein
+## Luettelon lukeminen oikein
 
-- `NOAUTH` tarkoittaa, ettei OmniRoute pyydä sinulta palveluntarjoajan tunnistetietoa; se ei
+- `NOAUTH` tarkoittaa, että OmniRoute ei pyydä palveluntarjoajan tunnistetietoa; se ei
   takaa käytettävyyttä, tietosuojaa tai rajatonta kapasiteettia.
-- `hasFree` on hakumetatietoa. Se voi tarkoittaa uusiutuvaa kiintiötä, avaimetonta käyttöä,
-  rekisteröitymiskrediittiä, hyväksyntäohjelmaa tai kampanjaa.
+- `hasFree` on hakumetatietoa. Se voi tarkoittaa toistuvaa kiintiötä, avaimetonta käyttöä,
+  rekisteröitymishyvitystä, hyväksyntäohjelmaa tai kampanjaa.
 - `recurring-uncapped` tarkoittaa, ettei julkaistua tunnisteiden enimmäismäärää ollut saatavilla; nopeus- ja
-  rinnakkaisuusrajoitukset ovat silti voimassa.
-- `one-time-initial` ei uusiudu, kun rekisteröitymisetu on käytetty loppuun.
-- `tos: avoid` on varoitus tarkistaa palveluntarjoajan ehdot ja tiliin kohdistuvat riskit ennen käyttöä.
-- Merkinnällä `discontinued` varustetut kohteet säilytetään historiallisena näyttönä, eikä niitä saa esittää
-  tällä hetkellä ilmaisina.
+  samanaikaisuusrajoitukset ovat silti voimassa.
+- `one-time-initial` ei toistu, kun rekisteröitymisen yhteydessä myönnetty etu on käytetty.
+- Palveluntarjoajat, joiden `tos`-arvo on `avoid`, jätetään oletusarvoisesti automaattisen reitityksen ulkopuolelle (`excludeTosAvoid`). Tilin yhdistäminen ei ohita tätä suodatinta. Operaattorin tekemän ohituksen tulee perustua palveluntarjoajan ehtojen ja tiliin liittyvien riskien arviointiin.
+- `discontinued`-merkinnällä varustetut kohteet säilyvät historiallisena aineistona, eikä niitä saa esittää
+  tällä hetkellä maksuttomina.
 
 ---
 
@@ -160,17 +158,14 @@ kiintiön tai käyttöoikeuskäytännön kiertämiseksi.
 
 ## Ilmaistason laskelmat
 
-Ajantasainen, resurssivarantojen perusteella deduplikoitu luettelo ilmoittaa tällä hetkellä:
+Ajantasainen, resurssivarannot huomioiden deduplikoitu luettelo ilmoittaa tällä hetkellä:
 
-| Mittari                                                               |                                         Nykyinen auditoitu arvo | Tulkinta                                                                                                                                                                                                  |
-| --------------------------------------------------------------------- | --------------------------------------------------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Toistuva määrällinen käyttöoikeus                                     |                                       **~1.62 mrd. tokenia/kk** | Jaetut resurssivarannot lasketaan kerran; rajoittamattomat palveluntarjoajat eivät sisälly summaan                                                                                                        |
-| Ensimmäinen kuukausi rekisteröitymisetuineen                          |                                          **~2.22 mrd. tokenia** | Toistuva kokonaismäärä sekä kertaluonteiset ja toistuvat krediitit                                                                                                                                        |
-| Auditoitu ilmaismallivalikoima                                        | **35 toistuvaa resurssivarantoavainta / 482 luettelomerkintää** | 475 aktiivista + 7 lopetettua; erillinen 357 palveluntarjoajan luettelosta                                                                                                                                |
-| Edustetut toistuvat/avaimettomat ikuisesti ilmaiset palveluntarjoajat |                                                          **53** | Yksilölliset palveluntarjoajat toistuvissa päivittäisissä, kuukausittaisissa, krediittipohjaisissa, rajoittamattomissa ja avaimettomissa luettelotyypeissä; kelpoisuusehtojen rajaamat rivit jätetty pois |
-| Palveluntarjoajaluettelon merkinnät, joissa `hasFree`                 |                                                   **152 / 357** | Laajemmat palveluntarjoajien metatiedot; kaikilla ei ole määrällisesti ilmaistavissa olevaa toistuvaa kiintiötä                                                                                           |
+| Mittari                                          |     Nykyinen auditoitu arvo | Tulkinta                                                                                                  |
+| ------------------------------------------------ | --------------------------: | --------------------------------------------------------------------------------------------------------- |
+| Toistuva määrällinen kiintiö                     | **~1.62B tokenia/kuukausi** | Jaetut resurssivarannot lasketaan kerran; rajoittamattomat palveluntarjoajat jätetään summan ulkopuolelle |
+| Ensimmäinen kuukausi rekisteröitymiskrediiteillä |          **~2.22B tokenia** | Toistuva kokonaismäärä sekä kertaluonteiset ja toistuvat krediitit                                        |
 
-Nämä arvot lasketaan tiedostosta `open-sse/config/freeModelCatalog.ts`; katso
+Nämä ovat koko luettelon kattavia arvioita erillisille kelvollisille tileille, eivät OmniRouten tarjoama kiintiö tai ennuste uudelle asennukselle. Käytettävissä oleva kapasiteettisi riippuu yhdistämistäsi palveluntarjoajista ja niiden kulloisistakin ehdoista. Arvot lasketaan tiedostosta `open-sse/config/freeModelCatalog.ts`; katso
 [Ilmaistasojen viite](../reference/FREE_TIERS.md), jossa käsitellään resurssivarantojen deduplikointia, käyttöehtomerkintöjä,
 lopetettuja merkintöjä ja rekisteröitymiskrediittien laskentamenetelmää.
 
