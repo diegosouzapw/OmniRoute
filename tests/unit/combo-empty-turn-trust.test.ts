@@ -91,6 +91,26 @@ test("Azure hostname, protocol and URL credentials are checked exactly", async (
     assert.equal(await allowed(executed(url, complete)), false);
   }
 });
+const azureCompleted =
+  'data: {"type":"response.completed","response":{"status":"completed","output":[]}}\n\n';
+for (const { url, payload } of [
+  {
+    url: "https://fixture.openai.azure.com/openai/v1/responses",
+    payload: azureCompleted,
+  },
+  {
+    url: "https://fixture.services.ai.azure.com/openai/v1/responses",
+    payload: azureCompleted,
+  },
+  {
+    url: "https://fixture.services.ai.azure.com/anthropic/v1/messages",
+    payload: claude,
+  },
+]) {
+  test(`Azure normal empty termination is trusted on ${url}`, async () => {
+    assert.equal(await allowed(executed(url, payload)), true);
+  });
+}
 test("reasoning/tool partial JSON cannot acquire terminal proof from its origin", async () => {
   for (const message of [
     { reasoning_content: "partial" },
