@@ -1,0 +1,15 @@
+# Generic clusters have no single right answer here. Leaving storageClassName
+# empty makes the cluster's default StorageClass bind the claim, which is the
+# safe default; set it explicitly if your cluster has no default or if you need
+# a specific tier.
+#
+# The class MUST support ReadWriteOnce and be backed by real block storage —
+# SQLite over NFS/CIFS corrupts under WAL journaling.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: omniroute-data
+spec:
+  resources:
+    requests:
+      storage: 20Gi

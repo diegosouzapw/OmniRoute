@@ -1,0 +1,14 @@
+# SQLite lives here. ReadWriteOnce is deliberate: OmniRoute is a single writer
+# and must never be bound by more than one pod (see deployment.yaml).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: omniroute-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  # storageClassName is intentionally unset in base — overlays pin it
+  # (local-path on k3s, cluster default on generic k8s).

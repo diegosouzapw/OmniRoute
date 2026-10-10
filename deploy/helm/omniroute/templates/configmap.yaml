@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "omniroute.fullname" . }}-config
+  labels:
+    {{- include "omniroute.labels" . | nindent 4 }}
+data:
+  DATA_DIR: {{ .Values.config.dataDir | quote }}
+  PORT: {{ .Values.service.port | quote }}
+  DASHBOARD_PORT: {{ .Values.service.port | quote }}
+  API_HOST: "0.0.0.0"
+  LIVE_WS_PORT: {{ .Values.service.liveWsPort | quote }}
+  LIVE_WS_HOST: "0.0.0.0"
+  LIVE_WS_ALLOWED_ORIGINS: {{ .Values.config.liveWsAllowedOrigins | quote }}
+  APP_LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  REQUIRE_API_KEY: {{ .Values.config.requireApiKey | quote }}
+  SHUTDOWN_TIMEOUT_MS: {{ .Values.config.shutdownTimeoutMs | quote }}
+  NODE_OPTIONS: {{ printf "--max-old-space-size=%v" .Values.config.maxOldSpaceSizeMb | quote }}
