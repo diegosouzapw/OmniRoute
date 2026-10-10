@@ -109,7 +109,8 @@ export function getAllModelsFromRegistry<P extends BaseProvider>(
 
 /**
  * Build auth headers for a provider.
- * Handles bearer, key, token, xi-api-key, x-api-key, and none.
+ * Handles bearer, key, token, authorization (raw key, no scheme), xi-api-key,
+ * x-api-key, x-gladia-key, and none.
  */
 export function buildAuthHeaders(
   provider: BaseProvider,
@@ -124,6 +125,9 @@ export function buildAuthHeaders(
       return { Authorization: `Key ${token}` };
     case "token":
       return { Authorization: `Token ${token}` };
+    case "authorization":
+      // Raw key in the Authorization header, no scheme prefix (e.g. AssemblyAI).
+      return { Authorization: token };
     case "xi-api-key":
       return { "xi-api-key": token };
     case "x-api-key":

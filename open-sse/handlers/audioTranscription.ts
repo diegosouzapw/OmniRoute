@@ -216,7 +216,7 @@ async function handleDeepgramTranscription(
 /**
  * Handle AssemblyAI transcription (async: upload file → submit → poll)
  */
-async function handleAssemblyAITranscription(providerConfig, file, modelId, token) {
+async function handleAssemblyAITranscription(providerConfig, file, modelId, token, formData) {
   const authHeaders = buildAuthHeaders(providerConfig, token);
 
   // Step 1: Upload the audio file
@@ -236,18 +236,26 @@ async function handleAssemblyAITranscription(providerConfig, file, modelId, toke
 
   const { upload_url } = await uploadRes.json();
 
-  // Step 2: Submit transcription request
+  // Step 2: Submit transcription request. An explicit OpenAI-style `language`
+  // field maps to AssemblyAI's `language_code`; otherwise let AssemblyAI detect it.
+  const submitPayload: Record<string, unknown> = {
+    audio_url: upload_url,
+    speech_models: [modelId],
+  };
+  const language = formData?.get("language");
+  if (typeof language === "string" && language.trim()) {
+    submitPayload.language_code = language.trim();
+  } else {
+    submitPayload.language_detection = true;
+  }
+
   const submitRes = await fetch(providerConfig.baseUrl, {
     method: "POST",
     headers: {
       ...authHeaders,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      audio_url: upload_url,
-      speech_models: [modelId],
-      language_detection: true,
-    }),
+    body: JSON.stringify(submitPayload),
   });
 
   if (!submitRes.ok) {
@@ -943,7 +951,7 @@ export async function handleAudioTranscription({
   }
 
   if (providerConfig.format === "assemblyai") {
-    return handleAssemblyAITranscription(providerConfig, file, modelId, token);
+    return handleAssemblyAITranscription(providerConfig, file, modelId, token, formData);
   }
 
   if (providerConfig.format === "gladia") {

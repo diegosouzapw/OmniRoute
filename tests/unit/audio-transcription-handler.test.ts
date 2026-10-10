@@ -308,6 +308,91 @@ test("handleAudioTranscription routes AssemblyAI uploads and polls until complet
   }
 });
 
+type AssemblyCall = { url: string; headers: Record<string, string>; body: unknown };
+
+async function runAssemblyAITranscription(language?: string) {
+  const originalFetch = globalThis.fetch;
+  const originalSetTimeout = globalThis.setTimeout;
+  const calls: AssemblyCall[] = [];
+
+  globalThis.setTimeout = immediateTimeout as unknown as typeof globalThis.setTimeout;
+  globalThis.fetch = (async (url: string | URL | Request, options: RequestInit = {}) => {
+    const stringUrl = String(url);
+    calls.push({
+      url: stringUrl,
+      headers: (options.headers || {}) as Record<string, string>,
+      body: options.body,
+    });
+
+    if (stringUrl === "https://api.assemblyai.com/v2/upload") {
+      return Response.json({ upload_url: "https://upload.example.com/audio.wav" });
+    }
+    if (stringUrl === "https://api.assemblyai.com/v2/transcript") {
+      return Response.json({ id: "transcript-3" });
+    }
+    if (stringUrl === "https://api.assemblyai.com/v2/transcript/transcript-3") {
+      return Response.json({ status: "completed", text: "hello world" });
+    }
+    throw new Error(`Unexpected URL: ${stringUrl}`);
+  }) as typeof globalThis.fetch;
+
+  try {
+    const formData = new FormData();
+    formData.append("model", "assemblyai/universal-2");
+    formData.append("file", buildFile("abc", "clip.wav", "audio/wav"));
+    if (language !== undefined) formData.append("language", language);
+
+    const response = await handleAudioTranscription({
+      formData,
+      credentials: { apiKey: "assembly-key" },
+    });
+    return { response, calls };
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalSetTimeout;
+  }
+}
+
+test("handleAudioTranscription sends the AssemblyAI key as a raw Authorization header on upload, submit and poll", async () => {
+  const { response, calls } = await runAssemblyAITranscription("en");
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { text: "hello world" });
+  assert.deepEqual(
+    calls.map((call) => call.url),
+    [
+      "https://api.assemblyai.com/v2/upload",
+      "https://api.assemblyai.com/v2/transcript",
+      "https://api.assemblyai.com/v2/transcript/transcript-3",
+    ]
+  );
+  for (const call of calls) {
+    assert.equal(call.headers.Authorization, "assembly-key", `raw key expected for ${call.url}`);
+  }
+});
+
+test("handleAudioTranscription maps the language field to AssemblyAI language_code", async () => {
+  const { calls } = await runAssemblyAITranscription(" en ");
+  const submit = calls.find((call) => call.url === "https://api.assemblyai.com/v2/transcript");
+
+  assert.deepEqual(JSON.parse(String(submit?.body)), {
+    audio_url: "https://upload.example.com/audio.wav",
+    speech_models: ["universal-2"],
+    language_code: "en",
+  });
+});
+
+test("handleAudioTranscription keeps AssemblyAI language detection when language is blank", async () => {
+  const { calls } = await runAssemblyAITranscription("   ");
+  const submit = calls.find((call) => call.url === "https://api.assemblyai.com/v2/transcript");
+
+  assert.deepEqual(JSON.parse(String(submit?.body)), {
+    audio_url: "https://upload.example.com/audio.wav",
+    speech_models: ["universal-2"],
+    language_detection: true,
+  });
+});
+
 test("handleAudioTranscription returns an error when AssemblyAI reports a terminal failure", async () => {
   const originalFetch = globalThis.fetch;
   const originalSetTimeout = globalThis.setTimeout;
