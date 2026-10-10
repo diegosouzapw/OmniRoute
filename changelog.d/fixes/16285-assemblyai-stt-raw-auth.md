@@ -1,0 +1,1 @@
+- **fix(audio):** AssemblyAI transcriptions no longer fail with 401: the API key is sent as a raw `Authorization` header (no `Bearer` scheme), and the `language` field now maps to AssemblyAI's `language_code` ([#16285](https://github.com/diegosouzapw/OmniRoute/pull/16285)) — thanks @igorgomes3
