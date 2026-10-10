@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "إضافة مرجع مجموعة",
     "builderPinnedAccount": "الحساب المثبّت",
     "builderLegacyEntry": "إدخال قديم",
+    "builderStaleModel": "غير موجود في الكتالوج المباشر",
     "reviewName": "الاسم",
     "reviewStrategy": "الاستراتيجية",
     "reviewSteps": "الخطوات",

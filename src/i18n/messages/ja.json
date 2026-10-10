@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "コンボ参照を追加",
     "builderPinnedAccount": "固定されたアカウント",
     "builderLegacyEntry": "レガシーエントリ",
+    "builderStaleModel": "ライブカタログにありません",
     "reviewName": "名前",
     "reviewStrategy": "戦略",
     "reviewSteps": "ステップ",

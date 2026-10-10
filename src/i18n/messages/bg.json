@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Добавяне на препратка към комбинация",
     "builderPinnedAccount": "Закачен акаунт",
     "builderLegacyEntry": "Остарял запис",
+    "builderStaleModel": "Липсва в актуалния каталог",
     "reviewName": "Име",
     "reviewStrategy": "Стратегия",
     "reviewSteps": "Стъпки",

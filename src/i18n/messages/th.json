@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "เพิ่มข้อมูลอ้างอิงคอมโบ",
     "builderPinnedAccount": "บัญชีที่ตรึงไว้",
     "builderLegacyEntry": "รายการแบบเดิม",
+    "builderStaleModel": "ไม่อยู่ในแคตตาล็อกสด",
     "reviewName": "ชื่อ",
     "reviewStrategy": "กลยุทธ์",
     "reviewSteps": "ขั้นตอน",

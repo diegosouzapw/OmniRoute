@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Přidat referenci kombinace",
     "builderPinnedAccount": "Připnutý účet",
     "builderLegacyEntry": "Starší položka",
+    "builderStaleModel": "Není v aktuálním katalogu",
     "reviewName": "Název",
     "reviewStrategy": "Strategie",
     "reviewSteps": "Kroky",

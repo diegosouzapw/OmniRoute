@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Legg til kombinasjonsreferanse",
     "builderPinnedAccount": "Festet konto",
     "builderLegacyEntry": "Eldre oppføring",
+    "builderStaleModel": "Ikke i live-katalogen",
     "reviewName": "Navn",
     "reviewStrategy": "Strategi",
     "reviewSteps": "Trinn",

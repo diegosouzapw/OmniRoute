@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Add combo reference",
     "builderPinnedAccount": "Pinned Account",
     "builderLegacyEntry": "Legacy entry",
+    "builderStaleModel": "Not in live catalog",
     "reviewName": "Name",
     "reviewStrategy": "Strategy",
     "reviewSteps": "Steps",

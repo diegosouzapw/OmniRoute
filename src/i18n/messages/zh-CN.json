@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "添加组合引用步骤",
     "builderPinnedAccount": "固定账户",
     "builderLegacyEntry": "旧版条目",
+    "builderStaleModel": "不在实时目录中",
     "reviewName": "名称",
     "reviewStrategy": "策略",
     "reviewSteps": "步骤",

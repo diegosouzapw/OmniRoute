@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Lisa kombo viide",
     "builderPinnedAccount": "Fikseeritud konto",
     "builderLegacyEntry": "Pärandkirje",
+    "builderStaleModel": "Pole reaalajas kataloogis",
     "reviewName": "Nimi",
     "reviewStrategy": "Strateegia",
     "reviewSteps": "Sammud",

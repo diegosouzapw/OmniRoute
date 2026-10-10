@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "新增組合引用步驟",
     "builderPinnedAccount": "固定帳戶",
     "builderLegacyEntry": "舊版條目",
+    "builderStaleModel": "不在即時目錄中",
     "reviewName": "名稱",
     "reviewStrategy": "策略",
     "reviewSteps": "步驟",

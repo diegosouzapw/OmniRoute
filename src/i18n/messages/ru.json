@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Добавить ссылку на комбо",
     "builderPinnedAccount": "Закреплённая учётная запись",
     "builderLegacyEntry": "Устаревшая запись",
+    "builderStaleModel": "Нет в актуальном каталоге",
     "reviewName": "Название",
     "reviewStrategy": "Стратегия",
     "reviewSteps": "Шаги",

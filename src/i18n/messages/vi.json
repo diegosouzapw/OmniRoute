@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Thêm tham chiếu combo",
     "builderPinnedAccount": "Tài khoản được ghim",
     "builderLegacyEntry": "Mục nhập cũ",
+    "builderStaleModel": "Không có trong danh mục trực tiếp",
     "reviewName": "Tên",
     "reviewStrategy": "Chiến lược",
     "reviewSteps": "Các bước",

@@ -3916,6 +3916,7 @@
     "builderComboRefStep": "Pridėti kombinacijos nuorodą",
     "builderPinnedAccount": "Prisegta paskyra",
     "builderLegacyEntry": "Senos versijos įrašas",
+    "builderStaleModel": "Nėra tiesioginiame kataloge",
     "reviewName": "Pavadinimas",
     "reviewStrategy": "Strategija",
     "reviewSteps": "Žingsniai",
