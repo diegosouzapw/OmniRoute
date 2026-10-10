@@ -22,7 +22,7 @@ import { randomUUID } from "crypto";
 
 export { resolveSearchBaseUrl, SearchBaseUrlOverrideError } from "./search/baseUrl.ts";
 import { resolveSearchBaseUrl } from "./search/baseUrl.ts";
-
+import type { SearchUsage } from "./search/reportedCost.ts";
 import {
   getSearchProvider,
   isUnconfiguredLoopbackSearchProvider,
@@ -76,7 +76,7 @@ export interface SearchResponse {
   query: string;
   results: SearchResult[];
   answer: { source: string; text: string | null; model: string | null } | null;
-  usage: { queries_used: number; search_cost_usd: number; llm_tokens?: number };
+  usage: SearchUsage;
   metrics: {
     response_time_ms: number;
     upstream_latency_ms: number;
@@ -1783,8 +1783,7 @@ async function tryProvider(
     log.info("SEARCH", `${config.id} | query: "${query.slice(0, 80)}" | type: ${searchType}`);
   }
 
-  // Delegate the fetch + response handling (proxy fetch, call-log, sanitized
-  // proxy event, result shaping) to the shared chokepoint in searchProxy.ts.
+  // Fetch, call-log, proxy event, result shaping and cost live in searchProxy.ts.
   return executeProviderFetch({
     config,
     url,
@@ -1799,6 +1798,7 @@ async function tryProvider(
     proxy,
     proxyLevel,
     log,
+    costContext: { apiKeyId, providerSpecificData },
     normalize: normalizeResponse,
   });
 }

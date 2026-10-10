@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkcije</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinacije</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Ponudniki</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Ponudniki</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ da bi se skrivnosti shranile v zgodovino ukazne lupine. → [Integracije CLI](do
 
 <div align="center">
 
-## 🌐 357 ponudnikov UI — 152 označenih kot brezplačnih v katalogu
+## 🌐 372 ponudnikov UI — 154 označenih kot brezplačnih v katalogu
 
 </div>
 

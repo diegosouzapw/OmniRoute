@@ -1,0 +1,1 @@
+- **fix(tests):** allow only the retention HTTP fixture's allocated loopback host and port through MockAgent, so the retention matrix reaches the real routes while other loopback ports and external hosts remain blocked (#15306).

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Vipengele</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Michanganyiko</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Watoa Huduma</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Watoa Huduma</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -598,7 +598,7 @@ kwenye historia ya shell yako. → [Miunganisho ya CLI](docs/guides/CLI-INTEGRAT
 
 <div align="center">
 
-## 🌐 Watoa Huduma 357 wa AI — 152 Waliotiwa Alama kwenye Katalogi kuwa Bila Malipo
+## 🌐 Watoa Huduma 372 wa AI — 154 Waliotiwa Alama kwenye Katalogi kuwa Bila Malipo
 
 </div>
 

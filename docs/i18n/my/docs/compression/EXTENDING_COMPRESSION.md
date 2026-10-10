@@ -332,7 +332,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # အသုံးပြုသူအဆင့်
-<project>/.compression/rules/hi/filler.json   # Project အဆင့်
 ```
 
 ### ဘာသာစကား Pack များအတွက် အကောင်းဆုံး လုပ်ထုံးလုပ်နည်းများ

@@ -67,6 +67,25 @@ test("stale Persian digits fail without reinterpreting the module count", () => 
   assert.equal(validate(row(`${persian(actual)} ماژول، ${persian(actual - 1)} مهاجرت`)).ok, false);
 });
 
+test("quoted HTML attributes do not become visible migration counts", () => {
+  const content = row(
+    `<span title="comparison > 999">137</span> modules, <b>${actual}</b> migrations`
+  );
+  assert.equal(validate(content).ok, true);
+});
+
+test("HTML character references are decoded before checking the visible count", () => {
+  const encoded = String(actual).replace(/\d/g, (digit) => `&#${digit.charCodeAt(0)};`);
+  assert.equal(validate(row(`&#x31;&#x33;&#x37; modules, ${encoded} migrations`)).ok, true);
+});
+
+test("a current count hidden in an attribute or comment cannot mask stale visible text", () => {
+  const content = row(
+    `<span title="${actual}">137 modules, ${actual - 1} migrations</span><!-- ${actual} -->`
+  );
+  assert.equal(validate(content).ok, false);
+});
+
 test("missing, duplicated or ambiguous database claims fail closed", () => {
   for (const content of [
     `There are ${actual} migrations elsewhere.`,

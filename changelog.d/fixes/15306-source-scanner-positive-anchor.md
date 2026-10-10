@@ -1,0 +1,1 @@
+- **Image-route regression guard:** Require the error-helper allowlist declaration before checking that sanitized image routes are not frozen, so an empty or unrelated source file cannot silently satisfy the negative assertions. Refs #15306.

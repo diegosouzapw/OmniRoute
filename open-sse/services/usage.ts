@@ -74,6 +74,7 @@ import {
   isMoonshotOpenPlatformConnection,
 } from "./usage/moonshotOpenPlatform.ts";
 import { getDevinCliUsage } from "./usage/devinCli.ts";
+import { getAnthropicApiKeyUsage } from "./usage/anthropicApiKey.ts";
 import { getBailianCodingPlanUsage } from "./usage/bailian.ts";
 import { getVertexUsage } from "./usage/vertex.ts";
 import { getXiaomiMimoUsage } from "./usage/xiaomi-mimo.ts";
@@ -281,6 +282,8 @@ export async function getUsageForProvider(
     case "devin-cli":
       // Devin CLI tokens live in `accessToken` (oauth import) or `apiKey`.
       return await getDevinCliUsage(apiKey || accessToken);
+    case "anthropic":
+      return await getAnthropicApiKeyUsage(apiKey);
     case "chatplayground":
     case "cpl":
       return await getChatPlaygroundUsage(apiKey || accessToken, providerSpecificData);

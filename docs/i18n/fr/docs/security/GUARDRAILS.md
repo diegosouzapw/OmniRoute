@@ -228,6 +228,8 @@ Une requête observée ne remplit pas non plus de mémoire durable (l'extraction
 dérivée de la requête et de la réponse est ignorée), de sorte que la propre réponse
 du modèle ne peut pas faire écho au texte de la transcription dans la mémoire.
 
+**Champs vidéo bruts (#12430).** Lorsque le pont est activé et que la prise en charge native de la vidéo est inconnue ou absente, les champs définis `transcript`/`audioTranscript` activent aussi `videoBridgeObserved`, même si la description échoue ou si la limite `maxVideos` est atteinte. `null` et les chaînes vides comptent ; les champs absents et les métadonnées sans rapport avec la vidéo ne comptent pas. Les copies conservées masquent ces champs ou omettent la requête, et les caches/Memory sont contournés. Les données envoyées au fournisseur restent inchangées.
+
 Les copies supplémentaires conservées utilisent le même signal de requête observée.
 L'instantané de la requête client brute avant le garde-fou, la requête en attente
 en mémoire et le journal des requêtes rejetées précoces remplacent structurellement

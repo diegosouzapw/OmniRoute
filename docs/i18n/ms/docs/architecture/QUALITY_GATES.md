@@ -305,12 +305,14 @@ kontrak dokumen/persekitaran, kesetaraan i18n, ujian unit) tidak berubah — uji
   sekali sahaja (`scripts/quality/relax-baselines.mjs`); enggan dijalankan dua kali dengan
   nota yang sama.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mengukur setiap gerbang berangka sebagaimana dilakukan oleh CI dan memaparkan baki ruang lebihan bagi setiap gerbang
-  (`scripts/quality/baseline-headroom.mjs`). Tugas `baseline-headroom` setiap malam menyiarkan
-  jadual tersebut ke isu aktif **📈 Ruang lebihan garis dasar (fasa kelajuan)** dan menambahkan
-  label `headroom-alert` apabila mana-mana gerbang berada dalam lingkungan 10% daripada hadnya atau sudah
-  melebihinya. Isu tersebut ialah amaran awal: belanjawan yang penuh dalam beberapa hari bermakna pelonggaran itu sedang digunakan oleh
-  beberapa PR, bukan oleh seluruh pasukan — lihat nota `_rebaseline_*` bagi gerbang yang berkenaan.
+  mengukur setiap semakan berangka dengan cara yang sama seperti CI dan memaparkan baki ruang sehingga had bagi setiap semakan
+  (`scripts/quality/baseline-headroom.mjs`). Tugas malam `baseline-headroom` menerbitkan jadual
+  dalam ringkasan pelaksanaan aliran kerja dan memuat naik laporan JSON/Markdown sebagai
+  `baseline-headroom-<run_id>`, yang disimpan selama 90 hari. Baris amaran dan kritikal menandakan
+  semakan yang hanya mempunyai baki 10% atau kurang sebelum hadnya, atau yang telah melebihinya.
+  Semak laporan ini sebagai amaran awal bahawa peruntukan sedang digunakan; teliti catatan
+  `_rebaseline_*` bagi semakan berkenaan. Tugas ini tidak lagi mencipta atau mengemas kini isu kekal;
+  #12149 mengekalkan sejarah laporan terdahulu.
 
 **Mod kod baharu (Clean-as-You-Code) — sejak 2026-08-30, laluan pantas PR sahaja**
 

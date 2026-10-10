@@ -1,0 +1,1 @@
+- **fix(providers):** sanitize DuckDuckGo upstream error types and anti-abuse override codes before returning them from the executor, and enforce the same error boundary in the DuckDuckGo and Copilot M365 local response builders without changing status codes or retry behavior (#15159).

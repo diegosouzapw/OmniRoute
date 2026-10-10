@@ -181,7 +181,7 @@ test(
 );
 
 test(
-  "an existing DB fails closed when hard-link publication is unavailable even with auto backup disabled",
+  "an existing DB fails closed when snapshot publication has an I/O failure even with auto backup disabled",
   serial,
   async () => {
     const dataDir = makeTempDataDir();
@@ -194,7 +194,7 @@ test(
       const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
       fs.linkSync = (() => {
         throw Object.assign(new Error("hard links unsupported by this filesystem"), {
-          code: "ENOTSUP",
+          code: "EIO",
         });
       }) as typeof fs.linkSync;
 
@@ -244,7 +244,7 @@ test(
       const { runMigrations } = await importFresh("src/lib/db/migrationRunner.ts");
       fs.linkSync = (() => {
         throw Object.assign(new Error("hard links unsupported by this filesystem"), {
-          code: "ENOTSUP",
+          code: "EIO",
         });
       }) as typeof fs.linkSync;
 

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useEffect, useMemo, memo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import Badge from "@/shared/components/Badge";
 import DataTable from "@/shared/components/DataTable";
 import type { DataTableColumn, DataTableRow } from "@/shared/components/DataTable";
 import type { ConnectionState } from "@/types/resilience";
+import { describeProviderAvailability } from "@/lib/providerAvailability";
 import { formatRemaining } from "@/shared/utils/formatRemaining";
 import ConnectionDetail from "./ConnectionDetail";
 
@@ -19,6 +20,23 @@ interface ConnectionsTableProps {
 // (useMemo with receivedAt dependency would create new type each poll -> unmount/remount)
 // Ponytail: elapsed derived from tick count (pure -- no Date.now() in render), self-corrects
 // on each poll when receivedAt changes and the effect resets the tick baseline.
+function StatusWithAvailability({
+  badge,
+  connection,
+}: {
+  badge: ReactNode;
+  connection: ConnectionState;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      {badge}
+      <span className="text-xs text-text-secondary">
+        {describeProviderAvailability(connection.availability)}
+      </span>
+    </div>
+  );
+}
+
 const CountdownCell = memo(function CountdownCell({
   connection,
   receivedAt,
@@ -73,55 +91,67 @@ export default function ConnectionsTable({
         renderCell={(row: DataTableRow, col: DataTableColumn) => {
           const r = row as unknown as ConnectionState;
           switch (col.key) {
-            case "status":
+            case "status": {
+              let badge: ReactNode;
               switch (r.connectionStatus) {
                 case "cooling_down":
-                  return (
+                  badge = (
                     <Badge variant="warning" size="sm">
                       {t("table.coolingDown")}
                     </Badge>
                   );
+                  break;
                 case "circuit_open":
-                  return (
+                  badge = (
                     <Badge variant="error" size="sm">
                       {t("table.circuitOpen")}
                     </Badge>
                   );
+                  break;
                 case "terminal":
-                  return (
+                  badge = (
                     <Badge variant="error" size="sm">
                       {t("table.terminal")}
                     </Badge>
                   );
+                  break;
                 case "healthy":
                   // When breaker data is absent (degraded source), show "Unknown" not "Healthy"
                   if (degraded.includes("circuitBreaker") && !r.breaker) {
-                    return (
+                    badge = (
                       <Badge variant="info" size="sm">
                         {t("table.unknown")}
                       </Badge>
                     );
+                  } else if (r.breaker?.state === "HALF_OPEN") {
+                    badge = (
+                      <Badge variant="warning" size="sm">
+                        {t("table.recovering")}
+                      </Badge>
+                    );
+                  } else if (r.breaker?.state === "DEGRADED") {
+                    badge = (
+                      <Badge variant="warning" size="sm">
+                        {t("table.degraded")}
+                      </Badge>
+                    );
+                  } else {
+                    badge = (
+                      <Badge variant="success" size="sm">
+                        {t("table.healthy")}
+                      </Badge>
+                    );
                   }
-                  return r.breaker?.state === "HALF_OPEN" ? (
-                    <Badge variant="warning" size="sm">
-                      {t("table.recovering")}
-                    </Badge>
-                  ) : r.breaker?.state === "DEGRADED" ? (
-                    <Badge variant="warning" size="sm">
-                      {t("table.degraded")}
-                    </Badge>
-                  ) : (
-                    <Badge variant="success" size="sm">
-                      {t("table.healthy")}
-                    </Badge>
-                  );
+                  break;
                 default:
-                  return (
+                  badge = (
                     <Badge variant="info" size="sm">
                       {r.connectionStatus}
                     </Badge>
                   );
               }
+              return <StatusWithAvailability badge={badge} connection={r} />;
+            }
             case "id":
               return <span>{r.id.length > 8 ? `${r.id.slice(0, 8)}...` : r.id}</span>;
             case "cooldown":

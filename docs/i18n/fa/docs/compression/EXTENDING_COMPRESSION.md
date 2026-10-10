@@ -336,7 +336,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # سطح کاربر
-<project>/.compression/rules/hi/filler.json   # سطح پروژه
 ```
 
 ### بهترین شیوهها برای بستههای زبانی

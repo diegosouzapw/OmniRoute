@@ -306,7 +306,8 @@ export const WEB_COOKIE_PROVIDERS = {
     color: "#22C55E",
     textIcon: "VW",
     website: "https://venice.ai",
-    authHint: "Paste your session cookie from venice.ai (DevTools → Application → Cookies)",
+    authHint:
+      "Paste your __client cookie value from .clerk.venice.ai (DevTools → Application → Cookies)",
     riskNoticeVariant: "webCookie",
   },
   "v0-vercel-web": {

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ वैशिष्ट्ये</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 कॉम्बोज</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 प्रदाते</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 प्रदाते</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # हेही उपलब्ध: claude ope
 
 <div align="center">
 
-## 🌐 357 AI प्रदाते — 152 कॅटलॉगमध्ये मोफत म्हणून चिन्हांकित
+## 🌐 372 AI प्रदाते — 154 कॅटलॉगमध्ये मोफत म्हणून चिन्हांकित
 
 </div>
 

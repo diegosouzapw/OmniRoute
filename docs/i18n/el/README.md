@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Δυνατότητες</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Συνδυασμοί</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Πάροχοι</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Πάροχοι</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ omniroute configure codex          # επίσης: claude opencode qwen aider go
 
 <div align="center">
 
-## 🌐 357 πάροχοι AI — 152 επισημασμένοι στον κατάλογο ως δωρεάν
+## 🌐 372 πάροχοι AI — 154 επισημασμένοι στον κατάλογο ως δωρεάν
 
 </div>
 

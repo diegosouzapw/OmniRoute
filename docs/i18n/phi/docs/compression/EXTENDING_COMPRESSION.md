@@ -336,7 +336,6 @@ O ilagay ito sa isang kinikilalang lokasyon:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Antas ng user
-<project>/.compression/rules/hi/filler.json   # Antas ng proyekto
 ```
 
 ### Pinakamahuhusay na Kasanayan para sa mga Language Pack

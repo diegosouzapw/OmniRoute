@@ -307,12 +307,14 @@ docs/env-kontrakt, i18n-paritet og enhedstest) er uændrede — en rød test er 
   enkeltstående lempelse (`scripts/quality/relax-baselines.mjs`); nægter at køre to gange med den
   samme note.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  måler alle numeriske porte på samme måde som CI og viser det resterende råderum pr. port
-  (`scripts/quality/baseline-headroom.mjs`). Det natlige `baseline-headroom`-job sender
-  tabellen til den løbende sag **📈 Referencegrænsernes råderum (hastighedsfase)** og tilføjer
-  mærkatet `headroom-alert`, når en port er inden for 10 % af sin grænse eller allerede har overskredet den. Denne sag
-  fungerer som tidlig advarsel: Et budget, der opbruges på få dage, betyder, at lempelsen forbruges af
-  nogle få PR'er og ikke af hele teamet — se den relevante ports `_rebaseline_*`-noter.
+  måler hver numerisk kvalitetskontrol på samme måde som CI og udskriver den resterende margen for hver kontrol
+  (`scripts/quality/baseline-headroom.mjs`). Det natlige `baseline-headroom`-job offentliggør tabellen
+  i oversigten over workflow-kørslen og uploader rapporten i JSON/Markdown som
+  `baseline-headroom-<run_id>`, der opbevares i 90 dage. Advarselsrækker og kritiske rækker udpeger
+  kontroller, som har højst 10% tilbage til loftet eller allerede har overskredet det.
+  Brug rapporterne som et tidligt varsel om, at budgetterne bliver brugt op; læs den berørte kontrols
+  `_rebaseline_*`-noter. Jobbet opretter eller opdaterer ikke længere en permanent issue;
+  #12149 bevarer historikken over de tidligere rapporter.
 
 **Tilstand for ny kode (Clean-as-You-Code) — siden 2026-08-30, kun hurtig sti for PR'er**
 

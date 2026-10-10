@@ -81,6 +81,17 @@ test("description field is meaningful (≥50 chars)", async () => {
   }
 });
 
+function scanSkillReferences(raw: string, existing: Set<string>) {
+  const content = raw.replace(/<!--[\s\S]*?-->/g, " ");
+  const references = [...content.matchAll(/skills\/([A-Za-z0-9_.-]+)\/SKILL\.md/g)].map(
+    (match) => match[1]
+  );
+  return {
+    checked: references.length,
+    broken: references.filter((name) => !existing.has(name)),
+  };
+}
+
 // #15665: skills linked to `skills/omniroute-*/SKILL.md` after those dirs were renamed to
 // `omni-*`/`cli-*`, so agents following the raw URLs hit a 404. Every link to another skill
 // manifest (raw GitHub URL or relative path) must resolve to a dir that exists today.
@@ -93,12 +104,54 @@ test("every skills/<dir>/SKILL.md reference inside a skill resolves (#15665)", a
   let checked = 0;
   for (const dir of dirs) {
     const raw = await readFile(join(SKILLS_DIR, dir, "SKILL.md"), "utf-8");
-    const content = raw.replace(/<!--[\s\S]*?-->/g, "");
-    for (const m of content.matchAll(/skills\/([A-Za-z0-9_.-]+)\/SKILL\.md/g)) {
-      checked++;
-      if (!existing.has(m[1])) broken.push(`${dir} -> skills/${m[1]}/SKILL.md`);
-    }
+    const result = scanSkillReferences(raw, existing);
+    checked += result.checked;
+    for (const name of result.broken) broken.push(`${dir} -> skills/${name}/SKILL.md`);
   }
   assert.ok(checked > 0, "no cross-skill references found — the extraction regex is broken");
   assert.deepEqual(broken, [], `dangling skill links:\n${broken.join("\n")}`);
 });
+
+// #15306: comment masking must preserve visible token boundaries and dangling-link checks.
+for (const { name, raw, checked, broken } of [
+  {
+    name: "keeps a visible reference to an existing skill",
+    raw: "See [entry](skills/known/SKILL.md).",
+    checked: 1,
+    broken: [],
+  },
+  {
+    name: "reports a visible reference to a missing skill",
+    raw: "See skills/missing/SKILL.md.",
+    checked: 1,
+    broken: ["missing"],
+  },
+  {
+    name: "ignores complete provenance comments",
+    raw: "<!-- Migrated from skills/missing/SKILL.md --> skills/known/SKILL.md",
+    checked: 1,
+    broken: [],
+  },
+  {
+    name: "handles multiple and multiline comments without hiding visible missing links",
+    raw: "<!-- skills/old/SKILL.md --> skills/known/SKILL.md <!--\nother provenance\n--> skills/missing/SKILL.md",
+    checked: 2,
+    broken: ["missing"],
+  },
+  {
+    name: "does not assemble a reference prefix across a comment",
+    raw: "ski<!-- provenance -->lls/missing/SKILL.md",
+    checked: 0,
+    broken: [],
+  },
+  {
+    name: "does not assemble a skill name across a comment",
+    raw: "skills/mis<!-- provenance -->sing/SKILL.md",
+    checked: 0,
+    broken: [],
+  },
+]) {
+  test(`skill reference scanner ${name}`, () => {
+    assert.deepEqual(scanSkillReferences(raw, new Set(["known"])), { checked, broken });
+  });
+}

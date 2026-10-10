@@ -24,13 +24,13 @@
     },
     {
       "name": "pt_ultra_configuracao",
-      "pattern": "\\b(?:configuração|configurações)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:configuração|configurações)(?![\\p{L}\\p{N}_])",
       "replacement": "config",
       "replacementMap": {
         "configuração": "config",
         "configurações": "configs"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -38,13 +38,13 @@
     },
     {
       "name": "pt_ultra_funcao",
-      "pattern": "\\b(?:função|funções)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:função|funções)(?![\\p{L}\\p{N}_])",
       "replacement": "fn",
       "replacementMap": {
         "função": "fn",
         "funções": "fns"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -52,13 +52,13 @@
     },
     {
       "name": "pt_ultra_requisicao",
-      "pattern": "\\b(?:requisição|requisições)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:requisição|requisições)(?![\\p{L}\\p{N}_])",
       "replacement": "req",
       "replacementMap": {
         "requisição": "req",
         "requisições": "reqs"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -76,9 +76,9 @@
     },
     {
       "name": "pt_ultra_implementacao",
-      "pattern": "\\b(?:implementação|implementações)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:implementação|implementações)(?![\\p{L}\\p{N}_])",
       "replacement": "impl",
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -86,9 +86,9 @@
     },
     {
       "name": "pt_ultra_autenticacao",
-      "pattern": "\\b(?:autenticação|autenticações)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:autenticação|autenticações)(?![\\p{L}\\p{N}_])",
       "replacement": "auth",
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -96,9 +96,9 @@
     },
     {
       "name": "pt_ultra_autorizacao",
-      "pattern": "\\b(?:autorização|autorizações)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:autorização|autorizações)(?![\\p{L}\\p{N}_])",
       "replacement": "authz",
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -106,13 +106,13 @@
     },
     {
       "name": "pt_ultra_aplicacao",
-      "pattern": "\\b(?:aplicação|aplicações)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:aplicação|aplicações)(?![\\p{L}\\p{N}_])",
       "replacement": "app",
       "replacementMap": {
         "aplicação": "app",
         "aplicações": "apps"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -120,13 +120,13 @@
     },
     {
       "name": "pt_ultra_dependencia",
-      "pattern": "\\b(?:dependência|dependências)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:dependência|dependências)(?![\\p{L}\\p{N}_])",
       "replacement": "dep",
       "replacementMap": {
         "dependência": "dep",
         "dependências": "deps"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -134,13 +134,13 @@
     },
     {
       "name": "pt_ultra_repositorio",
-      "pattern": "\\b(?:repositório|repositórios)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:repositório|repositórios)(?![\\p{L}\\p{N}_])",
       "replacement": "repo",
       "replacementMap": {
         "repositório": "repo",
         "repositórios": "repos"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -148,13 +148,13 @@
     },
     {
       "name": "pt_ultra_variavel",
-      "pattern": "\\b(?:variável|variáveis)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:variável|variáveis)(?![\\p{L}\\p{N}_])",
       "replacement": "var",
       "replacementMap": {
         "variável": "var",
         "variáveis": "vars"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
@@ -176,13 +176,13 @@
     },
     {
       "name": "pt_ultra_diretorio",
-      "pattern": "\\b(?:diretório|diretórios)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:diretório|diretórios)(?![\\p{L}\\p{N}_])",
       "replacement": "dir",
       "replacementMap": {
         "diretório": "dir",
         "diretórios": "dirs"
       },
-      "flags": "gi",
+      "flags": "giu",
       "context": "all",
       "category": "ultra",
       "minIntensity": "ultra",
