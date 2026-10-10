@@ -1,0 +1,1 @@
+- **ui:** cancel deferred canvas initialization fits on teardown and invalidate the disposed React Flow generation, preventing callbacks into unmounted graphs while preserving active and replacement graph fitting.
