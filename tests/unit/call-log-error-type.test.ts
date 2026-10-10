@@ -10,6 +10,7 @@ import {
   ERROR_TYPE_CONTRACT,
   ERROR_TYPE_CONTRACT_VERSION,
   PROVIDER_ERROR_TYPES,
+  classifyProviderError,
 } from "../../open-sse/services/errorClassifier.ts";
 
 test.after(() => {
@@ -59,8 +60,14 @@ test("classifyCallLogError: successes stay null, unclassifiable failures become 
   assert.equal(classifyCallLogError(0, "", "test-provider"), null);
   assert.equal(classifyCallLogError(0, "boom", "test-provider"), "unknown");
   // An api-key provider 403 the classifier cannot place (it returns null).
-  assert.equal(classifyCallLogError(403, "some other 403 body", "openai"), "unknown");
+  assert.equal(classifyCallLogError(403, "some other 403 body", "openai"), "forbidden");
   assert.equal(classifyCallLogError(418, "teapot", "openai"), "unknown");
+});
+
+test("classifyCallLogError falls back to model_not_found on an unclassified retired-model 410", () => {
+  const body = "The model minimax-m3-free was retired at 2026-09-25";
+  assert.equal(classifyProviderError(410, body, "openai"), null);
+  assert.equal(classifyCallLogError(410, body, "openai"), "model_not_found");
 });
 
 test("classifyCallLogError only ever returns a contract value or null", () => {
@@ -199,8 +206,8 @@ test("getErrorTypeBreakdown groups failures by family, excludes successes", asyn
 
     assert.deepEqual(breakdownFor(ids), [
       { errorType: "quota_exhausted", count: 2 },
+      { errorType: "forbidden", count: 1 },
       { errorType: "server_error", count: 1 },
-      { errorType: "unknown", count: 1 },
     ]);
   } finally {
     deleteCallLogs(ids);
@@ -258,7 +265,7 @@ test("legacy NULL rows neither vanish nor double-count next to the new unknown v
       pre_migration: 1,
       unclassified: 1,
       rate_limited: 1,
-      unknown: 1,
+      forbidden: 1,
     });
     // One bucket per failure row: the breakdown total equals the failure count.
     const failures = getDbInstance()
@@ -314,11 +321,11 @@ test("log export keeps both legacy NULL and the new unknown error_type intact", 
     const exported = getCallLogsForExport(before, 50);
     const byId = new Map(exported.map((row) => [row.record.id, row.record]));
     assert.equal(byId.get(legacy)?.errorType, null);
-    assert.equal(byId.get(fresh)?.errorType, "unknown");
+    assert.equal(byId.get(fresh)?.errorType, "forbidden");
 
     const exportedAt = new Date().toISOString();
     assert.equal(toBigQueryRow(byId.get(legacy)!, exportedAt).error_type, null);
-    assert.equal(toBigQueryRow(byId.get(fresh)!, exportedAt).error_type, "unknown");
+    assert.equal(toBigQueryRow(byId.get(fresh)!, exportedAt).error_type, "forbidden");
   } finally {
     deleteCallLogs([legacy, fresh]);
   }
@@ -370,7 +377,7 @@ test("legacy NULL rows neither vanish nor double-count next to the new unknown v
       pre_migration: 1,
       unclassified: 1,
       rate_limited: 1,
-      unknown: 1,
+      forbidden: 1,
     });
     // One bucket per failure row: the breakdown total equals the failure count.
     const failures = getDbInstance()
@@ -426,11 +433,11 @@ test("log export keeps both legacy NULL and the new unknown error_type intact", 
     const exported = getCallLogsForExport(before, 50);
     const byId = new Map(exported.map((row) => [row.record.id, row.record]));
     assert.equal(byId.get(legacy)?.errorType, null);
-    assert.equal(byId.get(fresh)?.errorType, "unknown");
+    assert.equal(byId.get(fresh)?.errorType, "forbidden");
 
     const exportedAt = new Date().toISOString();
     assert.equal(toBigQueryRow(byId.get(legacy)!, exportedAt).error_type, null);
-    assert.equal(toBigQueryRow(byId.get(fresh)!, exportedAt).error_type, "unknown");
+    assert.equal(toBigQueryRow(byId.get(fresh)!, exportedAt).error_type, "forbidden");
   } finally {
     deleteCallLogs([legacy, fresh]);
   }
@@ -531,7 +538,7 @@ test("legacy NULL rows neither vanish nor double-count next to the new unknown v
       pre_migration: 1,
       unclassified: 1,
       rate_limited: 1,
-      unknown: 1,
+      forbidden: 1,
     });
     // One bucket per failure row: the breakdown total equals the failure count.
     const failures = getDbInstance()
@@ -587,11 +594,11 @@ test("log export keeps both legacy NULL and the new unknown error_type intact", 
     const exported = getCallLogsForExport(before, 50);
     const byId = new Map(exported.map((row) => [row.record.id, row.record]));
     assert.equal(byId.get(legacy)?.errorType, null);
-    assert.equal(byId.get(fresh)?.errorType, "unknown");
+    assert.equal(byId.get(fresh)?.errorType, "forbidden");
 
     const exportedAt = new Date().toISOString();
     assert.equal(toBigQueryRow(byId.get(legacy)!, exportedAt).error_type, null);
-    assert.equal(toBigQueryRow(byId.get(fresh)!, exportedAt).error_type, "unknown");
+    assert.equal(toBigQueryRow(byId.get(fresh)!, exportedAt).error_type, "forbidden");
   } finally {
     deleteCallLogs([legacy, fresh]);
   }

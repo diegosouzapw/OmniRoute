@@ -1,0 +1,1 @@
+- **fix(call-logs):** unclassified call-log errors now fall back to the HTTP status: bare 403s are stored as `forbidden` and retired-model 410s as `model_not_found` instead of `unknown` ([#16291](https://github.com/diegosouzapw/OmniRoute/pull/16291)) — thanks @maxmad64bis
