@@ -19,6 +19,8 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - name: fast-check random seed (high runs)
         id: prop
         run: FC_SEED=random FC_NUM_RUNS=2000 npm run test:property

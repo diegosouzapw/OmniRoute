@@ -52,6 +52,8 @@ jobs:
           node-version: ${{ env.CI_NODE_VERSION }}
           cache: npm
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - name: Generate catalog export with provenance
         run: node --import tsx/esm scripts/release/radar-export.mjs "$RUNNER_TEMP/export-omniroute.json"
       - name: Publish to the stable release asset

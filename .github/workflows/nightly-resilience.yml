@@ -21,6 +21,8 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - run: npm run test:heap
 
   chaos:
@@ -36,6 +38,8 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - run: npm run test:chaos
 
   k6-soak:
@@ -51,6 +55,8 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - name: Build CLI bundle
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
@@ -121,6 +127,8 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - name: Cache Playwright browsers
         uses: actions/cache@v6.1.0
         with:

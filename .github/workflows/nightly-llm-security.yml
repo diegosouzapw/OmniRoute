@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@v7
         with: { node-version: "24", cache: npm }
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
       - name: Build CLI bundle
         env:
           JWT_SECRET: ci-build-secret-with-sufficient-length-for-validation
@@ -87,6 +89,8 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         with: { node-version: "24", cache: npm }
       - run: npm ci
+        env:
+          ONNXRUNTIME_NODE_INSTALL: "skip"
         if: steps.gate.outputs.run == 'true'
       - name: Build CLI bundle
         if: steps.gate.outputs.run == 'true'
