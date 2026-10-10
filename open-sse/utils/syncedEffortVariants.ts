@@ -55,7 +55,8 @@ interface CatalogModelEntry {
 }
 
 function endsWithKnownEffortToken(id: string): boolean {
-  return CANONICAL_EFFORT_VALUES.some((value) => id.endsWith(`-${value}`));
+  const bare = id.includes("/") ? id.slice(id.lastIndexOf("/") + 1) : id;
+  return [...CANONICAL_EFFORT_VALUES, "ultra"].some((value) => bare.endsWith(`-${value}`));
 }
 
 function extractEffortTiers(model: CatalogModelEntry): string[] {
@@ -74,7 +75,9 @@ function extractEffortTiers(model: CatalogModelEntry): string[] {
  *
  * Rule: a synced model that declares `capabilities.effort_tiers`, is not owned by a
  * provider that already owns its own suffix mechanism, is not a virtual combo entry, and
- * whose id does not already end in a canonical effort token (except exact Codex ids).
+ * whose id does not already end in an effort token. Codex ids are included:
+ * gpt-6.1-sol-ultra is already an effort alias, and appending max to it
+ * produced gpt-6.1-sol-ultra-max in the combo picker.
  */
 export function shouldExposeSyncedEffortVariants(
   model: CatalogModelEntry
@@ -86,7 +89,7 @@ export function shouldExposeSyncedEffortVariants(
   if (typeof model.owned_by === "string" && isSkippedEffortProvider(model.owned_by)) {
     return false;
   }
-  if (model.owned_by !== "codex" && endsWithKnownEffortToken(id)) return false;
+  if (endsWithKnownEffortToken(id)) return false;
   return extractEffortTiers(model).length > 0;
 }
 
