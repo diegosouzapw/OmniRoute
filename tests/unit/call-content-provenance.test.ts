@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getDbInstance, resetDbInstance } from "../../src/lib/db/core.ts";
 import { getCallLogById, saveCallLog } from "../../src/lib/usage/callLogs.ts";
+import { createStructuredSSECollector } from "../../open-sse/utils/streamPayloadCollector.ts";
+import { FORMATS } from "../../open-sse/translator/formats.ts";
 
 test.after(() => {
   resetDbInstance();
@@ -253,6 +255,205 @@ test("2xx Claude blank text block alone is no content", async () => {
   });
   try {
     assert.equal(rowFor(id).has_content, 0);
+  } finally {
+    cleanup([id]);
+  }
+});
+
+test("streamed envelope with text summary counts as content", async () => {
+  const id = "ccp-stream-text";
+  const collector = createStructuredSSECollector({ format: FORMATS.OPENAI });
+  collector.push({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 123,
+    model: "test-model",
+    choices: [{ index: 0, delta: { role: "assistant", content: "Hello " } }],
+  });
+  collector.push({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 123,
+    model: "test-model",
+    choices: [{ index: 0, delta: { content: "world" } }],
+  });
+  const clientResponse = collector.build(collector.getSummary(), { includeEvents: false });
+  await saveCallLog({
+    id,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    clientResponse,
+  });
+  try {
+    assert.equal(rowFor(id).has_content, 1);
+  } finally {
+    cleanup([id]);
+  }
+});
+
+test("streamed envelope with tool call summary counts as content", async () => {
+  const id = "ccp-stream-tool";
+  const collector = createStructuredSSECollector({ format: FORMATS.OPENAI });
+  collector.push({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 123,
+    model: "test-model",
+    choices: [
+      {
+        index: 0,
+        delta: {
+          tool_calls: [
+            { id: "call_1", index: 0, type: "function", function: { name: "f", arguments: "{}" } },
+          ],
+        },
+      },
+    ],
+  });
+  const clientResponse = collector.build(collector.getSummary(), { includeEvents: false });
+  await saveCallLog({
+    id,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    clientResponse,
+  });
+  try {
+    assert.equal(rowFor(id).has_content, 1);
+  } finally {
+    cleanup([id]);
+  }
+});
+
+test("streamed envelope with empty summary counts as no content", async () => {
+  const claudeId = "ccp-stream-empty-claude";
+  const claudeCollector = createStructuredSSECollector({ format: FORMATS.CLAUDE });
+  claudeCollector.push({
+    type: "message_start",
+    message: { id: "msg_1", model: "m", role: "assistant" },
+  });
+  claudeCollector.push({ type: "message_delta", delta: { stop_reason: "end_turn" } });
+  await saveCallLog({
+    id: claudeId,
+    status: 200,
+    tokens: { input_tokens: 10, output_tokens: 5 },
+    clientResponse: claudeCollector.build(claudeCollector.getSummary(), { includeEvents: false }),
+  });
+  try {
+    assert.equal(rowFor(claudeId).has_content, 0);
+  } finally {
+    cleanup([claudeId]);
+  }
+
+  const responsesId = "ccp-stream-empty-responses";
+  await saveCallLog({
+    id: responsesId,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    // Shape of the empty-output fallback the producer builds when no text arrives.
+    clientResponse: {
+      _streamed: true,
+      summary: { object: "response", output: [] },
+    },
+  });
+  try {
+    assert.equal(rowFor(responsesId).has_content, 0);
+  } finally {
+    cleanup([responsesId]);
+  }
+
+  const chatId = "ccp-stream-empty-chat";
+  await saveCallLog({
+    id: chatId,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    // No reducer emits a bare empty choices array; minimal literal for the case.
+    clientResponse: { _streamed: true, summary: { choices: [] } },
+  });
+  try {
+    assert.equal(rowFor(chatId).has_content, 0);
+  } finally {
+    cleanup([chatId]);
+  }
+});
+
+// Stay-green guard: a streamed envelope without a summary stays unmeasured.
+test("streamed envelope without summary stays unmeasured", async () => {
+  const id = "ccp-stream-no-summary";
+  await saveCallLog({
+    id,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    clientResponse: { _streamed: true, _format: "sse-json", _eventCount: 0 },
+  });
+  try {
+    assert.equal(rowFor(id).has_content, null);
+  } finally {
+    cleanup([id]);
+  }
+});
+
+// Stay-green guard: the truncation flag lives on the envelope, next to the summary.
+test("streamed envelope with truncated text summary stays unmeasured", async () => {
+  const id = "ccp-stream-truncated";
+  await saveCallLog({
+    id,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    clientResponse: {
+      _streamed: true,
+      _truncated: true,
+      summary: { choices: [{ message: { content: "kept" } }] },
+    },
+  });
+  try {
+    assert.equal(rowFor(id).has_content, null);
+  } finally {
+    cleanup([id]);
+  }
+});
+
+test("streamed envelope with reasoning-only summary counts as no content", async () => {
+  const id = "ccp-stream-reasoning";
+  const collector = createStructuredSSECollector({ format: FORMATS.OPENAI });
+  collector.push({
+    id: "chatcmpl_1",
+    object: "chat.completion.chunk",
+    created: 123,
+    model: "test-model",
+    choices: [{ index: 0, delta: { reasoning_content: "thinking" } }],
+  });
+  const clientResponse = collector.build(collector.getSummary(), { includeEvents: false });
+  await saveCallLog({
+    id,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    clientResponse,
+  });
+  try {
+    assert.equal(rowFor(id).has_content, 0);
+  } finally {
+    cleanup([id]);
+  }
+});
+
+// Stay-green guard: a summary the reader drops as media-only stays unmeasured.
+test("streamed envelope with media-only summary stays unmeasured", async () => {
+  const id = "ccp-stream-media";
+  await saveCallLog({
+    id,
+    status: 200,
+    tokens: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+    // No reducer emits a media-only chat message; counter-example literal.
+    clientResponse: {
+      _streamed: true,
+      summary: {
+        object: "chat.completion",
+        choices: [{ message: { role: "assistant", image_url: "https://example.com/x.png" } }],
+      },
+    },
+  });
+  try {
+    assert.equal(rowFor(id).has_content, null);
   } finally {
     cleanup([id]);
   }
