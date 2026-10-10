@@ -211,11 +211,9 @@ test("registry: unknown provider → getAgent null, isCloudAgentProvider false",
   assert.equal(registryMod.isCloudAgentProvider("cursor"), false);
 });
 
-test("characterization: isCloudAgentProvider currently matches Object.prototype keys (uses `in`)", () => {
-  // `providerId in AGENTS` walks the prototype chain, so inherited names report true while
-  // getAgent() (property read || null) returns a non-agent function for them.
-  assert.equal(registryMod.isCloudAgentProvider("toString"), true);
-  assert.equal(typeof registryMod.getAgent("toString"), "function");
+test("registry rejects Object.prototype keys in provider checks and lookups", () => {
+  assert.equal(registryMod.isCloudAgentProvider("toString"), false);
+  assert.equal(registryMod.getAgent("toString"), null);
 });
 
 test("julesApi: buildJulesApiUrl normalises the leading slash", () => {
