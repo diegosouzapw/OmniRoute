@@ -5,6 +5,12 @@ import path from "node:path";
 import test from "node:test";
 import ts from "typescript";
 
+import {
+  EXECUTOR_RECOVERY_CONTRACT_DOC,
+  EXECUTOR_RECOVERY_MODES,
+  EXECUTOR_RECOVERY_TAGS,
+} from "../../open-sse/executors/base/recoveryContract.ts";
+
 // This guards explicit ownership, not arbitrary recovery semantics. A declaration
 // and a test path cannot prove that an envelope's inner payload is recovered.
 // That remains the linked behavioral test's job. Legacy identities are only a
@@ -190,16 +196,20 @@ function validTestReference(root: string, reference: string): boolean {
 function contractIssues(overrides: Override[], legacy: Set<string>, root: string): string[] {
   return overrides.flatMap((override) => {
     if (legacy.has(override.identity) || delegatesToBase(override)) return [];
-    const mode = readContractTag(override.member, "executorRecovery");
-    const reason = readContractTag(override.member, "executorRecoveryReason");
-    const reference = readContractTag(override.member, "executorRecoveryTest");
+    const mode = readContractTag(override.member, EXECUTOR_RECOVERY_TAGS.mode);
+    const reason = readContractTag(override.member, EXECUTOR_RECOVERY_TAGS.reason);
+    const reference = readContractTag(override.member, EXECUTOR_RECOVERY_TAGS.test);
     const missing = [];
-    if (mode !== "custom" && mode !== "native") missing.push("one custom/native declaration");
+    if (!(EXECUTOR_RECOVERY_MODES as readonly string[]).includes(mode ?? "")) {
+      missing.push("one custom/native declaration");
+    }
     if (!reason) missing.push("one nonempty recovery reason");
     if (!reference || !validTestReference(root, reference))
       missing.push("one existing test under tests/");
     return missing.length
-      ? [`${override.identity}:${override.line}: requires ${missing.join(", ")}`]
+      ? [
+          `${override.identity}:${override.line}: requires ${missing.join(", ")} (see ${EXECUTOR_RECOVERY_CONTRACT_DOC})`,
+        ]
       : [];
   });
 }
