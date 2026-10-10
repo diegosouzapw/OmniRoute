@@ -750,6 +750,12 @@ jobs:
         run: node --import tsx/esm --test tests/integration/compression-worker-standalone.int.test.ts
         env:
           RUN_STANDALONE_INT: "1"
+      - name: Verify colocated LLMLingua worker
+        # Starts the optional ONNX worker from the standalone artifact and asserts its
+        # dependency closure resolves inside standalone/node_modules (#12796).
+        run: node --import tsx/esm --test tests/integration/llmlingua-worker-standalone.int.test.ts
+        env:
+          RUN_STANDALONE_INT: "1"
       - name: Archive Next.js build for downstream jobs
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
