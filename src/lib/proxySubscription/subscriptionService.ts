@@ -31,7 +31,6 @@ import { reloadAfterReplace } from "./reloadSecret";
 import {
   addProxiesToScopePool,
   bumpProxyRegistryGeneration,
-  deleteProxyById,
   updateProxy,
   upsertProxy,
 } from "../db/proxies";
@@ -43,7 +42,7 @@ import {
   redactCoreEntryForDetail,
 } from "./coreEndpoint";
 import { isProxyReachable } from "../proxyHealth";
-import { removeStaleSubscriptionNodes } from "./staleNodes";
+import { detachOrDeleteSubscriptionRow, removeStaleSubscriptionNodes } from "./staleNodes";
 import { resolveTargetScopes } from "./scopes";
 import { clampSelectorGapSeconds, setAnyControlUrlConfigured } from "./selectorTrigger";
 import { stripSelectorSuffix } from "./selectorEndpoint";
@@ -459,11 +458,11 @@ export async function deleteSubscription(id: string): Promise<boolean> {
     .prepare("SELECT core_config_path FROM proxy_subscriptions WHERE id = ?")
     .get(id) as { core_config_path?: unknown } | undefined;
   const rows = db
-    .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
-    .all(id) as Array<{ id: string }>;
+    .prepare("SELECT id, source FROM proxy_registry WHERE subscription_id = ?")
+    .all(id) as Array<{ id: string; source: string }>;
   for (const r of rows) {
     try {
-      await deleteProxyById(r.id, { force: true });
+      await detachOrDeleteSubscriptionRow(r);
     } catch {
       // ignore individual failures
     }
@@ -1081,7 +1080,7 @@ export async function applySubscription(id: string): Promise<void> {
 export async function unapplySubscription(id: string): Promise<void> {
   const db = getDbInstance();
   const rows = db
-    .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ?")
+    .prepare("SELECT id FROM proxy_registry WHERE subscription_id = ? AND source = 'subscription'")
     .all(id) as Array<{ id: string }>;
 
   // Detach every subscription proxy from ALL scopes in one batched delete.
