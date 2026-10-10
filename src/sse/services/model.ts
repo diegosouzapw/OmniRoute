@@ -182,12 +182,16 @@ function findRegistryModel(providerId: string, modelId: string): any {
  * `modelId` with `effort: null` when nothing matches or the provider already owns its
  * own suffix mechanism.
  */
-function resolveSyncedModelIdAndEffort(
+export function resolveSyncedModelIdAndEffort(
   providerId: string,
   modelId: string,
   syncedModels: unknown
 ): { modelId: string; effort: string | null } {
-  if (providerId === "codex" && findRegistryModel(providerId, modelId)) {
+  if (
+    providerId === "codex" &&
+    findRegistryModel(providerId, modelId) &&
+    findSyncedModelMeta(syncedModels, modelId)
+  ) {
     return { modelId, effort: null };
   }
   if (isSyncedEffortSkippedProvider(providerId) || !Array.isArray(syncedModels)) {
