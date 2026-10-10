@@ -147,6 +147,7 @@ const forwardShim = require("./_internal/forwardTarget.cjs");
 const aliasConfigShim = require("./_internal/aliasConfig.cjs");
 const standaloneRoutingShim = require("./_internal/standaloneRouting.cjs");
 const writeBackpressureShim = require("./_internal/writeBackpressure.cjs");
+const { listenIpv6Loopback } = require("./_internal/loopbackListen.cjs");
 
 // Inspector capture (D4 fallback). The standalone proxy intercepts AgentBridge
 // traffic inline (no MitmHandlerBase / agentBridgeHook), so it posts captured
@@ -909,6 +910,9 @@ async function startMitmServer() {
     writeStats();
     console.log(`🚀 MITM ready on ${MITM_LISTEN_HOST}:${LOCAL_PORT} → ${ROUTER_URL}`);
   });
+  // /etc/hosts also points the target domains at ::1; accept there too, still
+  // loopback-only, so clients that try IPv6 first are not refused.
+  listenIpv6Loopback(server, LOCAL_PORT, (message) => console.warn(message));
 
   server.on("connection", (socket) => {
     // Guard against double-counting: a CONNECT "target" tunnel re-emits an
