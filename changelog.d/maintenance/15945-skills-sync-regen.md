@@ -1,0 +1,1 @@
+- **fix(skills):** regenerate the 20 stale product skills and their endpoint references from the current OpenAPI document and CLI registry (#15945). Preserve curated custom blocks and restore the generated-artifact synchronization check without changing the generator, operational agent skills, or gate policy.

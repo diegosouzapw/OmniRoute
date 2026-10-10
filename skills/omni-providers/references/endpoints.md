@@ -10,6 +10,9 @@
 - [`PATCH /api/providers/{id}`](#patch-apiprovidersid)
 - [`DELETE /api/providers/{id}`](#delete-apiprovidersid)
 - [`POST /api/providers/{id}/test`](#post-apiprovidersidtest)
+- [`GET /api/providers/{id}/test-message`](#get-apiprovidersidtest-message)
+- [`POST /api/providers/{id}/test-message`](#post-apiprovidersidtest-message)
+- [`PUT /api/providers/{id}/test-message`](#put-apiprovidersidtest-message)
 - [`GET /api/providers/{id}/models`](#get-apiprovidersidmodels)
 - [`GET /api/providers/cursor/agent-availability`](#get-apiproviderscursoragent-availability)
 - [`POST /api/providers/test-batch`](#post-apiproviderstest-batch)
@@ -25,6 +28,7 @@
 - [`DELETE /api/provider-nodes/{id}`](#delete-apiprovider-nodesid)
 - [`POST /api/provider-nodes/validate`](#post-apiprovider-nodesvalidate)
 - [`GET /api/provider-models`](#get-apiprovider-models)
+- [`PUT /api/provider-models`](#put-apiprovider-models)
 - [`POST /api/provider-models/validate-and-add`](#post-apiprovider-modelsvalidate-and-add)
 - [`GET /api/providers/{id}/cc-alias`](#get-apiprovidersidcc-alias)
 - [`PUT /api/providers/{id}/cc-alias`](#put-apiprovidersidcc-alias)
@@ -82,7 +86,7 @@
 List provider connections
 
 ```bash
-curl https://localhost:20128/api/providers \
+curl http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -91,7 +95,7 @@ curl https://localhost:20128/api/providers \
 Create provider connection
 
 ```bash
-curl -X POST https://localhost:20128/api/providers \
+curl -X POST http://localhost:20128/api/providers \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -102,7 +106,7 @@ curl -X POST https://localhost:20128/api/providers \
 Get provider connection
 
 ```bash
-curl https://localhost:20128/api/providers/{id} \
+curl http://localhost:20128/api/providers/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -111,7 +115,7 @@ curl https://localhost:20128/api/providers/{id} \
 Update provider connection
 
 ```bash
-curl -X PATCH https://localhost:20128/api/providers/{id} \
+curl -X PATCH http://localhost:20128/api/providers/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -122,7 +126,7 @@ curl -X PATCH https://localhost:20128/api/providers/{id} \
 Delete provider connection
 
 ```bash
-curl -X DELETE https://localhost:20128/api/providers/{id} \
+curl -X DELETE http://localhost:20128/api/providers/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -131,7 +135,44 @@ curl -X DELETE https://localhost:20128/api/providers/{id} \
 Test provider connection
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/test \
+curl -X POST http://localhost:20128/api/providers/{id}/test \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### GET /api/providers/{id}/test-message
+
+Read an account's saved test model and the global test message
+
+Requires management authentication. Returns modelId and prompt without credentials.
+
+```bash
+curl http://localhost:20128/api/providers/{id}/test-message \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### POST /api/providers/{id}/test-message
+
+Send one real test message through the selected account
+
+Requires management authentication. Uses the account's saved model and the global connectionTestPrompt setting (default: What is 1 + 1? Reply with only the number.). The prompt is configurable through PATCH /api/settings and limited to 500 characters. This manual request bypasses the response cache, uses only this connection and never falls back to another account. It consumes quota; usage-window behavior is determined by the provider. Saving settings does not schedule requests.
+
+```bash
+curl -X POST http://localhost:20128/api/providers/{id}/test-message \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### PUT /api/providers/{id}/test-message
+
+Save the chat model used by this account's test-message button
+
+Requires management authentication. Saving never sends an inference request.
+
+```bash
+curl -X PUT http://localhost:20128/api/providers/{id}/test-message \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -142,7 +183,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/test \
 List models for a provider
 
 ```bash
-curl https://localhost:20128/api/providers/{id}/models \
+curl http://localhost:20128/api/providers/{id}/models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -153,7 +194,7 @@ Check cursor-agent availability
 Credential-free, informational check for whether cursor-agent is installed and authenticated on this host — backs the dashboard's dismissible install-nudge banner. Returns only cursorAgentAvailable (boolean); never tokens or machineId.
 
 ```bash
-curl https://localhost:20128/api/providers/cursor/agent-availability \
+curl http://localhost:20128/api/providers/cursor/agent-availability \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -162,7 +203,7 @@ curl https://localhost:20128/api/providers/cursor/agent-availability \
 Test multiple providers at once
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/test-batch \
+curl -X POST http://localhost:20128/api/providers/test-batch \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -175,7 +216,7 @@ Validate provider credentials
 Spawns a fixed ACP summarizer binary to validate credentials — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/validate \
+curl -X POST http://localhost:20128/api/providers/validate \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -186,7 +227,7 @@ curl -X POST https://localhost:20128/api/providers/validate \
 Get client-side provider info
 
 ```bash
-curl https://localhost:20128/api/providers/client \
+curl http://localhost:20128/api/providers/client \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -195,7 +236,7 @@ curl https://localhost:20128/api/providers/client \
 Import an Antigravity CLI (agy) token file as an `agy` connection
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/import \
+curl -X POST http://localhost:20128/api/providers/agy-auth/import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -206,7 +247,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/import \
 Bulk-import multiple Antigravity CLI (agy) token files (up to 50)
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/import-bulk \
+curl -X POST http://localhost:20128/api/providers/agy-auth/import-bulk \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -217,7 +258,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/import-bulk \
 Extract `.json` token files from an uploaded ZIP for agy bulk import
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/zip-extract \
+curl -X POST http://localhost:20128/api/providers/agy-auth/zip-extract \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -228,7 +269,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/zip-extract \
 Auto-detect and import the local Antigravity CLI (agy) login from disk
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/agy-auth/apply-local \
+curl -X POST http://localhost:20128/api/providers/agy-auth/apply-local \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -239,7 +280,7 @@ curl -X POST https://localhost:20128/api/providers/agy-auth/apply-local \
 List provider nodes
 
 ```bash
-curl https://localhost:20128/api/provider-nodes \
+curl http://localhost:20128/api/provider-nodes \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -248,7 +289,7 @@ curl https://localhost:20128/api/provider-nodes \
 Create provider node
 
 ```bash
-curl -X POST https://localhost:20128/api/provider-nodes \
+curl -X POST http://localhost:20128/api/provider-nodes \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -259,7 +300,7 @@ curl -X POST https://localhost:20128/api/provider-nodes \
 Update provider node
 
 ```bash
-curl -X PATCH https://localhost:20128/api/provider-nodes/{id} \
+curl -X PATCH http://localhost:20128/api/provider-nodes/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -270,7 +311,7 @@ curl -X PATCH https://localhost:20128/api/provider-nodes/{id} \
 Delete provider node
 
 ```bash
-curl -X DELETE https://localhost:20128/api/provider-nodes/{id} \
+curl -X DELETE http://localhost:20128/api/provider-nodes/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -279,7 +320,7 @@ curl -X DELETE https://localhost:20128/api/provider-nodes/{id} \
 Validate a provider node
 
 ```bash
-curl -X POST https://localhost:20128/api/provider-nodes/validate \
+curl -X POST http://localhost:20128/api/provider-nodes/validate \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -289,9 +330,24 @@ curl -X POST https://localhost:20128/api/provider-nodes/validate \
 
 List provider models
 
+With a provider query parameter, includes modelOutputOverrides for manual output-token caps, including synced models without a custom-model row.
+
 ```bash
-curl https://localhost:20128/api/provider-models \
+curl http://localhost:20128/api/provider-models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
+```
+
+### PUT /api/provider-models
+
+Update model metadata or per-model overrides
+
+Requires management authentication. maxOutputTokenOverride sets a manual max_output_tokens capability without creating a custom-model row when it is the only change. A null value clears that override. Existing metadata fields remain available on this operation.
+
+```bash
+curl -X PUT http://localhost:20128/api/provider-models \
+  -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
 ```
 
 ### POST /api/provider-models/validate-and-add
@@ -301,7 +357,7 @@ Validate and add a custom chat model on one exact connection
 Always requires management authentication and explicit inference consent. Runs bounded generation, streamed synthetic tool-call and continuation proofs through the chat core; no real tool is executed. Configuration changes, alternate connections, retries and proxy executor fallback fail closed. Only after all proofs pass is a previously absent custom model inserted and read back atomically. Every response is Cache-Control no-store. Requests can incur upstream charges. The validation receipt is informational, not redeemable. Initial strict support is limited to native Base/Default execution for OpenAI and canonical OpenAI-compatible nodes using a single Bearer credential and an exact JSON model field. Specialized executors and other providers are unsupported; session pools, extra-key rotation, HTTP redirects and credential refresh are refused. Active runtime plugins also fail closed; plugin policies are not silently skipped.
 
 ```bash
-curl -X POST https://localhost:20128/api/provider-models/validate-and-add \
+curl -X POST http://localhost:20128/api/provider-models/validate-and-add \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -312,7 +368,7 @@ curl -X POST https://localhost:20128/api/provider-models/validate-and-add \
 GET providers › <id> › cc alias
 
 ```bash
-curl https://localhost:20128/api/providers/{id}/cc-alias \
+curl http://localhost:20128/api/providers/{id}/cc-alias \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -321,7 +377,7 @@ curl https://localhost:20128/api/providers/{id}/cc-alias \
 PUT providers › <id> › cc alias
 
 ```bash
-curl -X PUT https://localhost:20128/api/providers/{id}/cc-alias \
+curl -X PUT http://localhost:20128/api/providers/{id}/cc-alias \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -332,7 +388,7 @@ curl -X PUT https://localhost:20128/api/providers/{id}/cc-alias \
 GET providers › <id> › chatgpt web codex doctor
 
 ```bash
-curl https://localhost:20128/api/providers/{id}/chatgpt-web-codex-doctor \
+curl http://localhost:20128/api/providers/{id}/chatgpt-web-codex-doctor \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -341,7 +397,7 @@ curl https://localhost:20128/api/providers/{id}/chatgpt-web-codex-doctor \
 POST providers › <id> › claude auth › apply local
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/claude-auth/apply-local \
+curl -X POST http://localhost:20128/api/providers/{id}/claude-auth/apply-local \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -352,7 +408,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/claude-auth/apply-local 
 POST providers › <id> › claude auth › export
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/claude-auth/export \
+curl -X POST http://localhost:20128/api/providers/{id}/claude-auth/export \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -363,7 +419,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/claude-auth/export \
 POST providers › <id> › codex auth › apply local
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/codex-auth/apply-local \
+curl -X POST http://localhost:20128/api/providers/{id}/codex-auth/apply-local \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -374,7 +430,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/codex-auth/apply-local \
 POST providers › <id> › codex auth › export
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/codex-auth/export \
+curl -X POST http://localhost:20128/api/providers/{id}/codex-auth/export \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -385,7 +441,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/codex-auth/export \
 GET providers › <id> › interception rules
 
 ```bash
-curl https://localhost:20128/api/providers/{id}/interception-rules \
+curl http://localhost:20128/api/providers/{id}/interception-rules \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -394,7 +450,7 @@ curl https://localhost:20128/api/providers/{id}/interception-rules \
 PUT providers › <id> › interception rules
 
 ```bash
-curl -X PUT https://localhost:20128/api/providers/{id}/interception-rules \
+curl -X PUT http://localhost:20128/api/providers/{id}/interception-rules \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -405,7 +461,7 @@ curl -X PUT https://localhost:20128/api/providers/{id}/interception-rules \
 DELETE providers › <id> › interception rules
 
 ```bash
-curl -X DELETE https://localhost:20128/api/providers/{id}/interception-rules \
+curl -X DELETE http://localhost:20128/api/providers/{id}/interception-rules \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -414,7 +470,7 @@ curl -X DELETE https://localhost:20128/api/providers/{id}/interception-rules \
 POST providers › <id> › login
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/login \
+curl -X POST http://localhost:20128/api/providers/{id}/login \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -425,7 +481,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/login \
 GET providers › <id> › param filters
 
 ```bash
-curl https://localhost:20128/api/providers/{id}/param-filters \
+curl http://localhost:20128/api/providers/{id}/param-filters \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -434,7 +490,7 @@ curl https://localhost:20128/api/providers/{id}/param-filters \
 PUT providers › <id> › param filters
 
 ```bash
-curl -X PUT https://localhost:20128/api/providers/{id}/param-filters \
+curl -X PUT http://localhost:20128/api/providers/{id}/param-filters \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -445,7 +501,7 @@ curl -X PUT https://localhost:20128/api/providers/{id}/param-filters \
 DELETE providers › <id> › param filters
 
 ```bash
-curl -X DELETE https://localhost:20128/api/providers/{id}/param-filters \
+curl -X DELETE http://localhost:20128/api/providers/{id}/param-filters \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -454,7 +510,7 @@ curl -X DELETE https://localhost:20128/api/providers/{id}/param-filters \
 POST providers › <id> › refresh
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/refresh \
+curl -X POST http://localhost:20128/api/providers/{id}/refresh \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -465,7 +521,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/refresh \
 POST providers › <id> › refresh cursor
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/refresh-cursor \
+curl -X POST http://localhost:20128/api/providers/{id}/refresh-cursor \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -476,7 +532,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/refresh-cursor \
 POST providers › <id> › refresh token
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/refresh-token \
+curl -X POST http://localhost:20128/api/providers/{id}/refresh-token \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -487,7 +543,7 @@ curl -X POST https://localhost:20128/api/providers/{id}/refresh-token \
 POST providers › <id> › sync models
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/{id}/sync-models \
+curl -X POST http://localhost:20128/api/providers/{id}/sync-models \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -500,7 +556,7 @@ POST providers › bulk
 Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/bulk \
+curl -X POST http://localhost:20128/api/providers/bulk \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -511,7 +567,7 @@ curl -X POST https://localhost:20128/api/providers/bulk \
 POST providers › bulk web session
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/bulk-web-session \
+curl -X POST http://localhost:20128/api/providers/bulk-web-session \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -522,7 +578,7 @@ curl -X POST https://localhost:20128/api/providers/bulk-web-session \
 POST providers › claude auth › import
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/claude-auth/import \
+curl -X POST http://localhost:20128/api/providers/claude-auth/import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -533,7 +589,7 @@ curl -X POST https://localhost:20128/api/providers/claude-auth/import \
 POST providers › claude auth › import bulk
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/claude-auth/import-bulk \
+curl -X POST http://localhost:20128/api/providers/claude-auth/import-bulk \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -544,7 +600,7 @@ curl -X POST https://localhost:20128/api/providers/claude-auth/import-bulk \
 POST providers › claude auth › zip extract
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/claude-auth/zip-extract \
+curl -X POST http://localhost:20128/api/providers/claude-auth/zip-extract \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -555,7 +611,7 @@ curl -X POST https://localhost:20128/api/providers/claude-auth/zip-extract \
 POST providers › codex auth › import
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/codex-auth/import \
+curl -X POST http://localhost:20128/api/providers/codex-auth/import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -566,7 +622,7 @@ curl -X POST https://localhost:20128/api/providers/codex-auth/import \
 POST providers › codex auth › import bulk
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/codex-auth/import-bulk \
+curl -X POST http://localhost:20128/api/providers/codex-auth/import-bulk \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -577,7 +633,7 @@ curl -X POST https://localhost:20128/api/providers/codex-auth/import-bulk \
 POST providers › codex auth › zip extract
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/codex-auth/zip-extract \
+curl -X POST http://localhost:20128/api/providers/codex-auth/zip-extract \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -588,7 +644,7 @@ curl -X POST https://localhost:20128/api/providers/codex-auth/zip-extract \
 POST providers › command code › auth › apply
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/command-code/auth/apply \
+curl -X POST http://localhost:20128/api/providers/command-code/auth/apply \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -599,7 +655,7 @@ curl -X POST https://localhost:20128/api/providers/command-code/auth/apply \
 POST providers › command code › auth › callback
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/command-code/auth/callback \
+curl -X POST http://localhost:20128/api/providers/command-code/auth/callback \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -610,7 +666,7 @@ curl -X POST https://localhost:20128/api/providers/command-code/auth/callback \
 POST providers › command code › auth › start
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/command-code/auth/start \
+curl -X POST http://localhost:20128/api/providers/command-code/auth/start \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -621,7 +677,7 @@ curl -X POST https://localhost:20128/api/providers/command-code/auth/start \
 GET providers › command code › auth › status
 
 ```bash
-curl https://localhost:20128/api/providers/command-code/auth/status \
+curl http://localhost:20128/api/providers/command-code/auth/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -630,7 +686,7 @@ curl https://localhost:20128/api/providers/command-code/auth/status \
 POST providers › command code › auth › status
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/command-code/auth/status \
+curl -X POST http://localhost:20128/api/providers/command-code/auth/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -641,7 +697,7 @@ curl -X POST https://localhost:20128/api/providers/command-code/auth/status \
 GET providers › expiration
 
 ```bash
-curl https://localhost:20128/api/providers/expiration \
+curl http://localhost:20128/api/providers/expiration \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -650,7 +706,7 @@ curl https://localhost:20128/api/providers/expiration \
 GET providers › free onboarding
 
 ```bash
-curl https://localhost:20128/api/providers/free-onboarding \
+curl http://localhost:20128/api/providers/free-onboarding \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -659,7 +715,7 @@ curl https://localhost:20128/api/providers/free-onboarding \
 POST providers › free onboarding
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/free-onboarding \
+curl -X POST http://localhost:20128/api/providers/free-onboarding \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -670,7 +726,7 @@ curl -X POST https://localhost:20128/api/providers/free-onboarding \
 GET providers › health autopilot
 
 ```bash
-curl https://localhost:20128/api/providers/health-autopilot \
+curl http://localhost:20128/api/providers/health-autopilot \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -679,7 +735,7 @@ curl https://localhost:20128/api/providers/health-autopilot \
 POST providers › health autopilot › actions
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/health-autopilot/actions \
+curl -X POST http://localhost:20128/api/providers/health-autopilot/actions \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -690,7 +746,7 @@ curl -X POST https://localhost:20128/api/providers/health-autopilot/actions \
 GET providers › health matrix
 
 ```bash
-curl https://localhost:20128/api/providers/health-matrix \
+curl http://localhost:20128/api/providers/health-matrix \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -701,7 +757,7 @@ POST providers › import
 Reaches the same spawn as /api/providers/validate (webProvidersB.ts) — loopback-only (Hard Rules #15/#17, audit #15159 S-01).
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/import \
+curl -X POST http://localhost:20128/api/providers/import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -712,7 +768,7 @@ curl -X POST https://localhost:20128/api/providers/import \
 GET providers › openrouter stats
 
 ```bash
-curl https://localhost:20128/api/providers/openrouter-stats \
+curl http://localhost:20128/api/providers/openrouter-stats \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -721,7 +777,7 @@ curl https://localhost:20128/api/providers/openrouter-stats \
 GET providers › quota windows
 
 ```bash
-curl https://localhost:20128/api/providers/quota-windows \
+curl http://localhost:20128/api/providers/quota-windows \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -730,7 +786,7 @@ curl https://localhost:20128/api/providers/quota-windows \
 POST providers › volcengine plan › connect
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect \
+curl -X POST http://localhost:20128/api/providers/volcengine-plan/connect \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -741,7 +797,7 @@ curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect \
 POST providers › volcengine plan › connect › <sessionId> › cancel
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/cancel \
+curl -X POST http://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/cancel \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -752,7 +808,7 @@ curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sess
 POST providers › volcengine plan › connect › <sessionId> › code
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/code \
+curl -X POST http://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/code \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -763,7 +819,7 @@ curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sess
 POST providers › volcengine plan › connect › <sessionId> › identity
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/identity \
+curl -X POST http://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/identity \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -774,7 +830,7 @@ curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sess
 POST providers › volcengine plan › connect › <sessionId> › resend
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/resend \
+curl -X POST http://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/resend \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -785,7 +841,7 @@ curl -X POST https://localhost:20128/api/providers/volcengine-plan/connect/{sess
 GET providers › volcengine plan › connect › <sessionId> › status
 
 ```bash
-curl https://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/status \
+curl http://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/status \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -794,7 +850,7 @@ curl https://localhost:20128/api/providers/volcengine-plan/connect/{sessionId}/s
 GET providers › web session contract
 
 ```bash
-curl https://localhost:20128/api/providers/web-session-contract \
+curl http://localhost:20128/api/providers/web-session-contract \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -803,7 +859,7 @@ curl https://localhost:20128/api/providers/web-session-contract \
 POST providers › zed › discover
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/zed/discover \
+curl -X POST http://localhost:20128/api/providers/zed/discover \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -814,7 +870,7 @@ curl -X POST https://localhost:20128/api/providers/zed/discover \
 POST providers › zed › import
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/zed/import \
+curl -X POST http://localhost:20128/api/providers/zed/import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -825,7 +881,7 @@ curl -X POST https://localhost:20128/api/providers/zed/import \
 POST providers › zed › manual import
 
 ```bash
-curl -X POST https://localhost:20128/api/providers/zed/manual-import \
+curl -X POST http://localhost:20128/api/providers/zed/manual-import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'

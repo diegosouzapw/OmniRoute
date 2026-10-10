@@ -19,7 +19,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 GET webhooks
 
 ```bash
-curl https://localhost:20128/api/webhooks \
+curl http://localhost:20128/api/webhooks \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -28,7 +28,7 @@ curl https://localhost:20128/api/webhooks \
 POST webhooks
 
 ```bash
-curl -X POST https://localhost:20128/api/webhooks \
+curl -X POST http://localhost:20128/api/webhooks \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -39,7 +39,7 @@ curl -X POST https://localhost:20128/api/webhooks \
 GET webhooks › <id>
 
 ```bash
-curl https://localhost:20128/api/webhooks/{id} \
+curl http://localhost:20128/api/webhooks/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -48,7 +48,7 @@ curl https://localhost:20128/api/webhooks/{id} \
 PUT webhooks › <id>
 
 ```bash
-curl -X PUT https://localhost:20128/api/webhooks/{id} \
+curl -X PUT http://localhost:20128/api/webhooks/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -59,7 +59,7 @@ curl -X PUT https://localhost:20128/api/webhooks/{id} \
 DELETE webhooks › <id>
 
 ```bash
-curl -X DELETE https://localhost:20128/api/webhooks/{id} \
+curl -X DELETE http://localhost:20128/api/webhooks/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -68,7 +68,7 @@ curl -X DELETE https://localhost:20128/api/webhooks/{id} \
 GET webhooks › <id> › deliveries
 
 ```bash
-curl https://localhost:20128/api/webhooks/{id}/deliveries \
+curl http://localhost:20128/api/webhooks/{id}/deliveries \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -77,7 +77,7 @@ curl https://localhost:20128/api/webhooks/{id}/deliveries \
 POST webhooks › <id> › test
 
 ```bash
-curl -X POST https://localhost:20128/api/webhooks/{id}/test \
+curl -X POST http://localhost:20128/api/webhooks/{id}/test \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -88,7 +88,7 @@ curl -X POST https://localhost:20128/api/webhooks/{id}/test \
 POST webhooks › validate url
 
 ```bash
-curl -X POST https://localhost:20128/api/webhooks/validate-url \
+curl -X POST http://localhost:20128/api/webhooks/validate-url \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'

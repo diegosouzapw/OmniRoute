@@ -19,7 +19,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 Get RTK compression settings
 
 ```bash
-curl https://localhost:20128/api/context/rtk/config \
+curl http://localhost:20128/api/context/rtk/config \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -28,7 +28,7 @@ curl https://localhost:20128/api/context/rtk/config \
 Update RTK compression settings
 
 ```bash
-curl -X PUT https://localhost:20128/api/context/rtk/config \
+curl -X PUT http://localhost:20128/api/context/rtk/config \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -39,7 +39,7 @@ curl -X PUT https://localhost:20128/api/context/rtk/config \
 List RTK filters and load diagnostics
 
 ```bash
-curl https://localhost:20128/api/context/rtk/filters \
+curl http://localhost:20128/api/context/rtk/filters \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -48,7 +48,7 @@ curl https://localhost:20128/api/context/rtk/filters \
 Validate or install an RTK TOML schema v1 filter file
 
 ```bash
-curl -X POST https://localhost:20128/api/context/rtk/import \
+curl -X POST http://localhost:20128/api/context/rtk/import \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -59,7 +59,7 @@ curl -X POST https://localhost:20128/api/context/rtk/import \
 Run RTK compression preview for text
 
 ```bash
-curl -X POST https://localhost:20128/api/context/rtk/test \
+curl -X POST http://localhost:20128/api/context/rtk/test \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -70,7 +70,7 @@ curl -X POST https://localhost:20128/api/context/rtk/test \
 Read retained redacted RTK raw output
 
 ```bash
-curl https://localhost:20128/api/context/rtk/raw-output/{id} \
+curl http://localhost:20128/api/context/rtk/raw-output/{id} \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -79,7 +79,7 @@ curl https://localhost:20128/api/context/rtk/raw-output/{id} \
 GET context › rtk › discover
 
 ```bash
-curl https://localhost:20128/api/context/rtk/discover \
+curl http://localhost:20128/api/context/rtk/discover \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -88,7 +88,7 @@ curl https://localhost:20128/api/context/rtk/discover \
 GET context › rtk › learn
 
 ```bash
-curl https://localhost:20128/api/context/rtk/learn \
+curl http://localhost:20128/api/context/rtk/learn \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
