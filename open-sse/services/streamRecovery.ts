@@ -920,6 +920,21 @@ export function createRecoverableStream(
         const { done, value } = result;
         if (done) {
           if (holdback.committed) {
+            // Graceful end after commit: the tail below the last "\n\n" boundary was
+            // never scanned, so fold it through the shared parser before judging —
+            // the end of the stream is the last implicit emit.
+            const tail = emittedTail + trackDecoder.decode();
+            emittedTail = "";
+            const tailScan = scanOpenAiSseText(tail);
+            emittedText += tailScan.text;
+            emittedReasoningText += tailScan.reasoningText;
+            if (tailScan.finishReason !== null) emittedFinishReason = tailScan.finishReason;
+            if (tailScan.terminal) emittedTerminal = true;
+            if (tailScan.sawToolCallInFlight) emittedToolCallInFlight = true;
+            if (tailScan.sawToolCall) emittedSawToolCall = true;
+            if (tailScan.finishReason === "tool_calls") emittedToolCallFinish = true;
+            if (tailScan.parsedOpenAi) emittedParsedOpenAi = true;
+            if (tailScan.parsedResponses) emittedParsedResponses = true;
             // Graceful end after commit: try a mid-stream continuation whenever canContinue()
             // says the stream is worth continuing (silent truncation, or a clean-but-empty
             // reasoning-only stop) — canContinue() is the single source of truth here, same as
