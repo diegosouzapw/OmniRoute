@@ -2970,7 +2970,7 @@
       "amp": "Amp సంక్షిప్త వర్క్ఫ్లోలు కావాలనుకున్నప్పటికీ, OmniRoute అలియాస్ మరియు రూటింగ్ నియమాల అమలు అవసరమైనప్పుడు ఉపయోగించండి.",
       "hermes": "త్వరిత పనుల కోసం తేలికపాటి టెర్మినల్-నేటివ్ AI సహాయకుడు అవసరమైనప్పుడు ఉపయోగించండి.",
       "hermes-agent": "మీకు OmniRoute ద్వారా రూట్ చేయబడిన డిఫాల్ట్, డెలిగేషన్, విజన్ మరియు ఆక్సిలరీ మోడళ్లతో Hermes Agent (Nousresearch ద్వారా) అవసరమైనప్పుడు ఉపయోగించండి.",
-      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
+      "whycodes": "WhyCodes ను OmniRoute వైపు నిర్దేశించిన బహుళ ప్రయోజన అటానమస్ CLI ఏజెంట్‌గా (TUI, పేరున్న ఏజెంట్లు, మెమరీ, swarm) కావాలనుకున్నప్పుడు ఉపయోగించండి.",
       "custom": "కస్టమ్ టూల్ అమలులు లేదా సాధారణ OpenAI-అనుకూల కాన్ఫిగరేషన్ల కోసం ఉపయోగించండి."
     },
     "toolDescriptions": {
@@ -3011,7 +3011,7 @@
       "warp": "కస్టమ్ ప్రొవైడర్ సపోర్ట్‌తో Warp AI టెర్మినల్",
       "agent-deck": "Agent Deck మల్టీ-ఏజెంట్ ఆర్కెస్ట్రేటర్",
       "5dive": "5dive — స్వీయ-హోస్టెడ్ కోడింగ్ ఏజెంట్ల సముదాయం; ఒక auth ప్రొఫైల్ అన్నింటినీ OmniRoute వైపు మళ్లిస్తుంది",
-      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
+      "whycodes": "OpenAI-అనుకూల base URL తో WhyCodes అటానమస్ CLI ఏజెంట్"
     },
     "guides": {
       "cursor": {

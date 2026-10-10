@@ -1,8 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import {
   defaultConfigPath,
+  readWhyCodesProviderBaseUrl,
   resolveWhyCodesTarget,
   buildWhyCodesToml,
   buildWhyCodesCliRecipe,
@@ -69,5 +72,30 @@ test("defaultConfigPath follows WhyCodes >= 0.6.5: $WHYCODES_HOME, else ~/.whyco
       if (value === undefined) delete process.env[key];
       else process.env[key] = value;
     }
+  }
+});
+
+test("readWhyCodesProviderBaseUrl reports the omniroute provider that `run whycodes` needs", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-whycodes-read-"));
+  const configPath = path.join(dir, "config.toml");
+  try {
+    assert.equal(await readWhyCodesProviderBaseUrl(configPath), null, "missing file");
+
+    fs.writeFileSync(configPath, '[providers.other]\nname = "other"\n');
+    assert.equal(await readWhyCodesProviderBaseUrl(configPath), null, "no omniroute provider");
+
+    fs.writeFileSync(configPath, "[providers.omniroute\n");
+    assert.equal(await readWhyCodesProviderBaseUrl(configPath), null, "invalid TOML");
+
+    fs.writeFileSync(
+      configPath,
+      '[providers.omniroute]\nname = "omniroute"\nbase_url = "http://vps:20128/v1"\n'
+    );
+    assert.equal(await readWhyCodesProviderBaseUrl(configPath), "http://vps:20128/v1");
+
+    fs.writeFileSync(configPath, '[providers.omniroute]\nname = "omniroute"\n');
+    assert.equal(await readWhyCodesProviderBaseUrl(configPath), "", "provider without base_url");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
 });

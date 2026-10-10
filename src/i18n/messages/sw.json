@@ -2970,7 +2970,7 @@
       "amp": "Tumia unapotaka mitiririko ya kazi ya mkato ya Amp lakini bado unahitaji kuhakikisha matumizi ya lakabu na kanuni za uelekezaji za OmniRoute.",
       "hermes": "Tumia unapohitaji msaidizi mwepesi wa AI unaotegemea terminali kwa kazi za haraka.",
       "hermes-agent": "Tumia unapohitaji Hermes Agent (kutoka Nousresearch) ikiwa na modeli za chaguo-msingi, ugawaji majukumu, uoni na modeli saidizi zilizoelekezwa kupitia OmniRoute.",
-      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
+      "whycodes": "Tumia unapotaka WhyCodes kama wakala wa CLI anayejitegemea wa matumizi mengi (TUI, mawakala wenye majina, kumbukumbu, swarm) aliyeelekezwa kwa OmniRoute.",
       "custom": "Tumia kwa utekelezaji maalum wa zana au usanidi wa jumla unaooana na OpenAI."
     },
     "toolDescriptions": {
@@ -3011,7 +3011,7 @@
       "warp": "Terminal ya Warp AI yenye usaidizi wa mtoa huduma maalum",
       "agent-deck": "Mratibu wa mawakala wengi wa Agent Deck",
       "5dive": "5dive — kundi la mawakala wa uandishi wa msimbo unaojipangisha; wasifu mmoja wa auth huwaelekeza wote kwa OmniRoute",
-      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
+      "whycodes": "Wakala wa CLI anayejitegemea wa WhyCodes mwenye base URL inayooana na OpenAI"
     },
     "guides": {
       "cursor": {

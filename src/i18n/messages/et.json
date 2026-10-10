@@ -2970,7 +2970,7 @@
       "amp": "Kasuta, kui soovid Ampi lühikäskudel põhinevaid töövooge, kuid vajad siiski OmniRoute'i aliaste ja marsruutimisreeglite jõustamist.",
       "hermes": "Kasuta, kui vajad kiirete ülesannete jaoks kerget terminalipõhist AI-assistenti.",
       "hermes-agent": "Kasuta, kui vajad Hermes Agenti (looja: Nousresearch), mille vaike-, delegeerimis-, nägemis- ja abimudelid suunatakse OmniRoute'i kaudu.",
-      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
+      "whycodes": "Kasuta, kui soovid WhyCodesi üldotstarbelise autonoomse CLI-agendina (TUI, nimelised agendid, mälu, swarm), mis on suunatud OmniRoute'ile.",
       "custom": "Kasuta kohandatud tööriistalahenduste või üldiste OpenAI-ga ühilduvate konfiguratsioonide jaoks."
     },
     "toolDescriptions": {
@@ -3011,7 +3011,7 @@
       "warp": "Warp AI-terminal kohandatud teenusepakkuja toega",
       "agent-deck": "Agent Deck mitme agendi orkestreerija",
       "5dive": "5dive — isemajutatud programmeerimisagentide kogum; üks autentimisprofiil suunab nad kõik OmniRoute'i",
-      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
+      "whycodes": "WhyCodes autonoomne CLI-agent OpenAI-ühilduva baas-URL-iga"
     },
     "guides": {
       "cursor": {

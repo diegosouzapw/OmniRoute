@@ -13,7 +13,7 @@
  * never includes the API key value.
  */
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import os from "node:os";
 import { printHeading, printInfo, printSuccess, printError, createPrompt } from "../io.mjs";
@@ -37,6 +37,26 @@ export function defaultConfigPath() {
     String(process.env.USERPROFILE || "").trim() ||
     os.homedir();
   return join(userHome, ".whycodes", "config.toml");
+}
+
+/**
+ * `base_url` of `[providers.omniroute]` in a WhyCodes config.toml, `""` when the
+ * provider exists without one, or `null` when the file or provider is missing.
+ * WhyCodes takes a custom provider's base URL only from config.toml (no env
+ * override), so `omniroute run whycodes` depends on this entry.
+ */
+export async function readWhyCodesProviderBaseUrl(configPath = defaultConfigPath()) {
+  if (!existsSync(configPath)) return null;
+  const { parse } = await import("smol-toml");
+  let config;
+  try {
+    config = parse(readFileSync(configPath, "utf8"));
+  } catch {
+    return null;
+  }
+  const provider = config?.providers?.[PROVIDER_ID];
+  if (!provider || typeof provider !== "object") return null;
+  return String(provider.base_url || provider.api_base || "");
 }
 
 /** Resolve base_url (WITH /v1) + apiKey from flags → active context → localhost. */
@@ -172,7 +192,7 @@ export async function runSetupWhyCodesCommand(opts = {}) {
     printInfo(`[dry-run] → ${configPath}`);
   } else {
     mkdirSync(dirname(configPath), { recursive: true });
-    writeFileSync(configPath, out, "utf8");
+    writeFileSync(configPath, out, { encoding: "utf8", mode: 0o600 });
     printSuccess(`Wrote ${configPath}`);
   }
 

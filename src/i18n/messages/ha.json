@@ -2970,7 +2970,7 @@
       "amp": "Yi amfani da shi lokacin da kake son gajerun hanyoyin aiki na Amp amma har yanzu kana buƙatar tilasta dokokin laƙabi da sarrafa hanya na OmniRoute.",
       "hermes": "Yi amfani da shi lokacin da kake buƙatar mataimakin AI mai sauƙi da ke aiki kai tsaye a tasha don ayyuka masu sauri.",
       "hermes-agent": "Yi amfani da wannan idan kana buƙatar Hermes Agent (na Nousresearch), tare da tura buƙatu zuwa samfuran tsoho, na wakilci, na gani da na taimako ta hanyar OmniRoute.",
-      "whycodes": "Use when you want WhyCodes as a broad-purpose autonomous CLI agent (TUI, named agents, memory, swarm) pointed at OmniRoute.",
+      "whycodes": "Yi amfani da wannan idan kana son WhyCodes a matsayin wakilin CLI mai cin gashin kansa na gaba ɗaya (TUI, wakilai masu suna, ƙwaƙwalwa, swarm) wanda aka nufa zuwa OmniRoute.",
       "custom": "Yi amfani da wannan don aiwatar da kayan aiki na musamman ko saitunan gama-gari masu dacewa da OpenAI."
     },
     "toolDescriptions": {
@@ -3011,7 +3011,7 @@
       "warp": "Terminal na Warp AI tare da goyon bayan mai samarwa na musamman",
       "agent-deck": "Mai tsara ayyukan wakilai da yawa na Agent Deck",
       "5dive": "5dive — rundunar wakilan shirye-shirye da ake ɗaukar nauyinsu da kai; bayanin martabar tantancewa guda ɗaya yana karkatar da su duka zuwa OmniRoute",
-      "whycodes": "WhyCodes autonomous CLI agent with OpenAI-compatible base URL"
+      "whycodes": "Wakilin CLI mai cin gashin kansa na WhyCodes tare da base URL mai dacewa da OpenAI"
     },
     "guides": {
       "cursor": {

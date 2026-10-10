@@ -499,6 +499,7 @@ Controls how OmniRoute discovers and launches CLI sidecars (Claude Code, Codex, 
 | `ZCODE_TURN_TIMEOUT_MS`   | `120000`    | `open-sse/executors/zcode.ts`                       | Maximum duration (ms) of one ZCode turn before the supervisor times it out.                                                                                                    |
 | `ZCODE_POLL_INTERVAL_MS`  | `250`       | `open-sse/executors/zcode.ts`                       | Polling interval (ms) for ZCode turn completion.                                                                                                                              |
 | `HERMES_HOME`             | `~/.hermes` | `src/lib/cli-helper/config-generator/hermesHome.ts` | Hermes Agent home directory where OmniRoute reads/writes the Hermes CLI config. Matches the env var the Hermes PowerShell installer sets on Windows (`%LOCALAPPDATA%\hermes`). |
+| `WHYCODES_HOME` | `~/.whycodes` | `src/lib/cli-helper/config-generator/whycodesHome.ts` | WhyCodes instance root where OmniRoute reads/writes `config.toml`. Same env var WhyCodes reads; defaults to `~/.whycodes` (`%USERPROFILE%\.whycodes` on Windows). |
 
 ### CLI Profile Auto-Sync
 

@@ -107,6 +107,9 @@ test("buildRunPlan for WhyCodes injects -P omniroute and -m without writing conf
   assert.equal(plan.target, "whycodes");
   assert.deepEqual(logicalArgs(plan.args).slice(0, 4), ["-P", "omniroute", "-m", "glm/glm-5.2"]);
   assert.equal(plan.envDiff.changedOrAdded.includes("OMNIROUTE_API_KEY"), true);
+  // WhyCodes reads OMNIROUTE_API_KEY for `-P omniroute`; OPENAI_API_KEY would only feed a
+  // configured `openai` fallback and hand the OmniRoute token to api.openai.com.
+  assert.equal(plan.envDiff.changedOrAdded.includes("OPENAI_API_KEY"), false);
   assert.equal(JSON.stringify(plan).includes("sk_test_x"), false);
 });
 

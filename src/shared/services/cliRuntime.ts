@@ -4,7 +4,6 @@ import os from "os";
 import path from "path";
 import { spawn } from "child_process";
 import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
-import { getWhyCodesConfigPath } from "@/lib/cli-helper/config-generator/whycodesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
 import { GROK_BUILD_RUNTIME_ENTRY, AMP_RUNTIME_ENTRY } from "./cliRuntimeGrokBuild";
@@ -1157,14 +1156,6 @@ export const getCliConfigPaths = (toolId: string) => {
   if (toolId === "5dive") {
     return {
       authProfiles: path.join(getFivediveStateDir(), "auth-profiles"),
-    };
-  }
-
-  // WhyCodes: honour WHYCODES_HOME / ~/.whycodes ($HOME, then USERPROFILE) instead of
-  // joining a relative path under CLI_CONFIG_HOME (#14096).
-  if (toolId === "whycodes") {
-    return {
-      config: getWhyCodesConfigPath(),
     };
   }
 
