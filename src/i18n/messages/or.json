@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "ବିଫଳତା ସଂଖ୍ୟା",
       "retryAfterMs": "ପୁନଃଚେଷ୍ଟା ପୂର୍ବରୁ ଅପେକ୍ଷା (ms)",
-      "lastFailureKind": "ଶେଷ ବିଫଳତାର ପ୍ରକାର"
+      "lastFailureKind": "ଶେଷ ବିଫଳତାର ପ୍ରକାର",
+      "lastClose": "ଶେଷ ବନ୍ଦ"
     },
     "empty": {
       "title": "କୌଣସି କନେକ୍ସନ୍ ନାହିଁ",

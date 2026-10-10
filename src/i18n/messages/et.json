@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Tõrgete arv",
       "retryAfterMs": "Korduskatse pärast (ms)",
-      "lastFailureKind": "Viimase tõrke liik"
+      "lastFailureKind": "Viimase tõrke liik",
+      "lastClose": "Viimane sulgemishind"
     },
     "empty": {
       "title": "Ühendusi pole",

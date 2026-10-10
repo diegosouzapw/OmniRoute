@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Líon na dTeipeanna",
       "retryAfterMs": "Bain triail eile as tar éis (ms)",
-      "lastFailureKind": "Cineál na teipe deireanaí"
+      "lastFailureKind": "Cineál na teipe deireanaí",
+      "lastClose": "Dúnadh Deireanach"
     },
     "empty": {
       "title": "Gan aon cheangail",

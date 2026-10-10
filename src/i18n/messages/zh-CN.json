@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "失败次数",
       "retryAfterMs": "重试间隔(ms)",
-      "lastFailureKind": "最近失败类型"
+      "lastFailureKind": "最近失败类型",
+      "lastClose": "最近收盘"
     },
     "empty": {
       "title": "无连接",

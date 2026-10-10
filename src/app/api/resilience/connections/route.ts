@@ -78,6 +78,19 @@ function toRotationState(
   }));
 }
 
+/** Last close verdict for one connection (read-only derivation; never stored). */
+function toLastClose(
+  breaker: BreakerWithHistory
+): { at: number; from: string; reason: string | null } | null {
+  for (let i = breaker.transitionHistory.length - 1; i >= 0; i--) {
+    const tr = breaker.transitionHistory[i];
+    if (tr.to === "CLOSED" && (tr.from === "OPEN" || tr.from === "HALF_OPEN")) {
+      return { at: tr.timestamp, from: tr.from, reason: tr.reason ?? null };
+    }
+  }
+  return null;
+}
+
 function toConnectionState(
   row: Record<string, unknown>,
   breakersMap: Map<string, BreakerWithHistory>,
@@ -128,6 +141,7 @@ function toConnectionState(
           failureCount: breaker.failureCount,
           retryAfterMs: breaker.retryAfterMs,
           lastFailureKind: breaker.lastFailureKind,
+          lastClose: toLastClose(breaker),
         }
       : null,
     lockouts: lockouts.map((l) => ({

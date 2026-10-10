@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Bilangan Kegagalan",
       "retryAfterMs": "Cuba Semula Selepas (ms)",
-      "lastFailureKind": "Jenis Kegagalan Terakhir"
+      "lastFailureKind": "Jenis Kegagalan Terakhir",
+      "lastClose": "Penutupan Terakhir"
     },
     "empty": {
       "title": "Tiada sambungan",

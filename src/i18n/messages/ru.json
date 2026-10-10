@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Количество Сбоев",
       "retryAfterMs": "Повтор Через (мс)",
-      "lastFailureKind": "Тип Последнего Сбоя"
+      "lastFailureKind": "Тип Последнего Сбоя",
+      "lastClose": "Последнее закрытие"
     },
     "empty": {
       "title": "Нет соединений",

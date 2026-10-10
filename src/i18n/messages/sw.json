@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Idadi ya Kushindwa",
       "retryAfterMs": "Jaribu Tena Baada ya (ms)",
-      "lastFailureKind": "Aina ya Mwisho ya Kushindwa"
+      "lastFailureKind": "Aina ya Mwisho ya Kushindwa",
+      "lastClose": "Mwisho wa Mwisho"
     },
     "empty": {
       "title": "Hakuna muunganisho",

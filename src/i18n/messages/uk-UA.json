@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Кількість Збоїв",
       "retryAfterMs": "Повторити Через (мс)",
-      "lastFailureKind": "Останній Тип Збою"
+      "lastFailureKind": "Останній Тип Збою",
+      "lastClose": "Останнє закриття"
     },
     "empty": {
       "title": "Немає з'єднань",

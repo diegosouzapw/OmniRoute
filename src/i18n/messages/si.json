@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "අසාර්ථක වීම් ගණන",
       "retryAfterMs": "නැවත උත්සාහ කිරීමේ ප්රමාදය (ms)",
-      "lastFailureKind": "අවසන් අසාර්ථකත්ව වර්ගය"
+      "lastFailureKind": "අවසන් අසාර්ථකත්ව වර්ගය",
+      "lastClose": "අවසන් වසාදැමීම"
     },
     "empty": {
       "title": "සම්බන්ධතා නොමැත",

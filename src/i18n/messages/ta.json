@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "தோல்வி எண்ணிக்கை",
       "retryAfterMs": "பின் மீண்டும் முயற்சி (ms)",
-      "lastFailureKind": "கடைசி தோல்வி வகை"
+      "lastFailureKind": "கடைசி தோல்வி வகை",
+      "lastClose": "கடைசி மூடல் விலை"
     },
     "empty": {
       "title": "இணைப்புகள் இல்லை",

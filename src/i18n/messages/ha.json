@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Adadin Gazawa",
       "retryAfterMs": "Sake Gwadawa Bayan (ms)",
-      "lastFailureKind": "Nau'in Gazawar Ƙarshe"
+      "lastFailureKind": "Nau'in Gazawar Ƙarshe",
+      "lastClose": "Rufewa na ƙarshe"
     },
     "empty": {
       "title": "Babu haɗe-haɗe",

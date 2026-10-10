@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Số Lần Thất Bại",
       "retryAfterMs": "Thử Lại Sau (ms)",
-      "lastFailureKind": "Loại Thất Bại Gần Nhất"
+      "lastFailureKind": "Loại Thất Bại Gần Nhất",
+      "lastClose": "Lần đóng gần nhất"
     },
     "empty": {
       "title": "Không có kết nối",

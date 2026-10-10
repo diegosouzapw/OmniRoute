@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Kļūmju skaits",
       "retryAfterMs": "Atkārtot pēc (ms)",
-      "lastFailureKind": "Pēdējās kļūmes veids"
+      "lastFailureKind": "Pēdējās kļūmes veids",
+      "lastClose": "Pēdējais aizvērums"
     },
     "empty": {
       "title": "Nav savienojumu",

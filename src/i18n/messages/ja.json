@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "失敗回数",
       "retryAfterMs": "再試行まで(ms)",
-      "lastFailureKind": "最終失敗種別"
+      "lastFailureKind": "最終失敗種別",
+      "lastClose": "前日終値"
     },
     "empty": {
       "title": "接続なし",

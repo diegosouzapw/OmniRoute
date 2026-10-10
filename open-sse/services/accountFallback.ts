@@ -1268,7 +1268,8 @@ export function recordProviderFailure(
 export function recordProviderSuccess(
   provider: string | null | undefined,
   connectionId?: string | null,
-  opts?: { providerProbeSettled?: boolean }
+  opts?: { providerProbeSettled?: boolean },
+  log?: { info?: (...args: unknown[]) => void }
 ): void {
   if (!provider || provider === "unknown") return;
   provider = resolveProviderId(provider);
@@ -1298,6 +1299,14 @@ export function recordProviderSuccess(
     }
   }
   breaker._onSuccess();
+  if (
+    (breakerState === "OPEN" || breakerState === "HALF_OPEN") &&
+    breaker.getStatus().state === "CLOSED"
+  ) {
+    log?.info?.(
+      `[ProviderSuccess] ${provider}: circuit breaker closed (${breakerState} -> CLOSED)`
+    );
+  }
 }
 
 /**

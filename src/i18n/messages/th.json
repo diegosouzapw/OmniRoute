@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "จำนวนความล้มเหลว",
       "retryAfterMs": "ลองใหม่หลัง (ms)",
-      "lastFailureKind": "ประเภทความล้มเหลวล่าสุด"
+      "lastFailureKind": "ประเภทความล้มเหลวล่าสุด",
+      "lastClose": "ราคาปิดล่าสุด"
     },
     "empty": {
       "title": "ไม่มีการเชื่อมต่อ",

@@ -12,6 +12,13 @@ interface ConnectionDetailProps {
   onClose: () => void;
 }
 
+function formatLastClose(breaker: ConnectionState["breaker"], never: string): string | null {
+  if (!breaker) return null;
+  const lastClose = breaker.lastClose ?? null;
+  if (!lastClose) return never;
+  return `${lastClose.from} (${lastClose.reason ?? never})`;
+}
+
 export default function ConnectionDetail({
   connection,
   receivedAt,
@@ -94,6 +101,9 @@ export default function ConnectionDetail({
           </div>
           <div>
             {t("detail.lastFailureKind")}: {connection.breaker.lastFailureKind ?? t("detail.never")}
+          </div>
+          <div>
+            {t("detail.lastClose")}: {formatLastClose(connection.breaker, t("detail.never"))}
           </div>
         </div>
       ) : (

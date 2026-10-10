@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Bilang ng Kabiguan",
       "retryAfterMs": "Subukan Muli Pagkatapos ng (ms)",
-      "lastFailureKind": "Huling Uri ng Kabiguan"
+      "lastFailureKind": "Huling Uri ng Kabiguan",
+      "lastClose": "Huling Isara"
     },
     "empty": {
       "title": "Walang koneksyon",

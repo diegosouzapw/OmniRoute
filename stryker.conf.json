@@ -602,6 +602,7 @@
       "tests/unit/malformed-translated-no-same-account-retry.test.ts",
       "tests/unit/model-sync-keeps-imported-media-models.test.ts",
       "tests/unit/provider-breaker-connection-success-closes-provider.test.ts",
+      "tests/unit/provider-breaker-close.test.ts",
       "tests/unit/quota-park-skips-server-errors.test.ts",
       "tests/unit/search-success-clears-connection-error.test.ts",
       "tests/unit/secret-compare-constant-time.test.ts",

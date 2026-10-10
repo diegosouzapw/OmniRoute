@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Għadd ta' Fallimenti",
       "retryAfterMs": "Erġa' Pprova Wara (ms)",
-      "lastFailureKind": "Tip tal-Aħħar Falliment"
+      "lastFailureKind": "Tip tal-Aħħar Falliment",
+      "lastClose": "L-aħħar għeluq"
     },
     "empty": {
       "title": "L-ebda konnessjoni",

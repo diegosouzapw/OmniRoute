@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "የውድቀት ብዛት",
       "retryAfterMs": "ከሚከተለው ጊዜ በኋላ ዳግም ይሞክሩ (ms)",
-      "lastFailureKind": "የመጨረሻው ውድቀት ዓይነት"
+      "lastFailureKind": "የመጨረሻው ውድቀት ዓይነት",
+      "lastClose": "የመጨረሻው ዋጋ"
     },
     "empty": {
       "title": "ምንም ግንኙነቶች የሉም",

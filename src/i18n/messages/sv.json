@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Antal Fel",
       "retryAfterMs": "Försök Igen Efter (ms)",
-      "lastFailureKind": "Senaste Feltyp"
+      "lastFailureKind": "Senaste Feltyp",
+      "lastClose": "Senaste Stängning"
     },
     "empty": {
       "title": "Inga anslutningar",

@@ -14232,7 +14232,8 @@
       "never": "-",
       "failureCount": "Iye Ìkùnà",
       "retryAfterMs": "Tún Gbìyànjú Lẹ́yìn (ms)",
-      "lastFailureKind": "Irú Ìkùnà Tó Kẹ́yìn"
+      "lastFailureKind": "Irú Ìkùnà Tó Kẹ́yìn",
+      "lastClose": "Ìparí Àkọ́kọ́"
     },
     "empty": {
       "title": "Kò sí àwọn àsopọ̀",
