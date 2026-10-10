@@ -1,13 +1,18 @@
 /** Examples for the configuration API keep credentials out of URLs and apply dry-run-only. */
-import { resolveOmniRouteBaseUrl } from "@/shared/utils/resolveOmniRouteBaseUrl";
+import { DEFAULT_OMNIROUTE_BASE_URL } from "@/shared/utils/resolveOmniRouteBaseUrl";
 
-export function buildCliConfigurationExample(operation: {
-  path: string;
-  method: string;
-}): string[] | undefined {
+export function buildCliConfigurationExample(
+  operation: {
+    path: string;
+    method: string;
+  },
+  // Callers pass the base URL explicitly so generated output is a pure function of
+  // its inputs. Reading process.env here made committed SKILL.md files depend on the
+  // machine that generated them — see apiOperationExample.ts for the full rationale.
+  baseUrl: string = DEFAULT_OMNIROUTE_BASE_URL
+): string[] | undefined {
   const { path, method } = operation;
   if (path !== "/api/cli-tools/config" && path !== "/api/cli-tools/apply") return;
-  const baseUrl = resolveOmniRouteBaseUrl();
   if (method === "GET" && path === "/api/cli-tools/config") {
     return [
       `curl ${baseUrl}${path} \\`,
