@@ -292,8 +292,49 @@ sentence _"OpenCode's free tier can only be used from within OpenCode"_. This is
 request-scoped refusal (same verdict on every account for the same request shape), not a
 model ban or connection cooldown — OmniRoute classifies it as `project_route_error`, skips
 model lockout / cooldown, and (on the synthetic `noauth` path) pauses auto-combo re-selection
-for a short TTL. Ship requests that carry a non-empty tool list, `stream: true`, and the
+for a short TTL. Ship requests that carry the required tool list, `stream: true`, and the
 OpenCode session/UA headers (`opencodeFreeTierContract.ts`) or expect the 403.
+
+### The tools list is a fingerprint, not just a non-empty array (measured 2026-10-02 / 2026-10-03)
+
+The upstream does not merely require `tools` to be non-empty: it inspects tool names and casing.
+Measured live against `https://opencode.ai/zen/v1` on `big-pickle` over `/chat/completions` and
+`muse-spark-1.3-contributor-free` over `/responses`, and independently verified across 121 direct
+records on 9 gated free models by `@espokaos-ops` (#15322):
+
+| Request tools                                     | Result              | Coverage (models) |
+| ------------------------------------------------- | ------------------- | ----------------- |
+| none / empty array                                | 403 `FreeTierError` | 9 / 9             |
+| a single placeholder (`_noop`)                    | 403 `FreeTierError` | 9 / 9             |
+| one client tool only (e.g. 24-tool client list)   | 403 `FreeTierError` | 9 / 9             |
+| `Bash + Read` (wrong case / capitalised)          | 403 `FreeTierError` | 9 / 9             |
+| `bash` alone / `read` alone                       | 403 `FreeTierError` | 4 / 9             |
+| `bash + glob` (incomplete)                        | 403 `FreeTierError` | 3 / 9             |
+| `bash` + `read` (measured minimal pair)           | **200**             | 9 / 9             |
+| `bash` + `glob` + `grep` + `read` (quartet)       | **200**             | 9 / 9             |
+| the six standard OpenCode names (`+ edit, write`) | **200**             | 9 / 9             |
+
+**Quartet as a conservative safety margin**:
+While `bash + read` is the smallest set measured to pass across all 9 gated models, OmniRoute
+declares the lowercase quartet **`bash`, `glob`, `grep`, `read`** as a deliberate safety margin
+closer to the real OpenCode client's toolset. (9router originally introduced `bash + read` in
+commit `93837af09` and bumped it to the quartet in `822aa958d` without a documented rationale;
+keeping the quartet prevents regressions if the upstream check tightens from checking `bash+read`
+to verifying the full file-search quartet).
+
+**Empirical boundaries & caveats**:
+
+- **Empirical minimum**: `bash + read` is the smallest passing combination measured under these conditions, not an official published specification from Anomaly Innovations.
+- **Payload captures**: The 200 records confirm HTTP status and assembled text (not raw SSE frames).
+- **Egress isolation**: Egress IP was held constant during the probe runs (#15152 tracks proxy pool behavior).
+- **Model exception**: `space-bunny-free` does not show this gate (returns 200 even with no tools).
+
+Order is irrelevant, and extra tools alongside the quartet are accepted. A client that
+spells a member differently (`Bash` from Claude Code) must be **renamed, not duplicated** —
+sending both spellings passes only because the canonical one is present, so OmniRoute
+canonicalises the quartet on the way out and restores the caller's own spelling in the
+response (`open-sse/utils/opencodeFingerprint.ts`). The `Authorization` header is not part
+of the contract (the CLI identity headers alone pass); the `x-opencode-session` header is.
 
 ## What changed since the shipped catalog (`freeNote`)
 

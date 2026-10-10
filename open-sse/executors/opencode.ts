@@ -64,6 +64,7 @@ import {
   noteFreeTierOutcome,
   prepareFreeTierRequest,
   rebuildJsonFromForcedStream,
+  restoreFingerprintNames,
   surfaceFromBaseUrl,
 } from "./opencodeFreeTierContract.ts";
 import {
@@ -369,7 +370,7 @@ export class OpencodeExecutor extends BaseExecutor {
     result: ExecutorExecuteResult
   ): ExecutorExecuteResult {
     this.noteForcedStreamOutcome(input, result);
-    if (input.stream) return result;
+    if (input.stream) return restoreFingerprintNames(input.body, result);
     if (!(result instanceof Response)) {
       if (!("response" in result) || !result.response) return result;
     }
@@ -378,10 +379,11 @@ export class OpencodeExecutor extends BaseExecutor {
     if (!model) return result;
     if (result instanceof Response) {
       const rebuilt = rebuildJsonFromForcedStream(result, this._requestFormat, model);
-      return rebuilt === result ? result : rebuilt;
+      return restoreFingerprintNames(input.body, rebuilt === result ? result : rebuilt);
     }
     const rebuilt = rebuildJsonFromForcedStream(result.response, this._requestFormat, model);
-    return rebuilt === result.response ? result : { ...result, response: rebuilt };
+    const out = rebuilt === result.response ? result : { ...result, response: rebuilt };
+    return restoreFingerprintNames(input.body, out);
   }
 
   /**
@@ -1055,7 +1057,8 @@ export class OpencodeExecutor extends BaseExecutor {
                     this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
                   }
                   noteReplayed();
-                  return this.normalizeMuseSparkResponse(input, p);
+                  const out = this.normalizeMuseSparkResponse(input, p);
+                  return restoreFingerprintNames(input.body, out);
                 }
                 if (p) {
                   discardResponseBody(abandonedResponse);
@@ -1063,7 +1066,8 @@ export class OpencodeExecutor extends BaseExecutor {
                     this.logSkippedCooldownAccounts(log, cid, skippedCooldown);
                   }
                   noteStoredFallback();
-                  return this.normalizeMuseSparkResponse(input, result);
+                  const out = this.normalizeMuseSparkResponse(input, result);
+                  return restoreFingerprintNames(input.body, out);
                 }
               }
             }

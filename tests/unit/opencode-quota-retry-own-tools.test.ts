@@ -138,7 +138,10 @@ for (const status of [403, 451]) {
       );
       assert.equal(response.status, 200);
       assert.equal(bodies.length, 2);
-      assert.deepEqual(toolNamesOf(bodies[0]), ["read", "bash"]);
+      // The free-tier contract always declares the complete lowercase quartet, so the
+      // caller's own `read` is joined by the three missing members — the configured
+      // placeholder (`bash`) is an extra appended on top, never a replacement (#15322).
+      assert.deepEqual(toolNamesOf(bodies[0]), ["read", "bash", "glob", "grep"]);
       assert.ok(toolNamesOf(bodies[1]).includes("read"));
       assert.ok(toolNamesOf(bodies[1]).includes("edit"));
       await response.body?.cancel();

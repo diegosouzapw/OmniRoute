@@ -38,6 +38,15 @@ import {
   rememberAttempt,
   shapeKeyOf,
 } from "./opencodeRequestShape.ts";
+import {
+  OPENCODE_FINGERPRINT_TOOLS,
+  concealFingerprintToolNames,
+  fingerprintPlaceholderTool,
+  recordRenamedToolNames,
+  renamedToolNamesFor,
+  restoreFingerprintToolNames,
+  retargetToolChoice,
+} from "../utils/opencodeFingerprint.ts";
 
 /**
  * What one gated request declared, kept until its outcome is known.
@@ -165,9 +174,16 @@ export function requiresFreeTierRequestContract(
   return isGatedFreeTierRequest(surface, provider, model) && isBodyContractEnabled();
 }
 
-/** The placeholder tool name the official client uses for the same purpose. */
-const PLACEHOLDER_TOOL_NAME = "_noop";
-export const DEFAULT_PLACEHOLDER_TOOL_NAME = PLACEHOLDER_TOOL_NAME;
+/**
+ * The tool names a gated request declares when the caller sent none.
+ *
+ * The upstream requires the lowercase file-search quartet (`bash`, `glob`, `grep`, `read`),
+ * all four present — see `../utils/opencodeFingerprint.ts` for the 2026-10-02 probe matrix.
+ * The previous single `_noop` placeholder is refused with the same 403 FreeTierError as an
+ * empty tool list, which is what this default replaces.
+ */
+const PLACEHOLDER_TOOL_NAMES: readonly string[] = OPENCODE_FINGERPRINT_TOOLS;
+export const DEFAULT_PLACEHOLDER_TOOL_NAME = PLACEHOLDER_TOOL_NAMES[0];
 
 /**
  * Operator-supplied placeholder tool names, comma-separated.
@@ -215,45 +231,50 @@ const PLACEHOLDER_TOOL_PARAMETERS = { type: "object", properties: {} } as const;
 export function applyFreeTierRequestContract<T>(
   body: T,
   requestFormat: string | null,
-  placeholderNames: readonly string[] = [PLACEHOLDER_TOOL_NAME]
+  placeholderNames: readonly string[] = PLACEHOLDER_TOOL_NAMES
 ): T {
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   const record = body as Record<string, unknown>;
   const next: Record<string, unknown> = { ...record, stream: true };
 
+  // Canonicalise the quartet's spelling before deciding what is missing: a client that
+  // declares `Bash` is refused on its own (measured 2026-10-02), and appending a lowercase
+  // `bash` next to it would declare the same tool twice. Renaming in place keeps the
+  // caller's schema and description, and the rename map lets the response pass hand the
+  // caller its own spelling back.
+  const { tools: concealed, map: renamed } = concealFingerprintToolNames(next.tools);
+  if (next.tools !== concealed) next.tools = concealed;
+  if (renamed.size > 0) {
+    recordRenamedToolNames(next, renamed);
+    // A caller that named a member of the quartet in `tool_choice` must have its choice
+    // follow the rename, or the request names a tool it no longer declares.
+    retargetToolChoice(next, renamed);
+  }
+
   const existingNames = new Set(clientToolNamesOf(next));
-  const baseNames = placeholderNames.length > 0 ? placeholderNames : [PLACEHOLDER_TOOL_NAME];
+  // The quartet is the gate itself, so it is always ensured; observed or operator-supplied
+  // names are ADDITIVE extras on top of it, never a replacement. Letting a borrowed set
+  // displace the quartet is what produced the 403 this change fixes: extra names are
+  // accepted alongside the quartet (measured 2026-10-02), an incomplete set is not.
+  const baseNames: string[] = [...OPENCODE_FINGERPRINT_TOOLS];
+  for (const name of placeholderNames.length > 0 ? placeholderNames : PLACEHOLDER_TOOL_NAMES) {
+    if (!baseNames.includes(name)) baseNames.push(name);
+  }
   const namesToAdd = baseNames.filter((name) => !existingNames.has(name));
 
   if (namesToAdd.length === 0) return next as T;
 
-  const existingTools = Array.isArray(next.tools) ? [...next.tools] : [];
+  const existingTools = Array.isArray(next.tools) ? next.tools : [];
+  const inject = (name: string, flat: boolean): Record<string, unknown> =>
+    fingerprintPlaceholderTool(name, flat);
 
   if (requestFormat === "openai-responses") {
-    next.tools = [
-      ...existingTools,
-      ...namesToAdd.map((name) => ({
-        type: "function",
-        name,
-        description: PLACEHOLDER_TOOL_DESCRIPTION,
-        parameters: PLACEHOLDER_TOOL_PARAMETERS,
-      })),
-    ];
+    next.tools = [...existingTools, ...namesToAdd.map((name) => inject(name, true))];
     return next as T;
   }
 
   if (requestFormat === "openai" || requestFormat === null) {
-    next.tools = [
-      ...existingTools,
-      ...namesToAdd.map((name) => ({
-        type: "function",
-        function: {
-          name,
-          description: PLACEHOLDER_TOOL_DESCRIPTION,
-          parameters: PLACEHOLDER_TOOL_PARAMETERS,
-        },
-      })),
-    ];
+    next.tools = [...existingTools, ...namesToAdd.map((name) => inject(name, false))];
     return next as T;
   }
 
@@ -289,15 +310,21 @@ export function mergeClientToolsWithObserved<T>(
   if (!body || typeof body !== "object" || Array.isArray(body)) return body;
   const record = body as Record<string, unknown>;
   if (!Array.isArray(record.tools) || record.tools.length === 0) return body;
+  // Same canonicalisation as the first dispatch: the retry rebuilds `tools` from the raw
+  // client body, so without this a `Bash`-spelled quartet would come back unrenamed and the
+  // retry would re-send the exact shape the upstream just refused.
+  const { tools: concealed, map: renamed } = concealFingerprintToolNames(record.tools);
+  const clientTools = Array.isArray(concealed) ? concealed : record.tools;
+  if (renamed.size > 0) recordRenamedToolNames(body, renamed);
   const own = session ? getObservedToolNames(provider, model, session) : null;
   const observed = own ?? getObservedToolNames(provider, model) ?? configured;
-  const have = new Set(clientToolNamesOf(body));
+  const have = new Set(clientToolNamesOf({ ...record, tools: clientTools }));
   const missing = observed.filter((name) => !have.has(name));
-  if (missing.length === 0) return body;
-  const next: Record<string, unknown> = { ...(record as Record<string, unknown>) };
+  if (missing.length === 0 && clientTools === record.tools) return body;
+  const next: Record<string, unknown> = { ...record, tools: clientTools };
   if (requestFormat === "openai-responses") {
     next.tools = [
-      ...(record.tools as unknown[]),
+      ...(clientTools as unknown[]),
       ...missing.map((name) => ({
         type: "function",
         name,
@@ -309,7 +336,7 @@ export function mergeClientToolsWithObserved<T>(
   }
   if (requestFormat === "openai" || requestFormat === null) {
     next.tools = [
-      ...(record.tools as unknown[]),
+      ...(clientTools as unknown[]),
       ...missing.map((name) => ({
         type: "function",
         function: {
@@ -381,6 +408,13 @@ export function prepareFreeTierRequest<T>(
   const chosen = plan.shape;
   const names = resolvePlaceholderNames(provider, model, session, configuredPlaceholderToolNames());
   const borrowed = clientToolNames.length === 0 && names.length > 0 && chosen === "tools";
+  // Recorded on `origin` (the caller's own body) rather than on the rewritten body: the
+  // executor retrieves it from the body it holds when wrapping the response.
+  const rememberRenames = (prepared: unknown): void => {
+    if (!isTrackable(origin)) return;
+    const renames = renamedToolNamesFor(prepared);
+    if (renames && renames.size > 0) recordRenamedToolNames(origin, renames);
+  };
   const attempt: FreeTierContractAttempt = {
     provider,
     model,
@@ -398,13 +432,38 @@ export function prepareFreeTierRequest<T>(
       replayNote: (verdict) => noteFreeTierOutcome({ ...attempt, probe: false }, verdict),
     });
   }
-  return {
-    body:
-      chosen === "bare"
-        ? withStreaming(body)
-        : applyFreeTierRequestContract(body, requestFormat, names),
-    attempt,
-  };
+  const preparedBody =
+    chosen === "bare"
+      ? withStreaming(body)
+      : applyFreeTierRequestContract(body, requestFormat, names);
+  rememberRenames(preparedBody);
+  return { body: preparedBody, attempt };
+}
+
+/**
+ * The rename map recorded for a request body, so the response pass can restore the
+ * caller's own tool spellings. Exported for the executor.
+ */
+export function fingerprintRenamesFor(body: unknown): ReadonlyMap<string, string> | null {
+  return renamedToolNamesFor(body);
+}
+
+/**
+ * Hand the caller its own tool spellings back after the free-tier quartet was canonicalised
+ * on the way out (e.g. Claude Code's `Bash`), or the client would not recognise the tool_use
+ * name in the response it gets. Takes a bare `Response` or an `{ response }` result; anything
+ * else, and any request whose tools carried no renamed quartet member, passes through with
+ * its identity intact. A free function (not part of `finalizeForcedStream`) so the park/replay
+ * arms, which must not charge the free-tier outcome twice, can restore the names too.
+ */
+export function restoreFingerprintNames<T>(body: unknown, result: T): T {
+  const renameMap = renamedToolNamesFor(body);
+  if (!renameMap) return result;
+  if (result instanceof Response) return restoreFingerprintToolNames(result, renameMap) as T;
+  const response = (result as { response?: unknown } | null)?.response;
+  if (!(response instanceof Response)) return result;
+  const restored = restoreFingerprintToolNames(response, renameMap);
+  return restored === response ? result : ({ ...result, response: restored } as T);
 }
 
 function withStreaming<T>(body: T): T {

@@ -505,7 +505,12 @@ test("without an origin, preparing a request behaves exactly as before", () => {
   const { attempt, body: out } = prepareFreeTierRequest(body, null, "zen", "opencode", MODEL);
   assert.ok(attempt);
   assert.equal(attempt.probe, false, "no replay can happen without an origin to key it on");
-  assert.equal(((out as Body).tools as unknown[]).length, 1);
+  const prepared = out as Body;
+  assert.deepEqual(
+    (prepared.tools as Array<{ function?: { name: string } }>).map((t) => t.function?.name),
+    ["bash", "glob", "grep", "read"],
+    "the required fingerprint quartet is declared"
+  );
   noteFreeTierOutcome(attempt, false);
 });
 
