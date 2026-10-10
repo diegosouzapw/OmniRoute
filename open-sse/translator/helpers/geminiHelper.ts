@@ -27,6 +27,12 @@ export const GEMINI_UNSUPPORTED_SCHEMA_KEYS = new Set([
   // function_declarations schema doesn't recognize it and 400s the same way
   // ("Unknown name \"encrypted\" ... Cannot find field").
   "encrypted",
+  // decolua/9router#4283: ajv-errors `errorMessage` keyword emitted by some tool
+  // generators — "Unknown name \"errorMessage\" ... Cannot find field".
+  "errorMessage",
+  // decolua/9router#4169: Anthropic prompt-caching annotation leaking into tool
+  // schemas — "Unknown name \"cache_control\" ... Cannot find field".
+  "cache_control",
   // NOTE: `pattern` is intentionally NOT in this set. Antigravity (Gemini-derived
   // surface) accepts `pattern` on string constraints, and glob/grep/file-search
   // tools depend on it to express their argument regex. Removing it produced
@@ -449,6 +455,19 @@ function promoteBooleanRequired(record: JsonRecord): void {
   }
 }
 
+// decolua/9router#4169: some MCP/client schemas use shorthand property entries
+// (`properties: { metadata: "object" }`). Gemini's proto requires every entry to
+// be a schema object ("Expected '{'"), so expand a bare type string to `{ type }`.
+// Unknown spellings are fixed later by sanitizeProtobufTypes (Phase 2b).
+function expandShorthandProperties(record: JsonRecord): void {
+  const properties = record.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return;
+  const map = properties as JsonRecord;
+  for (const [name, value] of Object.entries(map)) {
+    if (typeof value === "string") map[name] = { type: value };
+  }
+}
+
 // Pre-pass for Cloud Code (#12269): boolean `required` on a property and nested
 // bare property maps both survive the later phases and 400 Gemini's proto.
 // Mirrors CLIProxyAPI normalizeMalformedSchemaObjects.
@@ -472,6 +491,8 @@ function normalizeMalformedSchemaObjects(obj: unknown, parentKey?: string): void
       record.type = "object";
       record.properties = props;
     }
+    // Only on schema nodes: a schema map's own `properties` key is a property name.
+    expandShorthandProperties(record);
   }
 
   promoteBooleanRequired(record);
