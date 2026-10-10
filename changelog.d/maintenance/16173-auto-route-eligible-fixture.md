@@ -1,0 +1,1 @@
+- **test(combos):** Give positive default Auto Combo route fixtures an eligible official API account while preserving family fixtures, empty-pool checks and shipped ToS protections ([#16173](https://github.com/diegosouzapw/OmniRoute/pull/16173)).
