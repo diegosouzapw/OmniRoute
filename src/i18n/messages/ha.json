@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Ana nuna layuka {shown} daga cikin {total} masu dacewa (50 na farko)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Wurin aika daidaitawar gajimare (ba na madadin cikin na’ura ba):",
+    "cloudUploadWarning": "Ana kashe daidaitawar gajimare ta tsohuwa a sabbin shigarwa. Kunna ta yana loda maɓallan API na masu samarwa, token na shiga da sabuntawa na OAuth, maɓallan API na OmniRoute da saituna zuwa wurin da ke sama, yanzu da yayin daidaitawa a nan gaba. Wannan ya bambanta da madadin cikin na’ura a sashen Ma’ajiyar Bayanai. Kunna ta kawai idan kun amince da wannan uwar garken.",
+    "cloudUploadConsent": "Na fahimta kuma na ba da izinin loda bayanan shaidar shiga na zuwa wannan wurin.",
     "title": "Mahadar API",
     "subtitle": "Yi amfani da mahadar da ta dace da OpenAI tare da yawancin SDKs da kayan aiki.",
     "testEndpoint": "Gwada mahadar →",

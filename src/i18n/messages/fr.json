@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Affichage de {shown} lignes correspondantes sur {total} (50 premières)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Destination de la synchronisation dans le cloud (pas des sauvegardes locales) :",
+    "cloudUploadWarning": "La synchronisation dans le cloud est désactivée par défaut sur les nouvelles installations. Son activation envoie les clés API des fournisseurs, les jetons d’accès et de renouvellement OAuth, les clés API OmniRoute et la configuration à la destination ci-dessus, maintenant et lors des synchronisations futures. Cette fonction est distincte des sauvegardes locales de Stockage. Activez-la uniquement si vous faites confiance à ce serveur.",
+    "cloudUploadConsent": "Je comprends et j’autorise l’envoi de mes identifiants à cette destination.",
     "title": "Point de terminaison de l'API",
     "subtitle": "Utilisez le point de terminaison compatible avec OpenAI dans la plupart des SDK et outils.",
     "testEndpoint": "Tester le point de terminaison →",

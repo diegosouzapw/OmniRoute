@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Visar {shown} av {total} matchande rader (topp 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Mål för molnsynkronisering (inte lokala säkerhetskopior):",
+    "cloudUploadWarning": "Molnsynkronisering är avstängd som standard vid nya installationer. Om du aktiverar den laddas leverantörernas API-nycklar, OAuth-åtkomst- och uppdateringstoken, OmniRoute API-nycklar och konfigurationen upp till målet ovan, nu och vid framtida synkroniseringar. Detta är skilt från lokala säkerhetskopior under Förvaring. Aktivera det bara om du litar på den servern.",
+    "cloudUploadConsent": "Jag förstår detta och tillåter att mina inloggningsuppgifter laddas upp till detta mål.",
     "title": "API-slutpunkt",
     "subtitle": "Använd den OpenAI-kompatibla slutpunkten med de flesta SDK:er och verktyg.",
     "testEndpoint": "Testa slutpunkten →",

@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Memaparkan {shown} daripada {total} baris yang sepadan (50 teratas)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Destinasi penyegerakan awan (bukan sandaran setempat):",
+    "cloudUploadWarning": "Penyegerakan awan dilumpuhkan secara lalai pada pemasangan baharu. Mengaktifkannya akan memuat naik kunci API penyedia, token akses dan penyegaran OAuth, kunci API OmniRoute serta konfigurasi ke destinasi di atas, sekarang dan semasa penyegerakan akan datang. Fungsi ini berasingan daripada sandaran setempat dalam bahagian Penyimpanan. Aktifkannya hanya jika anda mempercayai pelayan tersebut.",
+    "cloudUploadConsent": "Saya memahami dan membenarkan kelayakan akses saya dimuat naik ke destinasi ini.",
     "title": "Titik Akhir API",
     "subtitle": "Gunakan titik akhir yang serasi dengan OpenAI bersama kebanyakan SDK dan alat.",
     "testEndpoint": "Uji titik akhir →",

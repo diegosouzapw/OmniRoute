@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Na-egosi ahịrị {shown} n'ime {total} dabara (50 kachasị elu)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Ebe a na-eziga mmekọrịta igwe ojii (ọ bụghị nkwado ndabere mpaghara):",
+    "cloudUploadWarning": "A na-agbanyụ mmekọrịta igwe ojii na ndabara na ntinye ọhụrụ. Ịgbanye ya na-ebugo igodo API ndị na-eweta ọrụ, token nnweta na mmegharị OAuth, igodo API OmniRoute na nhazi gaa ebe e gosiri n’elu, ugbu a na n’oge mmekọrịta ndị na-abịa. Nke a dị iche na nkwado ndabere mpaghara dị na ngalaba Nchekwa. Gbanye ya naanị ma ọ bụrụ na ị tụkwasịrị sava ahụ obi.",
+    "cloudUploadConsent": "Aghọtara m nke a ma kwe ka e bulite ozi njirimara nbanye m gaa ebe a.",
     "title": "Ebe njedebe API",
     "subtitle": "Jiri ebe njedebe kwekọrọ na OpenAI mee ihe na ọtụtụ n'ime SDK na ngwaọrụ.",
     "testEndpoint": "Nwalee ebe njedebe →",

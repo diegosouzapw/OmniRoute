@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Inaonyesha {shown} kati ya safu mlalo {total} zinazolingana (50 bora)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Mahali pa kutuma usawazishaji wa wingu (si nakala rudufu za ndani):",
+    "cloudUploadWarning": "Usawazishaji wa wingu umezimwa kwa chaguo-msingi katika usakinishaji mpya. Ukiuwasha, funguo za API za watoa huduma, tokeni za ufikiaji na kuonyesha upya za OAuth, funguo za API za OmniRoute na usanidi hupakiwa kwenye mahali palipoonyeshwa hapo juu, sasa na wakati wa usawazishaji wa baadaye. Hii ni tofauti na nakala rudufu za ndani katika sehemu ya Hifadhi. Washa tu ikiwa unaamini seva hiyo.",
+    "cloudUploadConsent": "Ninaelewa na kuruhusu taarifa zangu za uthibitishaji kupakiwa kwenye mahali hapa.",
     "title": "Endpoint ya API",
     "subtitle": "Tumia endpoint inayooana na OpenAI pamoja na SDK na zana nyingi.",
     "testEndpoint": "Jaribu endpoint →",

@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Qed jintwerew {shown} minn {total} ringieli li jaqblu (l-ewwel 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Destinazzjoni tas-sinkronizzazzjoni mal-cloud (mhux tal-kopji lokali ta’ riżerva):",
+    "cloudUploadWarning": "Is-sinkronizzazzjoni mal-cloud tkun diżattivata awtomatikament f’installazzjonijiet ġodda. Meta tattivaha, iċ-ċwievet API tal-fornituri, it-tokens ta’ aċċess u tiġdid ta’ OAuth, iċ-ċwievet API ta’ OmniRoute u l-konfigurazzjoni jittellgħu fid-destinazzjoni ta’ hawn fuq, issa u waqt sinkronizzazzjonijiet futuri. Din il-funzjoni hija separata mill-kopji lokali ta’ riżerva fit-taqsima Ħażna. Attivaha biss jekk tafda dak is-server.",
+    "cloudUploadConsent": "Nifhem u nawtorizza li l-kredenzjali tiegħi jittellgħu f’din id-destinazzjoni.",
     "title": "Endpoint tal-API",
     "subtitle": "Uża l-endpoint kompatibbli ma’ OpenAI mal-biċċa l-kbira tal-SDKs u l-għodod.",
     "testEndpoint": "Ittestja l-endpoint →",

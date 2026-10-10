@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Wyświetlanie {shown} z {total} pasujących wierszy (top 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Miejsce docelowe synchronizacji z chmurą (nie lokalnych kopii zapasowych):",
+    "cloudUploadWarning": "W nowych instalacjach synchronizacja z chmurą jest domyślnie wyłączona. Jej włączenie powoduje przesłanie kluczy API dostawców, tokenów dostępu i odświeżania OAuth, kluczy API OmniRoute oraz konfiguracji do wskazanego wyżej miejsca, teraz i podczas przyszłych synchronizacji. Ta funkcja jest niezależna od lokalnych kopii zapasowych w sekcji Pamięć masowa. Włącz ją tylko wtedy, gdy ufasz temu serwerowi.",
+    "cloudUploadConsent": "Rozumiem i zezwalam na przesłanie moich danych uwierzytelniających do tego miejsca docelowego.",
     "title": "Punkt końcowy API",
     "subtitle": "Użyj punktu końcowego zgodnego z OpenAI z większością zestawów SDK i narzędzi.",
     "testEndpoint": "Przetestuj punkt końcowy →",

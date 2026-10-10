@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Đang hiển thị {shown} trong tổng số {total} hàng phù hợp (50 hàng đầu)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Đích đồng bộ đám mây (không phải bản sao lưu cục bộ):",
+    "cloudUploadWarning": "Đồng bộ đám mây mặc định bị tắt trên các bản cài đặt mới. Khi bật, khóa API của nhà cung cấp, mã truy cập và mã làm mới OAuth, khóa API OmniRoute cùng cấu hình sẽ được tải lên đích ở trên, ngay bây giờ và trong những lần đồng bộ sau. Tính năng này tách biệt với các bản sao lưu cục bộ trong mục Lưu trữ. Chỉ bật nếu bạn tin cậy máy chủ đó.",
+    "cloudUploadConsent": "Tôi hiểu và cho phép tải thông tin xác thực của mình lên đích này.",
     "title": "Endpoint API",
     "subtitle": "Dùng endpoint tương thích OpenAI với hầu hết SDK và công cụ.",
     "testEndpoint": "Kiểm tra endpoint →",

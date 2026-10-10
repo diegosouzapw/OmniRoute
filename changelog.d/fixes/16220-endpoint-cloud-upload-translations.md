@@ -1,0 +1,1 @@
+- **Endpoint:** Add the cloud upload destination, credential warning and consent messages in all 67 UI locales so the real translator resolves them without missing-message errors. Preserve the full upload disclosure and local-backup distinction. Fixes #16220.

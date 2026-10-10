@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Visualizzate {shown} di {total} righe corrispondenti (prime 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Destinazione della sincronizzazione cloud (non dei backup locali):",
+    "cloudUploadWarning": "La sincronizzazione cloud è disattivata per impostazione predefinita nelle nuove installazioni. Attivandola, le chiavi API dei provider, i token di accesso e di aggiornamento OAuth, le chiavi API di OmniRoute e la configurazione vengono inviati alla destinazione indicata sopra, ora e nelle sincronizzazioni future. Questa funzione è separata dai backup locali di «Magazzinaggio». Attivala solo se ti fidi di quel server.",
+    "cloudUploadConsent": "Comprendo e autorizzo l’invio delle mie credenziali a questa destinazione.",
     "title": "Endpoint API",
     "subtitle": "Usa l'endpoint compatibile con OpenAI con la maggior parte degli SDK e degli strumenti.",
     "testEndpoint": "Testa l'endpoint →",

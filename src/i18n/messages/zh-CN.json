@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "正在显示 {total} 个匹配行中的 {shown} 个（前 50 个）。"
   },
   "endpoint": {
+    "cloudUploadDestination": "云同步目标（非本地备份位置）：",
+    "cloudUploadWarning": "新安装默认禁用云同步。启用后，提供者 API 密钥、OAuth 访问令牌和刷新令牌、OmniRoute API 密钥以及配置将立即上传到上述目标，并在今后的同步中继续上传。此功能与“存储”中的本地备份相互独立。仅在信任该服务器时启用。",
+    "cloudUploadConsent": "我理解并授权将我的凭据上传到此目标。",
     "title": "API 端点",
     "subtitle": "可将 OpenAI 兼容端点与大多数 SDK 和工具配合使用。",
     "testEndpoint": "测试端点 →",

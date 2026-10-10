@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Ipinapakita ang {shown} sa {total} tumutugmang mga row (nangungunang 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Destinasyon ng pag-sync sa cloud (hindi ng mga lokal na backup):",
+    "cloudUploadWarning": "Naka-off bilang default ang pag-sync sa cloud sa mga bagong pag-install. Kapag pinagana ito, ia-upload ang mga API key ng provider, mga access at refresh token ng OAuth, mga API key ng OmniRoute, at configuration sa destinasyon sa itaas, ngayon at sa mga susunod na pag-sync. Hiwalay ito sa mga lokal na backup sa Imbakan. Paganahin lamang ito kung pinagkakatiwalaan mo ang server na iyon.",
+    "cloudUploadConsent": "Nauunawaan ko ito at pinahihintulutan kong i-upload ang aking mga kredensyal sa destinasyong ito.",
     "title": "Endpoint ng API",
     "subtitle": "Gamitin ang endpoint na compatible sa OpenAI sa karamihan ng mga SDK at tool.",
     "testEndpoint": "Subukan ang endpoint →",

@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Toont {shown} van {total} overeenkomende rijen (top 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Bestemming voor cloudsynchronisatie (niet voor lokale back-ups):",
+    "cloudUploadWarning": "Cloudsynchronisatie is standaard uitgeschakeld bij nieuwe installaties. Als u deze inschakelt, worden API-sleutels van providers, OAuth-toegangs- en vernieuwingstokens, OmniRoute API-sleutels en de configuratie naar de bovenstaande bestemming geüpload, nu en bij toekomstige synchronisaties. Dit staat los van lokale back-ups onder Opslag. Schakel dit alleen in als u die server vertrouwt.",
+    "cloudUploadConsent": "Ik begrijp dit en geef toestemming om mijn inloggegevens naar deze bestemming te uploaden.",
     "title": "API-eindpunt",
     "subtitle": "Gebruik het OpenAI-compatibele eindpunt met de meeste SDK's en tools.",
     "testEndpoint": "Eindpunt testen →",

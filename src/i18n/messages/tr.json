@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "Eşleşen {total} satırdan {shown} gösteriliyor (ilk 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "Bulut eşitleme hedefi (yerel yedekler değil):",
+    "cloudUploadWarning": "Yeni kurulumlarda bulut eşitleme varsayılan olarak kapalıdır. Etkinleştirdiğinizde sağlayıcı API anahtarları, OAuth erişim ve yenileme belirteçleri, OmniRoute API anahtarları ve yapılandırma, şimdi ve gelecekteki eşitlemeler sırasında yukarıdaki hedefe yüklenir. Bu özellik, Depolama bölümündeki yerel yedeklerden ayrıdır. Yalnızca bu sunucuya güveniyorsanız etkinleştirin.",
+    "cloudUploadConsent": "Bunu anlıyorum ve kimlik bilgilerimin bu hedefe yüklenmesine izin veriyorum.",
     "title": "API Uç Noktası",
     "subtitle": "Çoğu SDK ve araçla OpenAI uyumlu uç noktayı kullanın.",
     "testEndpoint": "Uç noktayı test et →",

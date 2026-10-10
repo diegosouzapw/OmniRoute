@@ -4090,6 +4090,9 @@
     "showingTopCostRows": "{shown} / {total} egyező sor megjelenítve (top 50)."
   },
   "endpoint": {
+    "cloudUploadDestination": "A felhőszinkronizálás célja (nem a helyi biztonsági mentéseké):",
+    "cloudUploadWarning": "Új telepítéseknél a felhőszinkronizálás alapértelmezés szerint ki van kapcsolva. Bekapcsolásakor a szolgáltatók API-kulcsai, az OAuth hozzáférési és frissítési tokenek, az OmniRoute API-kulcsai és a konfiguráció feltöltődik a fenti célra, most és a későbbi szinkronizálások során is. Ez a funkció elkülönül a Tárolás rész helyi biztonsági mentéseitől. Csak akkor kapcsolja be, ha megbízik ebben a kiszolgálóban.",
+    "cloudUploadConsent": "Megértettem, és engedélyezem a hitelesítő adataim feltöltését erre a célra.",
     "title": "API végpont",
     "subtitle": "Használja az OpenAI-kompatibilis végpontot a legtöbb SDK-val és eszközzel.",
     "testEndpoint": "Végpont tesztelése →",
