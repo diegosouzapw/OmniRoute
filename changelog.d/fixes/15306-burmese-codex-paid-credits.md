@@ -1,0 +1,1 @@
+- Translate Burmese Codex paid-credit controls and quota statuses, including the full quota-filtering exception, without changing the translation-ratio policy.
