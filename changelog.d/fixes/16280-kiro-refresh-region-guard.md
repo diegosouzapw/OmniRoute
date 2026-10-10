@@ -1,0 +1,1 @@
+- **fix(security):** Kiro token refresh validates the stored AWS region before building the OIDC endpoint, so a tampered region can no longer send the refresh credentials off AWS ([#16280](https://github.com/diegosouzapw/OmniRoute/pull/16280)) — thanks @nitsuah
