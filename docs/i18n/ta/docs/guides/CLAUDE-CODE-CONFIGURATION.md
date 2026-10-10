@@ -116,12 +116,15 @@ Claude கருவி அட்டை (**டாஷ்போர்டு → CLI
 
 ---
 
-## Profiles (`CLAUDE_CONFIG_DIR`)
+## சுயவிவரங்கள் (`CLAUDE_CONFIG_DIR`)
 
-Claude Code-இல் **சொந்த profile கோப்புகள் இல்லை** (Codex-இன் `~/.codex/<name>.config.toml` போலல்லாமல்).
-வழக்கமான முறை `CLAUDE_CONFIG_DIR` ஆகும் — ஒவ்வொரு profile-க்கும் தனித்தனி config அடைவு; ஒவ்வொன்றிலும் அதற்குரிய `settings.json`, credentials, history மற்றும் cache இருக்கும்.
+Claude Code-இல் **உள்ளமைந்த சுயவிவரக் கோப்புகள் இல்லை** (Codex-இன் `~/.codex/<name>.config.toml` போலல்லாமல்).
+வழக்கமான செயல்முறை `CLAUDE_CONFIG_DIR` ஆகும் — ஒவ்வொரு
+சுயவிவரத்திற்கும் தனித்தனி கட்டமைப்பு அடைவு; ஒவ்வொன்றிலும் அதற்கான `settings.json`, நற்சான்றுகள், வரலாறு மற்றும் தற்காலிகச் சேமிப்பு இருக்கும்.
 
-`omniroute setup-claude`, நேரடி `/v1/models` பட்டியலைப் பெற்று, ஒவ்வொரு model-க்கும் ஒரு profile-ஐ `~/.claude/profiles/<name>/settings.json` இல் எழுதுகிறது; இதில் **`setup-codex` பயன்படுத்தும் அதே பெயர்கள்** (`glm52`, `kimi-k27`, `deepseek-pro`, …) மீண்டும் பயன்படுத்தப்படுகின்றன:
+`omniroute setup-claude`, நேரடி `/v1/models` பட்டியலைப் பெற்று, ஒவ்வொரு மாதிரிக்கும் ஒரு
+சுயவிவரத்தை `~/.claude/profiles/<name>/settings.json` இல் எழுதுகிறது; இதற்கு
+**`setup-codex` பயன்படுத்தும் அதே பெயர்களையே** (`glm52`, `kimi-k27`, `deepseek-pro`, …) மீண்டும் பயன்படுத்துகிறது:
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -138,27 +141,41 @@ Claude Code-இல் **சொந்த profile கோப்புகள் இ�
 }
 ```
 
-> **Auth token ஒருபோதும் profile-இல் எழுதப்படாது.** `omniroute launch --profile <name>` மூலம் தொடங்கவும் (இது செயலில் உள்ள context-இலிருந்து `ANTHROPIC_AUTH_TOKEN`-ஐச் செலுத்துகிறது), அல்லது `ANTHROPIC_AUTH_TOKEN`-ஐ நீங்களே export செய்துவிட்டு
+> **அங்கீகார டோக்கன் ஒருபோதும் சுயவிவரத்தில் எழுதப்படாது.** இதைக் கொண்டு தொடங்கவும்:
+> `omniroute launch --profile <name>` (இது செயலில் உள்ள சூழலிலிருந்து `ANTHROPIC_AUTH_TOKEN`-ஐ
+> உட்செலுத்தும்), அல்லது `ANTHROPIC_AUTH_TOKEN`-ஐ நீங்களே ஏற்றுமதி செய்து,
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`-ஐ இயக்கவும்.
 
-**Model discovery-க்குப் பிறகான auto-sync (விருப்பத் தேர்வு).** Provider model sync ஒன்று நேரடி catalog-ஐ மாற்றும் ஒவ்வொரு முறையும், இதே `~/.claude/profiles/<name>/settings.json` கோப்புகளை OmniRoute தானாக மீண்டும் உருவாக்க முடியும் — இதனால் command-ஐ மீண்டும் இயக்காமலேயே புதிய/மறுபெயரிடப்பட்ட model-களுக்கான profile-கள் கிடைக்கும். இது **இயல்பாக முடக்கப்பட்டிருக்கும்**: **CLI Code டாஷ்போர்டில்** இருந்து இதை மாற்றவும் ("CLI profile auto-sync" → Claude Code), அல்லது `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` என அமைக்கவும் (இது இயல்பாக இயக்கப்பட்டிருக்கும் `CLI_ALLOW_CONFIG_WRITES`-ஐயும் மதிக்கிறது). இயக்கப்பட்டிருக்கும்போது இது profile கோப்புகளை மட்டுமே எழுதும்; உங்கள் செயலில் உள்ள/இயல்புநிலை Claude config, auth அல்லது `~/.claude/settings.json`-ஐ ஒருபோதும் மாற்றாது.
+**மாதிரி கண்டறிதலுக்குப் பிந்தைய தானியங்கு ஒத்திசைவு (விருப்பத் தேர்வு).** வழங்குநரின் மாதிரி
+ஒத்திசைவு நேரடிப் பட்டியலை மாற்றும்போதெல்லாம், இதே `~/.claude/profiles/<name>/settings.json`
+கோப்புகளை OmniRoute தானாகவே மீண்டும் உருவாக்க முடியும் — இதனால் கட்டளையை மீண்டும் இயக்காமலேயே
+புதிய/மறுபெயரிடப்பட்ட மாதிரிகளுக்கான சுயவிவரங்கள் கிடைக்கும். இது **இயல்பாக முடக்கப்பட்டிருக்கும்**:
+**CLI Code dashboard**-இலிருந்து இதை மாற்றவும் ("CLI profile auto-sync" → Claude Code), அல்லது
+`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` என அமைக்கவும் (இயல்பாக இயக்கப்பட்டிருக்கும்
+`CLI_ALLOW_CONFIG_WRITES`-ஐயும் இது மதிக்கும்). இயக்கப்பட்டிருக்கும்போது, இது சுயவிவரக் கோப்புகளை
+மட்டுமே எழுதும்; உங்கள் செயலில் உள்ள/இயல்புநிலை Claude கட்டமைப்பு, அங்கீகாரம் அல்லது
+`~/.claude/settings.json`-ஐ ஒருபோதும் மாற்றாது.
 
-### Profile-களை உருவாக்குதல் + பயன்படுத்துதல்
+### சுயவிவரங்களை உருவாக்குதல் + பயன்படுத்துதல்
 
 ```bash
 # உள்ளூர் OmniRoute
 omniroute setup-claude
 
-# தொலைநிலை VPS (ஒவ்வொரு profile-லும் VPS URL-ஐப் பதிக்கிறது)
+# தொலைநிலை VPS (ஒவ்வொரு சுயவிவரத்திலும் VPS URL-ஐப் பதிக்கிறது)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# சில provider-கள் மட்டும்
+# சில வழங்குநர்கள் மட்டும்
 omniroute setup-claude --only glm,kimi
 
-# எழுதாமல் முன்னோட்டமிடுதல்
+# இந்த ஹோஸ்டில் கண்டறியப்படாத உள்ளூர்-CLI வழங்குநர்களுக்கும் (zcode, auggie, devin-cli-agentic,
+# codex-app-server) சுயவிவரங்களை எழுதவும் (உள்ளூர் இலக்கிற்கு இயல்பாகத் தவிர்க்கப்படும்)
+omniroute setup-claude --include-local
+
+# எழுதாமல் முன்னோட்டமிடவும்
 omniroute setup-claude --dry-run
 
-# ஒரு profile-ஐத் தொடங்குதல்
+# ஒரு சுயவிவரத்தைத் தொடங்கவும்
 omniroute launch --profile kimi-k27
 ```
 

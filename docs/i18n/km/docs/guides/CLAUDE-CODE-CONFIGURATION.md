@@ -123,14 +123,14 @@ placeholder ដូច្នេះ screenshot ឬ snippet ដែលបានប�
 
 ---
 
-## Profile (`CLAUDE_CONFIG_DIR`)
+## ប្រវត្តិរូប (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **មិនមានឯកសារ profile ដើម** ទេ (ខុសពី `~/.codex/<name>.config.toml` របស់ Codex)។
-យន្តការដែលគេប្រើជាទូទៅគឺ `CLAUDE_CONFIG_DIR` — ថត config ដាច់ដោយឡែកសម្រាប់
-profile នីមួយៗ ដែលមួយៗមាន `settings.json`, credentials, history និង cache ផ្ទាល់ខ្លួន។
+Claude Code **មិនមានឯកសារប្រវត្តិរូបដើម** ទេ (ខុសពី `~/.codex/<name>.config.toml` របស់ Codex)។
+យន្តការដែលគេប្រើជាទូទៅគឺ `CLAUDE_CONFIG_DIR` — ថតកំណត់រចនាសម្ព័ន្ធដាច់ដោយឡែកសម្រាប់
+ប្រវត្តិរូបនីមួយៗ ដែលប្រវត្តិរូបនីមួយៗមាន `settings.json` ព័ត៌មានសម្គាល់អត្តសញ្ញាណ ប្រវត្តិ និងឃ្លាំងសម្ងាត់ផ្ទាល់ខ្លួន។
 
-`omniroute setup-claude` ទាញយក catalog `/v1/models` ដែលកំពុងដំណើរការ ហើយសរសេរ
-profile មួយសម្រាប់ម៉ូដែលនីមួយៗទៅកាន់ `~/.claude/profiles/<name>/settings.json` ដោយប្រើ
+`omniroute setup-claude` ទាញយកកាតាឡុក `/v1/models` ដែលកំពុងប្រើប្រាស់ ហើយសរសេរ
+ប្រវត្តិរូបមួយសម្រាប់ម៉ូដែលនីមួយៗនៅ `~/.claude/profiles/<name>/settings.json` ដោយប្រើ
 **ឈ្មោះដូចគ្នានឹង `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …)៖
 
 ```jsonc
@@ -148,35 +148,39 @@ profile មួយសម្រាប់ម៉ូដែលនីមួយៗទៅ
 }
 ```
 
-> **Auth token មិនត្រូវបានសរសេរទៅក្នុង profile ឡើយ។** ចាប់ផ្តើមដោយប្រើ
+> **ថូខឹនផ្ទៀងផ្ទាត់អត្តសញ្ញាណមិនត្រូវបានសរសេរចូលក្នុងប្រវត្តិរូបឡើយ។** ដំណើរការជាមួយ
 > `omniroute launch --profile <name>` (វាបញ្ចូល `ANTHROPIC_AUTH_TOKEN` ពី
-> context ដែលសកម្ម) ឬ export `ANTHROPIC_AUTH_TOKEN` ដោយខ្លួនឯង ហើយដំណើរការ
+> បរិបទសកម្ម) ឬ export `ANTHROPIC_AUTH_TOKEN` ដោយខ្លួនឯង ហើយដំណើរការ
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`។
 
-**ការធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិបន្ទាប់ពីរកឃើញម៉ូដែល (ត្រូវបើកប្រើដោយខ្លួនឯង)។** OmniRoute អាចបង្កើតឡើងវិញដោយស្វ័យប្រវត្តិនូវឯកសារ
-`~/.claude/profiles/<name>/settings.json` ដដែលទាំងនេះ រាល់ពេលដែលការធ្វើសមកាលកម្មម៉ូដែលរបស់ provider
-ផ្លាស់ប្តូរ catalog ដែលកំពុងដំណើរការ — ដូច្នេះម៉ូដែលថ្មី ឬម៉ូដែលដែលបានប្តូរឈ្មោះនឹងទទួលបាន profile ដោយមិនចាំបាច់ដំណើរការ
-command ម្តងទៀត។ វា **បិទតាមលំនាំដើម**៖ បិទបើកវាពី **ផ្ទាំងគ្រប់គ្រង CLI Code** ("ការធ្វើសមកាលកម្ម
-profile CLI ដោយស្វ័យប្រវត្តិ" → Claude Code) ឬកំណត់ `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (វាក៏គោរពតាម
-`CLI_ALLOW_CONFIG_WRITES` ដែលបើកតាមលំនាំដើមផងដែរ)។ នៅពេលបើក វាសរសេរតែឯកសារ profile ប៉ុណ្ណោះ; វាមិនដែល
-ផ្លាស់ប្តូរ config Claude ដែលសកម្ម/លំនាំដើម, auth ឬ `~/.claude/settings.json` របស់អ្នកឡើយ។
+**ការធ្វើសមកាលកម្មដោយស្វ័យប្រវត្តិបន្ទាប់ពីការរកឃើញម៉ូដែល (ជ្រើសរើសបើកប្រើ)។** OmniRoute អាចបង្កើតឯកសារ
+`~/.claude/profiles/<name>/settings.json` ដដែលទាំងនេះឡើងវិញដោយស្វ័យប្រវត្តិ រាល់ពេលការធ្វើសមកាលកម្មម៉ូដែលរបស់អ្នកផ្តល់សេវា
+ផ្លាស់ប្ដូរកាតាឡុកដែលកំពុងប្រើប្រាស់ — ដូច្នេះម៉ូដែលថ្មី/ដែលបានប្ដូរឈ្មោះនឹងទទួលបានប្រវត្តិរូប ដោយមិនចាំបាច់ដំណើរការ
+ពាក្យបញ្ជាម្ដងទៀត។ វា **ត្រូវបានបិទតាមលំនាំដើម**៖ បិទបើកវាពី **ផ្ទាំងគ្រប់គ្រង CLI Code** ("CLI profile
+auto-sync" → Claude Code) ឬកំណត់ `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (វាក៏គោរពតាម
+`CLI_ALLOW_CONFIG_WRITES` ដែលបើកតាមលំនាំដើមផងដែរ)។ នៅពេលបើក វាសរសេរតែឯកសារប្រវត្តិរូបប៉ុណ្ណោះ; វាមិន
+ផ្លាស់ប្ដូរការកំណត់រចនាសម្ព័ន្ធ Claude សកម្ម/លំនាំដើម ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ ឬ `~/.claude/settings.json` របស់អ្នកឡើយ។
 
-### ការបង្កើត + ការប្រើប្រាស់ profile
+### ការបង្កើត + ការប្រើប្រាស់ប្រវត្តិរូប
 
 ```bash
-# OmniRoute ក្នុងម៉ាស៊ីន
+# OmniRoute មូលដ្ឋាន
 omniroute setup-claude
 
-# VPS ពីចម្ងាយ (បញ្ចូល URL របស់ VPS ទៅក្នុង profile ទាំងអស់)
+# VPS ពីចម្ងាយ (បញ្ចូល URL របស់ VPS ទៅក្នុងប្រវត្តិរូបនីមួយៗ)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# តែ provider មួយចំនួន
+# តែអ្នកផ្តល់សេវាមួយចំនួន
 omniroute setup-claude --only glm,kimi
+
+# សរសេរប្រវត្តិរូបផងដែរសម្រាប់អ្នកផ្តល់សេវា local-CLI (zcode, auggie, devin-cli-agentic,
+# codex-app-server) ដែលមិនត្រូវបានរកឃើញនៅលើម៉ាស៊ីននេះ (ត្រូវបានរំលងតាមលំនាំដើមសម្រាប់គោលដៅមូលដ្ឋាន)
+omniroute setup-claude --include-local
 
 # មើលជាមុនដោយមិនសរសេរ
 omniroute setup-claude --dry-run
 
-# ចាប់ផ្តើម profile មួយ
+# ដំណើរការប្រវត្តិរូបមួយ
 omniroute launch --profile kimi-k27
 ```
 

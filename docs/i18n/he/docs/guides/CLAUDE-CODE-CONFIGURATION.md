@@ -127,9 +127,9 @@ glm/glm-5.2              →  claude/glm/glm-5.2         "GLM 5.2 (OmniRoute)"
 
 ל-Claude Code **אין קובצי פרופיל מובנים** (בניגוד ל-`~/.codex/<name>.config.toml` של Codex).
 המנגנון המקובל הוא `CLAUDE_CONFIG_DIR` — ספריית תצורה נפרדת לכל
-פרופיל, כאשר לכל אחת `settings.json`, פרטי התחברות, היסטוריה ומטמון משלה.
+פרופיל, כאשר לכל אחת `settings.json`, פרטי אימות, היסטוריה ומטמון משלה.
 
-`omniroute setup-claude` מאחזרת את קטלוג `/v1/models` הפעיל וכותבת
+`omniroute setup-claude` מאחזרת את קטלוג `/v1/models` העדכני וכותבת
 פרופיל אחד לכל מודל ב-`~/.claude/profiles/<name>/settings.json`, תוך שימוש חוזר
 **באותם שמות כמו `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
@@ -153,15 +153,14 @@ glm/glm-5.2              →  claude/glm/glm-5.2         "GLM 5.2 (OmniRoute)"
 > הפעיל), או יצאו את `ANTHROPIC_AUTH_TOKEN` בעצמכם והריצו
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**סנכרון אוטומטי לאחר גילוי מודלים (הצטרפות יזומה).** OmniRoute יכולה ליצור מחדש באופן אוטומטי את אותם
-קובצי `~/.claude/profiles/<name>/settings.json` בכל פעם שסנכרון מודלים של ספק
-משנה את הקטלוג הפעיל — כך שמודלים חדשים או מודלים ששמם השתנה יקבלו פרופילים ללא צורך בהרצת
-הפקודה מחדש. האפשרות **כבויה כברירת מחדל**: הפעילו אותה דרך **לוח הבקרה CLI Code** ("סנכרון אוטומטי של
-פרופילי CLI" → Claude Code), או הגדירו `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (היא מכבדת גם את
-`CLI_ALLOW_CONFIG_WRITES`, שמופעל כברירת מחדל). כשהאפשרות מופעלת, היא כותבת רק קובצי פרופיל; היא לעולם אינה
+**סנכרון אוטומטי לאחר גילוי מודלים (בהצטרפות יזומה).** OmniRoute יכולה ליצור מחדש את אותם
+קובצי `~/.claude/profiles/<name>/settings.json` באופן אוטומטי בכל פעם שסנכרון מודלים של ספק
+משנה את הקטלוג העדכני — כך שמודלים חדשים או מודלים ששמם השתנה יקבלו פרופילים ללא צורך בהרצה חוזרת של
+הפקודה. האפשרות **כבויה כברירת מחדל**: הפעילו או השביתו אותה מלוח הבקרה של **CLI Code** ("סנכרון אוטומטי של פרופילי CLI" → Claude Code), או הגדירו `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (היא גם מכבדת
+את `CLI_ALLOW_CONFIG_WRITES`, שמופעל כברירת מחדל). כאשר היא מופעלת, היא כותבת רק קובצי פרופיל; היא לעולם אינה
 משנה את תצורת Claude הפעילה או המוגדרת כברירת מחדל, את האימות או את `~/.claude/settings.json`.
 
-### יצירת פרופילים והשימוש בהם
+### יצירת פרופילים ושימוש בהם
 
 ```bash
 # OmniRoute מקומי
@@ -172,6 +171,10 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # רק ספקים מסוימים
 omniroute setup-claude --only glm,kimi
+
+# כתיבת פרופילים גם עבור ספקי CLI מקומיים (zcode, auggie, devin-cli-agentic,
+# codex-app-server) שלא זוהו במארח זה (מדולגים כברירת מחדל עבור יעד מקומי)
+omniroute setup-claude --include-local
 
 # תצוגה מקדימה ללא כתיבה
 omniroute setup-claude --dry-run

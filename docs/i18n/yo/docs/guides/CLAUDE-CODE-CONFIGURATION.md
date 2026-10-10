@@ -123,14 +123,14 @@ mímọ́, tí a ti dán wò ní unit test) tí `ClaudeGatewayOnboardingBlock` �
 
 ---
 
-## Àwọn profile (`CLAUDE_CONFIG_DIR`)
+## Àwọn prófáìlì (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **kò ní àwọn fáìlì profile abinibi** (yàtọ̀ sí `~/.codex/<name>.config.toml` ti Codex).
-Ọ̀nà tó bójú mu ni `CLAUDE_CONFIG_DIR` — directory ìṣètò ọ̀tọ̀ọ̀tọ̀ fún
-profile kọ̀ọ̀kan, tí ọ̀kọ̀ọ̀kan ní `settings.json`, credentials, history àti cache tirẹ̀.
+Claude Code **kò ní fáìlì prófáìlì abinibi** (yàtọ̀ sí `~/.codex/<name>.config.toml` ti Codex).
+Ọ̀nà tí ó bá ìlànà mu ni `CLAUDE_CONFIG_DIR` — àkọsílẹ̀ ìṣètò ọ̀tọ̀ fún
+prófáìlì kọ̀ọ̀kan, tí ọ̀kọ̀ọ̀kan ní `settings.json`, ẹ̀rí ìdánimọ̀, ìtàn àti cache tirẹ̀.
 
-`omniroute setup-claude` máa ń gba catalog `/v1/models` tó ń ṣiṣẹ́ lọ́wọ́, ó sì máa ń kọ
-profile kan fún model kọ̀ọ̀kan sí `~/.claude/profiles/<name>/settings.json`, nípa lílo
+`omniroute setup-claude` máa ń gba àkójọ `/v1/models` tó wà láàyè, ó sì máa ń kọ
+prófáìlì kan fún model kọ̀ọ̀kan sí `~/.claude/profiles/<name>/settings.json`, nípa lílo
 **àwọn orúkọ kan náà bí `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
@@ -148,35 +148,39 @@ profile kan fún model kọ̀ọ̀kan sí `~/.claude/profiles/<name>/settings.js
 }
 ```
 
-> **A kì í kọ auth token sínú profile láé.** Ṣí i pẹ̀lú
+> **A kì í kọ token ìfàṣẹsí sínú prófáìlì láé.** Bẹ̀rẹ̀ rẹ̀ pẹ̀lú
 > `omniroute launch --profile <name>` (ó máa ń fi `ANTHROPIC_AUTH_TOKEN` láti inú
-> context tó ń ṣiṣẹ́ sínú rẹ̀), tàbí ṣe export `ANTHROPIC_AUTH_TOKEN` fúnra rẹ kí o sì ṣiṣẹ́
+> àyíká tó ń ṣiṣẹ́ lọ́wọ́ sínú rẹ̀), tàbí kí o export `ANTHROPIC_AUTH_TOKEN` fúnra rẹ, kí o sì ṣiṣẹ́
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Auto-sync lẹ́yìn model discovery (nípasẹ̀ yíyàn láti ṣiṣẹ́).** OmniRoute lè tún àwọn fáìlì
-`~/.claude/profiles/<name>/settings.json` kan náà ṣe láìfọwọ́yí nígbàkúùgbà tí sync model provider kan
-bá yí catalog tó ń ṣiṣẹ́ padà — kí àwọn model tuntun/tí a tún lorúkọ lè ní profile láìsí àtúnsá
-command náà. Ó **wà ní pípa nípa ìpilẹ̀**: tan-an láti **CLI Code dashboard** ("CLI profile
-auto-sync" → Claude Code), tàbí ṣètò `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (ó tún ń tẹ̀lé
-`CLI_ALLOW_CONFIG_WRITES`, èyí tó wà ní títàn nípa ìpilẹ̀). Nígbà tí ó bá ṣiṣẹ́, àwọn fáìlì profile nìkan ló ń kọ; kò ní
-yí ìṣètò Claude tó ń ṣiṣẹ́/tó jẹ́ àìyípadà rẹ, auth, tàbí `~/.claude/settings.json` padà láé.
+**Ìmúdójúìwọ̀n aládàáṣe lẹ́yìn ìṣàwárí model (àṣàyàn ni).** OmniRoute lè tún àwọn fáìlì
+`~/.claude/profiles/<name>/settings.json` kan náà ṣe ní aládàáṣe nígbàkigbà tí ìmúdójúìwọ̀n model
+olùpèsè kan bá yí àkójọ tó wà láàyè padà — nítorí náà, àwọn model tuntun/tí a tún lorúkọ máa gba prófáìlì láìsí pé a tún
+ṣiṣẹ́ àṣẹ náà. Ó jẹ́ **pípà ní àkọ́kọ́**: yí i padà láti inú **CLI Code dashboard** ("Ìmúdójúìwọ̀n
+prófáìlì CLI aládàáṣe" → Claude Code), tàbí ṣètò `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (ó tún máa ń tẹ̀lé
+`CLI_ALLOW_CONFIG_WRITES`, tí ó jẹ́ títàn ní àkọ́kọ́). Nígbà tí a bá tàn án, fáìlì prófáìlì nìkan ni ó máa ń kọ; kò ní
+yí ìṣètò Claude tó ń ṣiṣẹ́/àìpé, ìfàṣẹsí, tàbí `~/.claude/settings.json` padà láé.
 
-### Ṣíṣẹ̀dá + lílo àwọn profile
+### Ṣíṣe + lílo àwọn prófáìlì
 
 ```bash
-# OmniRoute abẹ́lẹ̀
+# OmniRoute ti agbègbè
 omniroute setup-claude
 
-# VPS jíjìn (fi URL VPS sínú gbogbo profile)
+# VPS jíjìnnà (ó fi URL VPS sínú gbogbo prófáìlì)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# Àwọn provider kan ṣoṣo
+# Àwọn olùpèsè kan nìkan
 omniroute setup-claude --only glm,kimi
 
-# Ṣàkọ́wò láìkọ ohunkóhun
+# Tún kọ àwọn prófáìlì fún àwọn olùpèsè CLI-agbègbè (zcode, auggie, devin-cli-agentic,
+# codex-app-server) tí a kò rí lórí host yìí (a máa ń fò wọ́n ré ní àkọ́kọ́ fún ibi àfojúsùn agbègbè)
+omniroute setup-claude --include-local
+
+# Ṣàwòkọ́kọ́ láìkọ ohunkóhun
 omniroute setup-claude --dry-run
 
-# Ṣí profile kan
+# Bẹ̀rẹ̀ prófáìlì kan
 omniroute launch --profile kimi-k27
 ```
 

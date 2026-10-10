@@ -127,12 +127,12 @@ graditelj, preizkušen s testi enot), ki ga prikaže `ClaudeGatewayOnboardingBlo
 
 ## Profili (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **nima izvornih datotek profilov** (za razliko od Codexove datoteke `~/.codex/<name>.config.toml`).
-Običajni mehanizem je `CLAUDE_CONFIG_DIR` — ločen imenik z nastavitvami za vsak
-profil, pri čemer ima vsak svoj `settings.json`, poverilnice, zgodovino in predpomnilnik.
+Claude Code **nima izvornih datotek profilov** (za razliko od Codexovih `~/.codex/<name>.config.toml`).
+Običajni mehanizem je `CLAUDE_CONFIG_DIR` — ločen konfiguracijski imenik za vsak
+profil, vsak s svojimi nastavitvami `settings.json`, poverilnicami, zgodovino in predpomnilnikom.
 
 `omniroute setup-claude` pridobi aktualni katalog `/v1/models` in zapiše en
-profil na model v `~/.claude/profiles/<name>/settings.json`, pri čemer znova uporabi
+profil na model v `~/.claude/profiles/<name>/settings.json`, pri čemer ponovno uporabi
 **ista imena kot `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
@@ -150,18 +150,18 @@ profil na model v `~/.claude/profiles/<name>/settings.json`, pri čemer znova up
 }
 ```
 
-> **Žeton za preverjanje pristnosti ni nikoli zapisan v profil.** Zaženite z ukazom
-> `omniroute launch --profile <name>` (ta vstavi `ANTHROPIC_AUTH_TOKEN` iz
+> **Žeton za preverjanje pristnosti se nikoli ne zapiše v profil.** Zaženite z
+> `omniroute launch --profile <name>` (vstavi `ANTHROPIC_AUTH_TOKEN` iz
 > aktivnega konteksta) ali pa sami izvozite `ANTHROPIC_AUTH_TOKEN` in zaženite
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Samodejna sinhronizacija po odkrivanju modelov (zahteva izrecno vključitev).** OmniRoute lahko samodejno znova ustvari iste
+**Samodejna sinhronizacija po odkritju modelov (izbirno).** OmniRoute lahko samodejno znova ustvari iste
 datoteke `~/.claude/profiles/<name>/settings.json` vsakič, ko sinhronizacija modelov ponudnika
-spremeni aktualni katalog — tako novi ali preimenovani modeli dobijo profile, ne da bi morali znova zagnati
-ukaz. Ta možnost je **privzeto izklopljena**: preklopite jo na **nadzorni plošči Koda CLI** (»Samodejna
-sinhronizacija profilov CLI« → Claude Code) ali nastavite `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (upošteva tudi
-`CLI_ALLOW_CONFIG_WRITES`, ki je privzeto vključen). Ko je možnost omogočena, zapisuje samo datoteke profilov; nikoli ne
-spremeni vaše aktivne/privzete konfiguracije Claude, preverjanja pristnosti ali datoteke `~/.claude/settings.json`.
+spremeni aktualni katalog — tako novi ali preimenovani modeli dobijo profile brez ponovnega zagona
+ukaza. Privzeto je **izklopljena**: preklopite jo na **nadzorni plošči CLI Code** ("Samodejna
+sinhronizacija profilov CLI" → Claude Code) ali nastavite `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (upošteva tudi
+`CLI_ALLOW_CONFIG_WRITES`, ki je privzeto vklopljen). Ko je omogočena, zapisuje samo datoteke profilov; nikoli
+ne spremeni vaše aktivne/privzete konfiguracije Claude, preverjanja pristnosti ali datoteke `~/.claude/settings.json`.
 
 ### Ustvarjanje in uporaba profilov
 
@@ -169,16 +169,20 @@ spremeni vaše aktivne/privzete konfiguracije Claude, preverjanja pristnosti ali
 # Lokalni OmniRoute
 omniroute setup-claude
 
-# Oddaljeni VPS (URL strežnika VPS vključi v vsak profil)
+# Oddaljeni VPS (v vsak profil vgradi URL strežnika VPS)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Samo nekateri ponudniki
 omniroute setup-claude --only glm,kimi
 
+# Zapiši tudi profile za ponudnike lokalnega CLI-ja (zcode, auggie, devin-cli-agentic,
+# codex-app-server), ki niso zaznani na tem gostitelju (privzeto so za lokalni cilj preskočeni)
+omniroute setup-claude --include-local
+
 # Predogled brez zapisovanja
 omniroute setup-claude --dry-run
 
-# Zagon profila
+# Zaženi profil
 omniroute launch --profile kimi-k27
 ```
 

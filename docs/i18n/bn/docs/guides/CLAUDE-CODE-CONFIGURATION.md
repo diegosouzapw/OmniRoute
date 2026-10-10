@@ -127,11 +127,11 @@ Claude টুল কার্ডটি (**Dashboard → CLI Code**) এই ই�
 
 Claude Code-এ **কোনো নেটিভ প্রোফাইল ফাইল নেই** (Codex-এর `~/.codex/<name>.config.toml`-এর বিপরীতে)।
 প্রচলিত পদ্ধতি হলো `CLAUDE_CONFIG_DIR` — প্রতিটি প্রোফাইলের জন্য একটি পৃথক কনফিগ ডিরেক্টরি,
-যার প্রত্যেকটির নিজস্ব `settings.json`, ক্রেডেনশিয়াল, হিস্ট্রি ও ক্যাশ থাকে।
+যার প্রত্যেকটির নিজস্ব `settings.json`, শংসাপত্র, ইতিহাস ও ক্যাশ থাকে।
 
-`omniroute setup-claude` লাইভ `/v1/models` ক্যাটালগ নিয়ে আসে এবং
+`omniroute setup-claude` লাইভ `/v1/models` ক্যাটালগ সংগ্রহ করে এবং
 `~/.claude/profiles/<name>/settings.json`-এ প্রতিটি মডেলের জন্য একটি করে প্রোফাইল লেখে,
-**`setup-codex`-এর একই নামগুলো** পুনরায় ব্যবহার করে (`glm52`, `kimi-k27`, `deepseek-pro`, …):
+যেখানে **`setup-codex`-এর মতো একই নাম পুনঃব্যবহার করা হয়** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -148,17 +148,19 @@ Claude Code-এ **কোনো নেটিভ প্রোফাইল ফা�
 }
 ```
 
-> **অথ টোকেন কখনো প্রোফাইলে লেখা হয় না।** `omniroute launch --profile <name>` দিয়ে চালু করুন
-> (এটি সক্রিয় কনটেক্সট থেকে `ANTHROPIC_AUTH_TOKEN` ইনজেক্ট করে), অথবা নিজে `ANTHROPIC_AUTH_TOKEN` এক্সপোর্ট করে
+> **অথ টোকেন কখনোই প্রোফাইলে লেখা হয় না।** চালু করতে
+> `omniroute launch --profile <name>` ব্যবহার করুন (এটি সক্রিয় কনটেক্সট থেকে `ANTHROPIC_AUTH_TOKEN`
+> ইনজেক্ট করে), অথবা নিজেই `ANTHROPIC_AUTH_TOKEN` এক্সপোর্ট করে
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` চালান।
 
-**মডেল ডিসকভারির পর অটো-সিঙ্ক (অপ্ট-ইন)।** যখনই কোনো প্রোভাইডার মডেল
-সিঙ্ক লাইভ ক্যাটালগ পরিবর্তন করে, OmniRoute স্বয়ংক্রিয়ভাবে একই
-`~/.claude/profiles/<name>/settings.json` ফাইলগুলো পুনরায় তৈরি করতে পারে — ফলে কমান্ডটি আবার না চালিয়েই
-নতুন/নাম-পরিবর্তিত মডেলগুলোর প্রোফাইল পাওয়া যায়। এটি **ডিফল্টভাবে বন্ধ থাকে**: **CLI Code dashboard** থেকে এটি টগল করুন ("CLI profile
-auto-sync" → Claude Code), অথবা `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` সেট করুন (এটি
-ডিফল্টভাবে চালু থাকা `CLI_ALLOW_CONFIG_WRITES`-কেও সম্মান করে)। সক্রিয় করা হলে এটি শুধু প্রোফাইল ফাইল লেখে; এটি কখনোই
-আপনার সক্রিয়/ডিফল্ট Claude কনফিগ, অথ বা `~/.claude/settings.json` পরিবর্তন করে না।
+**মডেল আবিষ্কারের পর স্বয়ংক্রিয় সিঙ্ক (ঐচ্ছিক)।** কোনো প্রোভাইডার মডেল
+সিঙ্ক লাইভ ক্যাটালগ পরিবর্তন করলেই OmniRoute স্বয়ংক্রিয়ভাবে একই
+`~/.claude/profiles/<name>/settings.json` ফাইলগুলো পুনরায় তৈরি করতে পারে — ফলে কমান্ডটি আবার
+না চালিয়েই নতুন/নাম পরিবর্তিত মডেলের জন্য প্রোফাইল পাওয়া যায়। এটি **ডিফল্টভাবে বন্ধ থাকে**:
+**CLI Code ড্যাশবোর্ড** থেকে এটি টগল করুন ("CLI প্রোফাইল স্বয়ংক্রিয়-সিঙ্ক" → Claude Code),
+অথবা `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` সেট করুন (এটি `CLI_ALLOW_CONFIG_WRITES`-ও
+মান্য করে, যা ডিফল্টভাবে চালু থাকে)। সক্রিয় থাকলে এটি শুধু প্রোফাইল ফাইল লেখে; আপনার
+সক্রিয়/ডিফল্ট Claude কনফিগ, অথ বা `~/.claude/settings.json` কখনো পরিবর্তন করে না।
 
 ### প্রোফাইল তৈরি + ব্যবহার
 
@@ -166,13 +168,17 @@ auto-sync" → Claude Code), অথবা `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=t
 # লোকাল OmniRoute
 omniroute setup-claude
 
-# রিমোট VPS (প্রতিটি প্রোফাইলে VPS URL স্থায়ীভাবে অন্তর্ভুক্ত করে)
+# রিমোট VPS (প্রতিটি প্রোফাইলে VPS URL অন্তর্ভুক্ত করে)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # শুধু কিছু প্রোভাইডার
 omniroute setup-claude --only glm,kimi
 
-# না লিখে প্রিভিউ
+# এই হোস্টে শনাক্ত না হওয়া লোকাল-CLI প্রোভাইডারগুলোর (zcode, auggie, devin-cli-agentic,
+# codex-app-server) জন্যও প্রোফাইল লিখুন (লোকাল টার্গেটের ক্ষেত্রে ডিফল্টভাবে এড়িয়ে যাওয়া হয়)
+omniroute setup-claude --include-local
+
+# না লিখে প্রিভিউ দেখুন
 omniroute setup-claude --dry-run
 
 # একটি প্রোফাইল চালু করুন

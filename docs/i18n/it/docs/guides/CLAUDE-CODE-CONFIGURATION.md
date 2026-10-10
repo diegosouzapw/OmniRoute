@@ -126,12 +126,12 @@ puro, sottoposto a unit test), mostrato da `ClaudeGatewayOnboardingBlock`.
 ## Profili (`CLAUDE_CONFIG_DIR`)
 
 Claude Code **non dispone di file di profilo nativi** (a differenza di `~/.codex/<name>.config.toml` di Codex).
-Il meccanismo idiomatico è `CLAUDE_CONFIG_DIR`: una directory di configurazione distinta per ogni
-profilo, ciascuna con i propri `settings.json`, credenziali, cronologia e cache.
+Il meccanismo idiomatico è `CLAUDE_CONFIG_DIR`: una directory di configurazione separata per
+ogni profilo, ciascuna con i propri `settings.json`, credenziali, cronologia e cache.
 
-`omniroute setup-claude` recupera il catalogo `/v1/models` in tempo reale e scrive un
-profilo per modello in `~/.claude/profiles/<name>/settings.json`, riutilizzando gli
-**stessi nomi di `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
+`omniroute setup-claude` recupera il catalogo `/v1/models` attivo e scrive un
+profilo per ogni modello in `~/.claude/profiles/<name>/settings.json`, riutilizzando
+**gli stessi nomi di `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -150,15 +150,15 @@ profilo per modello in `~/.claude/profiles/<name>/settings.json`, riutilizzando 
 
 > **Il token di autenticazione non viene mai scritto nel profilo.** Avvia con
 > `omniroute launch --profile <name>` (inietta `ANTHROPIC_AUTH_TOKEN` dal
-> contesto attivo), oppure esporta personalmente `ANTHROPIC_AUTH_TOKEN` ed esegui
+> contesto attivo), oppure esporta autonomamente `ANTHROPIC_AUTH_TOKEN` ed esegui
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
 **Sincronizzazione automatica dopo il rilevamento dei modelli (facoltativa).** OmniRoute può rigenerare automaticamente gli stessi
 file `~/.claude/profiles/<name>/settings.json` ogni volta che la sincronizzazione dei modelli di un provider
-modifica il catalogo in tempo reale, in modo che i modelli nuovi o rinominati ottengano profili senza dover eseguire nuovamente il
-comando. È **disattivata per impostazione predefinita**: attivala dalla **dashboard Codice CLI** ("Sincronizzazione automatica
-dei profili CLI" → Claude Code), oppure imposta `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (rispetta anche
-`CLI_ALLOW_CONFIG_WRITES`, attivo per impostazione predefinita). Quando è abilitata, scrive soltanto i file dei profili; non
+modifica il catalogo attivo, in modo che i modelli nuovi o rinominati ottengano profili senza dover rieseguire il
+comando. È **disattivata per impostazione predefinita**: attivala dalla **dashboard CLI Code** ("Sincronizzazione
+automatica dei profili CLI" → Claude Code), oppure imposta `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (rispetta anche
+`CLI_ALLOW_CONFIG_WRITES`, attivo per impostazione predefinita). Quando è abilitata, scrive soltanto i file di profilo; non
 modifica mai la configurazione Claude attiva/predefinita, l'autenticazione o `~/.claude/settings.json`.
 
 ### Generazione e utilizzo dei profili
@@ -173,7 +173,11 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # Solo alcuni provider
 omniroute setup-claude --only glm,kimi
 
-# Anteprima senza scrittura
+# Scrive anche i profili per i provider CLI locali (zcode, auggie, devin-cli-agentic,
+# codex-app-server) non rilevati su questo host (ignorati per impostazione predefinita per una destinazione locale)
+omniroute setup-claude --include-local
+
+# Anteprima senza scrivere
 omniroute setup-claude --dry-run
 
 # Avvia un profilo

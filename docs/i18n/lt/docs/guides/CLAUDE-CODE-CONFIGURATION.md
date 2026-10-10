@@ -117,9 +117,13 @@ Po tuo pačiu `env` bloku pridėkite `CLAUDE_CODE_AUTO_COMPACT_WINDOW` kiekviena
 
 ## Profiliai (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **neturi savųjų profilių failų** (kitaip nei Codex `~/.codex/<name>.config.toml`). Įprastas mechanizmas yra `CLAUDE_CONFIG_DIR` — atskiras konfigūracijos katalogas kiekvienam profiliui, turintis nuosavus `settings.json`, kredencialus, istoriją ir podėlį.
+Claude Code **neturi savųjų profilių failų** (kitaip nei Codex `~/.codex/<name>.config.toml`).
+Įprastas mechanizmas yra `CLAUDE_CONFIG_DIR` — atskiras konfigūracijos katalogas kiekvienam
+profiliui, kuriame saugomi jo `settings.json`, prisijungimo duomenys, istorija ir podėlis.
 
-`omniroute setup-claude` gauna aktualų `/v1/models` katalogą ir kiekvienam modeliui įrašo po profilį į `~/.claude/profiles/<name>/settings.json`, naudodamas **tuos pačius pavadinimus kaip `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
+`omniroute setup-claude` gauna dabartinį `/v1/models` katalogą ir įrašo po vieną
+profilį kiekvienam modeliui į `~/.claude/profiles/<name>/settings.json`, pakartotinai naudodama
+**tuos pačius pavadinimus kaip `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -141,7 +145,13 @@ Claude Code **neturi savųjų profilių failų** (kitaip nei Codex `~/.codex/<na
 > aktyvaus konteksto) arba patys eksportuokite `ANTHROPIC_AUTH_TOKEN` ir vykdykite
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Automatinis sinchronizavimas aptikus modelius (pasirenkamas).** OmniRoute gali automatiškai iš naujo sugeneruoti tuos pačius `~/.claude/profiles/<name>/settings.json` failus, kai teikėjo modelių sinchronizavimas pakeičia aktualų katalogą — taip nauji ar pervardyti modeliai gauna profilius, iš naujo nevykdant komandos. Pagal numatytąją nuostatą ši funkcija yra **išjungta**: įjunkite ją **CLI kodo valdymo skydelyje** („Automatinis CLI profilių sinchronizavimas“ → Claude Code) arba nustatykite `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (taip pat atsižvelgiama į `CLI_ALLOW_CONFIG_WRITES`, kuri pagal numatytąją nuostatą įjungta). Įjungus šią funkciją, įrašomi tik profilių failai; aktyvi arba numatytoji Claude konfigūracija, autentifikavimo duomenys ir `~/.claude/settings.json` niekada nekeičiami.
+**Automatinis sinchronizavimas po modelių aptikimo (pasirenkamas).** OmniRoute gali automatiškai iš naujo sugeneruoti tuos pačius
+`~/.claude/profiles/<name>/settings.json` failus, kai teikėjo modelių
+sinchronizavimas pakeičia dabartinį katalogą — taip nauji arba pervadinti modeliai gauna profilius, nereikalaujant iš naujo vykdyti
+komandos. Pagal numatytuosius nustatymus ši funkcija yra **išjungta**: įjunkite ją **CLI Code valdymo skydelyje** („CLI profilių
+automatinis sinchronizavimas“ → Claude Code) arba nustatykite `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (taip pat atsižvelgiama į
+`CLI_ALLOW_CONFIG_WRITES`, kuris pagal numatytuosius nustatymus įjungtas). Įjungus šią funkciją, įrašomi tik profilių failai; ji niekada
+nekeičia aktyviosios ar numatytosios Claude konfigūracijos, autentifikavimo duomenų arba `~/.claude/settings.json`.
 
 ### Profilių generavimas ir naudojimas
 
@@ -149,16 +159,20 @@ Claude Code **neturi savųjų profilių failų** (kitaip nei Codex `~/.codex/<na
 # Vietinis OmniRoute
 omniroute setup-claude
 
-# Nuotolinis VPS (VPS URL įrašomas į kiekvieną profilį)
+# Nuotolinis VPS (įrašo VPS URL į kiekvieną profilį)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Tik kai kurie teikėjai
 omniroute setup-claude --only glm,kimi
 
-# Peržiūra nieko neįrašant
+# Taip pat įrašyti profilius vietiniams CLI teikėjams (zcode, auggie, devin-cli-agentic,
+# codex-app-server), neaptiktiems šiame kompiuteryje (pagal numatytuosius nustatymus praleidžiami vietiniam tikslui)
+omniroute setup-claude --include-local
+
+# Peržiūrėti nieko neįrašant
 omniroute setup-claude --dry-run
 
-# Profilio paleidimas
+# Paleisti profilį
 omniroute launch --profile kimi-k27
 ```
 

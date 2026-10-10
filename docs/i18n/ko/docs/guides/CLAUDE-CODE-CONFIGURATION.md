@@ -94,11 +94,15 @@ Claude 도구 카드(**Dashboard → CLI Code**)는 검색 별칭 정보 버튼 
 
 ---
 
-## 프로필(`CLAUDE_CONFIG_DIR`)
+## 프로필 (`CLAUDE_CONFIG_DIR`)
 
-Claude Code에는 Codex의 `~/.codex/<name>.config.toml`과 달리 **네이티브 프로필 파일이 없습니다**. 일반적으로 사용하는 메커니즘은 `CLAUDE_CONFIG_DIR`입니다. 프로필마다 별도의 구성 디렉터리를 사용하며, 각 디렉터리는 자체 `settings.json`, 자격 증명, 기록 및 캐시를 가집니다.
+Claude Code에는 **기본 프로필 파일이 없습니다**(Codex의 `~/.codex/<name>.config.toml`과 다름).
+일반적으로 사용하는 방식은 `CLAUDE_CONFIG_DIR`입니다. 즉, 프로필마다 별도의 구성 디렉터리를 사용하며,
+각 디렉터리에는 자체 `settings.json`, 자격 증명, 기록 및 캐시가 있습니다.
 
-`omniroute setup-claude`는 실시간 `/v1/models` 카탈로그를 가져와 모델별 프로필을 `~/.claude/profiles/<name>/settings.json`에 작성하며, **`setup-codex`와 동일한 이름**(`glm52`, `kimi-k27`, `deepseek-pro`, …)을 재사용합니다.
+`omniroute setup-claude`는 실시간 `/v1/models` 카탈로그를 가져와
+모델별 프로필을 `~/.claude/profiles/<name>/settings.json`에 작성하며,
+**`setup-codex`와 동일한 이름**(`glm52`, `kimi-k27`, `deepseek-pro`, …)을 재사용합니다.
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -115,9 +119,19 @@ Claude Code에는 Codex의 `~/.codex/<name>.config.toml`과 달리 **네이티�
 }
 ```
 
-> **인증 토큰은 프로필에 절대 기록되지 않습니다.** `omniroute launch --profile <name>`으로 실행하거나(활성 컨텍스트의 `ANTHROPIC_AUTH_TOKEN`을 삽입함), 직접 `ANTHROPIC_AUTH_TOKEN`을 내보낸 후 `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`를 실행하세요.
+> **인증 토큰은 프로필에 절대 기록되지 않습니다.**
+> `omniroute launch --profile <name>`으로 실행하거나(활성 컨텍스트에서
+> `ANTHROPIC_AUTH_TOKEN`을 주입함), 직접 `ANTHROPIC_AUTH_TOKEN`을 내보낸 후
+> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`를 실행하세요.
 
-**모델 검색 후 자동 동기화(선택 사항).** OmniRoute는 공급자 모델 동기화로 실시간 카탈로그가 변경될 때마다 동일한 `~/.claude/profiles/<name>/settings.json` 파일을 자동으로 다시 생성할 수 있습니다. 따라서 명령을 다시 실행하지 않아도 신규 모델이나 이름이 변경된 모델의 프로필이 생성됩니다. 이 기능은 **기본적으로 꺼져 있습니다**. **CLI Code 대시보드**에서 활성화하거나("CLI profile auto-sync" → Claude Code), `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`를 설정하세요. 기본적으로 활성화된 `CLI_ALLOW_CONFIG_WRITES` 설정도 따릅니다. 활성화하면 프로필 파일만 작성하며, 활성/기본 Claude 구성, 인증 또는 `~/.claude/settings.json`은 절대 변경하지 않습니다.
+**모델 검색 후 자동 동기화(옵트인).** 공급자 모델 동기화로 실시간 카탈로그가 변경될 때마다
+OmniRoute가 동일한 `~/.claude/profiles/<name>/settings.json` 파일을 자동으로 다시 생성할 수 있습니다.
+따라서 명령을 다시 실행하지 않아도 새 모델이나 이름이 변경된 모델의 프로필이 생성됩니다.
+이 기능은 **기본적으로 비활성화되어 있습니다**. **CLI Code 대시보드**에서
+("CLI 프로필 자동 동기화" → Claude Code) 전환하거나 `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true`로
+설정하세요(`CLI_ALLOW_CONFIG_WRITES`도 따르며, 기본적으로 활성화되어 있음).
+활성화하면 프로필 파일만 작성하며, 활성/기본 Claude 구성, 인증 또는
+`~/.claude/settings.json`은 절대 변경하지 않습니다.
 
 ### 프로필 생성 및 사용
 
@@ -125,13 +139,17 @@ Claude Code에는 Codex의 `~/.codex/<name>.config.toml`과 달리 **네이티�
 # 로컬 OmniRoute
 omniroute setup-claude
 
-# 원격 VPS(VPS URL을 모든 프로필에 포함)
+# 원격 VPS(모든 프로필에 VPS URL을 포함)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # 일부 공급자만
 omniroute setup-claude --only glm,kimi
 
-# 파일을 작성하지 않고 미리 보기
+# 이 호스트에서 감지되지 않은 로컬 CLI 공급자(zcode, auggie, devin-cli-agentic,
+# codex-app-server)의 프로필도 작성(로컬 대상에서는 기본적으로 건너뜀)
+omniroute setup-claude --include-local
+
+# 작성하지 않고 미리 보기
 omniroute setup-claude --dry-run
 
 # 프로필 실행

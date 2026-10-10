@@ -94,12 +94,15 @@ Base URL သည် ကတ်က ဖြေရှင်းသတ်မှတ်ထ
 
 ---
 
-## Profile များ (`CLAUDE_CONFIG_DIR`)
+## ပရိုဖိုင်များ (`CLAUDE_CONFIG_DIR`)
 
-Claude Code တွင် **မူလပါဝင်သော profile file များ မရှိပါ** (Codex ၏ `~/.codex/<name>.config.toml` နှင့် မတူပါ)။
-ပုံမှန်အသုံးပြုသင့်သည့် ယန္တရားမှာ `CLAUDE_CONFIG_DIR` ဖြစ်သည် — profile တစ်ခုချင်းစီအတွက် သီးခြား config directory တစ်ခုစီထားရှိပြီး တစ်ခုချင်းစီတွင် ကိုယ်ပိုင် `settings.json`၊ အထောက်အထားများ၊ မှတ်တမ်းနှင့် cache တို့ ပါဝင်သည်။
+Claude Code တွင် **မူရင်းပရိုဖိုင်ဖိုင်များ မရှိပါ** (Codex ၏ `~/.codex/<name>.config.toml` နှင့် မတူပါ)။
+စံနှုန်းနှင့်ကိုက်ညီသော ယန္တရားမှာ `CLAUDE_CONFIG_DIR` ဖြစ်ပြီး ပရိုဖိုင်တစ်ခုစီအတွက် သီးခြား config directory တစ်ခုစီရှိကာ
+တစ်ခုစီတွင် ကိုယ်ပိုင် `settings.json`၊ အထောက်အထားများ၊ မှတ်တမ်းနှင့် cache တို့ရှိသည်။
 
-`omniroute setup-claude` သည် လက်ရှိ `/v1/models` catalog ကို ရယူပြီး model တစ်ခုစီအတွက် profile တစ်ခုကို `~/.claude/profiles/<name>/settings.json` တွင် ရေးသားပေးကာ **`setup-codex` နှင့် အမည်တူများကိုပင်** ပြန်လည်အသုံးပြုသည် (`glm52`၊ `kimi-k27`၊ `deepseek-pro`၊ …)-
+`omniroute setup-claude` သည် လက်ရှိ `/v1/models` catalog ကို ရယူပြီး model တစ်ခုစီအတွက်
+ပရိုဖိုင်တစ်ခုစီကို `~/.claude/profiles/<name>/settings.json` တွင် ရေးသားကာ
+**`setup-codex` နှင့် တူညီသောအမည်များကို** (`glm52`, `kimi-k27`, `deepseek-pro`, …) ပြန်လည်အသုံးပြုသည်-
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -116,26 +119,40 @@ Claude Code တွင် **မူလပါဝင်သော profile file မျ
 }
 ```
 
-> **Auth token ကို profile ထဲသို့ မည်သည့်အခါမျှ ရေးသားမည်မဟုတ်ပါ။** `omniroute launch --profile <name>` ဖြင့် စတင်ပါ (၎င်းသည် လက်ရှိ context မှ `ANTHROPIC_AUTH_TOKEN` ကို ထည့်သွင်းပေးသည်) သို့မဟုတ် `ANTHROPIC_AUTH_TOKEN` ကို ကိုယ်တိုင် export လုပ်ပြီး `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` ကို run ပါ။
+> **Auth token ကို ပရိုဖိုင်ထဲသို့ မည်သည့်အခါမျှ မရေးသားပါ။** `omniroute launch --profile <name>` ဖြင့်
+> စတင်ပါ (၎င်းသည် လက်ရှိ context မှ `ANTHROPIC_AUTH_TOKEN` ကို ထည့်သွင်းပေးသည်)၊ သို့မဟုတ်
+> `ANTHROPIC_AUTH_TOKEN` ကို ကိုယ်တိုင် export လုပ်ပြီး
+> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` ကို run ပါ။
 
-**Model ရှာဖွေတွေ့ရှိပြီးနောက် အလိုအလျောက် sync လုပ်ခြင်း (ရွေးချယ်ဖွင့်ရသည်)။** Provider model sync လုပ်ခြင်းကြောင့် လက်ရှိ catalog ပြောင်းလဲသည့်အခါတိုင်း OmniRoute သည် အလားတူ `~/.claude/profiles/<name>/settings.json` file များကို အလိုအလျောက် ပြန်လည်ထုတ်ပေးနိုင်သည် — ထို့ကြောင့် command ကို ထပ်မံ run စရာမလိုဘဲ အသစ်ထည့်ထားသော/အမည်ပြောင်းထားသော model များအတွက် profile များ ရရှိမည်ဖြစ်သည်။ ၎င်းကို **မူလအနေဖြင့် ပိတ်ထားသည်**- **CLI Code dashboard** မှ ("CLI profile auto-sync" → Claude Code) ဖွင့်ပါ သို့မဟုတ် `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` ဟု သတ်မှတ်ပါ (`CLI_ALLOW_CONFIG_WRITES` ကိုလည်း လိုက်နာပြီး ၎င်းကို မူလအနေဖြင့် ဖွင့်ထားသည်)။ ဖွင့်ထားသည့်အခါ profile file များကိုသာ ရေးသားသည်၊ သင်၏ လက်ရှိ/default Claude config၊ auth သို့မဟုတ် `~/.claude/settings.json` ကို မည်သည့်အခါမျှ ပြောင်းလဲမည်မဟုတ်ပါ။
+**Model ရှာဖွေတွေ့ရှိပြီးနောက် အလိုအလျောက် sync လုပ်ခြင်း (ရွေးချယ်ဖွင့်နိုင်သည်)။** Provider model
+sync ကြောင့် လက်ရှိ catalog ပြောင်းလဲသည့်အခါတိုင်း OmniRoute သည် အဆိုပါ
+`~/.claude/profiles/<name>/settings.json` ဖိုင်များကို အလိုအလျောက် ပြန်လည်ဖန်တီးနိုင်သည် — ထို့ကြောင့် command ကို
+ထပ်မံ run ရန်မလိုဘဲ အသစ်ထည့်ထားသော/အမည်ပြောင်းထားသော model များအတွက် ပရိုဖိုင်များ ရရှိမည်ဖြစ်သည်။
+၎င်းကို **မူလအားဖြင့် ပိတ်ထားသည်**- **CLI Code dashboard** မှ ("CLI profile
+auto-sync" → Claude Code) ပြောင်းလဲဖွင့်နိုင်သည်၊ သို့မဟုတ် `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` ဟု သတ်မှတ်နိုင်သည်
+(မူလအားဖြင့် ဖွင့်ထားသော `CLI_ALLOW_CONFIG_WRITES` ကိုလည်း လိုက်နာသည်)။ ဖွင့်ထားသည့်အခါ ပရိုဖိုင်ဖိုင်များကိုသာ ရေးသားပြီး
+သင်၏ လက်ရှိ/default Claude config၊ auth သို့မဟုတ် `~/.claude/settings.json` ကို မည်သည့်အခါမျှ မပြောင်းလဲပါ။
 
-### Profile များ ထုတ်လုပ်ခြင်း + အသုံးပြုခြင်း
+### ပရိုဖိုင်များ ဖန်တီးခြင်း + အသုံးပြုခြင်း
 
 ```bash
-# Local OmniRoute
+# စက်တွင်း OmniRoute
 omniroute setup-claude
 
-# Remote VPS (VPS URL ကို profile တိုင်းထဲတွင် ထည့်သွင်းသည်)
+# အဝေးထိန်း VPS (VPS URL ကို ပရိုဖိုင်တိုင်းတွင် ထည့်သွင်းပေးသည်)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Provider အချို့သာ
 omniroute setup-claude --only glm,kimi
 
-# မရေးသားမီ အစမ်းကြည့်ရန်
+# ဤ host တွင် မတွေ့ရှိရသော local-CLI provider များ (zcode, auggie, devin-cli-agentic၊
+# codex-app-server) အတွက် ပရိုဖိုင်များကိုလည်း ရေးသားပါ (local target အတွက် မူလအားဖြင့် ကျော်ထားသည်)
+omniroute setup-claude --include-local
+
+# မရေးသားဘဲ အစမ်းကြည့်ရန်
 omniroute setup-claude --dry-run
 
-# Profile တစ်ခုကို စတင်ရန်
+# ပရိုဖိုင်တစ်ခုကို စတင်ရန်
 omniroute launch --profile kimi-k27
 ```
 

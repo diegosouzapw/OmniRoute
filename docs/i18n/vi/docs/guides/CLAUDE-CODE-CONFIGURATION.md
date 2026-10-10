@@ -125,12 +125,12 @@ thuần túy, đã được kiểm thử đơn vị) được hiển thị bởi
 
 ## Hồ sơ (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **không có tệp hồ sơ gốc** (không giống như `~/.codex/<name>.config.toml` của Codex).
-Cơ chế tiêu chuẩn là `CLAUDE_CONFIG_DIR` — một thư mục cấu hình riêng biệt cho mỗi
+Claude Code **không có tệp hồ sơ gốc** (không giống `~/.codex/<name>.config.toml` của Codex).
+Cơ chế tiêu chuẩn là `CLAUDE_CONFIG_DIR` — một thư mục cấu hình riêng cho mỗi
 hồ sơ, mỗi thư mục có `settings.json`, thông tin xác thực, lịch sử và bộ nhớ đệm riêng.
 
-`omniroute setup-claude` truy xuất danh mục `/v1/models` hiện hành và ghi một
-hồ sơ cho mỗi mô hình vào `~/.claude/profiles/<name>/settings.json`, sử dụng lại
+`omniroute setup-claude` lấy danh mục `/v1/models` hiện tại và ghi một
+hồ sơ cho mỗi mô hình tại `~/.claude/profiles/<name>/settings.json`, sử dụng lại
 **cùng tên như `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
@@ -153,13 +153,12 @@ hồ sơ cho mỗi mô hình vào `~/.claude/profiles/<name>/settings.json`, s�
 > ngữ cảnh đang hoạt động), hoặc tự xuất `ANTHROPIC_AUTH_TOKEN` rồi chạy
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Tự động đồng bộ sau khi khám phá mô hình (tùy chọn bật).** OmniRoute có thể tự động tạo lại các tệp
-`~/.claude/profiles/<name>/settings.json` này bất cứ khi nào thao tác đồng bộ mô hình của nhà cung cấp
-làm thay đổi danh mục hiện hành — nhờ đó các mô hình mới/được đổi tên sẽ có hồ sơ mà không cần chạy lại
-lệnh. Tính năng này **bị tắt theo mặc định**: bật tính năng từ **bảng điều khiển CLI Code** ("CLI profile
-auto-sync" → Claude Code), hoặc đặt `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (tính năng này cũng tuân theo
-`CLI_ALLOW_CONFIG_WRITES`, được bật theo mặc định). Khi được bật, tính năng này chỉ ghi các tệp hồ sơ; nó không bao giờ
-thay đổi cấu hình Claude đang hoạt động/mặc định, thông tin xác thực hoặc `~/.claude/settings.json` của bạn.
+**Tự động đồng bộ sau khi phát hiện mô hình (tùy chọn bật).** OmniRoute có thể tự động tạo lại
+các tệp `~/.claude/profiles/<name>/settings.json` này bất cứ khi nào thao tác đồng bộ mô hình
+của nhà cung cấp làm thay đổi danh mục hiện tại — nhờ đó các mô hình mới hoặc được đổi tên sẽ có
+hồ sơ mà không cần chạy lại lệnh. Tính năng này **mặc định bị tắt**: bật hoặc tắt từ **bảng điều khiển CLI Code** ("Tự động đồng bộ hồ sơ CLI" → Claude Code), hoặc đặt `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (tính năng này cũng tuân theo
+`CLI_ALLOW_CONFIG_WRITES`, mặc định được bật). Khi được bật, tính năng này chỉ ghi các tệp hồ sơ; nó không bao giờ
+thay đổi cấu hình Claude đang hoạt động/mặc định, thông tin xác thực hoặc `~/.claude/settings.json`.
 
 ### Tạo + sử dụng hồ sơ
 
@@ -172,6 +171,10 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Chỉ một số nhà cung cấp
 omniroute setup-claude --only glm,kimi
+
+# Đồng thời ghi hồ sơ cho các nhà cung cấp CLI cục bộ (zcode, auggie, devin-cli-agentic,
+# codex-app-server) không được phát hiện trên máy này (mặc định bị bỏ qua đối với đích cục bộ)
+omniroute setup-claude --include-local
 
 # Xem trước mà không ghi
 omniroute setup-claude --dry-run

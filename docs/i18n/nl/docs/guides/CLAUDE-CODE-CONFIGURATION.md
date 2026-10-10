@@ -129,9 +129,9 @@ bouwer, getest met unittests), weergegeven door `ClaudeGatewayOnboardingBlock`.
 
 ## Profielen (`CLAUDE_CONFIG_DIR`)
 
-Claude Code heeft **geen systeemeigen profielbestanden** (in tegenstelling tot `~/.codex/<name>.config.toml` van Codex).
+Claude Code heeft **geen systeemeigen profielbestanden** (in tegenstelling tot Codex' `~/.codex/<name>.config.toml`).
 Het gebruikelijke mechanisme is `CLAUDE_CONFIG_DIR` — een afzonderlijke configuratiemap per
-profiel, elk met een eigen `settings.json`, referenties, geschiedenis en cache.
+profiel, elk met een eigen `settings.json`, aanmeldgegevens, geschiedenis en cache.
 
 `omniroute setup-claude` haalt de actuele `/v1/models`-catalogus op en schrijft één
 profiel per model naar `~/.claude/profiles/<name>/settings.json`, waarbij
@@ -157,12 +157,15 @@ profiel per model naar `~/.claude/profiles/<name>/settings.json`, waarbij
 > actieve context), of exporteer zelf `ANTHROPIC_AUTH_TOKEN` en voer
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` uit.
 
-**Automatische synchronisatie na modeldetectie (optioneel).** OmniRoute kan dezelfde
-`~/.claude/profiles/<name>/settings.json`-bestanden automatisch opnieuw genereren wanneer een synchronisatie van providermodellen
-de actuele catalogus wijzigt — zodat nieuwe of hernoemde modellen profielen krijgen zonder dat de
-opdracht opnieuw hoeft te worden uitgevoerd. Dit staat **standaard uit**: schakel het in via het **CLI Code-dashboard** ("Automatische synchronisatie van CLI-profielen" → Claude Code), of stel `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` in (hierbij wordt ook
-`CLI_ALLOW_CONFIG_WRITES` gerespecteerd, dat standaard aanstaat). Als dit is ingeschakeld, worden alleen profielbestanden geschreven; je actieve/standaard Claude-configuratie, authenticatie of `~/.claude/settings.json` wordt nooit
-gewijzigd.
+**Automatische synchronisatie na modeldetectie (optioneel).** OmniRoute kan diezelfde
+`~/.claude/profiles/<name>/settings.json`-bestanden automatisch opnieuw genereren wanneer een
+synchronisatie van providermodellen de actuele catalogus wijzigt — zodat nieuwe of hernoemde modellen
+profielen krijgen zonder de opdracht opnieuw uit te voeren. Dit staat **standaard uit**: schakel het in via het
+**CLI Code-dashboard** ("Automatische synchronisatie van CLI-profielen" → Claude Code), of stel
+`OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` in (hierbij wordt ook rekening gehouden met
+`CLI_ALLOW_CONFIG_WRITES`, dat standaard is ingeschakeld). Wanneer dit is ingeschakeld, worden alleen
+profielbestanden geschreven; je actieve/standaard Claude-configuratie, authenticatie en
+`~/.claude/settings.json` worden nooit gewijzigd.
 
 ### Profielen genereren en gebruiken
 
@@ -176,10 +179,14 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 # Alleen bepaalde providers
 omniroute setup-claude --only glm,kimi
 
+# Schrijf ook profielen voor lokale CLI-providers (zcode, auggie, devin-cli-agentic,
+# codex-app-server) die niet op deze host zijn gedetecteerd (standaard overgeslagen voor een lokaal doel)
+omniroute setup-claude --include-local
+
 # Voorbeeldweergave zonder te schrijven
 omniroute setup-claude --dry-run
 
-# Een profiel starten
+# Start een profiel
 omniroute launch --profile kimi-k27
 ```
 

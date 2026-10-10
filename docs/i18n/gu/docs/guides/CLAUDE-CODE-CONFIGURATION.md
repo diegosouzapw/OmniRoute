@@ -124,13 +124,13 @@ Claude ટૂલ કાર્ડ (**Dashboard → CLI Code**) આ ઇન્સ�
 
 ## પ્રોફાઇલ્સ (`CLAUDE_CONFIG_DIR`)
 
-Claude Codeમાં **નેટિવ પ્રોફાઇલ ફાઇલો નથી** (Codexની `~/.codex/<name>.config.toml`થી વિપરીત).
-રૂઢિપ્રયોગી પદ્ધતિ `CLAUDE_CONFIG_DIR` છે — દરેક પ્રોફાઇલ માટે અલગ કૉન્ફિગ ડિરેક્ટરી,
-અને દરેકની પોતાની `settings.json`, ક્રેડેન્શિયલ્સ, હિસ્ટ્રી અને કૅશ હોય છે.
+Claude Codeમાં **મૂળભૂત પ્રોફાઇલ ફાઇલો નથી** (Codexની `~/.codex/<name>.config.toml`થી વિપરીત).
+રૂઢિપ્રયોગી પદ્ધતિ `CLAUDE_CONFIG_DIR` છે — દરેક પ્રોફાઇલ માટે એક અલગ કૉન્ફિગ ડિરેક્ટરી,
+જેમાં દરેકની પોતાની `settings.json`, ઓળખપત્રો, ઇતિહાસ અને કૅશ હોય છે.
 
-`omniroute setup-claude` લાઇવ `/v1/models` કૅટલૉગ મેળવે છે અને
-`~/.claude/profiles/<name>/settings.json` પર દરેક મોડલ માટે એક પ્રોફાઇલ લખે છે, જેમાં
-**`setup-codex` જેવા જ નામો** (`glm52`, `kimi-k27`, `deepseek-pro`, …) ફરીથી વપરાય છે:
+`omniroute setup-claude` લાઇવ `/v1/models` કેટલોગ મેળવે છે અને દરેક મૉડલ માટે
+`~/.claude/profiles/<name>/settings.json` પર એક પ્રોફાઇલ લખે છે, જેમાં
+**`setup-codex` જેવા જ નામોનો ફરીથી ઉપયોગ થાય છે** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
 // ~/.claude/profiles/glm52/settings.json
@@ -147,20 +147,20 @@ Claude Codeમાં **નેટિવ પ્રોફાઇલ ફાઇલો 
 }
 ```
 
-> **ઑથ ટોકન ક્યારેય પ્રોફાઇલમાં લખવામાં આવતું નથી.** `omniroute launch --profile <name>` વડે
-> લૉન્ચ કરો (તે સક્રિય કૉન્ટેક્સ્ટમાંથી `ANTHROPIC_AUTH_TOKEN` ઇન્જેક્ટ કરે છે), અથવા જાતે
-> `ANTHROPIC_AUTH_TOKEN` એક્સપોર્ટ કરીને `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`
-> ચલાવો.
+> **ઑથ ટોકન ક્યારેય પ્રોફાઇલમાં લખાતું નથી.** `omniroute launch --profile <name>` વડે
+> શરૂ કરો (તે સક્રિય કૉન્ટેક્સ્ટમાંથી `ANTHROPIC_AUTH_TOKEN` દાખલ કરે છે), અથવા જાતે
+> `ANTHROPIC_AUTH_TOKEN` એક્સપોર્ટ કરો અને
+> `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude` ચલાવો.
 
-**મોડલ ડિસ્કવરી પછી ઑટો-સિંક (પસંદગીથી સક્રિય કરી શકાય છે).** જ્યારે પણ પ્રોવાઇડર મોડલ
-સિંક લાઇવ કૅટલૉગમાં ફેરફાર કરે ત્યારે OmniRoute એ જ
-`~/.claude/profiles/<name>/settings.json` ફાઇલોને આપમેળે ફરીથી જનરેટ કરી શકે છે — જેથી નવા/નામ બદલાયેલા મોડલને
-કમાન્ડ ફરીથી ચલાવ્યા વિના પ્રોફાઇલ મળે. તે **ડિફૉલ્ટ રૂપે બંધ** છે: તેને **CLI Code dashboard**માંથી ટૉગલ કરો ("CLI profile
-auto-sync" → Claude Code), અથવા `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` સેટ કરો (તે
-`CLI_ALLOW_CONFIG_WRITES`નું પણ પાલન કરે છે, જે ડિફૉલ્ટ રૂપે ચાલુ હોય છે). સક્ષમ હોય ત્યારે તે માત્ર પ્રોફાઇલ ફાઇલો જ લખે છે; તે ક્યારેય
+**મૉડલ શોધ પછી ઑટો-સિંક (ઑપ્ટ-ઇન).** જ્યારે પણ પ્રોવાઇડર મૉડલ
+સિંક લાઇવ કેટલોગમાં ફેરફાર કરે ત્યારે OmniRoute આ જ
+`~/.claude/profiles/<name>/settings.json` ફાઇલોને આપમેળે ફરી જનરેટ કરી શકે છે — જેથી નવા/નામ બદલાયેલા મૉડલને
+કમાન્ડ ફરી ચલાવ્યા વિના પ્રોફાઇલ મળી જાય. તે **ડિફૉલ્ટ રૂપે બંધ** હોય છે: તેને **CLI Code ડૅશબોર્ડ**માંથી ટૉગલ કરો ("CLI પ્રોફાઇલ
+ઑટો-સિંક" → Claude Code), અથવા `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` સેટ કરો (તે
+`CLI_ALLOW_CONFIG_WRITES`ને પણ માન આપે છે, જે ડિફૉલ્ટ રૂપે ચાલુ હોય છે). સક્ષમ હોય ત્યારે તે માત્ર પ્રોફાઇલ ફાઇલો જ લખે છે; તે ક્યારેય
 તમારા સક્રિય/ડિફૉલ્ટ Claude કૉન્ફિગ, ઑથ અથવા `~/.claude/settings.json`ને બદલતું નથી.
 
-### પ્રોફાઇલ્સ જનરેટ કરવી + વાપરવી
+### પ્રોફાઇલ જનરેટ કરવી + વાપરવી
 
 ```bash
 # સ્થાનિક OmniRoute
@@ -169,13 +169,17 @@ omniroute setup-claude
 # રિમોટ VPS (દરેક પ્રોફાઇલમાં VPS URL સમાવે છે)
 omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
-# માત્ર કેટલાક પ્રોવાઇડર્સ
+# માત્ર કેટલાક પ્રોવાઇડર
 omniroute setup-claude --only glm,kimi
 
-# લખ્યા વિના પૂર્વાવલોકન
+# આ હોસ્ટ પર ન મળેલા સ્થાનિક-CLI પ્રોવાઇડર (zcode, auggie, devin-cli-agentic,
+# codex-app-server) માટે પણ પ્રોફાઇલ લખો (સ્થાનિક ટાર્ગેટ માટે ડિફૉલ્ટ રૂપે છોડવામાં આવે છે)
+omniroute setup-claude --include-local
+
+# લખ્યા વિના પૂર્વાવલોકન કરો
 omniroute setup-claude --dry-run
 
-# પ્રોફાઇલ લૉન્ચ કરો
+# પ્રોફાઇલ શરૂ કરો
 omniroute launch --profile kimi-k27
 ```
 

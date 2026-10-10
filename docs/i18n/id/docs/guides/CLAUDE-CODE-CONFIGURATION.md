@@ -125,12 +125,12 @@ murni, diuji dengan pengujian unit) yang ditampilkan oleh `ClaudeGatewayOnboardi
 
 ## Profil (`CLAUDE_CONFIG_DIR`)
 
-Claude Code **tidak memiliki berkas profil bawaan** (tidak seperti `~/.codex/<name>.config.toml` milik Codex).
+Claude Code **tidak memiliki file profil bawaan** (tidak seperti `~/.codex/<name>.config.toml` milik Codex).
 Mekanisme idiomatisnya adalah `CLAUDE_CONFIG_DIR` — direktori konfigurasi terpisah untuk setiap
-profil, masing-masing memiliki `settings.json`, kredensial, riwayat, dan cache sendiri.
+profil, masing-masing dengan `settings.json`, kredensial, riwayat, dan cache sendiri.
 
 `omniroute setup-claude` mengambil katalog `/v1/models` aktif dan menulis satu
-profil per model ke `~/.claude/profiles/<name>/settings.json`, dengan menggunakan kembali
+profil per model di `~/.claude/profiles/<name>/settings.json`, menggunakan kembali
 **nama yang sama seperti `setup-codex`** (`glm52`, `kimi-k27`, `deepseek-pro`, …):
 
 ```jsonc
@@ -150,16 +150,16 @@ profil per model ke `~/.claude/profiles/<name>/settings.json`, dengan menggunaka
 
 > **Token autentikasi tidak pernah ditulis ke profil.** Jalankan dengan
 > `omniroute launch --profile <name>` (perintah ini menyuntikkan `ANTHROPIC_AUTH_TOKEN` dari
-> konteks aktif), atau ekspor sendiri `ANTHROPIC_AUTH_TOKEN` dan jalankan
+> konteks aktif), atau ekspor sendiri `ANTHROPIC_AUTH_TOKEN` lalu jalankan
 > `CLAUDE_CONFIG_DIR=~/.claude/profiles/<name> claude`.
 
-**Sinkronisasi otomatis setelah penemuan model (opsional).** OmniRoute dapat membuat ulang berkas
-`~/.claude/profiles/<name>/settings.json` yang sama secara otomatis setiap kali sinkronisasi model penyedia
-mengubah katalog aktif — sehingga model baru atau yang berganti nama memperoleh profil tanpa perlu menjalankan ulang
-perintah tersebut. Fitur ini **dinonaktifkan secara default**: aktifkan melalui **dasbor CLI Code** ("Sinkronisasi otomatis profil
+**Sinkronisasi otomatis setelah penemuan model (opsional).** OmniRoute dapat membuat ulang file
+`~/.claude/profiles/<name>/settings.json` yang sama secara otomatis setiap kali sinkronisasi model
+penyedia mengubah katalog aktif — sehingga model baru atau yang berganti nama mendapatkan profil tanpa perlu menjalankan ulang
+perintah tersebut. Fitur ini **dinonaktifkan secara default**: aktifkan dari **dasbor CLI Code** ("Sinkronisasi otomatis profil
 CLI" → Claude Code), atau atur `OMNIROUTE_AUTO_SYNC_CLAUDE_PROFILES=true` (fitur ini juga mematuhi
-`CLI_ALLOW_CONFIG_WRITES`, yang aktif secara default). Saat diaktifkan, fitur ini hanya menulis berkas profil; tidak pernah
-mengubah konfigurasi Claude aktif/default, autentikasi, atau `~/.claude/settings.json` Anda.
+`CLI_ALLOW_CONFIG_WRITES`, yang aktif secara default). Saat diaktifkan, fitur ini hanya menulis file profil; fitur ini tidak pernah
+mengubah konfigurasi Claude aktif/default, autentikasi, atau `~/.claude/settings.json`.
 
 ### Membuat + menggunakan profil
 
@@ -172,6 +172,10 @@ omniroute setup-claude --remote http://192.168.0.15:20128 --api-key oma_live_xxx
 
 # Hanya beberapa penyedia
 omniroute setup-claude --only glm,kimi
+
+# Tulis juga profil untuk penyedia CLI lokal (zcode, auggie, devin-cli-agentic,
+# codex-app-server) yang tidak terdeteksi di host ini (dilewati secara default untuk target lokal)
+omniroute setup-claude --include-local
 
 # Pratinjau tanpa menulis
 omniroute setup-claude --dry-run
