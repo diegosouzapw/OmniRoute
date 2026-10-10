@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funktionen</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Anbieter</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Anbieter</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ aus Ihrem Shell-Verlauf heraus. → [CLI-Integrationen](docs/guides/CLI-INTEGRAT
 
 <div align="center">
 
-## 🌐 357 KI-Anbieter — 152 im Katalog als kostenlos gekennzeichnet
+## 🌐 372 KI-Anbieter — 154 im Katalog als kostenlos gekennzeichnet
 
 </div>
 

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkcie</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinácie</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Poskytovatelia</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Poskytovatelia</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI a MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ do histórie shellu. → [Integrácie CLI](docs/guides/CLI-INTEGRATIONS.md)
 
 <div align="center">
 
-## 🌐 357 poskytovateľov AI — 152 označených v katalógu ako bezplatné
+## 🌐 372 poskytovateľov AI — 154 označených v katalógu ako bezplatné
 
 </div>
 

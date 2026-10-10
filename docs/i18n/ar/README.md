@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ الميزات</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 التركيبات</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 المزوّدون</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 المزوّدون</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI وMCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # أيضًا: claude opencode qwen aider goos
 
 <div align="center">
 
-## 🌐 357 مزودًا للذكاء الاصطناعي — 152 منها مُصنَّفة في الدليل على أنها مجانية
+## 🌐 372 مزودًا للذكاء الاصطناعي — 154 منها مُصنَّفة في الدليل على أنها مجانية
 
 </div>
 

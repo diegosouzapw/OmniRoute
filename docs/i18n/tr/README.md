@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Özellikler</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombolar</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Sağlayıcılar</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Sağlayıcılar</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ve MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ kabuk geçmişinizin dışında tutar. → [CLI Entegrasyonları](docs/guides/CL
 
 <div align="center">
 
-## 🌐 357 AI Sağlayıcısı — 152'si Katalogda Ücretsiz Olarak İşaretli
+## 🌐 372 AI Sağlayıcısı — 154'si Katalogda Ücretsiz Olarak İşaretli
 
 </div>
 

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funksjoner</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinasjoner</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Leverandører</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Leverandører</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI og MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ av skallhistorikken din. → [CLI-integrasjoner](docs/guides/CLI-INTEGRATIONS.md
 
 <div align="center">
 
-## 🌐 357 KI-leverandører — 152 katalogmerket som gratis
+## 🌐 372 KI-leverandører — 154 katalogmerket som gratis
 
 </div>
 
