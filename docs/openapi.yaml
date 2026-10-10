@@ -15513,6 +15513,9 @@ components:
       description: >-
         Per-model pause state. `ok` means no pause observed by this instance;
         `unknown` marks ids that resolve to no routable provider model.
+        `none_honored` reports whether reasoning_effort=none was honored in
+        the trailing call_logs window (`true` honored, `false` not honored,
+        `null` unknown when the sample is empty or too small).
       properties:
         id:
           type: string
@@ -15526,6 +15529,16 @@ components:
         observed_at:
           type: string
           format: date-time
+        none_honored:
+          type: boolean
+          nullable: true
+          description: Whether reasoning_effort=none was honored; null when unknown.
+        none_sample_size:
+          type: integer
+          description: Number of none requests counted in the window.
+        none_window_hours:
+          type: integer
+          description: Trailing window in hours backing none_honored.
 
     Model:
       type: object

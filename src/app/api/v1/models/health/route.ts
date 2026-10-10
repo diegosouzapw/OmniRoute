@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { foldModelHealth } from "@/domain/modelAvailability";
+import { getNoneHonoredSnapshot, readNoneHonored } from "@/lib/db/reasoningEffortCompliance";
 import { getModelCatalogAuthRejection } from "../catalogRequest";
 import { CORS_HEADERS, handleCorsOptions } from "@/shared/utils/cors";
 import { buildErrorBody } from "@omniroute/open-sse/utils/error";
@@ -50,7 +51,13 @@ export async function GET(request: Request) {
 
     const now = Date.now();
     const requestIds = readRequestedIds(request.url);
+    const noneHonored = getNoneHonoredSnapshot(undefined, now);
     const data = scoped.rows.map((row) => {
+      const byId = readNoneHonored(noneHonored, row.id);
+      const noneEntry =
+        byId.honored !== null || byId.sampleSize > 0
+          ? byId
+          : readNoneHonored(noneHonored, row.rawModel);
       const eligible: HealthActiveConnection[] = ctx.connsFor(row.provider);
       const withNoAuth: HealthActiveConnection[] = [...eligible];
       if (isNoAuthProviderKey(row.provider) && !withNoAuth.some((c) => c.id === "noauth")) {
@@ -71,9 +78,14 @@ export async function GET(request: Request) {
           ? { retry_after: folded.retryAfterMs }
           : {}),
         observed_at: folded.observedAt,
+        none_honored: noneEntry.honored,
+        none_sample_size: noneEntry.sampleSize,
+        none_window_hours: noneHonored.window.hours,
       };
     });
-    appendUnknownIds(data, requestIds, scoped.rows, now);
+    appendUnknownIds(data, requestIds, scoped.rows, now, noneHonored, (id) =>
+      readNoneHonored(noneHonored, id)
+    );
 
     return NextResponse.json({ object: "list", data }, { headers: { ...CORS_HEADERS } });
   } catch (error: unknown) {
@@ -103,7 +115,9 @@ function appendUnknownIds(
   data: Array<Record<string, unknown>>,
   requestIds: string[],
   rows: Array<{ id: string }>,
-  now: number
+  now: number,
+  noneHonored: { window: { hours: number } },
+  readEntry: (id: string) => { honored: boolean | null; sampleSize: number }
 ): void {
   if (requestIds.length === 0) return;
   const known = new Set(rows.map((row) => row.id));
@@ -112,6 +126,14 @@ function appendUnknownIds(
   for (const id of requestIds) {
     if (known.has(id)) continue;
     known.add(id);
-    data.push({ id, state: "unknown", observed_at: observedAt });
+    const noneEntry = readEntry(id);
+    data.push({
+      id,
+      state: "unknown",
+      observed_at: observedAt,
+      none_honored: noneEntry.honored,
+      none_sample_size: noneEntry.sampleSize,
+      none_window_hours: noneHonored.window.hours,
+    });
   }
 }
