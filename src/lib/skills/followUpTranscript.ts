@@ -391,6 +391,10 @@ export function buildFollowUpSourceBody(
       });
     });
 
+    if (input.advisory) {
+      messages.push({ role: "user", content: input.advisory });
+    }
+
     return { ...sourceBody, messages, stream: false };
   }
 
@@ -399,13 +403,20 @@ export function buildFollowUpSourceBody(
   // content — Anthropic rejects it (openai-to-claude.ts:323).
   const toolUseBlocks = resolveClaudeToolUseBlocks(previousResponse, toolCalls, matchedIds);
   messages.push({ role: "assistant", content: toolUseBlocks });
+  const toolResultBlocks: unknown[] = boundedResults.map((bounded, index) => ({
+    type: "tool_result",
+    tool_use_id: results[index].id,
+    content: bounded.text,
+  }));
+  // A tool_result must never share the assistant content — Anthropic rejects it
+  // (openai-to-claude.ts:323). The advisory rides as an extra text block on the
+  // same user turn, after the results.
+  if (input.advisory) {
+    toolResultBlocks.push({ type: "text", text: input.advisory });
+  }
   messages.push({
     role: "user",
-    content: boundedResults.map((bounded, index) => ({
-      type: "tool_result",
-      tool_use_id: results[index].id,
-      content: bounded.text,
-    })),
+    content: toolResultBlocks,
   });
 
   return { ...sourceBody, messages };

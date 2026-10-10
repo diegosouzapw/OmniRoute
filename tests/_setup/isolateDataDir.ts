@@ -68,3 +68,20 @@ process.env.ADOBE_FIREFLY_BROWSER_REFRESH ||= "0";
 // DNS-write guard: the suite must NEVER mutate /etc/hosts. Tests that exercise
 // the real MITM path call addDNSEntries(); this env var makes it a no-op.
 process.env.OMNIROUTE_SKIP_DNS_WRITE = "1";
+
+// Decision-layer hermeticity: the Jev integration lanes default to engaging
+// whenever a classifier credential resolves, and the credential is read from the
+// process env first (OMNIROUTE_JEV_API_KEY / TYPESAFE_API_KEY). Developer shells
+// managed by agents (omp exports TYPESAFE_API_KEY from ~/.omp/agent/.env) would
+// therefore silently switch production-path tests onto the decision lanes and
+// break contracts pinned before the integration existed. Tests that exercise the
+// lanes set these variables explicitly per test; everything else must see none.
+for (const key of Object.keys(process.env)) {
+  if (
+    key.startsWith("OMNIROUTE_JEV_") ||
+    key === "TYPESAFE_API_KEY" ||
+    key === "TYPESAFE_BASE_URL"
+  ) {
+    delete process.env[key];
+  }
+}

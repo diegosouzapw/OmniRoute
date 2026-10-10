@@ -2,6 +2,7 @@ import { projectSkillOutputForBoundary, skillExecutor } from "./executor";
 import { skillRegistry } from "./registry";
 import { builtinSkills } from "./builtins";
 import { memoryBuiltinHandlers, MEMORY_BUILTIN_TOOL_NAMES } from "./memoryBuiltins";
+import { jevBuiltinHandlers, JEV_BUILTIN_TOOL_NAMES } from "./jevBuiltins";
 import { detectProvider, decodeSkillToolName } from "./injection";
 import { OMNIROUTE_WEB_SEARCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webSearchFallback.ts";
 import { OMNIROUTE_WEB_FETCH_FALLBACK_TOOL_NAME } from "@omniroute/open-sse/services/webFetchInterception.ts";
@@ -51,11 +52,16 @@ const BUILTIN_TOOL_ALIASES: Record<string, string> = {
 };
 
 const MEMORY_TOOL_NAMES = new Set<string>(MEMORY_BUILTIN_TOOL_NAMES);
+const JEV_TOOL_NAMES = new Set<string>(JEV_BUILTIN_TOOL_NAMES);
 
 function resolveBuiltinHandlerName(
   toolName: string,
   context: ExecutionContext
-): keyof typeof builtinSkills | keyof typeof memoryBuiltinHandlers | null {
+):
+  | keyof typeof builtinSkills
+  | keyof typeof memoryBuiltinHandlers
+  | keyof typeof jevBuiltinHandlers
+  | null {
   const [rawName] = toolName.includes("@") ? toolName.split("@") : [toolName];
   const canonicalName = BUILTIN_TOOL_ALIASES[rawName] || rawName;
   const allowed = new Set(
@@ -71,6 +77,9 @@ function resolveBuiltinHandlerName(
   }
   if (MEMORY_TOOL_NAMES.has(canonicalName)) {
     return canonicalName as keyof typeof memoryBuiltinHandlers;
+  }
+  if (JEV_TOOL_NAMES.has(canonicalName)) {
+    return canonicalName as keyof typeof jevBuiltinHandlers;
   }
   return null;
 }
@@ -122,6 +131,7 @@ export async function interceptToolCalls(
           });
 
           const isMemoryHandler = MEMORY_TOOL_NAMES.has(builtinHandlerName);
+          const isJevHandler = JEV_TOOL_NAMES.has(builtinHandlerName);
           const result = isMemoryHandler
             ? await memoryBuiltinHandlers[builtinHandlerName as keyof typeof memoryBuiltinHandlers](
                 call.arguments,
@@ -130,15 +140,19 @@ export async function interceptToolCalls(
                   sessionId: context.sessionId,
                 }
               )
-            : await builtinSkills[builtinHandlerName as keyof typeof builtinSkills](
-                call.arguments,
-                {
-                  apiKeyId: context.apiKeyId,
-                  sessionId: context.sessionId,
-                  provider: context.provider,
-                  model: context.model,
-                }
-              );
+            : isJevHandler
+              ? await jevBuiltinHandlers[builtinHandlerName as keyof typeof jevBuiltinHandlers](
+                  call.arguments
+                )
+              : await builtinSkills[builtinHandlerName as keyof typeof builtinSkills](
+                  call.arguments,
+                  {
+                    apiKeyId: context.apiKeyId,
+                    sessionId: context.sessionId,
+                    provider: context.provider,
+                    model: context.model,
+                  }
+                );
 
           log.info("skills.interception.execution_complete", {
             toolName: call.name,
@@ -516,6 +530,7 @@ export async function executeServerOwned(
   for (const call of calls) {
     const builtinHandlerName = resolveBuiltinHandlerName(call.name, context);
     const isMemoryBuiltin = builtinHandlerName && MEMORY_TOOL_NAMES.has(builtinHandlerName);
+    const isJevBuiltin = builtinHandlerName && JEV_TOOL_NAMES.has(builtinHandlerName);
     const isOrdinaryBuiltin = builtinHandlerName && builtinHandlerName in builtinSkills;
     const isCustomSkill =
       !builtinHandlerName &&
@@ -529,6 +544,10 @@ export async function executeServerOwned(
           apiKeyId: context.apiKeyId,
           sessionId: context.sessionId,
         });
+      }
+      if (isJevBuiltin) {
+        const handlerName = builtinHandlerName as keyof typeof jevBuiltinHandlers;
+        return jevBuiltinHandlers[handlerName](call.arguments);
       }
       if (isOrdinaryBuiltin) {
         const handlerName = builtinHandlerName as keyof typeof builtinSkills;

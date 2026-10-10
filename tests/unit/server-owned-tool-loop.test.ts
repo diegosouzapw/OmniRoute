@@ -16,6 +16,11 @@ import type {
 } from "../../src/lib/skills/toolLoopTypes.ts";
 import { ServerOwnedExecutionError, extractToolCalls } from "../../src/lib/skills/interception.ts";
 import { buildFollowUpSourceBody } from "../../src/lib/skills/followUpTranscript.ts";
+import { JEV_STOP_TOOLS_ADVISORY_TEXT } from "../../src/lib/skills/jevWorkflowAdvisory.ts";
+import {
+  __resetJevClientForTests,
+  __resetJevRuntimeCacheForTests,
+} from "../../open-sse/services/jev/index.ts";
 
 // ─── Fix 6: serializedResultTextById verbatim use ────────────────────────────
 
@@ -1101,4 +1106,93 @@ test("failed leg receipt still enters receipts array with usage and cost", async
   assert.ok(result.receipts[1].usage, "failed leg receipt must have usage");
   assert.strictEqual(result.receipts[1].httpStatus, 429);
   assert.strictEqual(result.totalCostUsd, 0.0015, "cost includes failed leg");
+});
+
+// ─── Jev workflow-step advisory rides the follow-up transcript ───────────────
+
+test("Jev stop-tools advisory is appended from the SECOND follow-up onward", async () => {
+  const envKeys = [
+    "OMNIROUTE_JEV_ENABLED",
+    "OMNIROUTE_JEV_API_KEY",
+    "OMNIROUTE_JEV_BASE_URL",
+    "OMNIROUTE_JEV_FEATURES",
+  ] as const;
+  const saved = envKeys.map((key) => [key, process.env[key]] as const);
+  const savedFetch = globalThis.fetch;
+  process.env.OMNIROUTE_JEV_API_KEY = "test-key";
+  // #15641: the decision layer is opt-in — a credential alone engages nothing.
+  process.env.OMNIROUTE_JEV_ENABLED = "on";
+  process.env.OMNIROUTE_JEV_BASE_URL = "https://jev.test";
+  process.env.OMNIROUTE_JEV_FEATURES = "tool_loop";
+  // Earlier tests in this file resolved the runtime without a credential; the
+  // resolver memoizes negatives for 15s, so clear it before the env switches on.
+  __resetJevRuntimeCacheForTests();
+  __resetJevClientForTests();
+  let jevCalls = 0;
+  globalThis.fetch = (async () => {
+    jevCalls += 1;
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ answers: { proceed: { type: "noul", noul: 0.05 } } }),
+      text: async () => "",
+    } as unknown as Response;
+  }) as typeof fetch;
+
+  try {
+    const resumeBodies: Array<Record<string, unknown>> = [];
+    const result = await runServerOwnedToolLoop(
+      makeDefaultOptions({
+        resumeUpstream: async (body: Record<string, unknown>) => {
+          resumeBodies.push(body);
+          if (resumeBodies.length === 1) {
+            // The loop's second round also ends in a server-owned tool call, so a
+            // second resume (followUps >= 1) is where the advisory must appear.
+            return makeOkLeg({
+              response: {
+                id: "chatcmpl-second",
+                choices: [
+                  {
+                    message: {
+                      role: "assistant",
+                      content: null,
+                      tool_calls: [
+                        {
+                          id: "call_2",
+                          type: "function",
+                          function: { name: "memory_search", arguments: '{"query":"bar"}' },
+                        },
+                      ],
+                    },
+                    finish_reason: "tool_calls",
+                  },
+                ],
+              },
+            });
+          }
+          return makeServerOwnedCallResponse("call_2", "memory_search");
+        },
+      })
+    );
+
+    assert.strictEqual(result.kind, "ok");
+    assert.strictEqual(resumeBodies.length, 2, "two resume legs expected");
+    assert.strictEqual(jevCalls, 1, "one decision call after the first follow-up");
+
+    const firstMessages = resumeBodies[0].messages as Array<Record<string, unknown>>;
+    const firstLast = firstMessages[firstMessages.length - 1];
+    assert.notDeepEqual(firstLast, { role: "user", content: JEV_STOP_TOOLS_ADVISORY_TEXT });
+
+    const secondMessages = resumeBodies[1].messages as Array<Record<string, unknown>>;
+    assert.deepEqual(secondMessages[secondMessages.length - 1], {
+      role: "user",
+      content: JEV_STOP_TOOLS_ADVISORY_TEXT,
+    });
+  } finally {
+    globalThis.fetch = savedFetch;
+    for (const [key, value] of saved) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
 });

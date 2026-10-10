@@ -165,6 +165,11 @@ export interface BuildFollowUpTranscriptInput {
   maxResultBytes: number;
   maxTotalResultBytes?: number;
   serializedResultTextById?: Map<string, string>;
+  /**
+   * Optional advisory text appended as a trailing user message (Jev
+   * workflow-step selector). Null/absent leaves the transcript byte-identical.
+   */
+  advisory?: string | null;
 }
 
 export interface BoundedToolResult {

@@ -1367,7 +1367,6 @@ async function handleChatCoreInner({
     try {
       const {
         selectCompressionStrategy,
-        selectCompressionPlan,
         enginesMapDerivesStackedPipeline,
         activeComboResolves,
         applyCompressionAsync,
@@ -1376,6 +1375,9 @@ async function handleChatCoreInner({
         buildNamedComboLookup,
         formatCompressionAnnotation,
       } = await import("../services/compression/strategySelector.ts");
+      const { resolveCompressionPlanWithJev } =
+        await import("../services/compression/jevPlan.ts");
+      const { isDecisionModelRequest } = await import("../services/jev/index.ts");
       const { trackCompressionStats } = await import("../services/compression/stats.ts");
       let config: CompressionConfig = compressionSettings ?? createDisabledCompressionConfig();
       if (compressionExcluded || !apiKeyCompressionEnabled) {
@@ -1623,33 +1625,24 @@ async function handleChatCoreInner({
         }
       }
       const compressionInputBody = body as Record<string, unknown>;
-      // Adaptive context-budget (Sub-project C): model context window + request max_tokens drive
-      // the budget target. getTokenLimit is already imported; provider/effectiveModel resolved above.
-      const adaptiveModelContextLimit =
-        provider && effectiveModel ? getTokenLimit(provider, effectiveModel) : null;
-      const requestMaxTokens =
-        typeof (compressionInputBody as Record<string, unknown>)?.max_tokens === "number"
-          ? ((compressionInputBody as Record<string, unknown>).max_tokens as number)
-          : null;
-      let adaptiveTelemetry:
-        import("../services/compression/adaptiveCompression/types.ts").AdaptiveTelemetry | null =
-        null;
-      const compressionPlan = selectCompressionPlan(
+      // Adaptive context-budget (Sub-project C) + Jev refinement are resolved in one
+      // place; operator layers and engaged adaptive escalations always win.
+      const compressionResolution = await resolveCompressionPlanWithJev({
         config,
-        compressionComboKey,
+        comboId: compressionComboKey,
         estimatedTokens,
-        compressionInputBody,
-        { provider, targetFormat, model: effectiveModel, connectionCacheOverride },
-        namedCombos,
-        compressionHeader,
-        {
-          modelContextLimit: adaptiveModelContextLimit,
-          requestMaxTokens: requestMaxTokens,
-          onAdaptive: (t) => {
-            adaptiveTelemetry = t;
-          },
-        }
-      );
+        body: compressionInputBody,
+        context: { provider, targetFormat, model: effectiveModel, connectionCacheOverride },
+        combos: namedCombos,
+        header: compressionHeader,
+        provider,
+        model: effectiveModel,
+        log,
+        suppressDecisionLayer: isDecisionModelRequest(clientRawRequest?.headers),
+      });
+      let compressionPlan = compressionResolution.plan;
+      config = compressionResolution.config;
+      const adaptiveTelemetry = compressionResolution.telemetry;
       const mode = compressionPlan.mode as CompressionConfig["defaultMode"];
       if (adaptiveTelemetry && adaptiveTelemetry.fit === false) {
         log?.warn?.(

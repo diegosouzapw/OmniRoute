@@ -7,6 +7,8 @@ import {
 import { injectMemory, shouldInjectMemory } from "@/lib/memory/injection";
 import { injectSkillsWithMetadata } from "@/lib/skills/injection";
 import { buildMemoryToolsForProvider } from "@/lib/skills/memoryBuiltins";
+import { buildJevToolsForProvider } from "@/lib/skills/jevBuiltins";
+import { isJevFeatureEnabled, resolveJevRuntime } from "../../services/jev/config.ts";
 import { skillRegistry } from "@/lib/skills/registry";
 import { FORMATS } from "../../translator/formats.ts";
 import { detectCachingContext } from "../../services/compression/cachingAware.ts";
@@ -215,6 +217,30 @@ export async function injectMemoryAndSkills({
         "MEMORY",
         `Injected ${newMemoryTools.length} memory tool(s) for key=${memoryOwnerId}`
       );
+    }
+  }
+
+  if (body.stream !== true && isJevFeatureEnabled("tool_loop") && (await resolveJevRuntime())) {
+    // The decision-model tool (`jev_decide`) is a server-owned builtin like the
+    // memory tools: the gateway executes it in the non-streaming tool loop, so
+    // streaming clients (which execute tools client-side) never see it. The
+    // runtime check keeps un-credentialed installs byte-identical (no tool is
+    // announced that could never execute).
+    const existingTools = Array.isArray(body.tools) ? body.tools : [];
+    const existingToolNames = new Set(existingTools.map(getToolName).filter(Boolean));
+    const jevTools = buildJevToolsForProvider(getSkillsProviderForFormat(sourceFormat)).filter(
+      (tool) => {
+        const name = getToolName(tool);
+        return name.length > 0 && !existingToolNames.has(name);
+      }
+    );
+    if (jevTools.length > 0) {
+      body = {
+        ...body,
+        tools: [...existingTools, ...jevTools],
+      };
+      builtinOwnerSet.push(...jevTools.map(getToolName).filter(Boolean));
+      log?.debug?.("JEV", `Injected ${jevTools.length} decision tool(s)`);
     }
   }
 

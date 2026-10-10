@@ -25,12 +25,12 @@ export function registerToolSearchTool(
         "Search MCP tools by keyword; returns compact one-line TS signatures for token-efficient discovery.",
       inputSchema: toolSearchInput,
     },
-    withScopeEnforcement("omniroute_tool_search", (args) => {
+    withScopeEnforcement("omniroute_tool_search", async (args) => {
       const parsed = toolSearchInput.parse(args ?? {});
-      const result = handleToolSearch(parsed);
-      return Promise.resolve({
+      const result = await handleToolSearch(parsed);
+      return {
         content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }],
-      });
+      };
     })
   );
 }

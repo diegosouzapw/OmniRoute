@@ -13,6 +13,8 @@ import { attachOmniRouteMetaHeaders } from "@/domain/omnirouteResponseMeta";
 import { extractUsageFromResponse } from "../usageExtractor.ts";
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import { getSemanticCacheManager } from "../../services/cache/semanticCacheManager.ts";
+import { maybeAllowJevCacheRead } from "./jevCacheGate.ts";
+import { isDecisionModelRequest } from "../../services/jev/index.ts";
 
 export function isSemanticCacheEnabled(
   settings: Record<string, unknown>,
@@ -65,7 +67,21 @@ export async function checkSemanticCache({
   if (videoTranscriptSensitive) return null;
   // Per-key bypass: skip cache lookup entirely when the API key opts out.
   if (cacheDefaultMode === "bypass") return null;
-  if (semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers)) {
+  // The heuristic owns the fast path. When it says "not cacheable" the decision
+  // model may widen the gate for a request it judges clearly cache-safe (high
+  // confidence only); it can never narrow an already-allowed read, and any
+  // failure keeps today's behavior (skip). `videoTranscriptSensitive` and
+  // `cacheDefaultMode === "bypass"` are already handled by the early returns above.
+  let cacheableForRead =
+    semanticCacheEnabled && isCacheableForRead(body, clientRawRequest?.headers);
+  if (
+    !cacheableForRead &&
+    semanticCacheEnabled &&
+    !isDecisionModelRequest(clientRawRequest?.headers)
+  ) {
+    cacheableForRead = await maybeAllowJevCacheRead({ body, model, log });
+  }
+  if (cacheableForRead) {
     const manager = getSemanticCacheManager();
     const managerResult = await manager.lookup({
       body,

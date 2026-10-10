@@ -24,6 +24,10 @@ import {
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { createStreamDeadlineSignal } from "@omniroute/open-sse/utils/streamDeadlineSignal";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
+import {
+  applyJevKeepaliveTuning,
+  buildKeepaliveTuningKey,
+} from "@omniroute/open-sse/utils/keepaliveJevTuning";
 import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "@omniroute/open-sse/utils/sseHeartbeat";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
@@ -210,7 +214,13 @@ async function postHandler(request: any) {
       generateRequestId();
     const wantsStreaming = resolveStreamFlag(resolvedBody?.stream, accept, "openai-responses");
     if (wantsStreaming) {
-      const thresholdMs = resolveKeepaliveThreshold(resolvedBody?.model);
+      const thresholdMs = applyJevKeepaliveTuning(
+        resolveKeepaliveThreshold(resolvedBody?.model),
+        buildKeepaliveTuningKey({
+          model: resolvedBody?.model,
+          hasTools: Array.isArray(resolvedBody?.tools) && resolvedBody.tools.length > 0,
+        })
+      );
       const { signal: streamSignal, deadlineController } = createStreamDeadlineSignal(
         request.signal
       );

@@ -6,6 +6,26 @@
 // `TypeError: window.matchMedia is not a function` unless this polyfill runs
 // first. Keep this minimal — it only needs to satisfy the subset of the
 // MediaQueryList API this codebase actually calls.
+
+// Decision-layer hermeticity (mirrors tests/_setup/isolateDataDir.ts for the
+// node:test runner): the Jev/decision-model lanes default to engaging whenever a
+// classifier credential resolves from the process env, and agent-managed
+// developer shells export TYPESAFE_API_KEY. Without this strip, vitest-based
+// suites silently switch onto the decision lanes — the MCP tool guard then adds
+// one fetch per tool call and consumes `mockResolvedValueOnce` queues in
+// pre-existing suites (10 MCP files failed this way on a credentialed box, all
+// green with the credential removed). Tests that exercise the lanes set these
+// variables explicitly per test; everything else must see none.
+for (const key of Object.keys(process.env)) {
+  if (
+    key.startsWith("OMNIROUTE_JEV_") ||
+    key === "TYPESAFE_API_KEY" ||
+    key === "TYPESAFE_BASE_URL"
+  ) {
+    delete process.env[key];
+  }
+}
+
 if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
   window.matchMedia = (query: string): MediaQueryList => {
     const mql = {

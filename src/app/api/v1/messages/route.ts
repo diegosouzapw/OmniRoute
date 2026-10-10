@@ -11,6 +11,10 @@ import {
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { createStreamDeadlineSignal } from "@omniroute/open-sse/utils/streamDeadlineSignal";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
+import {
+  applyJevKeepaliveTuning,
+  buildKeepaliveTuningKey,
+} from "@omniroute/open-sse/utils/keepaliveJevTuning";
 import { resolveStreamFlag } from "@omniroute/open-sse/utils/aiSdkCompat";
 
 let initialized = false;
@@ -82,7 +86,13 @@ async function postHandler(request: any, context: any, preParsedBody: any = null
       handleChat(request, null, body, correlationId, streamSignal),
       {
         signal: streamSignal,
-        thresholdMs: resolveKeepaliveThreshold(body?.model),
+        thresholdMs: applyJevKeepaliveTuning(
+          resolveKeepaliveThreshold(body?.model),
+          buildKeepaliveTuningKey({
+            model: body?.model,
+            hasTools: Array.isArray(body?.tools) && body.tools.length > 0,
+          })
+        ),
         keepaliveFrame: ANTHROPIC_PING_FRAME,
         correlationId,
         deadlineController,

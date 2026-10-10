@@ -396,6 +396,26 @@ export async function runServerOwnedToolLoop(
       };
     }
 
+    // Jev workflow-step advisory (opt-in, fail-open): after at least one
+    // completed follow-up round, ask the decision layer whether another tool
+    // call can still advance the goal. A confident "no" appends a stop-tools
+    // instruction to the next leg; the model may ignore it and the loop
+    // contract is unchanged.
+    let stopToolsAdvisory: string | null = null;
+    if (followUps >= 1) {
+      try {
+        const { extractGoalText, maybeJevStopToolsAdvisory } =
+          await import("./jevWorkflowAdvisory.ts");
+        stopToolsAdvisory = await maybeJevStopToolsAdvisory({
+          goal: extractGoalText(currentSourceBody),
+          steps: [...serverOwned.map((call) => call.name), ...serMap.values()],
+          stepsTaken: followUps + 1,
+        });
+      } catch {
+        stopToolsAdvisory = null;
+      }
+    }
+
     // Build accumulated transcript
     const nextSourceBody = buildFollowUpSourceBody({
       sourceBody: currentSourceBody,
@@ -406,6 +426,7 @@ export async function runServerOwnedToolLoop(
       maxResultBytes,
       maxTotalResultBytes: maxTotalResultBytes - cumulativeOutputBytes,
       serializedResultTextById: serMap,
+      advisory: stopToolsAdvisory,
     });
 
     // Resume upstream
