@@ -1,0 +1,1 @@
+- **fix(dashboard):** Organize sidebar navigation with compact links, collapsible subgroups, clearer active-page styling, accessible keyboard controls, and a mobile close button. ([#12869](https://github.com/diegosouzapw/OmniRoute/pull/12869)) — thanks @yugui923.
