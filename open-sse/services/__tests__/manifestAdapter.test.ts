@@ -1,10 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   generateRoutingHints,
   compareByCostEffectiveness,
   estimateRequestCost,
 } from "../manifestAdapter.ts";
 import type { ResolvedComboTarget } from "../combo.ts";
+
+// These assertions exercise catalog-based routing, not database initialization.
+// Keep storage at its public boundary; DB-price and fallback wiring have separate controls.
+vi.mock("@/lib/db/settings", () => ({ getPricingForModel: async () => null }));
 
 function makeTarget(provider: string, model: string): ResolvedComboTarget {
   return {
@@ -68,7 +72,9 @@ describe("ManifestAdapter", () => {
       const hints = await generateRoutingHints(targets, {
         messages: [{ content: "Hello" }],
       });
-      expect(hints.eligibleTargets.length).toBeGreaterThanOrEqual(0);
+      expect(hints.eligibleTargets).toHaveLength(2);
+      expect(hints.tierAssignments.get("kiro::claude-sonnet-4.5")?.tier).toBe("free");
+      expect(hints.tierAssignments.get("openai::gpt-4o")?.tier).toBe("premium");
     });
   });
 

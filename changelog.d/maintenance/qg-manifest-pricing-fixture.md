@@ -1,0 +1,1 @@
+Isolate catalog-routing unit tests from cold database initialization, strengthen mixed-target assertions, and add controls for database pricing, storage failure fallback, and explicit routing policy through the adapter entry point.
