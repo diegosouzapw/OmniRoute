@@ -807,7 +807,8 @@ export async function executeTargetAttempt(opts: {
         target: toRecordedTarget(target),
       });
       state.recordedAttempts++;
-      state.fallbackCount++;
+      // Terminal stop — the combo does not advance to another target, so no
+      // fallback was attempted here whatever the index of the failing target is.
       return { ok: false, response: result };
     }
 
@@ -864,7 +865,8 @@ export async function executeTargetAttempt(opts: {
         target: toRecordedTarget(target),
       });
       state.recordedAttempts++;
-      state.fallbackCount++;
+      // Terminal stop: the same input would fail identically on every account, so
+      // the combo aborts instead of moving on — no fallback happened.
       return { ok: false, response: result };
     }
     const fallbackResult = checkFallbackError(
@@ -965,7 +967,8 @@ export async function executeTargetAttempt(opts: {
         code: structuredError?.code,
       });
       state.lastStatus = result.status;
-      state.fallbackCount++;
+      // Terminal stop ("stopping combo"): no later target is tried, so this is not
+      // a fallback even when the failing target is not the first one.
       deps.log.warn("COMBO", `Model ${modelStr} failed with body-specific error, stopping combo`);
       deps.clearStaleLKGP(
         deps.combo.name,
