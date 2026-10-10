@@ -22,6 +22,7 @@ const { translateRequest } = await import("../../open-sse/translator/index.ts");
 const { FORMATS } = await import("../../open-sse/translator/formats.ts");
 const {
   buildGeminiThoughtSignatureKey,
+  scopeGeminiThoughtSignatureNamespace,
   storeGeminiThoughtSignature,
   getGeminiThoughtSignature,
   clearGeminiThoughtSignatures,
@@ -220,7 +221,15 @@ test("translateRequest threads signatureNamespace on direct CLAUDE→GEMINI path
   const ns = "conn-8979-direct-ns";
   const toolId = "toolu_8979_direct";
   const signature = "SIG_8979_DIRECT_NS";
-  storeGeminiThoughtSignature(buildGeminiThoughtSignatureKey(ns, toolId), signature);
+  // The streaming writer scopes the namespace by model family (#4136), so seed the
+  // cache the same way a gemini-3.6-flash response would have.
+  storeGeminiThoughtSignature(
+    buildGeminiThoughtSignatureKey(
+      scopeGeminiThoughtSignatureNamespace(ns, "gemini-3.6-flash"),
+      toolId
+    ),
+    signature
+  );
 
   const result = translateRequest(
     FORMATS.CLAUDE,

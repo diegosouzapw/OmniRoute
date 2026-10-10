@@ -1,5 +1,6 @@
 import { translateResponse, initState } from "../translator/index.ts";
 import { FORMATS } from "../translator/formats.ts";
+import { scopeGeminiThoughtSignatureNamespace } from "../services/geminiThoughtSignatureStore.ts";
 import { appendRequestLog } from "@/lib/usageDb";
 import { clearPendingRequestOnce } from "./pendingRequestCleanup.ts";
 import { resolveTrailingUsageSummary } from "./passthroughTrailingUsage.ts";
@@ -864,7 +865,9 @@ export function createSSEStream(options: StreamOptions = {}) {
           ...(initState(sourceFormat) as TranslateState),
           provider,
           toolNameMap,
-          signatureNamespace: connectionId,
+          // Scope by model family so a Claude signature is never replayed to Gemini
+          // (or the reverse) on a shared Antigravity connection (#4136).
+          signatureNamespace: scopeGeminiThoughtSignatureNamespace(connectionId, model),
           copilotCompatibleReasoning,
           suppressThinkClose,
           requestedThinking,
