@@ -14,6 +14,7 @@ import {
   type TlsFetchResult,
 } from "../services/perplexityTlsClient.ts";
 import { prepareToolMessages } from "../translator/webTools.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import { buildToolModeResponse } from "./chatgptWebTools.ts";
 import { projectPublicErrorIdentifier, sanitizeErrorMessage } from "../utils/error.ts";
 import { buildSessionCookieHeader, mergeRefreshedCookie } from "../utils/nextAuthCookie.ts";
@@ -581,6 +582,9 @@ export class PerplexityWebExecutor extends BaseExecutor {
       );
       return { response: errResp, url: PPLX_SSE_ENDPOINT, headers, transformedBody: pplxBody };
     }
+
+    const sink = currentAppliedProxySink();
+    if (sink && response.status >= 400) sink.upstreamStatus = response.status;
 
     if (response.status !== 200 || (!response.body && !response.text)) {
       const status = response.status;
