@@ -46,6 +46,7 @@ export function validateTrayOptions(opts) {
   }
   if (!opts.tray || opts.trayWorker) return null;
   if (opts.daemon) return "--tray cannot use --daemon";
+  if (opts.headless) return "--tray cannot use --headless";
   if (opts.log) return "--tray cannot use --log";
   if (opts.noRecovery || opts.recovery === false) return "--tray cannot use --no-recovery";
   return null;

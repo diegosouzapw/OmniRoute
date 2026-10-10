@@ -216,9 +216,10 @@ function hasExited(child) {
  * reap, throw, so boot #2 cannot start against a port a zombie still holds.
  *
  * The child is spawned with detached:true, so it leads its own process group and
- * -child.pid signals the whole tree, not just the launcher.
+ * -child.pid signals the whole tree, not just the launcher. Exported for reuse by the
+ * local candidate loop (scripts/dev/candidate.mjs), which boots packaged artifacts the same way.
  */
-async function stopChild(child, graceMs = 30_000) {
+export async function stopChild(child, graceMs = 30_000) {
   if (!child?.pid) return;
   // Fast path: already reaped (crashed mid-smoke, or exited before this call) — nothing
   // left to signal or wait for.

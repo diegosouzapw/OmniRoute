@@ -254,6 +254,7 @@
     "log": "Taispeáin logaí an fhreastalaí inlíne",
     "no_recovery": "Díchumasaigh atosú uathoibríoch ar thitim (mód dífhabhtaithe)",
     "max_restarts": "Uaslíon atosuithe titim laistigh de 30 sula bhfágann tú suas (réamhshocrú: 2)",
+    "headless": "Rith an t-inneall seachfhreastalaí amháin: deais díchumasaithe (404), fochórais roghnacha scipeáilte (socraíonn OMNIROUTE_HEADLESS=1)",
     "tray": "Tosaigh i mbosca córas (leicsitheoir amháin, roghnach)",
     "no_tray": "Díchumasaigh deilbhín bosca córas",
     "ready_timeout": "Teorainn ama an tseiceála ullmhachta i ms (OMNIROUTE_READY_TIMEOUT_MS freisin, réamhshocrú 60000)",
