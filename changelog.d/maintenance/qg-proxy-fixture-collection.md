@@ -1,0 +1,1 @@
+Move the proxy badge refresh regression's cold module imports into Vitest collection, preserving its public-path assertions and existing 30-second assertion budget. A wrong-callback negative control still detects the regression.
