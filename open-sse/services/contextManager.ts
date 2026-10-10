@@ -11,7 +11,7 @@ import {
   type ModelCapabilityResolutionSnapshot,
 } from "../../src/lib/modelCapabilities.ts";
 import { parseModel } from "./model.ts";
-import { jsonLength } from "../utils/jsonSize.ts";
+import { encodedStringLength, jsonLength } from "../utils/jsonSize.ts";
 
 // Default token limits per provider (fallbacks when not in registry)
 const DEFAULT_LIMITS: Record<string, number> = {
@@ -230,6 +230,35 @@ export function pruneOlderInlineImages(
   });
   let pruned = 0;
 
+  if (targetTokens != null) {
+    // One full virtual measurement, then exact pre-rounding deltas per removal
+    // instead of a full history re-scan per removed image. Valid only when the
+    // walk saw no revisited object: JSON-parsed bodies are alias-free trees, so
+    // every prunable slot's block contributed exactly its placeholder chars +
+    // media budget. Any aliasing (programmatic input) falls back to the
+    // original full-recount loop, which is alias-agnostic.
+    const flags: MeasureFlags = {};
+    const measure = measureVirtual(next, new Set(), flags);
+    if (!flags.aliasedObject) {
+      let chars = measure.chars;
+      let mediaTokens = measure.mediaTokens;
+      for (const location of prunable) {
+        if (Math.ceil(chars / CHARS_PER_TOKEN) + mediaTokens <= targetTokens) break;
+        const content = next[location.messageIndex].content as unknown[];
+        const block = content[location.contentIndex] as Record<string, unknown>;
+        const replacement = replaceImageBlockWithPlaceholder(block);
+        content[location.contentIndex] = replacement;
+        // Exact delta in the pre-rounding measure space: the substituted block
+        // cost its placeholder serialization + budget; the plain replacement
+        // costs its own serialization. Rounding happens once per comparison.
+        chars += jsonLength(replacement) - IMAGE_PLACEHOLDER_CHARS;
+        mediaTokens -= IMAGE_TOKEN_ESTIMATE;
+        pruned += 1;
+      }
+      return { messages: next, pruned };
+    }
+  }
+
   for (const location of prunable) {
     if (targetTokens != null && estimateTokens(next) <= targetTokens) break;
     const content = next[location.messageIndex].content as unknown[];
@@ -242,87 +271,148 @@ export function pruneOlderInlineImages(
 }
 
 /**
- * Recursively walk a structured node, replacing every recognized inline
- * base64 image block with a short placeholder (so its bulk is excluded from
- * the char-count pass below) while accumulating a bounded per-image token
- * cost. Returns the accumulated image token cost; the caller measures the
- * placeholder-substituted structure with the normal char/4 heuristic.
+ * Fused form of the former `extractImageTokens` + `jsonLength(node)` pipeline:
+ * one walk that returns the serialized character count of the
+ * media-substituted tree plus the accumulated media token budgets, WITHOUT
+ * materializing that tree. On a multi-megabyte agent body the old path
+ * allocated a full placeholder copy of the structure only to measure it.
  *
- * Non-image content (including remote image URLs and generic base64 text)
- * is left untouched and continues to flow through the text-estimation path.
+ * Semantics are frozen by tests/unit/context-manager-estimation-parity.test.ts
+ * against the pre-optimization implementation
+ * (tests/helpers/context-estimation-reference.ts), including its quirks:
+ * - a node matching a media shape collapses entirely to its placeholder
+ *   serialization + budget (other fields of that node are not measured); at
+ *   ARRAY-ITEM positions this applies at every occurrence, seen or not (the
+ *   old walk's pre-recursion fast path, kept exactly);
+ * - objects are measured over own enumerable string keys — no `toJSON`, no
+ *   symbol keys, prototypes ignored (the old rebuild normalized them away);
+ * - a revisited container reached through recursion (object value / nested
+ *   position) is measured raw via `jsonLength`, with no media substitution
+ *   and no budgets — exactly what the old walk produced at repeat positions;
+ * - BigInt throws and circular structures throw, as before;
+ * - omitted values (undefined/function/symbol) render as `null` inside arrays
+ *   and disappear from objects.
+ *
+ * Two intentional deltas from the old implementation, pinned by
+ * context-manager-estimation-parity.test.ts ("intentional deltas" section):
+ * an own `__proto__` key is now measured as a normal key (the old rebuild's
+ * assignment swallowed it, undercounting bodies JSON.parse can produce), and
+ * an own enumerable `toJSON` function is skipped rather than invoked
+ * (unreachable from JSON.parse; functions cannot survive it).
  */
-function extractImageTokens(node: unknown, seen: Set<unknown>): { node: unknown; tokens: number } {
-  if (node === null || typeof node !== "object") {
-    return { node, tokens: 0 };
-  }
-  // Guard against cycles in structured request bodies.
-  if (seen.has(node)) return { node, tokens: 0 };
-  seen.add(node);
+type VirtualMeasure = { chars: number; mediaTokens: number };
+type MeasureFlags = { aliasedObject?: boolean };
 
-  if (Array.isArray(node)) {
-    let tokens = 0;
-    const out = node.map((item) => {
-      const record =
-        item && typeof item === "object" && !Array.isArray(item)
-          ? (item as Record<string, unknown>)
-          : null;
-      if (record && isInlineBase64ImageBlock(record)) {
-        tokens += IMAGE_TOKEN_ESTIMATE;
-        return { __image_token_estimate__: IMAGE_TOKEN_ESTIMATE };
-      }
-      if (record && isInlineBase64DocumentBlock(record)) {
-        tokens += DOCUMENT_TOKEN_ESTIMATE;
-        return { __document_token_estimate__: DOCUMENT_TOKEN_ESTIMATE };
-      }
-      const result = extractImageTokens(item, seen);
-      tokens += result.tokens;
-      return result.node;
-    });
-    return { node: out, tokens };
-  }
+const IMAGE_PLACEHOLDER_CHARS = JSON.stringify({
+  __image_token_estimate__: IMAGE_TOKEN_ESTIMATE,
+}).length;
+const DOCUMENT_PLACEHOLDER_CHARS = JSON.stringify({
+  __document_token_estimate__: DOCUMENT_TOKEN_ESTIMATE,
+}).length;
 
-  const record = node as Record<string, unknown>;
-  if (isInlineBase64ImageBlock(record)) {
+function isOmittedValue(value: unknown): boolean {
+  return value === undefined || typeof value === "function" || typeof value === "symbol";
+}
+
+function measureVirtual(node: unknown, seen: Set<object>, flags?: MeasureFlags): VirtualMeasure {
+  if (node === null) return { chars: 4, mediaTokens: 0 };
+  const type = typeof node;
+  if (type === "string") return { chars: encodedStringLength(node as string), mediaTokens: 0 };
+  if (type === "boolean") return { chars: node ? 4 : 5, mediaTokens: 0 };
+  if (type === "number") {
     return {
-      node: { __image_token_estimate__: IMAGE_TOKEN_ESTIMATE },
-      tokens: IMAGE_TOKEN_ESTIMATE,
+      chars: Number.isFinite(node as number) ? String(node).length : 4,
+      mediaTokens: 0,
     };
+  }
+  if (type === "bigint") {
+    // Match JSON.stringify, which throws rather than guessing an encoding.
+    throw new TypeError("Do not know how to serialize a BigInt");
+  }
+  if (type !== "object") return { chars: 0, mediaTokens: 0 };
+
+  const obj = node as object;
+  if (seen.has(obj)) {
+    // Repeat occurrence: the old walk re-inserted the original subtree here,
+    // so it was measured raw — no substitution, no budgets. Any aliasing makes
+    // per-slot deltas unsound, so pruning callers fall back to recounting.
+    if (flags) flags.aliasedObject = true;
+    return { chars: jsonLength(obj), mediaTokens: 0 };
+  }
+  seen.add(obj);
+
+  if (Array.isArray(obj)) {
+    let chars = 2;
+    let mediaTokens = 0;
+    for (let i = 0; i < obj.length; i++) {
+      if (i > 0) chars += 1;
+      const item = obj[i];
+      // Media fast path BEFORE any seen consultation, mirroring the old walk's
+      // array loop exactly: a revisited media block at an array-item position
+      // is re-priced placeholder + budget at every occurrence (aliased blocks
+      // shared between content slots must not fall to the raw path below).
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        const record = item as Record<string, unknown>;
+        if (isInlineBase64ImageBlock(record)) {
+          chars += IMAGE_PLACEHOLDER_CHARS;
+          mediaTokens += IMAGE_TOKEN_ESTIMATE;
+          continue;
+        }
+        if (isInlineBase64DocumentBlock(record)) {
+          chars += DOCUMENT_PLACEHOLDER_CHARS;
+          mediaTokens += DOCUMENT_TOKEN_ESTIMATE;
+          continue;
+        }
+      }
+      if (isOmittedValue(item)) {
+        chars += 4; // omitted values render as null inside arrays
+        continue;
+      }
+      const result = measureVirtual(item, seen, flags);
+      chars += result.chars;
+      mediaTokens += result.mediaTokens;
+    }
+    return { chars, mediaTokens };
+  }
+
+  const record = obj as Record<string, unknown>;
+  if (isInlineBase64ImageBlock(record)) {
+    return { chars: IMAGE_PLACEHOLDER_CHARS, mediaTokens: IMAGE_TOKEN_ESTIMATE };
   }
   if (isInlineBase64DocumentBlock(record)) {
-    return {
-      node: { __document_token_estimate__: DOCUMENT_TOKEN_ESTIMATE },
-      tokens: DOCUMENT_TOKEN_ESTIMATE,
-    };
+    return { chars: DOCUMENT_PLACEHOLDER_CHARS, mediaTokens: DOCUMENT_TOKEN_ESTIMATE };
   }
 
-  let tokens = 0;
-  const out: Record<string, unknown> = {};
+  let chars = 2;
+  let mediaTokens = 0;
+  let first = true;
   for (const [key, value] of Object.entries(record)) {
-    const result = extractImageTokens(value, seen);
-    out[key] = result.node;
-    tokens += result.tokens;
+    if (isOmittedValue(value)) continue; // the whole entry disappears
+    if (!first) chars += 1;
+    first = false;
+    const result = measureVirtual(value, seen, flags);
+    chars += encodedStringLength(key) + 1 + result.chars;
+    mediaTokens += result.mediaTokens;
   }
-  return { node: out, tokens };
+  return { chars, mediaTokens };
 }
 
 /**
  * Estimate token count from text length.
  *
- * Structured input is first walked for inline base64 image blocks (#8368):
- * each recognized image block is substituted with a bounded per-image token
+ * Structured input is measured in its media-substituted serialized form (#8368):
+ * each recognized image/document block is priced at a bounded per-media token
  * budget instead of measuring its base64 payload as raw text, then the
- * remainder of the structure is measured normally via the char/4 heuristic.
+ * remainder of the structure is measured normally via the char/4 heuristic —
+ * all in one pass, without building the substituted tree.
  */
 export function estimateTokens(text: unknown): number {
   if (!text) return 0;
   if (typeof text === "string") {
     return Math.ceil(text.length / CHARS_PER_TOKEN);
   }
-  const { node, tokens: imageTokens } = extractImageTokens(text, new Set());
-  // #7847: count the serialized length instead of building the string. Only `.length` was ever
-  // used, and on a multi-megabyte agent body that string is a pure transient allocation.
-  // jsonLength is exact (property-tested against JSON.stringify), so the estimate is unchanged.
-  return Math.ceil(jsonLength(node) / CHARS_PER_TOKEN) + imageTokens;
+  const { chars, mediaTokens } = measureVirtual(text, new Set());
+  return Math.ceil(chars / CHARS_PER_TOKEN) + mediaTokens;
 }
 
 /**
