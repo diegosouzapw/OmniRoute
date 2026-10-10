@@ -44,19 +44,9 @@ JWT nebo heslo.
 
 ## Výchozí sůl (náhodná pro každou instalaci)
 
-Pokud není nastavena proměnná `OMNIROUTE_CLI_SALT`, použije se jako sůl náhodný
-64znakový hexadecimální řetězec, který se jednorázově vygeneruje a trvale uloží
-do `<DATA_DIR>/cli-token-salt.json` (režim `0600`) — nikoli literál
-`omniroute-cli-auth-v1` uložený v repozitáři. Funkce `getActiveSalt()` v
-`src/lib/machineToken.ts` i její protějšek v `bin/cli/utils/cliToken.mjs` čtou
-stejný soubor, takže server a každé spuštění CLI v této instalaci používají
-stejnou hodnotu; literál uložený v repozitáři se použije pouze jako krajní
-záložní možnost, pokud zatím nelze získat trvale uloženou sůl ani sůl z
-prostředí (například u nové instalace obsahující pouze CLI, před prvním spuštěním
-serveru). Tím se odstraňuje slabina dřívější pevně stanovené výchozí hodnoty:
-soubor `/etc/machine-id` je běžně čitelný všemi uživateli, takže by jinak mohl
-kterýkoli místní uživatel odvodit stejný token pro každou instalaci, v níž nikdy
-nebyla nastavena proměnná `OMNIROUTE_CLI_SALT`.
+Pokud není nastavena proměnná `OMNIROUTE_CLI_SALT`, použije se jako sůl náhodný hexadecimální řetězec o 64 znacích, který je jednorázově vygenerován a uložen do souboru `<DATA_DIR>/cli-token-salt.json` (režim `0600`) — nikoli literál `omniroute-cli-auth-v1` uložený v repozitáři. Funkce `getActiveSalt()` v souboru `src/lib/machineToken.ts` i její protějšek v `bin/cli/utils/cliToken.mjs` čtou stejný soubor, takže server a každé spuštění CLI v této instalaci používají stejnou hodnotu. Literál uložený v repozitáři se používá pouze jako záložní řešení v krajním případě, kdy dosud nelze získat uloženou sůl ani sůl z proměnné prostředí (například u nové instalace obsahující pouze CLI, ve které server ještě nikdy nebyl spuštěn). Tím se odstraňuje slabina dřívějšího výchozího pevného literálu: soubor `/etc/machine-id` je běžně čitelný všemi uživateli, takže kterýkoli místní uživatel by jinak mohl odvodit stejný token pro každou instalaci, ve které nebyla nikdy nastavena proměnná `OMNIROUTE_CLI_SALT`.
+
+Pokud sůl nelze načíst ani vytvořit, server i CLI vydají před použitím tohoto záložního řešení pro zajištění kompatibility jedno varování za každý proces. Varování neobsahuje sůl, token, cestu v souborovém systému ani nezpracovanou chybu. Obnovte přístup k `DATA_DIR` nebo nastavte `OMNIROUTE_CLI_SALT` a poté restartujte dotčený proces. Varování problém zviditelní; nezajistí však soukromí veřejné záložní soli ani nevypne ověřování CLI. Stávající platné uložené soli a explicitní hodnoty z proměnných prostředí si zachovávají své předchozí hodnoty tokenů.
 
 ## Rotace soli
 

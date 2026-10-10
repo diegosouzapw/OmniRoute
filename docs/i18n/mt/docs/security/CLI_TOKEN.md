@@ -41,19 +41,11 @@ password ma’ kull invokazzjoni.
 | **Ebda qbiż tal-protezzjoni `always`** | `isAlwaysProtectedPath()` jiġi evalwat qabel il-verifika tat-token tal-CLI. `/api/shutdown` u `/api/settings/database` dejjem jeħtieġu JWT.                                                                                                     |
 | **Mhux esportabbli**                   | It-token qatt ma jinkiteb fuq id-diska jew fir-reġistri.                                                                                                                                                                                        |
 
-## Salt predefinit (aleatorju għal kull installazzjoni)
+## Salt predefinit (każwali għal kull installazzjoni)
 
-Meta `OMNIROUTE_CLI_SALT` ma jkunx issettjat, is-salt ikun string hex aleatorja ta’
-64 karattru, iġġenerata darba u ppersistita f’`<DATA_DIR>/cli-token-salt.json` (modalità `0600`) —
-mhux il-literal inkluż fir-repożitorju `omniroute-cli-auth-v1`. Kemm `getActiveSalt()` f’
-`src/lib/machineToken.ts` kif ukoll il-kopja tiegħu f’`bin/cli/utils/cliToken.mjs` jaqraw
-l-istess fajl, sabiex is-server u kull invokazzjoni tal-CLI f’din l-installazzjoni jikkonverġu
-fuq l-istess valur; il-literal inkluż fir-repożitorju jintuża biss bħala fallback tal-aħħar
-għażla meta jkun għadu ma jistax jiġi stabbilit salt ippersistit jew mill-ambjent (pereżempju,
-installazzjoni ġdida tas-CLI biss qabel ma s-server ikun qatt tħaddem). Dan jagħlaq dgħufija
-tal-valur predefinit fiss antik: `/etc/machine-id` normalment jista’ jinqara minn kulħadd, u
-għalhekk kwalunkwe utent lokali seta’ inkella jidderiva l-istess token għal kull installazzjoni
-li qatt ma ssettjat `OMNIROUTE_CLI_SALT`.
+Meta `OMNIROUTE_CLI_SALT` ma jkunx issettjat, is-salt ikun sekwenza eżadeċimali każwali ta’ 64 karattru, iġġenerata darba u ppersistita f’`<DATA_DIR>/cli-token-salt.json` (modalità `0600`) — mhux il-litterali `omniroute-cli-auth-v1` inkluż fir-repożitorju. Kemm `getActiveSalt()` f’`src/lib/machineToken.ts` kif ukoll il-kopja tiegħu f’`bin/cli/utils/cliToken.mjs` jaqraw l-istess fajl, sabiex is-server u kull invokazzjoni tas-CLI f’din l-installazzjoni jużaw l-istess valur; il-litterali inkluż fir-repożitorju jintuża biss bħala alternattiva tal-aħħar għażla meta jkun għadu ma jistax jiġi stabbilit salt ippersistit jew mill-ambjent (pereżempju, installazzjoni ġdida tas-CLI biss qabel ma s-server ikun tħaddem għall-ewwel darba). Dan isolvi dgħufija tal-valur predefinit litterali u fiss preċedenti: `/etc/machine-id` normalment jista’ jinqara minn kulħadd, għalhekk inkella kwalunkwe utent lokali jkun jista’ jidderiva l-istess token għal kull installazzjoni li qatt ma tkun issettjat `OMNIROUTE_CLI_SALT`.
+
+Jekk is-salt ma jkunx jista’ jinqara jew jinħoloq, kemm is-server kif ukoll is-CLI joħorġu twissija waħda għal kull proċess qabel jużaw dik l-alternattiva ta’ kompatibbiltà. It-twissija ma jkun fiha l-ebda salt, token, mogħdija tas-sistema tal-fajls jew żball mhux ipproċessat. Irrestawra l-aċċess għal `DATA_DIR` jew issettja `OMNIROUTE_CLI_SALT`, imbagħad erġa’ ibda l-proċess affettwat. It-twissija tagħmel il-falliment viżibbli; ma tagħmilx is-salt pubbliku alternattiv privat u lanqas ma tiddiżattiva l-awtentikazzjoni tas-CLI. Salts ippersistiti eżistenti u validi, kif ukoll valuri espliċiti mill-ambjent li jieħdu preċedenza, iżommu l-valuri preċedenti tat-token tagħhom.
 
 ## Rotazzjoni tas-salt
 

@@ -43,17 +43,9 @@ mot de passe à chaque invocation.
 
 ## Sel par défaut (aléatoire pour chaque installation)
 
-Lorsque `OMNIROUTE_CLI_SALT` n’est pas définie, le sel est une chaîne hexadécimale aléatoire de 64 caractères,
-générée une seule fois et conservée dans `<DATA_DIR>/cli-token-salt.json` (mode `0600`) —
-et non la valeur littérale `omniroute-cli-auth-v1` enregistrée dans le dépôt. `getActiveSalt()` dans
-`src/lib/machineToken.ts` et son équivalent dans `bin/cli/utils/cliToken.mjs` lisent tous deux le
-même fichier, de sorte que le serveur et chaque invocation de l’interface en ligne de commande sur cette installation convergent vers la
-même valeur ; la valeur littérale enregistrée dans le dépôt n’est utilisée qu’en dernier recours lorsqu’aucun
-sel conservé ou issu de l’environnement ne peut encore être établi (par exemple, lors d’une nouvelle installation
-de l’interface en ligne de commande uniquement, avant que le serveur n’ait été exécuté). Cela corrige une faiblesse de l’ancienne
-valeur littérale fixe par défaut : `/etc/machine-id` est généralement lisible par tous les utilisateurs, de sorte que n’importe quel utilisateur local pouvait
-autrement dériver le même jeton pour chaque installation n’ayant jamais défini
-`OMNIROUTE_CLI_SALT`.
+Lorsque `OMNIROUTE_CLI_SALT` n’est pas défini, le sel est une chaîne hexadécimale aléatoire de 64 caractères, générée une seule fois et conservée dans `<DATA_DIR>/cli-token-salt.json` (mode `0600`) — et non la valeur littérale `omniroute-cli-auth-v1` présente dans le dépôt. La fonction `getActiveSalt()` dans `src/lib/machineToken.ts` et son équivalent dans `bin/cli/utils/cliToken.mjs` lisent le même fichier, afin que le serveur et chaque invocation de la CLI sur cette installation convergent vers la même valeur. La valeur littérale présente dans le dépôt n’est utilisée qu’en dernier recours, lorsqu’aucun sel conservé ou défini dans l’environnement ne peut encore être établi (par exemple, lors d’une nouvelle installation de la CLI seule, avant que le serveur n’ait été exécuté). Cela corrige une faiblesse de l’ancien littéral fixe utilisé par défaut : `/etc/machine-id` est généralement lisible par tous les utilisateurs, de sorte que n’importe quel utilisateur local pourrait autrement dériver le même jeton pour chaque installation n’ayant jamais défini `OMNIROUTE_CLI_SALT`.
+
+Si le sel ne peut pas être lu ou créé, le serveur et la CLI émettent chacun un avertissement par processus avant d’utiliser cette valeur de repli à des fins de compatibilité. L’avertissement ne contient ni sel, ni jeton, ni chemin du système de fichiers, ni erreur brute. Rétablissez l’accès à `DATA_DIR` ou définissez `OMNIROUTE_CLI_SALT`, puis redémarrez le processus concerné. L’avertissement rend l’échec visible ; il ne rend pas privé le sel public utilisé comme valeur de repli et ne désactive pas l’authentification de la CLI. Les sels valides déjà conservés et les valeurs explicitement définies dans l’environnement conservent leurs valeurs de jeton précédentes.
 
 ## Rotation du sel
 

@@ -44,20 +44,9 @@ oder Passwort angeben muss.
 
 ## Standard-Salt (zufällig pro Installation)
 
-Wenn `OMNIROUTE_CLI_SALT` nicht gesetzt ist, ist das Salt eine zufällige,
-64 Zeichen lange Hex-Zeichenfolge, die einmal generiert und unter
-`<DATA_DIR>/cli-token-salt.json` (Modus `0600`) gespeichert wird – nicht das
-eingecheckte Literal `omniroute-cli-auth-v1`. Sowohl `getActiveSalt()` in
-`src/lib/machineToken.ts` als auch dessen Entsprechung in
-`bin/cli/utils/cliToken.mjs` lesen dieselbe Datei, sodass der Server und jeder
-CLI-Aufruf in dieser Installation denselben Wert verwenden. Das eingecheckte
-Literal wird nur als letztmöglicher Rückfallwert genutzt, wenn noch kein
-persistiertes oder über die Umgebung bereitgestelltes Salt verfügbar ist
-(beispielsweise bei einer neuen reinen CLI-Installation, bevor der Server jemals
-ausgeführt wurde). Dadurch wird eine Schwachstelle des alten festen
-Standardliterals geschlossen: `/etc/machine-id` ist üblicherweise für alle
-Benutzer lesbar, sodass andernfalls jeder lokale Benutzer dasselbe Token für
-jede Installation ableiten könnte, in der `OMNIROUTE_CLI_SALT` nie gesetzt wurde.
+Wenn `OMNIROUTE_CLI_SALT` nicht gesetzt ist, wird einmalig eine zufällige, 64 Zeichen lange Hexadezimalzeichenfolge als Salt generiert und unter `<DATA_DIR>/cli-token-salt.json` (Modus `0600`) dauerhaft gespeichert — nicht das eingecheckte Literal `omniroute-cli-auth-v1`. Sowohl `getActiveSalt()` in `src/lib/machineToken.ts` als auch dessen Entsprechung in `bin/cli/utils/cliToken.mjs` lesen dieselbe Datei, sodass der Server und jeder CLI-Aufruf in dieser Installation denselben Wert verwenden. Das eingecheckte Literal dient nur als letztmöglicher Rückfallwert, wenn noch kein dauerhaft gespeicherter oder über die Umgebung bereitgestellter Salt ermittelt werden kann (beispielsweise bei einer neuen reinen CLI-Installation, bevor der Server erstmals ausgeführt wurde). Dadurch wird eine Schwachstelle des bisherigen festen Standardliterals behoben: `/etc/machine-id` ist üblicherweise für alle Benutzer lesbar, sodass andernfalls jeder lokale Benutzer für jede Installation, in der `OMNIROUTE_CLI_SALT` nie gesetzt wurde, dasselbe Token ableiten könnte.
+
+Wenn der Salt weder gelesen noch erstellt werden kann, geben sowohl der Server als auch die CLI einmal pro Prozess eine Warnung aus, bevor sie diesen Kompatibilitäts-Rückfallwert verwenden. Die Warnung enthält weder den Salt noch das Token, einen Dateisystempfad oder den unbearbeiteten Fehler. Stellen Sie den Zugriff auf `DATA_DIR` wieder her oder setzen Sie `OMNIROUTE_CLI_SALT` und starten Sie anschließend den betroffenen Prozess neu. Die Warnung macht den Fehler sichtbar; sie macht den öffentlichen Rückfall-Salt weder geheim noch deaktiviert sie die CLI-Authentifizierung. Bereits vorhandene gültige gespeicherte Salts und explizite Umgebungsüberschreibungen behalten ihre bisherigen Tokenwerte bei.
 
 ## Salt-Rotation
 

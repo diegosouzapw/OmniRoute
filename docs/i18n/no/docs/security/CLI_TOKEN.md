@@ -43,16 +43,9 @@ passord ved hver kjøring.
 
 ## Standardsalt (tilfeldig per installasjon)
 
-Når `OMNIROUTE_CLI_SALT` ikke er angitt, er saltet en tilfeldig heksadesimal streng på 64 tegn
-som genereres én gang og lagres i `<DATA_DIR>/cli-token-salt.json` (modus `0600`) –
-ikke den innsjekkede literalen `omniroute-cli-auth-v1`. Både `getActiveSalt()` i
-`src/lib/machineToken.ts` og speilimplementasjonen i `bin/cli/utils/cliToken.mjs` leser den
-samme filen, slik at serveren og hver CLI-kjøring i denne installasjonen ender opp med den
-samme verdien. Den innsjekkede literalen brukes bare som en siste utvei når verken et
-lagret salt eller et salt fra miljøet ennå kan etableres (for eksempel i en ny installasjon med bare CLI-et
-før serveren noen gang har kjørt). Dette lukker en svakhet ved den gamle, faste standardliteralen:
-`/etc/machine-id` er vanligvis lesbar for alle, slik at enhver lokal bruker ellers kunne
-utlede det samme tokenet for hver installasjon der `OMNIROUTE_CLI_SALT` aldri ble angitt.
+Når `OMNIROUTE_CLI_SALT` ikke er angitt, er saltet en tilfeldig heksadesimal streng på 64 tegn som genereres én gang og lagres permanent i `<DATA_DIR>/cli-token-salt.json` (modus `0600`) — ikke den innsjekkede literalverdien `omniroute-cli-auth-v1`. Både `getActiveSalt()` i `src/lib/machineToken.ts` og motsvarigheten i `bin/cli/utils/cliToken.mjs` leser den samme filen, slik at serveren og hver CLI-kjøring i denne installasjonen ender opp med samme verdi. Den innsjekkede literalverdien brukes bare som en siste utvei når et lagret salt eller et salt fra miljøet ennå ikke kan etableres (for eksempel i en ny installasjon som bare har CLI, før serveren noen gang har blitt kjørt). Dette lukker en svakhet ved den gamle, faste standardverdien: `/etc/machine-id` er vanligvis lesbar for alle, slik at enhver lokal bruker ellers kunne ha utledet det samme tokenet for hver installasjon der `OMNIROUTE_CLI_SALT` aldri ble angitt.
+
+Hvis saltet ikke kan leses eller opprettes, sender både serveren og CLI-en én advarsel per prosess før denne kompatibilitetsreserveverdien tas i bruk. Advarselen inneholder ikke salt, token, filsystembane eller ubehandlet feil. Gjenopprett tilgangen til `DATA_DIR`, eller angi `OMNIROUTE_CLI_SALT`, og start deretter den berørte prosessen på nytt. Advarselen gjør feilen synlig; den gjør ikke det offentlige reservesaltet privat og deaktiverer heller ikke CLI-autentisering. Eksisterende gyldige, lagrede salter og eksplisitte overstyringer via miljøvariabler beholder sine tidligere tokenverdier.
 
 ## Saltrotasjon
 

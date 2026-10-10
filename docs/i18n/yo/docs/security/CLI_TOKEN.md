@@ -41,19 +41,11 @@ pe àwọn endpoint ìṣàkóso láìjẹ́ pé onílò ní láti pèsè JWT t�
 | **Kò sí yíyọ ààbò `always` kọjá** | A máa ń ṣe àyẹ̀wò `isAlwaysProtectedPath()` ṣáájú àyẹ̀wò àmì CLI. `/api/shutdown` àti `/api/settings/database` máa ń nílò JWT nígbà gbogbo.                                                                  |
 | **Kò ṣeé kó jáde**                | A kì í kọ àmì náà sí disk, bẹ́ẹ̀ ni a kì í ṣe log rẹ̀.                                                                                                                                                        |
 
-## Salt àìyípadà (àìròtẹ́lẹ̀ fún ìfisórí kọ̀ọ̀kan)
+## Salt àìyípadà (aláìlẹ́sẹ̀sẹ̀ fún fifi sori kọ̀ọ̀kan)
 
-Nígbà tí a kò bá ṣètò `OMNIROUTE_CLI_SALT`, salt náà jẹ́ okun hex oní-lẹ́tà-64
-àìròtẹ́lẹ̀ tí a dá lẹ́ẹ̀kan, tí a sì pa mọ́ sí `<DATA_DIR>/cli-token-salt.json` (mode `0600`) —
-kì í ṣe literal `omniroute-cli-auth-v1` tí a fi sínú repository. Mejeeji `getActiveSalt()` nínú
-`src/lib/machineToken.ts` àti ẹ̀dà àfihàn rẹ̀ nínú `bin/cli/utils/cliToken.mjs` ń ka
-fáìlì kan náà, nítorí náà server àti gbogbo ìpè CLI lórí ìfisórí yìí máa ń dé orí
-iye kan náà; literal tí a fi sínú repository ni a máa ń lò gẹ́gẹ́ bí fallback ìkẹyìn nìkan nígbà tí kò bá tíì ṣeé dá
-salt tí a pa mọ́ tàbí salt env kan múlẹ̀ (fún àpẹẹrẹ, ìfisórí tuntun tí ó ní CLI nìkan
-ṣáájú kí server tó ṣiṣẹ́ rí). Èyí ń dí àìlera default literal àtijọ́ tí kò yí padà:
-`/etc/machine-id` sábà máa ń ṣeé kà fún gbogbo ènìyàn, nítorí náà onílò abẹ́lé èyíkéyìí lè
-ṣe ìdásílẹ̀ àmì kan náà fún gbogbo ìfisórí tí kò ṣètò
-`OMNIROUTE_CLI_SALT` rí.
+Nígbà tí a kò bá ṣètò `OMNIROUTE_CLI_SALT`, salt náà jẹ́ ọ̀rọ̀ hex aláìlẹ́sẹ̀sẹ̀ oní àmì 64 tí a ṣẹ̀dá lẹ́ẹ̀kan, tí a sì tọ́jú sí `<DATA_DIR>/cli-token-salt.json` (mode `0600`) — kì í ṣe iye gangan `omniroute-cli-auth-v1` tí a fi sínú ibi ìpamọ́ kóòdù. Méjèèjì `getActiveSalt()` nínú `src/lib/machineToken.ts` àti ẹ̀dà rẹ̀ nínú `bin/cli/utils/cliToken.mjs` máa ń ka fáìlì kan náà, nítorí náà olupin àti gbogbo ìṣiṣẹ́ CLI lórí fifi sori yìí máa ń lo iye kan náà; iye gangan tí a fi sínú ibi ìpamọ́ kóòdù ni a máa ń lò gẹ́gẹ́ bí àṣàyàn ìkẹyìn nìkan nígbà tí kò tíì ṣeé rí salt tí a tọ́jú tàbí ti àyíká (fún àpẹẹrẹ, fifi sori tuntun tí ó ní CLI nìkan ṣáájú kí olupin tó ṣiṣẹ́ rí). Èyí dí àìlera kan nínú ìṣètò àìyípadà ti tẹ́lẹ̀: gbogbo ènìyàn ló sábà lè ka `/etc/machine-id`, nítorí náà bí kò ṣe bẹ́ẹ̀, olùlò agbègbè èyíkéyìí lè ṣe ìṣirò token kan náà fún gbogbo fifi sori tí kò ṣètò `OMNIROUTE_CLI_SALT` rí.
+
+Bí salt náà kò bá ṣeé kà tàbí ṣẹ̀dá, olupin àti CLI yóò fi ìkìlọ̀ kan hàn fún process kọ̀ọ̀kan kí wọ́n tó lo àṣàyàn ìbámu yẹn. Ìkìlọ̀ náà kò ní salt, token, ọ̀nà filesystem tàbí raw error. Ṣe àtúnṣe ààyè ìráyè sí `DATA_DIR` tàbí ṣètò `OMNIROUTE_CLI_SALT`, lẹ́yìn náà tún process tí ọ̀ràn náà kàn bẹ̀rẹ̀. Ìkìlọ̀ náà mú kí ìkùnà náà hàn gbangba; kò sọ salt àṣàyàn ìkẹyìn tí ó jẹ́ ti gbogbo ènìyàn di àṣírí, bẹ́ẹ̀ ni kò pa ìfàṣẹ̀sí CLI. Àwọn salt tí a tọ́jú tẹ́lẹ̀ tí ó ṣì wúlò àti àwọn ìṣàkóso àyíká tí a ṣètò ní tààrà yóò pa àwọn iye token wọn ti tẹ́lẹ̀ mọ́.
 
 ## Yíyí salt padà
 

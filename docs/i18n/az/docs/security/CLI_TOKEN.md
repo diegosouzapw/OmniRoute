@@ -27,9 +27,27 @@ Bu, CLI alt komandalarının (`omniroute status`, `omniroute providers` və s.) 
 | **`always` ilə qorunan hissədən yan keçid yoxdur** | `isAlwaysProtectedPath()` CLI tokeninin yoxlanmasından əvvəl qiymətləndirilir. `/api/shutdown` və `/api/settings/database` həmişə JWT tələb edir.                                                                                           |
 | **Eksport edilə bilməyən**                         | Token heç vaxt diskə yazılmır və ya jurnala qeyd edilmir.                                                                                                                                                                                   |
 
-## Standart duz (hər quraşdırma üçün təsadüfi)
+## Standart salt (hər quraşdırma üçün təsadüfi)
 
-`OMNIROUTE_CLI_SALT` təyin edilmədikdə duz bir dəfə yaradılan və `<DATA_DIR>/cli-token-salt.json` ünvanında (`0600` rejimi ilə) saxlanılan təsadüfi 64 simvolluq onaltılıq sətirdir — repozitoriyaya daxil edilmiş `omniroute-cli-auth-v1` literalı deyil. Həm `src/lib/machineToken.ts` daxilindəki `getActiveSalt()`, həm də onun `bin/cli/utils/cliToken.mjs` daxilindəki qarşılığı eyni faylı oxuyur, beləliklə server və bu quraşdırmadakı hər bir CLI çağırışı eyni dəyər üzərində uzlaşır; repozitoriyaya daxil edilmiş literal yalnız saxlanılan və ya mühitdən əldə edilən duz hələ müəyyən edilə bilmədikdə son ehtiyat variantı kimi istifadə olunur (məsələn, serverin heç vaxt işə salınmadığı yeni, yalnız CLI quraşdırmasında). Bu, köhnə sabit literal standartının zəifliyini aradan qaldırır: `/etc/machine-id` adətən hamı tərəfindən oxuna bilir, buna görə də istənilən lokal istifadəçi əks halda `OMNIROUTE_CLI_SALT` təyin edilməmiş hər quraşdırma üçün eyni tokeni yarada bilərdi.
+`OMNIROUTE_CLI_SALT` təyin edilmədikdə, salt bir dəfə yaradılan və
+`<DATA_DIR>/cli-token-salt.json` ünvanında (`0600` rejimində) saxlanılan təsadüfi 64 simvolluq onaltılıq sətirdir —
+repoya daxil edilmiş `omniroute-cli-auth-v1` literalı deyil. Həm
+`src/lib/machineToken.ts` faylındakı `getActiveSalt()`, həm də onun
+`bin/cli/utils/cliToken.mjs` faylındakı ekvivalenti eyni faylı oxuyur; beləliklə, server və bu quraşdırmadakı hər bir CLI çağırışı
+eyni dəyərdən istifadə edir. Repoya daxil edilmiş literal yalnız saxlanılan və ya mühitdən alınan salt hələ müəyyən edilə bilmədikdə son çıxış yolu kimi istifadə olunur (məsələn, server
+heç vaxt işə salınmazdan əvvəlki yeni, yalnız CLI-dan ibarət quraşdırmada).
+Bu, əvvəlki sabit literalın standart dəyər kimi istifadəsindəki zəifliyi aradan qaldırır:
+`/etc/machine-id` adətən bütün istifadəçilər tərəfindən oxuna bildiyindən, əks halda istənilən yerli istifadəçi
+`OMNIROUTE_CLI_SALT` təyin edilməmiş hər bir quraşdırma üçün eyni tokeni
+hesablaya bilərdi.
+
+Salt oxuna və ya yaradıla bilmədikdə, həm server, həm də CLI həmin uyğunluq ehtiyat dəyərindən istifadə etməzdən əvvəl
+hər proses üçün bir xəbərdarlıq göstərir. Xəbərdarlıqda heç bir
+salt, token, fayl sistemi yolu və ya emal edilməmiş xəta yoxdur. `DATA_DIR` üçün girişi bərpa edin və ya
+`OMNIROUTE_CLI_SALT` təyin edin, sonra təsirlənmiş prosesi yenidən başladın. Xəbərdarlıq
+nasazlığı görünən edir; lakin ictimai ehtiyat saltı məxfi etmir və ya
+CLI autentifikasiyasını deaktiv etmir. Mövcud etibarlı saxlanılmış saltlar və açıq şəkildə təyin edilmiş mühit
+dəyərləri əvvəlki token dəyərlərini saxlayır.
 
 ## Saltın rotasiyası
 

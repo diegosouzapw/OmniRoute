@@ -40,19 +40,11 @@ password sa bawat invocation.
 | **Walang bypass sa `always`-protected** | Sinusuri ang `isAlwaysProtectedPath()` bago ang CLI token check. Palaging nangangailangan ng JWT ang `/api/shutdown` at `/api/settings/database`.                                                                                           |
 | **Hindi nae-export**                    | Hindi kailanman isinusulat sa disk o itinatala sa log ang token.                                                                                                                                                                            |
 
-## Default na salt (random sa bawat installation)
+## Default na salt (random sa bawat pag-install)
 
-Kapag hindi nakatakda ang `OMNIROUTE_CLI_SALT`, ang salt ay isang random na 64-character hex string
-na isang beses lang binubuo at permanenteng sine-save sa `<DATA_DIR>/cli-token-salt.json` (mode `0600`) —
-hindi ang naka-check in na literal na `omniroute-cli-auth-v1`. Parehong binabasa ng `getActiveSalt()` sa
-`src/lib/machineToken.ts` at ng katumbas nito sa `bin/cli/utils/cliToken.mjs` ang
-iisang file, kaya nagkakaroon ang server at bawat CLI invocation sa installation na ito ng
-parehong value; ginagamit lamang ang naka-check in na literal bilang pinakahuling fallback kapag wala
-pang maitatag na persisted o env salt (halimbawa, isang bagong CLI-only installation
-bago pa man unang tumakbo ang server). Nilulutas nito ang isang kahinaan ng lumang fixed literal
-na default: karaniwang world-readable ang `/etc/machine-id`, kaya kung hindi, maaaring makuha
-ng sinumang lokal na user ang parehong token para sa bawat installation na hindi kailanman nagtakda ng
-`OMNIROUTE_CLI_SALT`.
+Kapag hindi nakatakda ang `OMNIROUTE_CLI_SALT`, ang salt ay isang random na 64-character na hex string na isang beses lang binubuo at permanenteng sine-save sa `<DATA_DIR>/cli-token-salt.json` (mode `0600`) — hindi ang naka-check in na literal na `omniroute-cli-auth-v1`. Parehong binabasa ng `getActiveSalt()` sa `src/lib/machineToken.ts` at ng katumbas nito sa `bin/cli/utils/cliToken.mjs` ang parehong file, kaya gumagamit ang server at bawat CLI invocation sa pag-install na ito ng iisang value; ginagamit lamang ang naka-check in na literal bilang fallback na huling opsyon kapag wala pang magamit na naka-save o environment salt (halimbawa, sa isang bagong CLI-only na pag-install bago pa man unang tumakbo ang server). Nilulutas nito ang kahinaan ng dating nakapirming literal na default: karaniwang nababasa ng lahat ang `/etc/machine-id`, kaya kung hindi ay maaaring makuha ng sinumang lokal na user ang parehong token para sa bawat pag-install na hindi kailanman nagtakda ng `OMNIROUTE_CLI_SALT`.
+
+Kung hindi mabasa o magawa ang salt, parehong naglalabas ang server at CLI ng isang babala sa bawat process bago gamitin ang compatibility fallback na iyon. Walang salt, token, filesystem path, o raw error ang babala. Ibalik ang access sa `DATA_DIR` o itakda ang `OMNIROUTE_CLI_SALT`, pagkatapos ay i-restart ang apektadong process. Ginagawang nakikita ng babala ang pagkabigo; hindi nito ginagawang pribado ang pampublikong fallback salt o dini-disable ang CLI authentication. Pinapanatili ng mga umiiral at valid na naka-save na salt at tahasang environment override ang dati nilang mga token value.
 
 ## Pagpapalit ng salt
 

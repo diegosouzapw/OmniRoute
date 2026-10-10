@@ -43,18 +43,9 @@ navede JWT ili lozinku.
 
 ## Zadana sol (nasumična za svaku instalaciju)
 
-Kada `OMNIROUTE_CLI_SALT` nije postavljen, sol je nasumični heksadecimalni niz od
-64 znaka koji se generira jednom i trajno sprema u `<DATA_DIR>/cli-token-salt.json`
-(način rada `0600`) — nije riječ o vrijednosti `omniroute-cli-auth-v1` uključenoj
-u repozitorij. I `getActiveSalt()` u `src/lib/machineToken.ts` i njegova zrcalna
-implementacija u `bin/cli/utils/cliToken.mjs` čitaju istu datoteku, tako da poslužitelj
-i svako pokretanje CLI-ja u ovoj instalaciji koriste istu vrijednost; literal uključen
-u repozitorij upotrebljava se samo kao krajnja pričuvna vrijednost kada još nije moguće
-uspostaviti trajno spremljenu sol ili sol iz varijable okruženja (primjerice u svježoj
-instalaciji koja sadržava samo CLI, prije prvog pokretanja poslužitelja). Time se uklanja
-slabost starog fiksnog zadanog literala: `/etc/machine-id` obično je dostupan za čitanje
-svim korisnicima, pa bi svaki lokalni korisnik inače mogao izvesti isti token za svaku
-instalaciju u kojoj `OMNIROUTE_CLI_SALT` nikada nije postavljen.
+Kada `OMNIROUTE_CLI_SALT` nije postavljen, sol je nasumični heksadecimalni niz od 64 znaka koji se generira jednom i trajno pohranjuje u `<DATA_DIR>/cli-token-salt.json` (način rada `0600`) — umjesto doslovne vrijednosti `omniroute-cli-auth-v1` uključene u repozitorij. I `getActiveSalt()` u `src/lib/machineToken.ts` i njegova odgovarajuća implementacija u `bin/cli/utils/cliToken.mjs` čitaju istu datoteku, tako da poslužitelj i svako pokretanje CLI-ja u ovoj instalaciji koriste istu vrijednost; doslovna vrijednost uključena u repozitorij upotrebljava se samo kao krajnja pričuvna opcija kada još nije moguće uspostaviti trajno pohranjenu sol ili sol iz okruženja (primjerice kod nove instalacije koja sadrži samo CLI, prije prvog pokretanja poslužitelja). Time se uklanja slabost stare fiksne zadane doslovne vrijednosti: `/etc/machine-id` obično je čitljiv svim korisnicima, pa bi inače bilo koji lokalni korisnik mogao izvesti isti token za svaku instalaciju u kojoj `OMNIROUTE_CLI_SALT` nikada nije postavljen.
+
+Ako sol nije moguće pročitati ili stvoriti, i poslužitelj i CLI izdaju jedno upozorenje po procesu prije upotrebe te pričuvne vrijednosti radi kompatibilnosti. Upozorenje ne sadrži sol, token, put datotečnog sustava ni neobrađenu pogrešku. Ponovno uspostavite pristup direktoriju `DATA_DIR` ili postavite `OMNIROUTE_CLI_SALT`, a zatim ponovno pokrenite zahvaćeni proces. Upozorenje čini problem vidljivim; ono ne čini javnu pričuvnu sol privatnom niti onemogućuje autentifikaciju CLI-ja. Postojeće valjane trajno pohranjene soli i izričite nadjačavajuće vrijednosti iz okruženja zadržavaju svoje prethodne vrijednosti tokena.
 
 ## Rotacija soli
 

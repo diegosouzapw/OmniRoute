@@ -44,22 +44,11 @@ boshqaruv endpointlariga murojaat qilish imkonini beradi.
 | **`always` bilan himoyalangan yo‘llarni chetlab o‘tmaydi** | `isAlwaysProtectedPath()` CLI tokeni tekshirilishidan oldin baholanadi. `/api/shutdown` va `/api/settings/database` har doim JWT talab qiladi.                                                                                        |
 | **Eksport qilib bo‘lmaydi**                                | Token hech qachon diskka yozilmaydi yoki jurnallarga qayd etilmaydi.                                                                                                                                                                  |
 
-## Standart salt (har bir o‘rnatish uchun tasodifiy)
+## Standart salt (har bir o‘rnatishda tasodifiy)
 
-`OMNIROUTE_CLI_SALT` o‘rnatilmagan bo‘lsa, salt bir marta yaratiladigan va
-`<DATA_DIR>/cli-token-salt.json` manzilida (`0600` rejimida) saqlanadigan tasodifiy
-64 belgili o‘n oltilik satr bo‘ladi — repozitoriyga kiritilgan
-`omniroute-cli-auth-v1` literali emas. `src/lib/machineToken.ts` ichidagi
-`getActiveSalt()` hamda uning `bin/cli/utils/cliToken.mjs` ichidagi nusxasi bir xil
-faylni o‘qiydi, shu sababli server va ushbu o‘rnatishdagi har bir CLI chaqiruvi bir
-xil qiymatdan foydalanadi; repozitoriyga kiritilgan literal faqat saqlangan yoki
-muhit saltini hali aniqlab bo‘lmaydigan holatlarda so‘nggi zaxira sifatida
-ishlatiladi (masalan, server hali biror marta ishga tushirilmagan, faqat CLI’dan
-iborat yangi o‘rnatishda). Bu avvalgi o‘zgarmas literal standartining zaifligini
-bartaraf etadi: `/etc/machine-id` odatda barcha foydalanuvchilar tomonidan
-o‘qilishi mumkin, shuning uchun aks holda istalgan mahalliy foydalanuvchi
-`OMNIROUTE_CLI_SALT` hech qachon o‘rnatilmagan har bir o‘rnatish uchun ayni tokenni
-hosil qilishi mumkin edi.
+`OMNIROUTE_CLI_SALT` o‘rnatilmagan bo‘lsa, salt bir marta yaratiladigan va `<DATA_DIR>/cli-token-salt.json` faylida (`0600` rejimida) saqlanadigan tasodifiy 64 belgili o‘n oltilik satr bo‘ladi — repozitoriyga kiritilgan `omniroute-cli-auth-v1` literali emas. `src/lib/machineToken.ts` faylidagi `getActiveSalt()` ham, uning `bin/cli/utils/cliToken.mjs` faylidagi nusxasi ham ayni faylni o‘qiydi, shu sababli server va ushbu o‘rnatishdagi har bir CLI chaqiruvi bir xil qiymatdan foydalanadi; repozitoriyga kiritilgan literal faqat saqlangan yoki muhit orqali berilgan saltni hali aniqlab bo‘lmaganda oxirgi chora sifatida ishlatiladi (masalan, server hali biror marta ishga tushirilmagan yangi, faqat CLI o‘rnatilishida). Bu eski o‘zgarmas standart literalning zaifligini bartaraf etadi: `/etc/machine-id` odatda barcha foydalanuvchilar tomonidan o‘qilishi mumkin, shuning uchun aks holda istalgan mahalliy foydalanuvchi `OMNIROUTE_CLI_SALT` hech qachon o‘rnatilmagan har bir o‘rnatish uchun ayni tokenni hosil qilishi mumkin edi.
+
+Agar saltni o‘qib yoki yaratib bo‘lmasa, server ham, CLI ham ushbu moslik uchun zaxira qiymatdan foydalanishdan oldin har bir jarayon uchun bir marta ogohlantirish chiqaradi. Ogohlantirishda salt, token, fayl tizimi yo‘li yoki xom xato tafsilotlari bo‘lmaydi. `DATA_DIR` katalogiga kirish huquqini tiklang yoki `OMNIROUTE_CLI_SALT` ni o‘rnating, so‘ng ta’sirlangan jarayonni qayta ishga tushiring. Ogohlantirish nosozlikni ko‘rinadigan qiladi; u ommaviy zaxira saltni maxfiy qilmaydi yoki CLI autentifikatsiyasini o‘chirib qo‘ymaydi. Mavjud yaroqli saqlangan saltlar va muhit orqali aniq berilgan qiymatlar avvalgi token qiymatlarini saqlab qoladi.
 
 ## Saltni almashtirish
 

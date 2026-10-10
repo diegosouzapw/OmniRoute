@@ -43,17 +43,9 @@ hasła przy każdym uruchomieniu.
 
 ## Domyślna sól (losowa dla każdej instalacji)
 
-Gdy `OMNIROUTE_CLI_SALT` nie jest ustawiona, solą jest losowy 64-znakowy ciąg szesnastkowy,
-generowany jednokrotnie i zapisywany w `<DATA_DIR>/cli-token-salt.json` (tryb `0600`) —
-nie jest to umieszczony w repozytorium literał `omniroute-cli-auth-v1`. Zarówno `getActiveSalt()` w
-`src/lib/machineToken.ts`, jak i jego odpowiednik w `bin/cli/utils/cliToken.mjs` odczytują ten
-sam plik, dzięki czemu serwer i każde wywołanie CLI w tej instalacji korzystają z tej
-samej wartości; literał umieszczony w repozytorium jest używany wyłącznie jako ostateczna wartość zastępcza, gdy nie można jeszcze
-ustalić utrwalonej soli ani soli ze zmiennej środowiskowej (na przykład w świeżej instalacji zawierającej tylko CLI,
-zanim serwer zostanie po raz pierwszy uruchomiony). Eliminuje to słabość starej, stałej wartości domyślnej:
-`/etc/machine-id` jest zwykle dostępny do odczytu dla wszystkich użytkowników, więc każdy użytkownik lokalny mógłby
-w przeciwnym razie wyprowadzić ten sam token dla każdej instalacji, w której nigdy nie ustawiono
-`OMNIROUTE_CLI_SALT`.
+Gdy zmienna `OMNIROUTE_CLI_SALT` nie jest ustawiona, sól jest losowym 64-znakowym ciągiem szesnastkowym, generowanym jednorazowo i zapisywanym trwale w `<DATA_DIR>/cli-token-salt.json` (tryb `0600`) — nie jest to umieszczony w repozytorium literał `omniroute-cli-auth-v1`. Zarówno funkcja `getActiveSalt()` w pliku `src/lib/machineToken.ts`, jak i jej odpowiednik w `bin/cli/utils/cliToken.mjs` odczytują ten sam plik, dzięki czemu serwer i każde wywołanie CLI w tej instalacji korzystają z tej samej wartości. Literał umieszczony w repozytorium jest używany wyłącznie jako rozwiązanie awaryjne ostatniej szansy, gdy nie można jeszcze uzyskać zapisanej trwale soli ani soli ze zmiennej środowiskowej (na przykład w świeżej instalacji zawierającej wyłącznie CLI, zanim serwer zostanie uruchomiony po raz pierwszy). Eliminuje to słabość wcześniejszej stałej wartości domyślnej: plik `/etc/machine-id` jest zazwyczaj dostępny do odczytu dla wszystkich użytkowników, więc w przeciwnym razie każdy użytkownik lokalny mógłby wygenerować ten sam token dla każdej instalacji, w której nigdy nie ustawiono zmiennej `OMNIROUTE_CLI_SALT`.
+
+Jeśli soli nie można odczytać ani utworzyć, zarówno serwer, jak i CLI emitują jedno ostrzeżenie na proces przed użyciem tego awaryjnego mechanizmu zgodności. Ostrzeżenie nie zawiera soli, tokenu, ścieżki systemu plików ani nieprzetworzonego błędu. Przywróć dostęp do `DATA_DIR` lub ustaw zmienną `OMNIROUTE_CLI_SALT`, a następnie uruchom ponownie proces, którego dotyczy problem. Ostrzeżenie sygnalizuje błąd; nie sprawia, że publiczna sól awaryjna staje się prywatna, ani nie wyłącza uwierzytelniania CLI. Istniejące prawidłowe, zapisane trwale sole oraz jawne wartości zastępcze ze zmiennych środowiskowych zachowują swoje dotychczasowe wartości tokenów.
 
 ## Rotacja soli
 

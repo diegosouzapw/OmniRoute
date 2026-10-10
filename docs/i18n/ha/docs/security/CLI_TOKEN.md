@@ -41,19 +41,11 @@ kalmar sirri a duk lokacin aiwatarwa ba.
 | **Ba a kauce wa kariyar `always`** | Ana tantance `isAlwaysProtectedPath()` kafin duba token na CLI. `/api/shutdown` da `/api/settings/database` koyaushe suna buƙatar JWT.                                                                                                                                        |
 | **Ba za a iya fitarwa ba**         | Ba a taɓa rubuta token ɗin zuwa faifai ko saka shi cikin rajista ba.                                                                                                                                                                                                          |
 
-## Salt na asali (bazuwar ƙima ga kowace girkawa)
+## Gishirin tsoho (bazuwar ƙima ga kowace shigarwa)
 
-Idan ba a saita `OMNIROUTE_CLI_SALT` ba, salt ɗin zai kasance bazuwar kirtanin hex mai haruffa 64
-wanda ake samarwa sau ɗaya kuma a adana shi a `<DATA_DIR>/cli-token-salt.json` (yanayin `0600`) —
-ba ƙayyadadden `omniroute-cli-auth-v1` da ke cikin ma'ajiyar lamba ba. Dukansu `getActiveSalt()` da ke cikin
-`src/lib/machineToken.ts` da kwafinsa da ke cikin `bin/cli/utils/cliToken.mjs` suna karanta
-fayil iri ɗaya, don haka sabar da duk wani kiran CLI a wannan girkawa za su yi amfani da
-ƙima iri ɗaya; ana amfani da ƙayyadadden ƙimar da ke cikin ma'ajiyar lamba ne kawai a matsayin mafita ta ƙarshe idan ba a samu
-salt da aka adana ko na muhalli ba tukuna (misali, sabuwar girkawar CLI kaɗai
-kafin a taɓa kunna sabar). Wannan yana rufe raunin tsohuwar ƙayyadadden ƙimar asali:
-galibi kowane mai amfani na iya karanta `/etc/machine-id`, don haka in ba haka ba kowane mai amfani na cikin gida zai iya
-samar da token iri ɗaya ga duk girkawar da ba su taɓa saita
-`OMNIROUTE_CLI_SALT` ba.
+Idan ba a saita `OMNIROUTE_CLI_SALT` ba, gishirin zai zama bazuwar igiyar hex mai haruffa 64 da ake samarwa sau ɗaya sannan a adana a `<DATA_DIR>/cli-token-salt.json` (yanayin `0600`) — ba ƙimar zahiri ta `omniroute-cli-auth-v1` da aka riga aka saka a ma'ajiyar lamba ba. Dukansu `getActiveSalt()` da ke cikin `src/lib/machineToken.ts` da kwafinsa da ke cikin `bin/cli/utils/cliToken.mjs` suna karanta fayil ɗaya, don haka sabar da duk wani kiran CLI a wannan shigarwar za su yi amfani da ƙima ɗaya; ana amfani da ƙimar zahiri da aka riga aka saka a ma'ajiyar lamba ne kawai a matsayin mafita ta ƙarshe idan har yanzu ba za a iya samun gishirin da aka adana ko na muhalli ba (misali, sabuwar shigarwar CLI-kawai kafin a taɓa gudanar da sabar). Wannan yana rufe raunin tsohuwar ƙayyadaddiyar ƙimar tsoho: yawanci kowa na iya karanta `/etc/machine-id`, don haka in ba haka ba, kowane mai amfani na cikin gida zai iya samar da token iri ɗaya ga duk wata shigarwa da ba ta taɓa saita `OMNIROUTE_CLI_SALT` ba.
+
+Idan ba za a iya karanta ko ƙirƙirar gishirin ba, sabar da CLI dukansu za su fitar da gargaɗi sau ɗaya ga kowane tsari kafin amfani da wannan madadin dacewa. Gargaɗin ba ya ƙunsar gishiri, token, hanyar tsarin fayiloli, ko ɗanyen kuskure. Maido da damar shiga `DATA_DIR` ko saita `OMNIROUTE_CLI_SALT`, sannan a sake kunna tsarin da abin ya shafa. Gargaɗin yana bayyana gazawar; ba ya mayar da gishirin madadin na jama'a ya zama na sirri ko kashe tantancewar CLI. Ingantattun gishirai da aka riga aka adana da kuma ƙimomin maye gurbin muhalli da aka saita kai tsaye za su ci gaba da riƙe ƙimomin token ɗinsu na baya.
 
 ## Sauya salt
 

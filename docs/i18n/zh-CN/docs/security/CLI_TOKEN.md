@@ -37,17 +37,11 @@ OmniRoute CLI 命令通过本地管理 API 进行身份验证，使用通过
 | **无法绕过 `always` 保护** | 在检查 CLI 令牌之前会先计算 `isAlwaysProtectedPath()`。`/api/shutdown` 和 `/api/settings/database` 始终要求 JWT。                         |
 | **不可导出**               | 令牌绝不会写入磁盘或记录到日志中。                                                                                                        |
 
-## 默认盐（每次安装随机生成）
+## 默认盐值（每次安装时随机生成）
 
-当未设置 `OMNIROUTE_CLI_SALT` 时，盐是一个随机的 64 字符十六进制字符串，
-仅生成一次并持久保存到 `<DATA_DIR>/cli-token-salt.json`（权限模式为 `0600`）——
-而不是代码库中检入的字面量 `omniroute-cli-auth-v1`。`src/lib/machineToken.ts`
-中的 `getActiveSalt()` 及其在 `bin/cli/utils/cliToken.mjs` 中的对应实现都会读取
-同一个文件，因此，此安装中的服务器和每次 CLI 调用最终都会使用相同的值；
-仅当尚且无法建立持久化盐或环境变量盐时（例如，在服务器从未运行过的全新
-CLI-only 安装中），才会使用代码库中检入的字面量作为最后的回退方案。这修复了
-旧版固定字面量默认值的一个弱点：`/etc/machine-id` 通常是全局可读的，因此，
-任何本地用户原本都能为所有从未设置 `OMNIROUTE_CLI_SALT` 的安装派生出相同的令牌。
+当未设置 `OMNIROUTE_CLI_SALT` 时，盐值是一个随机生成的 64 字符十六进制字符串，仅生成一次并持久化到 `<DATA_DIR>/cli-token-salt.json`（权限模式为 `0600`）——而不是使用已签入代码库的字面量 `omniroute-cli-auth-v1`。`src/lib/machineToken.ts` 中的 `getActiveSalt()` 及其在 `bin/cli/utils/cliToken.mjs` 中的对应实现都会读取同一文件，因此服务器和此安装中的每次 CLI 调用最终都会使用相同的值；仅当尚无法获取持久化盐值或环境变量盐值时（例如，仅全新安装了 CLI，且服务器从未运行过），才会使用已签入代码库的字面量作为最后的回退方案。此项改动修复了旧版固定字面量默认值的一个弱点：`/etc/machine-id` 通常可由所有用户读取，因此，任何本地用户原本都可以为每个从未设置 `OMNIROUTE_CLI_SALT` 的安装推导出相同的令牌。
+
+如果无法读取或创建盐值，服务器和 CLI 都会在使用该兼容性回退值之前，每个进程发出一次警告。警告中不包含盐值、令牌、文件系统路径或原始错误。请恢复对 `DATA_DIR` 的访问权限或设置 `OMNIROUTE_CLI_SALT`，然后重启受影响的进程。该警告会使故障变得可见；它不会使公开的回退盐值变为私密，也不会禁用 CLI 身份验证。现有的有效持久化盐值和显式环境变量覆盖将继续保留其原有的令牌值。
 
 ## 盐轮换
 

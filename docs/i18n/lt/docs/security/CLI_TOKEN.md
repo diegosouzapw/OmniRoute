@@ -46,19 +46,9 @@ metu pateiktų JWT arba slaptažodį.
 
 ## Numatytoji druska (atsitiktinė kiekvienam diegimui)
 
-Kai `OMNIROUTE_CLI_SALT` nenustatytas, druska yra atsitiktinė 64 simbolių
-šešioliktainė eilutė, sugeneruojama vieną kartą ir išsaugoma faile
-`<DATA_DIR>/cli-token-salt.json` (režimu `0600`) — tai nėra į saugyklą įtrauktas
-literalas `omniroute-cli-auth-v1`. Tiek `getActiveSalt()` faile
-`src/lib/machineToken.ts`, tiek jos atitikmuo faile `bin/cli/utils/cliToken.mjs`
-skaito tą patį failą, todėl serveris ir kiekvienas CLI iškvietimas šiame diegime
-naudoja tą pačią reikšmę; į saugyklą įtrauktas literalas naudojamas tik kaip
-paskutinė atsarginė priemonė, kai dar nepavyksta nustatyti išsaugotos arba aplinkos
-kintamojo druskos (pavyzdžiui, naujame tik CLI diegime, kol serveris dar nė karto
-nebuvo paleistas). Taip pašalinama senojo fiksuoto numatytojo literalo silpnybė:
-`/etc/machine-id` dažnai gali skaityti visi, todėl bet kuris vietinis naudotojas
-kitu atveju galėtų išvesti tą patį prieigos raktą kiekvienam diegimui, kuriame
-`OMNIROUTE_CLI_SALT` niekada nebuvo nustatytas.
+Kai `OMNIROUTE_CLI_SALT` nenustatytas, druska yra atsitiktinė 64 simbolių šešioliktainė eilutė, sugeneruojama vieną kartą ir išsaugoma faile `<DATA_DIR>/cli-token-salt.json` (režimas `0600`) — tai nėra į saugyklą įtraukta konstanta `omniroute-cli-auth-v1`. Tiek `getActiveSalt()`, esanti `src/lib/machineToken.ts`, tiek jos atitikmuo faile `bin/cli/utils/cliToken.mjs` skaito tą patį failą, todėl serveris ir kiekvienas CLI iškvietimas šiame diegime naudoja tą pačią reikšmę; į saugyklą įtraukta konstanta naudojama tik kaip kraštutinis atsarginis variantas, kai dar nepavyksta gauti išsaugotos arba aplinkos kintamajame nurodytos druskos (pavyzdžiui, naujame diegime, kuriame įdiegtas tik CLI, prieš pirmą kartą paleidžiant serverį). Taip pašalinama senojo fiksuotos konstantos numatytojo varianto spraga: `/etc/machine-id` paprastai gali perskaityti visi, todėl priešingu atveju bet kuris vietinis naudotojas galėtų išvesti tą patį prieigos raktą kiekvienam diegimui, kuriame `OMNIROUTE_CLI_SALT` niekada nebuvo nustatytas.
+
+Jei druskos nepavyksta perskaityti arba sukurti, tiek serveris, tiek CLI prieš naudodami šį suderinamumo atsarginį variantą kiekviename procese pateikia po vieną įspėjimą. Įspėjime nėra druskos, prieigos rakto, failų sistemos kelio ar neapdorotos klaidos. Atkurkite prieigą prie `DATA_DIR` arba nustatykite `OMNIROUTE_CLI_SALT`, tada iš naujo paleiskite paveiktą procesą. Įspėjimas padaro triktį matomą; jis nepadaro viešos atsarginės druskos privačia ir neišjungia CLI autentifikavimo. Esamos galiojančios išsaugotos druskos ir aiškiai nurodytos aplinkos kintamųjų reikšmės išlaiko ankstesnes prieigos raktų reikšmes.
 
 ## Druskos keitimas
 

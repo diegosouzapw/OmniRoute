@@ -42,21 +42,11 @@ kata sandi pada setiap pemanggilan.
 | **Tidak melewati perlindungan `always`** | `isAlwaysProtectedPath()` dievaluasi sebelum pemeriksaan token CLI. `/api/shutdown` dan `/api/settings/database` selalu memerlukan JWT.                                                                                             |
 | **Tidak dapat diekspor**                 | Token tidak pernah ditulis ke disk atau dicatat dalam log.                                                                                                                                                                          |
 
-## Salt default (acak untuk setiap instalasi)
+## Salt bawaan (acak per instalasi)
 
-Ketika `OMNIROUTE_CLI_SALT` tidak ditetapkan, salt berupa string heksadesimal acak
-64 karakter yang dibuat sekali dan disimpan di `<DATA_DIR>/cli-token-salt.json`
-(mode `0600`) — bukan literal `omniroute-cli-auth-v1` yang disertakan dalam
-repositori. Baik `getActiveSalt()` di `src/lib/machineToken.ts` maupun cerminannya
-di `bin/cli/utils/cliToken.mjs` membaca file yang sama, sehingga server dan setiap
-pemanggilan CLI pada instalasi ini menggunakan nilai yang sama; literal yang
-disertakan dalam repositori hanya digunakan sebagai fallback terakhir ketika salt
-yang disimpan atau salt dari lingkungan belum dapat ditetapkan (misalnya instalasi
-baru yang hanya berisi CLI sebelum server pernah dijalankan). Hal ini menutup
-kelemahan dari default literal tetap sebelumnya: `/etc/machine-id` umumnya dapat
-dibaca oleh semua pengguna, sehingga pengguna lokal mana pun dapat memperoleh
-token yang sama untuk setiap instalasi yang tidak pernah menetapkan
-`OMNIROUTE_CLI_SALT`.
+Ketika `OMNIROUTE_CLI_SALT` tidak ditetapkan, salt berupa string heksadesimal acak sepanjang 64 karakter yang dibuat satu kali dan disimpan di `<DATA_DIR>/cli-token-salt.json` (mode `0600`) — bukan literal `omniroute-cli-auth-v1` yang disertakan dalam repositori. Baik `getActiveSalt()` di `src/lib/machineToken.ts` maupun implementasi padanannya di `bin/cli/utils/cliToken.mjs` membaca file yang sama, sehingga server dan setiap pemanggilan CLI pada instalasi ini menggunakan nilai yang sama; literal yang disertakan dalam repositori hanya digunakan sebagai fallback terakhir jika salt yang disimpan maupun dari variabel lingkungan belum dapat diperoleh (misalnya pada instalasi baru yang hanya berisi CLI sebelum server pernah dijalankan). Hal ini menutup kelemahan pada penggunaan literal tetap sebagai nilai bawaan sebelumnya: `/etc/machine-id` umumnya dapat dibaca oleh semua pengguna, sehingga pengguna lokal mana pun dapat memperoleh token yang sama untuk setiap instalasi yang tidak pernah menetapkan `OMNIROUTE_CLI_SALT`.
+
+Jika salt tidak dapat dibaca atau dibuat, server dan CLI masing-masing mengeluarkan satu peringatan per proses sebelum menggunakan fallback kompatibilitas tersebut. Peringatan itu tidak memuat salt, token, jalur sistem file, maupun galat mentah. Pulihkan akses ke `DATA_DIR` atau tetapkan `OMNIROUTE_CLI_SALT`, lalu mulai ulang proses yang terdampak. Peringatan tersebut membuat kegagalan terlihat; peringatan itu tidak menjadikan salt fallback publik bersifat privat atau menonaktifkan autentikasi CLI. Salt valid yang telah disimpan dan penggantian eksplisit melalui variabel lingkungan tetap mempertahankan nilai token sebelumnya.
 
 ## Rotasi salt
 

@@ -40,19 +40,11 @@ contraseña en cada ejecución.
 | **Sin elusión de protección `always`** | `isAlwaysProtectedPath()` se evalúa antes de comprobar el token de la CLI. `/api/shutdown` y `/api/settings/database` siempre requieren un JWT.                                                                                            |
 | **No exportable**                      | El token nunca se escribe en el disco ni se registra.                                                                                                                                                                                      |
 
-## Salt predeterminado (aleatorio por instalación)
+## Salt predeterminada (aleatoria por instalación)
 
-Cuando `OMNIROUTE_CLI_SALT` no está definido, el salt es una cadena hexadecimal aleatoria de 64 caracteres
-que se genera una sola vez y se guarda en `<DATA_DIR>/cli-token-salt.json` (modo `0600`), no
-el literal `omniroute-cli-auth-v1` incluido en el repositorio. Tanto `getActiveSalt()` en
-`src/lib/machineToken.ts` como su equivalente en `bin/cli/utils/cliToken.mjs` leen el
-mismo archivo, por lo que el servidor y cada ejecución de la CLI en esta instalación convergen en el
-mismo valor; el literal incluido en el repositorio solo se utiliza como último recurso cuando aún no
-se puede establecer un salt persistente o procedente del entorno (por ejemplo, en una instalación nueva
-que solo incluya la CLI antes de que el servidor se haya ejecutado alguna vez). Esto corrige una debilidad
-del antiguo valor literal fijo predeterminado: `/etc/machine-id` suele ser legible por cualquier usuario,
-por lo que, de otro modo, cualquier usuario local podría derivar el mismo token para todas las instalaciones
-que nunca hubieran definido `OMNIROUTE_CLI_SALT`.
+Cuando `OMNIROUTE_CLI_SALT` no está definida, la sal es una cadena hexadecimal aleatoria de 64 caracteres generada una sola vez y almacenada de forma persistente en `<DATA_DIR>/cli-token-salt.json` (modo `0600`), y no el literal incluido en el repositorio `omniroute-cli-auth-v1`. Tanto `getActiveSalt()` en `src/lib/machineToken.ts` como su equivalente en `bin/cli/utils/cliToken.mjs` leen el mismo archivo, por lo que el servidor y cada invocación de la CLI en esta instalación convergen en el mismo valor; el literal incluido en el repositorio se utiliza únicamente como alternativa de último recurso cuando todavía no se puede establecer una sal persistente ni procedente del entorno (por ejemplo, en una instalación nueva que solo incluya la CLI, antes de que el servidor se haya ejecutado por primera vez). Esto corrige una debilidad del antiguo valor literal fijo predeterminado: `/etc/machine-id` suele ser legible por cualquier usuario, por lo que, de otro modo, cualquier usuario local podría derivar el mismo token para todas las instalaciones que nunca hayan definido `OMNIROUTE_CLI_SALT`.
+
+Si la sal no se puede leer ni crear, tanto el servidor como la CLI emiten una advertencia por proceso antes de utilizar esa alternativa de compatibilidad. La advertencia no contiene ninguna sal, token, ruta del sistema de archivos ni error sin procesar. Restaure el acceso a `DATA_DIR` o defina `OMNIROUTE_CLI_SALT` y, a continuación, reinicie el proceso afectado. La advertencia hace visible el fallo; no hace que la sal pública de reserva sea privada ni deshabilita la autenticación de la CLI. Las sales persistentes válidas existentes y las anulaciones explícitas mediante variables de entorno conservan los valores de token anteriores.
 
 ## Rotación de la sal
 
