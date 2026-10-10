@@ -19,6 +19,15 @@
  * applies a short 5s cooldown without tripping the provider circuit breaker.
  */
 
+import { getOrCreateApiKey } from "@/lib/services/apiKey";
+import { getSupervisor } from "@/lib/services/registry";
+import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
+import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import {
+  clampToLearned,
+  getLearnedReasoningEffort,
+} from "../services/learnedReasoningEffortCaps.ts";
+import { buildErrorBody } from "../utils/error.ts";
 import {
   BaseExecutor,
   mergeUpstreamExtraHeaders,
@@ -26,12 +35,9 @@ import {
   type ProviderCredentials,
   type ExecuteInput,
 } from "./base.ts";
-import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
-import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { applyFieldDowngradeRecovery } from "./base/fieldDowngradeRecovery.ts";
+import { readBodyReasoningEffort, writeBodyReasoningEffort } from "./base/reasoningEffort.ts";
 import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
-import { buildErrorBody } from "../utils/error.ts";
-import { getSupervisor } from "@/lib/services/registry";
-import { getOrCreateApiKey } from "@/lib/services/apiKey";
 
 const DEFAULT_PORT = 20130;
 const DEFAULT_HOST = "127.0.0.1";
@@ -161,7 +167,7 @@ export class NineRouterExecutor extends BaseExecutor {
     const url = `${dynamicBaseUrl}${endpoint}`;
     const shape = endpoint === "/v1/messages" ? "anthropic" : "openai";
     const headers = this.buildHeaders(dynamicCredentials, input.stream);
-    const transformedBody = this.transformRequest(
+    let transformedBody = this.transformRequest(
       innerModel,
       input.body,
       input.stream,
@@ -169,6 +175,17 @@ export class NineRouterExecutor extends BaseExecutor {
     );
     mergeUpstreamExtraHeaders(headers, input.upstreamExtraHeaders ?? null);
     stripInternalBodyFields(transformedBody);
+
+    // Preserve transparent first attempts: only clamp capabilities observed for this wire model.
+    const learnedEfforts = getLearnedReasoningEffort(this.provider, innerModel);
+    const requestedEffort = readBodyReasoningEffort(transformedBody);
+    const learnedEffort =
+      learnedEfforts && requestedEffort
+        ? clampToLearned(requestedEffort.toLowerCase(), learnedEfforts)
+        : null;
+    if (learnedEffort) {
+      transformedBody = writeBodyReasoningEffort(transformedBody, learnedEffort);
+    }
 
     const timeoutSignal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
     const combinedSignal = input.signal
@@ -181,7 +198,7 @@ export class NineRouterExecutor extends BaseExecutor {
     );
 
     const fetchOptions = { method: "POST", headers, signal: combinedSignal };
-    const response = await fetch(url, { ...fetchOptions, body: JSON.stringify(transformedBody) });
+    let response = await fetch(url, { ...fetchOptions, body: JSON.stringify(transformedBody) });
 
     // #14629: this override never calls super.execute(), so wire the same
     // reactive reasoning_effort 400 clamp-and-retry BaseExecutor applies.
@@ -189,14 +206,28 @@ export class NineRouterExecutor extends BaseExecutor {
       response,
       url,
       provider: this.provider,
-      model: input.model,
+      model: innerModel,
       body: transformedBody,
       fetchOptions,
       fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
       log: input.log,
     });
 
-    return { response: recovery.response, url, headers, transformedBody };
+    transformedBody = recovery.body;
+    response = await applyFieldDowngradeRecovery({
+      response: recovery.response,
+      url,
+      provider: this.provider,
+      model: innerModel,
+      body: transformedBody,
+      fetchOptions,
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      serializeBody: (body) => JSON.stringify(body),
+      strippedFields: new Set<string>(),
+      log: input.log,
+    });
+
+    return { response, url, headers, transformedBody };
   }
 
   async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {
