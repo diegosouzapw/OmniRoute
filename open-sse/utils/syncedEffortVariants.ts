@@ -55,7 +55,10 @@ interface CatalogModelEntry {
 }
 
 function endsWithKnownEffortToken(id: string): boolean {
-  return CANONICAL_EFFORT_VALUES.some((value) => id.endsWith(`-${value}`));
+  return (
+    CANONICAL_EFFORT_VALUES.some((value) => id.endsWith(`-${value}`)) ||
+    id.endsWith("-ultra")
+  );
 }
 
 function extractEffortTiers(model: CatalogModelEntry): string[] {
@@ -86,7 +89,7 @@ export function shouldExposeSyncedEffortVariants(
   if (typeof model.owned_by === "string" && isSkippedEffortProvider(model.owned_by)) {
     return false;
   }
-  if (model.owned_by !== "codex" && endsWithKnownEffortToken(id)) return false;
+  if (endsWithKnownEffortToken(id)) return false;
   return extractEffortTiers(model).length > 0;
 }
 

@@ -1,6 +1,6 @@
 import { getProviderModels } from "../config/providerModels.ts";
 
-const REGISTERED_EFFORT_SUFFIXES = ["none", "low", "medium", "high", "max", "xhigh"] as const;
+const REGISTERED_EFFORT_SUFFIXES = ["none", "low", "medium", "high", "max", "xhigh", "ultra"] as const;
 
 /**
  * Return the registered base model for an explicit effort variant.
