@@ -20,7 +20,6 @@ import {
   type RequestCapSettings,
 } from "./rateLimitManager/requestCap.ts";
 import { getAntigravityQuotaFamily } from "./antigravityQuotaFamily.ts";
-import { getProviderCategory } from "../config/providerRegistry.ts";
 import { getCodexRateLimitKey } from "../executors/codex.ts";
 import { awaitProviderDefaultSlot, setProviderQuotaOverrides } from "./providerDefaultRateLimit.ts";
 import {
@@ -35,6 +34,7 @@ import {
   toPlainHeaders,
 } from "./rateLimitManager/headers";
 import { checkQueueAdmission } from "./rateLimitManager/admission";
+import { isConnectionAutoProtected } from "./rateLimitManager/autoProtection";
 import { buildOverrideUpdates, loadOverrideMap } from "./rateLimitManager/overrideUpdates";
 import {
   markLocalRateLimitError,
@@ -149,38 +149,6 @@ let watchdogInterval: ReturnType<typeof setInterval> | null = null;
 type LimiterFactory = (options: Bottleneck.ConstructorOptions) => Bottleneck;
 const defaultLimiterFactory: LimiterFactory = (options) => new Bottleneck(options);
 let limiterFactory: LimiterFactory = defaultLimiterFactory;
-
-/**
- * Env-var override for the auto-enable safety net. Highest priority — wins
- * over the persisted dashboard setting. Use to disable in an incident without
- * needing dashboard access.
- *   RATE_LIMIT_AUTO_ENABLE=false  → never auto-enable
- *   RATE_LIMIT_AUTO_ENABLE=true   → force on regardless of dashboard
- *   (unset)                        → use dashboard setting
- */
-function isAutoEnableActive(settings: RequestQueueSettings): boolean {
-  const env = process.env.RATE_LIMIT_AUTO_ENABLE?.trim().toLowerCase();
-  if (env === "false" || env === "0" || env === "off") return false;
-  if (env === "true" || env === "1" || env === "on") return true;
-  return settings.autoEnableApiKeyProviders;
-}
-
-/**
- * True when a connection is covered by the auto-enable safety net (and has no
- * explicit `rateLimitProtection` of its own). Shared with the providers API so the
- * dashboard badge matches what the limiter actually does.
- */
-export function isConnectionAutoProtected(
-  conn: { provider: string; isActive?: boolean | null; rateLimitProtection?: boolean | null },
-  requestQueueSettings: RequestQueueSettings
-): boolean {
-  if (conn.rateLimitProtection === true) return false;
-  return (
-    isAutoEnableActive(requestQueueSettings) &&
-    getProviderCategory(conn.provider) === "apikey" &&
-    conn.isActive === true
-  );
-}
 
 // Sentinels for "no rate limit" / effectively infinite capacity. The reservoir
 // value uses Number.MAX_SAFE_INTEGER so the bucket can never realistically be

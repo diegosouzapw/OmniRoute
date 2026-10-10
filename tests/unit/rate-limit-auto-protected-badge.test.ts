@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { isConnectionAutoProtected } = await import("../../open-sse/services/rateLimitManager.ts");
+const { isConnectionAutoProtected } =
+  await import("../../open-sse/services/rateLimitManager/autoProtection.ts");
 const { DEFAULT_RESILIENCE_SETTINGS } = await import("../../src/lib/resilience/settings.ts");
 
 const queue = DEFAULT_RESILIENCE_SETTINGS.requestQueue;
