@@ -316,6 +316,30 @@ type BadgeCriteria =
   | FirstCriteria
   | HiddenCriteria;
 
+/** Parse once so evaluation and hidden prerequisites agree on invalid definitions. */
+function parseBadgeCriteria(raw: string | null): BadgeCriteria | null {
+  if (!raw) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    if (error instanceof SyntaxError) return null;
+    throw error;
+  }
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    Array.isArray(parsed) ||
+    !("type" in parsed) ||
+    typeof parsed.type !== "string" ||
+    parsed.type.trim().length === 0
+  ) {
+    return null;
+  }
+  // Unknown nonempty types remain prerequisites; the switch does not award them.
+  return parsed as BadgeCriteria;
+}
+
 // ─── Helper: Action Count ────────────────────────────────────────────────────
 
 /**
@@ -334,9 +358,7 @@ async function getActionCount(apiKeyId: string, action: string): Promise<number>
   const db = getDbInstance();
 
   const row = db
-    .prepare(
-      `SELECT count AS total FROM xp_action_counts WHERE api_key_id = ? AND action = ?`
-    )
+    .prepare(`SELECT count AS total FROM xp_action_counts WHERE api_key_id = ? AND action = ?`)
     .get(apiKeyId, action) as { total: number } | undefined;
 
   return row?.total ?? 0;
@@ -398,22 +420,16 @@ export async function evaluateBadges(
   const { getBadgeDefinitions, unlockBadge, getBadges, getRank } =
     await import("../db/gamification");
 
-  const definitions = getBadgeDefinitions();
+  const definitions = getBadgeDefinitions().flatMap((definition) => {
+    const criteria = parseBadgeCriteria(definition.criteria);
+    return criteria ? [{ definition, criteria }] : [];
+  });
   const earned = getBadges(apiKeyId);
   const earnedIds = new Set(earned.map((b) => b.badgeId));
   const newlyUnlocked: string[] = [];
 
-  for (const def of definitions) {
+  for (const { definition: def, criteria } of definitions) {
     if (earnedIds.has(def.id)) continue; // Already earned
-
-    if (!def.criteria) continue;
-
-    let criteria: BadgeCriteria;
-    try {
-      criteria = JSON.parse(def.criteria) as BadgeCriteria;
-    } catch {
-      continue; // Malformed criteria, skip
-    }
 
     let unlocked = false;
 
@@ -483,9 +499,10 @@ export async function evaluateBadges(
       case "hidden": {
         // Secret badge: unlocked by having earned all other badges
         const allOtherDefs = definitions.filter(
-          (d) => d.id !== def.id && !JSON.parse(d.criteria).type?.toString().includes("hidden")
+          ({ definition, criteria }) =>
+            definition.id !== def.id && !criteria.type.includes("hidden")
         );
-        const allOtherEarned = allOtherDefs.every((d) => earnedIds.has(d.id));
+        const allOtherEarned = allOtherDefs.every(({ definition }) => earnedIds.has(definition.id));
         unlocked = allOtherEarned;
         break;
       }
