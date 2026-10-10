@@ -1,0 +1,1 @@
+- **fix(sse):** unwrap ```json fences from non-streaming responses when the client requested JSON mode (`response_format` / `text.format`), and tell prompt-instructed providers not to fence JSON ([#16284](https://github.com/diegosouzapw/OmniRoute/pull/16284)) — thanks @47vigen
