@@ -171,6 +171,12 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
     const capabilities = (this.deps.getCapabilities ?? getResolvedModelCapabilities)(model);
     if (capabilities.supportsVideo === true) return { block: false };
 
+    // Raw cue fields stay sensitive even when describing the video fails or
+    // maxVideos leaves it untouched. Retention must not depend on replacement.
+    const rawTranscriptObserved = parts.some(
+      (part) => part.transcript !== undefined || part.audioTranscript !== undefined
+    );
+
     const analysis = resolveVideoAnalysisContext(body, runtime.analysisMode);
     const visionRuntime = resolveVisionBridgeRuntimeSettings(persisted);
     const configuredModel = runtime.model.trim() || visionRuntime.model.trim();
@@ -298,7 +304,11 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
 
     const videosProcessed = attemptedParts.length - failures;
     const videosReplaced = descriptions.filter((description) => description !== null).length;
-    if (videosReplaced === 0) return { block: false };
+    if (videosReplaced === 0) {
+      return rawTranscriptObserved
+        ? { block: false, meta: { videoBridgeObserved: true } }
+        : { block: false };
+    }
 
     return {
       block: false,
@@ -316,12 +326,9 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
         focusWindowsApplied,
         focusHintsApplied,
         transcriptCuesApplied,
-        // True iff at least one transcript cue (declared transcript OR fused
-        // audio) was rendered into a replaced part — i.e. there is a redacted
-        // shadow for a downstream log/Memory consumer to prefer. Explicitly
-        // `false` (never omitted) for a video with frames but no transcript,
-        // so plain-video logging/Memory stays unaffected.
-        videoBridgeObserved: logRedactionEntries.length > 0,
+        // Protect both rendered cues and raw fields on unreplaced video parts.
+        // Frames without transcript fields retain their normal logging policy.
+        videoBridgeObserved: rawTranscriptObserved || logRedactionEntries.length > 0,
         ...(logRedactionEntries.length > 0 ? { videoBridgeLogRedaction: logRedactionEntries } : {}),
         contactSheetsUsed,
         audioFusionRuns,
