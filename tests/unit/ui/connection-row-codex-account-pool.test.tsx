@@ -111,6 +111,11 @@ describe("ConnectionRow Codex account pool", () => {
     expect(container.textContent).not.toContain("codex-parent-id");
     expect(container.querySelectorAll("button[title='edit']")).toHaveLength(1);
     expect(container.querySelectorAll("button[title='delete']")).toHaveLength(1);
+    // Quota panels must not compete with the account identity/actions in a single flex row.
+    const row = container.firstElementChild as HTMLElement;
+    expect(row.classList.contains("flex-col")).toBe(true);
+    expect(row.classList.contains("items-stretch")).toBe(true);
+    expect(row.children[1].classList.contains("flex-wrap")).toBe(true);
 
     act(() => {
       (container.querySelector("button[title='edit']") as HTMLButtonElement).click();
