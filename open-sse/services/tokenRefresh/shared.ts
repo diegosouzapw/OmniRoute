@@ -145,6 +145,8 @@ export async function readRefreshErrorBody(
  * (e.g. the refresh token was already consumed and cannot be reused).
  * Callers should stop retrying and request re-authentication.
  */
+export const NO_REFRESH_NEEDED = { error: "no_refresh_needed" };
+
 export function isUnrecoverableRefreshError(result) {
   return (
     result &&
@@ -152,6 +154,7 @@ export function isUnrecoverableRefreshError(result) {
     (result.error === "unrecoverable_refresh_error" ||
       result.error === "refresh_token_reused" ||
       result.error === "invalid_request" ||
-      result.error === "invalid_grant")
+      result.error === "invalid_grant" ||
+      result.error === "no_refresh_needed")
   );
 }

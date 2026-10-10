@@ -11,6 +11,7 @@ import {
 } from "../../open-sse/executors/base.ts";
 import { shouldForceResponsesUpstream } from "../../open-sse/executors/forceResponsesUpstream.ts";
 import { DefaultExecutor } from "../../open-sse/executors/default.ts";
+import { NO_REFRESH_NEEDED } from "../../open-sse/services/tokenRefresh/shared.ts";
 import { PROVIDERS } from "../../open-sse/config/constants.ts";
 import {
   CLAUDE_CODE_COMPATIBLE_ANTHROPIC_VERSION,
@@ -1251,10 +1252,10 @@ test("BaseExecutor.needsRefresh returns true only when expiry is near", () => {
   assert.equal(executor.needsRefresh({}), false);
 });
 
-test("DefaultExecutor.refreshCredentials returns null without refresh token", async () => {
+test("DefaultExecutor.refreshCredentials signals nothing to refresh without refresh token", async () => {
   const executor = new DefaultExecutor("gemini");
   const result = await executor.refreshCredentials({}, null);
-  assert.equal(result, null);
+  assert.equal(result, NO_REFRESH_NEEDED);
 });
 
 test("DefaultExecutor.needsRefresh requests a proactive token for GigaChat", () => {
