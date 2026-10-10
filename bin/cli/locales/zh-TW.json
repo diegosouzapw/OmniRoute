@@ -254,6 +254,7 @@
     "log": "內聯顯示伺服器日誌",
     "no_recovery": "停用崩潰自動重啟（除錯模式）",
     "max_restarts": "30 秒內的最大崩潰重啟次數（預設：2）",
+    "headless": "僅執行代理引擎：停用儀表板（404），略過選用子系統（設定 OMNIROUTE_HEADLESS=1）",
     "tray": "顯示系統托盤圖示（僅桌面，選擇加入）",
     "no_tray": "停用系統托盤圖示",
     "ready_timeout": "就緒探測逾時（毫秒）（也可用 OMNIROUTE_READY_TIMEOUT_MS，預設 60000）",

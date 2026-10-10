@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Àwọn Ẹ̀ya</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Àwọn Àkójọpọ̀</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Àwọn Olùpèsè</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Àwọn Olùpèsè</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ máa ń ṣàfihàn env/args gangan láì ṣiṣẹ́ wọn, `--api-key-env NAM
 
 <div align="center">
 
-## 🌐 Àwọn Olùpèsè AI 357 — 152 Tí A Sàmì Sí Nínú Kátálọ́ọ̀gù Gẹ́gẹ́ Bí Ọ̀fẹ́
+## 🌐 Àwọn Olùpèsè AI 372 — 154 Tí A Sàmì Sí Nínú Kátálọ́ọ̀gù Gẹ́gẹ́ Bí Ọ̀fẹ́
 
 </div>
 
@@ -1273,7 +1273,7 @@ port kan, nítorí náà kò sí package CLI-nìkan lọ́tọ̀ ní báyìí.
   <tr><td nowrap><b>Àyíká ìṣiṣẹ́</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Èdè</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> káàkiri <code>src/</code> àti <code>open-sse/</code> (kò sí <code>any</code> nínú apá pàtàkì láti v2.0)</td></tr>
   <tr><td nowrap><b>Ètò-iṣẹ́</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Ìpamọ́ dátà</b></td><td>better-sqlite3 (SQLite, ìforúkọsílẹ̀ WAL) + LowDB (ogún JSON) — àwọn módù 137 fún àwọn àgbègbè iṣẹ́, àwọn ìṣíkiri 193</td></tr>
+  <tr><td nowrap><b>Ìpamọ́ dátà</b></td><td>better-sqlite3 (SQLite, ìforúkọsílẹ̀ WAL) + LowDB (ogún JSON) — àwọn módù 137 fún àwọn àgbègbè iṣẹ́, àwọn ìṣíkiri 202</td></tr>
   <tr><td nowrap><b>Ìrántí</b></td><td>Ìṣàwárí ọ̀rọ̀-kíkún SQLite FTS5 + àwọn àfihàn fekito tí a dín sí int8, ìdínkù onírú</td></tr>
   <tr><td nowrap><b>Àwọn àwòṣe</b></td><td>Zod 4 — ìfọwọ́sí I/O irinṣẹ́ MCP + àwọn àdéhùn API</td></tr>
   <tr><td nowrap><b>Àwọn ìlànà</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

@@ -479,7 +479,7 @@ open-sse/
 
 ### 4.2 `open-sse/executors/`
 
-108 provider executors, each extending `BaseExecutor` (`base.ts`):
+148 provider executors, each extending `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,

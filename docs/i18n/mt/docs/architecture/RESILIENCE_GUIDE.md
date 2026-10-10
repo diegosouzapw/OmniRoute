@@ -96,6 +96,8 @@ Kontroll kontra rigressjonijiet: `tests/unit/provider-cooldown-window-gate.test.
 
 **Protezzjoni kontra thundering herd:** tipprevjeni li fallimenti konkorrenti jestendu żżejjed il-perjodu ta' stennija jew iżidu `backoffLevel` darbtejn.
 
+Il-frejms binarji `reasoningContentEvent` ta’ Kiro b’firma mhux vojta jippreservaw l-attività ta’ raġunament permezz tal-eżekutur bħala delta `reasoning_content` vojta. Il-firma ma tintbagħatx ’il quddiem. Il-metadata, il-frejms mhux kompluti u l-firem vojta ma jerġgħux jibdew il-limitu ta’ ħin għall-kontenut; il-limitu indipendenti għat-tul tal-fluss attiv u l-kanċellazzjoni mill-klijent jibqgħu japplikaw. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Stati terminali (MHUMIEX perjodi ta' stennija):**
 
 - `banned` — issettjat permezz tad-detezzjoni ta' keyword ta' projbizzjoni / projbizzjoni tal-kont (ara [BAN_DETECTION](../security/BAN_DETECTION.md)), u minn tliet rifjuti upstream konsekuttivi għal kull talba (`request_rejected`, eż. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); rifjut wieħed biss ipoġġi l-konnessjoni f'perjodu ta' stennija

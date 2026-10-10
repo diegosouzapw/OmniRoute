@@ -254,6 +254,7 @@
     "log": "Server jurnallarını daxildə göstərin",
     "no_recovery": "Qəza zamanı avtomatik yenidən başlatmanı deaktiv edin (sazlama rejimi)",
     "max_restarts": "İmtina etməzdən əvvəl 30 saniyə ərzində qəza sonrası maksimum yenidən başlatma sayı (standart: 2)",
+    "headless": "Yalnız proksi mühərrikini işə sal: idarə paneli söndürülüb (404), isteğe bağlı alt sistemlər ötürülür (OMNIROUTE_HEADLESS=1 təyin edir)",
     "tray": "Sistem treyində başladın (yalnız masaüstü, istifadəçi seçimi ilə)",
     "no_tray": "Sistem treyi ikonunu deaktiv edin",
     "ready_timeout": "Hazırlıq yoxlamasının ms ilə gözləmə müddəti (həmçinin OMNIROUTE_READY_TIMEOUT_MS, standart 60000)",

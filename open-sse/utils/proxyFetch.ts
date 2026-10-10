@@ -4,7 +4,6 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { fetch as undiciFetch, Agent } from "undici";
 import {
   buildVercelRelayHeaders,
-  clearDispatcherCache,
   createProxyDispatcher,
   getDefaultDispatcher,
   getProxyRetryDispatcher,
@@ -16,6 +15,7 @@ import {
   proxyConfigToUrl,
   proxyUrlForLogs,
 } from "./proxyDispatcher.ts";
+import { maybeReapDispatcherPool } from "./proxyDispatcherReap.ts";
 import tlsClient, { type TlsFetchOptions, guardTlsFirstByte } from "./tlsClient.ts";
 import { withUpstreamStatusCapture } from "./upstreamStatusCapture.ts";
 import { stampOwnListenerSelfHop } from "./selfHop.ts";
@@ -1016,17 +1016,10 @@ async function patchedFetchUnrecorded(
           console.warn(
             `[ProxyFetch] Undici dispatcher failed, falling back to native fetch (after retry): ${describeFetchCause(dispatcherError)}`
           );
-          // On PROXY_UNREACHABLE for local-egress hostnames (host.docker.internal,
-          // *.internal, *.local), drop the cached dispatcher pool: Docker
-          // Desktop's NAT silently drops idle keep-alive sockets inside the
-          // round-robin pool's keepAliveMaxTimeout window, and the pool never
-          // reaps them on PROXY_UNREACHABLE, so the next request must rebuild
-          // with fresh sockets (#4252-style stale-socket burst mitigation).
-          if (
-            isLocalEgressHostname(targetHostForLogs) &&
-            isProxyUnreachableError(dispatcherError)
-          ) {
-            clearDispatcherCache();
+          // Reap the failed pool on PROXY_UNREACHABLE so the next request
+          // rebuilds it with fresh sockets.
+          if (isProxyUnreachableError(dispatcherError)) {
+            maybeReapDispatcherPool(targetHostForLogs, isLocalEgressHostname(targetHostForLogs));
           }
           try {
             return await _nativeFallback(input, options);

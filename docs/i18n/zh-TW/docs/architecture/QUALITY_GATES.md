@@ -290,12 +290,14 @@ BASE_REF=origin/release/vX.Y.Z npm run i18n:check-value-drift
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` —
   一次性放寬作業（`scripts/quality/relax-baselines.mjs`）；拒絕以相同註記執行第二次。
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  以與 CI 相同的方式量測每個數值型閘門，並列印各閘門剩餘的預留空間
-  （`scripts/quality/baseline-headroom.mjs`）。每晚執行的 `baseline-headroom` 工作會將
-  表格發布至持續更新的議題 **📈 基準預留空間（速度階段）**，並在任何閘門距離其上限不到 10%
-  或已超過上限時加上 `headroom-alert` 標籤。該議題是早期預警機制：若預算在數日內便用罄，
-  表示放寬的額度正被少數幾個 PR 消耗，而非由整個團隊共同使用——請查看違規閘門的
-  `_rebaseline_*` 註記。
+  以與 CI 相同的方式測量每個數值型品質檢查，並輸出各項檢查的剩餘餘裕
+  （`scripts/quality/baseline-headroom.mjs`）。每晚執行的 `baseline-headroom` 工作會在工作流程執行摘要中
+  發布表格，並將 JSON/Markdown 報告上傳為
+  `baseline-headroom-<run_id>`，保留 90 天。警告與嚴重等級的列會標示
+  距離上限的剩餘餘裕不超過 10% 或已經超出上限的檢查。
+  請將這些報告視為預算消耗的預警，並查看相關檢查的
+  `_rebaseline_*` 備註。這項工作不再建立或更新長期使用的 issue；
+  #12149 保留了先前報告的歷史紀錄。
 
 **新程式碼模式（Clean-as-You-Code）——自 2026-08-30 起，僅適用於 PR 快速路徑**
 

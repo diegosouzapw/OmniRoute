@@ -1,19 +1,29 @@
-// Direct path-literal edges in the forgotten-sibling gate: a changed workflow / root config
-// has no import "consumer" — the pinning test reads the file itself. The gate must treat
+// Direct path-literal edges in the forgotten-sibling gate (#16068): a changed workflow / root
+// config has no import "consumer" — the pinning test reads the file itself. The gate treats
 // `impactMap.artifacts[changedFile]` as a direct edge with the same diff/masking/allowlist
 // semantics as the import edges. Incident that motivated this: a quality.yml edit broke the
 // `#7307` guard in tests/unit/build/check-workflows.test.ts and the gate stayed silent.
+//
+// Complements tests/unit/path-literal-edges.test.ts with the edge cases it does not pin:
+// exact finding shape, an unpinned artifact producing no output at all, and an impact map
+// predating the `artifacts` key.
 
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import test from "node:test";
+import test, { after } from "node:test";
 
 import { analyzeForgottenSiblingTests } from "../../scripts/check/check-forgotten-sibling-tests.mjs";
 
+const fixtureRoots: string[] = [];
+after(() => {
+  for (const root of fixtureRoots) fs.rmSync(root, { recursive: true, force: true });
+});
+
 function fixture(files: Record<string, string>) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "forgotten-sibling-literal-"));
+  fixtureRoots.push(root);
   for (const [file, contents] of Object.entries(files)) {
     const absolute = path.join(root, file);
     fs.mkdirSync(path.dirname(absolute), { recursive: true });
@@ -39,8 +49,7 @@ test("a changed workflow whose pinning test is absent from the diff is a finding
       changedSymbols: [],
       consumer: WORKFLOW,
       candidateTest: GUARD,
-      reason:
-        "candidate sibling test pins this file by path literal and is absent from the PR diff",
+      reason: "candidate sibling test is absent from the PR diff",
     },
   ]);
   assert.equal(result.diagnostics.length, 0);

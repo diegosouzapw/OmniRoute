@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "May nangyaring mali",
+      "description": "Isang hindi inaasahang error ang nangyari. Ito ay naitala at ang aming koponan ay magsasagawa ng imbestigasyon.",
+      "detailsAriaLabel": "Mga detalye ng error",
+      "retryAriaLabel": "Subukang i-load muli ang pahina",
+      "tryAgain": "Subukan Muli",
+      "statusAriaLabel": "Buksan ang katayuan ng sistema",
+      "systemStatus": "Katayuan ng Sistema"
+    }
+  }
+}

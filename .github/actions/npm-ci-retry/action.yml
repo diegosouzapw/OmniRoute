@@ -55,7 +55,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: node_modules
-        key: node-modules-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ steps.npm.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs', 'scripts/build/betterSqlitePrebuildTarget.mjs') }}
+        key: node-modules-v3-${{ runner.os }}-${{ runner.arch }}-${{ steps.node.outputs.version }}-${{ steps.npm.outputs.version }}-${{ hashFiles('package-lock.json', '.npmrc', 'scripts/build/postinstall.mjs', 'scripts/build/postinstallSupport.mjs', 'scripts/build/colocateOptionals.mjs', 'scripts/build/wreqJsNative.mjs', 'scripts/build/fixPlaywrightAndroid.mjs', 'scripts/build/native-binary-compat.mjs', 'scripts/build/betterSqlitePrebuildTarget.mjs', 'scripts/ci/verify-ci-install.mjs') }}
 
     - name: npm ci (with retry)
       if: steps.node-modules.outputs.cache-hit != 'true'
@@ -85,6 +85,13 @@ runs:
           sleep "$delay_seconds"
           delay_seconds=$((delay_seconds * 2))
         done
+
+    # Both cache hits and successful installs must execute the native runtimes.
+    # A package directory alone cannot prove ABI compatibility or a usable binary.
+    - name: Verify installed native runtimes
+      id: verify-install
+      shell: bash
+      run: node scripts/ci/verify-ci-install.mjs
 
     - name: node_modules restored from cache
       if: steps.node-modules.outputs.cache-hit == 'true'

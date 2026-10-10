@@ -1,0 +1,1 @@
+- Exclude Qoder PAT/CLI accounts from caller-tool requests, preserve HTTP account selection, and document the PAT runtime and OAuth configuration limits. (#13697)

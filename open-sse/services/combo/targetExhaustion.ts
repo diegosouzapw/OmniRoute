@@ -42,6 +42,7 @@ import { isClaudeMinuteRateLimitText, isExplicitClaudeQuota429Text } from "../us
 import { getCachedClaudeQuotaScopeDecision } from "@/domain/quotaCache";
 import { resolveProviderId } from "@/shared/constants/providers";
 import { LOCAL_MODEL_COOLDOWN_HEADER } from "../../utils/localCooldownHeader.ts";
+import { isExplicitModelCapacityFailure } from "../accountFallback/perModelFailureScope.ts";
 import type { ComboLogger, ResolvedComboTarget } from "./types.ts";
 
 // Connection-level failure statuses: the provider connection itself is likely bad (upstream
@@ -567,6 +568,7 @@ function markConnectionLevelExhaustion(
     isProviderCircuitOpenResult(result, errorText) ||
     requestScopedFailure ||
     isRequestScopedUpstreamFailure(structuredError) ||
+    isExplicitModelCapacityFailure(result.status, errorText, rawModel) ||
     // #5085: empty-content 502 is a healthy connection returning no body — model-level, not
     // connection-level. Don't exhaust the provider; let the remaining legs (incl. same-provider)
     // be tried in-request.

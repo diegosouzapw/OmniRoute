@@ -200,6 +200,7 @@ export function extractProviderBlocks(source) {
         deprecated: readBoolean(fields.get("deprecated")),
         hasFree: readBoolean(fields.get("hasFree")),
         passthroughModels: readBoolean(fields.get("passthroughModels")),
+        isLocalCli: readBoolean(fields.get("isLocalCli")),
       });
     }
 
@@ -223,6 +224,7 @@ function fallbackAvailableProviders() {
     deprecated: false,
     hasFree: false,
     passthroughModels: false,
+    isLocalCli: false,
   }));
 }
 

@@ -337,7 +337,6 @@ Tàbí fi sí ibi tí a mọ̀:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Ti ipele aṣàmúlò
-<project>/.compression/rules/hi/filler.json   # Ti ipele iṣẹ́-àkànṣe
 ```
 
 ### Àwọn Ìlànà Tó Dára Jù fún Àwọn Àkójọpọ̀ Èdè

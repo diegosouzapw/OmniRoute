@@ -2414,9 +2414,41 @@ paths:
     get:
       tags: [Provider Nodes]
       summary: List provider models
+      description: >-
+        With a provider query parameter, includes modelOutputOverrides for manual
+        output-token caps, including synced models without a custom-model row.
       responses:
         "200":
           description: Provider model list
+    put:
+      tags: [Provider Nodes]
+      summary: Update model metadata or per-model overrides
+      description: >-
+        Requires management authentication. maxOutputTokenOverride sets a manual
+        max_output_tokens capability without creating a custom-model row when it
+        is the only change. A null value clears that override. Existing metadata
+        fields remain available on this operation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, modelId]
+              properties:
+                provider:
+                  type: string
+                modelId:
+                  type: string
+                maxOutputTokenOverride:
+                  type: integer
+                  minimum: 1
+                  nullable: true
+      responses:
+        "200":
+          description: Model settings saved
+        "400":
+          description: Invalid model target or override value
 
   /api/provider-models/validate-and-add:
     post:
@@ -10515,6 +10547,16 @@ paths:
       tags:
         - Logs
       summary: "GET logs › export"
+      description: >-
+        Streams a JSON log export. The initial estimatedCount and the
+        X-OmniRoute-Export-Count header are preflight estimates;
+        X-OmniRoute-Export-Count-Kind is estimate. The final count is the number
+        of rows actually emitted in logs, including on mid-stream failure.
+        Failures also append emitted and a sanitized error. Cap metadata is
+        available before row iteration. This is a live, best-effort export:
+        concurrent changes may remove call-log IDs before hydration, and proxy-log
+        LIMIT/OFFSET pages may repeat or omit rows when inserts/deletes shift pages.
+        Neither the export nor totalAvailable represents a transactional snapshot.
       x-always-protected: true
       responses:
         "200":
@@ -12689,10 +12731,55 @@ paths:
       tags:
         - System
       summary: "GET system › version"
+      description: >-
+        Running version, latest published version, auto-update status and npm release channel.
+        `releaseChannel` and `channels` are additive (rail 3.8.54); `channel` keeps meaning the
+        deployment mode used by the dashboard updater.
       x-loopback-only: true
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [current, latest, updateAvailable, channel, releaseChannel, channels]
+                properties:
+                  current: { type: string, description: Running OmniRoute version. }
+                  latest:
+                    type: string
+                    description: Latest published version, or "unavailable" when every lookup failed.
+                  updateAvailable: { type: boolean }
+                  channel:
+                    type: string
+                    enum: [npm, source, docker-compose]
+                    description: Deployment mode the auto-updater uses (not the npm release channel).
+                  autoUpdateSupported: { type: boolean }
+                  autoUpdateError: { type: [string, "null"] }
+                  news: { description: Active release-news payload, or null. }
+                  releaseChannel:
+                    type: string
+                    enum: [latest, next, nightly, lts]
+                    description: >-
+                      npm channel of the running build — `nightly` for `-nightly.*`, `next` for other
+                      pre-releases, `lts` for a stable of an older major than `channels.latest`,
+                      otherwise `latest` (same rules as scripts/release/dist-tag.mjs).
+                  channels:
+                    type: object
+                    description: >-
+                      Published head of each npm dist-tag (`npm view omniroute dist-tags`, cached
+                      10 minutes). `latest` is always present; the others only when the dist-tag
+                      exists.
+                    required: [latest]
+                    properties:
+                      latest: { type: string }
+                      next: { type: string }
+                      nightly: { type: string }
+                      lts: { type: string }
+        "304":
+          description: Not modified (If-None-Match matched the ETag).
+        "401":
+          description: Unauthorized
     post:
       tags:
         - System

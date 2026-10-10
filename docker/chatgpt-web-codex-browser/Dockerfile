@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/playwright:v1.62.0-noble
 
 USER root
-RUN mkdir -p /browser-profile && chown -R pwuser:pwuser /browser-profile
+RUN mkdir -p /browser-profile /cdp-token && chown -R pwuser:pwuser /browser-profile /cdp-token
 COPY --chown=pwuser:pwuser docker/chatgpt-web-codex-browser/cdp-proxy.mjs /opt/cdp-proxy.mjs
 USER pwuser
 

@@ -1,0 +1,1 @@
+- Keep sibling models eligible after a 413 explicitly naming the failed model or a 504 attributed to its model endpoint; generic connection failures retain their cooldown and cascade protection (#15788).

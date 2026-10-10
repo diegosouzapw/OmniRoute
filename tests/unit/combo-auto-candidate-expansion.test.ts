@@ -64,6 +64,40 @@ test("expandAutoComboCandidatePool adds every model of an active provider when n
   }
 });
 
+test("expandAutoComboCandidatePool ignores malformed custom rows while keeping chat models", async () => {
+  await providersDb.createProviderConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "OpenAI",
+    apiKey: "sk-test-openai",
+  });
+
+  // customModels is persisted as operator-writable JSON. A malformed row must not
+  // abort the whole expansion or cause the static catalogue to replace the
+  // explicitly visible custom chat model.
+  core
+    .getDbInstance()
+    .prepare("INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES (?, ?, ?)")
+    .run(
+      "customModels",
+      "openai",
+      JSON.stringify([
+        null,
+        "not-an-object",
+        { name: "Missing Id" },
+        { id: "gpt-custom", supportedEndpoints: ["chat"] },
+      ])
+    );
+
+  const expanded = await combo.expandAutoComboCandidatePool([], { config: {} });
+
+  assert.deepEqual(
+    expanded.map((target) => target.modelStr),
+    ["openai/gpt-custom"],
+    "only the well-formed visible custom chat model should be expanded"
+  );
+});
+
 test("expandAutoComboCandidatePool excludes retired Qwen rows with synced models", async () => {
   const db = core.getDbInstance();
   db.exec(`

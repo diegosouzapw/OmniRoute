@@ -254,6 +254,7 @@
     "log": "Show server logs inline",
     "no_recovery": "Disable auto-restart on crash (debugging mode)",
     "max_restarts": "Max crash restarts within 30s before giving up (default: 2)",
+    "headless": "Run only the proxy engine: dashboard disabled (404), optional subsystems skipped (sets OMNIROUTE_HEADLESS=1)",
     "tray": "Start in the system tray (desktop only, opt-in)",
     "no_tray": "Disable system tray icon",
     "ready_timeout": "Readiness probe timeout in ms (also OMNIROUTE_READY_TIMEOUT_MS, default 60000)",

@@ -3,80 +3,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { globSync } from "tinyglobby";
 
+import { extractPathLiteralEdges } from "./lib/pathLiteralEdges.mjs";
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SRC_ROOTS = ["src", "open-sse"];
 const IMPORT_RE =
   /(?:import|export)[^'"]*from\s*['"]([^'"]+)['"]|require\(\s*['"]([^'"]+)['"]\s*\)|import\(\s*['"]([^'"]+)['"]\s*\)/g;
 const EXTS = [".ts", ".tsx", ".mts", ".js", ".mjs"];
-
-// ── Path-literal edges ────────────────────────────────────────────────────────
-// The import graph only sees `import`/`require`. A test that pins a workflow or a root
-// config reads it as a FILE (`new URL("../../.github/workflows/x.yml", import.meta.url)`,
-// `readFileSync(resolve(here, "../../next.config.mjs"))`, `path.join(process.cwd(),
-// "next.config.mjs")`), so no edge existed and a change to that artifact never pointed at
-// the test. Measured 2026-08-14: 37 test files were invisible this way. These edges go in a
-// SEPARATE `artifacts` key so `sources` keeps its exact import-graph semantics (the TIA
-// selector treats an unmapped src file as __RUN_ALL__; an unpinned artifact must not).
-//
-// A literal counts when it (a) looks like a file path with an extension, (b) resolves to an
-// existing regular file relative to the test's directory or to the repo root, and (c) lives
-// OUTSIDE import territory (src/, open-sse/, bin/ — already covered by `sources`), outside
-// tests/ (a test is never its own sibling), and outside generated/private trees.
-const PATH_LITERAL_RE =
-  /['"`]((?:\.{1,2}\/)+[^'"`\s]+|\.?[\w@-][\w.@-]*(?:\/[\w.@-]+)*\.(?:ya?ml|c?m?js|ts|json|md|toml|sh|txt|env))['"`]/g;
-const ARTIFACT_EXCLUDED_PREFIXES = [
-  "src/",
-  "open-sse/",
-  "bin/",
-  "tests/",
-  "node_modules/",
-  ".git/",
-  ".claude/",
-  ".build/",
-  "dist/",
-  "coverage/",
-  "_",
-];
-// Hub files already force __RUN_ALL__ in the TIA selector; as sibling edges they would only
-// turn every dependabot bump into a wall of advisory findings.
-const ARTIFACT_HUB_RE = /^(?:package\.json|package-lock\.json)$/;
-
-function isArtifactPath(rel) {
-  return (
-    !ARTIFACT_EXCLUDED_PREFIXES.some((p) => rel.startsWith(p)) &&
-    !ARTIFACT_HUB_RE.test(rel) &&
-    !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(rel)
-  );
-}
-
-/** Repo-relative artifact files a test file pins by string literal (POSIX separators). */
-export function artifactLiteralsOf(testFile, root = ROOT) {
-  const out = new Set();
-  let code;
-  try {
-    code = fs.readFileSync(testFile, "utf8");
-  } catch {
-    return out;
-  }
-  const dir = path.dirname(testFile);
-  for (const m of code.matchAll(PATH_LITERAL_RE)) {
-    const lit = m[1];
-    for (const candidate of [path.resolve(dir, lit), path.resolve(root, lit)]) {
-      const rel = path.relative(root, candidate).split(path.sep).join("/");
-      if (rel.startsWith("..") || path.isAbsolute(rel) || !isArtifactPath(rel)) continue;
-      let stat;
-      try {
-        stat = fs.statSync(candidate);
-      } catch {
-        continue;
-      }
-      if (!stat.isFile()) continue;
-      out.add(rel);
-      break;
-    }
-  }
-  return out;
-}
 
 export function resolveImport(spec, fromFile, root = ROOT) {
   let base;
@@ -141,20 +74,17 @@ export function buildTestImpactMap(root = ROOT) {
     { cwd: root, absolute: true }
   );
   const map = {};
-  const artifacts = {};
   for (const tf of testFiles) {
     const relTest = path.relative(root, tf);
     for (const src of sourceDepsOf(tf, root)) {
       (map[src] ||= []).push(relTest);
     }
-    for (const artifact of artifactLiteralsOf(tf, root)) {
-      (artifacts[artifact] ||= []).push(relTest);
-    }
   }
   for (const k of Object.keys(map)) map[k].sort();
-  for (const k of Object.keys(artifacts)) artifacts[k].sort();
+  // #16068: tests that read a workflow/config/doc as a file have no import edge.
+  const artifacts = extractPathLiteralEdges({ root, testFiles });
   return {
-    generatedFrom: "import-graph+path-literals",
+    generatedFrom: "import-graph",
     sources: map,
     artifacts,
     testFileCount: testFiles.length,
@@ -167,6 +97,6 @@ if (fileURLToPath(import.meta.url) === path.resolve(process.argv[1] || "")) {
   const out = path.join(ROOT, "config/quality/test-impact-map.json");
   fs.writeFileSync(out, JSON.stringify(map, null, 2) + "\n");
   console.log(
-    `test-impact-map: ${Object.keys(map.sources).length} source files + ${Object.keys(map.artifacts).length} pinned artifacts mapped from ${testFileCount} test files`
+    `test-impact-map: ${Object.keys(map.sources).length} source files + ${Object.keys(map.artifacts).length} artifact files mapped from ${testFileCount} test files`
   );
 }

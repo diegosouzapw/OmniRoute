@@ -240,6 +240,27 @@ export function normalizeDataRobotCatalogResponse(
     .filter((value): value is { id: string; name: string } => Boolean(value));
 }
 
+// Upstream fields that declare supported reasoning efforts (#15762). Only these are carried
+// through so the sync extractor sees them; spreading the whole record would alter other flows.
+const OPENAI_LIKE_EFFORT_DECLARATION_KEYS = [
+  "reasoning",
+  "supported_reasoning_levels",
+  "thinking",
+  "metadata",
+  "capabilities",
+  "supportedThinkingEfforts",
+  "reasoning_options",
+  "vendors",
+] as const;
+
+function pickEffortDeclarations(item: Record<string, unknown>): Record<string, unknown> {
+  const picked: Record<string, unknown> = {};
+  for (const key of OPENAI_LIKE_EFFORT_DECLARATION_KEYS) {
+    if (item[key] !== undefined && item[key] !== null) picked[key] = item[key];
+  }
+  return picked;
+}
+
 export function normalizeOpenAiLikeModelsResponse(
   data: unknown,
   fallbackOwner: string
@@ -266,7 +287,7 @@ export function normalizeOpenAiLikeModelsResponse(
         id;
       const ownedBy =
         toNonEmptyString(item.owned_by) || toNonEmptyString(item.provider) || fallbackOwner;
-      return { id, name, owned_by: ownedBy };
+      return { ...pickEffortDeclarations(item), id, name, owned_by: ownedBy };
     })
     .filter((value): value is { id: string; name: string; owned_by: string } => Boolean(value));
 }

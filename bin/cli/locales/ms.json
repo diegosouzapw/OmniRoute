@@ -254,6 +254,7 @@
     "log": "Tunjukkan log pelayan sebaris",
     "no_recovery": "Lumpuhkan mula semula automatik apabila ranap (mod penyahpepijatan)",
     "max_restarts": "Bilangan maksimum mula semula akibat ranap dalam tempoh 30s sebelum berhenti mencuba (lalai: 2)",
+    "headless": "Jalankan enjin proksi sahaja: papan pemuka dilumpuhkan (404), subsistem pilihan dilangkau (menetapkan OMNIROUTE_HEADLESS=1)",
     "tray": "Mulakan dalam dulang sistem (desktop sahaja, ikut serta)",
     "no_tray": "Lumpuhkan ikon dulang sistem",
     "ready_timeout": "Tamat masa prob kesediaan dalam ms (juga OMNIROUTE_READY_TIMEOUT_MS, lalai 60000)",

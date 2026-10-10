@@ -319,12 +319,14 @@ zgodność dokumentacji ze środowiskiem, spójność i18n, testy jednostkowe) p
   poluzowanie (`scripts/quality/relax-baselines.mjs`); odmawia ponownego uruchomienia z tą samą
   notatką.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mierzy każdą bramę liczbową w taki sam sposób jak CI i wyświetla pozostały zapas dla każdej bramy
-  (`scripts/quality/baseline-headroom.mjs`). Nocne zadanie `baseline-headroom` publikuje
-  tabelę w aktualizowanym zgłoszeniu **📈 Zapas poziomów bazowych (faza szybkości)** i dodaje etykietę
-  `headroom-alert`, gdy dowolna brama znajduje się w granicach 10% swojego limitu lub już go przekracza. To zgłoszenie
-  stanowi wczesne ostrzeżenie: budżet wyczerpujący się w ciągu kilku dni oznacza, że poluzowanie jest zużywane przez
-  kilka PR-ów, a nie przez cały zespół — sprawdź uwagi `_rebaseline_*` dotyczące problematycznej bramy.
+  mierzy każdą liczbową kontrolę jakości tak samo jak CI i wypisuje pozostały zapas dla każdej kontroli
+  (`scripts/quality/baseline-headroom.mjs`). Nocne zadanie `baseline-headroom` publikuje tabelę
+  w podsumowaniu uruchomienia workflow i przesyła raport JSON/Markdown jako
+  `baseline-headroom-<run_id>`, przechowywany przez 90 dni. Wiersze ostrzegawcze i krytyczne wskazują
+  kontrole, którym do limitu pozostało nie więcej niż 10% lub które już go przekroczyły.
+  Przeglądaj te raporty jako wczesne ostrzeżenie o zużywaniu budżetów; sprawdź uwagi
+  `_rebaseline_*` dotyczące problematycznej kontroli. Zadanie nie tworzy już ani nie aktualizuje
+  stałego zgłoszenia; #12149 zachowuje historię wcześniejszych raportów.
 
 **Tryb nowego kodu (Clean-as-You-Code) — od 2026-08-30, tylko szybka ścieżka PR**
 
