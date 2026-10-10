@@ -59,6 +59,42 @@ export function isPidRunning(pid) {
   }
 }
 
+// #16030: shutdown intent marker. The dashboard shutdown route runs inside the
+// server CHILD, which cannot prove the supervisor's identity on every platform
+// (macOS has no /proc/<pid>/cmdline). Instead of signaling an unverified pid,
+// the child writes this marker with its own pid before exiting on purpose; the
+// supervisor consumes it in handleExit() and exits instead of restarting.
+// Spontaneous exits (crash, OOM) carry no marker and still restart.
+const SHUTDOWN_INTENT_FILE = ".shutdown-intent";
+
+function getShutdownIntentPath() {
+  return join(resolveDataDir(), "supervisor", SHUTDOWN_INTENT_FILE);
+}
+
+export function clearShutdownIntent() {
+  try {
+    unlinkSync(getShutdownIntentPath());
+  } catch {}
+}
+
+export function consumeShutdownIntent(expectedPid) {
+  try {
+    // A marker is only honored when we know exactly which child exited. With an
+    // unknown child pid (e.g. spawn failed), any marker must be ignored.
+    if (!Number.isInteger(expectedPid) || expectedPid <= 0) return false;
+    const file = getShutdownIntentPath();
+    if (!existsSync(file)) return false;
+    const raw = readFileSync(file, "utf8").trim();
+    const pid = parseInt(raw, 10);
+    const honored = Number.isInteger(pid) && pid > 0 && pid === expectedPid;
+    // Single-shot either way: a consumed or stale/foreign marker never survives.
+    unlinkSync(file);
+    return honored;
+  } catch {
+    return false;
+  }
+}
+
 // A port that is already owned must be reported, not spawned into. `omniroute
 // serve` used to hand the conflict to the child, which died with EADDRINUSE
 // twice on the supervisor's restart budget and printed three raw Node stack

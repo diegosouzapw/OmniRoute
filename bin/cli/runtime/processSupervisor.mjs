@@ -2,7 +2,14 @@ import { spawn } from "node:child_process";
 import { mkdirSync, appendFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { writePidFile, cleanupPidFile, killAllSubprocesses, isPidRunning } from "../utils/pid.mjs";
+import {
+  writePidFile,
+  cleanupPidFile,
+  killAllSubprocesses,
+  isPidRunning,
+  clearShutdownIntent,
+  consumeShutdownIntent,
+} from "../utils/pid.mjs";
 import { resolveDataDir } from "../data-dir.mjs";
 import {
   RESTART_RESET_MS,
@@ -58,6 +65,7 @@ export class ServerSupervisor {
     this.env = env;
     this.maxRestarts = maxRestarts;
     this.memoryLimit = memoryLimit;
+    this.lastChildPid = null;
     this.onCrashCallback = onCrashCallback;
     this.restartCount = 0;
     this.startedAt = 0;
@@ -96,6 +104,10 @@ export class ServerSupervisor {
       windowsHide: true,
     });
 
+    this.lastChildPid = this.child?.pid ?? null;
+    // #16030: drop any intent marker left by a previous run so only THIS child's
+    // deliberate exit is honored below in handleExit().
+    clearShutdownIntent();
     writePidFile("server", this.child.pid);
 
     const bufferOutput = (data) => {
@@ -169,6 +181,17 @@ export class ServerSupervisor {
     // systemd MemoryMax cgroup kill, which reports the process exited cleanly) is anomalous
     // and must be restarted, not treated as a graceful stop that leaves the gateway dead.
     if (shouldExitInsteadOfRestart(this.isShuttingDown)) {
+      process.exit(exitCode ?? 0);
+      return;
+    }
+
+    // #16030: the child asked to shut down (dashboard Shutdown button) and wrote an
+    // intent marker before exiting — the portable path for platforms where the
+    // child cannot verify the supervisor's identity (macOS has no /proc). Honor it
+    // and exit instead of restarting. Exits without a marker are spontaneous and
+    // still follow the restart budget below.
+    if (consumeShutdownIntent(this.lastChildPid)) {
+      console.error("\nServer requested shutdown. Exiting.");
       process.exit(exitCode ?? 0);
       return;
     }

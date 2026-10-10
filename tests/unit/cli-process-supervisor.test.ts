@@ -349,3 +349,101 @@ test("#13992: supervised server spawn hides the console window on Windows", () =
       "flashes a visible console on Windows"
   );
 });
+
+// --- #16030: shutdown intent marker ---
+
+test("consumeShutdownIntent honors only a marker carrying the exited child's pid", async () => {
+  const os = await import("node:os");
+  const tmpDir = path.join(os.default.tmpdir(), `omniroute-intent-test-${Date.now()}`);
+  process.env.DATA_DIR = tmpDir;
+  try {
+    const { consumeShutdownIntent } = await import("../../bin/cli/utils/pid.mjs");
+    const markerDir = path.join(tmpDir, "supervisor");
+    fs.mkdirSync(markerDir, { recursive: true });
+    const marker = path.join(markerDir, ".shutdown-intent");
+
+    fs.writeFileSync(marker, "4242", "utf8");
+    assert.equal(consumeShutdownIntent(4242), true, "matching pid is honored");
+    assert.equal(fs.existsSync(marker), false, "marker is single-shot");
+
+    fs.writeFileSync(marker, "4242", "utf8");
+    assert.equal(consumeShutdownIntent(7777), false, "a stale/foreign pid is not honored");
+    assert.equal(consumeShutdownIntent(4242), false, "marker is gone after the read");
+
+    fs.writeFileSync(marker, "4242", "utf8");
+    assert.equal(consumeShutdownIntent(null), false, "unknown child pid never honors a marker");
+    fs.writeFileSync(marker, "4242", "utf8");
+    assert.equal(consumeShutdownIntent(0), false, "pid 0 never honors a marker");
+  } finally {
+    delete process.env.DATA_DIR;
+  }
+});
+
+test("ServerSupervisor.handleExit exits instead of restarting when the child wrote a shutdown intent", async () => {
+  const os = await import("node:os");
+  const tmpDir = path.join(os.default.tmpdir(), `omniroute-intent-exit-${Date.now()}`);
+  process.env.DATA_DIR = tmpDir;
+  process.env.PORT = "0";
+
+  const exits: number[] = [];
+  const origExit = process.exit.bind(process);
+  // @ts-ignore
+  process.exit = (code?: number) => exits.push(code ?? 0);
+
+  try {
+    const { ServerSupervisor } = await import("../../bin/cli/runtime/processSupervisor.mjs");
+    const markerDir = path.join(tmpDir, "supervisor");
+    fs.mkdirSync(markerDir, { recursive: true });
+    // The child (pid 4242) asked to shut down, then died from its own SIGTERM (143).
+    fs.writeFileSync(path.join(markerDir, ".shutdown-intent"), "4242", "utf8");
+
+    const supervisor = new ServerSupervisor({
+      serverPath: "/fake/server.js",
+      env: {},
+      maxRestarts: 2,
+      onCrashCallback: undefined,
+    });
+    supervisor.lastChildPid = 4242;
+    supervisor.handleExit(143);
+
+    assert.deepEqual(exits, [143], "supervisor exits with the child's code");
+    assert.equal(supervisor.restartCount, 0, "no restart is scheduled");
+  } finally {
+    // @ts-ignore
+    process.exit = origExit;
+    delete process.env.DATA_DIR;
+  }
+});
+
+test("ServerSupervisor.handleExit still restarts a spontaneous 143 with no intent marker", async () => {
+  const os = await import("node:os");
+  const tmpDir = path.join(os.default.tmpdir(), `omniroute-intent-crash-${Date.now()}`);
+  process.env.DATA_DIR = tmpDir;
+  process.env.PORT = "0";
+
+  const exits: number[] = [];
+  const origExit = process.exit.bind(process);
+  // @ts-ignore
+  process.exit = (code?: number) => exits.push(code ?? 0);
+
+  try {
+    const { ServerSupervisor } = await import("../../bin/cli/runtime/processSupervisor.mjs");
+    const supervisor = new ServerSupervisor({
+      serverPath: "/fake/server.js",
+      env: {},
+      maxRestarts: 2,
+      onCrashCallback: undefined,
+    });
+    supervisor.lastChildPid = 4242;
+    supervisor.start = () => null as never;
+    supervisor.handleExit(143);
+
+    assert.equal(exits.length, 0, "no intent marker: must NOT exit");
+    assert.equal(supervisor.restartCount, 1, "spontaneous exit still restarts");
+    await new Promise((r) => setTimeout(r, 1100));
+  } finally {
+    // @ts-ignore
+    process.exit = origExit;
+    delete process.env.DATA_DIR;
+  }
+});
