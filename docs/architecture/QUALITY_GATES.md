@@ -308,11 +308,12 @@ docs/env contract, i18n parity, unit tests) are unchanged — a red test is stil
   same note.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
   measures every numeric gate the way CI does and prints the remaining headroom per gate
-  (`scripts/quality/baseline-headroom.mjs`). The nightly `baseline-headroom` job posts the
-  table to the living issue **📈 Baseline headroom (velocity phase)** and adds the
-  `headroom-alert` label when any gate is within 10% of its cap or already over it. That issue
-  is the early warning: a budget that fills in days means the relaxation is being consumed by
-  a few PRs, not by the whole team — look at the offending gate's `_rebaseline_*` notes.
+  (`scripts/quality/baseline-headroom.mjs`). The nightly `baseline-headroom` job publishes
+  the table in the workflow run summary and uploads its JSON/Markdown report as
+  `baseline-headroom-<run_id>`, retained for 90 days. Warning and critical rows identify gates
+  within 10% of their cap or already over it. Review these reports as the early warning for
+  budgets being consumed; inspect the offending gate's `_rebaseline_*` notes. The job no
+  longer creates or updates a permanent issue; #12149 preserves the earlier report history.
 
 **New-code mode (Clean-as-You-Code) — since 2026-08-30, PR fast-path only**
 

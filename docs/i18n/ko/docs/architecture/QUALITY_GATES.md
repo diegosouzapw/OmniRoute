@@ -300,12 +300,14 @@ BASE_REF=origin/release/vX.Y.Z npm run i18n:check-value-drift
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — 일회성
   완화 도구(`scripts/quality/relax-baselines.mjs`)이며, 동일한 메모로 두 번 실행할 수 없습니다.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  CI와 동일한 방식으로 모든 수치형 게이트를 측정하고 게이트별 남은 여유분을 출력합니다
-  (`scripts/quality/baseline-headroom.mjs`). 야간 `baseline-headroom` 작업은
-  **📈 Baseline headroom (velocity phase)** 현행 이슈에 표를 게시하고, 게이트가 상한의 10% 이내에
-  도달했거나 이미 초과한 경우 `headroom-alert` 라벨을 추가합니다. 이 이슈는
-  조기 경보 역할을 합니다. 예산이 며칠 만에 소진된다면 전체 팀이 아니라 일부 PR이 완화분을
-  소모하고 있다는 의미이므로, 문제가 되는 게이트의 `_rebaseline_*` 메모를 확인하십시오.
+  CI와 같은 방식으로 각 수치 기반 품질 검사를 측정하고 검사별로 남은 여유를 출력합니다
+  (`scripts/quality/baseline-headroom.mjs`). 야간 `baseline-headroom` 작업은 워크플로 실행 요약에
+  표를 게시하고 JSON/Markdown 보고서를
+  `baseline-headroom-<run_id>`라는 이름으로 업로드하여 90일 동안 보관합니다. 경고 및 심각 행은
+  상한까지 남은 여유가 10% 이하이거나 이미 상한을 초과한 검사를 표시합니다.
+  이 보고서를 허용량 소진에 대한 조기 경고로 검토하고, 해당 검사의
+  `_rebaseline_*` 메모를 확인하세요. 작업은 더 이상 상시 이슈를 생성하거나 갱신하지 않으며,
+  #12149에는 이전 보고서 이력이 보존됩니다.
 
 **새 코드 모드(Clean-as-You-Code) — 2026-08-30부터, PR 빠른 경로에만 적용**
 
