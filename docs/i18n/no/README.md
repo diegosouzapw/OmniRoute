@@ -6,30 +6,32 @@
 
 <div align="center">
 
-<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-dashbord" width="820"/>
+<img src="./docs/screenshots/MainOmniRoute.png" alt="OmniRoute-kontrollpanel" width="820"/>
 
 <br/>
 <br/>
 
 # 🚀 OmniRoute — Den gratis AI-gatewayen
 
-<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Slutt aldri å kode. Alle AI-verktøy → 367 leverandører — over 150 gratis — gjennom ett endepunkt. Claude Code, Codex, Cursor, Cline, Copilot og Antigravity koblet til GRATIS Claude / GPT / Gemini med automatisk reservebytte. Kombinert RTK- og Caveman-komprimering sparer 15–95 % av tokenene (~89 % i snitt) — nå aldri grensene. 367 AI-leverandører · over 150 gratisnivåer · ~1,62 mrd. gratis tokener/md. · 19 rutingsstrategier · $0 for å komme i gang."/>
+<img src="./docs/diagrams/readme-hero.svg" width="100%" alt="OmniRoute — Slutt aldri å kode. Alle AI-verktøy → 372 leverandører — 150+ gratis — gjennom ett endepunkt. Claude Code, Codex, Cursor, Cline, Copilot og Antigravity inn i GRATIS Claude / GPT / Gemini med automatisk reservebytte. Stablet RTK- + Caveman-komprimering sparer 15–95 % tokens (~89 % i gjennomsnitt) — nå aldri grensene. 372 AI-leverandører · 150+ gratisnivåer · ~1,62 mrd. gratis tokens/mnd. · 19 rutingsstrategier · $0 for å komme i gang."/>
 
 </div>
 
 <div align="center">
 
-## 💰 ~1,62 mrd. gratis tokener / måned
+## 💰 ~1.62B tokener / måned på tvers av gratisnivåer hos tredjeparter
 
 </div>
 
-> Det er tungvint å stable gratisnivåer manuelt — dusinvis av SDK-er, dusinvis av hastighetsgrenser og ingen oversikt over hvor mye du faktisk har. OmniRoute katalogiserer **489 gratisnivåoppføringer fordelt på 35 gjentakende poolnøkler** og beregner tokenoverskriften ut fra de **17 poolene med et publisert positivt månedsbudsjett, pluss fem Groq-grenser per modell**, deduplisert etter delt pool. Kvoter som bare blir tilgjengelige etter en regional identitetskontroll (i dag: ModelScope), vises separat, +~6M bak regional identitetsverifisering, og tas aldri med i overskriftstallet. Resultatet forblir synlig i kontrollpanelet (`/dashboard/free-tiers`).
-
-<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute-kort for gratisnivåbudsjett: ~1,62 mrd. gratis tokener per måned fast, opptil ~2,22 mrd. den første måneden med registreringskreditter, fra 35 dokumenterte gjentakende poolnøkler som dekker 489 katalogiserte gratisnivåoppføringer bak ett endepunkt. Ærlig matematikk deduplisert etter pool — hver delte pool telles én gang, inkludert 17 gjentakende pooler med et publisert positivt månedlig tokenbudsjett, pluss fem Groq-grenser per modell; 13 leverandører er merket som bør unngås i katalogen over vilkårsrisiko, slik at du kan avgjøre selv. Budsjettlinjen inkluderer Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (fem grenser per modell) og mindre pooler, i tillegg til registreringskreditter for den første måneden og permanent gratis leverandører uten tokengrenser, som vises separat slik at de aldri blåser opp overskriftstallet. Direktevisning av brukt/gjenstående på /dashboard/free-tiers."/>
-
-> Animert sammendrag av den aktive siden `/dashboard/free-tiers`. Full metodikk (pooldeduplisering, kredittrinn, leverandørvilkår): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+> **Bruk dine egne leverandørkontoer.** Dette er et estimert samlet antall på tvers av gratisnivåer hos tredjeparter som du må kvalifisere for separat, ikke en tildeling av tokener fra OmniRoute. Registrer deg, skaff påloggingsinformasjon der det kreves, og koble til leverandørene du kan bruke. Hver leverandør bestemmer sine egne grenser, sin egen tilgjengelighet og sine egne vilkår.
 >
-> <sub>Disse tallene gjennomgås på nytt annenhver uke mot den aktive katalogen og **beveger seg begge veier** — hvis en leverandør avslutter et gratisnivå, synker tallet; hvis en ny kommer til, stiger det. Vi publiserer det katalogen faktisk beregner, aldri et oppjustert bestefall.</sub>
+> Det er tungvint å kombinere gratisnivåer manuelt — dusinvis av SDK-er, dusinvis av hastighetsgrenser og ingen oversikt over hvor mye du faktisk har. OmniRoute katalogiserer **489 oppføringer for gratisnivåer fordelt på 35 gjentakende poolnøkler** og beregner det oppgitte tokenantallet fra de **17 poolene med et publisert positivt månedsbudsjett samt fem Groq-grenser per modell**, deduplisert etter delt pool. Kvoter som bare blir tilgjengelige etter en regional identitetskontroll (for øyeblikket: ModelScope), vises separat som +~6M bak regional identitetsverifisering og regnes aldri med i hovedtallet. Resultatet forblir synlig i kontrollpanelet (`/dashboard/free-tiers`).
+
+<img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute-budsjettkort for gratisnivåer: stabile ~1.62B gratis tokener per måned, opptil ~2.22B den første måneden med registreringskreditter, fra 35 dokumenterte gjentakende poolnøkler som dekker 489 katalogiserte oppføringer for gratisnivåer bak ett endepunkt. Ærlig matematikk deduplisert etter pool — hver delte pool telles én gang, inkludert 17 gjentakende pooler med et publisert positivt månedlig tokenbudsjett samt fem Groq-grenser per modell; 13 leverandører er merket avoid i katalogen over vilkårsrisiko, slik at du kan bestemme selv. Budsjettlinjen inkluderer Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (fem grenser per modell) og mindre pooler, i tillegg til registreringskreditter for den første måneden og permanent gratis leverandører uten tokengrenser som vises separat, slik at de aldri blåser opp hovedtallet. Direktevisning av brukt/gjenstående på /dashboard/free-tiers."/>
+
+> Animert sammendrag av den aktive siden `/dashboard/free-tiers`. Fullstendig metodikk (pooldeduplisering, kredittnivåer, leverandørvilkår): **[docs/reference/FREE_TIERS.md](docs/reference/FREE_TIERS.md)**.
+>
+> <sub>Disse tallene revideres på nytt annenhver uke mot den aktive katalogen og **beveger seg begge veier** — avslutter en leverandør et gratisnivå, synker tallet; kommer et nytt til, stiger det. Vi publiserer det katalogen faktisk beregner, aldri et oppjustert bestefall.</sub>
 
 <br/>
 
@@ -37,7 +39,7 @@
 
 <h3>
 
-⭐ Gi kodelageret en stjerne hvis OMNIROUTE har hjulpet deg med å spare penger og gjøre arbeidet enklere.
+⭐ Gi repoet en stjerne hvis OMNIROUTE har hjulpet deg med å spare penger og gjøre arbeidet enklere.
 
 </h3>
 
@@ -214,20 +216,21 @@
 
 <div align="center">
 
-## 🆓 Fungerer med én gang du installerer det — ingen nøkler, ingen konfigurasjon
+## 🆓 Installer, koble til en leverandør, og rut deretter gjennom ett endepunkt
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fungerer med én gang du installerer det — uten konfigurasjon. Tre trinn: 1. Installer — npm i -g omniroute, serveren starter på localhost:20128. 2. Pek verktøyet ditt mot http://localhost:20128/v1 — et hvilket som helst OpenAI-kompatibelt verktøy (Claude Code, Cursor, Cline). 3. Det svarer — kall modellen auto for et umiddelbart svar, uten API-nøkkel, registrering eller konfigurasjon. Den nøkkelfrie leverandøren OpenCode Free er forhåndskoblet til auto-kombinasjonen, slik at en ny installasjon svarer rett ut av boksen."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Tre trinn: Installer og start OmniRoute, koble til en kvalifisert leverandør med din egen konto eller API-nøkkel, og pek deretter verktøyet ditt mot localhost:20128/v1 ved hjelp av en OmniRoute API-nøkkel og modellen auto. Ruting avhenger av tilgjengelige kvalifiserte tilkoblinger og leverandørbegrensninger."/>
 
 ```bash
-# Ny installasjon, ingen påloggingsopplysninger — `auto` fungerer allerede:
+# Etter at du har koblet til en leverandør, kopierer du OmniRoute-nøkkelen din fra Kontrollpanel → Endepunkter:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Foretrekker du en bestemt gratis backend? Kall `oc/…` (OpenCode Free) direkte. Gå deretter over til `auto` og la OmniRoute velge.</sub>
+<sub>`auto` krever en kvalifisert rute. En ny installasjon kan mangle kvalifiserte nøkkelfrie mål, og en nøkkelfri leverandør kan avvise tredjepartsklienter. Leverandører merket med `tos: avoid`, inkludert OpenCode Free og Kiro, er som standard ekskludert fra automatisk ruting. Tilkobling av en konto overstyrer ikke denne innstillingen. Se [veiledningen for gratisnivåer](docs/getting-started/FREE-TIERS-GUIDE.md) før du velger en leverandør.</sub>
 
 <sub>📦 Kopier-og-lim-inn-hurtigstartskript for **Python, Node.js, PHP og cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
@@ -239,7 +242,7 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Løftet — ett endepunkt og 367 leverandører. Automatisk reservekobling opprettholder rutingen så lenge et annet friskt mål er tilgjengelig. Seks grunnpilarer: robust reservekobling på tvers av 367 leverandører · opptil 95 % tokenbesparelse for egnede arbeidsbelastninger · $0 for å komme i gang med over 150 gratisnivåer og 54 tilbakevendende/nøkkelfrie leverandører som er gratis for alltid · 36 CLI-/agentintegrasjoner gjennom én konfigurasjon · kompatibilitet med OpenAI, Claude, Gemini og Responses API på /v1 · produksjonskontroller, inkludert effektbrytere, TLS-kamuflasje, MCP med 110 verktøy, A2A, minne, sikkerhetsmekanismer, evalueringer og over 39 000 statiske testerklæringer fordelt på over 5 100 sporede testfiler."/>
+<img src="./docs/diagrams/promise-pillars.svg" width="100%" alt="Løftet — Ett endepunkt og 372 leverandører. Automatisk reservekobling opprettholder rutingen så lenge et annet friskt mål er tilgjengelig. Seks bærebjelker: robust reservekobling på tvers av 372 leverandører · opptil 95 % tokenbesparelse for kvalifiserte arbeidsbelastninger · $0 for å komme i gang med over 150 gratisnivåer og 54 gjentakende/nøkkelfrie leverandører som er gratis for alltid · 36 CLI-/agentintegrasjoner gjennom én konfigurasjon · kompatibilitet med OpenAI, Claude, Gemini og Responses API på /v1 · produksjonskontroller, inkludert effektbrytere, TLS-kamuflasje, MCP med 110 verktøy, A2A, minne, rekkverk, evalueringer og over 39 000 statiske testerklæringer fordelt på over 5 100 sporede testfiler."/>
 
 <br/>
 <br/>
@@ -250,11 +253,11 @@ curl http://localhost:20128/v1/chat/completions \
 
 </div>
 
-<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Hvorfor OmniRoute — slutt å sjonglere 10 kontrollpaneler, døde API-nøkler og overraskende regninger. Ti daglige problemer og løsninger: kvoter utløper ubrukt → maksimer abonnementene; hastighetsgrenser midt i kodingen → automatisk reservekobling med 4 nivåer (Abonnement → API → Billig → Gratis); verktøyutdata bruker opp tokens → RTK + Caveman-komprimering (15–95 %); dyre API-er → kostnadsoptimalisert ruting; hvert verktøy har sitt eget oppsett → ett endepunkt, ett kontrollpanel; KI blokkert → proxy med 3 nivåer + TLS-kamuflasje; døde nøkler → robusthet i 3 lag (effektbrytere, nedkjøling av nøkler, modellsperring); teamet deler ett abonnement → nøkkelgrupper med rettferdige kvoter; ledetekster sendes gjennom andres sky → lokalt først med AES-256-GCM-krypterte nøkler; ingen oversikt over forbruk → sanntidsanalyse (bruk, kvoter, besparelser, p95-forsinkelse)."/>
+<img src="./docs/diagrams/why-pain-fix.svg" width="100%" alt="Hvorfor OmniRoute — slutt å sjonglere 10 kontrollpaneler, døde API-nøkler og overraskende regninger. Ti daglige problemer kontra løsninger: ubrukt kvote utløper → maksimer abonnementene; hastighetsbegrensninger midt i kodingen → 4-nivåers automatisk reservekobling (Abonnement → API → Rimelig → Gratis); verktøyutdata forbruker tokens → RTK + Caveman-komprimering (15–95 %); dyre API-er → kostnadsoptimalisert ruting; hvert verktøy har sitt eget oppsett → ett endepunkt, ett kontrollpanel; AI blokkert → 3-nivåers proxy + TLS-kamuflasje; døde nøkler → 3-lags robusthet (effektbrytere, nøkkelnedkjøling, modellsperring); team deler ett abonnement → nøkkelgrupper med rettferdige kvoter; ledetekster sendes gjennom andres sky → lokalt først med AES-256-GCM-krypterte nøkler; ingen oversikt over forbruk → sanntidsanalyse (bruk, kvote, besparelser, p95-latens)."/>
 
 <div align="center">
 
-<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute-forespørselsflyt: IDE-en eller CLI-et ditt (Claude Code, Cursor, Cline …) kaller ett lokalt endepunkt (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman-komprimering, 19 rutingsstrategier, effektbrytere, TLS-kamuflasje, MCP, A2A, sikkerhetsmekanismer) kan bruke reservekobling på tvers av 4 leverandørnivåer så lenge et egnet og friskt mål gjenstår — nivå 1 Abonnement, nivå 2 API-nøkkel, nivå 3 Billig og nivå 4 Gratis."/>
+<img src="./docs/diagrams/tier-cascade.svg" width="100%" alt="OmniRoute-forespørselsflyt: IDE-en eller CLI-verktøyet ditt (Claude Code, Cursor, Cline…) kaller ett lokalt endepunkt (http://localhost:20128/v1); OmniRoute Smart Router (RTK + Caveman-komprimering, 19 rutingsstrategier, effektbrytere, TLS-kamuflasje, MCP, A2A, rekkverk) kan bruke reservekobling på tvers av 4 leverandørnivåer så lenge et kvalifisert, friskt mål er tilgjengelig — Nivå 1 Abonnement, Nivå 2 API-nøkkel, Nivå 3 Rimelig og Nivå 4 Gratis."/>
 
 </div>
 
@@ -492,9 +495,9 @@ Alle **19** strategiene — bland og kombiner per kombinasjonstrinn:
 
 </div>
 
-<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Hva som skiller OmniRoute fra andre — et datert øyeblikksbilde av funksjoner sammenlignet med 9router, OpenRouter, CLIProxyAPI og LiteLLM på tvers av 13 funksjonsområder. OmniRoute: 367 leverandører, over 150 innebygde gratisnivåer, 19 rutingsstrategier, tokenkomprimering med 12 motorer, innebygd MCP-server med 110 verktøy, A2A-agentprotokoll, vedvarende minne, sikkerhetsmekanismer, skyagenter, skjult TLS-fingeravtrykk, Desktop/Termux/PWA og brukergrensesnitt på 42 språk. OmniRoute er MIT-lisensiert og kan driftes på egen infrastruktur. Konkurrentenes funksjoner og antall kan endres; se den lenkede metodikken."/>
+<img src="./docs/diagrams/comparison-table.svg" width="100%" alt="Hva som skiller OmniRoute fra andre — et datert øyeblikksbilde av funksjoner sammenlignet med 9router, OpenRouter, CLIProxyAPI og LiteLLM på tvers av 13 funksjonsområder. OmniRoute: 372 leverandører, over 150 innebygde gratisnivåer, 19 rutingsstrategier, tokenkomprimering med 12 motorer, innebygd MCP-server med 110 verktøy, A2A-agentprotokoll, permanent minne, sikkerhetsmekanismer, skyagenter, skjult TLS-fingeravtrykk, Desktop/Termux/PWA og brukergrensesnitt på 42 språk. OmniRoute er MIT-lisensiert og kan driftes selv. Konkurrentenes funksjoner og antall kan endres; se den lenkede metodikken."/>
 
-<sub>📊 Fullstendig metodikk og detaljer per funksjon sammenlignet med 9router, OpenRouter, CLIProxyAPI og LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
+<sub>📊 Fullstendig metodikk og detaljert sammenligning av hver funksjon med 9router, OpenRouter, CLIProxyAPI og LiteLLM → [`docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md`](docs/comparison/OMNIROUTE_VS_ALTERNATIVES.md)</sub>
 
 <br/>
 
@@ -674,15 +677,15 @@ av skallhistorikken din. → [CLI-integrasjoner](docs/guides/CLI-INTEGRATIONS.md
 
 <div align="center">
 
-## 🌐 357 KI-leverandører — 152 katalogmerket som gratis
+## 🌐 357 AI-leverandører — 152 katalogmerket som gratis
 
 </div>
 
-> **357 registrerte leverandører** på tvers av de kanoniske samlingene for chat, medier, søk, lokal kjøring, skyagenter og systemer, inkludert **152 med oppdagelsesmetadataene `hasFree: true`**. Chatmodellregisteret dekker **229 leverandører / 2 554 unike leverandør–modell-par / 1 283 rå modell-ID-er**; den separate katalogen over gratisbudsjetter har **491 rader per modell**, **35 gjentakende kvotepuljer** og **54 gjentakende/nøkkelfrie leverandører som er gratis for alltid**. Nevnerne er med hensikt forskjellige; definisjoner og beregninger der kvotepuljer er deduplisert, finnes i [Leverandørreferansen](docs/reference/PROVIDER_REFERENCE.md) og [Gratisnivåer](docs/reference/FREE_TIERS.md).
+> **357 registrerte leverandører** på tvers av de kanoniske samlingene for chat, medier, søk, lokale tjenester, skyagenter og systemer, inkludert **152 med oppdagelsesmetadataene `hasFree: true`**. Registeret over chatmodeller dekker **229 leverandører / 2 554 unike leverandør–modell-par / 1 283 rå modell-ID-er**; den separate katalogen over gratiskvoter har **491 rader per modell**, **35 gjentakende kvotepuljer** og **54 gjentakende/nøkkelfrie leverandører som er gratis for alltid**. Disse har ulike nevnere med hensikt; definisjoner og beregninger der dupliserte kvotepuljer er fjernet, finnes i [Leverandørreferansen](docs/reference/PROVIDER_REFERENCE.md) og [Gratisnivåer](docs/reference/FREE_TIERS.md).
 
 <div align="center">
 
-### 🏢 Alle større laboratorier — gjennom ett endepunkt
+### 🏢 Alle de store laboratoriene — gjennom ett endepunkt
 
 <table>
   <tr>
@@ -711,7 +714,7 @@ av skallhistorikken din. → [CLI-integrasjoner](docs/guides/CLI-INTEGRATIONS.md
   </tr>
 </table>
 
-<sub>…og over 330 til — hvert ikon hentes direkte fra kontrollpanelets leverandørkatalog. 📖 [Leverandørreferanse](docs/reference/PROVIDER_REFERENCE.md)</sub>
+<sub>…og over 330 til — hvert ikon lastes direkte fra kontrollpanelets leverandørkatalog. 📖 [Leverandørreferanse](docs/reference/PROVIDER_REFERENCE.md)</sub>
 
 <br/>
 
@@ -720,18 +723,18 @@ av skallhistorikken din. → [CLI-integrasjoner](docs/guides/CLI-INTEGRATIONS.md
 <table>
   <tr>
     <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="OpenCode Zen"/><br/><b>OpenCode Zen</b><br/><sub>DeepSeek V4, Nemotron 3<br/>Ingen tokenbegrensning</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Automatisk ruting, Tencent Hy3<br/>Gratis for alltid</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cli-generic.svg" width="42" alt="Kilo Code"/><br/><b>Kilo Code</b><br/><sub>Automatisk ruter, Tencent Hy3<br/>Gratis for alltid</sub></td>
     <td align="center" width="150"><img src="./public/providers/requesty.svg" width="42" alt="Requesty"/><br/><b>Requesty</b><br/><sub>GPT-OSS 120B, Nemotron<br/>Gratis for alltid</sub></td>
     <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/siliconcloud-color.svg" width="42" alt="SiliconFlow"/><br/><b>SiliconFlow</b><br/><sub>DeepSeek V3.2 / R1<br/>Gratisnivå</sub></td>
     <td align="center" width="150"><img src="./public/providers/zhipu.svg" width="42" alt="Z.AI GLM"/><br/><b>Z.AI GLM</b><br/><sub>GLM-4.7 / 4.5-Flash<br/>Gratis for alltid</sub></td>
     <td align="center" width="150"><img src="./public/providers/baidu.svg" width="42" alt="Baidu ERNIE"/><br/><b>Baidu ERNIE</b><br/><sub>ERNIE 4.0<br/>Gratis for alltid</sub></td>
   </tr>
   <tr>
-    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Ubegrenset GRATIS</sub></td>
+    <td align="center" width="150"><img src="https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.91.0/icons/qoder-color.svg" width="42" alt="Qoder AI"/><br/><b>Qoder AI</b><br/><sub>Qwen3-Max, Kimi-K2<br/>Ubegrenset og GRATIS</sub></td>
     <td align="center" width="150"><img src="./public/providers/pollinations.svg" width="42" alt="Pollinations"/><br/><b>Pollinations</b><br/><sub>GPT, Llama, Claude<br/>Ingen nøkkel nødvendig</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>50+ modeller<br/>10K nevroner/dag</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cloudflare.svg" width="42" alt="Cloudflare AI"/><br/><b>Cloudflare AI</b><br/><sub>Over 50 modeller<br/>10 000 nevroner/dag</sub></td>
     <td align="center" width="150"><img src="./public/providers/nvidia.svg" width="42" alt="NVIDIA NIM"/><br/><b>NVIDIA NIM</b><br/><sub>GLM, MiniMax<br/>~40 RPM gratis</sub></td>
-    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>1M tokener/dag</sub></td>
+    <td align="center" width="150"><img src="./public/providers/cerebras.svg" width="42" alt="Cerebras"/><br/><b>Cerebras</b><br/><sub>GLM 4.7, GPT-OSS<br/>Engangskreditt på $5; kort kreves</sub></td>
     <td align="center" width="150"><img src="./public/providers/openrouter.svg" width="42" alt="OpenRouter"/><br/><b>OpenRouter</b><br/><sub>:free-modeller<br/>+$10 → høyere RPM</sub></td>
   </tr>
 </table>
@@ -909,13 +912,13 @@ claude mcp add-server omniroute --type http --url http://localhost:20128/api/mcp
 
 <div align="center">
 
-## 🗜️ Spar 15–95% tokens — automatisk
+## 🗜️ Spar 15–95 % tokens — automatisk
 
 </div>
 
-### 📖 Slik fungerer det — prosesslinje, arkitektur og beregning av besparelser
+### 📖 Slik fungerer det — pipeline, arkitektur og beregning av besparelser
 
-<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute-komprimeringsprosesslinje: En illustrativ klientforespørsel på 10 000 tokens passerer gjennom 12 kombinerbare motorer — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra og OmniGlyph — og kan nå leverandøren med omtrent 1 080 tokens i det dokumenterte stablede eksempelet. Strukturert innhold beskyttes av bevaringsmekanismer og kvalitetssperrer for hvert trinn. Eksplisitte moduser med kvalitetstap eller eksperimentelle moduser kan transformere egnet innhold."/>
+<img src="./docs/diagrams/compression-pipeline.svg" width="100%" alt="OmniRoute-komprimeringspipeline: En illustrativ klientforespørsel på 10 000 tokens går gjennom 12 kombinerbare motorer — Session-Dedup, CCR, Lite, RTK, Responses Tool Output, Headroom, Relevance, Caveman, Aggressive, LLMLingua-2, Ultra og OmniGlyph — og kan nå leverandøren med omtrent 1 080 tokens i det dokumenterte stablede eksempelet. Strukturert innhold beskyttes av bevaringsmekanismer og kvalitetssperrer for hvert trinn. Eksplisitte moduser med tap eller eksperimentelle moduser kan transformere egnet innhold."/>
 
 Den stablede standardkombinasjonen kjører `RTK → Caveman`. Når begge behandler den samme verktøy-/kontekstnyttelasten, forsterkes besparelsene:
 
@@ -927,72 +930,72 @@ range    = 78.4 – 94.6%
 
 Kodeblokker, URL-er, JSON og strukturerte data er **alltid beskyttet** av bevaringsmotoren.
 
-> **Hvorfor bruke mange tokens når få tokens gjør jobben?** Hver forespørsel passerer **transparent** gjennom OmniRoutes komprimeringsprosesslinje — uten endringer på klientsiden. Den er nå en **stabel med 12 kombinerbare motorer** som kjøres i rekkefølge og kan blandes og tilpasses for hver rutingskombinasjon — basert på ideer fra [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua) og [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
+> **Hvorfor bruke mange tokens når noen få gjør jobben?** Hver forespørsel går **transparent** gjennom OmniRoutes komprimeringspipeline — uten endringer på klientsiden. Den er nå en **stabel med 12 kombinerbare motorer** som kjøres i rekkefølge og kan kombineres fritt for hver rutingskombinasjon — basert på ideer fra [RTK](https://github.com/rtk-ai/rtk), [Caveman](https://github.com/JuliusBrussee/caveman) (⭐ 90K+), [LLMLingua-2](https://github.com/microsoft/LLMLingua) og [Troglodita](https://github.com/leninejunior/troglodita) (PT-BR).
 
 ### 🧱 Stabelen med 12 motorer
 
-Motorene kjøres i prosesslinjens rekkefølge. Hver av dem kan slås av eller på og konfigureres uavhengig for hver kombinasjon:
+Motorene kjøres i pipeline-rekkefølge. Hver av dem kan slås av eller på og konfigureres uavhengig for hver kombinasjon:
 
 <table>
   <tr><th align="center">#</th><th align="left">Motor</th><th align="left">Hva den gjør</th></tr>
-  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">Fjerner innhold som gjentas på tvers av samtalerunder (innholdsadressert, på tvers av runder)</td></tr>
-  <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">Arkiverer store blokker bak hentemarkører, som hentes ved behov</td></tr>
-  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">Reduksjon av mellomrom og bilde-URL-er (grunnnivå med lav ventetid)</td></tr>
+  <tr><td align="center" nowrap>1</td><td align="left" nowrap><b>Session-Dedup</b></td><td align="left">Fjerner innhold som gjentas på tvers av turer (innholdsadressert, på tvers av turer)</td></tr>
+  <tr><td align="center" nowrap>2</td><td align="left" nowrap><b>CCR</b></td><td align="left">Arkiverer store blokker bak hentemarkører og henter dem ved behov</td></tr>
+  <tr><td align="center" nowrap>3</td><td align="left" nowrap><b>Lite</b></td><td align="left">Reduserer blanktegn og bilde-URL-er (grunnnivå med lav latens)</td></tr>
   <tr><td align="center" nowrap>4</td><td align="left" nowrap><b>RTK</b></td><td align="left">Smart filtrering, deduplisering og avkorting av verktøyresultater (kommandobevisst)</td></tr>
-  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">Tapsfri JSON først, pluss begrenset diagnostisk komprimering av resultater fra skall, oppdateringer, søk og bygging (Responses API)</td></tr>
-  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">Tapsfri tabellkomprimering av JSON-matriser (~30%) via en integrert <b>GCF</b>-kodek</td></tr>
-  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">Ekstraktiv poengsetting av setninger opp mot den siste brukerforespørselen</td></tr>
-  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">Regelbasert komprimering av prosa (~65–75% av resultatet)</td></tr>
-  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">Oppsummering og gradvis aldring av gamle samtalerunder</td></tr>
+  <tr><td align="center" nowrap>5</td><td align="left" nowrap><b>Responses Tool Output</b></td><td align="left">Primært tapsfri JSON-komprimering samt begrenset diagnostisk komprimering av utdata fra skall, patcher, søk og bygging (Responses API)</td></tr>
+  <tr><td align="center" nowrap>6</td><td align="left" nowrap><b>Headroom</b></td><td align="left">Tapsfri tabellkomprimering av JSON-matriser (~30 %) via en medfølgende <b>GCF</b>-kodek</td></tr>
+  <tr><td align="center" nowrap>7</td><td align="left" nowrap><b>Relevance</b></td><td align="left">Ekstraktiv poengsetting av setninger mot den siste brukerforespørselen</td></tr>
+  <tr><td align="center" nowrap>8</td><td align="left" nowrap><b>Caveman</b></td><td align="left">Regelbasert komprimering av prosa (~65–75 % av utdataene)</td></tr>
+  <tr><td align="center" nowrap>9</td><td align="left" nowrap><b>Aggressive</b></td><td align="left">Oppsummering og gradvis aldring av gamle turer</td></tr>
   <tr><td align="center" nowrap>10</td><td align="left" nowrap><b>LLMLingua-2</b></td><td align="left">ML-basert semantisk beskjæring via MobileBERT ONNX — trygg for kode, asynkron</td></tr>
-  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">Heuristisk tokenbeskjæring med et valgfritt nivå basert på en liten modell (SLM)</td></tr>
-  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">Eksperimentell koding av kontekst som bilde for målte Claude Fable 5 på den direkte Anthropic-forbindelsen. GPT 5.6-transformatorer forblir lukket ved feil i påvente av leverandørkvitteringer. Fire komprimeringsprofiler (aggressiv som standard, balansert, trygg for koding, uendret videreføring) (mest aggressiv, må aktiveres eksplisitt)</td></tr>
+  <tr><td align="center" nowrap>11</td><td align="left" nowrap><b>Ultra</b></td><td align="left">Heuristisk tokenbeskjæring med et valgfritt lite modellnivå (SLM)</td></tr>
+  <tr><td align="center" nowrap>12</td><td align="left" nowrap><b>OmniGlyph</b></td><td align="left">Eksperimentell koding av kontekst som bilde for målte Claude Fable 5 direkte over Anthropic-forbindelsen. GPT 5.6-transformatorer forblir lukket ved feil i påvente av kvitteringer fra leverandøren. Fire komprimeringsprofiler (aggressiv som standard, balansert, trygg for koding, passthrough) (mest aggressiv, må aktiveres eksplisitt)</td></tr>
 </table>
 
-Kodeblokker, URL-er og strukturerte data **bevares alltid** helt identisk på bytenivå. **Forhåndsinnstillinger med ett klikk** kombinerer motorene:
+Kodeblokker, URL-er og strukturerte data bevares **alltid** byteperfekt. **Forhåndsinnstillinger med ett klikk** kombinerer motorene:
 
 <table>
-  <tr><th align="left">Modus</th><th align="left">Besparelse</th><th align="left">Best egnet for</th></tr>
-  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15%</td><td align="left">Trygg standard som alltid er aktiv</td></tr>
-  <tr><td align="left" nowrap>🪨 <b>Standard (Caveman)</b></td><td align="left" nowrap>~30%</td><td align="left">Daglig koding</td></tr>
-  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50%</td><td align="left">Lange økter med omfattende verktøybruk</td></tr>
-  <tr><td align="left" nowrap>🔥 <b>Ultra</b></td><td align="left" nowrap>~75%</td><td align="left">Maksimal besparelse</td></tr>
-  <tr><td align="left" nowrap>🧰 <b>RTK</b></td><td align="left" nowrap>60–90%</td><td align="left">Resultater fra skall, tester, bygging og git</td></tr>
-  <tr><td align="left" nowrap>🔗 <b>Stablet (RTK → Caveman)</b></td><td align="left" nowrap><b>78–95%</b></td><td align="left">Blandede ledetekster og verktøylogger</td></tr>
+  <tr><th align="left">Modus</th><th align="left">Besparelse</th><th align="left">Passer best til</th></tr>
+  <tr><td align="left" nowrap>🪶 <b>Lite</b></td><td align="left" nowrap>~15 %</td><td align="left">Trygg standard som alltid er aktiv</td></tr>
+  <tr><td align="left" nowrap>🪨 <b>Standard (Caveman)</b></td><td align="left" nowrap>~30 %</td><td align="left">Daglig koding</td></tr>
+  <tr><td align="left" nowrap>⚡ <b>Aggressive</b></td><td align="left" nowrap>~50 %</td><td align="left">Lange økter med mye verktøybruk</td></tr>
+  <tr><td align="left" nowrap>🔥 <b>Ultra</b></td><td align="left" nowrap>~75 %</td><td align="left">Maksimal besparelse</td></tr>
+  <tr><td align="left" nowrap>🧰 <b>RTK</b></td><td align="left" nowrap>60–90 %</td><td align="left">Utdata fra skall, tester, bygging og git</td></tr>
+  <tr><td align="left" nowrap>🔗 <b>Stablet (RTK → Caveman)</b></td><td align="left" nowrap><b>78–95 %</b></td><td align="left">Blandede ledetekster og verktøylogger</td></tr>
 </table>
 
-**Reelt eksempel — standardmodus:**
+**Reelt eksempel — Standard-modus:**
 
-> **Før (69 tokens):** _«Årsaken til at React-komponenten din gjengis på nytt, er sannsynligvis at du oppretter en ny objektreferanse i hver gjengivelsessyklus. Når du sender et internt definert objekt som en prop, oppfatter Reacts overfladiske sammenligning det som et nytt objekt hver gang, noe som utløser en ny gjengivelse. Jeg anbefaler å bruke useMemo for å mellomlagre objektet.»_
+> **Før (69 tokens):** _«Årsaken til at React-komponenten din gjengis på nytt, er sannsynligvis at du oppretter en ny objektreferanse i hver gjengivelsessyklus. Når du sender et innebygd objekt som en prop, oppfatter Reacts overfladiske sammenligning det som et annet objekt hver gang, noe som utløser en ny gjengivelse. Jeg anbefaler å bruke useMemo til å mellomlagre objektet.»_
 >
-> **Etter (19 tokens):** _«Ny objektreferanse ved hver gjengivelse. Internt objekt som prop = ny referanse = ny gjengivelse. Pakk inn i useMemo.»_
+> **Etter (19 tokens):** _«Ny objektreferanse ved hver gjengivelse. Innebygd objekt-prop = ny referanse = ny gjengivelse. Pakk inn i useMemo.»_
 >
-> **Samme svar. 72% færre tokens. Ingen tap av nøyaktighet.** ✅
+> **Samme svar. 72 % færre tokens. Ingen tap av nøyaktighet.** ✅
 
 **PT-BR-eksempel — [Troglodita](https://github.com/leninejunior/troglodita)-modus:**
 
-> **Før (42 tokens):** _«Problemet er at komponenten rendres på nytt fordi en ny objektreferanse opprettes i hver renderingssyklus. Jeg vil anbefale å bruke useMemo.»_
+> **Før (42 tokener):** _«Problemet er at komponenten gjengis på nytt fordi en ny objektreferanse opprettes i hver gjengivelsessyklus. Jeg vil anbefale å bruke useMemo.»_
 >
-> **Etter (12 tokens):** _«Ny rendering: ny ref. hver syklus (inline-objekt opprettes på nytt). Bruk `useMemo`.»_
+> **Etter (12 tokener):** _«Ny gjengivelse: ny ref. hver syklus (innebygd objekt opprettes på nytt). Bruk `useMemo`.»_
 >
-> **Samme svar. ~70 % færre tokens. Den tekniske presisjonen er intakt.** ✅
+> **Samme svar. ~70 % færre tokener. Teknisk presisjon intakt.** ✅
 
 <br/>
 
 ### 🎚️ Utover motorene — utdatastiler, den adaptive bryteren og kontroll per forespørsel
 
-De 12 motorene ovenfor reduserer det som går **inn**. Tre ekstra lag former **hvordan**, **når** og hva som kommer **ut**:
+De 12 motorene ovenfor reduserer det som går **inn**. Tre ytterligere lag former **hvordan**, **når** og hva som kommer **ut**:
 
-- **🪄 Utdatastiler** _(styring av utdataaksen)_ — injiser deterministiske, hurtigbuffersikre instruksjoner for utforming av svar; kan kombineres, hver med intensiteten `lite` / `full` / `ultra`. En stil legges til med én enkelt oppføring i registeret:
-  - **Kortfattet prosa** — fjern fyllord / artikler / forbehold; behold det tekniske innholdet nøyaktig.
+- **🪄 Utdatastiler** _(styring langs utdataaksen)_ — injiser deterministiske, hurtigbuffersikre instruksjoner for utforming av svar; kan kombineres, hver med intensiteten `lite` / `full` / `ultra`. En stil legges til med én enkelt oppføring i registeret:
+  - **Konsis prosa** — fjern fyllord / artikler / forbehold; behold det tekniske innholdet nøyaktig.
   - **Mindre kode** — «lat seniorutvikler»-YAGNI: minste fungerende endring, ingen struktur som ikke er etterspurt.
   - **Hestehale (lat seniorutvikler)** — klatre opp YAGNI-stigen, løs rotårsaken, minste fungerende diff.
-  - **Jeg har ADHD (handling først)** — start med neste handling, nummerer trinnene, ett konkret neste trinn, ingen innledning.
-  - **Kortfattet CJK (文言)** — ultrakortfattet stil på klassisk kinesisk (begrenset til språkinnstillingen `zh`).
-- **🎯 Adaptivt kontekstbudsjett** _(bryteren)_ — i stedet for én av/på-terskel for tokens, eskaleres de rimeligste motorene med minst informasjonstap bare så langt som nødvendig for å **få plass i modellens kontekstvindu**. Retningslinje: `reserve-output` (standard, modellbevisst) · `percentage` · `absolute`. Modus: `floor` (garanter at det får plass) · `replace-autotrigger` (det eksplisitte valget ditt vinner) · `off` (eldre terskel).
-- **🎛️ Hvor komprimering avgjøres** _(prioritet, høy → lav)_ — `x-omniroute-compression`-header per forespørsel › overstyring for rutingskombinasjon › aktiv navngitt profil › adaptiv / automatisk utløser › standardinnstilling i panelet › av. Den anvendte planen returneres i responsheaderen `X-OmniRoute-Compression: <mode>; source=<source>`.
+  - **Jeg har ADHD (handling først)** — start med neste handling, nummererte trinn, ett konkret neste trinn, ingen innledning.
+  - **Konsis CJK (文言)** — ultrakonsis stil på klassisk kinesisk (begrenset til nasjonal innstilling `zh`).
+- **🎯 Adaptivt kontekstbudsjett** _(bryteren)_ — i stedet for én av/på-terskel for tokener eskaleres bare de rimeligste motorene med minst tap så langt som nødvendig for å **passe innenfor modellens kontekstvindu**. Policy: `reserve-output` (standard, modellbevisst) · `percentage` · `absolute`. Modus: `floor` (garantert plass) · `replace-autotrigger` (det eksplisitte valget ditt vinner) · `off` (eldre terskel).
+- **🎛️ Hvor komprimering avgjøres** _(prioritet, høy → lav)_ — `x-omniroute-compression`-header per forespørsel › overstyring for rutekombinasjon › aktiv navngitt profil › adaptiv / automatisk utløsing › standardinnstilling i panelet › av. Den anvendte planen gjengis i responsheaderen `X-OmniRoute-Compression: <mode>; source=<source>`.
 
-Bruk automatisk utløsning etter token-terskel, slå på den adaptive bryteren, fest en navngitt profil, angi en engangsinnstilling per forespørsel eller tilordne en pipeline per rutingskombinasjon — velg det som passer arbeidsmengden. Et valgfritt, frakoblet **eval-oppsett** (`npm run eval:compression`) vurderer nøyaktighet mot besparelse på et fast datasett før du setter en endring i produksjon.
+Utløs automatisk basert på tokenterskel, slå på den adaptive bryteren, lås en navngitt profil, angi en engangsinnstilling per forespørsel eller tilordne en prosesseringskjede per rutekombinasjon — velg det som passer arbeidsbelastningen. Et valgfritt frakoblet **evalueringsverktøy** (`npm run eval:compression`) vurderer nøyaktighet mot besparelser på et fast datasett før du tar en endring i bruk.
 
 📖 [`COMPRESSION_GUIDE.md`](docs/compression/COMPRESSION_GUIDE.md) · [`RTK_COMPRESSION.md`](docs/compression/RTK_COMPRESSION.md) · [`COMPRESSION_ENGINES.md`](docs/compression/COMPRESSION_ENGINES.md)
 
@@ -1011,20 +1014,38 @@ npm install -g omniroute
 omniroute
 ```
 
-> 💡 Ser du `npm warn ERESOLVE` eller peer-dep-advarsler? [De er ufarlige](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+> 💡 Ser du `npm warn ERESOLVE` eller advarsler om peer-avhengigheter? [De er harmløse](docs/guides/TROUBLESHOOTING.md#npm-install-warnings-eresolve--peer--deprecated).
+> **Bruker du npm 11 eller nyere?** npm kan blokkere livssyklusskript for pakker med mindre de er tillatt. OmniRoutes `postinstall` (`node scripts/build/postinstall.mjs`) er nødvendig for å klargjøre de systemspesifikke kjøretidsfilene. Tillat pakkene som er nevnt i npm-advarselen når du installerer globalt. For pakkesettet rapportert av OmniRoute 3.8.51:
+>
+> ```bash
+> npm install -g --allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild omniroute
+> ```
+>
+> For å bruke denne tillatelseslisten på nytt ved fremtidige globale installasjoner kan du konfigurere den én gang og deretter installere som normalt:
+>
+> ```bash
+> npm config set allow-scripts=omniroute,keytar,onnxruntime-node,@parcel/watcher,@swc/core,protobufjs,esbuild --location=user
+> npm install -g omniroute
+> ```
+>
+> Listen over avhengigheter kan endres mellom utgivelser. Hvis npm rapporterer en annen liste, bruker du pakkenavnene fra den advarselen. Når en pakke tillates, kan installasjonsskriptene dens kjøres.
+> **Bruker du Gemini Web eller en annen leverandør basert på nettinformasjonskapsler?** npm-pakken inkluderer
+> Playwright, men ikke Chromium-binærfilen. Se merknaden om
+> [oppsett av Playwright Chromium](docs/guides/TROUBLESHOOTING.md#gemini-web-and-playwright-chromium)
+> før du sender den første forespørselen til nettleverandøren.
 
-Kontrollpanelet er tilgjengelig på `http://localhost:20128` · API-et på `http://localhost:20128/v1`.
+Kontrollpanel på `http://localhost:20128` · API på `http://localhost:20128/v1`.
 
-**2) Koble til en GRATIS leverandør (ingen registrering)**
+**2) Koble til en kvalifisert leverandør med din egen konto**
 
-Kontrollpanel → **Leverandører** → koble til **Kiro AI** (gratis Claude, ~50 kreditter/måned per konto) eller **OpenCode Free** (ingen autentisering) → ferdig.
+Kontrollpanel → **Leverandører** → velg en leverandør der gjeldende vilkår og kvote passer bruksområdet ditt → legg til API-nøkkelen eller fullfør kontoprosessen. Gratisnivåer kan kreve registrering, godkjenning eller en betalingsmåte. Les [veiledningen for gratisnivåer](docs/getting-started/FREE-TIERS-GUIDE.md). Tilgjengelighet uten nøkkel er ikke garantert, og leverandører merket med `tos: avoid` ekskluderes som standard fra `auto`.
 
-**3) Koble til kodeverktøyet ditt**
+**3) Pek kodeverktøyet ditt mot tjenesten**
 
 ```txt
-Basis-URL: http://localhost:20128/v1
-API-nøkkel: [kopier fra Kontrollpanel → Endepunkter]
-Modell:     auto            (smart ruting uten konfigurasjon — eller en valgfri leverandør/modell)
+Base URL: http://localhost:20128/v1
+API Key:  [copy from Dashboard → Endpoints]
+Model:    auto            (routes among eligible connections — or choose provider/model)
 ```
 
 **4) Kontroller at det fungerer**
@@ -1033,20 +1054,20 @@ Modell:     auto            (smart ruting uten konfigurasjon — eller en valgfr
 curl http://localhost:20128/v1/models -H "Authorization: Bearer YOUR_KEY"
 ```
 
-Du skal se en liste over de tilkoblede modellene dine. 🎉 Det var det — begynn å kode, så ruter OmniRoute automatisk og bruker reserveløsninger for deg.
+Du skal se en liste over de tilkoblede modellene dine. 🎉 Det var alt — begynn å kode, så ruter OmniRoute automatisk og bruker reserveløsninger for deg.
 
 Hvis klienten din ikke kan sende egendefinerte headere, tilbyr OmniRoute også tokeniserte kompatibilitetsaliaser:
 
 ```txt
-OpenAI-katalog:   http://localhost:20128/vscode/YOUR_KEY/
-OpenAI-modeller:  http://localhost:20128/vscode/YOUR_KEY/models
-OpenAI-chat:      http://localhost:20128/vscode/YOUR_KEY/chat/completions
-OpenAI-responser: http://localhost:20128/vscode/YOUR_KEY/responses
-Ollama-chat:      http://localhost:20128/vscode/YOUR_KEY/api/chat
-Ollama-tagger:    http://localhost:20128/vscode/YOUR_KEY/api/tags
+OpenAI catalog:   http://localhost:20128/vscode/YOUR_KEY/
+OpenAI models:    http://localhost:20128/vscode/YOUR_KEY/models
+OpenAI chat:      http://localhost:20128/vscode/YOUR_KEY/chat/completions
+OpenAI responses: http://localhost:20128/vscode/YOUR_KEY/responses
+Ollama chat:      http://localhost:20128/vscode/YOUR_KEY/api/chat
+Ollama tags:      http://localhost:20128/vscode/YOUR_KEY/api/tags
 ```
 
-Bruk disse bare for klienter som ikke kan legge ved `Authorization: Bearer ...`. Autentisering via header er fortsatt den foretrukne metoden.
+Bruk disse bare for klienter som ikke kan legge ved `Authorization: Bearer ...`. Autentisering med header er fortsatt den foretrukne metoden.
 
 <br/>
 
@@ -1271,22 +1292,22 @@ Kanoniske målinger per 2026-08-24: **1.029 unike videoer** · **11.132.922 kjen
 
 <table>
   <tr><th align="left">Lag</th><th align="left">Teknologi</th></tr>
-  <tr><td nowrap><b>Kjøretidsmiljø</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
+  <tr><td nowrap><b>Kjøremiljø</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Språk</b></td><td>TypeScript 6.0 — <b>100 % TypeScript</b> på tvers av <code>src/</code> og <code>open-sse/</code> (ingen <code>any</code> i kjernen siden v2.0)</td></tr>
   <tr><td nowrap><b>Rammeverk</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalføring) + LowDB (eldre JSON-format) — 137 domenemoduler, 200 migreringer</td></tr>
-  <tr><td nowrap><b>Minne</b></td><td>SQLite FTS5-fulltekstsøk + int8-kvantiserte vektorinnbygginger, typet nedbrytning</td></tr>
-  <tr><td nowrap><b>Skjemaer</b></td><td>Zod 4 — validering av MCP-verktøyenes inn- og utdata + API-kontrakter</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, WAL-journalføring) + LowDB (eldre JSON-format) — 137 domenemoduler, 202 migreringer</td></tr>
+  <tr><td nowrap><b>Minne</b></td><td>SQLite FTS5-fulltekstsøk + int8-kvantiserte vektorrepresentasjoner, typet forvitring</td></tr>
+  <tr><td nowrap><b>Skjemaer</b></td><td>Zod 4 — validering av inn- og utdata for MCP-verktøy + API-kontrakter</td></tr>
   <tr><td nowrap><b>Protokoller</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>
   <tr><td nowrap><b>Strømming</b></td><td>Server-Sent Events (SSE) + WebSocket-bro (<code>/v1/ws</code>)</td></tr>
-  <tr><td nowrap><b>Komprimering</b></td><td>Rørledning med 12 motorer — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
-  <tr><td nowrap><b>Autentisering og sikkerhet</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nøkler + omfangsbasert MCP-autentisering · AES-256-GCM for lagrede data · DOMPurify</td></tr>
-  <tr><td nowrap><b>Kamuflering</b></td><td>wreq-js — etterligning av JA3-/JA4-TLS-fingeravtrykk, proxy på 3 nivåer</td></tr>
-  <tr><td nowrap><b>Robusthet</b></td><td>Effektbryter, eksponentiell tilbakekobling, beskyttelse mot samtidige forespørselsbølger, selvreparerende automatisk kombinasjon</td></tr>
+  <tr><td nowrap><b>Komprimering</b></td><td>12-motors behandlingskjede — RTK, Caveman, LLMLingua-2 (MobileBERT ONNX), GCF, OmniGlyph</td></tr>
+  <tr><td nowrap><b>Autentisering og sikkerhet</b></td><td>OAuth 2.0 (PKCE) + JWT + API-nøkler + omfangsbasert MCP-autentisering · AES-256-GCM ved lagring · DOMPurify</td></tr>
+  <tr><td nowrap><b>Skjuling</b></td><td>wreq-js — etterligning av JA3- / JA4-TLS-fingeravtrykk, proxy på tre nivåer</td></tr>
+  <tr><td nowrap><b>Robusthet</b></td><td>Effektbryter, eksponentiell tilbakeventing, beskyttelse mot «thundering herd», selvreparerende automatisk kombinasjon</td></tr>
   <tr><td nowrap><b>Logging</b></td><td>pino — strukturerte JSON-logger med forespørselskontekst</td></tr>
-  <tr><td nowrap><b>Testing</b></td><td>Node.js-testkjører + Vitest — <b>over 39 000 statiske testerklæringer</b> fordelt på over 5 100 sporede testfiler (enhets-, integrasjons-, E2E-, sikkerhets- og økosystemtester)</td></tr>
+  <tr><td nowrap><b>Testing</b></td><td>Node.js-testkjører + Vitest — <b>over 39 000 statiske testdeklarasjoner</b> fordelt på over 5 100 sporede testfiler (enhets-, integrasjons-, E2E-, sikkerhets- og økosystemtester)</td></tr>
   <tr><td nowrap><b>Plattformer</b></td><td>Skrivebord (Electron) · Android (Termux) · PWA (alle nettlesere)</td></tr>
-  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk npm-publisering + Docker Hub ved utgivelse</td></tr>
+  <tr><td nowrap><b>CI/CD</b></td><td>GitHub Actions — automatisk publisering til npm + Docker Hub ved utgivelse</td></tr>
   <tr><td nowrap><b>Lenker</b></td><td><a href="https://omniroute.online">Nettsted</a> · <a href="https://www.npmjs.com/package/omniroute">npm</a> · <a href="https://hub.docker.com/r/diegosouzapw/omniroute">Docker Hub</a></td></tr>
 </table>
 
