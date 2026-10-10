@@ -447,9 +447,8 @@ test("servers: connect → list (no key hash exposed) → disconnect", async () 
   await servers.disconnectServer(conn.id);
 });
 
-test("characterization: evaluateBadges currently rejects with SyntaxError when any definition has malformed criteria", async () => {
-  // The outer loop skips a malformed definition, but the `hidden` (secret-badge) branch
-  // re-parses EVERY definition without a guard, so one bad row aborts the whole evaluation.
+test("badges: malformed criteria do not abort valid awards or hidden prerequisite evaluation", async () => {
+  // The malformed definition remains stored but is ignored consistently in both paths.
   core
     .getDbInstance()
     .prepare(
@@ -457,5 +456,9 @@ test("characterization: evaluateBadges currently rejects with SyntaxError when a
        VALUES ('char-broken', 'Broken', '', 'x', 'usage', 'common', 'not json', 0)`
     )
     .run();
-  await assert.rejects(badges.evaluateBadges("fx-fresh", "request"), SyntaxError);
+  gamificationDb.addXp("fx-criteria-recovery", "request", 1);
+  const unlocked = await badges.evaluateBadges("fx-criteria-recovery", "request");
+  assert.ok(unlocked.includes("first-token"));
+  assert.equal(gamificationDb.hasBadge("fx-criteria-recovery", "first-token"), true);
+  assert.equal(gamificationDb.hasBadge("fx-criteria-recovery", "char-broken"), false);
 });
