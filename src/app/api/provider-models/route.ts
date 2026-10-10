@@ -137,7 +137,7 @@ export async function GET(request) {
 
 /**
  * POST /api/provider-models
- * Body: { provider, modelId, modelName? }
+ * Body: { provider, modelId, modelName?, contextWindowOverride? }
  */
 export async function POST(request) {
   const authError = await requireManagementAuth(request);
@@ -177,6 +177,10 @@ export async function POST(request) {
       dimensions,
       supportedInputTypes,
       modelType,
+      // Manual context-window override set at ADD time — same Feature-5004 table
+      // the PUT path (#4125) writes, so the chatCore guard sees the real window
+      // from the first request instead of DEFAULT_LIMITS.default (128k).
+      contextWindowOverride,
     } = validation.data;
 
     const model = await addCustomModel(
@@ -200,6 +204,17 @@ export async function POST(request) {
         ...(typeof modelType === "string" ? { modelType } : {}),
       }
     );
+
+    if (contextWindowOverride != null) {
+      setModelContextOverride(provider, modelId, contextWindowOverride, "manual");
+      return Response.json({
+        model: {
+          ...model,
+          contextWindowOverride,
+          contextWindowOverrideSource: "manual",
+        },
+      });
+    }
     return Response.json({ model });
   } catch (error) {
     console.error("Error adding provider model:", error);
@@ -213,6 +228,7 @@ export async function POST(request) {
 /**
  * PUT /api/provider-models
  * Body: { provider, modelId, modelName?, apiFormat?, supportedEndpoints? }
+ * A body with only `contextWindowOverride` next to provider/modelId never creates a custom-model row.
  */
 export async function PUT(request) {
   const authError = await requireManagementAuth(request);
@@ -287,8 +303,17 @@ export async function PUT(request) {
       }
     }
 
+    // A body whose only mutable key is `contextWindowOverride` edits the
+    // `model_context_overrides` record alone. It must not upsert a customModels
+    // row: that would turn a native/synced catalog model into a "custom" one
+    // (/v1/models overlay, apiFormat flip, availability under a live catalog).
+    const contextOnly =
+      "contextWindowOverride" in raw &&
+      Object.keys(raw).every((k) => ["provider", "modelId", "contextWindowOverride"].includes(k));
+
     const model = await updateCustomModel(provider, modelId, updates, {
-      createIfMissing: maxOutputTokenOverride === undefined || Object.keys(updates).length > 0,
+      createIfMissing:
+        !contextOnly && (maxOutputTokenOverride === undefined || Object.keys(updates).length > 0),
     });
 
     if (!model) {

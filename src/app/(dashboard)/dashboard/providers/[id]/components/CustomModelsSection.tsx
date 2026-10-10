@@ -130,6 +130,9 @@ export default function CustomModelsSection({
   // custom model record.
   const [editingTargetFormat, setEditingTargetFormat] = useState("");
   const [newTargetFormat, setNewTargetFormat] = useState("");
+  // #4125: manual context-window override on the ADD form (previously only the EDIT
+  // form had it) — free text so it can be left blank (no override).
+  const [newContextWindowOverride, setNewContextWindowOverride] = useState("");
   const [savingModelId, setSavingModelId] = useState<string | null>(null);
   const [togglingModelId, setTogglingModelId] = useState<string | null>(null);
   // #4125: manual context-window override (Feature 5004 table) — free text so the
@@ -173,6 +176,11 @@ export default function CustomModelsSection({
 
   const handleAdd = async () => {
     if (!newModelId.trim() || adding) return;
+    const contextOverride = parseContextWindowOverrideInput(newContextWindowOverride);
+    if (contextOverride.invalid) {
+      notify.error(t("contextWindowOverrideInvalid"));
+      return;
+    }
     setAdding(true);
     try {
       const res = await fetch("/api/provider-models", {
@@ -186,6 +194,9 @@ export default function CustomModelsSection({
           supportedEndpoints: newEndpoints,
           ...(newTargetFormat ? { targetFormat: newTargetFormat } : {}),
           ...(newSupportsVision ? { supportsVision: true } : {}),
+          ...(contextOverride.value != null
+            ? { contextWindowOverride: contextOverride.value }
+            : {}),
           ...(newIsFree ? { isFree: true } : {}),
         }),
       });
@@ -196,6 +207,7 @@ export default function CustomModelsSection({
         setNewEndpoints(["chat"]);
         setNewTargetFormat("");
         setNewSupportsVision(false);
+        setNewContextWindowOverride("");
         setNewIsFree(false);
         await fetchCustomModels();
         onModelsChanged?.();
@@ -493,6 +505,25 @@ export default function CustomModelsSection({
               <option value="gemini">{t("targetFormatGemini")}</option>
               <option value="antigravity">{t("targetFormatAntigravity")}</option>
             </select>
+          </div>
+          <div className="w-40">
+            <label
+              htmlFor="custom-model-context-window"
+              className="text-xs text-text-muted mb-1 block"
+            >
+              {t("contextWindowOverrideLabel")}
+            </label>
+            <input
+              id="custom-model-context-window"
+              type="text"
+              inputMode="numeric"
+              value={newContextWindowOverride}
+              onChange={(e) => setNewContextWindowOverride(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              placeholder={t("contextWindowOverridePlaceholder")}
+              title={t("contextWindowOverrideHint")}
+              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
+            />
           </div>
           <div className="flex-1">
             <span className="text-xs text-text-muted mb-1 block">
