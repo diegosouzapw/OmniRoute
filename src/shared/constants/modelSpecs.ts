@@ -443,7 +443,7 @@ export const MODEL_SPECS: Record<string, ModelSpec> = {
     supportsTools: true,
     supportsVision: true,
     adaptiveThinkingOnly: true,
-    aliases: BEDROCK_CLAUDE_ALIASES("claude-haiku-5-5"),
+    aliases: BEDROCK_CLAUDE_ALIASES("claude-haiku-5-5", "claude-haiku-5.5"),
   },
 
   // ── Claude Sonnet 5.5 ───────────────────────────────────────────

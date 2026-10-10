@@ -1,0 +1,1 @@
+- **feat(providers):** complete `claude-haiku-5-5` catalog wiring across Anthropic, Claude OAuth, Bedrock, and Vertex registries with pricing and Haiku 4.5 family fallback.

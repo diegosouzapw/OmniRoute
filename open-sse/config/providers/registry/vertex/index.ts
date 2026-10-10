@@ -61,6 +61,7 @@ export const vertexProvider: RegistryEntry = {
     { id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5 (Vertex)", targetFormat: "claude" },
     { id: "claude-opus-4-5", name: "Claude Opus 4.5 (Vertex)", targetFormat: "claude" },
     { id: "claude-haiku-4-5", name: "Claude Haiku 4.5 (Vertex)", targetFormat: "claude" },
+    { id: "claude-haiku-5-5", name: "Claude Haiku 5.5 (Vertex)", targetFormat: "claude" },
   ],
   passthroughModels: true,
   // Gemini + publisher discovery are independent APIs. A partial successful response must not

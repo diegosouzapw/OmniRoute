@@ -19,6 +19,7 @@ import {
   CLAUDE_OPUS_46_PRICING,
   CLAUDE_SONNET_46_PRICING,
   CLAUDE_SONNET_5_PRICING,
+  CLAUDE_HAIKU_5_PRICING,
 } from "./shared-tiers";
 
 export const DEFAULT_PRICING_FRONTIER = {
@@ -236,6 +237,8 @@ export const DEFAULT_PRICING_FRONTIER = {
     "claude-opus-5": CLAUDE_OPUS_5_PRICING,
     "claude-sonnet-5": CLAUDE_SONNET_5_PRICING,
     "claude-sonnet-5-5": CLAUDE_SONNET_5_PRICING,
+    "claude-haiku-5-5": CLAUDE_HAIKU_5_PRICING,
+    "claude-haiku-5.5": CLAUDE_HAIKU_5_PRICING,
     "claude-opus-4.8": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-8": CLAUDE_OPUS_4_PRICING,
     "claude-opus-4-7": CLAUDE_OPUS_4_PRICING,
