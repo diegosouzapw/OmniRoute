@@ -1,0 +1,1 @@
+- **fix(calls):** streamed replies now record whether they carried text or a tool call ([#16271](https://github.com/diegosouzapw/OmniRoute/pull/16271)) — thanks @maxmad64bis

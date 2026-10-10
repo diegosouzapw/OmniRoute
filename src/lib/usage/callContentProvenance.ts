@@ -181,6 +181,54 @@ function responsesOutputContent(output: unknown): boolean | null {
   return recognizedAny ? false : null;
 }
 
+// Keys the reader below treats as known content carriers when a streamed
+// summary yields no verdict on its own.
+const SUMMARY_CONTENT_KEYS = [
+  "choices",
+  "content",
+  "text",
+  "output_text",
+  "output",
+  "tool_calls",
+  "function_call",
+  "tool_uses",
+  "reasoning_content",
+  "reasoning",
+  "thinking",
+] as const;
+
+// True when a streamed summary holds dropped media-only output: a chat choice
+// whose message carries a media key but no measurable content, so the reader
+// below must not mistake it for a recognized empty reply.
+function hasDroppedMediaOnly(summary: Record<string, unknown>): boolean {
+  const choices = summary.choices;
+  if (!Array.isArray(choices)) return false;
+  return choices.some((choice) => {
+    const choiceRecord = asRecord(choice);
+    if (!choiceRecord) return false;
+    const message = asRecord(choiceRecord.message) ?? asRecord(choiceRecord.delta);
+    if (!message) return false;
+    if (messageHasContent(message) !== null) return false;
+    return Object.keys(message).some((key) => MEDIA_KEY.test(key));
+  });
+}
+
+// A streamed envelope wraps the client-visible reply under `summary`; the
+// truncation flag is a sibling of `summary`, never inside it.
+function streamedSummaryContent(body: Record<string, unknown>): boolean | null {
+  if (body._truncated === true) return null;
+  const summary = body.summary;
+  if (summary === body) return null;
+  const summaryRecord = asRecord(summary);
+  if (!summaryRecord) return null;
+  const inner = hasRenderedContent(summaryRecord);
+  if (inner !== null) return inner;
+  // Recognized-but-empty summary: the reader knows the shape but found
+  // nothing in it (empty arrays the loops above report as unmeasurable).
+  if (hasDroppedMediaOnly(summaryRecord)) return null;
+  return SUMMARY_CONTENT_KEYS.some((key) => key in summaryRecord) ? false : null;
+}
+
 /**
  * True when the client-visible body carries rendered content (text or tool
  * calls). False for an empty success. Null when unmeasurable (missing body,
@@ -190,6 +238,7 @@ function responsesOutputContent(output: unknown): boolean | null {
 export function hasRenderedContent(clientBody: unknown): boolean | null {
   const body = asRecord(clientBody);
   if (!body) return null;
+  if (body._streamed === true) return streamedSummaryContent(body);
   if (Array.isArray(body.choices)) return choicesContent(body.choices);
   if ([body.content, body.text, body.output_text].some(hasNonBlankText)) return true;
   const claude = claudeBlocksContent(body.content);
