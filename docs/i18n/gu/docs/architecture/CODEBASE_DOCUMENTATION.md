@@ -441,7 +441,7 @@ server/
 
 ```
 open-sse/
-├── index.ts                જાહેર એક્સપોર્ટ્સ
+├── index.ts                સાર્વજનિક એક્સપોર્ટ્સ
 ├── package.json            વર્કસ્પેસ મેનિફેસ્ટ
 ├── tsconfig.json
 ├── types.d.ts
@@ -451,7 +451,7 @@ open-sse/
 ├── translator/             ફોર્મેટ રૂપાંતરણ (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions સ્ટ્રીમ ટ્રાન્સફોર્મર
 ├── services/               80+ સર્વિસ મોડ્યુલ્સ (કોમ્બોઝ, ફૉલબૅક, ક્વોટા, ઓળખ, …)
-├── utils/                  સ્ટ્રીમિંગ સહાયકો, TLS ક્લાયન્ટ, AWS SigV4, પ્રોક્સી ફેચ, …
+├── utils/                  સ્ટ્રીમિંગ હેલ્પર્સ, TLS ક્લાયન્ટ, AWS SigV4, પ્રોક્સી ફેચ, …
 └── mcp-server/             MCP સર્વર (3 ટ્રાન્સપોર્ટ્સ, 33 સ્કોપ્સ, 110 ટૂલ્સ)
 ```
 
@@ -466,32 +466,32 @@ open-sse/
 | `audioSpeech.ts`        | ટેક્સ્ટ-ટુ-સ્પીચ                                                         |
 | `audioTranscription.ts` | સ્પીચ-ટુ-ટેક્સ્ટ                                                         |
 | `videoGeneration.ts`    | વિડિયો જનરેશન                                                            |
-| `musicGeneration.ts`    | મ્યુઝિક જનરેશન                                                           |
+| `musicGeneration.ts`    | સંગીત જનરેશન                                                             |
 | `rerank.ts`             | પુનઃક્રમનિર્ધારણ                                                         |
 | `moderations.ts`        | મોડરેશન                                                                  |
-| `search.ts`             | વેબ શોધ                                                                  |
+| `search.ts`             | વેબ સર્ચ                                                                 |
 | `sseParser.ts`          | SSE ઇવેન્ટ પાર્સર                                                        |
-| `usageExtractor.ts`     | અપસ્ટ્રીમ સ્ટ્રીમ્સમાંથી ટોકનની સંખ્યા કાઢવી                             |
-| `responseSanitizer.ts`  | પ્રોવાઇડર-વિશિષ્ટ અનાવશ્યક ડેટા દૂર કરવો                                 |
+| `usageExtractor.ts`     | અપસ્ટ્રીમ સ્ટ્રીમ્સમાંથી ટોકન ગણતરીઓ મેળવવી                              |
+| `responseSanitizer.ts`  | પ્રોવાઇડર-વિશિષ્ટ અવાંછિત ડેટા દૂર કરવો                                  |
 | `responseTranslator.ts` | પ્રોવાઇડર રિસ્પોન્સ અને ટ્રાન્સલેટર લેયર વચ્ચેનું જોડાણ                  |
 
 ### 4.2 `open-sse/executors/`
 
-108 પ્રોવાઇડર એક્ઝિક્યુટર્સ, જેમાંથી દરેક `BaseExecutor` (`base.ts`)ને એક્સ્ટેન્ડ કરે છે:
+148 પ્રોવાઇડર એક્ઝિક્યુટર્સ, જેમાંથી દરેક `BaseExecutor` (`base.ts`) ને એક્સ્ટેન્ડ કરે છે:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, ઉપરાંત `claudeIdentity.ts`
-(શેર કરાયેલ ઓળખ સહાયક) અને `index.ts` (રજિસ્ટ્રી).
+(શેર કરાયેલ ઓળખ હેલ્પર) અને `index.ts` (રજિસ્ટ્રી).
 
 > નોંધ: અહીં સૂચિબદ્ધ ન હોય તેવા પ્રોવાઇડર્સને સામાન્ય
-> OpenAI-સુસંગત એક્ઝિક્યુટરનો ઉપયોગ કરીને `default.ts` દ્વારા સેવા આપવામાં આવે છે. સંપૂર્ણ પ્રોવાઇડર કૅટલૉગ (355 પ્રોવાઇડર્સ)
-> `src/shared/constants/providers.ts`માં ઉપલબ્ધ છે.
+> OpenAI-સુસંગત એક્ઝિક્યુટરનો ઉપયોગ કરતા `default.ts` દ્વારા સેવા આપવામાં આવે છે. સંપૂર્ણ પ્રોવાઇડર કેટલૉગ (355 પ્રોવાઇડર્સ)
+> `src/shared/constants/providers.ts` માં આવેલો છે.
 
 ### 4.3 `open-sse/translator/`
 
-હબ-એન્ડ-સ્પોક અનુવાદ (OpenAI એ હબ છે).
+હબ-એન્ડ-સ્પોક ટ્રાન્સલેશન (OpenAI એ હબ છે).
 
 - **9 રિક્વેસ્ટ ટ્રાન્સલેટર્સ** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
@@ -501,63 +501,63 @@ open-sse/
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 સહાયકો** (`translator/helpers/`):
+- **9 હેલ્પર્સ** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, ઉપરાંત
-  સહાયક પરીક્ષણો.
-- **ઇમેજ સહાયકો** (`translator/image/sizeMapper.ts`).
+  હેલ્પર ટેસ્ટ્સ.
+- **ઇમેજ હેલ્પર્સ** (`translator/image/sizeMapper.ts`).
 - ટૉપ-લેવલ: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
 - `responsesTransformer.ts` — `TransformStream`-આધારિત Responses API ↔ Chat
-  Completions કન્વર્ટર (`responses/` રૂટ કૅચ-ઑલ દ્વારા ઉપયોગમાં લેવાતો).
+  Completions કન્વર્ટર (`responses/` રૂટ કૅચ-ઑલ દ્વારા ઉપયોગમાં લેવાતું).
 
 ### 4.5 `open-sse/services/`
 
 મુખ્ય બાબતો (સંપૂર્ણ સૂચિ `open-sse/services/` હેઠળ):
 
-| ચિંતા ક્ષેત્ર       | ફાઇલો                                                                                                                                                                                                                                                    |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| કોમ્બો રાઉટિંગ      | `combo.ts` (19 વ્યૂહરચનાઓ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
-| ઑટો કોમ્બો એન્જિન   | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
-| સ્થિતિસ્થાપકતા      | `accountFallback.ts` (કૂલડાઉન + લૉકઆઉટ), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                           |
-| ક્વોટા              | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
-| કૅશિંગ              | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
-| રાઉટિંગ બુદ્ધિમત્તા | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
-| મૉડલ સંચાલન         | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
-| સંકોચન              | `compression/` — સંપૂર્ણ સંકોચન એન્જિનનું વાયરિંગ                                                                                                                                                                                                        |
-| ટોકન + સત્ર         | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
-| ટિયર / મેનિફેસ્ટ    | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
-| IP / નેટવર્ક        | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
-| બૅચો                | `batchProcessor.ts`                                                                                                                                                                                                                                      |
-| વપરાશ               | `usage.ts`                                                                                                                                                                                                                                               |
+| ચિંતા ક્ષેત્ર      | ફાઇલો                                                                                                                                                                                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| કોમ્બો રૂટિંગ      | `combo.ts` (19 વ્યૂહરચનાઓ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| ઓટો કોમ્બો એન્જિન  | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| સ્થિતિસ્થાપકતા     | `accountFallback.ts` (કૂલડાઉન + લૉકઆઉટ), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                           |
+| ક્વોટા             | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| કૅશિંગ             | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| રૂટિંગ બુદ્ધિમત્તા | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| મોડલ સંચાલન        | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| સંકોચન             | `compression/` — સંપૂર્ણ સંકોચન એન્જિનનું વાયરિંગ                                                                                                                                                                                                        |
+| ટોકન + સત્ર        | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| ટિયર / મેનિફેસ્ટ   | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / નેટવર્ક       | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| બૅચ                | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| ઉપયોગ              | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- `server.ts`માં **110 અનન્ય ટૂલ્સ** વાયર કરેલાં છે (`schemas/tools.ts`માં 45 પ્રમાણભૂત +
-  મેમરી, સ્કિલ્સ, GitHub-સ્કિલ્સ, પૂલ, ગેમિફિકેશન, પ્લગઇન, Notion, Obsidian,
-  લોકલ-કોર્પસ અને સંકોચન મૉડ્યુલો — યુનિયનની ગણતરી `countUniqueMcpTools` દ્વારા કરવામાં આવી છે).
+- **110 અનન્ય ટૂલ્સ** `server.ts`માં જોડાયેલા છે (`schemas/tools.ts`માં 45 પ્રમાણભૂત +
+  મેમરી, સ્કિલ્સ, GitHub-સ્કિલ્સ, પૂલ, ગેમિફિકેશન, પ્લગિન, Notion, Obsidian,
+  લોકલ-કૉર્પસ અને સંકોચન મોડ્યુલો — યુનિયનને `countUniqueMcpTools` દ્વારા ગણવામાં આવે છે).
 - **3 ટ્રાન્સપોર્ટ્સ**: stdio, HTTP Streamable, SSE.
-- રનટાઇમ પર **33 સ્કોપ્સ** લાગુ કરવામાં આવે છે — મૂળભૂત સૂચિ `src/shared/constants/mcpScopes.ts`માં છે, અને સંપૂર્ણ સમૂહ દરેક ટૂલ મૉડ્યુલ દ્વારા જાહેર કરાયેલા સ્કોપ્સનું યુનિયન છે.
-- ઑડિટ કોષ્ટક: `mcp_tool_audit` (`audit.ts` દ્વારા પૉપ્યુલેટ થાય છે).
+- રનટાઇમ પર **33 સ્કોપ્સ** લાગુ કરવામાં આવે છે — આધારભૂત યાદી `src/shared/constants/mcpScopes.ts`માં છે, સંપૂર્ણ સમૂહ દરેક ટૂલ મોડ્યુલ દ્વારા જાહેર કરાયેલા સ્કોપ્સનો યુનિયન છે.
+- ઑડિટ કોષ્ટક: `mcp_tool_audit` (`audit.ts` દ્વારા ભરવામાં આવે છે).
 - ફાઇલો: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
   ઉપરાંત `__tests__/` હેઠળના પરીક્ષણો.
-- સંપૂર્ણ ટૂલ કૅટલોગ માટે [MCP-SERVER.md](../frameworks/MCP-SERVER.md) જુઓ.
+- સંપૂર્ણ ટૂલ કૅટલૉગ માટે [MCP-SERVER.md](../frameworks/MCP-SERVER.md) જુઓ.
 
 ### 4.7 `open-sse/config/`
 
 પ્રોવાઇડર રજિસ્ટ્રીઓ (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), દરેક ફૉર્મેટ માટેની મૉડલ રજિસ્ટ્રીઓ (`audioRegistry.ts`,
+`providerHeaderProfiles.ts`), દરેક ફૉર્મેટ માટેની મોડલ રજિસ્ટ્રીઓ (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
 ઓળખ સહાયકો (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
 ક્રેડેન્શિયલ સહાયકો (`credentialLoader.ts`, `codexClient.ts`), અને ક્લાઉડ
-ઍડેપ્ટર્સ (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+ઍડૅપ્ટરો (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
@@ -656,7 +656,7 @@ bin/
 
 ## 8. `scripts/`
 
-હેતુ અનુસાર 6 ઉપફોલ્ડરમાં ગોઠવાયેલ છે.
+હેતુ અનુસાર 6 સબફોલ્ડરમાં ગોઠવાયેલ છે.
 
 - **`scripts/build/`** — `build-next-isolated.mjs`, `prepublish.ts`,
   `prepare-electron-standalone.mjs`, `pack-artifact-policy.ts`,

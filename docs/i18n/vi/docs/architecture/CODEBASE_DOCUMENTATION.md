@@ -434,9 +434,9 @@ server/
 
 ---
 
-## 4. `open-sse/` — Không gian làm việc của công cụ streaming
+## 4. `open-sse/` — Không gian làm việc của công cụ truyền phát
 
-Không gian làm việc npm riêng biệt được phát hành dưới tên `@omniroute/open-sse`. Chịu trách nhiệm xử lý yêu cầu, các executor, translator, dịch vụ, transformer và máy chủ MCP.
+Không gian làm việc npm riêng biệt được phát hành dưới tên `@omniroute/open-sse`. Chịu trách nhiệm xử lý yêu cầu, các executor, trình dịch, dịch vụ, transformer và máy chủ MCP.
 
 ```
 open-sse/
@@ -445,78 +445,78 @@ open-sse/
 ├── tsconfig.json
 ├── types.d.ts
 ├── config/                 Registry nhà cung cấp, hồ sơ header, danh tính, …
-├── handlers/               Trình xử lý yêu cầu (trò chuyện, embedding, âm thanh, hình ảnh, …)
-├── executors/              108 HTTP executor dành riêng cho từng nhà cung cấp
+├── handlers/               Trình xử lý yêu cầu (chat, embedding, âm thanh, hình ảnh, …)
+├── executors/              108 executor HTTP dành riêng cho nhà cung cấp
 ├── translator/             Chuyển đổi định dạng (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Transformer luồng Responses API ↔ Chat Completions
 ├── services/               Hơn 80 mô-đun dịch vụ (tổ hợp, dự phòng, hạn ngạch, danh tính, …)
-├── utils/                  Tiện ích streaming, máy khách TLS, AWS SigV4, proxy fetch, …
+├── utils/                  Tiện ích truyền phát, máy khách TLS, AWS SigV4, tìm nạp qua proxy, …
 └── mcp-server/             Máy chủ MCP (3 phương thức truyền tải, 33 phạm vi, 110 công cụ)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| Trình xử lý             | Mục đích                                                                                       |
-| ----------------------- | ---------------------------------------------------------------------------------------------- |
-| `chatCore.ts`           | Pipeline trò chuyện chính (bộ nhớ đệm, giới hạn tốc độ, định tuyến tổ hợp, điều phối executor) |
-| `responsesHandler.ts`   | Điểm vào OpenAI Responses API                                                                  |
-| `embeddings.ts`         | Embedding                                                                                      |
-| `imageGeneration.ts`    | Tạo hình ảnh                                                                                   |
-| `audioSpeech.ts`        | Chuyển văn bản thành giọng nói                                                                 |
-| `audioTranscription.ts` | Chuyển giọng nói thành văn bản                                                                 |
-| `videoGeneration.ts`    | Tạo video                                                                                      |
-| `musicGeneration.ts`    | Tạo nhạc                                                                                       |
-| `rerank.ts`             | Xếp hạng lại                                                                                   |
-| `moderations.ts`        | Kiểm duyệt                                                                                     |
-| `search.ts`             | Tìm kiếm trên web                                                                              |
-| `sseParser.ts`          | Trình phân tích sự kiện SSE                                                                    |
-| `usageExtractor.ts`     | Trích xuất số lượng token từ các luồng upstream                                                |
-| `responseSanitizer.ts`  | Loại bỏ dữ liệu nhiễu dành riêng cho nhà cung cấp                                              |
-| `responseTranslator.ts` | Lớp kết nối giữa phản hồi của nhà cung cấp và tầng translator                                  |
+| Trình xử lý             | Mục đích                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| `chatCore.ts`           | Luồng xử lý chat chính (bộ nhớ đệm, giới hạn tốc độ, định tuyến tổ hợp, điều phối executor) |
+| `responsesHandler.ts`   | Điểm vào của OpenAI Responses API                                                           |
+| `embeddings.ts`         | Embedding                                                                                   |
+| `imageGeneration.ts`    | Tạo hình ảnh                                                                                |
+| `audioSpeech.ts`        | Chuyển văn bản thành giọng nói                                                              |
+| `audioTranscription.ts` | Chuyển giọng nói thành văn bản                                                              |
+| `videoGeneration.ts`    | Tạo video                                                                                   |
+| `musicGeneration.ts`    | Tạo nhạc                                                                                    |
+| `rerank.ts`             | Xếp hạng lại                                                                                |
+| `moderations.ts`        | Kiểm duyệt                                                                                  |
+| `search.ts`             | Tìm kiếm web                                                                                |
+| `sseParser.ts`          | Trình phân tích cú pháp sự kiện SSE                                                         |
+| `usageExtractor.ts`     | Trích xuất số lượng token từ các luồng thượng nguồn                                         |
+| `responseSanitizer.ts`  | Loại bỏ nhiễu dành riêng cho nhà cung cấp                                                   |
+| `responseTranslator.ts` | Lớp kết nối giữa phản hồi của nhà cung cấp và tầng trình dịch                               |
 
 ### 4.2 `open-sse/executors/`
 
-108 executor của nhà cung cấp, mỗi executor đều mở rộng `BaseExecutor` (`base.ts`):
+148 executor dành cho nhà cung cấp, mỗi executor đều mở rộng `BaseExecutor` (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, cùng với `claudeIdentity.ts`
-(trình trợ giúp danh tính dùng chung) và `index.ts` (registry).
+(tiện ích danh tính dùng chung) và `index.ts` (registry).
 
-> Lưu ý: các nhà cung cấp không được liệt kê ở đây được phục vụ bởi `default.ts` bằng executor
-> chung tương thích với OpenAI. Danh mục nhà cung cấp đầy đủ (355 nhà cung cấp) nằm trong
+> Lưu ý: các nhà cung cấp không được liệt kê tại đây được phục vụ bởi `default.ts` thông qua executor chung
+> tương thích với OpenAI. Danh mục nhà cung cấp đầy đủ (355 nhà cung cấp) nằm trong
 > `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-Dịch theo mô hình hub-and-spoke (OpenAI là hub).
+Bản dịch theo mô hình hub-and-spoke (OpenAI là hub).
 
-- **9 translator yêu cầu** (`translator/request/`):
+- **9 trình dịch yêu cầu** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **9 translator phản hồi** (`translator/response/`):
+- **9 trình dịch phản hồi** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 trình trợ giúp** (`translator/helpers/`):
+- **9 tiện ích hỗ trợ** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, cùng với
-  các bài kiểm thử trình trợ giúp.
-- **Trình trợ giúp hình ảnh** (`translator/image/sizeMapper.ts`).
+  các bài kiểm thử tiện ích.
+- **Tiện ích hình ảnh** (`translator/image/sizeMapper.ts`).
 - Cấp cao nhất: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
-- `responsesTransformer.ts` — Bộ chuyển đổi Responses API ↔ Chat Completions dựa trên
-  `TransformStream` (được tuyến bắt tất cả `responses/` sử dụng).
+- `responsesTransformer.ts` — Bộ chuyển đổi Responses API ↔ Chat Completions dựa trên `TransformStream`
+  (được sử dụng bởi route bắt toàn bộ `responses/`).
 
 ### 4.5 `open-sse/services/`
 
-Các thành phần nổi bật (danh sách đầy đủ nằm trong `open-sse/services/`):
+Các thành phần nổi bật (danh sách đầy đủ trong `open-sse/services/`):
 
-| Mối quan tâm       | Tệp                                                                                                                                                                                                                                                      |
+| Mối quan tâm       | Các tệp                                                                                                                                                                                                                                                  |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Định tuyến Combo   | `combo.ts` (19 chiến lược), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
 | Công cụ Auto Combo | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
@@ -525,21 +525,21 @@ Các thành phần nổi bật (danh sách đầy đủ nằm trong `open-sse/se
 | Bộ nhớ đệm         | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
 | Trí tuệ định tuyến | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
 | Xử lý mô hình      | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
-| Nén                | `compression/` — toàn bộ phần đấu nối công cụ nén                                                                                                                                                                                                        |
+| Nén                | `compression/` — toàn bộ phần kết nối công cụ nén                                                                                                                                                                                                        |
 | Token + phiên      | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
-| Cấp / manifest     | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| Tầng / manifest    | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
 | IP / mạng          | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
-| Xử lý theo lô      | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Lô                 | `batchProcessor.ts`                                                                                                                                                                                                                                      |
 | Mức sử dụng        | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
 - **110 công cụ duy nhất** được kết nối trong `server.ts` (45 công cụ chuẩn trong `schemas/tools.ts` +
-  các mô-đun bộ nhớ, kỹ năng, GitHub-skills, pool, trò chơi hóa, plugin, Notion, Obsidian,
-  local-corpus và nén — phép hợp được đếm bởi `countUniqueMcpTools`).
-- **3 phương thức vận chuyển**: stdio, HTTP Streamable, SSE.
-- **33 phạm vi** được thực thi trong thời gian chạy — danh sách cơ sở nằm trong `src/shared/constants/mcpScopes.ts`, tập hợp đầy đủ là phép hợp của các phạm vi do từng mô-đun công cụ khai báo.
-- Bảng kiểm toán: `mcp_tool_audit` (được điền bởi `audit.ts`).
+  các mô-đun bộ nhớ, kỹ năng, kỹ năng GitHub, pool, trò chơi hóa, plugin, Notion, Obsidian,
+  kho ngữ liệu cục bộ và nén — hợp được đếm bởi `countUniqueMcpTools`).
+- **3 phương thức truyền tải**: stdio, HTTP Streamable, SSE.
+- **33 phạm vi** được thực thi khi chạy — danh sách cơ sở nằm trong `src/shared/constants/mcpScopes.ts`, tập hợp đầy đủ là hợp của các phạm vi được khai báo bởi từng mô-đun công cụ.
+- Bảng kiểm tra: `mcp_tool_audit` (được điền bởi `audit.ts`).
 - Các tệp: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
@@ -549,20 +549,20 @@ Các thành phần nổi bật (danh sách đầy đủ nằm trong `open-sse/se
 ### 4.7 `open-sse/config/`
 
 Các registry nhà cung cấp (`providerRegistry.ts`, `providerModels.ts`,
-`providerHeaderProfiles.ts`), registry mô hình theo từng định dạng (`audioRegistry.ts`,
+`providerHeaderProfiles.ts`), các registry mô hình theo từng định dạng (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-các trình hỗ trợ danh tính (`codexIdentity.ts`, `codexInstructions.ts`,
+các tiện ích hỗ trợ nhận dạng (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-các trình hỗ trợ thông tin xác thực (`credentialLoader.ts`, `codexClient.ts`) và các
-bộ điều hợp đám mây (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
+các tiện ích hỗ trợ thông tin xác thực (`credentialLoader.ts`, `codexClient.ts`) và các bộ
+chuyển đổi đám mây (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-Các thành phần nền tảng cho luồng và tiện ích hỗ trợ nhà cung cấp: `stream.ts`, `streamHandler.ts`,
+Các thành phần nguyên thủy cho truyền phát và các hàm hỗ trợ nhà cung cấp: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,

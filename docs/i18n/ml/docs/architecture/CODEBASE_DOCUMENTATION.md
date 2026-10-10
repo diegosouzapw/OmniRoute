@@ -437,8 +437,7 @@ server/
 ## 4. `open-sse/` — സ്ട്രീമിംഗ് എഞ്ചിൻ വർക്ക്സ്പേസ്
 
 `@omniroute/open-sse` ആയി പ്രസിദ്ധീകരിക്കുന്ന പ്രത്യേക npm വർക്ക്സ്പേസ്. അഭ്യർത്ഥന
-പ്രോസസ്സിംഗ്, എക്സിക്യൂട്ടറുകൾ, ട്രാൻസ്ലേറ്ററുകൾ, സർവീസുകൾ, ട്രാൻസ്ഫോർമർ, MCP സെർവർ എന്നിവയുടെ
-ഉടമസ്ഥത വഹിക്കുന്നു.
+പ്രോസസ്സിംഗ്, എക്സിക്യൂട്ടറുകൾ, ട്രാൻസ്ലേറ്ററുകൾ, സേവനങ്ങൾ, ട്രാൻസ്ഫോർമർ, MCP സെർവർ എന്നിവ കൈകാര്യം ചെയ്യുന്നു.
 
 ```
 open-sse/
@@ -447,52 +446,52 @@ open-sse/
 ├── tsconfig.json
 ├── types.d.ts
 ├── config/                 പ്രൊവൈഡർ രജിസ്ട്രികൾ, ഹെഡർ പ്രൊഫൈലുകൾ, ഐഡന്റിറ്റി, …
-├── handlers/               അഭ്യർത്ഥന ഹാൻഡ്ലറുകൾ (ചാറ്റ്, എംബെഡ്ഡിംഗുകൾ, ഓഡിയോ, ചിത്രം, …)
+├── handlers/               അഭ്യർത്ഥന ഹാൻഡ്ലറുകൾ (ചാറ്റ്, എംബെഡ്ഡിങ്ങുകൾ, ഓഡിയോ, ചിത്രം, …)
 ├── executors/              108 പ്രൊവൈഡർ-നിർദ്ദിഷ്ട HTTP എക്സിക്യൂട്ടറുകൾ
 ├── translator/             ഫോർമാറ്റ് പരിവർത്തനം (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions സ്ട്രീം ട്രാൻസ്ഫോർമർ
-├── services/               80+ സർവീസ് മൊഡ്യൂളുകൾ (കോംബോകൾ, ഫാൾബാക്ക്, ക്വാട്ടകൾ, ഐഡന്റിറ്റി, …)
+├── services/               80+ സേവന മൊഡ്യൂളുകൾ (കോംബോകൾ, ഫാൾബാക്ക്, ക്വോട്ടകൾ, ഐഡന്റിറ്റി, …)
 ├── utils/                  സ്ട്രീമിംഗ് ഹെൽപ്പറുകൾ, TLS ക്ലയന്റ്, AWS SigV4, പ്രോക്സി ഫെച്ച്, …
 └── mcp-server/             MCP സെർവർ (3 ട്രാൻസ്പോർട്ടുകൾ, 33 സ്കോപ്പുകൾ, 110 ടൂളുകൾ)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| ഹാൻഡ്ലർ                 | ഉദ്ദേശ്യം                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------ |
-| `chatCore.ts`           | പ്രധാന ചാറ്റ് പൈപ്പ്ലൈൻ (കാഷ്, റേറ്റ് ലിമിറ്റ്, കോംബോ റൂട്ടിംഗ്, എക്സിക്യൂട്ടർ ഡിസ്പാച്ച്) |
-| `responsesHandler.ts`   | OpenAI Responses API എൻട്രി പോയിന്റ്                                                       |
-| `embeddings.ts`         | എംബെഡ്ഡിംഗുകൾ                                                                              |
-| `imageGeneration.ts`    | ചിത്രം സൃഷ്ടിക്കൽ                                                                          |
-| `audioSpeech.ts`        | ടെക്സ്റ്റ്-ടു-സ്പീച്ച്                                                                     |
-| `audioTranscription.ts` | സ്പീച്ച്-ടു-ടെക്സ്റ്റ്                                                                     |
-| `videoGeneration.ts`    | വീഡിയോ സൃഷ്ടിക്കൽ                                                                          |
-| `musicGeneration.ts`    | സംഗീതം സൃഷ്ടിക്കൽ                                                                          |
-| `rerank.ts`             | പുനഃറാങ്കിംഗ്                                                                              |
-| `moderations.ts`        | മോഡറേഷൻ                                                                                    |
-| `search.ts`             | വെബ് തിരയൽ                                                                                 |
-| `sseParser.ts`          | SSE ഇവന്റ് പാർസർ                                                                           |
-| `usageExtractor.ts`     | അപ്സ്ട്രീം സ്ട്രീമുകളിൽനിന്ന് ടോക്കൺ എണ്ണങ്ങൾ വേർതിരിച്ചെടുക്കുന്നു                        |
-| `responseSanitizer.ts`  | പ്രൊവൈഡർ-നിർദ്ദിഷ്ട അനാവശ്യ വിവരങ്ങൾ നീക്കം ചെയ്യുന്നു                                     |
-| `responseTranslator.ts` | പ്രൊവൈഡർ പ്രതികരണത്തിനും ട്രാൻസ്ലേറ്റർ ലെയറിനും ഇടയിലുള്ള ബന്ധിപ്പിക്കൽ ഘടകം               |
+| ഹാൻഡ്ലർ                 | ഉദ്ദേശ്യം                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| `chatCore.ts`           | പ്രധാന ചാറ്റ് പൈപ്പ്ലൈൻ (കാഷ്, നിരക്ക് പരിധി, കോംബോ റൂട്ടിംഗ്, എക്സിക്യൂട്ടർ ഡിസ്പാച്ച്) |
+| `responsesHandler.ts`   | OpenAI Responses API എൻട്രി പോയിന്റ്                                                     |
+| `embeddings.ts`         | എംബെഡ്ഡിങ്ങുകൾ                                                                           |
+| `imageGeneration.ts`    | ചിത്രം സൃഷ്ടിക്കൽ                                                                        |
+| `audioSpeech.ts`        | ടെക്സ്റ്റ്-ടു-സ്പീച്ച്                                                                   |
+| `audioTranscription.ts` | സ്പീച്ച്-ടു-ടെക്സ്റ്റ്                                                                   |
+| `videoGeneration.ts`    | വീഡിയോ സൃഷ്ടിക്കൽ                                                                        |
+| `musicGeneration.ts`    | സംഗീതം സൃഷ്ടിക്കൽ                                                                        |
+| `rerank.ts`             | പുനഃറാങ്കിംഗ്                                                                            |
+| `moderations.ts`        | മോഡറേഷൻ                                                                                  |
+| `search.ts`             | വെബ് തിരയൽ                                                                               |
+| `sseParser.ts`          | SSE ഇവന്റ് പാർസർ                                                                         |
+| `usageExtractor.ts`     | അപ്സ്ട്രീം സ്ട്രീമുകളിൽ നിന്ന് ടോക്കൺ എണ്ണങ്ങൾ വേർതിരിച്ചെടുക്കുന്നു                     |
+| `responseSanitizer.ts`  | പ്രൊവൈഡർ-നിർദ്ദിഷ്ട അനാവശ്യ ഉള്ളടക്കം നീക്കംചെയ്യുന്നു                                   |
+| `responseTranslator.ts` | പ്രൊവൈഡർ പ്രതികരണത്തിനും ട്രാൻസ്ലേറ്റർ ലെയറിനും ഇടയിലുള്ള ബന്ധം                          |
 
 ### 4.2 `open-sse/executors/`
 
-108 പ്രൊവൈഡർ എക്സിക്യൂട്ടറുകൾ; ഓരോന്നും `BaseExecutor` (`base.ts`) വിപുലീകരിക്കുന്നു:
+148 പ്രൊവൈഡർ എക്സിക്യൂട്ടറുകൾ, ഓരോന്നും `BaseExecutor` (`base.ts`) വിപുലീകരിക്കുന്നു:
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop`, കൂടാതെ `claudeIdentity.ts`
-(പങ്കിട്ട ഐഡന്റിറ്റി ഹെൽപ്പർ), `index.ts` (രജിസ്ട്രി) എന്നിവയും.
+(പങ്കിട്ട ഐഡന്റിറ്റി ഹെൽപ്പർ), `index.ts` (രജിസ്ട്രി).
 
 > കുറിപ്പ്: ഇവിടെ പട്ടികപ്പെടുത്തിയിട്ടില്ലാത്ത പ്രൊവൈഡറുകൾക്ക് പൊതുവായ
-> OpenAI-അനുയോജ്യ എക്സിക്യൂട്ടർ ഉപയോഗിച്ച് `default.ts` സേവനം നൽകുന്നു. പൂർണ്ണ പ്രൊവൈഡർ കാറ്റലോഗ് (355 പ്രൊവൈഡറുകൾ)
+> OpenAI-അനുയോജ്യ എക്സിക്യൂട്ടർ ഉപയോഗിക്കുന്ന `default.ts` സേവനം നൽകുന്നു. പൂർണ്ണ പ്രൊവൈഡർ കാറ്റലോഗ് (355 പ്രൊവൈഡറുകൾ)
 > `src/shared/constants/providers.ts` എന്നതിലാണ്.
 
 ### 4.3 `open-sse/translator/`
 
-ഹബ്-ആൻഡ്-സ്പോക്ക് പരിഭാഷ (OpenAI ആണ് ഹബ്).
+ഹബ്-ആൻഡ്-സ്പോക്ക് വിവർത്തനം (OpenAI ആണ് ഹബ്).
 
 - **9 അഭ്യർത്ഥന ട്രാൻസ്ലേറ്ററുകൾ** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
@@ -505,7 +504,7 @@ open-sse/
 - **9 ഹെൽപ്പറുകൾ** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper`, കൂടാതെ
-  ഹെൽപ്പർ ടെസ്റ്റുകളും.
+  ഹെൽപ്പർ ടെസ്റ്റുകൾ.
 - **ചിത്ര ഹെൽപ്പറുകൾ** (`translator/image/sizeMapper.ts`).
 - ടോപ്പ്-ലെവൽ: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
@@ -516,11 +515,11 @@ open-sse/
 
 ### 4.5 `open-sse/services/`
 
-പ്രധാനപ്പെട്ടവ (`open-sse/services/` എന്നതിനു കീഴിലുള്ള പൂർണ്ണ പട്ടിക):
+പ്രധാനപ്പെട്ടവ (പൂർണ്ണ പട്ടിക `open-sse/services/` എന്നതിനു കീഴിൽ):
 
-| പരിഗണന               | ഫയലുകൾ                                                                                                                                                                                                                                                   |
+| പരിഗണനാ വിഷയം        | ഫയലുകൾ                                                                                                                                                                                                                                                   |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| കോംബോ റൂട്ടിംഗ്      | `combo.ts` (19 തന്ത്രങ്ങൾ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| കോംബോ റൂട്ടിംഗ്      | `combo.ts` (19 സ്ട്രാറ്റജികൾ), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                 |
 | ഓട്ടോ കോംബോ എൻജിൻ    | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
 | പ്രതിരോധശേഷി         | `accountFallback.ts` (കൂൾഡൗൺ + ലോക്കൗട്ട്), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                        |
 | ക്വോട്ടകൾ            | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
@@ -536,17 +535,17 @@ open-sse/
 
 ### 4.6 `open-sse/mcp-server/`
 
-- `server.ts`-ൽ വയർ ചെയ്തിട്ടുള്ള **110 സവിശേഷ ടൂളുകൾ** (`schemas/tools.ts`-ലെ 45 കാനോനിക്കൽ ടൂളുകൾ +
+- `server.ts`-ൽ വയർ ചെയ്തിട്ടുള്ള **110 അതുല്യ ടൂളുകൾ** (`schemas/tools.ts`-ൽ 45 കാനോനിക്കൽ ടൂളുകൾ +
   മെമ്മറി, സ്കിൽസ്, GitHub-സ്കിൽസ്, പൂൾ, ഗെയിമിഫിക്കേഷൻ, പ്ലഗിൻ, Notion, Obsidian,
-  ലോക്കൽ-കോർപ്പസ്, കംപ്രഷൻ മൊഡ്യൂളുകൾ — ഇവയുടെ യൂണിയൻ `countUniqueMcpTools` ഉപയോഗിച്ച് കണക്കാക്കുന്നു).
+  ലോക്കൽ-കോർപ്പസ്, കംപ്രഷൻ മൊഡ്യൂളുകൾ — യൂണിയൻ `countUniqueMcpTools` ഉപയോഗിച്ച് എണ്ണിയിരിക്കുന്നു).
 - **3 ട്രാൻസ്പോർട്ടുകൾ**: stdio, HTTP Streamable, SSE.
-- റൺടൈമിൽ നടപ്പിലാക്കുന്ന **33 സ്കോപ്പുകൾ** — അടിസ്ഥാന പട്ടിക `src/shared/constants/mcpScopes.ts`-ൽ; ഓരോ ടൂൾ മൊഡ്യൂളും പ്രഖ്യാപിക്കുന്ന സ്കോപ്പുകളുടെ യൂണിയനാണ് സമ്പൂർണ്ണ സെറ്റ്.
-- ഓഡിറ്റ് പട്ടിക: `mcp_tool_audit` (`audit.ts` ഡാറ്റ ചേർക്കുന്നു).
+- റൺടൈമിൽ നടപ്പിലാക്കുന്ന **33 സ്കോപ്പുകൾ** — അടിസ്ഥാന പട്ടിക `src/shared/constants/mcpScopes.ts`-ൽ; ഓരോ ടൂൾ മൊഡ്യൂളും പ്രഖ്യാപിക്കുന്ന സ്കോപ്പുകളുടെ യൂണിയനാണ് പൂർണ്ണ സെറ്റ്.
+- ഓഡിറ്റ് പട്ടിക: `mcp_tool_audit` (`audit.ts` ഉപയോഗിച്ച് പോപ്പുലേറ്റ് ചെയ്യുന്നു).
 - ഫയലുകൾ: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
   `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
   കൂടാതെ `__tests__/`-ന് കീഴിലുള്ള ടെസ്റ്റുകളും.
-- സമ്പൂർണ്ണ ടൂൾ കാറ്റലോഗിനായി [MCP-SERVER.md](../frameworks/MCP-SERVER.md) കാണുക.
+- പൂർണ്ണ ടൂൾ കാറ്റലോഗിനായി [MCP-SERVER.md](../frameworks/MCP-SERVER.md) കാണുക.
 
 ### 4.7 `open-sse/config/`
 
@@ -564,7 +563,7 @@ open-sse/
 
 ### 4.8 `open-sse/utils/`
 
-സ്ട്രീമിംഗ് പ്രിമിറ്റീവുകളും പ്രൊവൈഡർ ഹെൽപ്പറുകളും: `stream.ts`, `streamHandler.ts`,
+സ്ട്രീമിംഗ് പ്രിമിറ്റീവുകളും പ്രൊവൈഡർ സഹായികളും: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,

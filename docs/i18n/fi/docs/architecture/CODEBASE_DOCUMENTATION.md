@@ -437,7 +437,7 @@ Jaettu kohdennettuihin alihakemistoihin:
 ## 4. `open-sse/` — Suoratoistomoottorin työtila
 
 Erillinen npm-työtila, joka julkaistaan nimellä `@omniroute/open-sse`. Vastaa pyyntöjen
-käsittelystä, suorittimista, kääntäjistä, palveluista, muuntimesta ja MCP-palvelimesta.
+käsittelystä, suorittajista, muuntimista, palveluista, transformaattorista ja MCP-palvelimesta.
 
 ```
 open-sse/
@@ -447,66 +447,66 @@ open-sse/
 ├── types.d.ts
 ├── config/                 Palveluntarjoajarekisterit, otsakeprofiilit, identiteetti, …
 ├── handlers/               Pyyntökäsittelijät (keskustelu, upotukset, ääni, kuva, …)
-├── executors/              108 palveluntarjoajakohtaista HTTP-suoritinta
+├── executors/              108 palveluntarjoajakohtaista HTTP-suorittajaa
 ├── translator/             Muotomuunnos (OpenAI ↔ Claude ↔ Gemini ↔ Cursor ↔ Kiro)
 ├── transformer/            Responses API ↔ Chat Completions -suoratoistomuunnin
-├── services/               Yli 80 palvelumoduulia (yhdistelmät, varajärjestelyt, kiintiöt, identiteetti, …)
-├── utils/                  Suoratoiston apuohjelmat, TLS-asiakas, AWS SigV4, välityspalvelinhaku, …
+├── services/               Yli 80 palvelumoduulia (yhdistelmät, varareititys, kiintiöt, identiteetti, …)
+├── utils/                  Suoratoistoaputoiminnot, TLS-asiakas, AWS SigV4, välityspalvelinhaku, …
 └── mcp-server/             MCP-palvelin (3 siirtotapaa, 33 käyttöaluetta, 110 työkalua)
 ```
 
 ### 4.1 `open-sse/handlers/`
 
-| Käsittelijä             | Tarkoitus                                                                                           |
-| ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `chatCore.ts`           | Keskustelun pääkäsittelyketju (välimuisti, nopeusrajoitus, yhdistelmäreititys, suorittimen välitys) |
-| `responsesHandler.ts`   | OpenAI Responses API:n aloituspiste                                                                 |
-| `embeddings.ts`         | Upotukset                                                                                           |
-| `imageGeneration.ts`    | Kuvien generointi                                                                                   |
-| `audioSpeech.ts`        | Tekstistä puheeksi                                                                                  |
-| `audioTranscription.ts` | Puheesta tekstiksi                                                                                  |
-| `videoGeneration.ts`    | Videoiden generointi                                                                                |
-| `musicGeneration.ts`    | Musiikin generointi                                                                                 |
-| `rerank.ts`             | Uudelleenjärjestäminen                                                                              |
-| `moderations.ts`        | Moderointi                                                                                          |
-| `search.ts`             | Verkkohaku                                                                                          |
-| `sseParser.ts`          | SSE-tapahtumajäsennin                                                                               |
-| `usageExtractor.ts`     | Poimii tunnistemäärät ylävirran suoratoistoista                                                     |
-| `responseSanitizer.ts`  | Poistaa palveluntarjoajakohtaisen kohinan                                                           |
-| `responseTranslator.ts` | Yhdysosa palveluntarjoajan vastauksen ja käännöskerroksen välillä                                   |
+| Käsittelijä             | Tarkoitus                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| `chatCore.ts`           | Keskustelun pääputki (välimuisti, nopeusrajoitus, yhdistelmäreititys, suorittajan käynnistys) |
+| `responsesHandler.ts`   | OpenAI Responses API:n aloituspiste                                                           |
+| `embeddings.ts`         | Upotukset                                                                                     |
+| `imageGeneration.ts`    | Kuvien generointi                                                                             |
+| `audioSpeech.ts`        | Tekstistä puheeksi                                                                            |
+| `audioTranscription.ts` | Puheesta tekstiksi                                                                            |
+| `videoGeneration.ts`    | Videoiden generointi                                                                          |
+| `musicGeneration.ts`    | Musiikin generointi                                                                           |
+| `rerank.ts`             | Uudelleenjärjestäminen                                                                        |
+| `moderations.ts`        | Moderointi                                                                                    |
+| `search.ts`             | Verkkohaku                                                                                    |
+| `sseParser.ts`          | SSE-tapahtumajäsennin                                                                         |
+| `usageExtractor.ts`     | Tunnistemäärien poimiminen ylävirran suoratoistoista                                          |
+| `responseSanitizer.ts`  | Palveluntarjoajakohtaisen kohinan poistaminen                                                 |
+| `responseTranslator.ts` | Liitos palveluntarjoajan vastauksen ja muunnoskerroksen välillä                               |
 
 ### 4.2 `open-sse/executors/`
 
-108 palveluntarjoajasuoritinta, joista jokainen laajentaa `BaseExecutor`-luokkaa (`base.ts`):
+148 palveluntarjoajasuorittajaa, joista jokainen laajentaa `BaseExecutor`-luokkaa (`base.ts`):
 
 `antigravity`, `azure-openai`, `blackbox-web`, `cliproxyapi`,
 `chatgpt-web-codex`, `cloudflare-ai`, `codex`, `commandCode`, `cursor`, `default`, `devin-cli`,
 `muse-spark-web`, `nlpcloud`, `opencode`, `perplexity-web`, `petals`,
 `pollinations`, `qoder`, `vertex`, `devin-desktop` sekä `claudeIdentity.ts`
-(jaettu identiteettiapuohjelma) ja `index.ts` (rekisteri).
+(jaettu identiteettiaputoiminto) ja `index.ts` (rekisteri).
 
-> Huomautus: palveluntarjoajia, joita ei ole lueteltu tässä, palvelee `default.ts` käyttäen yleistä
-> OpenAI-yhteensopivaa suoritinta. Täydellinen palveluntarjoajaluettelo (355 palveluntarjoajaa) sijaitsee
+> Huomautus: palveluntarjoajia, joita ei ole lueteltu tässä, palvelee `default.ts` yleisellä
+> OpenAI-yhteensopivalla suorittajalla. Täydellinen palveluntarjoajaluettelo (355 palveluntarjoajaa) sijaitsee
 > tiedostossa `src/shared/constants/providers.ts`.
 
 ### 4.3 `open-sse/translator/`
 
-Keskiöön ja haaroihin perustuva kääntäminen (OpenAI toimii keskiönä).
+Keskitin- ja puolarakenteinen muunnos (OpenAI toimii keskittimenä).
 
-- **9 pyyntökääntäjää** (`translator/request/`):
+- **9 pyyntömuunninta** (`translator/request/`):
   `antigravity-to-openai`, `claude-to-gemini`, `claude-to-openai`,
   `gemini-to-openai`, `openai-responses`, `openai-to-claude`,
   `openai-to-cursor`, `openai-to-gemini`, `openai-to-kiro`.
-- **9 vastauskääntäjää** (`translator/response/`):
+- **9 vastausmuunninta** (`translator/response/`):
   `claude-to-openai`, `cursor-to-openai`, `gemini-to-claude`, `gemini-to-openai`,
   `kiro-to-openai`, `openai-responses`, `openai-to-antigravity`,
   `openai-to-claude`.
-- **9 apuohjelmaa** (`translator/helpers/`):
+- **9 aputoimintoa** (`translator/helpers/`):
   `claudeHelper`, `geminiHelper`, `geminiToolsSanitizer`, `maxTokensHelper`,
   `openaiHelper`, `responsesApiHelper`, `schemaCoercion`, `toolCallHelper` sekä
-  apuohjelmien testit.
-- **Kuva-apuohjelmat** (`translator/image/sizeMapper.ts`).
-- Ylätaso: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
+  aputoimintojen testit.
+- **Kuva-aputoiminnot** (`translator/image/sizeMapper.ts`).
+- Ylin taso: `bootstrap.ts`, `formats.ts`, `registry.ts`, `index.ts`.
 
 ### 4.4 `open-sse/transformer/`
 
@@ -517,35 +517,35 @@ Keskiöön ja haaroihin perustuva kääntäminen (OpenAI toimii keskiönä).
 
 Poimintoja (täydellinen luettelo hakemistossa `open-sse/services/`):
 
-| Huolenaihe                       | Tiedostot                                                                                                                                                                                                                                                |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Yhdistelmäreititys               | `combo.ts` (19 strategiaa), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
-| Automaattinen yhdistelmämoottori | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
-| Vikasietoisuus                   | `accountFallback.ts` (jäähdytys + lukitus), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                        |
-| Kiintiöt                         | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
-| Välimuistit                      | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
-| Älykäs reititys                  | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
-| Mallien käsittely                | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
-| Pakkaus                          | `compression/` — koko pakkausmoottorin kytkentä                                                                                                                                                                                                          |
-| Tokenit + istunto                | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
-| Taso / manifesti                 | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
-| IP / verkko                      | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
-| Erät                             | `batchProcessor.ts`                                                                                                                                                                                                                                      |
-| Käyttö                           | `usage.ts`                                                                                                                                                                                                                                               |
+| Huolenaihe            | Tiedostot                                                                                                                                                                                                                                                |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Yhdistelmäreititys    | `combo.ts` (19 strategiaa), `comboConfig.ts`, `comboMetrics.ts`, `comboManifestMetrics.ts`, `comboAgentMiddleware.ts`                                                                                                                                    |
+| Auto Combo -moottori  | `autoCombo/` — `engine.ts`, `scoring.ts`, `taskFitness.ts`, `virtualFactory.ts`, `modePacks.ts`, `autoPrefix.ts`, `persistence.ts`, `providerDiversity.ts`, `providerRegistryAccessor.ts`, `routerStrategy.ts`, `selfHealing.ts`, `index.ts`             |
+| Vikasietoisuus        | `accountFallback.ts` (jäähdytysaika + lukitus), `errorClassifier.ts`, `requestRejectedStreak.ts`, `emergencyFallback.ts`, `rateLimitManager.ts`, `rateLimitSemaphore.ts`, `accountSemaphore.ts`, `accountSelector.ts`                                    |
+| Kiintiöt              | `quotaMonitor.ts`, `quotaPreflight.ts`, `bailianQuotaFetcher.ts`, `codexQuotaFetcher.ts`, `deepseekQuotaFetcher.ts`, `openrouterQuotaFetcher.ts`, `openrouterFreeWindow.ts`, `llmgatewayQuotaFetcher.ts`, `crofUsageFetcher.ts`, `antigravityCredits.ts` |
+| Välimuistit           | `reasoningCache.ts`, `searchCache.ts`, `signatureCache.ts`, `requestDedup.ts`                                                                                                                                                                            |
+| Älykäs reititys       | `intentClassifier.ts`, `taskAwareRouter.ts`, `backgroundTaskDetector.ts`, `volumeDetector.ts`, `wildcardRouter.ts`, `workflowFSM.ts`, `specificityDetector.ts`, `specificityRules.ts`, `specificityTypes.ts`                                             |
+| Mallien käsittely     | `modelCapabilities.ts`, `modelDeprecation.ts`, `modelFamilyFallback.ts`, `modelStrip.ts`, `model.ts`, `provider.ts`, `providerRequestDefaults.ts`, `providerCostData.ts`, `payloadRules.ts`                                                              |
+| Pakkaus               | `compression/` — pakkausmoottorin täydellinen kytkentä                                                                                                                                                                                                   |
+| Tunnisteet + istunnot | `tokenRefresh.ts`, `sessionManager.ts`, `apiKeyRotator.ts`, `contextManager.ts`, `contextHandoff.ts`, `systemPrompt.ts`, `roleNormalizer.ts`, `responsesInputSanitizer.ts`, `toolSchemaSanitizer.ts`, `toolLimitDetector.ts`, `thinkingBudget.ts`        |
+| Taso / manifesti      | `tierResolver.ts`, `tierConfig.ts`, `tierDefaults.json`, `tierTypes.ts`, `manifestAdapter.ts`                                                                                                                                                            |
+| IP / verkko           | `ipFilter.ts`, `webSearchFallback.ts`                                                                                                                                                                                                                    |
+| Erät                  | `batchProcessor.ts`                                                                                                                                                                                                                                      |
+| Käyttö                | `usage.ts`                                                                                                                                                                                                                                               |
 
 ### 4.6 `open-sse/mcp-server/`
 
-- **110 yksilöllistä työkalua** kytketty tiedostossa `server.ts` (45 kanonista työkalua tiedostossa `schemas/tools.ts` +
-  muisti-, taito-, GitHub-taito-, pooli-, pelillistämis-, laajennus-, Notion-, Obsidian-,
-  paikallinen korpus- ja pakkausmoduulit — unioni laskettu funktiolla `countUniqueMcpTools`).
+- **110 yksilöllistä työkalua**, jotka on kytketty tiedostossa `server.ts` (45 kanonista työkalua tiedostossa `schemas/tools.ts` +
+  muisti-, taito-, GitHub-taito-, resurssipooli-, pelillistämis-, liitännäis-, Notion-, Obsidian-,
+  paikalliskorpus- ja pakkausmoduulit — unioni laskettu funktiolla `countUniqueMcpTools`).
 - **3 siirtotapaa**: stdio, suoratoistettava HTTP, SSE.
-- **33 käyttöaluetta** valvotaan suorituksen aikana — perusluettelo on tiedostossa `src/shared/constants/mcpScopes.ts`, ja täydellinen joukko on kunkin työkalumoduulin ilmoittamien käyttöalueiden unioni.
+- **33 käyttöaluetta**, jotka pakotetaan suorituksen aikana — perusluettelo on tiedostossa `src/shared/constants/mcpScopes.ts`, ja koko joukko on kunkin työkalumoduulin ilmoittamien käyttöalueiden unioni.
 - Auditointitaulu: `mcp_tool_audit` (täytetään tiedostolla `audit.ts`).
 - Tiedostot: `server.ts`, `index.ts`, `httpTransport.ts`, `audit.ts`, `scopeEnforcement.ts`,
   `runtimeHeartbeat.ts`, `descriptionCompressor.ts`, `schemas/{tools, a2a, audit, index}.ts`,
-  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`,
+  `tools/{advancedTools, compressionTools, memoryTools, skillTools}.ts`
   sekä testit hakemistossa `__tests__/`.
-- Täydellinen työkaluluettelo on dokumentissa [MCP-SERVER.md](../frameworks/MCP-SERVER.md).
+- Täydellinen työkaluluettelo on tiedostossa [MCP-SERVER.md](../frameworks/MCP-SERVER.md).
 
 ### 4.7 `open-sse/config/`
 
@@ -553,17 +553,17 @@ Palveluntarjoajarekisterit (`providerRegistry.ts`, `providerModels.ts`,
 `providerHeaderProfiles.ts`), muotokohtaiset mallirekisterit (`audioRegistry.ts`,
 `embeddingRegistry.ts`, `imageRegistry.ts`, `moderationRegistry.ts`,
 `musicRegistry.ts`, `rerankRegistry.ts`, `searchRegistry.ts`, `videoRegistry.ts`),
-identiteettiaputoiminnot (`codexIdentity.ts`, `codexInstructions.ts`,
+identiteettiavustimet (`codexIdentity.ts`, `codexInstructions.ts`,
 `anthropicHeaders.ts`, `antigravityUpstream.ts`, `antigravityModelAliases.ts`,
 `cliFingerprints.ts`, `toolCloaking.ts`, `defaultThinkingSignature.ts`),
-tunnistetietoaputoiminnot (`credentialLoader.ts`, `codexClient.ts`) ja pilvi-
+tunnistetietoavustimet (`credentialLoader.ts`, `codexClient.ts`) ja pilvi-
 sovittimet (`azureAi.ts`, `bedrock.ts`, `datarobot.ts`, `glmProvider.ts`,
 `maritalk.ts`, `oci.ts`, `petals.ts`, `runway.ts`, `sap.ts`, `watsonx.ts`,
 `ollamaModels.ts`, `errorConfig.ts`, `constants.ts`, `registryUtils.ts`).
 
 ### 4.8 `open-sse/utils/`
 
-Suoratoiston peruskomponentit ja palveluntarjoajien apufunktiot: `stream.ts`, `streamHandler.ts`,
+Suoratoiston perusosat ja palveluntarjoajien apufunktiot: `stream.ts`, `streamHandler.ts`,
 `streamHelpers.ts`, `streamPayloadCollector.ts`, `streamReadiness.ts`,
 `sseHeartbeat.ts`, `proxyFetch.ts`, `proxyDispatcher.ts`, `tlsClient.ts`,
 `networkProxy.ts`, `awsSigV4.ts`, `cacheControlPolicy.ts`,
