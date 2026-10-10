@@ -47,6 +47,7 @@
     "config/release/wreq-js-rust-license-inventory.json",
     "config/release/wreq-js-rust-notices.md",
     "scripts/build/build-next-isolated.mjs",
+    "scripts/i18n/generate-global-error-messages.mjs",
     "scripts/build/runtime-env.mjs",
     "scripts/packs/optionalPackManifest.mjs",
     "scripts/packs/optionalPackInstaller.mjs",
