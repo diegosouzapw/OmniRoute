@@ -1,0 +1,1 @@
+- **fix(sse):** `xhigh` is no longer force-rewritten to `max` for max-tier model families once the provider+model is known not to accept `max`, fixing repeated 400s on custom DeepSeek V4 hosts ([#16290](https://github.com/diegosouzapw/OmniRoute/pull/16290)) — thanks @66666-design
