@@ -24,7 +24,11 @@ import {
   type QuotaFetcher,
   type QuotaInfo,
 } from "./quotaPreflight.ts";
-import { getAntigravityQuotaFamily, getQuotaFetchScope } from "./antigravityQuotaFamily.ts";
+import {
+  getAntigravityQuotaFamily,
+  getQuotaFetchScope,
+  selectFactoryQuotaWindowNames,
+} from "./antigravityQuotaFamily.ts";
 import { boundedMap } from "../../src/lib/quota/boundedMap.ts";
 import { toNumberOrNull } from "@/shared/utils/numeric";
 
@@ -277,7 +281,7 @@ export function convertUsageToQuotaInfo(
     isAntigravityProvider(context.provider) && context.requestedModel
       ? getAntigravityQuotaFamily(context.requestedModel)
       : null;
-  const providerScopedWindows =
+  let providerScopedWindows =
     requestedFamily === "gemini" || requestedFamily === "claude"
       ? Object.fromEntries(
           Object.entries(windows).filter(([key]) => {
@@ -288,6 +292,13 @@ export function convertUsageToQuotaInfo(
           })
         )
       : windows;
+  if (context.provider === "factory" && context.requestedModel) {
+    const selected = selectFactoryQuotaWindowNames(Object.keys(windows), context.requestedModel);
+    if (selected.length === 0) return null;
+    providerScopedWindows = Object.fromEntries(
+      Object.entries(windows).filter(([key]) => selected.includes(key))
+    );
+  }
   if (Object.keys(providerScopedWindows).length === 0) return null;
 
   const normalized = normalizeQuotaWindows(providerScopedWindows, context);
@@ -345,11 +356,21 @@ function normalizeQuotaWindows(
       : null;
 
   // Explicit time windows (canonical and legacy aliases).
-  const fiveHourWindow = windows["session (5h)"] || windows["session"] || windows.code_5h;
+  const fiveHourWindow =
+    windows["session (5h)"] ||
+    windows["session"] ||
+    windows.code_5h ||
+    windows.standard_5h ||
+    windows.core_5h;
   if (fiveHourWindow && !normalized.window5h) {
     normalized.window5h = fiveHourWindow;
   }
-  const sevenDayWindow = windows["weekly (7d)"] || windows["weekly"] || windows.code_7d;
+  const sevenDayWindow =
+    windows["weekly (7d)"] ||
+    windows["weekly"] ||
+    windows.code_7d ||
+    windows.standard_weekly ||
+    windows.core_weekly;
   if (sevenDayWindow && !normalized.window7d) {
     normalized.window7d = sevenDayWindow;
   }

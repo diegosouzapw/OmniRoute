@@ -11,6 +11,10 @@ import {
   ANTIGRAVITY_REQUIRES_MANUAL_PROJECT,
 } from "@omniroute/open-sse/services/antigravityProjectBootstrap.ts";
 import { isGeoBlockedError } from "@omniroute/open-sse/services/errorClassifier.ts";
+import {
+  resolveFactoryApiBase,
+  FACTORY_CLIENT_VERSION,
+} from "@omniroute/open-sse/config/factory.ts";
 
 // Real model-surface probe for antigravity/agy. The previous probe only hit the
 // OAuth userinfo endpoint, which is NOT geo-restricted — so "Test Connection"
@@ -78,6 +82,29 @@ async function buildAntigravityProbe(
       userAgent: getAntigravityEnvelopeUserAgent(connection as never),
       requestType: "agent",
     }),
+  };
+}
+
+async function buildFactoryProbe(
+  connection: { providerSpecificData?: unknown },
+  accessToken: string
+): Promise<OAuthTestProbeRequest> {
+  const providerSpecificData =
+    connection.providerSpecificData && typeof connection.providerSpecificData === "object"
+      ? (connection.providerSpecificData as Record<string, unknown>)
+      : undefined;
+  const base = resolveFactoryApiBase(providerSpecificData);
+  const orgId = providerSpecificData?.orgId;
+  return {
+    url: `${base}/api/cli/whoami`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "X-Factory-Client": "cli",
+      "X-Client-Version": FACTORY_CLIENT_VERSION,
+      "User-Agent": `factory-cli/${FACTORY_CLIENT_VERSION}`,
+      ...(orgId ? { "X-Factory-Org-Id": String(orgId) } : {}),
+    },
   };
 }
 
@@ -218,6 +245,11 @@ export const OAUTH_TEST_CONFIG: Record<string, OAuthTestConfigEntry> = {
   agy: {
     buildProbe: buildAntigravityProbe,
     inconclusiveStatuses: [400],
+    refreshable: true,
+  },
+  factory: {
+    buildProbe: buildFactoryProbe,
+    checkExpiry: true,
     refreshable: true,
   },
   xai: XAI_CHAT_OAUTH_TEST_CONFIG,

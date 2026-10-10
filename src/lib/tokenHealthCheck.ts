@@ -56,6 +56,7 @@ const ROTATING_REFRESH_PROVIDERS = new Set([
   "gitlab-duo",
   "claude",
   "openference",
+  "factory",
 ]);
 
 export function shouldNullRefreshTokenAfterUnrecoverable(provider: unknown): boolean {
@@ -1017,17 +1018,23 @@ export async function checkConnection(conn) {
           updateData.providerSpecificData = mergedProviderData;
         }
         try {
-          await updateProviderConnection(conn.id, updateData);
+          const saved = await updateProviderConnection(
+            conn.id,
+            updateData,
+            conn.provider === "factory" ? { mergeProviderSpecificData: true } : undefined
+          );
+          if (conn.provider === "factory" && !saved) {
+            throw new Error("Factory credential persistence failed");
+          }
         } catch (dbErr) {
-          // DB write failed after successful refresh - log but do not throw.
-          // The outer catch would misclassify this as a network error.
+          if (conn.provider === "factory") throw dbErr;
+          // Preserve existing non-Factory health-check retry behavior.
           logWarn(
             `${LOG_PREFIX} ~ ${conn.provider}/${getConnectionLogLabel(conn)} DB write failed after successful refresh` +
               ` (${dbErr instanceof Error ? dbErr.message : String(dbErr)}); token not persisted`
           );
           return;
         }
-        // Mark as persisted AFTER the DB write succeeds.
         persistedResult = refreshResult;
       }
     );

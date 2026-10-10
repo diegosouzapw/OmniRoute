@@ -27,6 +27,7 @@ export const USAGE_SUPPORTED_PROVIDERS: readonly string[] = [
   "codex",
   "claude",
   "anthropic",
+  "factory",
   "cursor",
   "qoder",
   "kimi-coding",

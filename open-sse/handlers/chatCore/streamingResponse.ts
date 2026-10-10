@@ -678,7 +678,12 @@ export async function runStreamingResponse(deps: StreamingDeps) {
       // through getAccessToken (and therefore never fire onPersist). For
       // executors that DO route through it (Codex, Claude, Gemini, etc.) the
       // mutation already happened atomically inside the mutex.
-      if (!persistFnRan) {
+      if (provider === "factory") {
+        const committed = casConnectionId ? await getProviderConnectionById(casConnectionId) : null;
+        if (!committed?.accessToken || committed.provider !== "factory") return;
+        if (committed.accessToken !== newCredentials.accessToken) return;
+        Object.assign(credentials, committed);
+      } else if (!persistFnRan) {
         Object.assign(credentials, newCredentials);
         if (onCredentialsRefreshed) {
           await onCredentialsRefreshed(newCredentials);

@@ -659,6 +659,7 @@ export function translateRequest(
     // #12128: Sanitize reasoning input items for Responses targets (strip plaintext content for opaque backends)
     applyReasoningInputPolicy(result as Record<string, unknown>, "responses", {
       provider,
+      model,
       preserveEncryptedReasoning:
         (credentials as { providerSpecificData?: { preserveEncryptedReasoning?: boolean } } | null)
           ?.providerSpecificData?.preserveEncryptedReasoning === true,

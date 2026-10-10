@@ -811,7 +811,11 @@ export async function orderTargetsByQuotaWeighted(
   const withSnapshot = scoredTargets.map((entry) => {
     const connectionId = entry.target.connectionId ?? "";
     const marked = connectionId
-      ? getQuotaWeightedRemainingPercent(connectionId, entry.target.modelStr)
+      ? getQuotaWeightedRemainingPercent(
+          connectionId,
+          entry.target.modelStr,
+          getResetAwareProvider(entry.target)
+        )
       : null;
     const fetchedAt = connectionId ? getQuotaSnapshotFetchedAt(connectionId) : null;
     return {

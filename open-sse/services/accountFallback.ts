@@ -56,6 +56,7 @@ import {
   isAntigravityQuotaProvider,
 } from "./antigravityQuotaFamily.ts";
 import { persistAntigravityFamilyCooldownIfQuota } from "./antigravityFamilyCooldown.ts";
+import { persistFactoryTierCooldownIfQuota } from "./factoryTierCooldown.ts";
 import {
   classifyGeminiQuotaMetricFromText,
   isRpdExhausted,
@@ -646,6 +647,13 @@ export async function recordCoreOwnedAntigravityQuotaState({
   );
   if (lockout.cooldownMs > 0 && isProviderExhaustedReason(fallback)) {
     persistAntigravityFamilyCooldownIfQuota({
+      provider,
+      connectionId,
+      model,
+      cooldownMs: lockout.cooldownMs,
+      reason: "quota_exhausted",
+    });
+    persistFactoryTierCooldownIfQuota({
       provider,
       connectionId,
       model,

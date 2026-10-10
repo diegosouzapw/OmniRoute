@@ -83,20 +83,22 @@ export function getQuotaCacheState(): QuotaCacheState {
   return globalThis.__omnirouteQuotaCacheState;
 }
 
-// ─── #14359 healthy override ────────────────────────────────────────────────
-
-// #14359 — arm the healthy override for one park window (chat success hook).
-export function markQuotaHealthy(connectionId: string): void {
-  getQuotaCacheState().healthyUntil.set(connectionId, Date.now() + EXHAUSTED_MAX_PARK_MS);
+function healthyKey(connectionId: string, scope?: string | null): string {
+  return scope ? `${connectionId}\0factory:${scope}` : connectionId;
 }
 
-// #14359 — clear the healthy override (a genuine 429 re-parks immediately).
-export function unmarkQuotaHealthy(connectionId: string): void {
-  getQuotaCacheState().healthyUntil.delete(connectionId);
+export function markQuotaHealthy(connectionId: string, scope?: string | null): void {
+  getQuotaCacheState().healthyUntil.set(
+    healthyKey(connectionId, scope),
+    Date.now() + EXHAUSTED_MAX_PARK_MS
+  );
 }
 
-// #14359 — true while the healthy override for this connection is armed.
-export function isQuotaHealthy(connectionId: string): boolean {
-  const until = getQuotaCacheState().healthyUntil.get(connectionId);
+export function unmarkQuotaHealthy(connectionId: string, scope?: string | null): void {
+  getQuotaCacheState().healthyUntil.delete(healthyKey(connectionId, scope));
+}
+
+export function isQuotaHealthy(connectionId: string, scope?: string | null): boolean {
+  const until = getQuotaCacheState().healthyUntil.get(healthyKey(connectionId, scope));
   return until !== undefined && until > Date.now();
 }

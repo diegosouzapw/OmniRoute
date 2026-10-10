@@ -61,6 +61,7 @@ import { refreshKiroToken } from "./tokenRefresh/providers/kiro.ts";
 import { refreshQoderToken } from "./tokenRefresh/providers/qoder.ts";
 import { refreshGitHubToken } from "./tokenRefresh/providers/github.ts";
 import { refreshCopilotToken } from "./tokenRefresh/providers/copilot.ts";
+import { refreshFactoryToken } from "./tokenRefresh/providers/factory.ts";
 
 export {
   refreshCodebuddyCnToken,
@@ -77,6 +78,7 @@ export {
   refreshQoderToken,
   refreshGitHubToken,
   refreshCopilotToken,
+  refreshFactoryToken,
   extractOAuthErrorCode,
   isUnrecoverableRefreshError,
   isProviderBlocked,
@@ -232,6 +234,30 @@ export function runWithOnPersist<T>(
 
 export function getActiveOnPersist(): RefreshPersistFn | undefined {
   return onPersistStore.getStore();
+}
+
+async function syncFactoryLocalSessionAfterPersist(
+  provider: string,
+  credentials: Record<string, unknown>,
+  result: Record<string, unknown>,
+  log?: RefreshLogger
+): Promise<void> {
+  const providerData = credentials.providerSpecificData;
+  if (
+    provider !== "factory" ||
+    !providerData ||
+    typeof providerData !== "object" ||
+    (providerData as Record<string, unknown>).isLocalCli !== true
+  ) {
+    return;
+  }
+
+  try {
+    const { syncFactoryCliSessionAfterPersist } = await import("@/lib/oauth/factoryLocalSync");
+    await syncFactoryCliSessionAfterPersist(credentials, result, log);
+  } catch {
+    log?.warn?.("TOKEN_REFRESH", "Factory local token sync failed after credential commit");
+  }
 }
 
 // #4038 compare-and-swap (CAS) guard on the refresh persist lives in
@@ -479,6 +505,9 @@ async function _getAccessTokenInternal(provider, credentials, log, proxyConfig: 
     case "workbuddy":
       return await refreshWorkbuddyToken(credentials.refreshToken, log, proxyConfig);
 
+    case "factory":
+      return await refreshFactoryToken(credentials.refreshToken, credentials, log, proxyConfig);
+
     default:
       // Fallback to generic OAuth refresh for unknown providers
       return refreshAccessToken(provider, credentials.refreshToken, credentials, log, proxyConfig);
@@ -513,6 +542,7 @@ export function supportsTokenRefresh(provider) {
     "codebuddy-intl",
     "workbuddy",
     "cursor",
+    "factory",
   ]);
   if (explicitlySupported.has(provider)) return true;
   const config = PROVIDERS[provider];
@@ -562,6 +592,10 @@ export async function getAccessToken(
   const effectiveOnPersist = onPersist ?? getActiveOnPersist();
 
   const connectionId = credentials.connectionId;
+  if (provider === "factory" && (!connectionId || !effectiveOnPersist)) {
+    log?.warn?.("TOKEN_REFRESH", "Factory refresh requires a connection ID and commit callback");
+    return null;
+  }
 
   // ── Layer 1: per-connection mutex ──────────────────────────────────────────
   if (connectionId && typeof connectionId === "string") {
@@ -595,10 +629,21 @@ export async function getAccessToken(
         // #4038: skip the persist if a concurrent writer already rotated this row past the
         // refresh_token we presented (compare-and-swap) — overwriting would revert it.
         if (await casGuardShouldSkipPersist(log)) {
-          return result;
+          if (provider !== "factory") return result;
+          const { getProviderConnectionById } = await import("@/lib/db/providers");
+          const winner = await getProviderConnectionById(connectionId);
+          return winner?.provider === "factory" && winner.accessToken && winner.refreshToken
+            ? {
+                accessToken: winner.accessToken,
+                refreshToken: winner.refreshToken,
+                expiresAt: winner.tokenExpiresAt || winner.expiresAt,
+                providerSpecificData: winner.providerSpecificData,
+              }
+            : null;
         }
         try {
           await effectiveOnPersist(result);
+          await syncFactoryLocalSessionAfterPersist(provider, credentials, result, log);
         } catch (persistErr) {
           const { sanitizeErrorMessage } = await import("../utils/error.ts");
           log?.error?.(
@@ -654,6 +699,7 @@ export async function getAccessToken(
         }
         try {
           await effectiveOnPersist(result);
+          await syncFactoryLocalSessionAfterPersist(provider, credentials, result, log);
         } catch (persistErr) {
           const { sanitizeErrorMessage } = await import("../utils/error.ts");
           log?.error?.(

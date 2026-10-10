@@ -225,7 +225,14 @@ async function refreshOAuthToken(connection: any) {
           ...refreshed.providerSpecificData,
         };
       }
-      await updateProviderConnection(connection.id, update);
+      const saved = await updateProviderConnection(
+        connection.id,
+        update,
+        provider === "factory" ? { mergeProviderSpecificData: true } : undefined
+      );
+      if (provider === "factory" && !saved) {
+        throw new Error("Factory credential persistence failed");
+      }
     });
     return result; // { accessToken, expiresIn, refreshToken } or null
   } catch (err) {

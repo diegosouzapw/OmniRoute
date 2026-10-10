@@ -7,6 +7,7 @@ import {
   isClaudeCodeCompatibleProvider,
   isOpenAICompatibleProvider,
   isAnthropicCompatibleProvider,
+  resolveProviderId,
 } from "@/shared/constants/providers";
 import { validateProviderApiKey } from "@/lib/providers/validation";
 import { projectProviderValidationResultForPublicResponse } from "@/lib/providers/validation/transport";
@@ -70,6 +71,12 @@ export async function POST(request) {
 
     const retirementResponse = rejectRetiredCommonChatGptWebProvider(provider);
     if (retirementResponse) return retirementResponse;
+    if (provider === "factory" || resolveProviderId(provider) === "factory") {
+      return NextResponse.json(
+        { error: "Factory requires subscription OAuth; connect through /api/oauth/factory." },
+        { status: 400 }
+      );
+    }
 
     let providerSpecificData: any = { validationModelId };
     if (customUserAgent) {
