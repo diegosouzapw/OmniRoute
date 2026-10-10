@@ -85,6 +85,26 @@ export async function emitGamificationEvent(params: {
     }
 
     // 3. Update leaderboard
+    await updateRewardScores(apiKeyId, action, xpAmount);
+
+    // 4. Check action count badges
+    await checkActionCountBadges(apiKeyId, action);
+  } catch (err) {
+    // Never throw — gamification must not break the request pipeline
+    log.error("events.error", {
+      ...(action === "radar_supporter" ? {} : { apiKeyId }),
+      action,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+async function updateRewardScores(
+  apiKeyId: string,
+  action: string,
+  xpAmount: number
+): Promise<void> {
+  if (xpAmount > 0) {
     const { updateScore } = await import("./leaderboard");
     await updateScore(apiKeyId, "global", xpAmount);
 
@@ -96,16 +116,6 @@ export async function emitGamificationEvent(params: {
     if (action === "token_share") {
       await updateScore(apiKeyId, "tokens_shared", xpAmount);
     }
-
-    // 4. Check action count badges
-    await checkActionCountBadges(apiKeyId, action);
-  } catch (err) {
-    // Never throw — gamification must not break the request pipeline
-    log.error("events.error", {
-      ...(action === "radar_supporter" ? {} : { apiKeyId }),
-      action,
-      error: err instanceof Error ? err.message : String(err),
-    });
   }
 }
 
