@@ -75,6 +75,7 @@ type ClaudeTool = {
   input_schema: Record<string, unknown>;
   cache_control?: { type: string; ttl?: string };
   defer_loading?: boolean;
+  strict?: boolean;
 };
 
 /**
@@ -410,6 +411,8 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
     }
   }
 
+  const allowedTools = extractAllowedTools(body.tool_choice);
+
   // Tools - convert from OpenAI format to Claude format with prefix for OAuth
   if (body.tools && Array.isArray(body.tools)) {
     result.tools = body.tools
@@ -454,12 +457,27 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
           name: toolName,
           description: toolData.description || "",
           input_schema: normalizedSchema,
+          // Anthropic tools accept `strict` (structured tool inputs); dropping it silently
+          // relaxed schema enforcement the client asked for (9router#4172).
+          ...(toolData.strict === true ? { strict: true } : {}),
         };
       })
       .filter((tool): tool is ClaudeTool => Boolean(tool));
 
     // Filter out tools with empty names (would cause Claude 400 error)
     result.tools = result.tools.filter((tool) => tool.name && tool.name?.trim());
+
+    // OpenAI `allowed_tools` restricts the callable subset; Claude has no equivalent
+    // tool_choice, so narrow the declared tools instead (9router#4171).
+    if (allowedTools) {
+      const originalNameOf = (tool: ClaudeTool) =>
+        disableToolPrefix ? tool.name : (toolNameMap.get(tool.name) ?? tool.name);
+      const allowed = result.tools.filter((tool) => allowedTools.names.has(originalNameOf(tool)));
+      if (allowed.length > 0) {
+        result.tools = allowed;
+        allowedTools.kept = allowed.map(originalNameOf);
+      }
+    }
 
     // Cache breakpoint on the last non-defer-loading tool — Anthropic
     // rejects cache_control on defer_loading tools.
@@ -472,8 +490,23 @@ export function openaiToClaudeRequest(model, body, stream, credentials = null) {
   }
 
   // Tool choice
-  if (body.tool_choice) {
+  if (allowedTools) {
+    result.tool_choice = convertAllowedToolsChoice(allowedTools);
+  } else if (body.tool_choice) {
     result.tool_choice = convertOpenAIToolChoice(body.tool_choice);
+  }
+
+  // OpenAI `parallel_tool_calls: false` ↔ Claude `tool_choice.disable_parallel_tool_use`.
+  // Claude carries the flag on tool_choice, so synthesize `auto` when none was sent; it is
+  // only valid alongside tools and not on `none` (9router#4171).
+  if (body.parallel_tool_calls === false && result.tools?.length) {
+    const choice =
+      result.tool_choice && typeof result.tool_choice === "object"
+        ? result.tool_choice
+        : { type: "auto" };
+    if (choice.type !== "none") {
+      result.tool_choice = { ...choice, disable_parallel_tool_use: true };
+    }
   }
 
   // response_format: inject JSON structured output instruction into system prompt.
@@ -738,6 +771,35 @@ function getContentBlocksFromMessage(
 }
 
 // Convert OpenAI tool choice to Claude format
+type AllowedTools = { required: boolean; names: Set<string>; kept: string[] };
+
+// OpenAI `allowed_tools` arrives as Chat Completions
+// `{type:"allowed_tools", allowed_tools:{mode, tools}}` or Responses-style
+// `{type:"allowed_tools", mode, tools}`; tool entries carry `function.name` or `name`.
+function extractAllowedTools(choice: unknown): AllowedTools | null {
+  if (!choice || typeof choice !== "object") return null;
+  const record = choice as Record<string, unknown>;
+  if (record.type !== "allowed_tools") return null;
+  const spec =
+    record.allowed_tools && typeof record.allowed_tools === "object"
+      ? (record.allowed_tools as Record<string, unknown>)
+      : record;
+  const names = new Set<string>();
+  for (const entry of Array.isArray(spec.tools) ? spec.tools : []) {
+    if (!entry || typeof entry !== "object") continue;
+    const fn = (entry as Record<string, unknown>).function as Record<string, unknown> | undefined;
+    const name = fn?.name ?? (entry as Record<string, unknown>).name;
+    if (typeof name === "string" && name.trim()) names.add(name.trim());
+  }
+  return { required: spec.mode === "required", names, kept: [] };
+}
+
+function convertAllowedToolsChoice(allowed: AllowedTools) {
+  if (!allowed.required) return { type: "auto" };
+  if (allowed.kept.length === 1) return { type: "tool", name: allowed.kept[0] };
+  return { type: CLAUDE_TOOL_CHOICE_REQUIRED };
+}
+
 function convertOpenAIToolChoice(choice) {
   if (!choice) return { type: "auto" };
   if (typeof choice === "object" && choice.type) {
