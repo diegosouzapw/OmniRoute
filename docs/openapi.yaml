@@ -13596,6 +13596,55 @@ paths:
       responses:
         "200":
           description: OK
+  /api/v1/quota-recoveries/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string }
+        description: Recovery ticket id returned in the `202` body of an opted-in request.
+    get:
+      tags:
+        - V1 Quota Recoveries
+      summary: Poll a quota recovery ticket
+      description: >-
+        Opt-in recovery of a non-streaming `POST /api/v1/chat/completions` or
+        `POST /api/v1/responses` turn that failed with a terminal quota error. A request
+        opts in with `x-omniroute-quota-recovery: auto`, `x-omniroute-session` and
+        `x-omniroute-recovery-turn` (each `[A-Za-z0-9._:-]{1,128}`); it must be
+        `stream: false`, carry no tools / tool history / `previous_response_id`, and not pin a
+        connection. Recovery needs `STORAGE_ENCRYPTION_KEY` (the request is stored encrypted for
+        up to 24 h). Instead of the quota error the caller then receives `202` with
+        `recovery.poll` pointing here. Tickets are visible only to the API key that created them.
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: >-
+            Completed: the recovered upstream response body (header
+            `X-OmniRoute-Recovery-State: completed`). Other final states (`failed`,
+            `needs_confirmation`, `cancelled`, `expired`) return `{ recovery }`.
+        "202":
+          description: "Still `pending` or `running`; body is `{ recovery }`."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: No ticket with this id for the calling API key.
+    delete:
+      tags:
+        - V1 Quota Recoveries
+      summary: Cancel a quota recovery ticket
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: 'Cancelled; body is `{ recovery: { id, state: "cancelled" } }`.'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: No ticket with this id for the calling API key.
+        "409":
+          description: "Only `pending` or `needs_confirmation` tickets can be cancelled."
   /api/v1/quotas/check:
     get:
       tags:

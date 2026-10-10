@@ -740,6 +740,27 @@ completion.
 
 **Auth:** Bearer API key (`isAuthenticated`).
 
+### Quota session recovery (opt-in)
+
+A non-streaming `POST /v1/chat/completions` or `POST /v1/responses` that fails with a
+terminal quota error (`402`/`429`/`503` whose body says the quota or credits are exhausted)
+can be parked and replayed later instead of returning the error. The caller opts in per
+request with three headers:
+
+| Header                       | Value                                         |
+| ---------------------------- | --------------------------------------------- |
+| `x-omniroute-quota-recovery` | `auto`                                        |
+| `x-omniroute-session`        | session id, `[A-Za-z0-9._:-]{1,128}`          |
+| `x-omniroute-recovery-turn`  | turn id unique within the session (same rule) |
+
+Only `stream: false` turns with no tools, tool history or `previous_response_id`, and no
+`x-omniroute-connection` pin, are eligible, and `STORAGE_ENCRYPTION_KEY` must be set (the
+request is stored encrypted for up to 24 h). The response is then `202` with
+`recovery.poll`; poll `GET /v1/quota-recoveries/{id}` (`202` while pending, `200` with the
+recovered body when completed) or cancel with `DELETE`. Tickets are visible only to the API
+key that created them. A replay whose outcome is uncertain ends in `needs_confirmation`
+instead of being sent twice. Source: `src/lib/quota/quotaSessionRecovery.ts`.
+
 ---
 
 ## Self-service usage (`/api/usage/om-usage`)

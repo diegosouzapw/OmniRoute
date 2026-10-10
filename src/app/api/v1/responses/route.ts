@@ -24,6 +24,7 @@ import {
 } from "@omniroute/open-sse/utils/earlyStreamKeepalive";
 import { createStreamDeadlineSignal } from "@omniroute/open-sse/utils/streamDeadlineSignal";
 import { resolveKeepaliveThreshold } from "@omniroute/open-sse/utils/keepaliveThreshold";
+import { maybeQueueQuotaSessionRecovery } from "@/lib/quota/quotaSessionRecovery";
 import { OPENAI_RESPONSES_IN_PROGRESS_FRAME } from "@omniroute/open-sse/utils/sseHeartbeat";
 
 // NOTE: We do NOT call initTranslators() here — the translator registry is
@@ -234,7 +235,14 @@ async function postHandler(request: any) {
       });
     }
 
-    return finishAdmission(await handleChat(resolved, null, resolvedBody, correlationId));
+    const handlerResponse = await handleChat(resolved, null, resolvedBody, correlationId);
+    const recoveryResponse = await maybeQueueQuotaSessionRecovery({
+      request: resolved,
+      body: resolvedBody,
+      response: handlerResponse,
+      endpoint: "responses",
+    });
+    return finishAdmission(recoveryResponse);
   } catch (error) {
     admission.lease?.release();
     throw error;
