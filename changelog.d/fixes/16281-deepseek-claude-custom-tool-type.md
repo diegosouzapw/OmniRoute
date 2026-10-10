@@ -1,0 +1,1 @@
+- **fix(sse):** DeepSeek connections on the Claude wire format no longer receive `type: "custom"` tool definitions, which the endpoint rejected with HTTP 400 ([#16281](https://github.com/diegosouzapw/OmniRoute/pull/16281)) — thanks @0xH3li0, @kabeza
