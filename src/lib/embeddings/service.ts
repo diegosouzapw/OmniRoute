@@ -19,7 +19,7 @@ import {
 import { getCachedProviderNodes } from "@/lib/db/readCache";
 import { getComboByName, getCombos } from "@/lib/db/combos";
 import { getProviderConnections } from "@/lib/db/providers";
-import { getDatabaseSettings } from "@/lib/db/databaseSettings";
+import { getUserDatabaseSettings } from "@/lib/db/databaseSettings";
 import { resolveProxyForConnection } from "@/lib/db/settings";
 import { runWithProxyContext } from "@omniroute/open-sse/utils/proxyFetch.ts";
 import { handleComboChat } from "@omniroute/open-sse/services/combo.ts";
@@ -119,7 +119,7 @@ export async function createEmbeddingResponse(
 
         let settings = {};
         try {
-          settings = getDatabaseSettings();
+          settings = getUserDatabaseSettings();
         } catch {}
 
         // Inject the combo's configured dimensions into the request body so that
@@ -252,12 +252,17 @@ export async function createEmbeddingResponse(
     }
     let baseUrl = configuredBaseUrl.trim();
     while (baseUrl.endsWith("/")) baseUrl = baseUrl.slice(0, -1);
+    // Keep the registry provider's structured-input capabilities (e.g. llama.cpp
+    // multimodal content parts); only the endpoint and auth come from the connection.
+    const registryConfig = getEmbeddingProvider(provider);
     providerConfig = {
       id: provider,
       baseUrl: baseUrl.endsWith("/embeddings") ? baseUrl : `${baseUrl}/embeddings`,
       authType: "apikey",
       authHeader: "bearer",
       models: [],
+      structuredInputProtocol: registryConfig?.structuredInputProtocol,
+      passthroughModalities: registryConfig?.passthroughModalities,
     };
   }
 

@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Bu API açarı üçün Codex xidmət rejimi",
+    "description": "Kombinasiyalardakı Codex modelləri də daxil olmaqla, Codex sorğularına tətbiq olunur. Məcburi rejimlər müştəri, qlobal parametrlər və bağlantının standart parametrlərini üstələyir. Digər provayderlər dəyişməz qalır.",
+    "label": "Xidmət rejimi",
+    "inherit": "Mövcud davranışı miras al",
+    "default": "Standard rejimini məcburi et (standart)",
+    "priority": "Fast / Priority rejimini məcburi et",
+    "flex": "Flex rejimini məcburi et",
+    "warning": "Bu, provayderə giriş icazəsi vermir. Əlçatanlıq, ödənişlər və kvota istifadəsi Codex hesabınızdan və modeldən asılıdır. Məcburi rejimlər HTTP və ya Responses WebSocket nəqli tələb edir; app-server sorğuları rədd edilir.",
+    "confirm": "“{mode}” rejimi bu API açarına tətbiq edilsin? Bu dəyişiklik sonrakı sorğular üçün qüvvəyə minəcək.",
+    "save": "Rejimi yadda saxla",
+    "retry": "Yenidən cəhd et",
+    "loadError": "Yadda saxlanmış xidmət rejimini yükləmək mümkün olmadı.",
+    "saveError": "Xidmət rejimini yadda saxlamaq mümkün olmadı. Lütfən, yenidən cəhd edin."
+  },
   "common": {
     "save": "Yadda saxla",
     "cancel": "Ləğv et",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analitika",
     "usageAnalyticsTitle": "İstifadə analitikası",
+    "tokenDisplayCompact": "Yığcam",
+    "tokenDisplayExact": "Dəqiq",
+    "tokenDisplayMode": "Token göstərmə rejimi",
     "diversityScoreTitle": "Provayder Müxtəlifliyi",
     "diversityScoreDesc": "Son trafik pəncərəsi üçün provayder konsentrasiyasının anlıq görüntüsü.",
     "diversityShannonEntropy": "Şennon entropiyası",
@@ -5572,6 +5590,8 @@
     "modelsActive": "Aktiv",
     "showModel": "Modeli göstər",
     "hideModel": "Modeli gizlət",
+    "blacklistModel": "Blokla",
+    "blacklistModelTooltip": "Bu modeli blokla və kataloqdan gizlət",
     "removeModel": "Modeli sil",
     "rateLimitProtected": "Qorunur",
     "rateLimitUnprotected": "Qorunmur",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "Standart (avtomatik)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maksimum Çıxış Tokenləri",
+    "maxOutputTokenOverrideHint": "Müsbət tam token sayı daxil edin. Standart dəyər üçün boş saxlayın.",
     "contextWindowOverrideLabel": "Kontekst Pəncərəsini Yenidən Təyin Etmə",
     "contextWindowOverridePlaceholder": "məs. 131072",
     "contextWindowOverrideHint": "Provayder səhv bildirdikdə bu modelin real kontekst pəncərəsini (tokenlər) əl ilə təyin edin. Avtomatik aşkarlanan/kataloq dəyərlərindən üstün tutulur və kombo marşrutlaşdırmanın modeli kənarlaşdırmasının qarşısını alır.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Parametrlər",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Yeniləndi",
     "lastRefreshed": "Sonuncu dəfə yenilənib",
     "providerQuota": "Provayder kvotası",
-    "providerQuotaHomeHint": "Qoşulmuş hesablar üzrə canlı status"
+    "providerQuotaHomeHint": "Qoşulmuş hesablar üzrə canlı status",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Avtorizasiya gözlənilir",

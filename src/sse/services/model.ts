@@ -15,6 +15,7 @@ import {
 } from "@omniroute/open-sse/services/model.ts";
 import { getLearnedReasoningEffortForModel } from "@omniroute/open-sse/services/learnedReasoningEffortCaps.ts";
 import { REGISTRY } from "@omniroute/open-sse/config/providerRegistry.ts";
+import { ANTIGRAVITY_MODEL_ALIASES } from "@omniroute/open-sse/config/antigravityModelAliases.ts";
 import { getRegisteredProviderEffortBaseModelId } from "@omniroute/open-sse/utils/registeredEffortVariants.ts";
 import { getReservedProviderPrefixes } from "@/shared/constants/reservedProviderPrefixes";
 import {
@@ -236,7 +237,21 @@ function findLiveCatalogModelMeta(
   const directMatch = findSyncedModelMeta(syncedModels, resolvedModelId);
   if (directMatch || !Array.isArray(syncedModels)) return directMatch;
 
-  const registryModel = findRegistryModel(providerId, requestedModelId);
+  // #15659: Antigravity display ids ("gemini-3.7-flash", "gemini-3.8-flash") are aliases of an
+  // upstream id. An account whose live catalog lists only the alias target (the shared
+  // `-tiered` id) must still be able to call the display id.
+  const aliasTarget =
+    providerId === "antigravity" || providerId === "agy"
+      ? (ANTIGRAVITY_MODEL_ALIASES as Record<string, string>)[requestedModelId]
+      : undefined;
+  if (aliasTarget) {
+    const aliasMatch = findSyncedModelMeta(syncedModels, aliasTarget);
+    if (aliasMatch) return aliasMatch;
+  }
+
+  const registryModel =
+    findRegistryModel(providerId, requestedModelId) ??
+    (aliasTarget ? findRegistryModel(providerId, aliasTarget) : undefined);
   const liveCatalogIds = registryModel?.liveCatalogIds;
   if (!Array.isArray(liveCatalogIds) || liveCatalogIds.length === 0) return undefined;
 

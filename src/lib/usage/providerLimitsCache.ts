@@ -1,6 +1,7 @@
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { sanitizeProviderBillingStatus } from "@/shared/utils/providerBilling";
 import { GROK_BUILD_ADDITIONAL_CREDITS_URL } from "@/shared/utils/grokBilling";
+import { parseCodexPaidCredits } from "@/lib/providers/codexPaidCredits";
 
 const GROK_CLI_PROVIDER = "grok-cli";
 const GLM_RESET_CARD_PROVIDERS = new Set(["glm", "glm-cn", "glmt", "zai"]);
@@ -33,6 +34,7 @@ export function toProviderLimitsCacheEntry(
     fetchedAt,
     source,
     bankedResetCredits: Number.isFinite(bankedResetCredits) ? bankedResetCredits : undefined,
+    paidCredits: parseCodexPaidCredits(usage.paidCredits),
     billing: sanitizeProviderBillingStatus(usage.billing),
     quotaGroups: Array.isArray(usage.quotaGroups)
       ? (usage.quotaGroups as Array<Record<string, unknown>>)

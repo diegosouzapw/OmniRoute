@@ -15,6 +15,12 @@ import { HTTP_STATUS } from "../../config/constants.ts";
 import { isSubscriptionQuotaText } from "../../services/quotaTextCooldowns.ts";
 import type { SearchProviderConfig } from "../../config/searchRegistry.ts";
 import type { SearchResult } from "../search.ts";
+import {
+  isReportedCostTrusted,
+  recordReportedErrorCost,
+  resolveSearchUsage,
+  type SearchUsage,
+} from "./reportedCost.ts";
 
 export const SEARCH_COOLDOWN_STATUSES = new Set([
   HTTP_STATUS.PAYMENT_REQUIRED,
@@ -151,7 +157,7 @@ export interface ProviderFetchResult {
     query: string;
     results: SearchResult[];
     answer: null;
-    usage: { queries_used: number; search_cost_usd: number };
+    usage: SearchUsage;
     metrics: {
       response_time_ms: number;
       upstream_latency_ms: number;
@@ -182,6 +188,11 @@ export interface ExecuteProviderFetchParams {
   proxy: unknown;
   proxyLevel: string;
   log?: SearchLog;
+  /**
+   * Operator connection data + API key for provider-reported cost (see
+   * ./reportedCost.ts). Absent or not opted in: usage is `costPerQuery`.
+   */
+  costContext?: { apiKeyId?: string; providerSpecificData?: Record<string, unknown> };
   normalize: (
     providerId: string,
     data: unknown,
@@ -201,7 +212,8 @@ export async function executeProviderFetch(
   p: ExecuteProviderFetchParams
 ): Promise<ProviderFetchResult> {
   const { config, url, init, controller, timer, query, searchType, maxResults, startTime } = p;
-  const { connectionId, proxy, proxyLevel, log, normalize } = p;
+  const { connectionId, proxy, proxyLevel, log, normalize, costContext } = p;
+  const costTrusted = isReportedCostTrusted(config, costContext?.providerSpecificData, url);
   const emitEvent = (status: string, upstreamStatus: number | null = null) =>
     emitSearchProxyEvent(
       config.id,
@@ -245,6 +257,9 @@ export async function executeProviderFetch(
         } catch {
           /* non-critical - background cooldown mark must not break search response */
         }
+      }
+      if (costTrusted) {
+        recordReportedErrorCost(costContext?.apiKeyId, config.id, errorText, log);
       }
       logCall({
         status: response.status,
@@ -296,7 +311,7 @@ export async function executeProviderFetch(
         query,
         results,
         answer: null,
-        usage: { queries_used: 1, search_cost_usd: config.costPerQuery },
+        usage: resolveSearchUsage(config, data, costTrusted, log),
         metrics: {
           response_time_ms: duration,
           upstream_latency_ms: duration,

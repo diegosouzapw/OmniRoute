@@ -336,12 +336,19 @@ strict — balance.
 
 ### Agentic pipeline mode
 
-A two-step `pipeline` combo can opt into planner/executor routing with
+A `pipeline` combo with at least two models can opt into planner/executor routing with
 `config.agenticOrchestration.enabled`. The first target owns planning and final answers;
 the second target emits client-native tool calls. OmniRoute detects tool-result
 continuations from the request protocol, asks the planner whether another tool round is
 needed, and dynamically makes either the executor or planner the client-facing final
 step.
+
+Additional models after the second target are ordered executor backups. A failed
+HTTP response or transport exception advances to the next executor, carrying the
+same planner decision and native tools but that executor's own step prompt and
+resolved connection. The first successful response is returned unchanged, including
+SSE streaming; failures after a successful stream starts cannot be retried here.
+If all executors fail, the last failure is returned. Client aborts stop dispatch.
 
 ```json
 {
@@ -515,10 +522,12 @@ Persisted `strategy: "auto"` combos can set `config.routerStrategy` (or legacy
 - `sla-aware` / `sla` — prefer candidates that satisfy p95 latency, error-rate, and optional
   cost SLOs
 - `lkgp` — last known good provider first
+- `nadir` — ask [Nadir](https://getnadir.com)'s decision API which model in the pool the
+  prompt needs; opt-in, fail-open to `rules`
 
 ### Router strategies in detail
 
-The auto-combo engine exposes 6 pluggable **RouterStrategy** implementations that
+The auto-combo engine exposes 7 pluggable **RouterStrategy** implementations that
 you can swap via `config.routerStrategy` (or the legacy `config.auto.routerStrategy`).
 Each strategy picks one provider from the candidate pool, given a `RoutingContext`
 (task type, tool/vision hints, token estimate, optional SLA policy, optional
@@ -692,6 +701,51 @@ follow-up requests (e.g., for caching, context continuity, or pricing consistenc
 
 ---
 
+#### 6. `nadir` — prompt-aware model choice via Nadir
+
+Every strategy above ranks the candidates by their own telemetry; none of them reads
+the request. `nadir` sends the last user turn plus the pool's model ids to
+[Nadir](https://getnadir.com)'s decision API (`POST /v1/bucket`) and routes to the model
+Nadir selects from that menu (`simple` → the cheapest capable model, `complex` → the
+frontier one). The connection serving that model is still picked by `rules`, so quota,
+health and cost keep deciding which account.
+
+```json
+{
+  "strategy": "auto",
+  "config": {
+    "routerStrategy": "nadir",
+    "nadir": {
+      "apiKey": "ndr_...",
+      "baseUrl": "https://api.getnadir.com",
+      "timeoutMs": 2000
+    }
+  }
+}
+```
+
+`OMNIROUTE_NADIR_API_KEY` and `OMNIROUTE_NADIR_BASE_URL` are env fallbacks for the two
+strings. `baseUrl` is only needed for a self-hosted Nadir (a trailing `/v1` is tolerated).
+Keyless calls land on Nadir's anonymous tier, which is rate-limited per IP.
+
+What leaves the box: the last user message's text (first 16k characters), the candidate
+model ids and a `source: "omniroute"` channel tag. No system prompt, history, tools or
+headers.
+
+Failure behavior is fail-open: a timeout (default 2000 ms), a non-2xx, an unreachable
+host, a malformed response or a selection outside the pool resolves to the `rules`
+decision and the reason is prefixed `NadirStrategy: fallback (…)`. After a failed call the
+strategy skips the network for 30 s, so an outage costs one timeout per 30 s rather than
+one per request. Routing events report `strategy: "nadir"` only when Nadir actually made
+the choice.
+
+**When to use**: mixed-difficulty traffic on a pool that spans model tiers (a small, a mid
+and a frontier model), where always-frontier is the cost you want to cut.
+
+**Alias**: `nadir` (no alias)
+
+---
+
 ### Custom router strategies
 
 You can register your own `RouterStrategy` implementation via the public API:
@@ -744,6 +798,7 @@ Then use it:
 | Minimize latency  | `latency`   | Picks fastest reliable provider      |
 | Strict SLOs       | `sla-aware` | Filters by p95/error/cost thresholds |
 | Multi-turn chat   | `lkgp`      | Session stickiness                   |
+| Mixed difficulty  | `nadir`     | Picks the model tier per prompt      |
 
 SLA-aware fields:
 

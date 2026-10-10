@@ -123,6 +123,9 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
     usageNumber(inputDetails.cache_write_tokens) ??
     usageNumber(beforeInputDetails.cache_creation_tokens) ??
     usageNumber(beforeInputDetails.cache_write_tokens);
+  const cacheCreationInPrompt = [inputDetails, beforeInputDetails]
+    .map((details) => details.cache_creation_in_prompt)
+    .find((flag): flag is boolean => typeof flag === "boolean");
   const outputTokens =
     usageNumber(source.output_tokens) ??
     usageNumber(source.completion_tokens) ??
@@ -148,6 +151,9 @@ function normalizeResponsesUsage(previous: unknown, raw: unknown): UsageRecord |
     input_tokens_details: {
       cached_tokens: cachedTokens,
       ...(cacheCreationTokens !== undefined ? { cache_creation_tokens: cacheCreationTokens } : {}),
+      ...(cacheCreationTokens !== undefined && cacheCreationInPrompt !== undefined
+        ? { cache_creation_in_prompt: cacheCreationInPrompt }
+        : {}),
     },
     output_tokens: outputTokens,
     output_tokens_details: { reasoning_tokens: reasoningTokens },

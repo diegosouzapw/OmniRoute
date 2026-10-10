@@ -1,3 +1,5 @@
+import { getApiKeyCodexServiceTier } from "../../src/lib/providers/codexApiKeyServiceMode";
+import { buildErrorBody } from "../utils/error.ts";
 import { getCodexRequestDefaults } from "@/lib/providers/requestDefaults";
 import {
   getCodexModelScope,
@@ -64,6 +66,10 @@ export {
   getCodexDualWindowCooldownMs,
 } from "./codex/quota.ts";
 import { isCodexFreePlan, normalizeCodexTools } from "./codex/tools.ts";
+import {
+  ensureCodexCompactionReplayTools,
+  isCodexCompactionWebReplay,
+} from "./codex/compactionReplay.ts";
 import { CODEX_ULTRA_ALIAS_MODELS, splitCodexReasoningSuffix } from "./codex/reasoningSuffix.ts";
 import { applyCodexReasoningSelection } from "./codex/reasoningPolicy.ts";
 import { repairMissingCodexToolCallOutputs } from "./codex/toolCallRepair.ts";
@@ -791,6 +797,22 @@ export class CodexExecutor extends BaseExecutor {
     }
 
     if (isCodexAppServerRequired(nextInput.credentials)) {
+      // The app-server adapter does not forward service tiers. Never silently
+      // ignore an API-key override (especially a cost-controlling Standard mode).
+      if (getApiKeyCodexServiceTier(nextInput.credentials)) {
+        return {
+          response: Response.json(
+            buildErrorBody(
+              400,
+              "Forced API-key Codex service mode requires the HTTP or Responses WebSocket transport; the app-server transport cannot enforce it"
+            ),
+            { status: 400 }
+          ),
+          url: "",
+          headers: {},
+          transformedBody: nextInput.body,
+        };
+      }
       if (!this.appServer) {
         this.appServer = new CodexAppServerExecutor({
           websocketFn: getCodexAppServerWebsocketTransport(),
@@ -1227,6 +1249,7 @@ export class CodexExecutor extends BaseExecutor {
 
     const nativeCodexPassthrough = body?._nativeCodexPassthrough === true;
     const isCompactRequest = isCompactResponsesEndpoint(credentials?.requestEndpointPath);
+    ensureCodexCompactionReplayTools(body, isCompactRequest);
     const requestDefaults = getCodexRequestDefaults(credentials?.providerSpecificData);
     const thinkingBudgetConfig = getThinkingBudgetConfig();
     const allowConnectionReasoningDefaults = thinkingBudgetConfig.mode === ThinkingMode.PASSTHROUGH;
@@ -1243,7 +1266,8 @@ export class CodexExecutor extends BaseExecutor {
     }
     delete body._nativeCodexPassthrough;
 
-    const requestServiceTier = normalizeServiceTierValue(body.service_tier);
+    const requestServiceTier =
+      getApiKeyCodexServiceTier(credentials) ?? normalizeServiceTierValue(body.service_tier);
     if (requestServiceTier) {
       body.service_tier = requestServiceTier;
     } else if (requestDefaults.serviceTier) {
@@ -1368,6 +1392,7 @@ export class CodexExecutor extends BaseExecutor {
       dropImageGeneration:
         isCodexFreePlan(credentials?.providerSpecificData) || getCodexModelScope(model) === "spark",
       preserveCustomTools: nativeCodexPassthrough,
+      preserveWebSearchPreviewVersion: isCodexCompactionWebReplay(body),
       defaultFunctionStrict: nativeCodexPassthrough ? undefined : false,
     });
 
@@ -1444,6 +1469,7 @@ export class CodexExecutor extends BaseExecutor {
 
     applyReasoningInputPolicy(body, "responses", {
       provider: "codex",
+      preserveWebSearchCalls: isCodexCompactionWebReplay(body),
       preserveEncryptedReasoning:
         credentials?.providerSpecificData?.preserveEncryptedReasoning === true,
     });

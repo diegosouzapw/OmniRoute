@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "Codex-servicemodus voor deze API-sleutel",
+    "description": "Van toepassing op Codex-verzoeken, inclusief Codex-modellen in combinaties. Geforceerde modi overschrijven de client, algemene instellingen en standaardinstellingen voor verbindingen. Andere providers blijven ongewijzigd.",
+    "label": "Servicemodus",
+    "inherit": "Bestaand gedrag overnemen",
+    "default": "Standaard forceren (standaard)",
+    "priority": "Snel / Prioriteit forceren",
+    "flex": "Flex forceren",
+    "warning": "Dit verleent geen toegang tot de provider. Beschikbaarheid, kosten en quotaverbruik zijn afhankelijk van je Codex-account en model. Geforceerde modi vereisen HTTP- of Responses WebSocket-transport; app-server-verzoeken worden geweigerd.",
+    "confirm": "‘{mode}’ toepassen op deze API-sleutel? Dit wordt van kracht voor volgende verzoeken.",
+    "save": "Modus opslaan",
+    "retry": "Opnieuw proberen",
+    "loadError": "De opgeslagen servicemodus kon niet worden geladen.",
+    "saveError": "De servicemodus kon niet worden opgeslagen. Probeer het opnieuw."
+  },
   "common": {
     "save": "Opslaan",
     "cancel": "Annuleer",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "Analyses",
     "usageAnalyticsTitle": "Gebruiksanalyses",
+    "tokenDisplayCompact": "Compact",
+    "tokenDisplayExact": "Exact",
+    "tokenDisplayMode": "Weergavemodus voor tokens",
     "diversityScoreTitle": "Diversiteit van aanbieders",
     "diversityScoreDesc": "Momentopname van providerconcentratie voor het recente verkeersvenster.",
     "diversityShannonEntropy": "Shannon-entropie",
@@ -5572,6 +5590,8 @@
     "modelsActive": "actief",
     "showModel": "Model tonen",
     "hideModel": "Model verbergen",
+    "blacklistModel": "Blokkeren",
+    "blacklistModelTooltip": "Blokkeer dit model en verberg het uit de catalogus",
     "removeModel": "Model verwijderen",
     "rateLimitProtected": "Beschermd",
     "rateLimitUnprotected": "Onbeschermd",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "Standaard (automatisch)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maximale uitvoertokens",
+    "maxOutputTokenOverrideHint": "Voer een positief geheel aantal tokens in. Laat leeg om de standaardwaarde te gebruiken.",
     "contextWindowOverrideLabel": "Contextvenster overschrijven",
     "contextWindowOverridePlaceholder": "bijv. 131072",
     "contextWindowOverrideHint": "Stel handmatig het werkelijke contextvenster (tokens) van dit model in wanneer de provider dit onjuist rapporteert. Dit heeft voorrang op automatisch gedetecteerde/cataloguswaarden en voorkomt dat combo-routering het model laat vallen.",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "Instellingen",
@@ -10093,7 +10122,11 @@
     "updatedShort": "Bijgewerkt",
     "lastRefreshed": "Laatst vernieuwd",
     "providerQuota": "Providerquota",
-    "providerQuotaHomeHint": "Live status over verbonden accounts"
+    "providerQuotaHomeHint": "Live status over verbonden accounts",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "Wachten op toestemming",

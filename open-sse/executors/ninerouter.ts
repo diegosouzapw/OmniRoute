@@ -28,6 +28,7 @@ import {
 } from "./base.ts";
 import { stripInternalBodyFields } from "../config/cliFingerprints.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
 import { buildErrorBody } from "../utils/error.ts";
 import { getSupervisor } from "@/lib/services/registry";
 import { getOrCreateApiKey } from "@/lib/services/apiKey";
@@ -179,14 +180,23 @@ export class NineRouterExecutor extends BaseExecutor {
       `→ ${url} (model: ${innerModel}, shape: ${shape}, port: ${dynamicPort})`
     );
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(transformedBody),
-      signal: combinedSignal,
+    const fetchOptions = { method: "POST", headers, signal: combinedSignal };
+    const response = await fetch(url, { ...fetchOptions, body: JSON.stringify(transformedBody) });
+
+    // #14629: this override never calls super.execute(), so wire the same
+    // reactive reasoning_effort 400 clamp-and-retry BaseExecutor applies.
+    const recovery = await applyReasoningEffortRecovery({
+      response,
+      url,
+      provider: this.provider,
+      model: input.model,
+      body: transformedBody,
+      fetchOptions,
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      log: input.log,
     });
 
-    return { response, url, headers, transformedBody };
+    return { response: recovery.response, url, headers, transformedBody };
   }
 
   async healthCheck(): Promise<{ ok: boolean; latencyMs: number; error?: string }> {

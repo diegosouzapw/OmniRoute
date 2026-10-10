@@ -1,0 +1,1 @@
+- **fix(providers):** 9router requests now reach the reactive `reasoning_effort` 400 clamp-and-retry, so an upstream that names its accepted enum is retried once with the clamped value instead of surfacing the raw 400 (#PENDING, part of #14629)

@@ -104,11 +104,21 @@ export const KNOWN_MISSING_ERROR_HELPER = new Set([
   "open-sse/handlers/imageUpscale/adobeFirefly.ts",
   "open-sse/handlers/videoGeneration/adobeFireflyHandler.ts",
 
-  // --- toJsonErrorPayload passthrough: unsanitized upstream envelope -> new
-  // Response(JSON.stringify(...)). The audit's E-15 pointed at upscale and was
-  // closed on a different site, so this one is still live in both siblings.
-  "src/app/api/v1/images/upscale/route.ts",
-  "src/app/api/v1/images/generations/route.ts",
+  // --- UNFROZEN #15159 wave 1.2 (removed, do not re-add).
+  // These two were frozen as "toJsonErrorPayload passthrough: unsanitized
+  // upstream envelope -> new Response(JSON.stringify(...))". Both are now clean
+  // for two independent reasons, and both were needed:
+  //   1. toJsonErrorPayload() sanitizes internally (wave 1.1), so the payload
+  //      itself is safe.
+  //   2. Each proxy-context catch now sanitizes AT THE CAPTURE SITE
+  //      (`error: sanitizeErrorMessage(err.message)`), which is what this gate
+  //      actually judges — per line, unable to see through a helper call. Without
+  //      (2) the entries above would still look live and assertNoStale would
+  //      fail the moment (1) landed.
+  // upscale/route.ts additionally now builds its response via errorResponse()
+  // instead of hand-serializing with new Response(JSON.stringify(...)).
+  //
+  // Regression guard: tests/unit/image-routes-proxy-error-sanitization-15159.test.ts
 
   // --- Executors forwarding a raw caught error into the response body.
   "open-sse/executors/copilot-web.ts",

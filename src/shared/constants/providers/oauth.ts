@@ -66,6 +66,8 @@ export const OAUTH_PROVIDERS = {
     serviceKinds: ["llm"],
     alias: "if",
     name: "Qoder",
+    authHint:
+      "PAT (pt-): requires local qodercli; plain chat only, no caller tools, buffered streaming and a 45-second chat limit. HTTP keys use DashScope; browser OAuth requires administrator configuration.",
     icon: "water_drop",
     color: "#6366F1",
     subscriptionRisk: true,
@@ -310,6 +312,20 @@ export const OAUTH_PROVIDERS = {
     riskNoticeVariant: "oauth",
     authHint:
       "Tencent CodeBuddy CN (copilot.tencent.com). Sign in via the official CLI device-code flow, or paste a direct API key (sent as Authorization: Bearer). Catalog: GLM / Kimi / MiniMax / DeepSeek / Hunyuan.",
+  },
+  "codebuddy-intl": {
+    id: "codebuddy-intl",
+    serviceKinds: ["llm"],
+    alias: "cbai",
+    name: "CodeBuddy Intl",
+    icon: "smart_toy",
+    color: "#006EFF",
+    textIcon: "CB",
+    website: "https://www.codebuddy.ai",
+    subscriptionRisk: true,
+    riskNoticeVariant: "oauth",
+    authHint:
+      "CodeBuddy International (codebuddy.ai). Sign in via the device-code flow, or paste a direct API key (sent as Authorization: Bearer). Catalog: GLM / Kimi / MiniMax / DeepSeek / Hunyuan.",
   },
   workbuddy: {
     id: "workbuddy",

@@ -1,5 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { APP_CONFIG } from "@/shared/constants/appConfig";
 import { registerToolSearchTool } from "./toolSearch/register.ts";
 import {
   MCP_TOOLS,
@@ -41,6 +42,7 @@ import {
   buildScopeDenialMessage,
   evaluateToolScopes,
   resolveCallerScopeContext,
+  shouldForceScopeEnforcement,
   type McpToolExtraLike,
 } from "./scopeEnforcement.ts";
 import {
@@ -186,7 +188,7 @@ function withScopeEnforcement(
     const scopeCheck = evaluateToolScopes(
       toolName,
       scopeContext.scopes,
-      isMcpScopeEnforcementEnabled(),
+      isMcpScopeEnforcementEnabled() || shouldForceScopeEnforcement(scopeContext),
       toolScopes
     );
     if (!scopeCheck.allowed) {
@@ -243,7 +245,7 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
 
   const server = new McpServer({
     name: "omniroute",
-    version: process.env.npm_package_version || "1.8.1",
+    version: APP_CONFIG.version,
   });
   const mcpDescriptionCompressionEnabled = readMcpDescriptionCompressionEnabled();
   const mcpAccessibilityConfig = readMcpAccessibilityConfig();
@@ -718,17 +720,21 @@ export function createMcpServer(options?: CreateMcpServerOptions): McpServer {
         // @ts-ignore: dynamic zod access
         inputSchema: toolDef.inputSchema,
       },
-      withScopeEnforcement(toolDef.name, async (args, extra) => {
-        try {
-          const parsedArgs = toolDef.inputSchema.parse(args ?? {});
-          // @ts-expect-error - handler type lost through dynamic Object.values() access
-          const result = await toolDef.handler(parsedArgs, extra);
-          return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
-        } catch (err) {
-          const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
-          return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
-        }
-      })
+      withScopeEnforcement(
+        toolDef.name,
+        async (args, extra) => {
+          try {
+            const parsedArgs = toolDef.inputSchema.parse(args ?? {});
+            // @ts-expect-error - handler type lost through dynamic Object.values() access
+            const result = await toolDef.handler(parsedArgs, extra);
+            return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+          } catch (err) {
+            const msg = toSafeMcpErrorMessage(err, "Agent skill tool execution failed");
+            return { content: [{ type: "text" as const, text: `Error: ${msg}` }], isError: true };
+          }
+        },
+        toolDef.scopes
+      )
     );
   });
 
@@ -1025,7 +1031,7 @@ export async function startMcpStdio(): Promise<void> {
   // stderr before this module's own imports evaluate.
   const server = createMcpServer();
   const transport = new StdioServerTransport();
-  const version = process.env.npm_package_version || "1.8.1";
+  const version = APP_CONFIG.version;
   const stopHeartbeat = startMcpHeartbeat({
     version,
     scopesEnforced: isMcpScopeEnforcementEnabled,

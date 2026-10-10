@@ -548,14 +548,6 @@
       "count": 3
     }
   },
-  "open-sse/services/usage/codebuddy-cn.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
   "open-sse/services/usage/github.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
@@ -873,11 +865,6 @@
   },
   "src/app/(dashboard)/dashboard/settings/components/MitmProxyTab.tsx": {
     "@next/next/no-html-link-for-pages": {
-      "count": 1
-    }
-  },
-  "src/app/(dashboard)/dashboard/settings/components/ModelCapabilityOverridesTab.tsx": {
-    "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
   },
@@ -1349,11 +1336,6 @@
       "count": 1
     }
   },
-  "src/lib/db/providers.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 4
-    }
-  },
   "src/lib/db/providers/lazyConnectionView.ts": {
     "no-restricted-syntax": {
       "count": 1
@@ -1468,11 +1450,6 @@
     }
   },
   "src/lib/oauth/providers/cline.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
-    }
-  },
-  "src/lib/oauth/providers/codebuddy-cn.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 1
     }
@@ -1826,11 +1803,6 @@
   "src/shared/validation/schemas/pricing.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 11
-    }
-  },
-  "src/shared/validation/schemas/provider.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 10
     }
   },
   "src/shared/validation/schemas/proxy.ts": {
@@ -4290,11 +4262,6 @@
   "tests/unit/proxySubscription.service.test.ts": {
     "@typescript-eslint/no-unused-vars": {
       "count": 2
-    }
-  },
-  "tests/unit/proxyfetch-direct-response-start-timeout-10214.test.ts": {
-    "@typescript-eslint/no-unused-vars": {
-      "count": 3
     }
   },
   "tests/unit/qoder-executor.test.ts": {

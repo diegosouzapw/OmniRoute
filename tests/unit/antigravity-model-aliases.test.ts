@@ -154,6 +154,8 @@ test("ANTIGRAVITY_PUBLIC_MODELS exposes current live names and capabilities", ()
     assert.deepEqual(getPublicModel(modelId), {
       id: modelId,
       name: displayName,
+      // #15659: a tiered-only account's live catalog proves the tier ids through `-tiered`.
+      liveCatalogIds: [modelId.replace(/-(high|medium|low)$/, "-tiered")],
       contextLength: 1048576,
       maxOutputTokens: 65536,
       supportsReasoning: true,

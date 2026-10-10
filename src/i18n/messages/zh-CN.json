@@ -1,4 +1,19 @@
 {
+  "codexKeyServiceMode": {
+    "title": "此 API 密钥的 Codex 服务模式",
+    "description": "适用于 Codex 请求，包括组合中的 Codex 模型。强制模式会覆盖客户端、全局设置和连接默认值。其他提供者不受影响。",
+    "label": "服务模式",
+    "inherit": "继承现有行为",
+    "default": "强制使用标准模式（默认）",
+    "priority": "强制使用快速／优先模式",
+    "flex": "强制使用弹性模式",
+    "warning": "此设置不会授予提供者访问权限。可用性、费用和配额消耗取决于您的 Codex 账户和模型。强制模式要求使用 HTTP 或 Responses WebSocket 传输；app-server 请求将被拒绝。",
+    "confirm": "要将“{mode}”应用于此 API 密钥吗？此设置将对后续请求生效。",
+    "save": "保存模式",
+    "retry": "重试",
+    "loadError": "无法加载已保存的服务模式。",
+    "saveError": "无法保存服务模式。请重试。"
+  },
   "common": {
     "save": "保存",
     "cancel": "取消",
@@ -1914,6 +1929,9 @@
   "analytics": {
     "title": "分析",
     "usageAnalyticsTitle": "用量分析",
+    "tokenDisplayCompact": "紧凑",
+    "tokenDisplayExact": "精确",
+    "tokenDisplayMode": "Token 显示模式",
     "diversityScoreTitle": "供应商多元化",
     "diversityScoreDesc": "近期流量窗口内提供者集中度的快照。",
     "diversityShannonEntropy": "香农熵",
@@ -5572,6 +5590,8 @@
     "modelsActive": "已启用",
     "showModel": "显示模型",
     "hideModel": "隐藏模型",
+    "blacklistModel": "拉黑",
+    "blacklistModelTooltip": "将此模型拉黑并从目录中隐藏",
     "removeModel": "删除模型",
     "rateLimitProtected": "受保护",
     "rateLimitUnprotected": "无保护",
@@ -5712,6 +5732,8 @@
     "targetFormatAuto": "默认 (自动)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "最大输出代币",
+    "maxOutputTokenOverrideHint": "请输入正整数令牌数。留空以使用默认值。",
     "contextWindowOverrideLabel": "上下文窗口覆盖",
     "contextWindowOverridePlaceholder": "例如 131072",
     "contextWindowOverrideHint": "当提供者误报时，手动设置此模型的实际上下文窗口（token）。此设置优先于自动检测/目录值，并防止组合路由丢弃该模型。",
@@ -6710,7 +6732,14 @@
     "rateLimitOverridesModelConcurrencyLabel": "Per-model concurrency caps",
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
-    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}."
+    "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
+    "codexPaidCreditsShort": "Extra credits",
+    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
+    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
+    "codexPaidCreditsDisabled": "Codex paid credits disabled",
+    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
+    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
+    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
   },
   "settings": {
     "title": "设置",
@@ -10093,7 +10122,11 @@
     "updatedShort": "更新于",
     "lastRefreshed": "上次刷新",
     "providerQuota": "提供者配额",
-    "providerQuotaHomeHint": "已连接账户的实时状态"
+    "providerQuotaHomeHint": "已连接账户的实时状态",
+    "codexPaidCreditsLabel": "Paid Codex credits",
+    "codexPaidCreditsAvailable": "Available (balance not reported)",
+    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
+    "codexPaidCreditsUnlimited": "Unlimited"
   },
   "modals": {
     "waitingAuth": "等待授权",
@@ -14812,7 +14845,7 @@
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "禁用在 /v1/models 目录中生成思考级别变体（例如 -low、-medium、-high）。",
   "connectionTest": {
     "title": "测试消息",
-    "description": "通过此账号发送一次真实请求。这会使用少量配额，并且可能会启动一个用量窗口，具体取决于提供商。",
+    "description": "通过此账号发送一次真实请求。这会使用少量配额，并且可能会启动一个用量窗口，具体取决于提供者。",
     "loading": "正在加载账号模型…",
     "model": "此账号的测试模型",
     "chooseModel": "选择模型",
@@ -14827,7 +14860,7 @@
     "answer": "模型响应",
     "failed": "请求失败。请重试。",
     "settingsTitle": "手动账号测试消息",
-    "settingsDescription": "此消息用于“连接”和“提供商配额”下的测试按钮。请为每个账号分别选择模型。保存不会发送消息或启用自动 Ping。",
+    "settingsDescription": "此消息用于“连接”和“提供者配额”下的测试按钮。请为每个账号分别选择模型。保存不会发送消息或启用自动 Ping。",
     "saveMessage": "保存消息",
     "defaultModel": "默认测试模型",
     "defaultModelHint": "此账号的“测试消息”按钮会自动使用该设置。该设置将随连接一起保存；不会发送任何消息。"

@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Midagi läks valesti",
+      "description": "Ilmnes ootamatu viga. See on logitud ja meie meeskond uurib seda.",
+      "detailsAriaLabel": "Vea üksikasjad",
+      "retryAriaLabel": "Proovi leht uuesti laadida",
+      "tryAgain": "Proovi uuesti",
+      "statusAriaLabel": "Ava süsteemi olek",
+      "systemStatus": "Süsteemi olek"
+    }
+  }
+}
