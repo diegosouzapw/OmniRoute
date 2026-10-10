@@ -8792,7 +8792,12 @@
     "modalityBridgeVideoDrilldownEnabledDesc": "Allow temporary JPEG retention only when the authenticated request also sets drilldown: true. Raw videos are never retained.",
     "modalityBridgeVideoDrilldownRemoteEnabled": "Allow authenticated frame drill-down",
     "modalityBridgeVideoDrilldownRemoteEnabledDesc": "Allow API keys to read and delete only their own opaque handles. No anonymous or cross-key access.",
-    "modalityBridgeVideoDrilldownUsage": "Retained JPEGs / bytes"
+    "modalityBridgeVideoDrilldownUsage": "Retained JPEGs / bytes",
+    "modalityBridgeVideoPromotionTitle": "Advanced policy readiness",
+    "modalityBridgeVideoPromotionHold": "HOLD",
+    "modalityBridgeVideoPromotionExperimental": "Experimental",
+    "modalityBridgeVideoPromotionEligible": "Eligible",
+    "modalityBridgeVideoPromotionContextRequired": "Promotion requires two independent qualifying runs for the exact model revision, policy, corpus and build. An unverified context remains HOLD; selecting an experimental policy is not an approval."
   },
   "contextRtk": {
     "title": "RTK എഞ്ചിൻ",

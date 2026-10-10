@@ -64,3 +64,30 @@ test("buildFu09PromotionInputFromAggregates: missing token totals on either side
   assert.equal(input.tokenReductionRatio, null);
   assert.equal(input.tokenUsageAvailable, false);
 });
+
+test("quality retention uses measured mean recall rather than a median hiding weak cases", () => {
+  const input = {
+    baseline: { ...aggregate({ factRetention: 1, modelCalls: 4 }), qualityMean: 0.8 },
+    candidate: { ...aggregate({ factRetention: 1, modelCalls: 4 }), qualityMean: 0.75 },
+    criticalFactLoss: false,
+    securityCasesPassed: true,
+    tokenUsageAvailable: true,
+  };
+  const fu07 = buildFu07PromotionInputFromAggregates(input);
+  assert.equal(fu07.qualityRetention, 0.75 / 0.8);
+  assert.ok(Math.abs(fu07.materialGain.qualityGain! - (0.75 - 0.8)) < 1e-12);
+  const fu09 = buildFu09PromotionInputFromAggregates({ ...input, criticalOrSecurityLoss: false });
+  assert.equal(fu09.absoluteQuality, 0.75);
+  assert.equal(fu09.qualityRetention, 0.75 / 0.8);
+});
+
+test("caption reduction uses case-balanced calls, not an optimistic median", () => {
+  const input = buildFu07PromotionInputFromAggregates({
+    baseline: { ...aggregate({ factRetention: 1, modelCalls: 8 }), meanModelCalls: 8 },
+    candidate: { ...aggregate({ factRetention: 1, modelCalls: 4 }), meanModelCalls: 7.9 },
+    criticalFactLoss: false,
+    securityCasesPassed: true,
+    tokenUsageAvailable: true,
+  });
+  assert.ok(Math.abs(input.materialGain.captionEfficiencyGain! - (8 - 7.9) / 8) < 1e-12);
+});

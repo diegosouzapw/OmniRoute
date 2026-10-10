@@ -28,6 +28,13 @@ export interface PersistablePromotionRecord {
   metrics: Partial<Record<VideoBridgePromotionMetricName, number>>;
   model: string;
   responseDigest: string;
+  role?: "baseline" | "candidate";
+  observationId?: string;
+  repetition?: number;
+  preAnalysisMs?: number;
+  mediaDigest?: string;
+  promptDigest?: string;
+  configurationDigest?: string;
 }
 
 export function digestPromotionText(rawText: string): string {

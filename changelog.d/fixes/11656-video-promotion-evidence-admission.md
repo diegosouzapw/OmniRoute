@@ -1,0 +1,1 @@
+- Restore the approved Video Bridge FU-07 material-gain thresholds and fail closed on unbound or incomplete FU-07/FU-09 evidence; require independent candidate/corpus/model-revision-bound receipts, preserve digest-only observations, and expose conservative advanced-policy readiness without automatically promoting experimental modes.

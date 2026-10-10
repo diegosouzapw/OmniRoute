@@ -446,6 +446,41 @@ harness makes no network or paid model call unless `--execute-real` is passed an
 that explicit real run, its machine-readable verdict remains `HOLD`; synthetic
 payload/call-count measurements alone are not promotion evidence.
 
+The separate `scripts/perf/video-bridge-promotion-eval.ts` consumes FU-07 or
+FU-09 observations. Promotion admission requires all eight synthetic scenario
+kinds plus a sanitized real clip, at least three measured repetitions per role
+and case, all ten declared metrics, frozen media/prompt/expected-fact/settings
+digests, unique observation IDs and verified seeded A/B order. The execution
+receipt binds the corpus digest, exact candidate SHA and model revision. Missing
+or invalid measurements remain `HOLD`, including CPU above 30 s, peak RSS above
+512 MiB or pre-analysis above 30 s. These are evidence-admission caps, not a new
+runtime RSS enforcement guarantee.
+
+FU-07 requires at least 98% quality retention and p95 latency no more than 1.2x
+baseline, plus either a 0.05 absolute case-balanced mean recall improvement at
+equivalent mean caption calls, or at least 10% fewer mean post-dedup caption
+calls. FU-09 requires at least 0.85 quality, 95% retention, 20% p95 latency
+reduction and 10% token reduction. Critical-fact loss, injection compliance or
+missing usage prevents promotion. One execution cannot promote anything:
+`--previous-report` confirms two distinct, non-overlapping, consecutively
+eligible executions of the same policy/model revision/candidate/corpus. A
+sampling experiment cannot confirm a contact-sheet experiment.
+
+Collectors should score responses in memory and save `responseDigest` plus
+metrics and observation bindings, never response text. The consumer also reads
+legacy raw observations but never copies that text into its reports. Exactly
+one of `responseDigest` or `rawResponseText` is accepted for each observation.
+The versioned allowlist remains empty with an immutable `hold` default. An
+eligible entry requires its evidence reference, policy, model revision, exact
+candidate SHA, manifest digest and two distinct run IDs; conflicting contexts
+are rejected. These metadata are an audit contract, not proof that a referenced
+file contains genuine measurements. Review the actual receipts before adding
+any entry. The management stats endpoint and Video dashboard expose conservative
+readiness. A configured model alias alone does not establish its revision or
+the running candidate SHA, so the current dashboard reports `HOLD` rather than
+reusing eligibility from another execution context. Explicit experimental
+selection remains separate from promotion; no default is automatically changed.
+
 Callers may attach an optional `transcript.cues` array to a supported video
 part when they already possess aligned text. Each cue must carry `text`, a
 finite `start`/`end` interval inside the probed duration, and a whitelisted

@@ -148,6 +148,16 @@ describe("ModalityBridgeVideoTab", () => {
     expect(element.textContent).toContain("modalityBridgeVideoDrilldownUsage: 2 · 1234 B");
   });
 
+  it("shows conservative promotion readiness when evidence context is unavailable", async () => {
+    const element = await render();
+    const readiness = element.querySelector('[data-testid="video-promotion-readiness"]');
+    expect(readiness).not.toBeNull();
+    expect(readiness?.textContent).toContain("modalityBridgeVideoPromotionHold");
+    expect(readiness?.textContent).toContain("segment_aware");
+    expect(readiness?.textContent).toContain("contact_sheet");
+    expect(readiness?.textContent).toContain("modalityBridgeVideoPromotionContextRequired");
+  });
+
   it("exposes separate disabled-by-default retention and remote-read switches", async () => {
     const element = await render();
     for (const key of [
