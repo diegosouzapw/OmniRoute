@@ -260,6 +260,7 @@ Do NOT run `npm run build` followed by a separate `npm run build:cli` for deploy
 - [ ] `npm run build:release` succeeds and `dist/BUILD_SHA` == `git rev-parse --short HEAD`
 - [ ] `npm run check:pack-artifact` clean — no `app.__qa_backup`, `scripts/scratch`, `package-lock.json`, or other local residue
 - [ ] `dist/server.js` exists after build
+- [ ] Optional local packaged-runtime smoke: `npm run dev:candidate -- validate` after `npm run dev:candidate -- build` boots the packed tarball on an isolated `DATA_DIR` and checks `/api/health` + `/v1/models` (see [Contribution Golden Path](CONTRIBUTION_GOLDEN_PATH.md#local-candidate-loop))
 
 ### Tagging & Release
 

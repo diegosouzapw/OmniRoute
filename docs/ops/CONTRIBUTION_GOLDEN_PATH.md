@@ -201,6 +201,46 @@ or runtime bundling. Use `npm run build:release` only for release/deploy validat
 the final cross-platform signal; platform-specific Electron changes need the matching focused build
 or smoke evidence.
 
+## Local candidate loop
+
+Source tests cannot prove that the packaged artifact boots: packaging lists, pruned dependencies,
+and native binaries only fail once the tarball is installed and started. `npm run dev:candidate`
+(`scripts/dev/candidate.mjs`) is the local side of the build-once / validate / promote flow from
+RFC #8084: it builds one candidate, validates that exact artifact, promotes it with directory
+renames, and rolls it back when the promoted slot fails its health check.
+
+```bash
+npm run dev:candidate -- run --dry-run --json  # print the plan, change nothing
+npm run dev:candidate -- run                   # build + validate + promote, auto-rollback
+npm run dev:candidate -- build                 # npm pack + install into _artifacts/candidate/<id>/
+npm run dev:candidate -- validate --id <id>    # boot on a free port, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # swap current and previous
+npm run dev:candidate -- run --from-tarball <file.tgz>  # reuse a tarball built elsewhere (CI)
+```
+
+- **Build once.** `build` packs the current tree (it needs `dist/server.js`, so run
+  `npm run build:release` first) or copies `--from-tarball`, then installs the tarball into an
+  isolated npm prefix, because the tarball carries no `node_modules`. The id is the short `HEAD`
+  sha (`-dirty` when the tree has local changes) or `tgz-<sha256>` for a tarball. A clean id that
+  is already built is reused instead of rebuilt; pass `--force` to rebuild it.
+- **Validate the package, not the source.** `validate` starts the installed CLI
+  (`serve --port <free port>`) with `DATA_DIR=<candidate>/data`, fake secrets, and the operator's
+  `OMNIROUTE_API_KEY` / `STORAGE_ENCRYPTION_KEY` removed from the environment. It waits for
+  `GET /api/health` to return 200, requires `GET /v1/models` to return 200, stops the process group,
+  and records the verdict in `validation.json` together with the tarball hash.
+- **Promote the same artifact.** `promote` refuses a candidate without a passing validation for its
+  current tarball hash. The default active slot is `_artifacts/candidate/current`; `--target <dir>`
+  selects another directory on the same filesystem, and its previous slot is `<dir>.previous`.
+  Each rename is atomic, and a failure partway through reverses the renames that already ran.
+- **Roll back.** `run` validates the promoted slot again and swaps `current` and `previous` back when
+  that check fails. A candidate that fails the first validation is never promoted.
+
+Everything is written under the gitignored `_artifacts/candidate/`; an existing OmniRoute
+installation and its data directory are never touched. The promoted CLI is
+`_artifacts/candidate/current/prefix/bin/omniroute`; start it with your own `DATA_DIR` when you use
+it. Exit codes: `0` success, `1` failed validation or promotion, `2` usage error or missing build.
+
 ## Local loop versus CI
 
 | Run locally for each patch                                                    | CI supplies the broad signal                                      |
