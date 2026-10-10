@@ -1,0 +1,1 @@
+- **fix(conversation-reconnect):** elect the reconnect point with the longest run of turns already on record, so a repeated tool result followed by new content appends to the same conversation instead of copying its whole history ([#16268](https://github.com/diegosouzapw/OmniRoute/pull/16268)) — thanks @maxmad64bis

@@ -402,6 +402,7 @@ export function findReconnectMatch(
     stepsUsed: 0,
   };
   let best: ReconnectMatch | null = null;
+  let bestLength = -1;
 
   for (let s = 0; s < chainTurns.length; s++) {
     if (budget.stepsLeft <= 0) break;
@@ -425,19 +426,29 @@ export function findReconnectMatch(
         matchEndIndex++;
       }
       const anchorHasChild = index.parentsWithChildren.has(parent);
-      // Longest verified run wins outright. An equal-length run breaks
-      // toward anchorHasChild===false: a tie means both candidate anchors'
-      // recorded next-turn already differs from what's being requested (the
-      // walk stopped for the same reason on both), so the anchor with NO
-      // established child is the safe, unambiguous "just append here" — the
-      // other, having a different recorded child already, would incorrectly
-      // read as a divergence purely because it happened to be tried first.
+      // Longest verified run wins outright: length is matchEndIndex - startIndex,
+      // not the end position alone — candidates starting at different turns may
+      // end at the same turn with different verified lengths, and a single
+      // late duplicate turn ending further must not beat a genuinely longer run.
+      // An equal-length run breaks toward anchorHasChild===false: a tie means
+      // the anchor with NO established child already records exactly what is
+      // being requested next (or nothing new yet), so it is the safe,
+      // unambiguous "just append here" — the other, having a different
+      // recorded child already, would incorrectly read as a divergence purely
+      // because it happened to be tried first.
+      // At equal length and equal anchorHasChild the first tried is kept
+      // (iteration order), keeping the election deterministic.
+      // A full-length run needs no tie-break and no further search: it verified
+      // every requested turn, whatever its start — no later candidate can
+      // verify more than the whole request.
+      const matchLength = matchEndIndex - s;
       const isBetter =
         !best ||
-        matchEndIndex > best.matchEndIndex ||
-        (matchEndIndex === best.matchEndIndex && !anchorHasChild && best.anchorHasChild);
+        matchLength > bestLength ||
+        (matchLength === bestLength && !anchorHasChild && best.anchorHasChild);
       if (isBetter) {
         best = { startIndex: s, matchEndIndex, anchorNodeId: parent, anchorHasChild };
+        bestLength = matchLength;
       }
       // Can't do better than matching every turn through to the end.
       if (best && best.matchEndIndex === chainTurns.length) {
