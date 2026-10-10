@@ -68,3 +68,17 @@ test("falls back to the synced pool when none of them declare eligibility lists"
   const result = pickCanonicalAlibabaFreeTierConnection([older, newer], fields);
   assert.equal(result?.id, "newer");
 });
+
+test("a connection with only a blocked-models list also counts as declaring eligibility", () => {
+  const blockedOnly = connection("blocked-only", {
+    syncAt: "2026-10-05T00:00:00Z",
+    blocked: ["qwen3-vl"],
+  });
+  const noLists = connection("no-lists", { syncAt: "2026-10-09T00:00:00Z" });
+  const result = pickCanonicalAlibabaFreeTierConnection([noLists, blockedOnly], fields);
+  assert.equal(
+    result?.id,
+    "blocked-only",
+    "a connection with only a blocked list still declares eligibility and is preferred over one with no lists at all"
+  );
+});
