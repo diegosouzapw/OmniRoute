@@ -57,14 +57,22 @@ function toolsPresentIn(requestBody: JsonRecord | null | undefined): boolean {
  * The factor is 1.0 on cold start, so callers see the raw estimate until
  * trusted observations exist. Sits next to estimateFinalInputTokens so the
  * calibrated and raw numbers share one code path (same breakdown, same basis).
+ *
+ * `precomputedBreakdown` lets a caller that already computed the breakdown for
+ * this exact body snapshot (chatCore reuses it for the tools reserve and the
+ * compaction log) skip the re-scan. It must belong to the same requestBody —
+ * a stale snapshot silently shifts the context guard.
  */
 export function estimateCalibratedFinalInputTokens(
   requestBody: unknown,
   provider: string | null | undefined,
-  model: string | null | undefined
+  model: string | null | undefined,
+  precomputedBreakdown?: FinalInputTokenBreakdown
 ): number {
   const record = asJsonRecord(requestBody);
-  const estimated = estimateFinalInputTokens(record);
+  const estimated = precomputedBreakdown
+    ? precomputedBreakdown.total
+    : estimateFinalInputTokens(record);
   if (estimated <= 0) return estimated;
   return applyEstimatorCalibration(provider, model, estimated, toolsPresentIn(record));
 }
