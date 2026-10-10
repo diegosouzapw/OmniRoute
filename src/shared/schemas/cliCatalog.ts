@@ -69,4 +69,5 @@ export const EXPECTED_CODE_COUNT = 21;
 // those tools were already delivered by a separate PR, so only omp+letta landed here.
 // +1 (#11166): "prime-agent" (PrimeIntellect-ai/prime-agent) added as an agent entry.
 // +1 (#11578): "5dive" (5dive-ai/5dive) added as an agent entry.
-export const EXPECTED_AGENT_COUNT = 10;
+// +1 (#14096): "whycodes" (whycorporation/whycodes) added as an agent entry.
+export const EXPECTED_AGENT_COUNT = 11;

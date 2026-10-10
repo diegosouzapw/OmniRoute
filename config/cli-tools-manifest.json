@@ -34,7 +34,8 @@
       "smelt": [".smelt/config.json"],
       "windsurf": [],
       "zcode": [".zcode"],
-      "5dive": ["auth-profiles"]
+      "5dive": ["auth-profiles"],
+      "whycodes": ["config.toml"]
     }
   },
   "tools": {
@@ -711,6 +712,28 @@
         "mode": "module",
         "module": "./setup-5dive.mjs",
         "exportName": "runSetup5diveCommand"
+      }
+    },
+    "whycodes": {
+      "displayName": "WhyCodes",
+      "aliases": ["why-codes", "why"],
+      "binaries": ["whycodes"],
+      "surfaces": {
+        "catalog": true,
+        "detect": true,
+        "run": true,
+        "configure": true,
+        "generate": true
+      },
+      "configureRecipe": {
+        "mode": "module",
+        "module": "./setup-whycodes.mjs",
+        "exportName": "runSetupWhyCodesCommand"
+      },
+      "runModel": {
+        "flag": "-m",
+        "prefix": "",
+        "required": false
       }
     }
   }

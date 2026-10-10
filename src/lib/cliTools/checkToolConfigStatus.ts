@@ -77,6 +77,19 @@ export async function checkToolConfigStatus(
       return hasOmniRoute ? "configured" : "not_configured";
     }
 
+    if (toolId === "whycodes") {
+      const hasProvider =
+        /\[providers\.omniroute\]/i.test(content) || /\[providers\."omniroute"\]/i.test(content);
+      if (!hasProvider) return "not_configured";
+      const lower = content.toLowerCase();
+      const hasBase = /(?:base_url|api_base)\s*=\s*["']https?:\/\//i.test(content);
+      const pointsAtOmniRoute =
+        lower.includes("omniroute") ||
+        lower.includes(`localhost:${apiPort}`) ||
+        lower.includes(`127.0.0.1:${apiPort}`);
+      return hasBase && pointsAtOmniRoute ? "configured" : "not_configured";
+    }
+
     const config = JSON.parse(content) as Record<string, unknown>;
 
     // Each tool stores OmniRoute config differently

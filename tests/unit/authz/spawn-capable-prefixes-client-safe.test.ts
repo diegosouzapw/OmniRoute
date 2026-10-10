@@ -106,6 +106,7 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
     "/api/cli-tools/pi-settings",
     "/api/cli-tools/smelt-settings",
     "/api/cli-tools/status",
+    "/api/cli-tools/whycodes-settings",
     // GHSA-jx89-f37j-pq89: skills handler registration + execution reach the
     // sandbox container spawn transitively.
     "/api/skills/install",
@@ -118,7 +119,8 @@ test("SPAWN_CAPABLE_PREFIXES is defined in the server-free constants leaf with t
       `SPAWN_CAPABLE_PREFIXES lost the spawn-capable prefix "${prefix}" during extraction`
     );
   }
-  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89) + 1 (version-manager).
+  // 20 at extraction time + 14 (GHSA-35fw-cv32-2373) + 2 (GHSA-jx89-f37j-pq89) + 1 (version-manager)
+  // + 1 (whycodes-settings, #14107).
   // qwen-settings is the one pre-existing entry not enumerated above.
-  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 37);
+  assert.equal(SPAWN_CAPABLE_PREFIXES.length, 38);
 });

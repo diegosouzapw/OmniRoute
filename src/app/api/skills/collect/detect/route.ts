@@ -28,6 +28,7 @@ const CODING_TOOL_KEYWORDS: Record<string, string[]> = {
   kilocode: ["kilo", "kilocode"],
   hermes: ["hermes", "nous-research"],
   "hermes-agent": ["hermes", "hermes-agent"],
+  whycodes: ["whycodes", "why-codes"],
   openclaw: ["openclaw"],
   droid: ["droid", "factory-ai"],
   continue: ["continue"],

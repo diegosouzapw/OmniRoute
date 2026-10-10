@@ -74,6 +74,7 @@ import { registerSetupCursor } from "./setup-cursor.mjs";
 import { registerSetupRoo } from "./setup-roo.mjs";
 import { registerSetupCrush } from "./setup-crush.mjs";
 import { registerSetupGoose } from "./setup-goose.mjs";
+import { registerSetupWhyCodes } from "./setup-whycodes.mjs";
 import { registerSetupAider } from "./setup-aider.mjs";
 import { registerSetupQwen } from "./setup-qwen.mjs";
 import { registerSetupGemini } from "./setup-gemini.mjs";
@@ -164,6 +165,7 @@ export function registerCommands(program) {
   registerSetupRoo(program);
   registerSetupCrush(program);
   registerSetupGoose(program);
+  registerSetupWhyCodes(program);
   registerSetupAider(program);
   registerSetupQwen(program);
   registerSetupGemini(program);

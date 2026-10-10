@@ -25,6 +25,7 @@ const HOST_SETUP_COMMANDS: Record<string, string> = {
   cline: "omniroute setup-cline",
   kilo: "omniroute setup-kilo",
   continue: "omniroute setup-continue",
+  whycodes: "omniroute setup-whycodes",
 };
 
 function ensureBackup(configPath: string): string | null {

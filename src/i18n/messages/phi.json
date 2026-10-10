@@ -2970,6 +2970,7 @@
       "amp": "Use when you want Amp CLI routed through OmniRoute with stable shorthand aliases and OpenAI-compatible setup.",
       "hermes": "Gamitin kapag kailangan mo ng magaan na terminal-native AI assistant para sa mga mabilisang gawain.",
       "hermes-agent": "Gamitin kapag kailangan mo ang Hermes Agent (ng Nousresearch) na may default, delegation, vision, at auxiliary na mga modelo na naka-route sa OmniRoute.",
+      "whycodes": "Gamitin kapag gusto mo ang WhyCodes bilang pangkalahatang awtonomong CLI agent (TUI, mga pinangalanang agent, memorya, swarm) na nakaturo sa OmniRoute.",
       "custom": "Gamitin para sa mga custom na pagpapatupad ng tool o generic na mga configuration na tugma sa OpenAI."
     },
     "toolDescriptions": {
@@ -3009,7 +3010,8 @@
       "prime-agent": "Prime Agent — kusang humuhusay na RLM coding harness na may suporta para sa OpenAI-compatible na provider",
       "warp": "Warp AI terminal na may suporta sa custom provider",
       "agent-deck": "Agent Deck na tagapag-orkestra ng maraming ahente",
-      "5dive": "5dive — self-hosted fleet ng coding agents; isang auth profile ang nagtuturo sa kanilang lahat sa OmniRoute"
+      "5dive": "5dive — self-hosted fleet ng coding agents; isang auth profile ang nagtuturo sa kanilang lahat sa OmniRoute",
+      "whycodes": "Awtonomong CLI agent na WhyCodes na may base URL na tugma sa OpenAI"
     },
     "guides": {
       "cursor": {

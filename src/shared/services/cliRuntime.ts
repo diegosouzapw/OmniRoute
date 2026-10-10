@@ -7,6 +7,7 @@ import { getHermesHome } from "@/lib/cli-helper/config-generator/hermesHome";
 import { getCachedLoginShellPath, mergeShellPath } from "./loginShellPath";
 import { withSettingsFallback } from "./cliInstallFallback";
 import { GROK_BUILD_RUNTIME_ENTRY, AMP_RUNTIME_ENTRY } from "./cliRuntimeGrokBuild";
+import { WHYCODES_RUNTIME_ENTRY } from "./cliRuntimeWhyCodes";
 import { isLocationTrusted, findKnownPathMatch } from "./cliRuntimeKnownPath";
 import { buildHealthcheckPath } from "./cliRuntimeHealthcheckPath";
 import { appendWindowsKnownBinPaths, mergeWindowsLookupPath } from "./cliRuntimeWindowsNode";
@@ -342,6 +343,7 @@ const CLI_TOOLS: Record<string, any> = {
       authProfiles: "auth-profiles",
     },
   },
+  whycodes: WHYCODES_RUNTIME_ENTRY,
 };
 
 /**

@@ -225,6 +225,9 @@ function genericEnv(baseEnv, kind, baseUrl, authToken, model, options = {}) {
       delete env[key];
     }
     if (kind === "opencode" && key === "OPENCODE_CONFIG_CONTENT") delete env[key];
+    if (kind === "whycodes" && /^(OPENAI_API_KEY|OPENAI_API_BASE|OPENAI_BASE_URL)$/.test(key)) {
+      delete env[key];
+    }
     if (kind === "qwen" && (key === "QWEN_HOME" || key === "OMNIROUTE_API_KEY")) {
       delete env[key];
     }
@@ -264,6 +267,10 @@ function genericEnv(baseEnv, kind, baseUrl, authToken, model, options = {}) {
       },
     });
   } else if (kind === "qwen") {
+    env.OMNIROUTE_API_KEY = token;
+  } else if (kind === "whycodes") {
+    // `-P omniroute` reads OMNIROUTE_API_KEY; never OPENAI_API_KEY, which a configured
+    // `openai` fallback would send to api.openai.com.
     env.OMNIROUTE_API_KEY = token;
   } else if (kind === "gemini") {
     // Verified against @google/gemini-cli 0.50.0: the SDK appends
@@ -326,7 +333,8 @@ async function buildGenericPlan(target, rawOpts, args = []) {
     throw new Error("Qwen Code requires --model in non-interactive OmniRoute launches");
   }
   const modelArgs = modelArgsForTarget(target, model);
-  const fullArgs = [...modelArgs, ...args];
+  const providerArgs = target === "whycodes" ? ["-P", "omniroute"] : [];
+  const fullArgs = [...providerArgs, ...modelArgs, ...args];
   const env = genericEnv(process.env, target, baseUrl, authToken, model, rawOpts);
 
   return {
@@ -362,6 +370,28 @@ async function healthCheckForRun(baseUrl) {
   }
 }
 
+// WhyCodes reads a custom provider's base URL only from config.toml, so `-P omniroute`
+// needs the entry `omniroute setup-whycodes` writes. Fail early with that hint instead of
+// letting WhyCodes reject an unknown provider, and flag a base URL that is not this target.
+async function checkWhyCodesProvider(baseUrl) {
+  const { readWhyCodesProviderBaseUrl } = await import("./setup-whycodes.mjs");
+  const configured = await readWhyCodesProviderBaseUrl();
+  if (configured === null) {
+    console.error(
+      "WhyCodes has no [providers.omniroute] entry yet. Run `omniroute setup-whycodes` first."
+    );
+    return false;
+  }
+  const trim = (url) => String(url).replace(/\/+$/, "").replace(/\/v1$/, "");
+  if (configured && trim(configured) !== trim(baseUrl)) {
+    console.error(
+      `WhyCodes will use its configured base_url ${configured}, not ${baseUrl}. ` +
+        "Re-run `omniroute setup-whycodes` (with --remote) to point it here."
+    );
+  }
+  return true;
+}
+
 async function runGenericTarget(target, rawOpts, args) {
   const { baseUrl, authToken } = resolveLaunchTarget({
     ...rawOpts,
@@ -378,6 +408,8 @@ async function runGenericTarget(target, rawOpts, args) {
     return 2;
   }
   const modelArgs = modelArgsForTarget(target, model);
+  const providerArgs = target === "whycodes" ? ["-P", "omniroute"] : [];
+  if (target === "whycodes" && !(await checkWhyCodesProvider(baseUrl))) return 2;
   const commandSpec = resolveGenericSpawn(target);
   const childEnv = genericEnv(process.env, target, baseUrl, authToken, model, rawOpts);
   let overlayHome;
@@ -400,7 +432,7 @@ async function runGenericTarget(target, rawOpts, args) {
 
   const child = spawn(
     commandSpec.command,
-    quoteShellArgs([...modelArgs, ...args], process.platform),
+    quoteShellArgs([...providerArgs, ...modelArgs, ...args], process.platform),
     {
       env: childEnv,
       stdio: "inherit",

@@ -4,6 +4,7 @@
 
 ### ✨ New Features
 
+- **feat(cli-agents):** add WhyCodes as a first-class CLI Agent (`category: "agent"`, Chat Completions `/v1`) with catalog detection, `omniroute setup-whycodes` / `configure whycodes`, `omniroute run whycodes -P omniroute -m <id>`, and a dashboard apply path. `whycodes acp` is not implemented, so `acpSpawnable` stays false. ([#14096](https://github.com/diegosouzapw/OmniRoute/issues/14096))
 - **feat(dashboard):** adaptive context-budget dial on the compression settings panel — mode (`off` / `floor` / `replace-autotrigger`) and policy (`reserve-output` / `percentage` / `absolute`) persist via `PUT /api/settings/compression` `contextBudget`. Completes the dashboard half of #7005 (API + DB already shipped in #7183).
 - **feat(sse): STRICT_ZERO_COST** — opt-in, off-by-default `freeAccessPolicy: "strict"` setting
   that hard-verifies every auto-combo candidate against live quota state and per-connection
