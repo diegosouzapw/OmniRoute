@@ -293,19 +293,20 @@ test("memoryManager.configure rejects an unregistered primary backend", () => {
   assert.equal(memory.memoryManager.getPrimaryBackend().id, "sqlite");
 });
 
-test("characterization: createMemory UPSERT with a Date expiresAt currently throws (insert path stores it)", async () => {
+test("createMemory UPSERT persists a Date expiresAt like the insert path (#16182)", async () => {
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  // INSERT path: converts expiresAt with toISOString() — works.
   const created = await memory.createMemory(newMemory({ key: "char:upsert-expiry", expiresAt }));
   assert.ok(created.expiresAt instanceof Date);
 
-  // UPDATE (upsert) path: binds the raw Date to SQLite — better-sqlite3 refuses it.
-  await assert.rejects(
-    memory.createMemory(newMemory({ key: "char:upsert-expiry", expiresAt, content: "v2" })),
-    (err: Error) =>
-      err instanceof TypeError &&
-      /can only bind numbers, strings, bigints, buffers, and null/.test(err.message)
+  const updated = await memory.createMemory(
+    newMemory({ key: "char:upsert-expiry", expiresAt, content: "v2" })
   );
+  assert.equal(updated.id, created.id);
+  assert.equal(updated.content, "v2");
+  assert.equal(updated.expiresAt?.toISOString(), expiresAt.toISOString());
+  const listed = await memory.listMemories({ apiKeyId: created.apiKeyId });
+  const persisted = listed.data.find((entry) => entry.id === created.id);
+  assert.equal(persisted?.expiresAt?.toISOString(), expiresAt.toISOString());
 });
 
 test("characterization: sqliteBackend.search without maxTokens currently throws a ZodError", async () => {

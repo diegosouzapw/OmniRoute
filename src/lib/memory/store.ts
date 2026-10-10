@@ -204,7 +204,7 @@ export async function createMemory(
       now,
       memory.sessionId,
       memory.type,
-      memory.expiresAt ?? null,
+      memory.expiresAt?.toISOString() ?? null,
       existing.id
     );
 
