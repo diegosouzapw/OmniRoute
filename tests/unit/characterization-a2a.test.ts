@@ -359,9 +359,9 @@ test("collectMemoryHits returns [] for empty input, the kill-switch, and backend
   }
 });
 
-test("characterization: collectMemoryHits with the default sqlite backend currently always returns []", async () => {
+test("collectMemoryHits recalls from the default SQLite backend (#16184)", async () => {
   // A keyless task (owner undefined → "mcp") whose query matches a stored "mcp" memory.
-  await memory.createMemory({
+  const created = await memory.createMemory({
     apiKeyId: "mcp",
     sessionId: "",
     type: memory.MemoryType.FACTUAL,
@@ -374,13 +374,14 @@ test("characterization: collectMemoryHits with the default sqlite backend curren
   const direct = await memory.retrieveMemories("mcp", { query: "aurora staging" });
   assert.equal(direct.length, 1);
 
-  // …but collectMemoryHits calls sqliteBackend.search({ query, apiKeyId, limit }) without
-  // maxTokens, which throws a ZodError that collectMemoryHits swallows into [].
+  // The adapter retains its default budget when A2A requests recall without maxTokens.
   const { tm } = newManager();
   const task = tm.createTask({
     skill: "x",
     messages: [{ role: "user", content: "aurora staging" }],
   });
-  assert.deepEqual(await collectMemoryHits(task), []);
+  assert.deepEqual(await collectMemoryHits(task), [
+    { id: created.id, key: created.key, type: created.type, snippet: created.content },
+  ]);
   await new Promise((resolve) => setImmediate(resolve));
 });

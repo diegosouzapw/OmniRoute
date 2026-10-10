@@ -77,11 +77,18 @@ export class SQLiteBackend implements MemoryBackend {
   // ─── Search ───
 
   async search(config: SearchConfig): Promise<Memory[]> {
-    return retrieveMemories(config.apiKeyId, {
+    // A count cannot be fractional or negative; zero explicitly requests no results.
+    if (config.limit !== undefined && (!Number.isInteger(config.limit) || config.limit < 0)) {
+      throw new RangeError("Memory search limit must be a nonnegative integer");
+    }
+
+    const memories = await retrieveMemories(config.apiKeyId, {
       query: config.query,
-      maxTokens: config.maxTokens,
+      // Omit an absent budget so retrieval retains its central default; preserve zero.
+      ...(config.maxTokens !== undefined ? { maxTokens: config.maxTokens } : {}),
       retrievalStrategy: config.strategy ?? "hybrid",
     });
+    return config.limit === undefined ? memories : memories.slice(0, config.limit);
   }
 
   // ─── Health ───
