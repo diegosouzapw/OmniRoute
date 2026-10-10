@@ -171,20 +171,19 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## 最佳免費提供者
 
-這些提供者提供**免費存取**，無須信用卡：
+這些提供者提供**免費存取**，且無需信用卡：
 
-| 提供者            | 免費額度          | 模型                                     | 連線方式          |
-| ----------------- | ----------------- | ---------------------------------------- | ----------------- |
-| **Kiro AI**       | 每月 50 點額度    | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | 無須驗證          |
-| **OpenCode Free** | 無限              | GPT-4o, Claude, Gemini                   | 無須驗證          |
-| **Pollinations**  | 無須金鑰          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | 無須驗證          |
-| **LongCat**       | 一次性 10M        | LongCat-2.0                              | API 金鑰 + KYC    |
-| **Cloudflare AI** | 每日 10K 個神經元 | 50+ 個模型                               | 無須驗證          |
-| **NVIDIA NIM**    | 約 40 RPM         | 129 個模型                               | 需要 API 金鑰     |
-| **Cerebras**      | 註冊贈送 $5 額度  | GLM 4.7, GPT-OSS 120B                    | API 金鑰 + 信用卡 |
-| **Qoder**         | 無限              | Kimi-K2, DeepSeek-R1, Qwen3-coder        | 無須驗證          |
+| 提供者            | 免費額度         | 模型                                     | 連線方式          |
+| ----------------- | ---------------- | ---------------------------------------- | ----------------- |
+| **Kiro AI**       | 每月 50 點數     | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | 無需驗證          |
+| **OpenCode Free** | 無限             | GPT-4o, Claude, Gemini                   | 無需驗證          |
+| **Pollinations**  | 無需金鑰         | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | 無需驗證          |
+| **LongCat**       | 一次性 10M       | LongCat-2.0                              | API 金鑰 + KYC    |
+| **Cloudflare AI** | 每日 10K 神經元  | 50+ 個模型                               | 無需驗證          |
+| **NVIDIA NIM**    | 約 40 RPM        | 129 個模型                               | 需要 API 金鑰     |
+| **Cerebras**      | 註冊贈送 $5 額度 | GLM 4.7, GPT-OSS 120B                    | API 金鑰 + 信用卡 |
 
-**提示**：連接多個免費提供者，即可透過自動容錯移轉享有**無限免費 AI**！
+**提示**：連接多個免費提供者，即可透過自動備援享有**無限免費 AI**！
 
 ---
 
@@ -258,7 +257,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ---
 
-## 特定提供者設定
+## 提供者特定設定
 
 ### OpenAI
 
@@ -283,6 +282,27 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 1. 取得 API 金鑰：https://platform.deepseek.com/
 2. 在 OmniRoute 中：提供者 → 新增提供者 → DeepSeek
 3. 貼上 API 金鑰 → 連線
+
+### Qoder：選擇憑證傳輸方式
+
+Qoder 需要憑證。其兩種傳輸方式具備不同的功能；僅憑模型名稱，無法判斷特定連線能執行哪些操作。
+
+| 憑證                       | OmniRoute 傳輸方式                     | 呼叫端工具呼叫                 | 串流                                      |
+| -------------------------- | -------------------------------------- | ------------------------------ | ----------------------------------------- |
+| 以 `pt-` 開頭的 PAT        | OmniRoute 主機上的本機 `qodercli` 程序 | 不支援                         | 緩衝：僅在 CLI 傳回完整回覆後才會發出 SSE |
+| 非 PAT 存取權杖或 API 金鑰 | 與 DashScope OpenAI 相容的 HTTP 端點   | 直接傳遞，取決於上游模型／金鑰 | 上游 HTTP/SSE 路徑                        |
+
+若使用 PAT，請在與 OmniRoute 相同的主機或容器上安裝 Qoder CLI。系統必須能以 `qodercli` 找到該執行檔，否則請將 `CLI_QODER_BIN` 設為其執行檔路徑。僅安裝在 Docker 主機上的 CLI 不會自動出現在容器中。若缺少二進位檔，系統會產生明確錯誤，引導您進行安裝或設定路徑。
+
+PAT 聊天路徑的程序逾時時間為 45 秒。它會將對話扁平化為提示詞，並以非串流列印模式叫用 CLI。要求 `stream: true` 會將回應封裝格式變更為 SSE；這不會提供上游權杖的增量傳遞。CLI 驗證／模型清單使用獨立的 20 秒逾時。這些是目前的程式碼預設值，無法在儀表板中設定。
+
+請將 PAT 連線用於一般聊天。攜帶 `tools` 或舊版 `functions` 的代理程式請求，會在選取憑證時排除 PAT 帳戶，包括已固定的組合目標。混合式 Qoder 集區仍可選取其 HTTP 帳戶。直接呼叫 PAT 執行器時，也會在啟動 CLI 前明確失敗，而不是默默捨棄工具定義。此限制針對 API 呼叫端提供的工具，而不是 Qoder CLI 本身可能使用的任何內部工具。HTTP 金鑰無法保證每個模型都支援工具；一般的模型功能檢查仍然適用。
+
+只有當管理員設定全部五項設定時，才能使用瀏覽器 OAuth：`QODER_OAUTH_AUTHORIZE_URL`、`QODER_OAUTH_TOKEN_URL`、`QODER_OAUTH_USERINFO_URL`、`QODER_OAUTH_CLIENT_ID` 和 `QODER_OAUTH_CLIENT_SECRET`。這些設定預設為空；未設定的安裝環境應使用受支援的憑證匯入方式，而不應假設瀏覽器登入流程已準備就緒。
+
+實作參考：[Qoder 執行器](../../open-sse/executors/qoder.ts)、
+[CLI 執行階段](../../open-sse/services/qoderCli.ts)和
+[OAuth 設定](../../src/lib/oauth/constants/oauth.ts)。增量 PAT 串流和可設定的逾時屬於個別的增強功能；此行為並不承諾提供這些功能。
 
 ### Groq
 

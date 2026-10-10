@@ -169,7 +169,7 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ---
 
-## Najbolji besplatni pružatelji
+## Najbolji besplatni pružatelji usluga
 
 Ovi pružatelji nude **besplatan pristup** bez kreditne kartice:
 
@@ -178,13 +178,12 @@ Ovi pružatelji nude **besplatan pristup** bez kreditne kartice:
 | **Kiro AI**       | 50 kredita mjesečno         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Autentifikacija nije potrebna |
 | **OpenCode Free** | Neograničeno                | GPT-4o, Claude, Gemini                   | Autentifikacija nije potrebna |
 | **Pollinations**  | Ključ nije potreban         | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Autentifikacija nije potrebna |
-| **LongCat**       | Jednokratno 10M             | LongCat-2.0                              | API ključ + KYC               |
+| **LongCat**       | 10M jednokratno             | LongCat-2.0                              | API ključ + KYC               |
 | **Cloudflare AI** | 10K neurona dnevno          | Više od 50 modela                        | Autentifikacija nije potrebna |
 | **NVIDIA NIM**    | ~40 RPM                     | 129 modela                               | Potreban je API ključ         |
 | **Cerebras**      | $5 kredita pri registraciji | GLM 4.7, GPT-OSS 120B                    | API ključ + kartica           |
-| **Qoder**         | Neograničeno                | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Autentifikacija nije potrebna |
 
-**Savjet**: Povežite više besplatnih pružatelja za **neograničenu besplatnu umjetnu inteligenciju** s automatskim prebacivanjem na pričuvnog pružatelja!
+**Savjet**: Povežite više besplatnih pružatelja za **neograničeni besplatni AI** s automatskim prebacivanjem na alternativnog pružatelja!
 
 ---
 
@@ -258,36 +257,76 @@ Zatim upotrijebite `model: "auto"` i OmniRoute će automatski odabrati najboljeg
 
 ---
 
-## Postavljanje specifično za pružatelja usluge
+## Postavljanje specifično za pružatelja
 
 ### OpenAI
 
 1. Nabavite API ključ: https://platform.openai.com/api-keys
-2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluge → OpenAI
+2. U OmniRouteu: Pružatelji → Dodaj pružatelja → OpenAI
 3. Zalijepite API ključ → Poveži
 
 ### Anthropic
 
 1. Nabavite API ključ: https://console.anthropic.com/
-2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluge → Anthropic
+2. U OmniRouteu: Pružatelji → Dodaj pružatelja → Anthropic
 3. Zalijepite API ključ → Poveži
 
 ### Google (Gemini)
 
 1. Nabavite API ključ: https://aistudio.google.com/apikey
-2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluge → Gemini
+2. U OmniRouteu: Pružatelji → Dodaj pružatelja → Gemini
 3. Zalijepite API ključ → Poveži
 
 ### DeepSeek
 
 1. Nabavite API ključ: https://platform.deepseek.com/
-2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluge → DeepSeek
+2. U OmniRouteu: Pružatelji → Dodaj pružatelja → DeepSeek
 3. Zalijepite API ključ → Poveži
+
+### Qoder: odaberite prijenos vjerodajnica
+
+Qoder zahtijeva vjerodajnice. Njegova dva načina prijenosa imaju različite mogućnosti; sam naziv modela
+ne određuje što određena veza može učiniti.
+
+| Vjerodajnica                                | Prijenos u OmniRouteu                                      | Pozivanje alata od strane pozivatelja             | Strujanje                                                           |
+| ------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------- |
+| PAT koji počinje s `pt-`                    | Lokalni proces `qodercli` na OmniRoute hostu               | Nije podržano                                     | Međuspremnički: SSE se šalje tek nakon što CLI vrati cijeli odgovor |
+| Pristupni token koji nije PAT ili API ključ | HTTP krajnja točka kompatibilna s OpenAI-jem na DashScopeu | Prosljeđuje se, ovisno o nadređenom modelu/ključu | Nadređeni HTTP/SSE put                                              |
+
+Za PAT instalirajte Qoder CLI na istom hostu ili u istom spremniku kao OmniRoute. Izvršna datoteka
+mora biti dostupna kao `qodercli` ili postavite `CLI_QODER_BIN` na njezinu izvršnu putanju. CLI
+instaliran samo na Docker hostu nije automatski prisutan u spremniku. Ako binarne datoteke
+nedostaju, prikazuje se izričita pogreška koja vas upućuje na instalaciju ili postavljanje putanje.
+
+Put razgovora za PAT ima vremensko ograničenje procesa od 45 sekundi. Razgovor se pretvara u jedan
+prompt i CLI se poziva u nestrujećem načinu ispisa. Zahtjev za `stream: true` mijenja
+ovojnicu odgovora u SSE; ne omogućuje postupnu isporuku tokena iz nadređenog sustava.
+Provjera valjanosti putem CLI-ja i izlistavanje modela upotrebljavaju zasebno vremensko ograničenje od 20 sekundi. To su trenutačne zadane
+vrijednosti u kodu, a ne postavke koje se mogu konfigurirati na nadzornoj ploči.
+
+Upotrebljavajte PAT veze za običan razgovor. Zahtjevi agenata koji sadrže `tools` ili zastarjele `functions`
+isključuju PAT račune tijekom odabira vjerodajnica, uključujući fiksirane kombinirane ciljeve. Mješoviti
+skup Qoder računa i dalje može odabrati svoj HTTP račun. Izravni pozivi izvršitelju PAT-a također izričito ne uspijevaju
+prije pokretanja CLI-ja, umjesto da prešutno odbace definicije alata. Ovo
+ograničenje odnosi se na alate koje šalje pozivatelj API-ja, a ne na interne alate koje bi Qoder
+CLI mogao sam upotrebljavati. HTTP ključ ne jamči da svaki model podržava alate; i dalje se primjenjuju uobičajene
+provjere mogućnosti modela.
+
+OAuth putem preglednika dostupan je samo kada administrator konfigurira svih pet postavki:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` i `QODER_OAUTH_CLIENT_SECRET`. Njihove su zadane vrijednosti prazne; na
+nekonfiguriranoj instalaciji treba upotrijebiti podržani uvoz vjerodajnica umjesto pretpostavke
+da je tijek prijave putem preglednika spreman.
+
+Reference implementacije: [Qoder izvršitelj](../../open-sse/executors/qoder.ts),
+[CLI okruženje za izvođenje](../../open-sse/services/qoderCli.ts) i
+[OAuth konfiguracija](../../src/lib/oauth/constants/oauth.ts). Postupno PAT strujanje
+i podesivo vremensko ograničenje zasebna su poboljšanja; ovo ponašanje ne jamči njihovu dostupnost.
 
 ### Groq
 
 1. Nabavite API ključ: https://console.groq.com/
-2. U OmniRouteu: Pružatelji usluga → Dodaj pružatelja usluge → Groq
+2. U OmniRouteu: Pružatelji → Dodaj pružatelja → Groq
 3. Zalijepite API ključ → Poveži
 
 ---

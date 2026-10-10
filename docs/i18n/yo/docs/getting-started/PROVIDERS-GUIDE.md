@@ -165,20 +165,19 @@ curl -X POST http://localhost:20128/v1/chat/completions \
 
 ## Àwọn Olùpèsè Ọ̀fẹ́ Tó Dára Jù
 
-Àwọn olùpèsè wọ̀nyí n fúnni ní **ìráàyèsí ọ̀fẹ́** láìlo káàdì kirẹditi:
+Àwọn olùpèsè wọ̀nyí n fúnni ní **ìráyè sí lọ́fẹ̀ẹ́** láìlo káàdì kirẹditi:
 
-| Olùpèsè           | Ìpín Ọ̀fẹ́                | Àwọn Módẹ́lì                              | Bí A Ṣe Lè Sopọ̀      |
-| ----------------- | ----------------------- | ---------------------------------------- | -------------------- |
-| **Kiro AI**       | Kirẹditi 50/òsù         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Kò nílò ìfàṣẹsí      |
-| **OpenCode Free** | Àìlópin                 | GPT-4o, Claude, Gemini                   | Kò nílò ìfàṣẹsí      |
-| **Pollinations**  | Kò nílò kọ́kọ́rọ́          | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Kò nílò ìfàṣẹsí      |
-| **LongCat**       | 10M lẹ́ẹ̀kan ṣoṣo         | LongCat-2.0                              | Kọ́kọ́rọ́ API + KYC     |
-| **Cloudflare AI** | Neuron 10K/ọjọ́          | Módẹ́lì 50+                               | Kò nílò ìfàṣẹsí      |
-| **NVIDIA NIM**    | ~40 RPM                 | Módẹ́lì 129                               | Kọ́kọ́rọ́ API ni a nílò |
-| **Cerebras**      | Kirẹditi ìforúkọsílẹ̀ $5 | GLM 4.7, GPT-OSS 120B                    | Kọ́kọ́rọ́ API + káàdì   |
-| **Qoder**         | Àìlópin                 | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Kò nílò ìfàṣẹsí      |
+| Olùpèsè           | Ìpín Ọ̀fẹ́                 | Àwọn Módẹ́ẹ̀lì                             | Bí a Ṣe Lè Sopọ̀      |
+| ----------------- | ------------------------ | ---------------------------------------- | -------------------- |
+| **Kiro AI**       | Kírẹ́díìtì 50/oṣù         | Claude Sonnet 4.5, Haiku 4.5, Opus 4.6   | Kò nílò ìfàṣẹsí      |
+| **OpenCode Free** | Àìlópin                  | GPT-4o, Claude, Gemini                   | Kò nílò ìfàṣẹsí      |
+| **Pollinations**  | Kò nílò kọ́kọ́rọ́           | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Kò nílò ìfàṣẹsí      |
+| **LongCat**       | 10M lẹ́ẹ̀kan ṣoṣo          | LongCat-2.0                              | Kọ́kọ́rọ́ API + KYC     |
+| **Cloudflare AI** | Ẹ̀yà iṣan 10K/ọjọ́         | Àwọn módẹ́ẹ̀lì 50+                         | Kò nílò ìfàṣẹsí      |
+| **NVIDIA NIM**    | ~40 RPM                  | Àwọn módẹ́ẹ̀lì 129                         | Kọ́kọ́rọ́ API ni a nílò |
+| **Cerebras**      | Kírẹ́díìtì ìforúkọsílẹ̀ $5 | GLM 4.7, GPT-OSS 120B                    | Kọ́kọ́rọ́ API + káàdì   |
 
-**Ìmọ̀ràn**: So ọ̀pọ̀ olùpèsè ọ̀fẹ́ pọ̀ láti gba **AI ọ̀fẹ́ àìlópin** pẹ̀lú ìyípadà aládàáṣe sí olùpèsè mìíràn nígbà ìkùnà!
+**Àbá**: So ọ̀pọ̀ olùpèsè ọ̀fẹ́ pọ̀ fún **AI ọ̀fẹ́ aláìlópin** pẹ̀lú ìyípadà aládàáṣiṣẹ́ nígbà ìkùnà!
 
 ---
 
@@ -252,37 +251,77 @@ Lẹ́yìn náà, lo `model: "auto"` OmniRoute yóò sì yan èyí tó dára jù
 
 ---
 
-## Ìṣètò Pàtó Fún Olùpèsè
+## Ìṣètò Pàtó fún Olùpèsè
 
 ### OpenAI
 
 1. Gba kọ́kọ́rọ́ API: https://platform.openai.com/api-keys
 2. Nínú OmniRoute: Àwọn Olùpèsè → Ṣàfikún Olùpèsè → OpenAI
-3. Lẹ kọ́kọ́rọ́ API náà → Sopọ̀
+3. Lẹ kọ́kọ́rọ́ API mọ́ ọn → Sopọ̀
 
 ### Anthropic
 
 1. Gba kọ́kọ́rọ́ API: https://console.anthropic.com/
 2. Nínú OmniRoute: Àwọn Olùpèsè → Ṣàfikún Olùpèsè → Anthropic
-3. Lẹ kọ́kọ́rọ́ API náà → Sopọ̀
+3. Lẹ kọ́kọ́rọ́ API mọ́ ọn → Sopọ̀
 
 ### Google (Gemini)
 
 1. Gba kọ́kọ́rọ́ API: https://aistudio.google.com/apikey
 2. Nínú OmniRoute: Àwọn Olùpèsè → Ṣàfikún Olùpèsè → Gemini
-3. Lẹ kọ́kọ́rọ́ API náà → Sopọ̀
+3. Lẹ kọ́kọ́rọ́ API mọ́ ọn → Sopọ̀
 
 ### DeepSeek
 
 1. Gba kọ́kọ́rọ́ API: https://platform.deepseek.com/
 2. Nínú OmniRoute: Àwọn Olùpèsè → Ṣàfikún Olùpèsè → DeepSeek
-3. Lẹ kọ́kọ́rọ́ API náà → Sopọ̀
+3. Lẹ kọ́kọ́rọ́ API mọ́ ọn → Sopọ̀
+
+### Qoder: yan ọ̀nà gbígbé ẹ̀rí ìdánimọ̀
+
+Qoder nílò ẹ̀rí ìdánimọ̀. Àwọn ọ̀nà gbígbé méjèèjì rẹ̀ ní agbára tó yàtọ̀; orúkọ model
+nìkan kò lè fi ohun tí àsopọ̀ kan pàtó lè ṣe hàn.
+
+| Ẹ̀rí ìdánimọ̀                                 | Ọ̀nà gbígbé OmniRoute                       | Pípè irinṣẹ́ látọ̀dọ̀ olùpè                   | Ṣíṣànwọlé                                                               |
+| ------------------------------------------- | ------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------- |
+| PAT tó bẹ̀rẹ̀ pẹ̀lú `pt-`                      | Ìlànà `qodercli` abẹ́lé lórí host OmniRoute | Kò ní àtìlẹ́yìn                             | Ti kó jọ: SSE ni a máa ń fi ránṣẹ́ lẹ́yìn tí CLI bá dá gbogbo ìdáhùn padà |
+| Access token tí kì í ṣe PAT tàbí kọ́kọ́rọ́ API | Ojú-ọ̀nà HTTP DashScope tó bá OpenAI mu     | A máa gba kọjá, lábẹ́ model/kọ́kọ́rọ́ upstream | Ọ̀nà HTTP/SSE upstream                                                   |
+
+Fún PAT, fi Qoder CLI sori host tàbí container kan náà pẹ̀lú OmniRoute. Executable náà
+gbọ́dọ̀ ṣeé rí gẹ́gẹ́ bí `qodercli`, tàbí ṣètò `CLI_QODER_BIN` sí path executable rẹ̀. CLI
+tí a fi sori host Docker nìkan kò ní wà nínú container láìfọwọ́yí. Àìsí
+binaries máa ń fa àṣìṣe tó ṣe kedere, èyí tó máa darí rẹ sí fífi wọ́n sori ẹrọ tàbí ṣíṣètò path.
+
+Ọ̀nà ìbánisọ̀rọ̀ PAT ní àkókò ìdádúró process ti ìṣẹ́jú-àáyá 45. Ó ń sọ ìjíròrò náà di
+prompt kan, ó sì ń pe CLI ní mode títẹ̀ tí kì í ṣe ti ṣíṣànwọlé. Bíbẹ̀rẹ̀ `stream: true` yí
+àpò ìdáhùn padà sí SSE; kò pèsè fífi token upstream ránṣẹ́ díẹ̀díẹ̀.
+Ìfọwọ́sí CLI/ìṣàkójọ model ń lo àkókò ìdádúró ìṣẹ́jú-àáyá 20 ọ̀tọ̀. Ìwọ̀nyí ni àwọn ìyàn àtìpilẹ̀ kóòdù
+lọ́wọ́lọ́wọ́, wọn kì í ṣe àwọn ètò dashboard tí a lè túnṣe.
+
+Lo àwọn àsopọ̀ PAT fún ìbánisọ̀rọ̀ lasán. Àwọn ìbéèrè agent tó gbé `tools` tàbí `functions`
+àtijọ́ máa ń yọ àwọn account PAT kúrò nígbà yíyan ẹ̀rí ìdánimọ̀, pẹ̀lú àwọn ibi àfojúsùn combo tí a pin mọ́lẹ̀. Pool
+Qoder àdàpọ̀ ṣì lè yan account HTTP rẹ̀. Àwọn ìpè tààrà sí executor PAT náà máa ń kùnà
+ní kedere kí CLI tó bẹ̀rẹ̀, dípò kí ó pa àwọn ìtumọ̀ irinṣẹ́ rẹ́ jẹ́ ní ìdákẹ́jẹ. Ìdíwọ́
+yìí kan àwọn irinṣẹ́ tí olùpè API pèsè, kì í ṣe àwọn irinṣẹ́ abẹ́nú tí Qoder
+CLI fúnra rẹ̀ lè lò. Kọ́kọ́rọ́ HTTP kò ṣe ìdánilójú pé gbogbo model ṣe àtìlẹ́yìn fún àwọn irinṣẹ́; àwọn
+àyẹ̀wò agbára model déédéé ṣì wúlò.
+
+OAuth aṣàwákiri wà nígbà tí olùṣàkóso bá ṣètò gbogbo àwọn ètò márùn-ún wọ̀nyí nìkan:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID`, àti `QODER_OAUTH_CLIENT_SECRET`. Wọ́n ṣófo ní àtìpilẹ̀ṣẹ̀; ìfìdásílẹ̀
+tí a kò tíì ṣètò yẹ kí ó lo gbígbé ẹ̀rí ìdánimọ̀ tí a ṣe àtìlẹ́yìn fún dípò kíkà pé
+ọ̀nà ìwọlé aṣàwákiri ti ṣetán.
+
+Àwọn ìtọ́kasí ìmúṣẹ: [Executor Qoder](../../open-sse/executors/qoder.ts),
+[Àkókò-ṣiṣe CLI](../../open-sse/services/qoderCli.ts), àti
+[Ìṣètò OAuth](../../src/lib/oauth/constants/oauth.ts). Ṣíṣànwọlé PAT díẹ̀díẹ̀
+àti àkókò ìdádúró tí a lè túnṣe jẹ́ àwọn ìmúdára ọ̀tọ̀; ìhùwàsí yìí kò ṣe ìlérí wọn.
 
 ### Groq
 
 1. Gba kọ́kọ́rọ́ API: https://console.groq.com/
 2. Nínú OmniRoute: Àwọn Olùpèsè → Ṣàfikún Olùpèsè → Groq
-3. Lẹ kọ́kọ́rọ́ API náà → Sopọ̀
+3. Lẹ kọ́kọ́rọ́ API mọ́ ọn → Sopọ̀
 
 ---
 

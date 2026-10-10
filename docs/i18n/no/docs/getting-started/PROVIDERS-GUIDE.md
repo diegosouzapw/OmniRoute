@@ -179,12 +179,11 @@ Disse leverandørene tilbyr **gratis tilgang** uten kredittkort:
 | **OpenCode Free** | Ubegrenset                | GPT-4o, Claude, Gemini                   | Ingen autentisering nødvendig |
 | **Pollinations**  | Ingen nøkkel nødvendig    | GPT-5, Claude, Gemini, DeepSeek, Llama 4 | Ingen autentisering nødvendig |
 | **LongCat**       | 10M én gang               | LongCat-2.0                              | API-nøkkel + KYC              |
-| **Cloudflare AI** | 10K nevroner/dag          | 50+ modeller                             | Ingen autentisering nødvendig |
+| **Cloudflare AI** | 10K nevroner/dag          | Over 50 modeller                         | Ingen autentisering nødvendig |
 | **NVIDIA NIM**    | ~40 RPM                   | 129 modeller                             | API-nøkkel nødvendig          |
 | **Cerebras**      | $5 i registreringskreditt | GLM 4.7, GPT-OSS 120B                    | API-nøkkel + kort             |
-| **Qoder**         | Ubegrenset                | Kimi-K2, DeepSeek-R1, Qwen3-coder        | Ingen autentisering nødvendig |
 
-**Tips**: Koble til flere gratisleverandører for **ubegrenset gratis KI** med automatisk reservebytte!
+**Tips**: Koble til flere gratisleverandører for **ubegrenset gratis KI** med automatisk reserveleverandør!
 
 ---
 
@@ -283,6 +282,46 @@ Bruk deretter `model: "auto"`, så velger OmniRoute automatisk den beste leveran
 1. Hent API-nøkkel: https://platform.deepseek.com/
 2. I OmniRoute: Leverandører → Legg til leverandør → DeepSeek
 3. Lim inn API-nøkkelen → Koble til
+
+### Qoder: velg legitimasjonstransport
+
+Qoder krever legitimasjon. De to transportmetodene har ulike funksjoner; et modellnavn
+alene identifiserer ikke hva en bestemt tilkobling kan gjøre.
+
+| Legitimasjon                            | OmniRoute-transport                             | Verktøykall fra klienten                          | Strømming                                                          |
+| --------------------------------------- | ----------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
+| PAT som begynner med `pt-`              | Lokal `qodercli`-prosess på OmniRoute-verten    | Støttes ikke                                      | Bufret: SSE sendes først etter at CLI-en har returnert hele svaret |
+| Ikke-PAT-tilgangstoken eller API-nøkkel | DashScope sitt OpenAI-kompatible HTTP-endepunkt | Videresendes, avhengig av oppstrømsmodell/-nøkkel | Oppstrøms HTTP/SSE-bane                                            |
+
+For en PAT må du installere Qoder CLI på samme vert eller i samme container som OmniRoute. Den kjørbare filen
+må kunne finnes som `qodercli`, eller angi banen til den kjørbare filen i `CLI_QODER_BIN`. En CLI
+som bare er installert på Docker-verten, finnes ikke automatisk i containeren. Manglende
+binærfiler gir en eksplisitt feilmelding som henviser deg til installasjonen eller baneinnstillingen.
+
+PAT-chatbanen har et prosesstidsavbrudd på 45 sekunder. Den slår sammen samtalen til én
+ledetekst og starter CLI-en i ikke-strømmende utskriftsmodus. Hvis du ber om `stream: true`, endres
+responsformatet til SSE. Det gir ikke trinnvis levering av tokener fra oppstrømstjenesten.
+CLI-validering/modellisting bruker et separat tidsavbrudd på 20 sekunder. Dette er gjeldende standardverdier
+i koden, ikke konfigurerbare innstillinger i kontrollpanelet.
+
+Bruk PAT-tilkoblinger for vanlig chat. Agentforespørsler som inneholder `tools` eller eldre `functions`,
+utelukker PAT-kontoer under valg av legitimasjon, inkludert festede kombinasjonsmål. En blandet
+Qoder-pool kan fortsatt velge HTTP-kontoen sin. Direkte kall til PAT-kjøreren mislykkes også
+eksplisitt før CLI-en startes, i stedet for å forkaste verktøydefinisjoner i stillhet. Denne
+begrensningen gjelder verktøy som leveres av API-klienten, ikke eventuelle interne verktøy som Qoder
+CLI selv kan bruke. En HTTP-nøkkel garanterer ikke at alle modeller støtter verktøy. Vanlige
+kontroller av modellfunksjonalitet gjelder fortsatt.
+
+OAuth i nettleseren er bare tilgjengelig når administratoren konfigurerer alle de fem innstillingene:
+`QODER_OAUTH_AUTHORIZE_URL`, `QODER_OAUTH_TOKEN_URL`, `QODER_OAUTH_USERINFO_URL`,
+`QODER_OAUTH_CLIENT_ID` og `QODER_OAUTH_CLIENT_SECRET`. De er tomme som standard. En
+ukonfigurert installasjon bør bruke en støttet importmetode for legitimasjon i stedet for å anta
+at påloggingsflyten i nettleseren er klar.
+
+Implementasjonsreferanser: [Qoder-kjører](../../open-sse/executors/qoder.ts),
+[CLI-kjøretid](../../open-sse/services/qoderCli.ts) og
+[OAuth-konfigurasjon](../../src/lib/oauth/constants/oauth.ts). Trinnvis PAT-strømming
+og et konfigurerbart tidsavbrudd er separate forbedringer. Denne virkemåten innebærer ikke at de er tilgjengelige.
 
 ### Groq
 
