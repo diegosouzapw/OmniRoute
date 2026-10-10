@@ -20,7 +20,7 @@ export default function ProviderQuotaVisibilityToggle({
 
   return (
     <>
-      <span className="text-text-muted/30 select-none">|</span>
+      <span className="hidden text-text-muted/30 select-none sm:inline">|</span>
       <button
         type="button"
         onClick={() => onToggle(!visible)}

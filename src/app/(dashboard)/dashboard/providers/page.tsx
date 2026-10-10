@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
-import { Card, CardSkeleton, Badge, Button, CollapsibleSection } from "@/shared/components";
+import { Card, CardSkeleton, Button, ProviderCardGrid } from "@/shared/components";
 import {
   AGGREGATOR_PROVIDER_IDS,
   EMBEDDING_RERANK_PROVIDER_IDS,
@@ -1073,7 +1073,7 @@ function ProvidersPageContent() {
                     <span>{t("noCompatibleYet")}</span>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                  <ProviderCardGrid>
                     {compatibleProviderEntries.map(
                       ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                         <HighlightableProviderCard
@@ -1088,7 +1088,7 @@ function ProvidersPageContent() {
                         />
                       )
                     )}
-                  </div>
+                  </ProviderCardGrid>
                 )}
               </div>
             )}
@@ -1146,7 +1146,7 @@ function ProvidersPageContent() {
                   </div>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("oauthProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {oauthProviderEntries
                     .filter((e) => !IDE_PROVIDER_IDS.has(e.providerId))
                     .map(({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
@@ -1161,7 +1161,7 @@ function ProvidersPageContent() {
                         }
                       />
                     ))}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1205,7 +1205,7 @@ function ProvidersPageContent() {
                     {t("noIdeProviders") || "No IDE providers match the current filters."}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                  <ProviderCardGrid>
                     {ideProviderEntries.map(
                       ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                         <HighlightableProviderCard
@@ -1220,7 +1220,7 @@ function ProvidersPageContent() {
                         />
                       )
                     )}
-                  </div>
+                  </ProviderCardGrid>
                 )}
               </div>
             )}
@@ -1256,7 +1256,7 @@ function ProvidersPageContent() {
                   </button>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("webCookieProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {webCookieProviderEntries.map(
                     ({ providerId, provider, stats, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1271,7 +1271,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1305,7 +1305,7 @@ function ProvidersPageContent() {
                     {testingMode === "free" ? t("testing") : t("testAll")}
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {freeSectionEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1320,7 +1320,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1358,7 +1358,7 @@ function ProvidersPageContent() {
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                       {t("llmProviders")}
                     </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                    <ProviderCardGrid>
                       {llmProviderEntries.map(
                         ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                           <HighlightableProviderCard
@@ -1373,7 +1373,7 @@ function ProvidersPageContent() {
                           />
                         )
                       )}
-                    </div>
+                    </ProviderCardGrid>
                   </div>
                 )}
               </div>
@@ -1427,7 +1427,7 @@ function ProvidersPageContent() {
                   </button>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("upstreamProxyProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {upstreamProxyEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
                     <HighlightableProviderCard
                       key={providerId}
@@ -1440,7 +1440,7 @@ function ProvidersPageContent() {
                       }
                     />
                   ))}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1458,7 +1458,7 @@ function ProvidersPageContent() {
                   </h2>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("webFetchProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {visibleWebFetchEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1473,7 +1473,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1491,7 +1491,7 @@ function ProvidersPageContent() {
                   </h2>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("aggregatorsGatewaysDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {aggregatorProviderEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1506,7 +1506,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1524,7 +1524,7 @@ function ProvidersPageContent() {
                   </h2>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("enterpriseCloudDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {enterpriseProviderEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1539,7 +1539,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1574,7 +1574,7 @@ function ProvidersPageContent() {
                   </button>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("cloudAgentProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {cloudAgentProviderEntries.map(
                     ({ providerId, provider, stats, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1589,7 +1589,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1624,7 +1624,7 @@ function ProvidersPageContent() {
                   </button>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("localProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {localProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
                     <HighlightableProviderCard
                       key={providerId}
@@ -1637,7 +1637,7 @@ function ProvidersPageContent() {
                       }
                     />
                   ))}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1672,7 +1672,7 @@ function ProvidersPageContent() {
                   </button>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("searchProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {searchProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
                     <HighlightableProviderCard
                       key={providerId}
@@ -1685,7 +1685,7 @@ function ProvidersPageContent() {
                       }
                     />
                   ))}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1703,7 +1703,7 @@ function ProvidersPageContent() {
                   </h2>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("embeddingRerankProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {embeddingRerankProviderEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1718,7 +1718,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1736,7 +1736,7 @@ function ProvidersPageContent() {
                   </h2>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("imageProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {imageProviderEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1751,7 +1751,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1786,7 +1786,7 @@ function ProvidersPageContent() {
                   </button>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("audioProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {audioProviderEntries.map(({ providerId, provider, stats, toggleAuthType }) => (
                     <HighlightableProviderCard
                       key={providerId}
@@ -1799,7 +1799,7 @@ function ProvidersPageContent() {
                       }
                     />
                   ))}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
 
@@ -1817,7 +1817,7 @@ function ProvidersPageContent() {
                   </h2>
                 </div>
                 <p className="text-sm text-text-muted -mt-2">{t("videoProvidersDesc")}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+                <ProviderCardGrid>
                   {videoProviderEntries.map(
                     ({ providerId, provider, stats, displayAuthType, toggleAuthType }) => (
                       <HighlightableProviderCard
@@ -1832,7 +1832,7 @@ function ProvidersPageContent() {
                       />
                     )
                   )}
-                </div>
+                </ProviderCardGrid>
               </div>
             )}
           </>

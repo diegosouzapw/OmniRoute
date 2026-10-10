@@ -528,11 +528,12 @@ export default function ModelCompatPopover({
         type="button"
         onClick={handleToggleOpen}
         disabled={disabled}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-border bg-background text-text-muted hover:bg-muted hover:text-text-main disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1.5 px-1.5 py-1.5 text-xs font-medium rounded-lg border sm:px-2.5 border-border bg-background text-text-muted hover:bg-muted hover:text-text-main disabled:opacity-50 transition-colors"
         title={t("compatAdjustmentsTitle")}
       >
         <span className="material-symbols-outlined text-base leading-none">tune</span>
-        {!compact && t("compatButtonLabel")}
+        {/* Phones: icon only (the title keeps the label), so a model card fits in two lines. */}
+        {!compact && <span className="hidden sm:inline">{t("compatButtonLabel")}</span>}
       </button>
       {open &&
         typeof document !== "undefined" &&

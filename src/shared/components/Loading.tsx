@@ -7,11 +7,13 @@ import { cn } from "@/shared/utils/cn";
 type SpinnerSize = "sm" | "md" | "lg" | "xl";
 type LoadingType = "spinner" | "page" | "skeleton" | "card";
 
+// Box and glyph share one size so the icon spins around its own centre (a 24px glyph in a
+// 16px box rotated around the box centre and wobbled).
 const spinnerSizes: Record<SpinnerSize, string> = {
-  sm: "size-4",
-  md: "size-6",
-  lg: "size-8",
-  xl: "size-12",
+  sm: "size-4 text-[16px]",
+  md: "size-6 text-[24px]",
+  lg: "size-8 text-[32px]",
+  xl: "size-12 text-[48px]",
 };
 
 interface SpinnerProps {
@@ -52,7 +54,7 @@ export function Spinner({ size = "md", className, label }: SpinnerProps) {
       <span
         aria-hidden="true"
         className={cn(
-          "material-symbols-outlined text-primary animate-spin motion-reduce:animate-none",
+          "material-symbols-outlined inline-flex items-center justify-center leading-none text-primary animate-spin motion-reduce:animate-none",
           spinnerSizes[size]
         )}
       >

@@ -2,7 +2,7 @@
 import React from "react";
 import { type ConnectionRowConnection } from "./ConnectionRow";
 import ConnectionRow from "./ConnectionRow";
-import { Button, DistributeProxiesButton } from "@/shared/components";
+import { ActionBar, Button, DistributeProxiesButton, FilterPills } from "@/shared/components";
 import { pickDisplayValue } from "@/shared/utils/maskEmail";
 import { readBooleanToggle, providerCountText } from "../providerPageHelpers";
 import { compareTr } from "@/shared/utils/turkishText";
@@ -182,7 +182,7 @@ export default function ConnectionsListPanel({
   const someSelected = selectedIds.size > 0 && selectedIds.size < connections.length;
   const bulkBusy = batchUpdating !== null || batchRetesting || batchDeleting || batchTesting;
   const bulkActions = selectedIds.size > 0 && (
-    <div className="flex flex-wrap items-center justify-end gap-2">
+    <ActionBar>
       <Button
         variant="secondary"
         size="sm"
@@ -223,7 +223,7 @@ export default function ConnectionsListPanel({
       >
         {t("batchDeleteSelected", { count: selectedIds.size })}
       </Button>
-    </div>
+    </ActionBar>
   );
 
   const isHealthy = (c: ConnectionRowConnection): boolean => {
@@ -261,7 +261,7 @@ export default function ConnectionsListPanel({
   const pageEnd = pageStart + PAGE_SIZE;
 
   const accountSearchInput = (
-    <div className="relative min-w-[160px] max-w-[220px]">
+    <div className="relative w-full sm:w-auto sm:min-w-[160px] sm:max-w-[220px]">
       <span className="material-symbols-outlined pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[15px] text-text-muted">
         search
       </span>
@@ -277,25 +277,15 @@ export default function ConnectionsListPanel({
   );
 
   const filterPills = (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      {STATUS_FILTER_OPTIONS.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => {
-            setHealthFilter(opt.value);
-            setPage(0);
-            setSelectedIds(new Set());
-          }}
-          className={`px-2.5 py-1 text-xs rounded-full font-medium transition-colors ${
-            healthFilter === opt.value
-              ? "bg-primary text-white"
-              : "bg-muted/60 text-text-muted hover:bg-muted"
-          }`}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
+    <FilterPills
+      options={STATUS_FILTER_OPTIONS}
+      value={healthFilter}
+      onChange={(v) => {
+        setHealthFilter(v);
+        setPage(0);
+        setSelectedIds(new Set());
+      }}
+    />
   );
 
   const paginationBar =
@@ -334,7 +324,7 @@ export default function ConnectionsListPanel({
     return (
       <>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex w-full items-center gap-2 flex-wrap sm:w-auto">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -525,7 +515,7 @@ export default function ConnectionsListPanel({
     <>
       {selectedIds.size > 0 || connections.length > 0 ? (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-3 py-2 bg-muted/50 rounded-t-lg border border-b-0 border-border">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex w-full items-center gap-2 flex-wrap sm:w-auto">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"

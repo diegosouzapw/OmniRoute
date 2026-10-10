@@ -29,7 +29,7 @@ export default function Toggle({
     xs: {
       track: "w-6 h-3",
       thumb: "size-[8px]",
-      translate: "translate-x-3.5",
+      translate: "translate-x-3",
     },
     sm: {
       track: "w-8 h-4",
@@ -71,7 +71,7 @@ export default function Toggle({
         disabled={disabled}
         onClick={handleClick}
         className={cn(
-          "relative inline-flex shrink-0 cursor-pointer rounded-full",
+          "relative inline-flex shrink-0 cursor-pointer items-center rounded-full",
           "transition-colors duration-200 ease-in-out",
           "border shadow-inner",
           "focus:outline-none focus:ring-1 focus:ring-accent/30",
@@ -86,8 +86,7 @@ export default function Toggle({
             "pointer-events-none inline-block rounded-full bg-white shadow-sm",
             "transform transition duration-200 ease-in-out",
             checked ? sizes[size].translate : "translate-x-0.5",
-            sizes[size].thumb,
-            "mt-0.5"
+            sizes[size].thumb
           )}
         />
       </button>

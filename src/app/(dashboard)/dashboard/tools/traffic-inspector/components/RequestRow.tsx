@@ -76,7 +76,13 @@ export function RequestRow({ request, selected, onClick, onSameContext, style }:
               className="text-text-muted shrink-0 font-mono opacity-70 truncate max-w-[120px]"
               title={request.pid ? `PID ${request.pid}` : undefined}
             >
-              ⚙ {request.processName}
+              <span
+                className="material-symbols-outlined text-[14px] leading-none"
+                aria-hidden="true"
+              >
+                settings
+              </span>{" "}
+              {request.processName}
             </span>
           )}
         </div>

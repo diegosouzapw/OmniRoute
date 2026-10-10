@@ -15,11 +15,12 @@ interface SearchToolsTopBarProps {
   exportState?: PlaygroundState;
 }
 
-const TABS: { id: ActiveTab; icon: string; labelKey: "tabSearch" | "tabScrape" | "tabCompare" }[] = [
-  { id: "search", icon: "🔍", labelKey: "tabSearch" },
-  { id: "scrape", icon: "📄", labelKey: "tabScrape" },
-  { id: "compare", icon: "⚖", labelKey: "tabCompare" },
-];
+const TABS: { id: ActiveTab; icon: string; labelKey: "tabSearch" | "tabScrape" | "tabCompare" }[] =
+  [
+    { id: "search", icon: "search", labelKey: "tabSearch" },
+    { id: "scrape", icon: "description", labelKey: "tabScrape" },
+    { id: "compare", icon: "balance", labelKey: "tabCompare" },
+  ];
 
 export default function SearchToolsTopBar({
   activeTab,
@@ -56,7 +57,9 @@ export default function SearchToolsTopBar({
               onClick={() => onTabChange(tab.id)}
               data-testid={`tab-${tab.id}`}
             >
-              <span aria-hidden="true">{tab.icon}</span>
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                {tab.icon}
+              </span>
               <span>{t(tab.labelKey)}</span>
             </button>
           ))}

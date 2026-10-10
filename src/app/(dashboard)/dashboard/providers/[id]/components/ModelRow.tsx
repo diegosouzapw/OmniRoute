@@ -61,7 +61,7 @@ function getModelSourceBadgeClass(source?: string): string {
 export function ModelSourceBadge({ source }: { source?: string }) {
   return (
     <span
-      className={`rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${getModelSourceBadgeClass(
+      className={`shrink-0 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${getModelSourceBadgeClass(
         source
       )}`}
     >
@@ -123,7 +123,7 @@ export function ModelVisibilityToolbar({
 }: ModelVisibilityToolbarProps) {
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
-      <div className="relative min-w-[220px] flex-1">
+      <div className="relative w-full min-w-0 flex-1 sm:w-auto sm:min-w-[220px]">
         <span className="material-symbols-outlined pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[15px] text-text-muted">
           search
         </span>
@@ -136,7 +136,7 @@ export function ModelVisibilityToolbar({
         />
       </div>
       {visibilityFilter !== undefined && onVisibilityFilterChange && (
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-sidebar/50 p-0.5">
+        <div className="flex w-full items-center gap-1 rounded-lg border border-border bg-sidebar/50 p-0.5 sm:w-auto [&>button]:grow sm:[&>button]:grow-0">
           {(["all", "visible", "hidden"] as const).map((f) => (
             <button
               key={f}
@@ -157,7 +157,7 @@ export function ModelVisibilityToolbar({
         </div>
       )}
       {freeFilter !== undefined && onFreeFilterChange && (
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-sidebar/50 p-0.5">
+        <div className="flex w-full items-center gap-1 rounded-lg border border-border bg-sidebar/50 p-0.5 sm:w-auto [&>button]:grow sm:[&>button]:grow-0">
           {(["all", "free", "paid"] as const).map((f) => (
             <button
               key={f}
@@ -344,23 +344,36 @@ export default function ModelRow({
 
   return (
     <div
-      className={`flex min-w-[220px] max-w-md items-center gap-2 rounded-lg border border-border px-3 py-2 hover:bg-sidebar/50 transition-opacity ${
+      className={`relative flex h-full w-full min-w-0 flex-col gap-1.5 rounded-lg border border-border px-3 py-2 hover:bg-sidebar/50 transition-opacity ${
         isHidden ? "opacity-50" : ""
       }`}
     >
-      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+      {/* Line 1: icon + full model name (wraps, never cut); copy pinned to the top-right corner. */}
+      <div className="flex min-w-0 items-start gap-2 pr-7">
         <span
-          className="material-symbols-outlined shrink-0 text-base"
+          className="material-symbols-outlined mt-0.5 shrink-0 text-base"
           style={{ color: isHidden ? "var(--color-text-muted)" : undefined }}
         >
           smart_toy
         </span>
-        <code className="rounded bg-sidebar px-1.5 py-0.5 font-mono text-xs text-text-muted">
+        <code className="min-w-0 break-all pt-px font-mono text-xs leading-5 text-text-main">
           {fullModel}
         </code>
+      </div>
+      <button
+        onClick={() => onCopy(fullModel, `model-${model.id}`)}
+        className="absolute right-2 top-2 rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
+        title={t("copyModel")}
+      >
+        <span className="material-symbols-outlined text-sm">
+          {copied === `model-${model.id}` ? "check" : "content_copy"}
+        </span>
+      </button>
+      {/* Line 2 (never wraps): source, alias (truncates) and the actions, in the name's column. */}
+      <div className="flex min-w-0 items-center gap-2 pl-6">
         <ModelSourceBadge source={model.source} />
         {onSetAlias && (
-          <span className="flex min-w-0 items-center text-[9px] gap-1">
+          <span className="flex min-w-0 flex-1 items-center text-[10px] gap-1">
             {editing ? (
               <input
                 ref={inputRef}
@@ -374,7 +387,7 @@ export default function ModelRow({
               />
             ) : (
               <span
-                className={`truncate text-[9px] italic cursor-pointer hover:text-primary transition-colors ${alias ? "text-primary/80" : "text-text-muted/70"}`}
+                className={`min-w-0 truncate text-[10px] italic cursor-pointer hover:text-primary transition-colors ${alias ? "text-primary/80" : "text-text-muted/70"}`}
                 onClick={startEditing}
                 title={
                   alias
@@ -389,95 +402,86 @@ export default function ModelRow({
             )}
           </span>
         )}
-        <button
-          onClick={() => onCopy(fullModel, `model-${model.id}`)}
-          className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary"
-          title={t("copyModel")}
-        >
-          <span className="material-symbols-outlined text-sm">
-            {copied === `model-${model.id}` ? "check" : "content_copy"}
-          </span>
-        </button>
-      </div>
-      <div className="flex shrink-0 items-center gap-1">
-        {onToggleHidden && testStatus === "error" && (
-          <button
-            onClick={() => onToggleHidden(model.id, true)}
-            disabled={togglingHidden}
-            className={`flex items-center gap-1 rounded p-0.5 text-[11px] text-red-500 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${togglingHidden ? "animate-pulse" : ""}`}
-            title={providerText(
-              t,
-              "blacklistModelTooltip",
-              "Blacklist this model — hide it from the catalog"
-            )}
-          >
-            <span className="material-symbols-outlined text-sm">
-              {togglingHidden ? "progress_activity" : "block"}
-            </span>
-            <span>{providerText(t, "blacklistModel", "Blacklist")}</span>
-          </button>
-        )}
-        {onTestModel && (
-          <button
-            onClick={() => onTestModel(model.id, fullModel)}
-            disabled={testingModel}
-            className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "quota" ? "text-amber-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
-            title={
-              testingModel
-                ? t("testingModel")
-                : testStatus === "ok"
-                  ? "OK"
-                  : testStatus === "quota"
-                    ? t("modelTestQuotaTooltip")
-                    : testStatus === "error"
-                      ? providerText(t, "errorShort", "Error")
-                      : t("testModel")
-            }
-          >
-            {testingModel ? (
-              <span className="material-symbols-outlined text-sm animate-spin">
-                progress_activity
+        <div className="ml-auto flex shrink-0 items-center gap-1">
+          {onToggleHidden && testStatus === "error" && (
+            <button
+              onClick={() => onToggleHidden(model.id, true)}
+              disabled={togglingHidden}
+              className={`flex items-center gap-1 rounded p-0.5 text-[11px] text-red-500 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${togglingHidden ? "animate-pulse" : ""}`}
+              title={providerText(
+                t,
+                "blacklistModelTooltip",
+                "Blacklist this model — hide it from the catalog"
+              )}
+            >
+              <span className="material-symbols-outlined text-sm">
+                {togglingHidden ? "progress_activity" : "block"}
               </span>
-            ) : testStatus === "ok" ? (
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-            ) : testStatus === "quota" ? (
-              <span className="material-symbols-outlined text-sm">warning</span>
-            ) : testStatus === "error" ? (
-              <span className="material-symbols-outlined text-sm">error</span>
-            ) : (
-              <span className="material-symbols-outlined text-sm">play_circle</span>
-            )}
-          </button>
-        )}
-        {onToggleHidden && (
-          <button
-            onClick={() => onToggleHidden(model.id, !isHidden)}
-            disabled={togglingHidden}
-            className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
-            title={
-              isHidden
-                ? providerText(t, "showModel", "Show model")
-                : providerText(t, "hideModel", "Hide model")
+              <span>{providerText(t, "blacklistModel", "Blacklist")}</span>
+            </button>
+          )}
+          {onTestModel && (
+            <button
+              onClick={() => onTestModel(model.id, fullModel)}
+              disabled={testingModel}
+              className={`rounded p-0.5 hover:bg-sidebar transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${testStatus === "ok" ? "text-green-500" : testStatus === "quota" ? "text-amber-500" : testStatus === "error" ? "text-red-500" : "text-text-muted hover:text-primary"}`}
+              title={
+                testingModel
+                  ? t("testingModel")
+                  : testStatus === "ok"
+                    ? "OK"
+                    : testStatus === "quota"
+                      ? t("modelTestQuotaTooltip")
+                      : testStatus === "error"
+                        ? providerText(t, "errorShort", "Error")
+                        : t("testModel")
+              }
+            >
+              {testingModel ? (
+                <span className="material-symbols-outlined text-sm animate-spin">
+                  progress_activity
+                </span>
+              ) : testStatus === "ok" ? (
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+              ) : testStatus === "quota" ? (
+                <span className="material-symbols-outlined text-sm">warning</span>
+              ) : testStatus === "error" ? (
+                <span className="material-symbols-outlined text-sm">error</span>
+              ) : (
+                <span className="material-symbols-outlined text-sm">play_circle</span>
+              )}
+            </button>
+          )}
+          {onToggleHidden && (
+            <button
+              onClick={() => onToggleHidden(model.id, !isHidden)}
+              disabled={togglingHidden}
+              className="rounded p-0.5 text-text-muted hover:bg-sidebar hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+              title={
+                isHidden
+                  ? providerText(t, "showModel", "Show model")
+                  : providerText(t, "hideModel", "Hide model")
+              }
+            >
+              <span className="material-symbols-outlined text-sm">
+                {isHidden ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          )}
+          <ModelCompatPopover
+            t={t}
+            providerId={provider}
+            modelId={model.id}
+            effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
+            effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
+            getUpstreamHeadersRecord={getUpstreamHeadersRecord}
+            onCompatPatch={(protocol, payload) =>
+              saveModelCompatFlags(model.id, { compatByProtocol: { [protocol]: payload } })
             }
-          >
-            <span className="material-symbols-outlined text-sm">
-              {isHidden ? "visibility_off" : "visibility"}
-            </span>
-          </button>
-        )}
-        <ModelCompatPopover
-          t={t}
-          providerId={provider}
-          modelId={model.id}
-          effectiveModelNormalize={(p) => effectiveModelNormalize(model.id, p)}
-          effectiveModelPreserveDeveloper={(p) => effectiveModelPreserveDeveloper(model.id, p)}
-          getUpstreamHeadersRecord={getUpstreamHeadersRecord}
-          onCompatPatch={(protocol, payload) =>
-            saveModelCompatFlags(model.id, { compatByProtocol: { [protocol]: payload } })
-          }
-          showDeveloperToggle={showDeveloperToggle}
-          disabled={compatDisabled}
-        />
+            showDeveloperToggle={showDeveloperToggle}
+            disabled={compatDisabled}
+          />
+        </div>
       </div>
     </div>
   );

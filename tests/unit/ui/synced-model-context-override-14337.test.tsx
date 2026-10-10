@@ -22,6 +22,7 @@ vi.mock("next-intl", () => ({
 
 vi.mock("@/shared/components", () => ({
   Badge: ({ children, title }: any) => <span title={title}>{children}</span>,
+  CapabilityBadge: ({ children, title }: any) => <span title={title}>{children}</span>,
   Button: ({ children, onClick }: any) => <button onClick={onClick}>{children}</button>,
 }));
 

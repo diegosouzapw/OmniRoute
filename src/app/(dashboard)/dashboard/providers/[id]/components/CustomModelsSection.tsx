@@ -10,7 +10,7 @@
  */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/shared/components";
+import { Button, CapabilityBadge } from "@/shared/components";
 import {
   normalizeModelSupportedEndpoints,
   type ModelSupportedEndpoint,
@@ -66,15 +66,22 @@ const MODEL_ENDPOINT_OPTIONS: ModelSupportedEndpoint[] = [
   "audio-transcriptions",
 ];
 
+// Layout shared by the add form and the inline edit form: two columns on phones (fields
+// pair up, endpoint checkboxes form a tidy grid), one flowing row from lg up.
+const FORMAT_FIELDS_GRID = "grid grid-cols-2 items-end gap-3 lg:flex lg:flex-wrap lg:gap-x-4";
+const ENDPOINTS_GRID =
+  "grid grid-cols-2 gap-x-3 gap-y-1.5 sm:grid-cols-3 lg:flex lg:flex-wrap lg:items-center lg:gap-y-1";
+const CHECK_LABEL = "flex min-w-0 items-center gap-1.5 text-xs text-text-main cursor-pointer";
+
 function endpointLabel(endpoint: ModelSupportedEndpoint, t: (key: string) => string): string {
   const labels: Partial<Record<ModelSupportedEndpoint, string>> = {
-    chat: `💬 ${t("supportedEndpointChat")}`,
-    embeddings: `📐 ${t("supportedEndpointEmbeddings")}`,
+    chat: t("supportedEndpointChat"),
+    embeddings: t("supportedEndpointEmbeddings"),
     rerank: providerText(t, "rerankEndpoint", "Rerank"),
-    images: `🖼️ ${t("supportedEndpointImages")}`,
-    videos: "🎬 Video",
-    "audio-speech": `🔊 ${t("audioSpeech")}`,
-    "audio-transcriptions": `🎙️ ${t("audioTranscriptions")}`,
+    images: t("supportedEndpointImages"),
+    videos: "Video",
+    "audio-speech": t("audioSpeech"),
+    "audio-transcriptions": t("audioTranscriptions"),
   };
   return labels[endpoint] || endpoint;
 }
@@ -419,8 +426,8 @@ export default function CustomModelsSection({
 
       {/* Add form */}
       <div className="flex flex-col gap-3 mb-3">
-        <div className="flex items-end gap-2">
-          <div className="flex-1">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:flex sm:flex-wrap">
+          <div className="col-span-2 flex-1 basis-48 min-w-0">
             <label htmlFor="custom-model-id" className="text-xs text-text-muted mb-1 block">
               {t("modelId")}
             </label>
@@ -434,7 +441,7 @@ export default function CustomModelsSection({
               className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background focus:outline-none focus:border-primary"
             />
           </div>
-          <div className="w-40">
+          <div className="min-w-0 sm:w-40">
             <label htmlFor="custom-model-name" className="text-xs text-text-muted mb-1 block">
               {t("displayName")}
             </label>
@@ -454,8 +461,8 @@ export default function CustomModelsSection({
         </div>
 
         {/* API Format + Supported Endpoints */}
-        <div className="flex items-end gap-4 flex-wrap">
-          <div className="w-48">
+        <div className={FORMAT_FIELDS_GRID}>
+          <div className="min-w-0 lg:w-48">
             <label htmlFor="custom-api-format" className="text-xs text-text-muted mb-1 block">
               API Format
             </label>
@@ -475,7 +482,7 @@ export default function CustomModelsSection({
               <option value="video">Video</option>
             </select>
           </div>
-          <div className="w-48">
+          <div className="min-w-0 lg:w-48">
             <label htmlFor="custom-target-format" className="text-xs text-text-muted mb-1 block">
               {t("targetFormatLabel")}
             </label>
@@ -494,16 +501,13 @@ export default function CustomModelsSection({
               <option value="antigravity">{t("targetFormatAntigravity")}</option>
             </select>
           </div>
-          <div className="flex-1">
+          <div className="col-span-2 min-w-0 lg:flex-1">
             <span className="text-xs text-text-muted mb-1 block">
               {t("supportedEndpointsLabel")}
             </span>
-            <div className="flex items-center gap-3">
+            <div className={ENDPOINTS_GRID}>
               {MODEL_ENDPOINT_OPTIONS.map((ep) => (
-                <label
-                  key={ep}
-                  className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer"
-                >
+                <label key={ep} className={CHECK_LABEL}>
                   <input
                     type="checkbox"
                     checked={newEndpoints.includes(ep)}
@@ -521,8 +525,8 @@ export default function CustomModelsSection({
               ))}
             </div>
           </div>
-          <div>
-            <span className="text-xs text-text-muted mb-1 block">&nbsp;</span>
+          <div className="col-span-2 flex flex-wrap gap-x-4 gap-y-1 lg:block">
+            <span className="hidden text-xs text-text-muted mb-1 lg:block">&nbsp;</span>
             <label
               htmlFor="custom-model-supports-vision"
               className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
@@ -535,7 +539,7 @@ export default function CustomModelsSection({
                 onChange={(e) => setNewSupportsVision(e.target.checked)}
                 className="rounded border-border"
               />
-              {`👁️ ${t("visionCapableLabel")}`}
+              {t("visionCapableLabel")}
             </label>
             <label
               htmlFor="custom-model-is-free"
@@ -615,20 +619,22 @@ export default function CustomModelsSection({
                       </span>
                     )}
                     {typeof model.contextWindowOverride === "number" && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-400 font-medium"
+                      <CapabilityBadge
+                        icon="width_normal"
+                        className="bg-orange-500/15 text-orange-400"
                         title={t("contextWindowOverrideHint")}
                       >
-                        {`🪟 ${model.contextWindowOverride.toLocaleString()}`}
-                      </span>
+                        {model.contextWindowOverride.toLocaleString()}
+                      </CapabilityBadge>
                     )}
                     {model.supportsVision === true && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/15 text-pink-400 font-medium"
+                      <CapabilityBadge
+                        icon="visibility"
+                        className="bg-pink-500/15 text-pink-400"
                         title={t("visionCapableHint")}
                       >
-                        {`👁️ ${t("visionCapableLabel")}`}
-                      </span>
+                        {t("visionCapableLabel")}
+                      </CapabilityBadge>
                     )}
                     {model.isFree === true && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">
@@ -636,35 +642,38 @@ export default function CustomModelsSection({
                       </span>
                     )}
                     {model.supportedEndpoints?.includes("embeddings") && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-medium">
-                        {`📐 ${t("supportedEndpointEmbeddings")}`}
-                      </span>
+                      <CapabilityBadge
+                        icon="scatter_plot"
+                        className="bg-purple-500/15 text-purple-400"
+                      >
+                        {t("supportedEndpointEmbeddings")}
+                      </CapabilityBadge>
                     )}
                     {model.supportedEndpoints?.includes("images") && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-medium">
-                        {`🖼️ ${t("imagesShortLabel")}`}
-                      </span>
+                      <CapabilityBadge icon="image" className="bg-amber-500/15 text-amber-400">
+                        {t("imagesShortLabel")}
+                      </CapabilityBadge>
                     )}
                     {model.supportedEndpoints?.includes("audio") && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">
-                        {`🔊 ${t("audioShortLabel")}`}
-                      </span>
+                      <CapabilityBadge icon="volume_up" className="bg-green-500/15 text-green-400">
+                        {t("audioShortLabel")}
+                      </CapabilityBadge>
                     )}
                     {(model.supportedEndpoints?.includes("videos") ||
                       model.supportedEndpoints?.includes("video")) && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 font-medium">
-                        🎬 Video
-                      </span>
+                      <CapabilityBadge icon="movie" className="bg-red-500/15 text-red-400">
+                        Video
+                      </CapabilityBadge>
                     )}
                     {model.supportedEndpoints?.includes("audio-speech") && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400 font-medium">
-                        {`🔊 ${t("audioSpeech")}`}
-                      </span>
+                      <CapabilityBadge icon="volume_up" className="bg-green-500/15 text-green-400">
+                        {t("audioSpeech")}
+                      </CapabilityBadge>
                     )}
                     {model.supportedEndpoints?.includes("audio-transcriptions") && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-400 font-medium">
-                        {`🎙️ ${t("audioTranscriptions")}`}
-                      </span>
+                      <CapabilityBadge icon="mic" className="bg-cyan-500/15 text-cyan-400">
+                        {t("audioTranscriptions")}
+                      </CapabilityBadge>
                     )}
                     {anyNormalizeCompatBadge(model.id!, customMap, overrideMap) && (
                       <span
@@ -694,8 +703,8 @@ export default function CustomModelsSection({
 
                   {editingModelId === model.id && (
                     <div className="mt-3 min-w-0 max-w-full rounded-lg border border-border bg-muted p-3 dark:bg-zinc-900">
-                      <div className="flex min-w-0 flex-wrap items-end gap-x-3 gap-y-2">
-                        <div className="w-[11rem] shrink-0 min-w-0">
+                      <div className={FORMAT_FIELDS_GRID}>
+                        <div className="min-w-0 lg:w-[11rem] lg:shrink-0">
                           <label className="text-xs text-text-muted mb-1 block">
                             {t("apiFormatLabel")}
                           </label>
@@ -714,7 +723,7 @@ export default function CustomModelsSection({
                             <option value="video">Video</option>
                           </select>
                         </div>
-                        <div className="w-[11rem] shrink-0 min-w-0">
+                        <div className="min-w-0 lg:w-[11rem] lg:shrink-0">
                           <label className="text-xs text-text-muted mb-1 block">
                             {t("targetFormatLabel")}
                           </label>
@@ -734,7 +743,7 @@ export default function CustomModelsSection({
                             <option value="antigravity">{t("targetFormatAntigravity")}</option>
                           </select>
                         </div>
-                        <div className="w-[10rem] shrink-0 min-w-0">
+                        <div className="min-w-0 lg:w-[10rem] lg:shrink-0">
                           <label className="text-xs text-text-muted mb-1 block">
                             {t("contextWindowOverrideLabel")}
                           </label>
@@ -748,11 +757,13 @@ export default function CustomModelsSection({
                             className="w-full px-2.5 py-2 text-xs border border-border rounded-lg bg-background text-text-main focus:outline-none focus:border-primary"
                           />
                         </div>
-                        <div className="w-[9rem] shrink-0 min-w-0">
-                          <label className="text-xs text-text-muted mb-1 block">&nbsp;</label>
+                        <div className="flex min-w-0 flex-col lg:w-[9rem] lg:shrink-0">
+                          <label className="hidden text-xs text-text-muted mb-1 lg:block">
+                            &nbsp;
+                          </label>
                           <label
                             htmlFor={`custom-model-edit-vision-${model.id}`}
-                            className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap px-2.5 py-2"
+                            className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap py-1 lg:px-2.5 lg:py-2"
                             title={t("visionCapableHint")}
                           >
                             <input
@@ -762,11 +773,11 @@ export default function CustomModelsSection({
                               onChange={(e) => setEditingSupportsVision(e.target.checked)}
                               className="rounded border-border"
                             />
-                            {`👁️ ${t("visionCapableLabel")}`}
+                            {t("visionCapableLabel")}
                           </label>
                           <label
                             htmlFor={`custom-model-edit-free-${model.id}`}
-                            className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap px-2.5 py-2"
+                            className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap py-1 lg:px-2.5 lg:py-2"
                             title="Mark as free-tier"
                           >
                             <input
@@ -779,16 +790,13 @@ export default function CustomModelsSection({
                             FREE
                           </label>
                         </div>
-                        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 overflow-x-auto overflow-y-visible [scrollbar-width:thin]">
+                        <div className="col-span-2 flex min-w-0 flex-col gap-1 lg:flex-1 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3">
                           <span className="text-xs text-text-muted shrink-0">
                             {t("supportedEndpointsLabel")}
                           </span>
-                          <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 min-w-0">
+                          <div className={ENDPOINTS_GRID}>
                             {MODEL_ENDPOINT_OPTIONS.map((ep) => (
-                              <label
-                                key={ep}
-                                className="flex items-center gap-1.5 text-xs text-text-main cursor-pointer whitespace-nowrap"
-                              >
+                              <label key={ep} className={CHECK_LABEL}>
                                 <input
                                   type="checkbox"
                                   checked={editingEndpoints.includes(ep)}
@@ -808,7 +816,7 @@ export default function CustomModelsSection({
                             ))}
                           </div>
                         </div>
-                        <div className="flex shrink-0 flex-wrap items-center gap-2 pb-0.5">
+                        <div className="col-span-2 flex flex-wrap items-center gap-2 pb-0.5 lg:shrink-0">
                           <Button
                             size="sm"
                             onClick={() => saveEdit(model.id!)}

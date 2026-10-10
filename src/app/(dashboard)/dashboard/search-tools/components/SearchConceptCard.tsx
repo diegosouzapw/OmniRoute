@@ -23,11 +23,26 @@ interface ConceptItem {
 }
 
 const CONCEPTS: ConceptItem[] = [
-  { icon: "🔍", key: "search", titleKey: "searchConceptTitle", descKey: "searchConceptDesc" },
-  { icon: "📄", key: "scrape", titleKey: "scrapeConceptTitle", descKey: "scrapeConceptDesc" },
-  { icon: "⚖", key: "compare", titleKey: "compareConceptTitle", descKey: "compareConceptDesc" },
-  { icon: "↕", key: "rerank", titleKey: "rerankConceptTitle", descKey: "rerankConceptDesc" },
-  { icon: "⚡", key: "auto", titleKey: "autoConceptTitle", descKey: "autoConceptDesc" },
+  { icon: "search", key: "search", titleKey: "searchConceptTitle", descKey: "searchConceptDesc" },
+  {
+    icon: "description",
+    key: "scrape",
+    titleKey: "scrapeConceptTitle",
+    descKey: "scrapeConceptDesc",
+  },
+  {
+    icon: "balance",
+    key: "compare",
+    titleKey: "compareConceptTitle",
+    descKey: "compareConceptDesc",
+  },
+  {
+    icon: "swap_vert",
+    key: "rerank",
+    titleKey: "rerankConceptTitle",
+    descKey: "rerankConceptDesc",
+  },
+  { icon: "bolt", key: "auto", titleKey: "autoConceptTitle", descKey: "autoConceptDesc" },
 ];
 
 interface SearchConceptCardProps {
@@ -73,7 +88,10 @@ export default function SearchConceptCard({ defaultCollapsed = false }: SearchCo
               className="flex gap-3 p-3 bg-bg-alt rounded-lg border border-border"
               data-testid={`concept-item-${c.key}`}
             >
-              <span className="text-lg shrink-0" aria-hidden="true">
+              <span
+                className="material-symbols-outlined shrink-0 text-[20px] text-primary"
+                aria-hidden="true"
+              >
                 {c.icon}
               </span>
               <div>

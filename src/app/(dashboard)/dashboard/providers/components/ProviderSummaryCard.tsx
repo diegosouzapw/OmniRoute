@@ -247,7 +247,7 @@ export default function ProviderSummaryCard({
           </button>
         </div>
 
-        <div className="border-t border-border pt-3 flex flex-wrap items-center gap-2">
+        <div className="border-t border-border pt-3 flex flex-wrap items-center gap-2 [&>button]:grow [&>button]:justify-center sm:[&>button]:grow-0">
           {categories.map((cat) => {
             const isActive =
               (cat.key === null && !activeCategory && !showFreeOnly) ||
@@ -278,7 +278,7 @@ export default function ProviderSummaryCard({
           })}
         </div>
 
-        <div className="border-t border-border pt-3 flex flex-wrap items-center gap-2">
+        <div className="border-t border-border pt-3 flex flex-wrap items-center gap-2 [&>button]:grow [&>button]:justify-center sm:[&>button]:grow-0">
           <span className="text-[11px] font-medium uppercase tracking-wide text-text-muted mr-1">
             {providerText(t, "filterByMedia", "Media")}
           </span>

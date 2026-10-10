@@ -247,7 +247,10 @@ export default function FaroChat() {
             onTouchStart={() => void startRecording()}
             onTouchEnd={stopRecording}
           >
-            🎙 {voiceLabel[voice]}
+            <span className="material-symbols-outlined text-[14px] leading-none" aria-hidden="true">
+              mic
+            </span>{" "}
+            {voiceLabel[voice]}
           </button>
           <label className="flex items-center gap-1 text-xs text-text-muted">
             <input type="checkbox" checked={speak} onChange={(e) => setSpeak(e.target.checked)} />

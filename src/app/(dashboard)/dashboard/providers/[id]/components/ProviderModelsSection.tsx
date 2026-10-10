@@ -12,7 +12,7 @@
  */
 
 import { useState } from "react";
-import { Button } from "@/shared/components";
+import { ActionBar, AutoGrid, Button } from "@/shared/components";
 import { matchesModelCatalogQuery } from "@/shared/utils/modelCatalogSearch";
 import { isFreeModel, sortModelsFreeFirst } from "@/shared/utils/freeModels";
 import {
@@ -261,10 +261,10 @@ export default function ProviderModelsSection({
 
     return (
       <div>
-        <div className="flex items-center gap-2 mb-4">
+        <ActionBar align="start" className="mb-4">
           {modelDiscoveryControls}
           {clearAllButton}
-        </div>
+        </ActionBar>
         <CompatibleModelsSection
           providerStorageAlias={providerStorageAlias}
           providerDisplayAlias={providerDisplayAlias}
@@ -329,7 +329,7 @@ export default function ProviderModelsSection({
 
     return (
       <div>
-        <div className="flex items-center gap-2 mb-4">
+        <ActionBar align="start" className="mb-4">
           {allowModelImport && (
             <Button
               size="sm"
@@ -346,7 +346,7 @@ export default function ProviderModelsSection({
           {allowModelImport && !canImportModels && (
             <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
           )}
-        </div>
+        </ActionBar>
         <PassthroughModelsSection
           providerAlias={providerAlias}
           modelAliases={modelAliases}
@@ -388,7 +388,7 @@ export default function ProviderModelsSection({
   }
 
   const importButton = allowModelImport ? (
-    <div className="flex items-center gap-2 mb-4">
+    <ActionBar align="start" className="mb-4">
       <Button
         size="sm"
         variant="secondary"
@@ -402,7 +402,7 @@ export default function ProviderModelsSection({
       {!canImportModels && (
         <span className="text-xs text-text-muted">{t("addConnectionToImport")}</span>
       )}
-    </div>
+    </ActionBar>
   ) : null;
 
   if (models.length === 0) {
@@ -497,7 +497,7 @@ export default function ProviderModelsSection({
           onSortFreeFirstChange={setSortFreeFirst}
         />
       )}
-      <div className="flex flex-wrap gap-3">
+      <AutoGrid>
         {displayModels.map((model) => {
           return (
             <ModelRow
@@ -530,13 +530,13 @@ export default function ProviderModelsSection({
           );
         })}
         {filteredModels.length === 0 && modelFilter && (
-          <p className="text-sm text-text-muted py-2">
+          <p className="col-span-full text-sm text-text-muted py-2">
             {providerText(t, "noModelsMatch", `No models match "${modelFilter}"`, {
               filter: modelFilter,
             })}
           </p>
         )}
-      </div>
+      </AutoGrid>
     </div>
   );
 }

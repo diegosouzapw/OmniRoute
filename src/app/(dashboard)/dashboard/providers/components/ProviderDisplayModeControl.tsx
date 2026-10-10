@@ -79,7 +79,7 @@ export default function ProviderDisplayModeControl({
 
   return (
     <div
-      className="flex items-center rounded-lg border border-border bg-bg-subtle p-0.5"
+      className="flex w-full items-center rounded-lg border border-border bg-bg-subtle p-0.5 sm:w-auto"
       role="radiogroup"
       aria-label={providerText(t, "providerDisplayMode", "Provider display mode")}
       data-testid="provider-display-mode-control"
@@ -92,7 +92,7 @@ export default function ProviderDisplayModeControl({
             title={option.title}
             data-testid={`provider-display-mode-${option.mode}`}
             data-active={isActive ? "true" : "false"}
-            className={`inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors ${
+            className={`inline-flex h-7 grow items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors sm:grow-0 ${
               isActive
                 ? "bg-bg-primary text-text-main shadow-sm"
                 : "text-text-muted hover:bg-bg-primary/70 hover:text-text-main"

@@ -7,7 +7,9 @@
    the layout. Bundling the font locally removes that runtime CDN dependency.
    The bundled @font-face uses family "Material Symbols Outlined", matching the
    .material-symbols-outlined rule defined later in this file. */
-@import "material-symbols/outlined.css";
+/* Layered as base so Tailwind size utilities (text-sm, text-[13px]…) on an icon win;
+   unlayered, the package's `font-size: 24px` beat every utility and all icons rendered at 24px. */
+@import "material-symbols/outlined.css" layer(base);
 /* react18-json-view (request/response JSON tree in RequestLoggerDetail) — imported here
    instead of in the component so node:test / esbuild never see a .css import. */
 @import "react18-json-view/src/style.css";
@@ -369,27 +371,70 @@ body.electron-macos {
 }
 
 /* Material Symbols */
-:where(.material-symbols-outlined) {
-  font-family: "Material Symbols Outlined", sans-serif !important;
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  font-feature-settings: "liga";
-  -webkit-font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
-  font-variation-settings:
-    "FILL" 0,
-    "wght" 400,
-    "GRAD" 0,
-    "opsz" 24;
-  user-select: none;
+@layer base {
+  :where(.material-symbols-outlined) {
+    font-family: "Material Symbols Outlined", sans-serif !important;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: "liga";
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings:
+      "FILL" 0,
+      "wght" 400,
+      "GRAD" 0,
+      "opsz" 24;
+    user-select: none;
+  }
+}
+
+/* Phones: any wrapping row of 3+ buttons, and any row made only of 3+ buttons (tabs,
+   filters, toolbars), stretches its buttons to fill each line instead of leaving a ragged
+   gap on the right. Same behaviour as the shared ActionBar / FilterPills; a component
+   opts out with `grow-0` on the button. */
+@layer components {
+  @media (max-width: 639px) {
+    main .flex-wrap:has(> button:nth-of-type(3)) > button,
+    main .flex:has(> button:nth-of-type(3)):not(:has(> :not(button))) > button {
+      flex-grow: 1;
+      justify-content: center;
+    }
+  }
+}
+
+/* Phones: page and section titles stay on one line (ellipsis instead of wrapping), and a
+   header row that starts with the title drops its actions to the line below instead of
+   squeezing (or overlapping) the title. */
+@layer components {
+  @media (max-width: 639px) {
+    main :is(h1, h2) {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    main
+      .flex:not(.flex-col):has(
+        > :is(h1, h2):first-child,
+        > div:first-child > :is(h1, h2):first-child
+      ) {
+      flex-wrap: wrap;
+    }
+    main .flex:not(.flex-col) > :is(h1, h2):first-child,
+    main .flex:not(.flex-col) > div:first-child:has(> :is(h1, h2):first-child) {
+      /* important: a `flex-1` (basis 0) on the title would otherwise squeeze it to nothing */
+      flex-basis: 100% !important;
+      min-width: 0;
+    }
+  }
 }
 
 /* Ensure icon clicks always bubble to the parent button */

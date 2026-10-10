@@ -124,6 +124,7 @@ export default function ProviderAccountRoutingCard({ providerKey, connectionCoun
       <p className="text-xs text-text-muted mb-3">{t("providerAccountRoutingDesc")}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Select
+          compact
           label={t("providerRoutingStrategy")}
           disabled={busy}
           value={strategy}

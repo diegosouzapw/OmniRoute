@@ -48,7 +48,11 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
     fetchTproxyStatus()
       .then((s) => {
         if (alive) {
-          setTproxy({ running: s.running, available: s.available, interceptCount: s.interceptCount });
+          setTproxy({
+            running: s.running,
+            available: s.available,
+            interceptCount: s.interceptCount,
+          });
         }
       })
       .catch(() => {
@@ -134,7 +138,14 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
                 )}
               />
               {label}
-              {warn && <span className="text-amber-400">⚠</span>}
+              {warn && (
+                <span
+                  className="material-symbols-outlined text-[14px] leading-none text-amber-400"
+                  aria-hidden="true"
+                >
+                  warning
+                </span>
+              )}
             </button>
           );
         })}
@@ -162,7 +173,12 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
           {tproxy.running && typeof tproxy.interceptCount === "number" && (
             <span className="text-amber-400">· {tproxy.interceptCount}</span>
           )}
-          <span className="text-amber-400">⚠</span>
+          <span
+            className="material-symbols-outlined text-[14px] leading-none text-amber-400"
+            aria-hidden="true"
+          >
+            warning
+          </span>
         </button>
 
         <div className="ml-auto flex items-center gap-2">
@@ -171,7 +187,10 @@ export function CaptureModesToolbar({ customHostCount }: CaptureModesToolbarProp
             onClick={() => setShowHosts(true)}
             className="text-xs text-text-muted hover:text-text-main focus-ring rounded"
           >
-            ⚙ {t("manageHosts")}
+            <span className="material-symbols-outlined text-[14px] leading-none" aria-hidden="true">
+              settings
+            </span>{" "}
+            {t("manageHosts")}
           </button>
           <button
             type="button"

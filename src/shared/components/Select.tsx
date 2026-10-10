@@ -18,6 +18,8 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
   selectClassName?: string;
   /** Keep the placeholder selectable after a real value is chosen. */
   placeholderDisabled?: boolean;
+  /** Label and select on one line, with a shorter select (settings rows, cards). */
+  compact?: boolean;
 }
 
 export default function Select({
@@ -33,6 +35,7 @@ export default function Select({
   className,
   selectClassName,
   placeholderDisabled = true,
+  compact = false,
   id: externalId,
   children,
   ...props
@@ -45,9 +48,19 @@ export default function Select({
   const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
+    <div
+      className={cn(
+        compact
+          ? "flex flex-wrap items-center justify-between gap-x-3 gap-y-1"
+          : "flex flex-col gap-1.5",
+        className
+      )}
+    >
       {label && (
-        <label htmlFor={selectId} className="text-sm font-medium text-text-main">
+        <label
+          htmlFor={selectId}
+          className={cn("font-medium text-text-main", compact ? "text-xs" : "text-sm")}
+        >
           {label}
           {required && (
             <span className="text-red-500 ml-1" aria-hidden="true">
@@ -56,7 +69,7 @@ export default function Select({
           )}
         </label>
       )}
-      <div className="relative">
+      <div className={cn("relative", compact && "min-w-0 flex-1 sm:flex-none")}>
         <select
           id={selectId}
           value={value}
@@ -67,7 +80,9 @@ export default function Select({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={cn(
-            "w-full py-2 px-3 pe-10 text-sm text-text-main",
+            compact
+              ? "w-full py-1.5 ps-2.5 pe-8 text-sm text-text-main"
+              : "w-full py-2 px-3 pe-10 text-sm text-text-main",
             "bg-surface border border-black/10 dark:border-white/10 rounded-control appearance-none",
             "focus:ring-1 focus:ring-accent/30 focus:border-accent/50 focus:outline-none",
             "transition-all disabled:opacity-50 disabled:cursor-not-allowed",
