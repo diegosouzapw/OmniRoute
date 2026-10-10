@@ -29,6 +29,10 @@ import {
 } from "../helpers/geminiHelper.ts";
 import { buildGeminiTools, sanitizeGeminiToolName } from "../helpers/geminiToolsSanitizer.ts";
 import {
+  isGeminiTrailingModelTurnRejectingModel,
+  stripTrailingGeminiModelTurns,
+} from "../helpers/geminiTrailingModelTurn.ts";
+import {
   normalizeGeminiToolCallIds,
   validateChronologicalToolCallIds,
 } from "./openai-to-gemini/toolCallIds.ts";
@@ -674,6 +678,11 @@ function openaiToGeminiBase(
   // Guard the one alternation violation the merge above cannot reach: history
   // that opens with a functionCall-bearing turn instead of a user turn.
   result.contents = ensureHistoryDoesNotOpenWithFunctionCall(result.contents);
+  // Gemini 3.x rejects a request ending on a model turn (prefill or an unanswered
+  // tool call) — 9router#4345. Gated so models that accept prefill are untouched.
+  if (isGeminiTrailingModelTurnRejectingModel(model)) {
+    result.contents = stripTrailingGeminiModelTurns(result.contents);
+  }
   // Signatures must be resolved using client IDs before assigning unique wire IDs (#15312).
   result.contents = normalizeGeminiToolCallIds(result.contents);
 
