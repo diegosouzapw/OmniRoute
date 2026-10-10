@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "coverage-test-selection/1",
+  "partitions": [
+    {
+      "id": "node-main",
+      "lane": "node",
+      "shards": 8,
+      "include": [
+        "tests/unit/*.test.ts",
+        "tests/unit/{api,auth,authz,build,chatcore,cli,cli-helper,combo,compression,correctness,cors,db,db-adapters,docs,gamification,guardrails,lib,mcp,memory,runtime,security,services,settings,shared,translator,ui,usage}/**/*.test.ts",
+        "tests/unit/**/*.test.mjs"
+      ],
+      "exclude": []
+    },
+    {
+      "id": "node-dashboard",
+      "lane": "node",
+      "shards": 8,
+      "include": ["tests/unit/dashboard/**/*.test.ts"],
+      "exclude": []
+    },
+    {
+      "id": "node-serial",
+      "lane": "node",
+      "shards": 8,
+      "include": ["tests/unit/serial/**/*.test.ts"],
+      "exclude": []
+    },
+    {
+      "id": "vitest-node",
+      "lane": "vitest-node",
+      "shards": 1,
+      "include": [
+        "open-sse/mcp-server/__tests__/**/*.test.ts",
+        "open-sse/services/autoCombo/__tests__/**/*.test.ts",
+        "open-sse/services/combo/__tests__/**/*.test.ts",
+        "open-sse/services/__tests__/antigravity-quota-family.test.ts",
+        "open-sse/services/__tests__/fail-fast-concurrency-gate.test.ts",
+        "src/lib/memory/__tests__/generic-backend.test.ts",
+        "tests/unit/autoCombo/**/*.test.ts",
+        "tests/unit/api/**/*.spec.ts",
+        "tests/unit/encryption.spec.ts",
+        "src/shared/components/**/*.test.tsx",
+        "src/shared/hooks/__tests__/**/*.test.tsx",
+        "src/app/(dashboard)/**/__tests__/**/*.test.tsx"
+      ],
+      "exclude": ["**/node_modules/**", "**/.git/**"]
+    },
+    {
+      "id": "vitest-ui",
+      "lane": "vitest-ui",
+      "shards": 1,
+      "include": [
+        "src/app/**/dashboard/cache/__tests__/**/*.test.tsx",
+        "src/app/**/dashboard/endpoint/__tests__/**/*.test.tsx",
+        "src/app/**/dashboard/providers/**/__tests__/**/*.test.tsx",
+        "src/app/**/dashboard/webhooks/__tests__/**/*.test.tsx",
+        "src/app/**/dashboard/discovery/__tests__/**/*.test.tsx",
+        "src/shared/hooks/__tests__/**/*.test.tsx",
+        "src/lib/memory/__tests__/**/*.test.ts",
+        "src/lib/skills/__tests__/**/*.test.ts",
+        "tests/unit/encryption.test.ts",
+        "tests/unit/**/*.test.tsx",
+        "open-sse/**/__tests__/**/*.test.ts",
+        "open-sse/services/**/__tests__/**/*.test.ts"
+      ],
+      "exclude": [
+        "node_modules/**",
+        "dist/**",
+        "cypress/**",
+        ".idea/**",
+        ".git/**",
+        ".cache/**",
+        "tests/e2e/ecosystem.test.ts",
+        "tests/e2e/protocol-clients.test.ts"
+      ]
+    }
+  ]
+}

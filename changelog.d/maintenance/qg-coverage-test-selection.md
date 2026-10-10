@@ -1,0 +1,1 @@
+Add an opt-in, immutable Git-based test-selection policy for three Node segments across eight explicit-file shards and both Vitest lanes, with rejection of missing, extra, duplicate or self-reduced selections. Existing CI runners and coverage floors remain unchanged pending shadow and wiring validation.
