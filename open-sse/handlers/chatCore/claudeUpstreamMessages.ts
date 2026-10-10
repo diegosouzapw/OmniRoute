@@ -82,6 +82,10 @@ export function extractSystemMessagesToBody(payload: Record<string, unknown>) {
   payload.messages = messages.filter((m) => !isSystemRole(m.role));
 }
 
+function isNonEmptyTextOrOther(block: ClaudeContentBlock): boolean {
+  return block.type !== "text" || (typeof block.text === "string" && block.text.length > 0);
+}
+
 export function normalizeClaudeUpstreamMessages(
   payload: Record<string, unknown>,
   options?: { preserveToolResultBlocks?: boolean } & SystemRoleRoute,
@@ -89,20 +93,14 @@ export function normalizeClaudeUpstreamMessages(
 ) {
   const preserveToolResultBlocks = options?.preserveToolResultBlocks === true;
   if (!Array.isArray(payload.messages)) return;
-  let messages = payload.messages as ClaudeMessage[];
 
   // Lift system/developer role messages into the top-level system parameter.
   liftSystemRoleMessages(payload, options);
-  messages = payload.messages as ClaudeMessage[];
+  const messages = payload.messages as ClaudeMessage[];
 
   // Anthropic rejects empty text blocks in native Messages payloads.
   for (const msg of messages) {
-    if (Array.isArray(msg.content)) {
-      msg.content = msg.content.filter(
-        (block: ClaudeContentBlock) =>
-          block.type !== "text" || (typeof block.text === "string" && block.text.length > 0)
-      );
-    }
+    if (Array.isArray(msg.content)) msg.content = msg.content.filter(isNonEmptyTextOrOther);
   }
 
   // Normalize unsupported content types without reintroducing the Claude -> OpenAI round-trip.
