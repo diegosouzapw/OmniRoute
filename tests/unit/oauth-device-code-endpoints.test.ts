@@ -16,10 +16,15 @@ const here = dirname(fileURLToPath(import.meta.url));
 const read = (p: string) => readFileSync(resolve(here, "../..", p), "utf8");
 
 test("codebuddy-cn device-code sends platform as a query param (not body-only)", () => {
-  const cb = read("src/lib/oauth/providers/codebuddy-cn.ts");
+  const cb = read("src/lib/oauth/providers/codebuddyDeviceAuth.ts");
   assert.match(
     cb,
     /\?platform=\$\{encodeURIComponent\(config\.platform\)\}/,
     "platform query param"
   );
+});
+
+test("codebuddy-intl device-code re-uses the shared query-param platform flow", () => {
+  const intl = read("src/lib/oauth/providers/codebuddy-intl.ts");
+  assert.match(intl, /codebuddyDeviceAuth/, "re-uses shared requestDeviceCode implementation");
 });

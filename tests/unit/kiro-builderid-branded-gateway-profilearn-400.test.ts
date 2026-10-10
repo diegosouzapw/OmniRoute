@@ -58,7 +58,11 @@ test("KiroExecutor.execute falls back to the CodeWhisperer host when the branded
     } as never);
 
     assert.equal(result.response.status, 200);
-    assert.equal(calledUrls.length, 2, "must retry on the CodeWhisperer host after the gateway 400");
+    assert.equal(
+      calledUrls.length,
+      2,
+      "must retry on the CodeWhisperer host after the gateway 400"
+    );
     assert.match(calledUrls[0], /runtime\.us-east-1\.kiro\.dev/);
     assert.match(calledUrls[1], /codewhisperer\.us-east-1\.amazonaws\.com/);
   } finally {
@@ -73,7 +77,7 @@ test("KiroExecutor.execute does not fall back on an unrelated 400 (a malformed b
 
   globalThis.fetch = (async (url: string) => {
     calledUrls.push(String(url));
-    return jsonResponse(400, { message: "Improperly formed request.", reason: null });
+    return jsonResponse(400, { message: "ValidationException: bad field", reason: null });
   }) as typeof fetch;
 
   try {
@@ -88,7 +92,11 @@ test("KiroExecutor.execute does not fall back on an unrelated 400 (a malformed b
     } as never);
 
     assert.equal(result.response.status, 400);
-    assert.equal(calledUrls.length, 1, "an unrelated 400 must not trigger the second candidate URL");
+    assert.equal(
+      calledUrls.length,
+      1,
+      "an unrelated 400 must not trigger the second candidate URL"
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }

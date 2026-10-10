@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Ciri</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Penyedia</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Penyedia</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ direkodkan dalam sejarah shell anda. → [Integrasi CLI](docs/guides/CLI-INTEGRA
 
 <div align="center">
 
-## 🌐 357 Penyedia AI — 152 Ditandai Percuma dalam Katalog
+## 🌐 372 Penyedia AI — 154 Ditandai Percuma dalam Katalog
 
 </div>
 

@@ -1,10 +1,23 @@
-import { pickCacheCreationTokens } from "./pickCacheCreationTokens.ts";
+import {
+  pickCacheCreationTokens,
+  resolveCacheCreationInPrompt,
+} from "./pickCacheCreationTokens.ts";
 
 type CacheUsageSource = {
   cache_creation_input_tokens?: number;
   cache_write_tokens?: number;
-  input_tokens_details?: { cached_tokens?: number; cache_creation_tokens?: number };
-  prompt_tokens_details?: { cached_tokens?: number; cache_creation_tokens?: number };
+  input_tokens_details?: {
+    cached_tokens?: number;
+    cache_creation_tokens?: number;
+    cache_write_tokens?: number;
+    cache_creation_in_prompt?: boolean;
+  };
+  prompt_tokens_details?: {
+    cached_tokens?: number;
+    cache_creation_tokens?: number;
+    cache_write_tokens?: number;
+    cache_creation_in_prompt?: boolean;
+  };
 };
 
 /**
@@ -17,8 +30,14 @@ export function resolveResponsesCacheUsageDetails(usage: CacheUsageSource) {
     usage.input_tokens_details?.cached_tokens ?? usage.prompt_tokens_details?.cached_tokens;
   const cacheCreationTokens = pickCacheCreationTokens(usage);
   if (!cachedTokens && !cacheCreationTokens) return undefined;
+  const cacheCreationInPrompt = cacheCreationTokens
+    ? resolveCacheCreationInPrompt(usage)
+    : undefined;
   return {
     ...(cachedTokens ? { cached_tokens: cachedTokens } : {}),
     ...(cacheCreationTokens ? { cache_creation_tokens: cacheCreationTokens } : {}),
+    ...(cacheCreationInPrompt !== undefined
+      ? { cache_creation_in_prompt: cacheCreationInPrompt }
+      : {}),
   };
 }

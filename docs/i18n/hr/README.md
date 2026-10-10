@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Značajke</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinacije</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Pružatelji</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Pružatelji</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI i MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ pohranu tajni u povijesti vaše ljuske. → [CLI integracije](docs/guides/CLI-IN
 
 <div align="center">
 
-## 🌐 357 pružatelja usluga umjetne inteligencije — 152 označena kao besplatna u katalogu
+## 🌐 372 pružatelja usluga umjetne inteligencije — 154 označena kao besplatna u katalogu
 
 </div>
 

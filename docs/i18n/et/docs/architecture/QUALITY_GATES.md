@@ -308,12 +308,14 @@ dokumentatsiooni/keskkonna leping, i18n-i võrdsus, ühiktestid) ei muutunud —
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — ühekordne
   leevendamine (`scripts/quality/relax-baselines.mjs`); keeldub sama märkusega teist korda käivitumast.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mõõdab iga arvulist väravat samal viisil nagu CI ja kuvab iga värava allesjäänud varuruumi
-  (`scripts/quality/baseline-headroom.mjs`). Öine `baseline-headroom` töö postitab
-  tabeli aktiivsesse probleemikirjesse **📈 Lähtetaseme varuruum (kiirusefaas)** ja lisab sildi
-  `headroom-alert`, kui mõni värav on oma piirist kuni 10% kaugusel või on selle juba ületanud. See probleemikirje
-  on varajane hoiatus: päevadega täituv eelarve tähendab, et leevenduse kasutavad ära
-  mõned PR-id, mitte kogu meeskond — vaadake probleemse värava `_rebaseline_*` märkusi.
+  mõõdab iga arvulist kvaliteedikontrolli samamoodi nagu CI ja väljastab iga kontrolli allesjäänud varu
+  (`scripts/quality/baseline-headroom.mjs`). Öine töö `baseline-headroom` avaldab tabeli
+  töövoo käivituse kokkuvõttes ning laadib JSON/Markdown-aruande üles nimega
+  `baseline-headroom-<run_id>`; aruannet säilitatakse 90 päeva. Hoiatus- ja kriitilised read osutavad
+  kontrollidele, mille varu ülempiirini on kuni 10% või mis on piiri juba ületanud.
+  Vaadake neid aruandeid kui varajast hoiatust eelarvete ammendumise kohta; uurige vastava kontrolli
+  `_rebaseline_*` märkmeid. Töö ei loo ega uuenda enam püsivat probleemiaruannet;
+  #12149 säilitab varasemate aruannete ajaloo.
 
 **Uue koodi režiim (Clean-as-You-Code) — alates 2026-08-30, ainult PR-i kiirtee**
 

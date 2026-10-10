@@ -640,7 +640,16 @@ function resolveSilentCloseOutcome(input: {
   const watcher = input.contentWatcher;
   if (watcher.sawError()) return null;
   if (watcher.sawSseFrame() && !watcher.sawContent() && !watcher.sawLegitEmptyTerminal()) {
-    return { kind: "error", reason: "Provider returned empty content" };
+    // #16072: a terminal frame the client actually received that declares a
+    // NORMAL stop (finish_reason "stop" / stop_reason "end_turn"|"stop_sequence")
+    // is the upstream's own verdict that the turn is complete — an empty
+    // assistant turn is a valid answer (agent "no reply needed" turns), the
+    // same philosophy as #15505's clean empty end_turn and #14160's trusted
+    // empty stop. Gated on clientTerminalSeen: a stream dropped before any
+    // terminal never delivered that verdict and keeps the empty-content error.
+    if (!(input.clientTerminalSeen && watcher.sawNormalStopTerminal())) {
+      return { kind: "error", reason: "Provider returned empty content" };
+    }
   }
 
   return null;

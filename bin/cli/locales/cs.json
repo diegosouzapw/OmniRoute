@@ -254,6 +254,7 @@
     "log": "Zobrazovat protokoly serveru přímo ve výstupu",
     "no_recovery": "Zakázat automatické restartování po pádu (režim ladění)",
     "max_restarts": "Maximální počet restartů po pádu během 30 s před ukončením pokusů (výchozí: 2)",
+    "headless": "Spustit pouze proxy jádro: řídicí panel vypnut (404), volitelné subsystémy přeskočeny (nastaví OMNIROUTE_HEADLESS=1)",
     "tray": "Spustit v systémové liště (pouze pro počítače, volitelné)",
     "no_tray": "Zakázat ikonu v systémové liště",
     "ready_timeout": "Časový limit kontroly připravenosti v ms (také OMNIROUTE_READY_TIMEOUT_MS, výchozí 60000)",

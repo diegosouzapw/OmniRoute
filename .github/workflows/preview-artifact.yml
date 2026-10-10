@@ -1,0 +1,252 @@
+name: Preview artifact (build once)
+
+# PR preview artifact — #8084 slice (a), rehearsed in 3.8.58 (ROADMAP Phase 2).
+#
+# Builds ONE production-equivalent npm tarball from the exact PR head, validates
+# THAT build (check:pack-artifact + check:pack-boot, which installs the packed
+# tarball into a clean prefix and boots it with fake secrets on an isolated
+# DATA_DIR), records its identity (head SHA + base SHA + lockfile hash +
+# platform/arch/node ABI + build policy, scripts/release/artifact-identity.mjs),
+# uploads tarball + identity + SHA256SUMS and attests the tarball's provenance.
+# The uploaded bytes are what a preview install or a promotion consumes: there is
+# no second source build anywhere downstream.
+#
+# Out of scope on purpose: publishing (nothing here talks to a registry), DB-clone
+# migration rehearsal (#8084 reply 3 — its own subsystem) and live provider probes.
+#
+# Triggers: `workflow_dispatch` with a PR number, or adding the `preview-artifact`
+# label to a PR. Fork PRs are never built: the label path checks
+# head.repo.full_name in the job `if:`, the dispatch path re-checks it from the API
+# before anything is checked out. This runs PR code (same-repository branches
+# only), so the build job holds a read-only token and no OIDC permission; the
+# OIDC/attestation permissions live in the separate `attest` job, which never
+# checks out or executes repository code.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to build (same-repository PRs only)"
+        required: true
+        type: string
+  pull_request:
+    types: [labeled]
+
+permissions:
+  contents: read # default for every job; each job narrows or extends below
+
+concurrency:
+  group: preview-artifact-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+env:
+  PREVIEW_NODE_VERSION: "24"
+
+jobs:
+  resolve:
+    name: Resolve PR head and base
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'preview-artifact' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read # gh api repos/<repo>/pulls/<N> (head repo, state, SHAs)
+    outputs:
+      pr_number: ${{ steps.pr.outputs.pr_number }}
+      head_sha: ${{ steps.pr.outputs.head_sha }}
+      base_sha: ${{ steps.pr.outputs.base_sha }}
+      base_ref: ${{ steps.pr.outputs.base_ref }}
+    steps:
+      - name: Resolve the PR and refuse forks
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT_PR: ${{ github.event.pull_request.number }}
+          INPUT_PR: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          PR="${EVENT_PR:-$INPUT_PR}"
+          if ! printf '%s' "$PR" | grep -qE '^[0-9]+$'; then
+            echo "::error::pr_number must be a positive integer"
+            exit 1
+          fi
+          DATA=$(gh api "repos/$REPO/pulls/$PR")
+          HEAD_REPO=$(jq -r '.head.repo.full_name // ""' <<<"$DATA")
+          STATE=$(jq -r '.state' <<<"$DATA")
+          HEAD_SHA=$(jq -r '.head.sha' <<<"$DATA")
+          BASE_REF=$(jq -r '.base.ref' <<<"$DATA")
+          if [ "$HEAD_REPO" != "$REPO" ]; then
+            echo "::error::PR #$PR comes from a fork ($HEAD_REPO) — preview artifacts are built for same-repository branches only"
+            exit 1
+          fi
+          if [ "$STATE" != "open" ]; then
+            echo "::error::PR #$PR is $STATE — preview artifacts are built for open PRs only"
+            exit 1
+          fi
+          # The base SHA recorded in the identity is the base branch tip at build time.
+          BASE_SHA=$(gh api "repos/$REPO/git/ref/heads/$BASE_REF" --jq '.object.sha')
+          {
+            echo "pr_number=$PR"
+            echo "head_sha=$HEAD_SHA"
+            echo "base_sha=$BASE_SHA"
+            echo "base_ref=$BASE_REF"
+          } >> "$GITHUB_OUTPUT"
+          echo "PR #$PR head=$HEAD_SHA base=$BASE_REF@$BASE_SHA"
+
+  build:
+    name: Build once, validate, upload
+    needs: resolve
+    # Same pool rule as npm-publish.yml: the hosted runner cannot hold `next build`
+    # for this tree any more (#11946). The fork clause is redundant here (resolve
+    # already refused forks) and is kept so the expression stays greppable.
+    runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted","omni-build"]') || 'ubuntu-latest' }}
+    timeout-minutes: 120
+    permissions:
+      contents: read # checkout + git fetch refs/pull/<N>/head — read-only, no OIDC
+    outputs:
+      artifact_name: ${{ steps.name.outputs.artifact_name }}
+    env:
+      # Fake, build-time-only values. No real secret is ever exposed to this job.
+      JWT_SECRET: preview-artifact-fake-jwt-secret-with-sufficient-length
+      API_KEY_SECRET: preview-artifact-fake-api-key-secret-0000000000000000
+    steps:
+      - name: Checkout the PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.resolve.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.PREVIEW_NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Install dependencies (npm ci)
+        uses: ./.github/actions/npm-ci-retry
+        with:
+          # A promotable artifact is never built from a cached node_modules.
+          cache: "false"
+
+      - name: Build release bundle
+        run: npm run build:release
+
+      # check:pack-artifact's provenance guard (#10427) needs a ref the stamped head
+      # is an ancestor of. refs/pull/<N>/head exists in this repository for every PR.
+      - name: Fetch the PR head ref for the provenance guard
+        env:
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
+        run: |
+          git fetch --no-tags --depth=50 origin \
+            "+refs/pull/$PR_NUMBER/head:refs/remotes/origin/pr-head"
+
+      - name: Validate the npm package artifact
+        env:
+          OMNIROUTE_RELEASE_REF: origin/pr-head
+        run: npm run check:pack-artifact
+
+      - name: Pack the tarball (the bytes that get uploaded)
+        id: pack
+        run: |
+          set -euo pipefail
+          OUT_DIR="$RUNNER_TEMP/preview-artifact"
+          mkdir -p "$OUT_DIR"
+          FILE=$(npm pack --json --pack-destination "$OUT_DIR" | jq -r '.[0].filename' | tr '/' '-')
+          test -f "$OUT_DIR/$FILE"
+          SHA=$(sha256sum "$OUT_DIR/$FILE" | cut -d' ' -f1)
+          {
+            echo "dir=$OUT_DIR"
+            echo "file=$FILE"
+            echo "sha256=$SHA"
+          } >> "$GITHUB_OUTPUT"
+          echo "packed $FILE sha256=$SHA"
+
+      # Packs the same tree again, installs it into a clean prefix and boots it with
+      # fake JWT/API-key secrets on an ephemeral DATA_DIR (the script also forces its
+      # own isolated values for the spawned server).
+      - name: Boot-smoke the packed tarball
+        env:
+          DATA_DIR: ${{ runner.temp }}/preview-artifact-data
+        run: npm run check:pack-boot
+
+      # Build once: the tree must not have changed while it was being validated, and
+      # `npm pack` must reproduce the uploaded bytes exactly — otherwise what booted
+      # and what gets uploaded are not provably the same artifact.
+      - name: Prove the validated bytes are the uploaded bytes
+        env:
+          OUT_DIR: ${{ steps.pack.outputs.dir }}
+          FILE: ${{ steps.pack.outputs.file }}
+          EXPECTED_SHA: ${{ steps.pack.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          RECHECK="$RUNNER_TEMP/preview-artifact-recheck"
+          mkdir -p "$RECHECK"
+          npm pack --pack-destination "$RECHECK" >/dev/null
+          ACTUAL=$(sha256sum "$RECHECK/$FILE" | cut -d' ' -f1)
+          if [ "$ACTUAL" != "$EXPECTED_SHA" ]; then
+            echo "::error::re-pack digest $ACTUAL != uploaded $EXPECTED_SHA — the artifact is not reproducible from the validated tree"
+            exit 1
+          fi
+          rm -rf "$RECHECK"
+          echo "re-pack reproduces $FILE byte for byte"
+
+      - name: Record the artifact identity
+        env:
+          HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
+          BASE_SHA: ${{ needs.resolve.outputs.base_sha }}
+          OUT_DIR: ${{ steps.pack.outputs.dir }}
+          FILE: ${{ steps.pack.outputs.file }}
+        run: |
+          set -euo pipefail
+          node scripts/release/artifact-identity.mjs \
+            --head "$HEAD_SHA" \
+            --base "$BASE_SHA" \
+            --lockfile package-lock.json \
+            --tarball "$OUT_DIR/$FILE" \
+            --out "$OUT_DIR/artifact-identity.json"
+          (cd "$OUT_DIR" && sha256sum "$FILE" artifact-identity.json > SHA256SUMS)
+
+      - name: Name the workflow artifact
+        id: name
+        env:
+          PR_NUMBER: ${{ needs.resolve.outputs.pr_number }}
+          HEAD_SHA: ${{ needs.resolve.outputs.head_sha }}
+        run: echo "artifact_name=preview-artifact-pr${PR_NUMBER}-${HEAD_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload tarball + identity
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ steps.name.outputs.artifact_name }}
+          path: ${{ steps.pack.outputs.dir }}
+          if-no-files-found: error
+          retention-days: 14
+
+  attest:
+    name: Attest build provenance
+    needs: build
+    # GitHub-hosted on purpose: attestation signing uses the job's OIDC token, and
+    # this job never checks out or runs repository code.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # required by attest-build-provenance
+      id-token: write # Sigstore signing of the provenance statement
+      attestations: write # store the attestation on this repository
+    steps:
+      - name: Download the uploaded artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+          path: preview-artifact
+
+      - name: Verify checksums
+        working-directory: preview-artifact
+        run: sha256sum -c SHA256SUMS
+
+      - name: Attest the tarball
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: preview-artifact/*.tgz

@@ -47,15 +47,16 @@ test("GET /api/providers/client never returns stored credentials (GHSA-qxg2-rm3h
   assert.equal(conn.provider, "openai");
 });
 
-test("the MITM listener binds to loopback only (GHSA-qxg2-rm3h-4cxp)", () => {
+test("the MITM listener refuses non-loopback peers before any other listener (GHSA-qxg2-rm3h-4cxp)", () => {
   const source = fs.readFileSync(
     path.join(import.meta.dirname, "../../src/mitm/server.cjs"),
     "utf8"
   );
-  assert.match(source, /const MITM_LISTEN_HOST = "127\.0\.0\.1";/);
-  const listens = [...source.matchAll(/server\.listen\(([^)]*)\)?/g)].map((m) => m[1]);
-  assert.ok(listens.length > 0, "server.listen call present");
-  for (const args of listens) {
-    assert.match(args, /^LOCAL_PORT,\s*MITM_LISTEN_HOST\b/, `listen without a host: ${args}`);
-  }
+  // The listener stays dual-stack (the DNS spoof maps hosts to 127.0.0.1 and ::1), so
+  // the loopback-only guarantee comes from the peer guard installed ahead of listen().
+  const guard = source.indexOf('server.prependListener("connection"');
+  const listen = source.indexOf("server.listen(LOCAL_PORT");
+  assert.ok(guard > 0, "peer guard installed with prependListener");
+  assert.ok(listen > guard, "peer guard is installed before the server listens");
+  assert.match(source.slice(guard, listen), /guardLoopbackPeer\(socket\)/);
 });

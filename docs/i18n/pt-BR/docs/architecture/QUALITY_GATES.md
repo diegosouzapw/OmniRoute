@@ -310,11 +310,12 @@ contrato de documentação/ambiente, paridade de i18n, testes unitários) perman
   mesma nota.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
   mede cada gate numérico da mesma forma que a CI e exibe a folga restante por gate
-  (`scripts/quality/baseline-headroom.mjs`). O job noturno `baseline-headroom` publica a
-  tabela na issue contínua **📈 Folga dos baselines (fase de velocidade)** e adiciona o
-  rótulo `headroom-alert` quando qualquer gate está a até 10% do seu limite ou já o ultrapassou. Essa issue
-  é o alerta antecipado: um orçamento que se esgota em poucos dias significa que a flexibilização está sendo consumida por
-  alguns PRs, e não por toda a equipe — consulte as notas `_rebaseline_*` do gate problemático.
+  (`scripts/quality/baseline-headroom.mjs`). O job noturno `baseline-headroom` publica a tabela
+  no resumo da execução do workflow e envia seu relatório JSON/Markdown como
+  `baseline-headroom-<run_id>`, mantido por 90 dias. As linhas de aviso e críticas identificam gates
+  com até 10% de folga até o limite ou que já o ultrapassaram. Revise esses relatórios como alerta
+  antecipado de consumo dos orçamentos; consulte as notas `_rebaseline_*` do gate afetado.
+  O job não cria nem atualiza mais uma issue permanente; #12149 preserva o histórico dos relatórios anteriores.
 
 **Modo de código novo (Clean-as-You-Code) — desde 2026-08-30, somente no caminho rápido de PRs**
 

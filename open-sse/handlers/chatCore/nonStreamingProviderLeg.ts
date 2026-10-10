@@ -17,6 +17,7 @@ import type {
   ProviderExecutionOutcome,
   ProviderExecutionPolicy,
 } from "./providerExecutionPipeline.ts";
+import { bufferedResponsesFailure } from "./bufferedResponsesFailure.ts";
 import { translateNonStreamingClientResponse } from "./nonStreamingClientTranslate.ts";
 import { parseNonStreamingResponseBody, isJsonRecord } from "./nonStreamingResponseParse.ts";
 import { restoreNonStreamingToolNames } from "./passthroughToolNames.ts";
@@ -263,6 +264,8 @@ function finishOk(
     requestUrl?: string;
   }
 ): NonStreamingProviderLegResult {
+  const failed = bufferedResponsesFailure(input, params, { legError, extractUsage, buildReceipt });
+  if (failed) return failed;
   // F-02: restore + sanitize + translate is the only success tail.
   // Fallback/retry must not skip this with responseToolNameMap: null.
   const restoreClaudeNames = params.sourceFormat === "claude" && params.targetFormat === "claude";

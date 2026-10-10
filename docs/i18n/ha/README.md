@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Fasali</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Haɗaɗɗun Zaɓuɓɓuka</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Masu Bayarwa</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Masu Bayarwa</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ shiga tarihin shell ɗinka. → [Haɗe-haɗen CLI](docs/guides/CLI-INTEGRATIONS.
 
 <div align="center">
 
-## 🌐 Masu Bayar da AI 357 — 152 Masu Alamar Katalojin Kyauta
+## 🌐 Masu Bayar da AI 372 — 154 Masu Alamar Katalojin Kyauta
 
 </div>
 

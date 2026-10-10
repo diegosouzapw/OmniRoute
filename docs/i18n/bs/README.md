@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkcionalnosti</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinacije</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Pružaoci usluga</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Pružaoci usluga</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI i MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ da se tajne zabilježe u historiji komandne ljuske. → [CLI integracije](docs/g
 
 <div align="center">
 
-## 🌐 357 AI pružalaca — 152 označena kao besplatna u katalogu
+## 🌐 372 AI pružalaca — 154 označena kao besplatna u katalogu
 
 </div>
 

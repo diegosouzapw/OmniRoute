@@ -25,7 +25,6 @@ const nativeFetch = globalThis.fetch;
 const originalDispatcher = getGlobalDispatcher();
 const networkGuard = new MockAgent();
 networkGuard.disableNetConnect();
-networkGuard.enableNetConnect("127.0.0.1");
 setGlobalDispatcher(networkGuard);
 let upstream: typeof fetch = async () => {
   throw new Error("unconfigured synthetic upstream");
@@ -166,6 +165,7 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
       "/v1/chat/completions": chatRoute.POST,
       "/v1/responses": responsesRoute.POST,
     });
+    networkGuard.enableNetConnect(new URL(server.url).host);
   });
 
   t.beforeEach(async () => {
@@ -325,6 +325,19 @@ test("retention HTTP route matrix", { timeout: 300_000 }, async (t) => {
     assert(!applicationLog.includes(sentinel), "application debug log retained transcript");
     return { row, text, correlationId, requestCount: () => requestCount };
   }
+
+  await t.test("network guard blocks other loopback ports and external hosts", async () => {
+    const otherPort = new URL(server.url);
+    otherPort.port = String(Number(otherPort.port) === 65535 ? 65534 : Number(otherPort.port) + 1);
+    for (const url of [otherPort.href, "https://retention-egress-blocked.invalid/"]) {
+      await assert.rejects(nativeFetch(url), (error: unknown) => {
+        assert(error instanceof TypeError);
+        assert(error.cause instanceof Error && "code" in error.cause);
+        assert.equal(error.cause.code, "UND_MOCK_ERR_MOCK_NOT_MATCHED");
+        return true;
+      });
+    }
+  });
 
   for (const stream of [false, true]) {
     for (const padding of [100_000, 300_000, 600_000]) {

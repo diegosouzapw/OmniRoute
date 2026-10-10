@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funciones</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Proveedores</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Proveedores</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI y MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ queden registrados en el historial de tu shell. → [Integraciones con CLI](docs
 
 <div align="center">
 
-## 🌐 357 proveedores de IA — 152 marcados como gratuitos en el catálogo
+## 🌐 372 proveedores de IA — 154 marcados como gratuitos en el catálogo
 
 </div>
 

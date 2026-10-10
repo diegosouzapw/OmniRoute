@@ -310,12 +310,14 @@ kontrak dokumen/lingkungan, paritas i18n, pengujian unit) tidak berubah — peng
   satu kali (`scripts/quality/relax-baselines.mjs`); menolak dijalankan dua kali dengan catatan yang
   sama.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mengukur setiap gerbang numerik dengan cara yang sama seperti CI dan menampilkan sisa ruang kelonggaran per gerbang
-  (`scripts/quality/baseline-headroom.mjs`). Job `baseline-headroom` setiap malam memposting
-  tabel ke isu aktif **📈 Ruang kelonggaran baseline (fase velocity)** dan menambahkan label
-  `headroom-alert` ketika gerbang mana pun berada dalam jarak 10% dari batasnya atau sudah melampauinya. Isu tersebut
-  merupakan peringatan dini: anggaran yang habis dalam hitungan hari berarti kelonggaran tersebut sedang dikonsumsi oleh
-  beberapa PR, bukan oleh seluruh tim — lihat catatan `_rebaseline_*` milik gerbang yang bermasalah.
+  mengukur setiap pemeriksaan numerik dengan cara yang sama seperti CI dan menampilkan sisa ruang hingga batas setiap pemeriksaan
+  (`scripts/quality/baseline-headroom.mjs`). Tugas malam `baseline-headroom` menerbitkan tabel
+  di ringkasan eksekusi alur kerja dan mengunggah laporan JSON/Markdown dengan nama
+  `baseline-headroom-<run_id>`, yang disimpan selama 90 hari. Baris peringatan dan kritis menandai
+  pemeriksaan yang hanya menyisakan 10% atau kurang hingga batasnya, atau yang sudah melampauinya.
+  Tinjau laporan ini sebagai peringatan dini atas pemakaian anggaran; periksa catatan
+  `_rebaseline_*` pada pemeriksaan terkait. Tugas ini tidak lagi membuat atau memperbarui isu permanen;
+  #12149 menyimpan riwayat laporan sebelumnya.
 
 **Mode kode baru (Clean-as-You-Code) — sejak 2026-08-30, khusus jalur cepat PR**
 

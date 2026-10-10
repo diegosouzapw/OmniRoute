@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Функције</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Провајдери</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Провајдери</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ omniroute configure codex          # такође: claude opencode qwen aider go
 
 <div align="center">
 
-## 🌐 357 AI добављача — 152 означена у каталогу као бесплатна
+## 🌐 372 AI добављача — 154 означена у каталогу као бесплатна
 
 </div>
 

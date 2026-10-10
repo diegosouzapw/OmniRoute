@@ -307,12 +307,14 @@ mkataba wa nyaraka/vigezo vya mazingira, usawa wa i18n, majaribio ya vitengo) ha
   wa mara moja (`scripts/quality/relax-baselines.mjs`); hukataa kutekelezwa mara mbili kwa dokezo
   lilelile.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  hupima kila kizuizi cha nambari kwa njia ileile inayotumiwa na CI na kuchapisha nafasi iliyobaki kwa kila kizuizi
-  (`scripts/quality/baseline-headroom.mjs`). Kazi ya kila usiku ya `baseline-headroom` huchapisha
-  jedwali kwenye suala linaloendelea **📈 Nafasi ya kiwango msingi (awamu ya kasi)** na huongeza lebo ya
-  `headroom-alert` wakati kizuizi chochote kiko ndani ya 10% ya kikomo chake au tayari kimekizidi. Suala hilo
-  ni onyo la mapema: bajeti inayojaa ndani ya siku chache inamaanisha ulegezaji unatumiwa na
-  PR chache, si timu nzima — angalia madokezo ya `_rebaseline_*` ya kizuizi kinachosababisha tatizo.
+  hupima kila ukaguzi wa ubora wa namba kwa njia ileile ya CI na kuonyesha nafasi iliyobaki kabla ya kikomo cha kila ukaguzi
+  (`scripts/quality/baseline-headroom.mjs`). Kazi ya kila usiku ya `baseline-headroom` huchapisha jedwali
+  katika muhtasari wa utekelezaji wa mtiririko wa kazi na kupakia ripoti ya JSON/Markdown kwa jina
+  `baseline-headroom-<run_id>`, inayohifadhiwa kwa siku 90. Safu za onyo na za hali hatari huonyesha
+  ukaguzi uliobakiza 10% au chini ya hapo hadi kikomo chake, au ambao tayari umekivuka.
+  Pitia ripoti hizi kama onyo la mapema kuhusu matumizi ya bajeti zilizotengwa; chunguza maelezo
+  ya `_rebaseline_*` ya ukaguzi husika. Kazi hii haiundi wala kusasisha tena suala la kudumu;
+  #12149 huhifadhi historia ya ripoti za awali.
 
 **Hali ya msimbo mpya (Clean-as-You-Code) — tangu 2026-08-30, njia ya haraka ya PR pekee**
 

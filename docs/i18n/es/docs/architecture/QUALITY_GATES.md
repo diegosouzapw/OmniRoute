@@ -302,12 +302,14 @@ contrato de documentación/entorno, paridad de i18n, pruebas unitarias) no cambi
   flexibilización de una sola ejecución (`scripts/quality/relax-baselines.mjs`); se niega a ejecutarse dos veces con la
   misma nota.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mide cada puerta numérica del mismo modo que CI y muestra el margen restante por puerta
-  (`scripts/quality/baseline-headroom.mjs`). El trabajo nocturno `baseline-headroom` publica la
-  tabla en la incidencia activa **📈 Margen de los valores de referencia (fase de velocidad)** y añade la
-  etiqueta `headroom-alert` cuando alguna puerta está a menos del 10% de su límite o ya lo ha superado. Esa incidencia
-  sirve como alerta temprana: un presupuesto que se agota en cuestión de días significa que la flexibilización está siendo consumida por
-  unos pocos PR, no por todo el equipo; consulte las notas `_rebaseline_*` de la puerta infractora.
+  mide cada control numérico del mismo modo que CI y muestra el margen restante por control
+  (`scripts/quality/baseline-headroom.mjs`). La tarea nocturna `baseline-headroom` publica la tabla
+  en el resumen de la ejecución del flujo de trabajo y sube su informe JSON/Markdown como
+  `baseline-headroom-<run_id>`, que se conserva durante 90 días. Las filas de advertencia y críticas señalan
+  los controles a los que les queda un 10% o menos hasta el límite, o que ya lo han superado.
+  Revise estos informes como aviso temprano del consumo de los presupuestos; consulte las notas
+  `_rebaseline_*` del control afectado. La tarea ya no crea ni actualiza una incidencia permanente;
+  #12149 conserva el historial de los informes anteriores.
 
 **Modo de código nuevo (Clean-as-You-Code): desde 2026-08-30, solo para la ruta rápida de PR**
 

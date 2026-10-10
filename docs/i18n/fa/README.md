@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ قابلیتها</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 ترکیبها</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 ارائهدهندگان</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 ارائهدهندگان</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI و MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # همچنین: claude opencode qwen aider go
 
 <div align="center">
 
-## 🌐 357 ارائهدهندهٔ هوش مصنوعی — 152 مورد با برچسب رایگان در کاتالوگ
+## 🌐 372 ارائهدهندهٔ هوش مصنوعی — 154 مورد با برچسب رایگان در کاتالوگ
 
 </div>
 

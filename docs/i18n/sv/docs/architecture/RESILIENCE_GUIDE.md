@@ -96,6 +96,8 @@ Regressionsskydd: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Skydd mot stampede-effekt:** förhindrar att samtidiga fel förlänger väntetiden för mycket eller ökar `backoffLevel` dubbelt.
 
+Kiros binära `reasoningContentEvent`-ramar med en icke-tom signatur bevarar resonemangsaktiviteten genom exekveraren som ett tomt `reasoning_content`-delta. Signaturen vidarebefordras inte. Metadata, ofullständiga ramar och tomma signaturer startar inte om tidsbudgeten för innehåll; den oberoende tidsgränsen för den aktiva strömmen och klientens avbrytande gäller fortfarande. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Sluttillstånd (INTE väntetider):**
 
 - `banned` — anges vid identifiering av förbjudna nyckelord/kontoblockering (se [BAN_DETECTION](../security/BAN_DETECTION.md)) och vid tre på varandra följande avvisningar per begäran från uppströmstjänsten (`request_rejected`, t.ex. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); en enskild avvisning försätter endast anslutningen i vänteläge

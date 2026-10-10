@@ -1395,6 +1395,47 @@
       "stream": "https://copilot.tencent.com/v2/chat/completions"
     }
   },
+  "codebuddy-intl": {
+    "format": "openai",
+    "headers": {
+      "apiKey": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      },
+      "nonStream": {
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      },
+      "oauth": {
+        "Accept": "text/event-stream",
+        "Authorization": "Bearer <TOK>",
+        "Content-Type": "application/json",
+        "User-Agent": "IDE/2.108.1 CodeBuddy/2.108.1",
+        "X-IDE-Name": "IDE",
+        "X-IDE-Type": "IDE",
+        "X-Product": "SaaS",
+        "x-codebuddy-request": "1",
+        "x-requested-with": "XMLHttpRequest"
+      }
+    },
+    "url": {
+      "nonStream": "https://www.codebuddy.ai/v2/chat/completions",
+      "stream": "https://www.codebuddy.ai/v2/chat/completions"
+    }
+  },
   "codestral": {
     "format": "openai",
     "headers": {

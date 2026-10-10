@@ -107,6 +107,7 @@ import { resolveComboDailyReset } from "./comboDailyResetClock.ts";
 import type { ProtectedPriorityStopCause } from "./protectedPriorityStopStatus.ts";
 import { isProviderProbeResponse } from "../../../src/shared/utils/providerProbeResult.ts";
 import { recordLocalCircuitRefusal } from "./localCircuitRefusal.ts";
+import { getStrategyTraits } from "./strategyRegistry.ts";
 
 export async function executeTargetAttempt(opts: {
   index: number;
@@ -523,7 +524,10 @@ export async function executeTargetAttempt(opts: {
           providerProbeSettled: isProviderProbeResponse(result),
         });
       }
-      if (deps.strategy === "weighted" && (deps.stickyWeightedLimit ?? 0) > 1) {
+      if (
+        getStrategyTraits(deps.strategy).stickyPin === "weighted" &&
+        (deps.stickyWeightedLimit ?? 0) > 1
+      ) {
         const stickySuccessKey = deps.getWeightedStepKeyForTarget?.(target);
         if (stickySuccessKey) {
           recordStickyWeightedSuccess(
@@ -623,7 +627,7 @@ export async function executeTargetAttempt(opts: {
       // combo.ts decides whether a successful turn should generate a handoff,
       // while chat.ts injects the handoff after the real connectionId is resolved.
       if (
-        deps.strategy === "context-relay" &&
+        getStrategyTraits(deps.strategy).contextRelay &&
         deps.relayOptions?.sessionId &&
         deps.relayConfig &&
         (deps.relayConfig.handoffProviders ?? []).includes(provider) &&
