@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Søkesti til kjernebinærfilen",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Valgfritt: verifiserer den genererte filen med kjernebinærfilen før den adopterte filen erstattes. La stå tomt for å fortsette å skrive ved siden av. Mappen opprettes hvis den mangler."
+      "coreBinaryPathHelp": "Valgfritt: verifiserer den genererte filen med kjernebinærfilen før den adopterte filen erstattes. La stå tomt for å fortsette å skrive ved siden av. Mappen opprettes hvis den mangler.",
+      "urlFeedlessHint": "La stå tom for et kun velger-abonnement: angi en kontroll-URL nedenfor, ingen feed hentes, oppdateres eller bindes."
     },
     "bulkHealthcheck": "Samlet tilstandskontroll",
     "bulkHealthcheckDesc": "Test alle konfigurerte proxyer mot en mål-URL for å finne ut hvilke som fungerer.",

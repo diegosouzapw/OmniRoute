@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pfad zur Kern-Binary",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Optional: Überprüft die generierte Datei mit der Kern-Binary, bevor die übernommene Datei ersetzt wird. Leer lassen, um daneben zu schreiben. Das Verzeichnis wird bei Bedarf erstellt."
+      "coreBinaryPathHelp": "Optional: Überprüft die generierte Datei mit der Kern-Binary, bevor die übernommene Datei ersetzt wird. Leer lassen, um daneben zu schreiben. Das Verzeichnis wird bei Bedarf erstellt.",
+      "urlFeedlessHint": "Leer lassen, um ein reines Selektor-Abonnement zu verwenden: Setzen Sie unten eine URL-Steuerung fest, es wird kein Feed abgerufen, aktualisiert oder gebunden."
     },
     "bulkHealthcheck": "Massenprüfung des Zustands",
     "bulkHealthcheckDesc": "Alle konfigurierten Proxys anhand einer Ziel-URL testen, um festzustellen, welche funktionieren.",

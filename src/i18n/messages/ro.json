@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Cale binar de bază",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opțional: verifică fișierul generat cu binarul de bază înainte de a înlocui fișierul adoptat. Lăsați gol pentru a scrie în continuare alături. Directorul este creat dacă lipsește."
+      "coreBinaryPathHelp": "Opțional: verifică fișierul generat cu binarul de bază înainte de a înlocui fișierul adoptat. Lăsați gol pentru a scrie în continuare alături. Directorul este creat dacă lipsește.",
+      "urlFeedlessHint": "Lăsați gol pentru un abonament doar cu selector: setați un URL de control mai jos, niciun flux nu este preluat, actualizat sau legat."
     },
     "bulkHealthcheck": "Verificare în bloc a stării",
     "bulkHealthcheckDesc": "Testează toate proxy-urile configurate folosind un URL țintă pentru a identifica proxy-urile funcționale.",

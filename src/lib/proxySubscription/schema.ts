@@ -101,7 +101,8 @@ function requireNameUrl(
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "name is required" });
     return null;
   }
-  if (!url) {
+  // A feedless subscription carries no URL: accepted only with a control URL.
+  if (!url && readControlUrl(b) == null) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "url is required" });
     return null;
   }
@@ -228,6 +229,35 @@ export const proxySubscriptionUpdateSchema = z
 
     return payload;
   });
+
+/** PATCH rule, same as creation: an emptied URL needs a resulting control URL. */
+export function checkFeedlessUpdate(
+  payload: Partial<ProxySubscriptionPayload>,
+  existing: { url: string; controlUrl: string | null }
+): string | null {
+  const url = payload.url !== undefined ? payload.url.trim() : existing.url.trim();
+  if (url !== "") return null;
+  const controlUrl = payload.controlUrl !== undefined ? payload.controlUrl : existing.controlUrl;
+  return controlUrl ? null : "url is required";
+}
+
+/** Creation guard: a feedless row needs a control URL. Throws before any insert. */
+export function throwIfFeedlessWithoutControl(url: string, controlUrl: string | null): void {
+  if (url.trim() === "" && !controlUrl) {
+    throw Object.assign(new Error("url is required"), { status: 400 });
+  }
+}
+
+/** Update guard: same rule as creation, read against the resulting row. Throws. */
+export function throwIfFeedlessUpdate(
+  payload: Partial<ProxySubscriptionPayload>,
+  existing: { url: string; controlUrl: string | null }
+): void {
+  const message = checkFeedlessUpdate(payload, existing);
+  if (message) {
+    throw Object.assign(new Error(message), { status: 400, type: "invalid_request" });
+  }
+}
 
 /** Read the first Zod issue message, matching the routes' single-string `{ error }` envelope. */
 export function firstIssueMessage(error: z.ZodError): string {

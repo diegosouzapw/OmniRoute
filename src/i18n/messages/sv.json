@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Sökväg till kärnbinären",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Valfritt: verifierar den genererade filen med kärnbinären innan den antagna filen ersätts. Lämna tomt för att fortsätta skriva bredvid. Katalogen skapas om den saknas."
+      "coreBinaryPathHelp": "Valfritt: verifierar den genererade filen med kärnbinären innan den antagna filen ersätts. Lämna tomt för att fortsätta skriva bredvid. Katalogen skapas om den saknas.",
+      "urlFeedlessHint": "Lämna tomt för ett endast väljarbaserat abonnemang: ställ in en control URL nedan, ingen feed hämtas, uppdateras eller bindas."
     },
     "bulkHealthcheck": "Samlad hälsokontroll",
     "bulkHealthcheckDesc": "Testa alla konfigurerade proxyservrar mot en mål-URL för att se vilka som fungerar.",

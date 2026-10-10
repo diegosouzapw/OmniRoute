@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Путања основног бинарног фајла",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Опционално: провера генерисане датотеке основним бинарним фајлом пре замене усвојене датотеке. Оставите празно да се и даље пише поред ње. Директоријум се ствара ако не постоји."
+      "coreBinaryPathHelp": "Опционално: провера генерисане датотеке основним бинарним фајлом пре замене усвојене датотеке. Оставите празно да се и даље пише поред ње. Директоријум се ствара ако не постоји.",
+      "urlFeedlessHint": "Ostavite prazno za pretplatu koja koristi samo selektor: postavite kontrolni URL ispod, nijedan feed se ne preuzima, osvežava niti vezuje."
     },
     "bulkHealthcheck": "Масовна провера исправности",
     "bulkHealthcheckDesc": "Тестирајте све конфигурисане проксије на циљном URL-у да бисте открили који раде.",

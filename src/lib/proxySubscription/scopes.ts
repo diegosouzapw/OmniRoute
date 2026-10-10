@@ -6,11 +6,14 @@
  * rule is unit-testable without the full DB / Next.js stack.
  */
 
+import { isFeedlessSubscription } from "./due";
+
 export type TargetScope = { scope: "global" | "provider"; scopeId: string | null };
 
 export interface ScopeInput {
   mode: "global" | "rule";
   ruleProviders?: string[] | null;
+  url?: string;
 }
 
 /**
@@ -23,6 +26,7 @@ export interface ScopeInput {
  *    direct.
  */
 export function resolveTargetScopes(sub: ScopeInput): TargetScope[] {
+  if (isFeedlessSubscription(sub.url)) return [];
   if (sub.mode === "rule" && sub.ruleProviders && sub.ruleProviders.length > 0) {
     return sub.ruleProviders.map((p) => ({ scope: "provider" as const, scopeId: p }));
   }

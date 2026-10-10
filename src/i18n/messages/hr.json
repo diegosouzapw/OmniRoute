@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Putanja osnovne izvršne datoteke",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opcionalno: provjerava generiranu datoteku pomoću osnovne izvršne datoteke prije zamjene prihvaćene datoteke. Ostavite prazno da se i dalje piše pokraj nje. Direktorij se stvara ako ne postoji."
+      "coreBinaryPathHelp": "Opcionalno: provjerava generiranu datoteku pomoću osnovne izvršne datoteke prije zamjene prihvaćene datoteke. Ostavite prazno da se i dalje piše pokraj nje. Direktorij se stvara ako ne postoji.",
+      "urlFeedlessHint": "Ostavite prazno za pretplatu samo s odabirom: postavite kontrolni URL u nastavku, ne dohvaća se, osvježava ni povezuje feed."
     },
     "bulkHealthcheck": "Skupna provjera stanja",
     "bulkHealthcheckDesc": "Testirajte sve konfigurirane proxyje na ciljnom URL-u kako biste utvrdili koji rade.",

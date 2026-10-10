@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Conair an bhinary príomh",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Roghnach: fíoraíonn sé an comhad ginte leis an mbinary príomh sula ndéantar an comhad ghlactaithe a athsholáthar. Fág folamh chun leanúint den scríobadh ina dhiaidh. Cruthaítear an eolaire má tá sé ar iarraidh."
+      "coreBinaryPathHelp": "Roghnach: fíoraíonn sé an comhad ginte leis an mbinary príomh sula ndéantar an comhad ghlactaithe a athsholáthar. Fág folamh chun leanúint den scríobadh ina dhiaidh. Cruthaítear an eolaire má tá sé ar iarraidh.",
+      "urlFeedlessHint": "Fág folamh le haghaidh fóntais roghnaithe amháin: socraigh rialtó URL thíos, ní tarraingtear, ní athnuactar ná ní cheangaltear aon fhotha."
     },
     "bulkHealthcheck": "Seiceáil Sláinte ar an Mórchóir",
     "bulkHealthcheckDesc": "Tástáil na seachfhreastalaithe cumraithe go léir i gcoinne URL sprice lena fháil amach cé na cinn a oibríonn.",

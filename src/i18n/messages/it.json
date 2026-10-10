@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Percorso del binario di base",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante."
+      "coreBinaryPathHelp": "Opzionale: verifica il file generato con il binario di base prima di sostituire il file adottato. Lascia vuoto per continuare a scrivere accanto. La directory viene creata se mancante.",
+      "urlFeedlessHint": "Lascia vuoto per un abonnement solo con selettore: imposta un URL di controllo di seguito, nessun feed viene recuperato, aggiornato o collegato."
     },
     "bulkHealthcheck": "Controllo integrità in blocco",
     "bulkHealthcheckDesc": "Testa tutti i proxy configurati con un URL di destinazione per individuare quelli funzionanti.",

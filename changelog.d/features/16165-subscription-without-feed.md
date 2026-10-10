@@ -1,0 +1,1 @@
+- **feat(proxy):** accept selector-only subscriptions with no feed URL ([#16165](https://github.com/diegosouzapw/OmniRoute/pull/16165)) — thanks @maxmad64bis

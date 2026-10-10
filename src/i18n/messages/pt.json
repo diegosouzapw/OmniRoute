@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Caminho do binário principal",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opcional: verifica o ficheiro gerado com o binário principal antes de substituir o ficheiro adotado. Deixe vazio para continuar a escrever ao lado. O diretório é criado quando não existe."
+      "coreBinaryPathHelp": "Opcional: verifica o ficheiro gerado com o binário principal antes de substituir o ficheiro adotado. Deixe vazio para continuar a escrever ao lado. O diretório é criado quando não existe.",
+      "urlFeedlessHint": "Deixe vazio para uma subscrição apenas de seletor: defina um URL de controlo abaixo, nenhum feed é obtido, atualizado ou associado."
     },
     "bulkHealthcheck": "Verificação de Saúde em Massa",
     "bulkHealthcheckDesc": "Testa todos os proxies configurados contra um URL alvo para descobrir quais funcionam.",

@@ -10,6 +10,12 @@ export interface DueCheckInput {
   enabled: boolean;
   lastFetchedAt: string | null;
   updateIntervalMinutes: number;
+  url?: string;
+}
+
+/** A feedless subscription has an empty URL: selector-only, never fetched. */
+export function isFeedlessSubscription(url: unknown): boolean {
+  return typeof url === "string" && url.trim() === "";
 }
 
 /**
@@ -23,6 +29,7 @@ export interface DueCheckInput {
  *    least `updateIntervalMinutes` (clamped to >= 0).
  */
 export function isSubscriptionDue(sub: DueCheckInput, now: number = Date.now()): boolean {
+  if (isFeedlessSubscription(sub.url)) return false;
   if (!sub.enabled) return false;
   const last = sub.lastFetchedAt ? Date.parse(sub.lastFetchedAt) : NaN;
   if (!Number.isFinite(last)) return true;

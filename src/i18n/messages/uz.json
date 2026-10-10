@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Asosiy binar fayl yo'li",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Ixtiyoriy: almashtirishdan oldin yaratilgan faylni asosiy binar fayl bilan tekshiradi. Yonida yozishda davom etish uchun bo'sh qoldiring. Katalog mavjud bo'lmasa yaratiladi."
+      "coreBinaryPathHelp": "Ixtiyoriy: almashtirishdan oldin yaratilgan faylni asosiy binar fayl bilan tekshiradi. Yonida yozishda davom etish uchun bo'sh qoldiring. Katalog mavjud bo'lmasa yaratiladi.",
+      "urlFeedlessHint": "Faqat selektor uchun obunani bo'sh qoldiring: quyida boshqaruv URL manzilini o'rnating, lentani yuklab olinmaydi, yangilanmaydi yoki bog'lanmaydi."
     },
     "bulkHealthcheck": "Holatni ommaviy tekshirish",
     "bulkHealthcheckDesc": "Ishlaydiganlarini aniqlash uchun barcha sozlangan proksilarni maqsadli URL orqali sinab koʻring.",

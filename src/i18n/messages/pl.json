@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Ścieżka pliku binarnego rdzenia",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Opcjonalne: weryfikuje wygenerowany plik plikiem binarnym rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok niego. Katalog zostanie utworzony, jeśli nie istnieje."
+      "coreBinaryPathHelp": "Opcjonalne: weryfikuje wygenerowany plik plikiem binarnym rdzenia przed zastąpieniem przyjętego pliku. Pozostaw puste, aby nadal zapisywać obok niego. Katalog zostanie utworzony, jeśli nie istnieje.",
+      "urlFeedlessHint": "Pozostaw puste, aby subskrypcja obejmowała tylko selektor: ustaw poniżej adres URL sterujący, żaden feed nie jest pobierany, odświeżany ani powiązany."
     },
     "bulkHealthcheck": "Zbiorczy Healthcheck",
     "bulkHealthcheckDesc": "Testowanie wszystkich skonfigurowanych proxy pod kątem docelowego URL w celu znalezienia działających.",

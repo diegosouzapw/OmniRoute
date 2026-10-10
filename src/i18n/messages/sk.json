@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Cesta k základnému binárnemu súboru",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Voliteľné: overí vygenerovaný súbor základným binárnym súborom pred nahradením prevzatého súboru. Ponechajte prázdne, aby sa pokračovalo v zápise vedľa neho. Priečinok sa vytvorí, ak neexistuje."
+      "coreBinaryPathHelp": "Voliteľné: overí vygenerovaný súbor základným binárnym súborom pred nahradením prevzatého súboru. Ponechajte prázdne, aby sa pokračovalo v zápise vedľa neho. Priečinok sa vytvorí, ak neexistuje.",
+      "urlFeedlessHint": "Nechajte prázdne pre predplatné len s selektorom: nižšie nastavte riadiacu URL, feed sa nebude načítavať, obnovovať ani viazať."
     },
     "bulkHealthcheck": "Hromadná kontrola dostupnosti",
     "bulkHealthcheckDesc": "Otestujte všetky nakonfigurované proxy voči cieľovej URL a zistite, ktoré fungujú.",

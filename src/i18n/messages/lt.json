@@ -7193,7 +7193,8 @@
       "coreReloadAppliedBy": "Applied by: {mode}",
       "coreBinaryPath": "Pagrindinio vykdomojo failo kelias",
       "coreBinaryPathPlaceholder": "/usr/bin/sing-box",
-      "coreBinaryPathHelp": "Neprivaloma: patikrina sugeneruotą failą pagrindiniu vykdomuoju failu prieš pakeičiant priimtą failą. Palikite tuščią, kad rašymas vyktų šalia jo. Katalogas sukuriamas, jei jo nėra."
+      "coreBinaryPathHelp": "Neprivaloma: patikrina sugeneruotą failą pagrindiniu vykdomuoju failu prieš pakeičiant priimtą failą. Palikite tuščią, kad rašymas vyktų šalia jo. Katalogas sukuriamas, jei jo nėra.",
+      "urlFeedlessHint": "Palikite tuščią tik selektoriaus prenumeratai: nustatykite valdymo URL žemiau, srautas neįtraukiamas, neatnaujinamas ir nepririšamas."
     },
     "bulkHealthcheck": "Masinis būklės patikrinimas",
     "bulkHealthcheckDesc": "Patikrinkite visus sukonfigūruotus tarpinius serverius naudodami tikslinį URL, kad nustatytumėte, kurie iš jų veikia.",
