@@ -1,0 +1,1 @@
+- **tests:** Align the Notion executor's exact catalog expectation with the 20 fallback models added in #16113, preserving the original 17 IDs and the checks that internal codenames stay out of the public catalog.

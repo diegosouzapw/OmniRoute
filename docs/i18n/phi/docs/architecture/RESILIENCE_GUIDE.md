@@ -96,6 +96,8 @@ Regression guard: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Pananggalang laban sa thundering herd:** pinipigilan ang magkakasabay na failure na labis na magpahaba ng cooldown o magdoble ng increment sa `backoffLevel`.
 
+Ang mga binary frame na `reasoningContentEvent` ng Kiro na may hindi bakanteng signature ay nagpapanatili ng aktibidad ng pangangatwiran sa executor bilang bakanteng delta na `reasoning_content`. Hindi ipinapasa ang signature. Hindi nire-reset ng metadata, mga hindi kumpletong frame, at mga bakanteng signature ang oras na nakalaan para sa nilalaman; nananatiling umiiral ang hiwalay na limitasyon sa tagal ng aktibong stream at pagkansela ng client. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Mga terminal state (HINDI mga cooldown):**
 
 - `banned` — itinatakda ng pagtukoy sa banned-keyword / account-ban (tingnan ang [BAN_DETECTION](../security/BAN_DETECTION.md)), at ng tatlong magkakasunod na upstream na pagtanggi sa bawat request (`request_rejected`, hal. Anthropic OAuth 403 "Hindi pinapayagan ang request" — `open-sse/services/requestRejectedStreak.ts`); ang isang pagtanggi lamang ay naglalagay lang sa koneksyon sa cooldown

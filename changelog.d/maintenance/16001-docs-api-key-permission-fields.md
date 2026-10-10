@@ -1,0 +1,1 @@
+- **docs(api):** document the per-key permission fields accepted by PATCH /api/keys/{id} ([#16001](https://github.com/diegosouzapw/OmniRoute/pull/16001)) — thanks @pacocartones

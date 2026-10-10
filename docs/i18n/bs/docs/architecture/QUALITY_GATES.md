@@ -307,7 +307,15 @@ Liste dozvoljenih (`eslint-suppressions.json`, `test-masking-allowlist.json`, `t
 **Alati**
 
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — jednokratno opuštanje (`scripts/quality/relax-baselines.mjs`); odbija da se pokrene dvaput sa istom napomenom.
-- `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` — mjeri svaku numeričku kapiju na način na koji to radi CI i ispisuje preostali slobodan prostor (headroom) po kapiji (`scripts/quality/baseline-headroom.mjs`). Noćni `baseline-headroom` posao objavljuje tabelu u aktivnom issue-u **📈 Baseline headroom (velocity phase)** i dodaje oznaku `headroom-alert` kada je bilo koja kapija unutar 10% svog ograničenja ili već preko njega. Taj issue je rano upozorenje: budžet koji se popuni za nekoliko dana znači da opuštanje troši nekoliko PR-ova, a ne cijeli tim — pogledajte `_rebaseline_*` napomene problematične kapije.
+- `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
+  mjeri svaku numeričku provjeru kvaliteta na isti način kao CI i ispisuje preostalu rezervu za svaku provjeru
+  (`scripts/quality/baseline-headroom.mjs`). Noćni zadatak `baseline-headroom` objavljuje tabelu
+  u sažetku izvršavanja radnog toka i otprema JSON/Markdown izvještaj pod nazivom
+  `baseline-headroom-<run_id>`, koji se čuva 90 dana. Redovi upozorenja i kritični redovi označavaju
+  provjere kojima je do granice preostalo najviše 10% ili koje su je već premašile.
+  Pregledajte ove izvještaje kao rano upozorenje na trošenje budžeta; pročitajte napomene
+  `_rebaseline_*` za odgovarajuću provjeru. Zadatak više ne kreira niti ažurira trajnu prijavu problema;
+  #12149 čuva historiju prethodnih izvještaja.
 
 **Režim novog koda (Clean-as-You-Code) — od 2026-08-30, samo za brzi put PR-a**
 

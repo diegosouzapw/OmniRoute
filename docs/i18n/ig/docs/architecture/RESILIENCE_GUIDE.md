@@ -96,6 +96,8 @@ Ihe nchebe megide regression: `tests/unit/provider-cooldown-window-gate.test.ts`
 
 **Ihe nche megide thundering herd:** na-egbochi ọdịda ndị na-eme n'otu oge ịgbatị oge nkwụsị karịa oke ma ọ bụ ịgbakwunye `backoffLevel` ugboro abụọ.
 
+Freem binary `reasoningContentEvent` nke Kiro nwere mbinye aka na-adịghị efu na-echekwa ọrụ iche echiche site na onye mmezu dịka delta `reasoning_content` efu. A naghị ebufe mbinye aka ahụ. Metadata, freem na-ezughị ezu na mbinye aka efu anaghị amaliteghachi oge echere ọdịnaya; oke oge nke iyi na-arụ ọrụ nke nọọrọ onwe ya na nkagbu onye ahịa ka na-arụ ọrụ. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Ọnọdụ njedebe (Ọ BỤGHỊ oge nkwụsị):**
 
 - `banned` — a na-esetị ya site na nchọpụta banned-keyword / account-ban (lee [BAN_DETECTION](../security/BAN_DETECTION.md)), nakwa site na ọjụjụ atọ sitere upstream n'usoro maka arịrịọ ọ bụla (`request_rejected`, dịka Anthropic OAuth 403 "Anaghị anabata arịrịọ" — `open-sse/services/requestRejectedStreak.ts`); otu ọjụjụ naanị na-etinye njikọ ahụ n'oge nkwụsị

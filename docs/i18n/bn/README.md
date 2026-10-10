@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ বৈশিষ্ট্য</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 কম্বোসমূহ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 প্রদানকারীরা</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 প্রদানকারীরা</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ও MCP</a></td>
   </tr>
   <tr>
@@ -668,7 +668,7 @@ omniroute configure codex          # আরও রয়েছে: claude openco
 
 <div align="center">
 
-## 🌐 357টি AI প্রদানকারী — 152টি ক্যাটালগে বিনামূল্য হিসেবে চিহ্নিত
+## 🌐 372টি AI প্রদানকারী — 154টি ক্যাটালগে বিনামূল্য হিসেবে চিহ্নিত
 
 </div>
 

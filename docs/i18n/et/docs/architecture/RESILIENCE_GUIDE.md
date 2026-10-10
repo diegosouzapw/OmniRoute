@@ -97,6 +97,8 @@ Regressioonikaitse: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Päringutulva vastane kaitse:** takistab samaaegsetel tõrgetel ooteaega liigselt pikendada või `backoffLevel`-it topelt suurendada.
 
+Kiro mittetühja allkirjaga binaarsed `reasoningContentEvent`-kaadrid säilitavad täituri kaudu arutlustegevuse tühja `reasoning_content` deltana. Allkirja edasi ei saadeta. Metaandmed, poolikud kaadrid ja tühjad allkirjad ei taaskäivita sisu ajalimiiti; aktiivse voo sõltumatu ajalimiit ja kliendi tühistamine kehtivad endiselt. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Lõppolekud (EI OLE ooteajad):**
 
 - `banned` — määratakse keelatud märksõna / konto blokeerimise tuvastamisel (vt [BAN_DETECTION](../security/BAN_DETECTION.md)) ning kolme järjestikuse ülesvoolu päringupõhise keeldumise korral (`request_rejected`, nt Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); üksik keeldumine paneb ühenduse ainult ooteajale

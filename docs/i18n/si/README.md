@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ විශේෂාංග</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 සංයෝජන</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 සපයන්නන්</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 සපයන්නන්</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI සහ MCP</a></td>
   </tr>
   <tr>
@@ -668,7 +668,7 @@ omniroute configure codex          # මේවාද ඇත: claude opencode qwe
 
 <div align="center">
 
-## 🌐 AI සැපයුම්කරුවන් 357ක් — නාමාවලියේ නොමිලේ ලෙස සලකුණු කළ 152ක්
+## 🌐 AI සැපයුම්කරුවන් 372ක් — නාමාවලියේ නොමිලේ ලෙස සලකුණු කළ 154ක්
 
 </div>
 

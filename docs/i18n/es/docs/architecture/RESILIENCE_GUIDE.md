@@ -96,6 +96,8 @@ Protección contra regresiones: `tests/unit/provider-cooldown-window-gate.test.t
 
 **Protección contra avalanchas de solicitudes:** evita que los fallos simultáneos prolonguen en exceso el tiempo de espera o incrementen dos veces `backoffLevel`.
 
+Los frames binarios `reasoningContentEvent` de Kiro con una firma no vacía conservan la actividad de razonamiento al pasar por el ejecutor como un delta `reasoning_content` vacío. La firma no se reenvía. Los metadatos, los frames incompletos y las firmas vacías no reinician el plazo para contenido; el límite independiente de duración del flujo activo y la cancelación del cliente siguen vigentes. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Estados terminales (NO son tiempos de espera):**
 
 - `banned` — establecido por la detección de palabras clave de bloqueo o de cuentas bloqueadas (consulte [BAN_DETECTION](../security/BAN_DETECTION.md)), así como por tres rechazos consecutivos por solicitud del servicio ascendente (`request_rejected`, p. ej., el error 403 de OAuth de Anthropic «Request not allowed» — `open-sse/services/requestRejectedStreak.ts`); un único rechazo solo pone la conexión en tiempo de espera

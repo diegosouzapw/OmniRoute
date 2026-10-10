@@ -96,6 +96,8 @@ Regressiosuojaus: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Samanaikaisten pyyntöryöppyjen esto:** estää samanaikaisia virheitä pidentämästä jäähdytysaikaa liikaa tai kasvattamasta `backoffLevel`-arvoa kahdesti.
 
+Kiron binaariset `reasoningContentEvent`-kehykset, joiden allekirjoitus ei ole tyhjä, säilyttävät päättelyaktiivisuuden suorittimen läpi tyhjänä `reasoning_content`-deltana. Allekirjoitusta ei välitetä. Metatiedot, keskeneräiset kehykset ja tyhjät allekirjoitukset eivät käynnistä sisällön aikarajaa uudelleen; aktiivisen virran erillinen aikaraja ja asiakkaan peruutus pysyvät voimassa. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Lopulliset tilat (EIVÄT jäähdytysaikoja):**
 
 - `banned` — asetetaan kielletyn avainsanan / tilin eston tunnistuksen perusteella (katso [BAN_DETECTION](../security/BAN_DETECTION.md)) sekä kolmen peräkkäisen ylävirran pyyntökohtaisen hylkäyksen jälkeen (`request_rejected`, esim. Anthropic OAuth 403 "Pyyntöä ei sallita" — `open-sse/services/requestRejectedStreak.ts`); yksittäinen hylkäys vain asettaa yhteyden jäähdytystilaan

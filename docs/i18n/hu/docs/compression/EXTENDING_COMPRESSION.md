@@ -336,7 +336,6 @@ Vagy helyezze egy felismert helyre:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Felhasználói szintű
-<project>/.compression/rules/hi/filler.json   # Projektszintű
 ```
 
 ### Nyelvi csomagokra vonatkozó bevált gyakorlatok

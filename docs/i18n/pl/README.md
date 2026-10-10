@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkcje</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinacje</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Dostawcy</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Dostawcy</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI i MCP</a></td>
   </tr>
   <tr>
@@ -677,7 +677,7 @@ zapisywaniu sekretów w historii powłoki. → [Integracje CLI](docs/guides/CLI-
 
 <div align="center">
 
-## 🌐 357 dostawców AI — 152 oznaczonych w katalogu jako bezpłatni
+## 🌐 372 dostawców AI — 154 oznaczonych w katalogu jako bezpłatni
 
 </div>
 

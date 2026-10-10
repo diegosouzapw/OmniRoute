@@ -96,6 +96,8 @@ Regression ကာကွယ်မှု- `tests/unit/provider-cooldown-window-gat
 
 **Anti-thundering-herd ကာကွယ်မှု:** တစ်ပြိုင်နက်ဖြစ်ပေါ်သည့် ချို့ယွင်းမှုများကြောင့် cooldown ကို လိုအပ်သည်ထက် ပိုရှည်စေခြင်း သို့မဟုတ် `backoffLevel` ကို နှစ်ကြိမ်တိုးခြင်းမှ ကာကွယ်သည်။
 
+ဗလာမဟုတ်သော လက်မှတ်ပါဝင်သည့် Kiro ၏ binary `reasoningContentEvent` frame များသည် executor ကို ဖြတ်သန်းရာတွင် ဗလာ `reasoning_content` delta အဖြစ် စဉ်းစားဆင်ခြင်မှု လှုပ်ရှားနေကြောင်းကို ထိန်းသိမ်းပေးသည်။ လက်မှတ်ကို ဆက်လက်ပို့ဆောင်ခြင်း မပြုပါ။ Metadata၊ မပြည့်စုံသော frame များနှင့် ဗလာလက်မှတ်များသည် အကြောင်းအရာစောင့်ဆိုင်းချိန်ကို ပြန်စတင်ခြင်း မပြုပါ။ လက်ရှိအသက်ဝင်နေသော stream အတွက် သီးခြားအချိန်ကန့်သတ်ချက်နှင့် client မှ ပယ်ဖျက်ခြင်းတို့သည် ဆက်လက်အကျိုးသက်ရောက်သည်။ (`open-sse/executors/kiro/reasoning.ts`).
+
 **အဆုံးသတ်အခြေအနေများ (cooldown မဟုတ်ပါ):**
 
 - `banned` — banned-keyword / account-ban စစ်ဆေးတွေ့ရှိမှုကြောင့် သတ်မှတ်သည် ([BAN_DETECTION](../security/BAN_DETECTION.md) ကိုကြည့်ပါ)။ ထို့အပြင် request တစ်ခုချင်းအလိုက် upstream ငြင်းပယ်မှု သုံးကြိမ်ဆက်တိုက် (`request_rejected`၊ ဥပမာ Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`) ဖြစ်ပေါ်လျှင်လည်း သတ်မှတ်သည်။ တစ်ကြိမ်တည်း ငြင်းပယ်မှုသည် ချိတ်ဆက်မှုကို cooldown ချထားရုံသာဖြစ်သည်

@@ -124,9 +124,21 @@ export function analyzeForgottenSiblingTests({
   const suppressed = [];
   const maskingRisks = [];
 
-  for (const edge of importEdges(root)) {
-    if (!changedModules.includes(edge.module)) continue;
-    const tests = [...new Set(impactMap.sources?.[edge.consumer] || [])].sort();
+  // #16068: path-literal edges are direct file -> test edges (the changed file is its own
+  // "consumer"), so they get the same diff / masking / allowlist semantics as static edges.
+  const artifactEdges = [...changed.keys()]
+    .sort()
+    .filter((file) => impactMap.artifacts?.[file]?.length)
+    .map((file) => ({ module: file, consumer: file, kind: "static", direct: true }));
+  const importOnlyChanged = importEdges(root).filter((edge) =>
+    changedModules.includes(edge.module)
+  );
+  for (const edge of [...importOnlyChanged, ...artifactEdges]) {
+    const tests = [
+      ...new Set(
+        (edge.direct ? impactMap.artifacts[edge.module] : impactMap.sources?.[edge.consumer]) || []
+      ),
+    ].sort();
     if (edge.kind !== "static") {
       diagnostics.push({
         changedModule: edge.module,

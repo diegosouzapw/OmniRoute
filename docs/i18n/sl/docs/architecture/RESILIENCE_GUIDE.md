@@ -97,6 +97,8 @@ Varovalo pred regresijami: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Zaščita pred stampedom zahtev:** preprečuje, da bi sočasne napake čezmerno podaljšale ohlajanje ali dvakrat povečale `backoffLevel`.
 
+Binarni okvirji Kiro `reasoningContentEvent` z nepraznim podpisom ohranijo dejavnost sklepanja skozi izvajalnik kot prazno delto `reasoning_content`. Podpis se ne posreduje. Metapodatki, nepopolni okvirji in prazni podpisi ne zaženejo znova časovne omejitve za vsebino; neodvisna omejitev trajanja aktivnega toka in preklic odjemalca še vedno veljata. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Končna stanja (NISO ohlajanja):**
 
 - `banned` — nastavi se ob zaznavi prepovedane ključne besede/prepovedi računa (glejte [BAN_DETECTION](../security/BAN_DETECTION.md)) in ob treh zaporednih zavrnitvah posamezne zahteve s strani nadrejenega strežnika (`request_rejected`, npr. Anthropic OAuth 403 »Request not allowed« — `open-sse/services/requestRejectedStreak.ts`); posamezna zavrnitev povezavo le začasno ohladi

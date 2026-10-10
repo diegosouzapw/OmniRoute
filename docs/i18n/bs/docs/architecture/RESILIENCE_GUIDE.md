@@ -96,6 +96,8 @@ Zaštita od regresije: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Zaštita od stampeda zahtjeva:** sprečava da istovremeni kvarovi pretjerano produže hlađenje ili dvaput povećaju `backoffLevel`.
 
+Kiro binarni okviri `reasoningContentEvent` s nepraznim potpisom čuvaju aktivnost rezonovanja kroz izvršitelj kao praznu deltu `reasoning_content`. Potpis se ne prosljeđuje. Metapodaci, nepotpuni okviri i prazni potpisi ne pokreću ponovo vremenski limit za sadržaj; nezavisni limit trajanja aktivnog toka i otkazivanje od strane klijenta ostaju na snazi. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Završna stanja (NISU hlađenja):**
 
 - `banned` — postavlja se otkrivanjem zabranjene ključne riječi / zabrane računa (pogledajte [BAN_DETECTION](../security/BAN_DETECTION.md)) i nakon tri uzastopna uzvodna odbijanja pojedinačnih zahtjeva (`request_rejected`, npr. Anthropic OAuth 403 "Zahtjev nije dozvoljen" — `open-sse/services/requestRejectedStreak.ts`); jedno odbijanje samo stavlja vezu na hlađenje

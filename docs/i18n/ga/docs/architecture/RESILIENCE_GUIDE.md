@@ -96,6 +96,8 @@ Cosaint aischéimnithe: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Cosaint ar ró-ualach comhuaineach:** cuireann sí cosc ar theipeanna comhuaineacha an tréimhse mhaolaithe a shíneadh an iomarca nó `backoffLevel` a mhéadú faoi dhó.
 
+Caomhnaíonn frámaí dénártha `reasoningContentEvent` Kiro a bhfuil síniú neamhfholamh acu gníomhaíocht réasúnaíochta tríd an bhfeidhmitheoir mar dheilt fholamh `reasoning_content`. Ní chuirtear an síniú ar aghaidh. Ní atosaíonn meiteashonraí, frámaí neamhiomlána ná sínithe folmha an teorainn ama don ábhar; fanann an teorainn ama neamhspleách don sruth gníomhach agus cealú an chliaint i bhfeidhm. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Staid chríochnaitheacha (NÍ tréimhsí maolaithe iad):**
 
 - `banned` — socraítear é trí bhrath eochairfhocail toirmiscthe / toirmisc cuntais (féach [BAN_DETECTION](../security/BAN_DETECTION.md)), agus trí thrí dhiúltú réamhtheachtacha comhleanúnacha in aghaidh na hiarrata (`request_rejected`, m.sh. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); ní dhéanann aon diúltú aonair ach an nasc a chur i dtréimhse mhaolaithe

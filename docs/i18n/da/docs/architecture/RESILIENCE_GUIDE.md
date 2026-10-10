@@ -96,6 +96,8 @@ Regressionsbeskyttelse: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Beskyttelse mod stampede-effekt:** forhindrer samtidige fejl i at forlænge nedkølingen for meget eller forøge `backoffLevel` to gange.
 
+Kiros binære `reasoningContentEvent`-rammer med en ikke-tom signatur bevarer ræsonneringsaktiviteten gennem eksekutoren som en tom `reasoning_content`-delta. Signaturen videresendes ikke. Metadata, ufuldstændige rammer og tomme signaturer genstarter ikke tidsbudgettet for indhold; den uafhængige tidsgrænse for den aktive stream og klientens annullering gælder stadig. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Terminaltilstande (IKKE nedkølinger):**
 
 - `banned` — angives ved registrering af forbudte nøgleord/kontoudelukkelse (se [BAN_DETECTION](../security/BAN_DETECTION.md)) og ved tre på hinanden følgende upstream-afvisninger pr. forespørgsel (`request_rejected`, f.eks. Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); en enkelt afvisning nedkøler kun forbindelsen

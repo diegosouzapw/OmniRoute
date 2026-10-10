@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ 기능</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 콤보</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 제공업체</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 제공업체</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI 및 MCP</a></td>
   </tr>
   <tr>
@@ -668,7 +668,7 @@ omniroute configure codex          # 다음도 지원: claude opencode qwen aide
 
 <div align="center">
 
-## 🌐 357개 AI 제공업체 — 152개는 카탈로그에서 무료로 표시됨
+## 🌐 372개 AI 제공업체 — 154개는 카탈로그에서 무료로 표시됨
 
 </div>
 

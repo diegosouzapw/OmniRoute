@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ Funzionalità</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Provider</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provider</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI e MCP</a></td>
   </tr>
   <tr>
@@ -678,7 +678,7 @@ che i segreti finiscano nella cronologia della shell. → [Integrazioni CLI](doc
 
 <div align="center">
 
-## 🌐 357 provider di IA — 152 contrassegnati come gratuiti nel catalogo
+## 🌐 372 provider di IA — 154 contrassegnati come gratuiti nel catalogo
 
 </div>
 

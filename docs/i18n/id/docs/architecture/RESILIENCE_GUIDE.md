@@ -96,6 +96,8 @@ Pengaman regresi: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Pelindung anti-thundering-herd:** mencegah kegagalan serentak memperpanjang cooldown secara berlebihan atau menaikkan `backoffLevel` dua kali.
 
+Frame biner `reasoningContentEvent` Kiro dengan tanda tangan yang tidak kosong mempertahankan aktivitas penalaran melalui eksekutor sebagai delta `reasoning_content` kosong. Tanda tangan tidak diteruskan. Metadata, frame yang belum lengkap, dan tanda tangan kosong tidak memulai ulang batas waktu konten; batas waktu independen untuk aliran aktif dan pembatalan oleh klien tetap berlaku. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Status terminal (BUKAN cooldown):**
 
 - `banned` — ditetapkan oleh deteksi kata kunci terlarang / pemblokiran akun (lihat [BAN_DETECTION](../security/BAN_DETECTION.md)), dan oleh tiga penolakan per permintaan dari upstream secara berturut-turut (`request_rejected`, misalnya Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); satu penolakan hanya membuat koneksi memasuki cooldown

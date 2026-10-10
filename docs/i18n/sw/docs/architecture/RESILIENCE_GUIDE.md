@@ -96,6 +96,8 @@ Kinga dhidi ya kurudi kwa hitilafu: `tests/unit/provider-cooldown-window-gate.te
 
 **Kinga dhidi ya msongamano wa maombi ya wakati mmoja:** huzuia hitilafu zinazotokea kwa wakati mmoja kuongeza kipindi cha kusubiri kupita kiasi au kuongeza `backoffLevel` mara mbili.
 
+Fremu za binary za Kiro za `reasoningContentEvent` zenye sahihi isiyo tupu huhifadhi shughuli ya kufikiri kupitia kitekelezaji kama delta tupu ya `reasoning_content`. Sahihi haipitishwi. Metadata, fremu zisizokamilika na sahihi tupu hazianzi upya muda wa kusubiri maudhui; kikomo huru cha muda wa mtiririko unaoendelea na kughairi kwa mteja bado vinatumika. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Hali za mwisho (SI vipindi vya kusubiri):**
 
 - `banned` — huwekwa na utambuzi wa neno muhimu lililopigwa marufuku / kupigwa marufuku kwa akaunti (angalia [BAN_DETECTION](../security/BAN_DETECTION.md)), na pia na kukataliwa mara tatu mfululizo kwa kila ombi na mfumo wa juu (`request_rejected`, kwa mfano Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); kukataliwa mara moja huweka tu muunganisho katika kipindi cha kusubiri

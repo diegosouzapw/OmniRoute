@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ Fonctionnalités</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combos</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Fournisseurs</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Fournisseurs</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI et MCP</a></td>
   </tr>
   <tr>
@@ -668,7 +668,7 @@ que les secrets figurent dans l’historique de votre shell. → [Intégrations 
 
 <div align="center">
 
-## 🌐 357 fournisseurs d’IA — 152 marqués comme gratuits dans le catalogue
+## 🌐 372 fournisseurs d’IA — 154 marqués comme gratuits dans le catalogue
 
 </div>
 

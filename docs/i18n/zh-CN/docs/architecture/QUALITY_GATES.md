@@ -284,11 +284,14 @@ BASE_REF=origin/release/vX.Y.Z npm run i18n:check-value-drift
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` —
   一次性放宽操作（`scripts/quality/relax-baselines.mjs`）；拒绝以相同注释重复运行。
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  按照 CI 的方式测量每个数值门禁，并输出各门禁的剩余空间
-  （`scripts/quality/baseline-headroom.mjs`）。夜间 `baseline-headroom` 作业会将表格发布到持续更新的议题
-  **📈 基线剩余空间（速度优先阶段）**，并在任何门禁距离其上限不足 10% 或已经超限时添加
-  `headroom-alert` 标签。该议题是早期预警机制：如果预算在几天内耗尽，说明放宽出来的空间正被
-  少数几个 PR 消耗，而不是由整个团队使用——请查看违规门禁的 `_rebaseline_*` 注释。
+  以与 CI 相同的方式测量每个数值型质量检查，并输出各项检查的剩余余量
+  （`scripts/quality/baseline-headroom.mjs`）。每晚运行的 `baseline-headroom` 任务会在工作流运行摘要中
+  发布表格，并将 JSON/Markdown 报告上传为
+  `baseline-headroom-<run_id>`，保留 90 天。警告和严重级别的行会标出
+  距离上限的剩余余量不超过 10% 或已经超出上限的检查。
+  请将这些报告作为预算消耗的提前预警，并查看相关检查的
+  `_rebaseline_*` 备注。该任务不再创建或更新长期使用的 issue；
+  #12149 保留了此前报告的历史记录。
 
 **新代码模式（Clean-as-You-Code）— 自 2026-08-30 起，仅用于 PR 快速路径**
 

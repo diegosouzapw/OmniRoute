@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ Funcționalități</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combinații</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Furnizori</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Furnizori</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI și MCP</a></td>
   </tr>
   <tr>
@@ -676,7 +676,7 @@ istoricului shell-ului. → [Integrări CLI](docs/guides/CLI-INTEGRATIONS.md)
 
 <div align="center">
 
-## 🌐 357 de furnizori AI — 152 marcați în catalog ca fiind gratuiți
+## 🌐 372 de furnizori AI — 154 marcați în catalog ca fiind gratuiți
 
 </div>
 

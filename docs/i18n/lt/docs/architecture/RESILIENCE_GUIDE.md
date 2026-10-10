@@ -96,6 +96,8 @@ Regresijos patikra: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Apsauga nuo vienalaikių užklausų antplūdžio:** neleidžia lygiagrečioms triktims pernelyg pratęsti atvėsimo laikotarpio ar dukart padidinti `backoffLevel`.
 
+Kiro dvejetainiai `reasoningContentEvent` kadrai su netuščiu parašu išsaugo samprotavimo veiklą per vykdyklę kaip tuščią `reasoning_content` deltą. Parašas neperduodamas. Metaduomenys, neužbaigti kadrai ir tušti parašai nepaleidžia turinio laiko limito iš naujo; nepriklausomas aktyvaus srauto trukmės limitas ir kliento atšaukimas lieka galioti. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Galutinės būsenos (NE atvėsimo laikotarpiai):**
 
 - `banned` — nustatoma aptikus uždraustą raktažodį / paskyros blokavimą (žr. [BAN_DETECTION](../security/BAN_DETECTION.md)), taip pat po trijų iš eilės aukštesniojo serverio atsisakymų vykdyti atskiras užklausas (`request_rejected`, pvz., Anthropic OAuth 403 „Request not allowed“ — `open-sse/services/requestRejectedStreak.ts`); po vieno atsisakymo ryšiui tik pritaikomas atvėsimo laikotarpis

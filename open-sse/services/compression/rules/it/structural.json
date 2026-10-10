@@ -4,11 +4,12 @@
   "rules": [
     {
       "name": "it_purpose",
-      "pattern": "\\b(?:al fine di|allo scopo di|con l'obiettivo di|in modo da poter|in modo da|così da|in maniera tale da)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:al fine di|allo scopo di|con l'obiettivo di|in modo da poter|in modo da|così da|in maniera tale da)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "per ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "it_causal",
@@ -20,19 +21,21 @@
     },
     {
       "name": "it_connectors",
-      "pattern": "\\b(?:inoltre|in aggiunta|per di più|d'altra parte|d'altro canto|oltre a ciò)\\b[,]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:inoltre|in aggiunta|per di più|d'altra parte|d'altro canto|oltre a ciò)(?![\\p{L}\\p{N}_])[,]?\\s*",
       "replacement": "anche ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "it_emphasis",
-      "pattern": "\\b(?:molto|davvero|veramente|estremamente|parecchio|piuttosto|abbastanza|super)\\s+(?=[a-zàèéìòùA-Z])",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:molto|davvero|veramente|estremamente|parecchio|piuttosto|abbastanza|super)\\s+(?=[a-zàèéìòùA-Z])",
       "replacement": "",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "it_redundant_phrasing",
@@ -68,19 +71,21 @@
     },
     {
       "name": "it_possibility",
-      "pattern": "\\b(?:è possibile che|potrebbe essere che|può darsi che)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:è possibile che|potrebbe essere che|può darsi che)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "forse ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "it_necessity",
-      "pattern": "\\b(?:è necessario che|occorre che|bisogna che|è indispensabile che)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:è necessario che|occorre che|bisogna che|è indispensabile che)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "serve che ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "it_conclusion",
@@ -92,11 +97,12 @@
     },
     {
       "name": "it_double_negation",
-      "pattern": "\\bnon è (?:possibile|fattibile) (?:non |)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])non è (?:possibile|fattibile) (?:non |)(?![\\p{L}\\p{N}_])",
       "replacement": "non si può ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     }
   ]
 }

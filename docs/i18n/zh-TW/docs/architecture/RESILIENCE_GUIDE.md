@@ -95,6 +95,8 @@ OmniRoute 有三種彼此獨立但相關的韌性機制。每種機制都有不�
 
 **防驚群保護機制：** 防止並行失敗過度延長冷卻時間，或重複遞增 `backoffLevel`。
 
+Kiro 中帶有非空簽章的二進位 `reasoningContentEvent` 框架，會透過執行器以空的 `reasoning_content` 增量保留推理活動訊號，不會轉送簽章本身。中繼資料、不完整的框架和空簽章不會重新啟動內容等待計時；作用中串流的獨立時限和用戶端取消仍然有效。 (`open-sse/executors/kiro/reasoning.ts`).
+
 **終止狀態（不是冷卻）：**
 
 - `banned` — 由封禁關鍵字／帳戶封禁偵測設定（請參閱 [BAN_DETECTION](../security/BAN_DETECTION.md)），也會由連續三次上游的逐請求拒絕觸發（`request_rejected`，例如 Anthropic OAuth 403「Request not allowed」— `open-sse/services/requestRejectedStreak.ts`）；單次拒絕只會讓連線進入冷卻

@@ -96,6 +96,8 @@ Ochrana proti regresím: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Ochrana proti lavinovému souběhu:** zabraňuje tomu, aby souběžná selhání nadměrně prodloužila dobu blokování nebo zvýšila `backoffLevel` vícekrát.
 
+Binární rámce Kiro `reasoningContentEvent` s neprázdným podpisem zachovávají aktivitu uvažování při průchodu executorem jako prázdnou deltu `reasoning_content`. Podpis se nepředává. Metadata, neúplné rámce a prázdné podpisy neobnovují časový limit pro obsah; nezávislý limit délky aktivního streamu a zrušení klientem zůstávají platné. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Koncové stavy (NEJDE o doby blokování):**
 
 - `banned` — nastaveno při detekci klíčového slova zákazu / zablokování účtu (viz [BAN_DETECTION](../security/BAN_DETECTION.md)) a při třech po sobě jdoucích odmítnutích jednotlivých požadavků nadřazenou službou (`request_rejected`, např. Anthropic OAuth 403 „Požadavek není povolen“ — `open-sse/services/requestRejectedStreak.ts`); jediné odmítnutí pouze dočasně zablokuje připojení

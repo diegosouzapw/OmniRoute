@@ -958,6 +958,47 @@ verdicts; the second stage can still produce its requested visible reasoning as 
 | `/api/usage/model-latency-stats` | GET             | Rolling per-provider/model latency aggregate (avg/p50/p95/p99, success rate); filters: `windowHours`/`minSamples`/`maxRows`/`provider`/`model` (#6873)                                                                                                                                               |
 | `/api/usage/cache-health`        | GET             | Prompt-cache health summary over `call_logs` — write/read ratio, p50/p90/p99 write-size distribution, heavy-write concentration, per-model split, and a `healthy`/`degraded`/`thrash`/`no-data` verdict; query params `range` (`1h`\|`24h`\|`7d`\|`30d`, default `24h`) and optional `model` (#8827) |
 
+### API key permissions
+
+`PATCH /api/keys/{id}` updates an existing key's permissions. Like every `/api/keys*` route it needs management authorization (see [Management Authentication](../guides/MANAGEMENT-AUTH.md)), not an inference key. Send only the fields you want to change; a request with none of them is rejected with `No valid fields to update`. The accepted fields are defined by `updateKeyPermissionsSchema` in `src/shared/validation/schemas/keys.ts`.
+
+| Field                                       | Type                                                                 | Notes                                                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `name`                                      | string, 1-200 chars                                                  |                                                                                                                        |
+| `isActive`                                  | boolean                                                              |                                                                                                                        |
+| `isBanned`                                  | boolean                                                              |                                                                                                                        |
+| `expiresAt`                                 | ISO 8601 datetime or `null`                                          | `null` clears the expiry                                                                                               |
+| `modelAccessMode`                           | `all` \| `restricted`                                                | `allowedModels` must be empty when the mode is `all`                                                                   |
+| `allowedModels`, `blockedModels`            | array of strings, up to 1000                                         |                                                                                                                        |
+| `allowedCombos`                             | array of strings, up to 500                                          | Gates which combos the key may call; direct models are governed by `modelAccessMode` / `allowedModels`                 |
+| `connectionAccessMode`                      | `all` \| `restricted`                                                | `allowedConnections` must be non-empty when `restricted` and empty when `all`                                          |
+| `allowedConnections`                        | array of UUIDs, up to 100                                            |                                                                                                                        |
+| `allowAutoCombos`                           | boolean                                                              | `false` rejects requests for `auto/*` models with this key; keys that never set it are allowed                         |
+| `catalogScope`                              | `all` \| `combos` \| `models`                                        | What `GET /v1/models` lists for this key (combos only, models only, or both); it does not change what the key may call |
+| `noLog`, `autoResolve`                      | boolean                                                              |                                                                                                                        |
+| `throttleDelayMs`                           | integer, 0-300000                                                    |                                                                                                                        |
+| `maxSessions`                               | integer, 0-10000                                                     |                                                                                                                        |
+| `rateLimits`                                | array of `{ limit, window }` (positive integers, up to 50) or `null` | `null` clears the limits                                                                                               |
+| `accessSchedule`                            | schedule object or `null`                                            | `null` clears the schedule                                                                                             |
+| `scopes`                                    | array of strings, up to 32                                           |                                                                                                                        |
+| `allowedEndpoints`                          | array of strings, up to 20                                           |                                                                                                                        |
+| `streamDefaultMode`                         | `legacy` \| `json`                                                   |                                                                                                                        |
+| `cacheDefaultMode`                          | `legacy` \| `bypass`                                                 | See [Per-key cache bypass](#per-key-cache-bypass)                                                                      |
+| `compressionEnabled`                        | boolean                                                              |                                                                                                                        |
+| `codexServiceMode`                          | one of the Codex service modes                                       |                                                                                                                        |
+| `disableNonPublicModels`                    | boolean                                                              |                                                                                                                        |
+| `allowUsageCommand`                         | boolean                                                              |                                                                                                                        |
+| `usageLimitEnabled`                         | boolean                                                              |                                                                                                                        |
+| `dailyUsageLimitUsd`, `weeklyUsageLimitUsd` | number >= 0 or `null`                                                |                                                                                                                        |
+| `chaosModeEnabled`                          | boolean                                                              |                                                                                                                        |
+
+```bash
+curl -X PATCH "$OMNIROUTE_URL/api/keys/$KEY_ID" \
+  -H "Authorization: Bearer <management-credential>" \
+  -H "Content-Type: application/json" \
+  -d '{ "allowAutoCombos": false, "catalogScope": "combos" }'
+```
+
 ### Settings
 
 | Endpoint                              | Method        | Description                                                                                                                                                                     |
@@ -1092,13 +1133,15 @@ These endpoints mirror Gemini's API format for clients that expect native Gemini
 
 ### Internal / System APIs
 
-| Endpoint                 | Method | Description                                          |
-| ------------------------ | ------ | ---------------------------------------------------- |
-| `/api/init`              | GET    | Application initialization check (used on first run) |
-| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)    |
-| `/api/restart`           | POST   | Trigger graceful server restart                      |
-| `/api/shutdown`          | POST   | Trigger graceful server shutdown                     |
-| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables          |
+| Endpoint                 | Method | Description                                            |
+| ------------------------ | ------ | ------------------------------------------------------ |
+| `/api/init`              | GET    | Application initialization check (used on first run)   |
+| `/api/tags`              | GET    | Ollama-compatible model tags (for Ollama clients)      |
+| `/api/restart`           | POST   | Trigger graceful server restart                        |
+| `/api/shutdown`          | POST   | Trigger graceful server shutdown                       |
+| `/api/system/env/repair` | POST   | Repair OAuth provider environment variables            |
+| `/api/system/version`    | GET    | Current/latest version, update status, release channel |
+| `/api/system/version`    | POST   | Start a deployment-aware update to the latest version  |
 
 > **Note:** These endpoints are used internally by the system or for Ollama client compatibility. They are not typically called by end users.
 
@@ -1122,6 +1165,43 @@ Repairs missing or corrupted OAuth environment variables for a specific provider
   "backupPath": "/home/user/.omniroute/backups/env-repair-2026-04-11.bak"
 }
 ```
+
+### Version and Release Channel
+
+```bash
+GET /api/system/version
+```
+
+Loopback-only management route (admin auth). Returns the running version, the latest
+published version and the auto-update status. `releaseChannel` and `channels` are additive
+fields (rail 3.8.54); `channel` keeps its meaning — the deployment mode the dashboard updater
+uses (`npm`, `source` or `docker-compose`).
+
+```json
+{
+  "current": "3.8.52",
+  "latest": "3.8.52",
+  "updateAvailable": false,
+  "channel": "npm",
+  "autoUpdateSupported": true,
+  "autoUpdateError": null,
+  "news": null,
+  "releaseChannel": "latest",
+  "channels": { "latest": "3.8.52", "next": "3.8.53-rc.1" }
+}
+```
+
+- `releaseChannel` — npm channel of the running build: `nightly` for `-nightly.*` versions,
+  `next` for other pre-releases (`-rc.*`, `-beta.*`, `-alpha.*`), `lts` for a stable version of an
+  older major than `channels.latest`, otherwise `latest`. Same rules as
+  `scripts/release/dist-tag.mjs`, which picks the npm dist-tag at publish time.
+- `channels` — published head of each dist-tag, from `npm view omniroute dist-tags` (registry
+  HTTP fallback), cached with the same 10-minute TTL as `latest`. `latest` is always present
+  (falls back to the `latest` field, then `"unavailable"`); `next`, `nightly` and `lts` appear
+  only when that dist-tag exists. A `Cache-Control: no-cache` request refreshes both lookups.
+
+The channel model (`latest` = v3 until the 4.0 GA, `next` = rc, `nightly` = `develop` builds,
+`lts` = v3 patches after the 4.0 GA) is described in `docs/ops/RELEASE_STRATEGY.md`.
 
 ---
 

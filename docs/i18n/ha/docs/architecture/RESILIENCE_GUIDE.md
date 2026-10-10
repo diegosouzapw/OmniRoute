@@ -96,6 +96,8 @@ Kariyar regression: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Kariyar hana turmutsitsin buƙatu:** tana hana gazawa masu faruwa lokaci guda tsawaita lokacin jira fiye da kima ko ƙara `backoffLevel` sau biyu.
 
+Firam ɗin binary `reasoningContentEvent` na Kiro masu sa hannu wanda ba fanko ba suna kiyaye aikin tunani ta cikin mai aiwatarwa a matsayin delta `reasoning_content` fanko. Ba a tura sa hannun gaba. Metadata, firam marasa cika da sa hannu marasa bayanai ba sa sake fara lokacin jiran abun ciki; iyakar lokacin rafi mai aiki mai zaman kanta da sokewar abokin ciniki suna ci gaba da aiki. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Halayen ƙarshe (BA lokutan jira BA):**
 
 - `banned` — ana saita shi ta hanyar gano kalmar da aka haramta / haramta asusu (duba [BAN_DETECTION](../security/BAN_DETECTION.md)), da kuma ƙin buƙata sau uku a jere daga uwar garke (`request_rejected`, misali Anthropic OAuth 403 "Ba a yarda da buƙatar ba" — `open-sse/services/requestRejectedStreak.ts`); ƙin guda ɗaya kawai yana sanya haɗin cikin lokacin jira

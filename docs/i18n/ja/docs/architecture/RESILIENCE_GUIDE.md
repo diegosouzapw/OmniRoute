@@ -97,6 +97,8 @@ OmniRoute には、互いに関連しつつも異なる 3 つのレジリエン�
 
 **サンダリングハード防止ガード:** 同時発生したエラーによってクールダウンが過度に延長されたり、`backoffLevel`が二重にインクリメントされたりすることを防ぐ。
 
+空でない署名を持つKiroのバイナリ`reasoningContentEvent`フレームは、エグゼキューターを通過する際に空の`reasoning_content`デルタとして推論の活動を保持する。署名自体は転送されない。メタデータ、不完全なフレーム、空の署名はコンテンツ待機時間をリセットしない。アクティブなストリームの独立した時間制限とクライアントによるキャンセルは引き続き有効である。 (`open-sse/executors/kiro/reasoning.ts`).
+
 **終端状態（クールダウンではない）:**
 
 - `banned` — 禁止キーワード／アカウントBANの検出（[BAN_DETECTION](../security/BAN_DETECTION.md)を参照）、および上流によるリクエスト単位の拒否が3回連続した場合（`request_rejected`。例: Anthropic OAuthの403「Request not allowed」— `open-sse/services/requestRejectedStreak.ts`）に設定される。拒否が1回だけの場合は、接続がクールダウンされるだけ

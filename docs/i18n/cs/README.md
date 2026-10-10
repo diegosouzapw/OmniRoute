@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkce</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinace</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Poskytovatelé</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Poskytovatelé</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -676,7 +676,7 @@ uložení tajných údajů do historie shellu. → [Integrace CLI](docs/guides/C
 
 <div align="center">
 
-## 🌐 357 poskytovatelů AI — 152 označených v katalogu jako bezplatní
+## 🌐 372 poskytovatelů AI — 154 označených v katalogu jako bezplatní
 
 </div>
 

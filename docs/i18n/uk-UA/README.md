@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ Можливості</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Комбінації</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Провайдери</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Провайдери</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI та MCP</a></td>
   </tr>
   <tr>
@@ -668,7 +668,7 @@ omniroute configure codex          # також: claude opencode qwen aider goos
 
 <div align="center">
 
-## 🌐 357 постачальників ШІ — 152 позначені в каталозі як безкоштовні
+## 🌐 372 постачальників ШІ — 154 позначені в каталозі як безкоштовні
 
 </div>
 

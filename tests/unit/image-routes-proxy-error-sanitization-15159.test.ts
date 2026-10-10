@@ -89,6 +89,11 @@ test("Wave 1.2: neither image route is frozen in KNOWN_MISSING_ERROR_HELPER", ()
     new URL("../../scripts/check/check-error-helper.mjs", import.meta.url),
     "utf8"
   );
+  assert.match(
+    gate,
+    /^export const KNOWN_MISSING_ERROR_HELPER = new Set\(\[/m,
+    "expected the active error-helper allowlist declaration before checking its entries"
+  );
 
   for (const route of ROUTES) {
     assert.doesNotMatch(

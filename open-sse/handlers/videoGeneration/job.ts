@@ -16,6 +16,12 @@ import {
 } from "@/shared/utils/fetchTimeout";
 import { sanitizeErrorMessage } from "../../utils/error.ts";
 import { sleep } from "../../utils/sleep.ts";
+import {
+  MAX_CONSECUTIVE_POLL_RETRIES,
+  computePollRetryDelayMs,
+  isRetryablePollStatus,
+  parseRetryAfterMs,
+} from "./pollRetry.ts";
 
 interface LogLike {
   info?: (tag: string, msg: string, meta?: unknown) => void;
@@ -319,8 +325,11 @@ export async function handleVideoJobGeneration({
   const maxPolls = maxPollsOverride ?? preset.maxPolls;
   const pollInterval = pollIntervalOverride ?? preset.pollIntervalMs;
 
+  let consecutiveRetries = 0;
+  let nextDelay = pollInterval;
   for (let attempt = 1; attempt <= maxPolls; attempt += 1) {
-    await sleep(pollInterval);
+    await sleep(nextDelay);
+    nextDelay = pollInterval;
     const pollUrl = `${baseUrl}${preset.poll.pathTemplate
       .replace("{taskId}", encodeURIComponent(taskId))
       .replace("{model}", encodeURIComponent(model))}`;
@@ -330,8 +339,23 @@ export async function handleVideoJobGeneration({
       log,
     });
     if (pollResult.ok === false) {
+      // #15536: 429/503 on a status query is transient - back off and keep polling.
+      if (
+        isRetryablePollStatus(pollResult.status) &&
+        consecutiveRetries < MAX_CONSECUTIVE_POLL_RETRIES
+      ) {
+        consecutiveRetries += 1;
+        nextDelay = computePollRetryDelayMs(
+          pollInterval,
+          consecutiveRetries,
+          pollResult.retryAfterMs
+        );
+        attempt -= 1; // transient waits do not consume the poll budget
+        continue;
+      }
       return { success: false, status: pollResult.status, error: pollResult.error };
     }
+    consecutiveRetries = 0;
 
     const status =
       readPath(pollResult.data, preset.statusPath) ??
@@ -423,7 +447,9 @@ async function fetchJson(
     body?: string;
     log?: LogLike;
   }
-): Promise<{ ok: true; data: unknown } | { ok: false; status: number; error: string }> {
+): Promise<
+  { ok: true; data: unknown } | { ok: false; status: number; error: string; retryAfterMs?: number }
+> {
   try {
     const response = await fetchWithTimeout(url, {
       method,
@@ -434,7 +460,12 @@ async function fetchJson(
     if (!response.ok) {
       const errorText = await response.text();
       log?.error?.("VIDEO", `Upstream ${response.status} for ${url}: ${errorText.slice(0, 200)}`);
-      return { ok: false, status: response.status, error: errorText };
+      return {
+        ok: false,
+        status: response.status,
+        error: errorText,
+        retryAfterMs: parseRetryAfterMs(response.headers.get("retry-after")),
+      };
     }
     const data = await response.json();
     return { ok: true, data };

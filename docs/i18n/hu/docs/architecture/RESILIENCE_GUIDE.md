@@ -95,6 +95,8 @@ Regresszióvédelmi teszt: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Kéréshullám elleni védelem:** megakadályozza, hogy az egyidejű hibák túlzottan meghosszabbítsák a várakozási időt, vagy kétszer növeljék a `backoffLevel` értékét.
 
+A Kiro nem üres aláírással rendelkező bináris `reasoningContentEvent` keretei üres `reasoning_content` deltaként őrzik meg a következtetési aktivitást a végrehajtón keresztül. Az aláírást nem továbbítjuk. A metaadatok, a hiányos keretek és az üres aláírások nem indítják újra a tartalomra vonatkozó időkeretet; az aktív adatfolyam független időkorlátja és az ügyfél megszakítása továbbra is érvényes. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Végállapotok (NEM várakozási idők):**
 
 - `banned` — tiltott kulcsszó / fióktiltás észlelése állítja be (lásd: [BAN_DETECTION](../security/BAN_DETECTION.md)), illetve három egymást követő, kérésenkénti felsőbb szintű elutasítás (`request_rejected`, például Anthropic OAuth 403 „Request not allowed” — `open-sse/services/requestRejectedStreak.ts`); egyetlen elutasítás csak várakozási állapotba helyezi a kapcsolatot

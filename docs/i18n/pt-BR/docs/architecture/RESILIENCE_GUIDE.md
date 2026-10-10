@@ -96,6 +96,8 @@ Proteção contra regressão: `tests/unit/provider-cooldown-window-gate.test.ts`
 
 **Proteção contra efeito manada:** impede que falhas simultâneas estendam excessivamente o cooldown ou incrementem `backoffLevel` duas vezes.
 
+Os frames binários `reasoningContentEvent` do Kiro com assinatura não vazia preservam a atividade de raciocínio ao passar pelo executor como um delta `reasoning_content` vazio. A assinatura não é encaminhada. Metadados, frames incompletos e assinaturas vazias não reiniciam o prazo para conteúdo; o limite independente de duração do fluxo ativo e o cancelamento pelo cliente continuam valendo. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Estados terminais (NÃO são cooldowns):**
 
 - `banned` — definido pela detecção de palavra-chave de banimento/banimento de conta (consulte [BAN_DETECTION](../security/BAN_DETECTION.md)) e por três recusas upstream consecutivas por solicitação (`request_rejected`, por exemplo, OAuth 403 da Anthropic, "Solicitação não permitida" — `open-sse/services/requestRejectedStreak.ts`); uma única recusa apenas coloca a conexão em cooldown

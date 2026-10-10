@@ -4,11 +4,12 @@
   "rules": [
     {
       "name": "es_context_setup",
-      "pattern": "\\b(?:aqui esta el codigo|aquí está el código|debajo esta el codigo|este es el codigo|este es el código)\\b\\s*[:.]?\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:aqui esta el codigo|aquí está el código|debajo esta el codigo|este es el codigo|este es el código)(?![\\p{L}\\p{N}_])\\s*[:.]?\\s*",
       "replacement": "Código:",
       "context": "user",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_intent",
@@ -20,11 +21,12 @@
     },
     {
       "name": "es_question_directive",
-      "pattern": "\\b(?:puedes explicar por que|puedes explicar por qué|puedes mostrar como|puedes mostrar cómo)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:puedes explicar por que|puedes explicar por qué|puedes mostrar como|puedes mostrar cómo)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Explica ",
       "context": "user",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_background",
@@ -44,7 +46,7 @@
     },
     {
       "name": "es_explanatory_prefix",
-      "pattern": "\\b(?:la funcion parece manejar|la función parece manejar|el codigo parece|el código parece|la clase es|este modulo es|este módulo es)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:la funcion parece manejar|la función parece manejar|el codigo parece|el código parece|la clase es|este modulo es|este módulo es)(?![\\p{L}\\p{N}_])",
       "replacement": "Función:",
       "replacementMap": {
         "la funcion parece manejar": "Función:",
@@ -57,7 +59,8 @@
       },
       "context": "all",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_meta_commentary",
@@ -69,7 +72,7 @@
     },
     {
       "name": "es_purpose_statement",
-      "pattern": "\\b(?:con el proposito de|con el propósito de|con la meta de|con el objetivo de|en un esfuerzo por|por cada)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:con el proposito de|con el propósito de|con la meta de|con el objetivo de|en un esfuerzo por|por cada)(?![\\p{L}\\p{N}_])",
       "replacement": "para",
       "replacementMap": {
         "con el proposito de": "para",
@@ -81,7 +84,8 @@
       },
       "context": "all",
       "category": "context",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

@@ -109,7 +109,7 @@
   <tr>
     <td align="right"><b>⚙️ Gnéithe</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combónna</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Soláthraithe</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Soláthraithe</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -678,7 +678,7 @@ as stair do bhlaoisce. → [Comhtháthuithe CLI](docs/guides/CLI-INTEGRATIONS.md
 
 <div align="center">
 
-## 🌐 357 Soláthraí IS — 152 Marcáilte mar Shaor in Aisce sa Chatalóg
+## 🌐 372 Soláthraí IS — 154 Marcáilte mar Shaor in Aisce sa Chatalóg
 
 </div>
 

@@ -335,7 +335,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # ਵਰਤੋਂਕਾਰ-ਪੱਧਰ
-<project>/.compression/rules/hi/filler.json   # ਪ੍ਰੋਜੈਕਟ-ਪੱਧਰ
 ```
 
 ### ਭਾਸ਼ਾ ਪੈਕਾਂ ਲਈ ਸਰਵੋਤਮ ਅਭਿਆਸ
