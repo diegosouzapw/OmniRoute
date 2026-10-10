@@ -1,0 +1,1 @@
+- **feat(api):** add read-only GET /v1/models/health reporting per-model pause state for the caller's key ([#16247](https://github.com/diegosouzapw/OmniRoute/pull/16247)) — thanks @maxmad64bis
