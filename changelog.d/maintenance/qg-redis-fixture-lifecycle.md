@@ -1,0 +1,1 @@
+Collect Redis auth-cache test dependencies after isolating the database environment, restore all overrides, and clean up on import failure. Preserve the revocation/regeneration security assertions and existing test timeouts.
