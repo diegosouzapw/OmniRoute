@@ -130,6 +130,20 @@ export async function getSettingsRevision(): Promise<number> {
   return readSettingsRevision(getDbInstance());
 }
 
+// Settings stored encrypted at rest (AES-256-GCM): decrypted on read, encrypted on write.
+const SECRET_SETTING_KEYS = new Set([
+  "oidcClientSecret",
+  "googleClientSecret",
+  "githubClientSecret",
+]);
+
+function decryptSecretSettings(settings: Record<string, unknown>): void {
+  for (const key of SECRET_SETTING_KEYS) {
+    const value = settings[key];
+    if (typeof value === "string") settings[key] = decrypt(value) ?? "";
+  }
+}
+
 /**
  * #7274: read-fallback for the codexSessionAffinityTtlMs -> sessionAffinityTtlMs
  * rename. Migration 124 already backfills the new key from any pre-existing
@@ -182,6 +196,16 @@ export async function getSettings() {
     oidcScopes: ["openid", "profile", "email"],
     oidcRedirectPath: "/api/auth/oidc/callback",
     oidcAllowedSubjects: [], // optional sub or email whitelist
+    googleAuthEnabled: false,
+    googleClientId: "",
+    googleClientSecret: "",
+    googleRedirectPath: "/api/auth/google/callback",
+    githubAuthEnabled: false,
+    githubClientId: "",
+    githubClientSecret: "",
+    githubRedirectPath: "/api/auth/github/callback",
+    authAllowedEmails: [], // optional list of allowed email addresses
+    disablePasswordLogin: false,
     mcpEnabled: false,
     a2aEnabled: false,
     hiddenSidebarItems: [],
@@ -295,9 +319,7 @@ export async function getSettings() {
     }
   }
 
-  if (typeof settings.oidcClientSecret === "string") {
-    settings.oidcClientSecret = decrypt(settings.oidcClientSecret) ?? "";
-  }
+  decryptSecretSettings(settings);
   applySessionAffinityLegacyFallback(settings);
 
   // Auto-complete onboarding for pre-configured deployments (Docker/VM)
@@ -341,7 +363,8 @@ export async function updateSettings(
       throw new SettingsRevisionConflictError(currentRevision);
     }
     for (const [key, value] of Object.entries(updates)) {
-      const toStore = key === "oidcClientSecret" ? encrypt(value as string) : value;
+      const toStore =
+        SECRET_SETTING_KEYS.has(key) && typeof value === "string" ? encrypt(value) : value;
       insert.run(key, JSON.stringify(toStore));
     }
     insert.run(SETTINGS_REVISION_KEY, JSON.stringify(currentRevision + 1));

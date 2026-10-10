@@ -61,6 +61,10 @@ test("public login bootstrap route exposes metadata login page consumes", async 
     setupComplete: true,
     oidcEnabled: false,
     oidcDisablePasswordLogin: false,
+    // #15153: social login flags (providers stay off without credentials + an allowlist).
+    googleAuthEnabled: false,
+    githubAuthEnabled: false,
+    disablePasswordLogin: false,
     nodeVersion: body.nodeVersion,
     nodeCompatible: body.nodeCompatible,
   });
@@ -86,6 +90,10 @@ test("public login bootstrap route reports env-provided bootstrap password metad
     setupComplete: true,
     oidcEnabled: false,
     oidcDisablePasswordLogin: false,
+    // #15153: social login flags (providers stay off without credentials + an allowlist).
+    googleAuthEnabled: false,
+    githubAuthEnabled: false,
+    disablePasswordLogin: false,
     nodeVersion: body.nodeVersion,
     nodeCompatible: body.nodeCompatible,
   });
@@ -110,6 +118,10 @@ test("public login bootstrap route reports stored password metadata in disabled 
     setupComplete: true,
     oidcEnabled: false,
     oidcDisablePasswordLogin: false,
+    // #15153: social login flags (providers stay off without credentials + an allowlist).
+    googleAuthEnabled: false,
+    githubAuthEnabled: false,
+    disablePasswordLogin: false,
     nodeVersion: body.nodeVersion,
     nodeCompatible: body.nodeCompatible,
   });
@@ -260,4 +272,26 @@ test("public login bootstrap route POST returns 500 when hashing fails", async (
 
   assert.equal(response.status, 500);
   assert.deepEqual(body, { error: "hash failed" });
+});
+
+test("public login bootstrap route only advertises social login when credentials AND an allowlist exist", async () => {
+  await settingsDb.updateSettings({
+    requireLogin: true,
+    setupComplete: true,
+    googleClientId: "g-id",
+    googleClientSecret: "g-secret",
+    githubClientId: "gh-id",
+    githubClientSecret: "gh-secret",
+    authAllowedEmails: [],
+  });
+  let body = (await (await route.GET()).json()) as Record<string, unknown>;
+  assert.equal(body.googleAuthEnabled, false);
+  assert.equal(body.githubAuthEnabled, false);
+  assert.equal("googleClientSecret" in body, false);
+
+  await settingsDb.updateSettings({ authAllowedEmails: ["admin@company.com"] });
+  body = (await (await route.GET()).json()) as Record<string, unknown>;
+  assert.equal(body.googleAuthEnabled, true);
+  assert.equal(body.githubAuthEnabled, true);
+  assert.ok(!JSON.stringify(body).includes("g-secret"));
 });

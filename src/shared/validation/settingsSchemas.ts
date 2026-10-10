@@ -100,6 +100,12 @@ const transformObfuscateWordsSchema = z.object({
     .optional(),
 });
 
+/** Same-origin absolute path only: it is appended to the request origin to form `redirect_uri`. */
+const socialRedirectPathSchema = z
+  .string()
+  .max(500)
+  .regex(/^\/(?!\/)[A-Za-z0-9/_.~-]*$/, "must be an absolute same-origin path");
+
 export const updateSettingsSchema = z.object({
   connectionTestPrompt: z.string().trim().min(1).max(CONNECTION_TEST_PROMPT_MAX_LENGTH).optional(),
   /** #7784: opt-in optimistic concurrency — must match GET settingsRevision / ETag. */
@@ -118,6 +124,16 @@ export const updateSettingsSchema = z.object({
   oidcScopes: z.array(z.string().max(100)).optional(),
   oidcRedirectPath: z.string().max(500).optional(),
   oidcAllowedSubjects: z.array(z.string().max(200)).optional(),
+  googleAuthEnabled: z.boolean().optional(),
+  googleClientId: z.string().max(200).optional(),
+  googleClientSecret: z.string().max(500).optional(),
+  googleRedirectPath: socialRedirectPathSchema.optional(),
+  githubAuthEnabled: z.boolean().optional(),
+  githubClientId: z.string().max(200).optional(),
+  githubClientSecret: z.string().max(500).optional(),
+  githubRedirectPath: socialRedirectPathSchema.optional(),
+  authAllowedEmails: z.array(z.string().max(200)).max(500).optional(),
+  disablePasswordLogin: z.boolean().optional(),
   enableSocks5Proxy: z.boolean().optional(),
   instanceName: z.string().max(100).optional(),
   customLogoUrl: z.string().max(2000).optional(),

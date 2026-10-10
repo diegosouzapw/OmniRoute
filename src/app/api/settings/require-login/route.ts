@@ -7,6 +7,7 @@ import {
   hashManagementPassword,
 } from "@/lib/auth/managementPassword";
 import { consumeBootstrapToken } from "@/lib/auth/bootstrapToken";
+import { getGoogleOAuthConfig, getGitHubOAuthConfig } from "@/lib/auth/socialOAuth";
 import { isAuthenticated } from "@/shared/utils/apiAuth";
 import { BOOTSTRAP_TOKEN_HEADER } from "@/server/authz/headers";
 import {
@@ -57,6 +58,16 @@ export async function GET() {
         isFeatureFlagEnabled("OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN") ||
         process.env.OMNIROUTE_OIDC_DISABLE_PASSWORD_LOGIN === "true" ||
         process.env.OIDC_DISABLE_PASSWORD_LOGIN === "true");
+
+    const googleConfig = getGoogleOAuthConfig(settings);
+    const githubConfig = getGitHubOAuthConfig(settings);
+    const googleAuthEnabled = googleConfig.enabled;
+    const githubAuthEnabled = githubConfig.enabled;
+    const socialAuthDisablePasswordLogin =
+      (googleAuthEnabled || githubAuthEnabled) &&
+      (settings.disablePasswordLogin === true ||
+        process.env.AUTH_DISABLE_PASSWORD_LOGIN === "true");
+
     return NextResponse.json({
       authenticated,
       requireLogin,
@@ -64,6 +75,9 @@ export async function GET() {
       setupComplete,
       oidcEnabled,
       oidcDisablePasswordLogin,
+      googleAuthEnabled,
+      githubAuthEnabled,
+      disablePasswordLogin: oidcDisablePasswordLogin || socialAuthDisablePasswordLogin,
       ...nodeInfo,
     });
   } catch (error) {
@@ -76,6 +90,9 @@ export async function GET() {
         setupComplete: true,
         oidcEnabled: false,
         oidcDisablePasswordLogin: false,
+        googleAuthEnabled: false,
+        githubAuthEnabled: false,
+        disablePasswordLogin: false,
         ...nodeInfo,
       },
       { status: 200 }

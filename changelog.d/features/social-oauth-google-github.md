@@ -1,0 +1,1 @@
+- **feat(auth):** Native Google OAuth 2.0 and GitHub OAuth login for the dashboard. Providers are opt-in per operator, deny-by-default (a non-empty `AUTH_ALLOWED_EMAILS` allowlist is required; `*` is ignored), only a verified e-mail authorizes a session, and the login/callback routes are public in the route guard. ([#15153](https://github.com/diegosouzapw/OmniRoute/pull/15153))

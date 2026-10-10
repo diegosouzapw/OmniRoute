@@ -132,6 +132,12 @@ const SECURITY_IMPACTING_KEYS = [
   "oidcEnabled",
   "oidcDisablePasswordLogin",
   "oidcClientSecret",
+  "googleAuthEnabled",
+  "googleClientSecret",
+  "githubAuthEnabled",
+  "githubClientSecret",
+  "authAllowedEmails",
+  "disablePasswordLogin",
 ] as const;
 
 /**
@@ -238,6 +244,8 @@ export async function GET(request: Request) {
       password,
       [SESSIONS_VALID_AFTER_SETTING]: _sessionsValidAfter,
       [REVOKED_SESSIONS_SETTING]: _revokedSessions,
+      googleClientSecret,
+      githubClientSecret,
       ...safeSettings
     } = settings;
 
@@ -260,6 +268,9 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         ...safeSettings,
+        // Social-login secrets never leave the server; the UI only learns whether one is set.
+        googleClientSecretConfigured: Boolean(googleClientSecret),
+        githubClientSecretConfigured: Boolean(githubClientSecret),
         settingsRevision,
         hasPassword: hasManagementPasswordConfigured(settings),
         runtimePorts,
@@ -572,11 +583,18 @@ export async function PATCH(request: Request) {
       password,
       [SESSIONS_VALID_AFTER_SETTING]: _sessionsValidAfter,
       [REVOKED_SESSIONS_SETTING]: _revokedSessions,
+      googleClientSecret,
+      githubClientSecret,
       ...safeSettings
     } = settings;
     const settingsRevision = await getSettingsRevision();
     const response = NextResponse.json(
-      { ...safeSettings, settingsRevision },
+      {
+        ...safeSettings,
+        googleClientSecretConfigured: Boolean(googleClientSecret),
+        githubClientSecretConfigured: Boolean(githubClientSecret),
+        settingsRevision,
+      },
       { headers: settingsResponseHeaders(settingsRevision) }
     );
     // The browser that changed the password keeps its own session: swap its cookie for one issued

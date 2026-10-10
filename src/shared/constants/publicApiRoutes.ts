@@ -17,6 +17,11 @@
 // Genuine subtrees. Every entry MUST end in "/".
 const PUBLIC_API_ROUTE_PREFIXES = [
   "/api/auth/oidc/",
+  // Native Google/GitHub dashboard login (login redirect + OAuth callback). Hit by a visitor with
+  // no session yet; the handlers enforce their own state-cookie check and deny-by-default
+  // allowlist (src/lib/auth/socialOAuth.ts). Do not widen to other /api/auth/* routes.
+  "/api/auth/google/",
+  "/api/auth/github/",
   "/api/v1/",
   "/api/oauth/",
   // Public, ticket-gated Codex device-flow completion (validate + persist).
