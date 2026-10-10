@@ -760,6 +760,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           noteClientChunk(value);
         } catch (error) {
           if (!streamController.isConnected()) {
+            reader.cancel(new Error("Downstream disconnected")).catch(() => { });
             try {
               controller.close();
             } catch {
@@ -770,6 +771,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
 
           if (clientTerminalSeen) {
             streamController.handleComplete();
+            reader.cancel(new Error("Client terminal seen")).catch(() => { });
             try {
               controller.close();
             } catch {
@@ -781,7 +783,7 @@ export function createDisconnectAwareStream(transformStream, streamController) {
           streamController.handleError(error);
 
           // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
-          // This prevents TransferEncodingError on the client side
+          // This prevents TransferEncodingErrogit commit -m "fix(sse): explicitly cancel inner reader on terminal disconnect to prevent heartbeat leaks"r on the client side
           const errorMsg = getErrorMessage(error);
           const statusCode = getErrorStatusCode(error);
 
