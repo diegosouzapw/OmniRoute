@@ -22,6 +22,11 @@ beforeAll(() => {
 // staying null forever (mirrors the pattern in playground-studio.test.tsx). Tracked via
 // state (not a bare closure variable) so the resolution itself triggers the re-render
 // that picks it up, instead of relying on some later, unrelated state update to do so.
+const dynamicLoads = vi.hoisted(() => ({
+  pending: [] as Promise<void>[],
+  beforeLoad: null as (() => Promise<void>) | null,
+}));
+
 vi.mock("next/dynamic", () => ({
   default: (fn: () => Promise<{ default: React.ComponentType<Record<string, unknown>> }>) => {
     return function DynamicWrapper(props: Record<string, unknown>) {
@@ -30,9 +35,12 @@ vi.mock("next/dynamic", () => ({
       > | null>(null);
       React.useEffect(() => {
         let mounted = true;
-        fn().then((m) => {
-          if (mounted) setComponent(() => m.default);
-        });
+        const loading = Promise.resolve(dynamicLoads.beforeLoad?.())
+          .then(fn)
+          .then((m) => {
+            if (mounted) setComponent(() => m.default);
+          });
+        dynamicLoads.pending.push(loading);
         return () => {
           mounted = false;
         };
@@ -43,31 +51,27 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
-const { default: BurnRateChart } = await import(
-  "../../../src/app/(dashboard)/dashboard/costs/quota-share/components/BurnRateChart"
-);
+const { default: BurnRateChart } =
+  await import("../../../src/app/(dashboard)/dashboard/costs/quota-share/components/BurnRateChart");
 
 let container: HTMLDivElement | null = null;
 let root: ReturnType<typeof createRoot> | null = null;
 
 async function render(props: Parameters<typeof BurnRateChart>[0]) {
-  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-    true;
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement("div");
   document.body.appendChild(container);
-  await act(async () => {
+  act(() => {
     root = createRoot(container!);
     root.render(<BurnRateChart {...props} />);
   });
-  // Let the mocked next/dynamic's `fn().then(setComponent)` resolve and commit the
-  // re-render that swaps in BurnRateChartInner. The FIRST import of this module (which
-  // pulls in recharts) needs a real transform, not just a microtask — polling a few
-  // real ticks is more reliable here than a fixed Promise.resolve() count.
-  for (let i = 0; i < 20 && container!.innerHTML === ""; i++) {
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    });
-  }
+  // Await the actual import and its state update, not an assumed 200ms transform budget.
+  // Rejections propagate to the test, and the existing suite timeout remains unchanged.
+  await act(async () => {
+    await Promise.all(dynamicLoads.pending);
+  });
 }
 
 describe("BurnRateChart", { timeout: 10000 }, () => {
@@ -76,6 +80,37 @@ describe("BurnRateChart", { timeout: 10000 }, () => {
     container?.remove();
     container = null;
     root = null;
+    dynamicLoads.beforeLoad = null;
+    dynamicLoads.pending.length = 0;
+  });
+
+  it("renders after a controlled dynamic import resolves", async () => {
+    let release!: () => void;
+    let started!: () => void;
+    const startedLoading = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    dynamicLoads.beforeLoad = () =>
+      new Promise<void>((resolve) => {
+        release = resolve;
+        started();
+      });
+    let settled = false;
+    const rendering = render({ usage: null }).then(() => {
+      settled = true;
+    });
+    try {
+      await startedLoading;
+      expect(settled).toBe(false);
+      expect(container?.textContent).toBe("");
+      release();
+      await rendering;
+      expect(container?.textContent).toContain("Burn rate");
+      expect(container?.textContent).toContain("no data");
+    } finally {
+      release?.();
+      await rendering;
+    }
   });
 
   it("renders no-data state when usage is null", async () => {
