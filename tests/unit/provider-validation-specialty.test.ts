@@ -2384,13 +2384,13 @@ test("claude-web validator: bare sessionKey value gets prefixed", async () => {
 
 // ─── gemini-web validator ────────────────────────────────────────────────────
 
-test("gemini-web validator: 200 from gemini.google.com → valid", async () => {
+test("gemini-web validator: 200 authenticated Gemini page → valid", async () => {
   globalThis.fetch = async (url, init = {}) => {
     const target = String(url);
     const headers = init.headers || {};
     if (target.includes("gemini.google.com/app")) {
       assert.match((headers as Record<string, string>).Cookie || "", /__Secure-1PSID=eyJPSID/);
-      return new Response("ok", { status: 200 });
+      return new Response('<script>{"SNlM0e":"fixture"}</script>', { status: 200 });
     }
     throw new Error(`unexpected fetch: ${target}`);
   };

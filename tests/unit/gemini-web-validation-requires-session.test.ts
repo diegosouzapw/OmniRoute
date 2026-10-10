@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const { validateGeminiWebProvider } =
   await import("../../src/lib/providers/validation/webProvidersB.ts");
+const { validateProviderApiKey } = await import("../../src/lib/providers/validation.ts");
 
 const originalFetch = globalThis.fetch;
 test.afterEach(() => {
@@ -11,6 +12,21 @@ test.afterEach(() => {
 
 const SIGNED_OUT_HTML = "<html><body>Gemini landing page (signed out)</body></html>";
 const SIGNED_IN_HTML = '<html><script>WIZ_global_data={"SNlM0e":"AKlEn5xyz123"}</script></html>';
+
+test("gemini-web public validator: 200 signed-out page is not a valid session", async () => {
+  globalThis.fetch = async (url) => {
+    assert.equal(String(url), "https://gemini.google.com/app");
+    return new Response(SIGNED_OUT_HTML, { status: 200 });
+  };
+
+  const result = await validateProviderApiKey({
+    provider: "gemini-web",
+    apiKey: "__Secure-1PSID=eyJPSID",
+  });
+
+  assert.equal(result.valid, false);
+  assert.match(result.error || "", /Not signed in/i);
+});
 
 test("junk cookie value + 200 signed-out landing page (no SNlM0e) must be invalid (#15387)", async () => {
   globalThis.fetch = async () =>
