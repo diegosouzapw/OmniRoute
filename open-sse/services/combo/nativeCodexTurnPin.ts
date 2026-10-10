@@ -252,6 +252,56 @@ export function createPinnedModelUnavailableResponse(): Response {
   });
 }
 
+/** A timed capacity failure does not invalidate the client's continuation. */
+export function createPinnedModelRetryResponse(targets: ResolvedComboTarget[]): Response | null {
+  const retryableReasons = new Set([
+    "quota_exhausted",
+    "rate_limit",
+    "rate_limited",
+    "rate_limit_exceeded",
+    "server_error",
+    "overloaded",
+    "transient",
+    "circuit_open",
+  ]);
+  const locks = targets
+    .flatMap((target) => {
+      const info = getModelLockoutInfo(
+        target.provider,
+        target.connectionId || "",
+        parseModel(target.modelStr).model || target.modelStr
+      );
+      return info &&
+        Number.isFinite(info.remainingMs) &&
+        info.remainingMs > 0 &&
+        retryableReasons.has(info.reason)
+        ? [info]
+        : [];
+    })
+    .sort((a, b) => a.remainingMs - b.remainingMs);
+  const next = locks[0];
+  if (!next) return null;
+  const quota = ["quota_exhausted", "rate_limit", "rate_limited", "rate_limit_exceeded"].includes(
+    next.reason
+  );
+  const status = quota ? 429 : 503;
+  const seconds = Math.max(1, Math.ceil(next.remainingMs / 1000));
+  return new Response(
+    JSON.stringify(
+      buildErrorBody(
+        status,
+        "The model serving this turn is temporarily unavailable. Retry this same request after the cooldown; the turn binding is preserved.",
+        undefined,
+        {
+          code: "model_cooldown",
+          type: quota ? "rate_limit_error" : "server_error",
+        }
+      )
+    ),
+    { status, headers: { "Content-Type": "application/json", "Retry-After": String(seconds) } }
+  );
+}
+
 export interface CheckPinnedTargetsModelScopedUnusableOptions {
   pinnedTargets: ResolvedComboTarget[];
   resilienceSettings?: ResilienceSettings | null;
@@ -384,6 +434,8 @@ export async function isPinnedTargetModelScopedUnusable(args: {
    * without that wait, so for it a lock still means unusable.
    */
   allowWaitableLock?: boolean;
+  /** Pin failure requires model-specific evidence, not account availability. */
+  modelScopedOnly?: boolean;
 }): Promise<boolean> {
   const {
     target,
@@ -419,6 +471,14 @@ export async function isPinnedTargetModelScopedUnusable(args: {
 
   const lock = evaluatePinnedModelLock(target, resilienceSettings, args.allowWaitableLock);
   if (lock.modelLocked && !lock.lockWaitable) return true;
+
+  // Account quota, cooldown, capacity, and policy failures do not prove that
+  // the model itself is unusable. Keep the pin and let the normal dispatch
+  // gates return their retryable unavailability response. In particular, a
+  // boolean availability miss must not terminate opaque continuation state or
+  // switch a healthy model just because its accounts are temporarily blocked.
+  // Alternate selection still performs all availability checks below.
+  if (args.modelScopedOnly) return false;
 
   if (
     process.env.OMNIROUTE_QUOTA_AWARE_ROUTING === "1" &&
@@ -466,12 +526,50 @@ export async function areAllPinnedTargetsModelScopedUnusable(
   if (!options.pinnedTargets?.length) return false;
   for (const target of options.pinnedTargets) {
     if (
-      !(await isPinnedTargetModelScopedUnusable({ target, ...options, allowWaitableLock: true }))
+      !(await isPinnedTargetModelScopedUnusable({
+        target,
+        ...options,
+        allowWaitableLock: true,
+        modelScopedOnly: true,
+      }))
     ) {
       return false;
     }
   }
   return true;
+}
+
+/**
+ * Pinned-turn unusability with the account-availability carve-out (#15486).
+ *
+ * Model-scoped evidence (a non-waitable model lock) always makes the pin unusable.
+ * Account-level unavailability alone — quota policy, a persisted account cooldown, a
+ * boolean `isModelAvailable` miss — keeps the pin so a turn carrying opaque state or a
+ * pending tool call gets a retryable 429/503 instead of being terminated or handed to
+ * another model. A plain turn that can safely auto-resume on a healthy alternate still
+ * does (#13180/#13564): an account block has no known end, so it is not waited out.
+ * `decision` is the eligible auto-resume decision when the carve-out decided it.
+ */
+export async function resolvePinnedTurnUnusable(
+  options: CheckPinnedTargetsModelScopedUnusableOptions,
+  evaluateAutoResume: () => Promise<AutoResumeDecision>
+): Promise<{ unusable: boolean; decision: AutoResumeDecision | null }> {
+  if (await areAllPinnedTargetsModelScopedUnusable(options)) {
+    return { unusable: true, decision: null };
+  }
+  if (!options.pinnedTargets?.length) return { unusable: false, decision: null };
+  for (const target of options.pinnedTargets) {
+    const accountOrModelUnusable = await isPinnedTargetModelScopedUnusable({
+      target,
+      ...options,
+      allowWaitableLock: true,
+    });
+    if (!accountOrModelUnusable) return { unusable: false, decision: null };
+  }
+  const decision = await evaluateAutoResume();
+  return decision.eligible === true
+    ? { unusable: true, decision }
+    : { unusable: false, decision: null };
 }
 
 export function releaseNativeCodexTurnPin(body: Record<string, unknown>, comboName: string): void {

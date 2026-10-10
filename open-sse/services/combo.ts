@@ -43,7 +43,7 @@ import { getCachedProviderConnectionById } from "../../src/lib/db/readCache.ts";
 
 import { expandPromptCacheAffinityTargetsFromConnections } from "./combo/promptCacheAffinity.ts";
 
-import { getCachedProviderConnections } from "../../src/lib/db/readCache";
+import { getCachedProviderPoolConnections } from "./providerConnectionPool.ts";
 import {
   resolveResilienceSettings,
   type ResilienceSettings,
@@ -89,12 +89,13 @@ export {
 };
 import {
   applyNativeCodexTurnPin,
-  areAllPinnedTargetsModelScopedUnusable,
   canAutoResumeNativeCodexTurn,
   createPinnedModelUnavailableResponse,
+  createPinnedModelRetryResponse,
   getNativeCodexTurnPin,
   describePinnedTargetsLock,
   releaseNativeCodexTurnPin,
+  resolvePinnedTurnUnusable,
   resolvePinnedTargetsLockWaitMs,
 } from "./combo/nativeCodexTurnPin.ts";
 import { waitForCooldownAwareRetry } from "../../src/sse/services/cooldownAwareRetry.ts";
@@ -355,7 +356,7 @@ export async function buildAutoCandidates(
   await Promise.all(
     uniqueProviders.map(async (provider) => {
       try {
-        const connections = (await getCachedProviderConnections({
+        const connections = (await getCachedProviderPoolConnections({
           provider,
           isActive: true,
         })) as Array<Record<string, unknown>>;
@@ -909,7 +910,7 @@ async function handleComboChatInner({
 
   let pinnedLockWaitMs = 0;
   if (activeNativeTurnPin) {
-    const activeConnections = (await getCachedProviderConnections({
+    const activeConnections = (await getCachedProviderPoolConnections({
       provider: resolveProviderId(activeNativeTurnPin.provider),
       isActive: true,
     })) as Array<Record<string, unknown>>;
@@ -930,26 +931,32 @@ async function handleComboChatInner({
         `Native Codex turn pin released: pinned model ${activeNativeTurnPin.modelStr} no longer in combo; falling back to full combo routing`
       );
     } else {
-      const allPinnedUnusable = await areAllPinnedTargetsModelScopedUnusable({
-        pinnedTargets,
-        resilienceSettings,
-        quotaCutoffResetWindowConfig,
-        comboName: combo.name,
-        body: body as Record<string, unknown>,
-        log,
-        isModelAvailable,
-      });
-      if (allPinnedUnusable) {
-        const autoResumeEligibility = await canAutoResumeNativeCodexTurn({
+      const resumePin = activeNativeTurnPin; // narrowed non-null here; the closure loses it
+      const evaluateAutoResume = () =>
+        canAutoResumeNativeCodexTurn({
           body: body as Record<string, unknown>,
           comboName: combo.name,
-          activePin: activeNativeTurnPin,
+          activePin: resumePin,
           allTargets: orderedTargets,
           resilienceSettings,
           quotaCutoffResetWindowConfig,
           isModelAvailable,
           log,
         });
+      const pinCheck = await resolvePinnedTurnUnusable(
+        {
+          pinnedTargets,
+          resilienceSettings,
+          quotaCutoffResetWindowConfig,
+          comboName: combo.name,
+          body: body as Record<string, unknown>,
+          log,
+          isModelAvailable,
+        },
+        evaluateAutoResume
+      );
+      if (pinCheck.unusable) {
+        const autoResumeEligibility = pinCheck.decision ?? (await evaluateAutoResume());
 
         if (autoResumeEligibility.eligible === true) {
           const selectedAlternate = autoResumeEligibility.selectedTarget;
@@ -969,6 +976,12 @@ async function handleComboChatInner({
           activeNativeTurnPin = null;
           isAutoResuming = true;
         } else if (NATIVE_CODEX_AUTO_RESUME_UNSAFE_REASONS.has(autoResumeEligibility.reason)) {
+          const retryResponse = createPinnedModelRetryResponse(pinnedTargets);
+          if (retryResponse) {
+            targetResolution.quotaShareRelease?.();
+            log.warn("COMBO", "Pinned model temporarily unavailable; preserving turn for retry");
+            return retryResponse;
+          }
           // These specific rejection reasons mean the turn carries state (pending
           // tool calls, opaque provider-specific continuation state) or has
           // already exhausted its resume budget, so handing it to an untested

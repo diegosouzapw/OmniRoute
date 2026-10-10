@@ -249,6 +249,7 @@ function readUsageCounters(usage) {
     cacheCreateTokens: firstNumber(
       promptDetails?.cache_creation_tokens ?? inputDetails?.cache_creation_tokens
     ),
+    writeInPrompt: (promptDetails ?? inputDetails)?.cache_creation_in_prompt !== false,
   };
 }
 
@@ -256,13 +257,14 @@ function readUsageCounters(usage) {
 // usage-only chunks that carry `choices: []` (#11817).
 function trackUsageFromChunk(chunk, state) {
   if (!chunk.usage || typeof chunk.usage !== "object") return;
-  const { promptTokens, outputTokens, cacheReadTokens, cacheCreateTokens } = readUsageCounters(
-    chunk.usage
-  );
+  const { promptTokens, outputTokens, cacheReadTokens, cacheCreateTokens, writeInPrompt } =
+    readUsageCounters(chunk.usage);
 
-  // input_tokens = prompt_tokens - cached_tokens - cache_creation_tokens
-  // Because OpenAI's prompt_tokens includes all prompt-side tokens
-  const inputTokens = promptTokens - cacheReadTokens - cacheCreateTokens;
+  // #2215 reports cache creation outside prompt_tokens.
+  const inputTokens = Math.max(
+    0,
+    promptTokens - cacheReadTokens - (writeInPrompt ? cacheCreateTokens : 0)
+  );
 
   state.usage = {
     input_tokens: inputTokens,
@@ -403,6 +405,25 @@ export function openaiToClaudeResponse(chunk, state) {
     // and the compact is rejected, looping the session. When real content DOES
     // arrive, it starts its own text block and this buffer is simply ignored.
     state._reasoningAccum = (state._reasoningAccum || "") + reasoningContent;
+  }
+
+  // Refusal text is literal output, never input for XML/DSML tool-call shims.
+  if (typeof delta?.refusal === "string" && delta.refusal) {
+    if (!state.textBlockStarted) {
+      state.textBlockIndex = state.nextBlockIndex++;
+      state.textBlockStarted = true;
+      state.textBlockClosed = false;
+      results.push({
+        type: "content_block_start",
+        index: state.textBlockIndex,
+        content_block: { type: "text", text: "" },
+      });
+    }
+    results.push({
+      type: "content_block_delta",
+      index: state.textBlockIndex,
+      delta: { type: "text_delta", text: delta.refusal },
+    });
   }
 
   // Handle regular content — strip the internal reasoning placeholder if

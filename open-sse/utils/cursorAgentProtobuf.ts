@@ -37,7 +37,7 @@ import {
 import {
   CURSOR_EFFORT_SUFFIXES,
   applyCursorReasoningEffort,
-  resolveOneMillionContextModel,
+  resolveCursorContextModel,
 } from "./cursorAgentProtobuf/requestedModelParameters.ts";
 import {
   WT_VARINT,
@@ -452,7 +452,7 @@ export function resolveRequestedModel(
       };
     }
   }
-  const oneMillionContext = resolveOneMillionContextModel(normalized);
+  const oneMillionContext = resolveCursorContextModel(normalized);
   if (oneMillionContext) return oneMillionContext;
   // Live catalog is authoritative for exact ids (flattened effort variants).
   if (opts?.liveCatalogIds?.has(normalized)) {

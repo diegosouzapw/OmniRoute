@@ -137,7 +137,11 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // persisted-cooldown gate's connection read moved here byte-identically
     // (readConnectionForCooldownGate), so this is the same site, renamed.
     "open-sse/services/combo/executeTargetGates.ts": 1,
-    "open-sse/services/combo/providerWildcard.ts": 1,
+    // #15927: providerWildcard.ts no longer queries connections itself — the Alibaba
+    // free-tier drained-model filter now reads through getCachedProviderPoolConnections()
+    // (open-sse/services/providerConnectionPool.ts), which goes through the shared
+    // getCachedProviderConnections() read cache (its getProviderConnections site is the one
+    // already inventoried under src/lib/db/readCache.ts). Read-only state lookup, no dispatch, 1->0.
     "open-sse/services/tokenRefresh.ts": 1,
     // #15138: per-account test message config/send — reads the row for its stored test model
     // and active flag; dispatch goes through runSingleModelTest, which refuses managed-lease
@@ -250,7 +254,10 @@ const EXPECTED: Record<InventoryKind, Record<string, number>> = {
     // #11495: verify-only sweep queries oauth + cookie connections
     // #13874: the health check re-reads the row inside the refresh lane to see whether
     // a Layer 2 refresh already rotated the token before it POSTs a consumed one (2 -> 3).
-    "src/lib/tokenHealthCheck.ts": 3,
+    // #15891: after a successful refresh, getRefreshRecoveryUpdate() re-reads the row's
+    // rateLimitedUntil so it does not clear an active cooldown's diagnostics — a state
+    // read, not connection selection or dispatch, class C like its siblings (3 -> 4).
+    "src/lib/tokenHealthCheck.ts": 4,
     "src/lib/tokenHealthCheckCopilot.ts": 1,
     "src/lib/usage/callLogs.ts": 1,
     "src/lib/usage/codexResetCredits.ts": 1,
@@ -304,7 +311,6 @@ const CLASSIFICATION: Record<InventoryKind, Record<string, BypassClass>> = {
         "open-sse/services/alibabaFreeTier.ts",
         "open-sse/services/alibabaFreeTierQuotaFetcher.ts",
         "open-sse/services/combo/executeTargetGates.ts",
-        "open-sse/services/combo/providerWildcard.ts",
         "open-sse/services/tokenRefresh.ts",
         "src/app/api/translator/send/route.ts",
         "src/lib/credentialHealth/scheduler.ts",

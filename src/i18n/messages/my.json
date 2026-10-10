@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "မူလ (အလိုအလျောက်)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "အများဆုံး ထုတ်ပေး Token များ",
+    "maxOutputTokenOverrideHint": "တိုကင်အရေအတွက်ကို အပေါင်းကိန်းပြည့်ဖြင့် ထည့်ပါ။ မူလတန်ဖိုးကို သုံးရန် ဗလာထားပါ။",
     "contextWindowOverrideLabel": "Context Window အစားထိုးသတ်မှတ်မှု",
     "contextWindowOverridePlaceholder": "ဥပမာ 131072",
     "contextWindowOverrideHint": "ပံ့ပိုးသူက မှားယွင်းဖော်ပြသည့်အခါ ဤမော်ဒယ်၏ အမှန်တကယ် context window (တိုကင်များ) ကို ကိုယ်တိုင် သတ်မှတ်ပါ။ ၎င်းသည် အလိုအလျောက် ရှာဖွေသတ်မှတ်ထားသော တန်ဖိုးများနှင့် catalog တန်ဖိုးများထက် ဦးစားပေးမည်ဖြစ်ပြီး combo routing က မော်ဒယ်ကို ဖယ်ရှားခြင်းမှ တားဆီးပေးသည်။",

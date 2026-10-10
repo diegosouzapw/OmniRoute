@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { handleSearch } from "@omniroute/open-sse/handlers/search.ts";
+import { recordSearchUsageCost } from "@omniroute/open-sse/handlers/search/reportedCost.ts";
 import { getProviderCredentialsWithQuotaPreflight } from "@/sse/services/auth";
 import {
   getSearchProvider,
@@ -16,7 +17,6 @@ import {
   isValidationFailure,
   validateBody,
 } from "@/shared/validation/helpers";
-import { recordCost } from "@/domain/costRules";
 import { isAllRateLimitedCredentials } from "@/app/api/v1/_shared/rateLimit";
 import { getSettings } from "@/lib/db/settings";
 import { isProviderBlockedByIdOrAlias } from "@/shared/utils/noAuthProviders";
@@ -215,16 +215,18 @@ async function postHandler(request: Request) {
       const data = result.data!;
       queriesUsed += data.usage?.queries_used || 1;
       searchCostUsd += data.usage?.search_cost_usd || 0;
+      // Charged per call as it succeeds (one search ledger row each), so a
+      // provider-reported cost keeps its request id.
+      try {
+        recordSearchUsageCost(policy.apiKeyInfo?.id, data.provider, data.usage);
+      } catch (e: unknown) {
+        log.warn(
+          "ALPHA_SEARCH",
+          `Cost recording failed: ${e instanceof Error ? e.message : String(e)}`
+        );
+      }
       for (const r of data.results) {
         allResults.push({ title: r.title, url: r.url, snippet: r.snippet });
-      }
-    }
-
-    if (policy.apiKeyInfo?.id && searchCostUsd > 0) {
-      try {
-        recordCost(policy.apiKeyInfo.id, searchCostUsd);
-      } catch (e: any) {
-        log.warn("ALPHA_SEARCH", `Cost recording failed: ${e?.message}`);
       }
     }
 

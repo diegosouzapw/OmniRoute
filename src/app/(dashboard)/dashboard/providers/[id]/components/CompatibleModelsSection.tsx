@@ -26,6 +26,7 @@ import {
 import { ModelVisibilityToolbar } from "./ModelRow";
 import { sortModelsFreeFirst, isModelFreeBadge } from "@/shared/utils/freeModels";
 import { useStrictFreeBadge } from "./useStrictFreeBadge";
+import { useModelOutputOverrides } from "../hooks/useModelOutputOverrides";
 import PassthroughModelRow, { type PassthroughModelRowProps } from "./PassthroughModelRow";
 
 // ---------------------------------------------------------------------------
@@ -157,6 +158,7 @@ export default function CompatibleModelsSection({
   const [sortFreeFirst, setSortFreeFirst] = useState(false);
 
   const notify = useNotificationStore();
+  const outputOverrides = useModelOutputOverrides(providerStorageAlias, t);
 
   // #14337: context-window overrides for rows that have no customModels entry.
   // GET /api/provider-models returns them per provider; without this the value a
@@ -251,6 +253,7 @@ export default function CompatibleModelsSection({
       source: string;
       isFree: boolean;
       isHidden: boolean;
+      supportsVision?: boolean;
     }> = [];
     const seenModelIds = new Set<string>();
 
@@ -279,6 +282,7 @@ export default function CompatibleModelsSection({
           { strict: strictFreeBadge }
         ),
         isHidden: isModelHidden(model.id),
+        supportsVision: model.supportsVision,
       });
       seenModelIds.add(model.id);
     };
@@ -321,6 +325,7 @@ export default function CompatibleModelsSection({
           { strict: strictFreeBadge }
         ),
         isHidden: isModelHidden(modelId),
+        supportsVision: customModel?.supportsVision,
       });
       seenModelIds.add(modelId);
     }
@@ -550,46 +555,53 @@ export default function CompatibleModelsSection({
             onAutoHideFailedChange={onAutoHideFailedChange}
           />
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-            {displayModels.map(({ modelId, alias, displayName, isHidden, source, isFree }) => {
-              const fullModel = `${providerDisplayAlias}/${modelId}`;
-              return (
-                <PassthroughModelRow
-                  key={`${providerStorageAlias}:${modelId}`}
-                  modelId={modelId}
-                  fullModel={fullModel}
-                  alias={alias}
-                  displayName={displayName}
-                  source={source}
-                  isFree={isFree}
-                  isHidden={isHidden}
-                  copied={copied}
-                  onCopy={onCopy}
-                  onDeleteAlias={
-                    source === "custom" || source === "manual"
-                      ? () => handleDeleteModel(modelId, alias)
-                      : source === "alias" && alias
-                        ? () => onDeleteAlias(alias)
-                        : undefined
-                  }
-                  onSetAlias={(a) => onSetAlias(modelId, a, providerStorageAlias)}
-                  t={t}
-                  showDeveloperToggle={!isAnthropic}
-                  effectiveModelNormalize={effectiveModelNormalize}
-                  effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
-                  getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
-                  saveModelCompatFlags={saveModelCompatFlags}
-                  compatDisabled={compatSavingModelId === modelId}
-                  onToggleHidden={onToggleHidden}
-                  togglingHidden={togglingModelId === modelId}
-                  onTestModel={onTestModel}
-                  testStatus={modelTestStatus?.[modelId] || null}
-                  testingModel={testingModelId === modelId}
-                  contextWindowOverride={contextOverrides[modelId] ?? null}
-                  onSaveContextWindowOverride={saveContextWindowOverride}
-                  savingContextOverride={savingContextModelId === modelId}
-                />
-              );
-            })}
+            {displayModels.map(
+              ({ modelId, alias, displayName, isHidden, source, isFree, supportsVision }) => {
+                const fullModel = `${providerDisplayAlias}/${modelId}`;
+                return (
+                  <PassthroughModelRow
+                    key={`${providerStorageAlias}:${modelId}`}
+                    modelId={modelId}
+                    fullModel={fullModel}
+                    alias={alias}
+                    displayName={displayName}
+                    source={source}
+                    isFree={isFree}
+                    isHidden={isHidden}
+                    copied={copied}
+                    onCopy={onCopy}
+                    onDeleteAlias={
+                      source === "custom" || source === "manual"
+                        ? () => handleDeleteModel(modelId, alias)
+                        : source === "alias" && alias
+                          ? () => onDeleteAlias(alias)
+                          : undefined
+                    }
+                    onSetAlias={(a) => onSetAlias(modelId, a, providerStorageAlias)}
+                    t={t}
+                    showDeveloperToggle={!isAnthropic}
+                    effectiveModelNormalize={effectiveModelNormalize}
+                    effectiveModelPreserveDeveloper={effectiveModelPreserveDeveloper}
+                    getUpstreamHeadersRecord={(p) => getUpstreamHeadersRecord(modelId, p)}
+                    saveModelCompatFlags={saveModelCompatFlags}
+                    compatDisabled={compatSavingModelId === modelId}
+                    onToggleHidden={onToggleHidden}
+                    togglingHidden={togglingModelId === modelId}
+                    onTestModel={onTestModel}
+                    testStatus={modelTestStatus?.[modelId] || null}
+                    testingModel={testingModelId === modelId}
+                    provider={providerStorageAlias}
+                    supportsVision={supportsVision}
+                    maxOutputTokenOverride={outputOverrides.overrides[modelId] ?? null}
+                    onSaveMaxOutputTokenOverride={outputOverrides.save}
+                    savingOutputOverride={outputOverrides.savingModelId === modelId}
+                    contextWindowOverride={contextOverrides[modelId] ?? null}
+                    onSaveContextWindowOverride={saveContextWindowOverride}
+                    savingContextOverride={savingContextModelId === modelId}
+                  />
+                );
+              }
+            )}
           </div>
           {filteredModels.length === 0 && modelFilter && (
             <p className="py-2 text-sm text-text-muted">

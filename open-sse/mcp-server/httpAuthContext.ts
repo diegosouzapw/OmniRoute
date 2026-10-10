@@ -1,6 +1,4 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import { extractApiKey, isValidApiKey } from "../../src/sse/services/auth.ts";
-import { getApiKeyMetadata } from "../../src/lib/db/apiKeys.ts";
 
 type McpHttpAuthContext = {
   authorization?: string;
@@ -67,6 +65,19 @@ export function hasMcpHttpAuthContext(): boolean {
 export async function resolveMcpCallerAuthInfo(
   request: Request
 ): Promise<McpCallerAuthInfo | undefined> {
+  // Avoid importing the full auth/database stack for requests that carry no
+  // explicit API-key header. This function is called on every HTTP transport
+  // request, while only authenticated requests need the expensive lookup.
+  const hasExplicitKeyHeader =
+    request.headers.has("authorization") ||
+    request.headers.has("x-api-key") ||
+    request.headers.has("x-goog-api-key");
+  if (!hasExplicitKeyHeader) return undefined;
+
+  const [{ extractApiKey, isValidApiKey }, { getApiKeyMetadata }] = await Promise.all([
+    import("../../src/sse/services/auth.ts"),
+    import("../../src/lib/db/apiKeys.ts"),
+  ]);
   const rawKey = extractApiKey(request, { allowUrl: false });
   if (!rawKey) return undefined;
 

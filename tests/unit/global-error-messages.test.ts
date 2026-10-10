@@ -8,9 +8,11 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { generateGlobalErrorMessages } from "../../scripts/i18n/generate-global-error-messages.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, "..", "..");
@@ -48,4 +50,64 @@ test("global-error.tsx does not statically import a full locale catalog", () => 
     !/^\s*import\s+.*from\s+["']@\/i18n\/messages\//m.test(source),
     "global-error.tsx must not statically import from @/i18n/messages/* (ships ~770 KB on every page)"
   );
+  assert.doesNotMatch(
+    source,
+    /import\s*\(\s*[`"'][^`"']*i18n\/messages\//,
+    "lazy imports must also keep full catalogs outside the client bundle"
+  );
+});
+
+test("compact catalogs preserve every translated error string without unrelated namespaces", () => {
+  const config = JSON.parse(readFileSync(join(REPO_ROOT, "config/i18n.json"), "utf8"));
+  const english = JSON.parse(readFileSync(join(REPO_ROOT, "src/i18n/messages/en.json"), "utf8"));
+  const keys = Object.keys(english.publicSystem.globalError);
+  let totalBytes = 0;
+  for (const { code } of config.locales) {
+    const source = JSON.parse(
+      readFileSync(join(REPO_ROOT, `src/i18n/messages/${code}.json`), "utf8")
+    );
+    const serialized = readFileSync(
+      join(REPO_ROOT, `src/i18n/global-error-messages/${code}.json`),
+      "utf8"
+    );
+    const translated = source.publicSystem?.globalError ?? {};
+    const expected = Object.fromEntries(
+      keys.filter((key) => typeof translated[key] === "string").map((key) => [key, translated[key]])
+    );
+    assert.deepEqual(JSON.parse(serialized), { publicSystem: { globalError: expected } }, code);
+    totalBytes += Buffer.byteLength(serialized);
+  }
+  assert.ok(totalBytes < 150_000, `Error-only catalogs should remain small: ${totalBytes} bytes`);
+});
+
+test("generator refreshes translations and leaves missing strings to the boundary fallback", () => {
+  const root = mkdtempSync(join(tmpdir(), "omniroute-error-catalogs-"));
+  try {
+    mkdirSync(join(root, "config"), { recursive: true });
+    mkdirSync(join(root, "src/i18n/messages"), { recursive: true });
+    writeFileSync(
+      join(root, "config/i18n.json"),
+      JSON.stringify({ locales: [{ code: "en" }, { code: "pt" }] })
+    );
+    const write = (code: string, value: unknown) =>
+      writeFileSync(join(root, `src/i18n/messages/${code}.json`), JSON.stringify(value));
+    write("en", { publicSystem: { globalError: { title: "Error", tryAgain: "Retry" } } });
+    write("pt", {
+      publicSystem: { globalError: { title: "Erro", tryAgain: 42 } },
+      dashboard: { title: "Unused" },
+    });
+    assert.equal(generateGlobalErrorMessages(root), 2);
+    const read = () =>
+      JSON.parse(readFileSync(join(root, "src/i18n/global-error-messages/pt.json"), "utf8"));
+    assert.deepEqual(read(), { publicSystem: { globalError: { title: "Erro" } } });
+    write("pt", {
+      publicSystem: { globalError: { title: "Novo erro", tryAgain: "__MISSING__:tryAgain" } },
+    });
+    generateGlobalErrorMessages(root);
+    assert.deepEqual(read(), {
+      publicSystem: { globalError: { title: "Novo erro", tryAgain: "__MISSING__:tryAgain" } },
+    });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

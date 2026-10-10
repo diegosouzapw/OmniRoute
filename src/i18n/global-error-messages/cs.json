@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Něco se pokazilo",
+      "description": "Došlo k neočekávané chybě. Tato chyba byla zaznamenána a náš tým ji prozkoumá.",
+      "detailsAriaLabel": "Podrobnosti o chybě",
+      "retryAriaLabel": "Zkuste znovu načíst stránku",
+      "tryAgain": "Zkusit znovu",
+      "statusAriaLabel": "Otevřít stav systému",
+      "systemStatus": "Stav Systému"
+    }
+  }
+}

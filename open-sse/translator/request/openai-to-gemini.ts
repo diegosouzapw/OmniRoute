@@ -237,8 +237,13 @@ function openaiToGeminiBase(
   if (body.top_k !== undefined) {
     result.generationConfig.topK = body.top_k;
   }
-  if (body.stop !== undefined) {
-    result.generationConfig.stopSequences = Array.isArray(body.stop) ? body.stop : [body.stop];
+  // `stop: null` is how many OpenAI-compatible clients serialize "no stop"; wrapping it
+  // would send `stopSequences: [null]`, which Gemini rejects with a 400.
+  const stopSequences = (Array.isArray(body.stop) ? body.stop : [body.stop]).filter(
+    (value) => typeof value === "string" && value !== ""
+  );
+  if (stopSequences.length > 0) {
+    result.generationConfig.stopSequences = stopSequences;
   }
   const maxOutputTokens = capMaxOutputTokens(
     model,

@@ -10,7 +10,7 @@ import {
   parseRequestBudgetCap,
   parseRequestBudgetFallback,
 } from "../autoCombo/requestControls.ts";
-import { selectWithStrategy } from "../autoCombo/routerStrategy.ts";
+import { selectWithStrategyAsync } from "../autoCombo/routerStrategy.ts";
 import { buildComplexityRoutingHint } from "../autoCombo/complexityRouter";
 import { getModePack } from "../autoCombo/modePacks.ts";
 import { recordComboIntent } from "../comboMetrics.ts";
@@ -254,6 +254,7 @@ export async function resolveAutoStrategyOrder(
     modePack: configModePack,
     resetWindowConfig,
     slaPolicy,
+    nadirConfig,
   } = parseAutoConfig(combo, eligibleTargets);
 
   // Per-request overrides (#6023 / #6024 / #6025 / #3470): X-OmniRoute-Budget,
@@ -363,7 +364,7 @@ export async function resolveAutoStrategyOrder(
 
     if (routingStrategy !== "rules") {
       try {
-        const decision = selectWithStrategy(
+        const decision = await selectWithStrategyAsync(
           routableCandidates,
           {
             taskType,
@@ -379,6 +380,8 @@ export async function resolveAutoStrategyOrder(
             sla: slaPolicy,
             weights,
             explorationRate,
+            messages: body.messages,
+            nadir: nadirConfig,
           },
           routingStrategy
         );
