@@ -160,12 +160,12 @@ test("deliverWebhook: 5xx is retried with backoff and can recover", async () => 
   assert.equal(received.length, 2);
 });
 
-test("characterization: deliverWebhook currently reports status 0 'Max retries exceeded' after persistent 5xx", async () => {
+test("deliverWebhook: exhausted HTTP retries preserve the terminal upstream status", async () => {
   reset();
   statusQueue.push(500, 502);
   const result = await dispatcher.deliverWebhook(`${BASE}/down`, PING, null, 1);
-  // The last upstream status (502) is not surfaced.
-  assert.deepEqual(result, { success: false, status: 0, error: "Max retries exceeded" });
+  // HTTP exhaustion remains distinct from a terminal network failure.
+  assert.deepEqual(result, { success: false, status: 502, error: "Max retries exceeded" });
   assert.equal(received.length, 2);
 });
 
