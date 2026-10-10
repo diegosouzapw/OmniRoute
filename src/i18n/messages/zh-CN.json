@@ -3384,8 +3384,8 @@
     "comboRefMember": "组合 → {name}"
   },
   "combos": {
-    "autoTosIncludeLabel": "在 auto 中包含标记为 ToS: avoid 的提供商",
-    "autoTosDescription": "默认关闭。适用于所有 auto 组合，而非单个账户。连接提供商不会启用此选项。",
+    "autoTosIncludeLabel": "在 auto 中包含标记为 ToS: avoid 的提供者",
+    "autoTosDescription": "默认关闭。适用于所有 auto 组合，而非单个账户。连接提供者不会启用此选项。",
     "autoTosSaveError": "无法保存 ToS 策略。仍显示之前的设置，请重试。",
     "autoTosLoadError": "无法加载 ToS 策略。请重试后再进行更改。",
     "title": "组合",
@@ -5272,8 +5272,8 @@
     }
   },
   "providers": {
-    "tosAvoidNoticeTitle": "此提供商默认被排除在 auto 之外",
-    "tosAvoidNoticeDescription": "其 ToS 状态标记为 avoid。连接账户不会改变此策略。在为所有 auto 组合启用全局选项之前，请查阅提供商的条款。",
+    "tosAvoidNoticeTitle": "此提供者默认被排除在 auto 之外",
+    "tosAvoidNoticeDescription": "其 ToS 状态标记为 avoid。连接账户不会改变此策略。在为所有 auto 组合启用全局选项之前，请查阅提供者的条款。",
     "tosAvoidNoticeAction": "查看 auto 策略",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",

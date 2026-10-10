@@ -4,10 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Toggle from "@/shared/components/Toggle";
 
-/** The opt-in is global; connecting an account never changes this setting. */
-export default function AutoComboTosControl({ onPolicyChange }: { onPolicyChange: () => void }) {
-  const t = useTranslations("combos");
-  const common = useTranslations("common");
+function useAutoComboTosPolicy(onPolicyChange: () => void) {
   const [excluded, setExcluded] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -59,6 +56,21 @@ export default function AutoComboTosControl({ onPolicyChange }: { onPolicyChange
     }
   };
 
+  const retryLoad = () => {
+    setLoadFailed(false);
+    setLoadRevision((value) => value + 1);
+  };
+
+  return { excluded, saving, loadFailed, saveFailed, save, retryLoad };
+}
+
+/** The opt-in is global; connecting an account never changes this setting. */
+export default function AutoComboTosControl({ onPolicyChange }: { onPolicyChange: () => void }) {
+  const t = useTranslations("combos");
+  const common = useTranslations("common");
+  const { excluded, saving, loadFailed, saveFailed, save, retryLoad } =
+    useAutoComboTosPolicy(onPolicyChange);
+
   return (
     <section id="auto-tos-policy" className="mt-4 border-t border-border pt-4">
       <Toggle
@@ -74,14 +86,7 @@ export default function AutoComboTosControl({ onPolicyChange }: { onPolicyChange
           <p role="alert" className="text-red-500">
             {t("autoTosLoadError")}
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              setLoadFailed(false);
-              setLoadRevision((value) => value + 1);
-            }}
-            className="mt-1 text-primary underline"
-          >
+          <button type="button" onClick={retryLoad} className="mt-1 text-primary underline">
             {common("retry")}
           </button>
         </div>
