@@ -172,6 +172,13 @@ export function classifyAdaptiveResourcePressure(
   thresholds: ResourcePressureThresholds
 ): RawLevel {
   let best: RawLevel = { severity: "normal", reason: "none" };
+  if (
+    thresholds.heapAbsoluteThresholdMb != null &&
+    signals.v8.heapUsedBytes >= thresholds.heapAbsoluteThresholdMb * MB
+  ) {
+    best = maxLevel(best, { severity: "critical", reason: "v8_heap_absolute" });
+  }
+
   best = maxLevel(
     best,
     ratioLevel(signals.v8.heapUsedBytes, signals.v8.heapLimitBytes, thresholds, "v8_heap_ratio")
