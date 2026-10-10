@@ -1,0 +1,1 @@
+- **quality:** allow the package boot smoke to install an isolated snapshot of an existing tarball only after SHA-256 and package version verification. Preview validation now boots the packed upload bytes and rechecks their digest, while retaining the reproducibility check and the existing default pack/build contract.

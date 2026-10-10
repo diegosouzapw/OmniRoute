@@ -164,13 +164,16 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "packed $FILE sha256=$SHA"
 
-      # Packs the same tree again, installs it into a clean prefix and boots it with
+      # Installs the already packed, digest-verified bytes into a clean prefix with
       # fake JWT/API-key secrets on an ephemeral DATA_DIR (the script also forces its
       # own isolated values for the spawned server).
       - name: Boot-smoke the packed tarball
         env:
           DATA_DIR: ${{ runner.temp }}/preview-artifact-data
-        run: npm run check:pack-boot
+          OUT_DIR: ${{ steps.pack.outputs.dir }}
+          FILE: ${{ steps.pack.outputs.file }}
+          EXPECTED_SHA: ${{ steps.pack.outputs.sha256 }}
+        run: npm run check:pack-boot -- --tarball "$OUT_DIR/$FILE" --sha256 "$EXPECTED_SHA"
 
       # Build once: the tree must not have changed while it was being validated, and
       # `npm pack` must reproduce the uploaded bytes exactly — otherwise what booted
@@ -182,6 +185,11 @@ jobs:
           EXPECTED_SHA: ${{ steps.pack.outputs.sha256 }}
         run: |
           set -euo pipefail
+          BOOTED=$(sha256sum "$OUT_DIR/$FILE" | cut -d' ' -f1)
+          if [ "$BOOTED" != "$EXPECTED_SHA" ]; then
+            echo "::error::uploaded tarball changed after boot validation"
+            exit 1
+          fi
           RECHECK="$RUNNER_TEMP/preview-artifact-recheck"
           mkdir -p "$RECHECK"
           npm pack --pack-destination "$RECHECK" >/dev/null

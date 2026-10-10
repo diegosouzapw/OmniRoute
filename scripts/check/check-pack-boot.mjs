@@ -14,7 +14,7 @@
  * 0 = boots and reports the right version · 1 = boot failed · 2 = missing build.
  */
 import { execFileSync, spawn } from "node:child_process";
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -409,9 +409,60 @@ async function readSettingsDebugMode(baseUrl, cliToken) {
   return body.debugMode;
 }
 
+function parseArtifactInput(args) {
+  if (!args.length) return null;
+  const values = new Map();
+  for (let index = 0; index < args.length; index += 2) {
+    const flag = args[index];
+    const value = args[index + 1];
+    if (
+      !["--tarball", "--sha256"].includes(flag) ||
+      values.has(flag) ||
+      !value ||
+      value.startsWith("--")
+    ) {
+      throw new Error(
+        "expected exactly --tarball FILE --sha256 DIGEST, without duplicate or unknown flags"
+      );
+    }
+    values.set(flag, value);
+  }
+  if (!values.has("--tarball") || !/^[a-f0-9]{64}$/.test(values.get("--sha256") || "")) {
+    throw new Error("an existing tarball requires its expected SHA-256 digest");
+  }
+  return { tarball: path.resolve(values.get("--tarball")), sha256: values.get("--sha256") };
+}
+
+async function snapshotArtifact(input, directory, expectedVersion) {
+  if (!fs.lstatSync(input.tarball).isFile() || !input.tarball.endsWith(".tgz")) {
+    throw new Error("existing tarball must be a regular .tgz file, not a symlink");
+  }
+  // Install an isolated snapshot: changes to the caller's file after validation
+  // cannot substitute different bytes between the digest check and npm install.
+  const tarball = path.join(directory, "verified-artifact.tgz");
+  fs.copyFileSync(input.tarball, tarball, fs.constants.COPYFILE_EXCL);
+  const hash = createHash("sha256");
+  for await (const chunk of fs.createReadStream(tarball)) hash.update(chunk);
+  const actual = hash.digest("hex");
+  if (actual !== input.sha256) throw new Error("existing tarball SHA-256 mismatch");
+  const manifest = JSON.parse(
+    execFileSync("tar", ["-xOf", tarball, "package/package.json"], {
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024,
+      timeout: 30_000,
+    })
+  );
+  if (manifest.name !== "omniroute" || manifest.version !== expectedVersion) {
+    throw new Error("existing tarball package identity/version mismatch");
+  }
+  log(`verified artifact sha256=${actual} version=${expectedVersion}`);
+  return tarball;
+}
+
 async function main() {
   const ROOT = process.cwd();
-  if (!fs.existsSync(path.join(ROOT, "dist", "server.js"))) {
+  const input = parseArtifactInput(process.argv.slice(2));
+  if (!input && !fs.existsSync(path.join(ROOT, "dist", "server.js"))) {
     console.error(
       "[pack-boot] dist/server.js missing — run `npm run build:cli` first (this is a --with-build gate)"
     );
@@ -420,6 +471,9 @@ async function main() {
   const expectedVersion = JSON.parse(
     fs.readFileSync(path.join(ROOT, "package.json"), "utf8")
   ).version;
+  if (typeof expectedVersion !== "string" || !expectedVersion.trim()) {
+    throw new Error("candidate package version is missing");
+  }
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-pack-boot-"));
   let child = null;
   let tail = [];
@@ -428,13 +482,18 @@ async function main() {
   let cleanupError = null; // recorded ONLY in finally, ONLY for a final stopChild failure
   let shutdownConfirmed = false; // process group confirmed stopped → safe to rm the workspace
   try {
-    log(`packing v${expectedVersion}…`);
-    const packOut = execFileSync("npm", ["pack", "--json", "--pack-destination", tmp], {
-      cwd: ROOT,
-      encoding: "utf8",
-      maxBuffer: 64 * 1024 * 1024,
-    });
-    const tarball = path.join(tmp, pickTarball(packOut));
+    let tarball;
+    if (input) {
+      tarball = await snapshotArtifact(input, tmp, expectedVersion);
+    } else {
+      log(`packing v${expectedVersion}…`);
+      const packOut = execFileSync("npm", ["pack", "--json", "--pack-destination", tmp], {
+        cwd: ROOT,
+        encoding: "utf8",
+        maxBuffer: 64 * 1024 * 1024,
+      });
+      tarball = path.join(tmp, pickTarball(packOut));
+    }
     log(`installing ${path.basename(tarball)} into a clean prefix (postinstall runs for real)…`);
     const prefix = path.join(tmp, "prefix");
     execFileSync("npm", ["install", "-g", "--prefix", prefix, tarball], {
