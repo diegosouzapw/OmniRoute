@@ -234,7 +234,17 @@ test("chatCore passes the caller's API key id into the dedup hash", async () => 
     "utf8"
   );
   assert.ok(
-    /computeRequestHash\(\s*dedupRequestBody\s*,\s*apiKeyInfo\?\.id/.test(source),
+    /runRequestDedup\(\{[\s\S]*?apiKeyId:\s*apiKeyInfo\?\.id/.test(source),
+    "chatCore must hand the caller's API key id to the dedup module (GHSA-6c7w-56xp-wpc6)"
+  );
+  const moduleSource = readFileSync(
+    fileURLToPath(
+      new URL("../../open-sse/handlers/chatCore/requestDedup.ts", import.meta.url)
+    ),
+    "utf8"
+  );
+  assert.ok(
+    /computeRequestHash\(\s*dedupRequestBody\s*,\s*apiKeyId/.test(moduleSource),
     "the dedup hash must be namespaced by the calling API key (GHSA-6c7w-56xp-wpc6)"
   );
 });
