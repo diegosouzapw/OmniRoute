@@ -1,2 +1,2 @@
 - **fix(sse):** key resource-pressure runtime singleton on globalThis to survive duplicated bundle copies ([#PRNUM](https://github.com/diegosouzapw/OmniRoute/pull/PRNUM))
-- **test(perf):** harden messages-route memory profiler against orphaned heap snapshots and add a controller-retention regression ([#PRNUM](https://github.com/diegosouzapw/OmniRoute/pull/PRNUM))
+- **test:** harden messages-route memory profiler against orphaned heap snapshots ([#PRNUM](https://github.com/diegosouzapw/OmniRoute/pull/PRNUM))
