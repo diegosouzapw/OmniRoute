@@ -76,7 +76,7 @@ test("translate from claude to openai format", () => {
   assert.equal((msg as { content: string }).content, "Hi there");
 });
 
-test("claude source strips markdown code fence", () => {
+test("JSON-mode request strips the markdown code fence from a Claude response", () => {
   const input = baseInput({
     responseBody: {
       id: "msg-123",
@@ -91,15 +91,19 @@ test("claude source strips markdown code fence", () => {
     },
     responsePayloadFormat: "claude",
     clientResponseFormat: "openai",
-    sourceFormat: "claude",
+    sourceFormat: "openai",
     provider: "anthropic",
     model: "claude-sonnet-4-20250514",
+    // The fence is only stripped when the client asked for JSON output; the
+    // upstream (Claude) body no longer carries response_format, the client body does.
+    clientRequestBody: {
+      messages: [{ role: "user", content: "hi" }],
+      response_format: { type: "json_object" },
+    },
   });
   const result = translateNonStreamingClientResponse(input);
   const content = result.response.choices?.[0]?.message?.content;
-  assert.ok(typeof content === "string");
-  // After stripping, the content should not have the markdown fence wrapper
-  assert.ok(!content.startsWith("```json"), "markdown fence should be stripped");
+  assert.equal(content, '{"key": "value"}');
 });
 
 test("normalizeOpenAIToolFinishReasons: tool_calls present → finish_reason tool_calls", () => {

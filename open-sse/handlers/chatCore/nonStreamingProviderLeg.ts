@@ -291,6 +291,7 @@ function finishOk(
     provider: params.provider,
     model: params.model,
     requestBody: params.requestBody,
+    clientRequestBody: input.sourceBody ?? null,
     historyMessages:
       (input.translatedBody as { messages?: unknown[] } | null | undefined)?.messages ??
       input.reasoningReplayHistory ??

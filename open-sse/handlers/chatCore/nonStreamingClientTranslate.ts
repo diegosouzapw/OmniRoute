@@ -18,7 +18,7 @@ import { needsTranslation } from "../../translator/index.ts";
 import { FORMATS } from "../../translator/formats.ts";
 import { translateNonStreamingResponse } from "../responseTranslator.ts";
 import { extractToolSchemaMap } from "../../translator/response/openai-responses/toolSchemas.ts";
-import { stripMarkdownCodeFence } from "../../utils/aiSdkCompat.ts";
+import { unfenceJsonOutput } from "../../utils/jsonFence.ts";
 import { normalizeOpenAIToolFinishReasons } from "./passthroughToolNames.ts";
 import {
   cacheReasoningFromAssistantMessage,
@@ -51,7 +51,6 @@ export function translateNonStreamingClientResponse(
     responseBody,
     responsePayloadFormat,
     clientResponseFormat,
-    sourceFormat,
     provider,
     model,
     requestBody,
@@ -81,15 +80,6 @@ export function translateNonStreamingClientResponse(
       )
     : responseBody;
   const responseForMemoryExtraction = translatedResponse;
-
-  // ── T26: Strip markdown code blocks if provider format is Claude ───────────
-  if (sourceFormat === "claude") {
-    if (typeof translatedResponse?.choices?.[0]?.message?.content === "string") {
-      translatedResponse.choices[0].message.content = stripMarkdownCodeFence(
-        translatedResponse.choices[0].message.content
-      ) as string;
-    }
-  }
 
   // ── T18: Normalize finish_reason to 'tool_calls' if tool calls present ─────
   normalizeOpenAIToolFinishReasons(translatedResponse);
@@ -197,6 +187,13 @@ export function translateNonStreamingClientResponse(
       parseTextualReasoningTags: shouldParseTextualReasoningTags(provider, model),
     });
   }
+
+  // ── JSON mode: unwrap a ```json fence the provider put around the object ──
+  // Prompt-instructed structured output (Claude-backed targets especially) often
+  // comes back fenced, which breaks clients that JSON.parse the content. Gated on
+  // the CLIENT's request (the upstream body may no longer carry response_format),
+  // every choice / output_text part, whole-content fences only.
+  unfenceJsonOutput(input.clientRequestBody ?? finalBody, translatedResponse);
 
   // ── Client usage buffer (#8331) ───────────────────────────────────────────
   // Only apply for final phase; intermediate preserves raw usage for aggregation.
