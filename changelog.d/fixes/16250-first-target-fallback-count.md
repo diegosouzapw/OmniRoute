@@ -1,0 +1,1 @@
+- **fix(routing):** count the abandonment of the first ordered combo target as a fallback, so a failover that abandons target #1 reports a non-zero count in the documented `X-OmniRoute-Fallback-Attempts` response header and in `totalFallbacks` instead of staying at `0` ([#16250](https://github.com/diegosouzapw/OmniRoute/pull/16250))

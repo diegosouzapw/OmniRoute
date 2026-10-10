@@ -873,3 +873,36 @@ test("CLIProxyAPI preflight gate: stale per-model rejected flag on a recovered a
   });
   assert.equal(sonnetDecision.kind, "skip");
 });
+
+/**
+ * Fallback counting: skipping the FIRST ordered target is the first fallback.
+ * `state.fallbackCount` is snapshotted into the combo record (`totalFallbacks`,
+ * `fallbackRate`) and has to match the `fallbackAttempts` stamped on the target
+ * that finally proceeds — so a skip of target 0 must leave it at 1, not 0.
+ */
+test("a gate skip of the first ordered target counts one fallback", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const target = modelTarget({ connectionId: "conn-1", provider: "openai" });
+  const state = emptyState({
+    orderedTargets: [target],
+    exhaustedConnections: new Set(["openai:conn-1"]),
+  });
+  const decision = await evaluateExecuteTargetGates({ index: 0, state, deps: baseDeps() });
+  assert.equal(decision.kind, "skip");
+  assert.equal(state.fallbackCount, 1);
+});
+
+test("a gate skip of a later ordered target still counts one fallback", async () => {
+  const { evaluateExecuteTargetGates } =
+    await import("../../../open-sse/services/combo/executeTargetGates.ts");
+  const alive = modelTarget({ executionKey: "ek-0", stepId: "s0", connectionId: "conn-0" });
+  const dead = modelTarget({ executionKey: "ek-1", stepId: "s1", connectionId: "conn-1" });
+  const state = emptyState({
+    orderedTargets: [alive, dead],
+    exhaustedConnections: new Set(["openai:conn-1"]),
+  });
+  const decision = await evaluateExecuteTargetGates({ index: 1, state, deps: baseDeps() });
+  assert.equal(decision.kind, "skip");
+  assert.equal(state.fallbackCount, 1);
+});

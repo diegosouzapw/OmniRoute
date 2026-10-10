@@ -202,6 +202,10 @@ export async function dispatchWithCooldownRetry(opts: {
       }
 
       deps.startTime = Date.now();
+      // Fallbacks within this set try: one per ordered target abandoned before
+      // the one that serves the request. Abandoning the FIRST target counts
+      // too — it equals the index of the target that ends up serving, i.e. the
+      // value exposed as `X-OmniRoute-Fallback-Attempts`.
       state.fallbackCount = 0;
       state.recordedAttempts = 0;
       state.comboErrors = [];

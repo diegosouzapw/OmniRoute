@@ -61,4 +61,66 @@ describe("round-robin extract guards", () => {
       "#6692 quality/exhaustion path must still release the sticky pin"
     );
   });
+
+  it("counts a first-model failover in a round-robin combo (behavioural)", async () => {
+    // t_f348e188: `if (offset > 0) fallbackCount++` conflated "not the first
+    // target" with "is a fallback", so a round-robin combo whose FIRST model
+    // failed and whose second one served recorded zero fallbacks. This drives
+    // the real dispatcher rather than grepping the source, so re-adding the
+    // guard turns it red on the observable metric, not on a regex.
+    const { handleComboChat } = await import("../../../open-sse/services/combo.ts");
+    const { getComboMetrics } = await import("../../../open-sse/services/comboMetrics.ts");
+    const comboName = `rr-fallback-count-${Date.now()}`;
+    const combo = {
+      name: comboName,
+      strategy: "round-robin",
+      config: { maxRetries: 0 },
+      models: [
+        {
+          kind: "model",
+          provider: "codex",
+          providerId: "codex",
+          model: "m-a",
+          connectionId: "conn-A",
+          id: `${comboName}-0`,
+        },
+        {
+          kind: "model",
+          provider: "glm-cn",
+          providerId: "glm-cn",
+          model: "m-b",
+          connectionId: "conn-B",
+          id: `${comboName}-1`,
+        },
+      ],
+    };
+    let calls = 0;
+    const response = await handleComboChat({
+      body: {
+        model: comboName,
+        messages: [{ role: "user", content: "hello" }],
+        stream: false,
+      },
+      combo,
+      allCombos: [combo],
+      isModelAvailable: async () => true,
+      relayOptions: undefined,
+      signal: undefined,
+      settings: {},
+      log: { info() {}, warn() {}, debug() {}, error() {} },
+      handleSingleModel: async () => {
+        calls += 1;
+        if (calls === 1) {
+          return new Response("upstream exploded", { status: 500 });
+        }
+        return Response.json({
+          choices: [{ message: { role: "assistant", content: "served" } }],
+        });
+      },
+    });
+    assert.equal(calls, 2, "the second model must have been tried");
+    assert.equal(response.status, 200, "the second model serves the request");
+    const metrics = getComboMetrics(comboName);
+    assert.equal(metrics?.totalFallbacks, 1, "the abandoned first model is one fallback");
+  });
 });
