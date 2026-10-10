@@ -552,6 +552,10 @@ export async function handleImageGeneration({
     return handleGeminiImageGeneration({ model, providerConfig, body, credentials, log });
   }
 
+  if (providerConfig.format === "gemini-ai-image") {
+    return handleGeminiAiImageGeneration({ model, providerConfig, body, credentials });
+  }
+
   if (providerConfig.format === "imagen3") {
     return handleImagen3ImageGeneration({
       model,
@@ -1251,6 +1255,108 @@ async function handleGeminiImageGeneration({ model, providerConfig, body, creden
       status: 502,
       error: `Image provider error: ${sanitizeErrorMessage((err as Error).message || err)}`,
     };
+  }
+}
+
+/**
+ * Handle native Gemini AI Studio image generation. Unlike Antigravity, AI Studio
+ * uses an API key (`x-goog-api-key`) and the public generateContent endpoint.
+ * The response uses the same Gemini inlineData shape, so the result is exposed
+ * through the normal OpenAI image envelope.
+ */
+async function handleGeminiAiImageGeneration({ model, providerConfig, body, credentials }) {
+  const startTime = Date.now();
+  const apiKey = typeof credentials?.apiKey === "string" ? credentials.apiKey.trim() : "";
+  const promptText = typeof body.prompt === "string" ? body.prompt : String(body.prompt ?? "");
+  const candidateCount =
+    typeof body.n === "number" && Number.isFinite(body.n) && body.n > 0 ? Math.floor(body.n) : 1;
+  const baseUrl = String(providerConfig.baseUrl || "").replace(/\/$/, "");
+  const url = `${baseUrl}/${model}:generateContent`;
+  const requestBody = {
+    contents: [{ role: "user", parts: [{ text: promptText }] }],
+    generationConfig: {
+      responseModalities: ["TEXT", "IMAGE"],
+      candidateCount,
+      imageConfig: {
+        aspectRatio: normalizeImageAspectRatio(body.aspect_ratio, body.size),
+      },
+    },
+  };
+
+  if (!apiKey) {
+    return saveImageErrorResult({
+      provider: "gemini",
+      model,
+      status: 401,
+      startTime,
+      error: "Gemini AI Studio API key is required",
+      requestBody: { model, prompt: promptText.slice(0, 200) },
+    });
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify(requestBody),
+    });
+    const responseBody = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const safeError = sanitizeImageProviderError(responseBody);
+      return saveImageErrorResult({
+        provider: "gemini",
+        model,
+        status: response.status,
+        startTime,
+        error: safeError,
+        requestBody: { model, prompt: promptText.slice(0, 200) },
+      });
+    }
+
+    const images: Array<{ b64_json: string; revised_prompt?: string }> = [];
+    for (const candidate of responseBody.candidates || []) {
+      const parts = candidate.content?.parts || [];
+      const revisedPrompt = parts.find((part) => typeof part.text === "string")?.text || promptText;
+      for (const part of parts) {
+        const inline = part.inlineData || part.inline_data;
+        if (inline?.data) {
+          images.push({ b64_json: inline.data, revised_prompt: revisedPrompt });
+        }
+      }
+    }
+
+    if (images.length === 0) {
+      return saveImageErrorResult({
+        provider: "gemini",
+        model,
+        status: 502,
+        startTime,
+        error: "Gemini AI Studio returned no image data",
+        requestBody: { model, prompt: promptText.slice(0, 200) },
+      });
+    }
+
+    saveCallLog({
+      method: "POST",
+      path: "/v1/images/generations",
+      status: 200,
+      model: `gemini/${model}`,
+      provider: "gemini",
+      duration: Date.now() - startTime,
+      requestBody: { model, prompt: promptText.slice(0, 200) },
+      responseBody: { images_count: images.length },
+    }).catch(() => {});
+
+    return { success: true, data: { created: Math.floor(Date.now() / 1000), data: images } };
+  } catch (err) {
+    return saveImageErrorResult({
+      provider: "gemini",
+      model,
+      status: 502,
+      startTime,
+      error: `Gemini AI Studio request failed: ${sanitizeErrorMessage((err as Error).message || err)}`,
+      requestBody: { model, prompt: promptText.slice(0, 200) },
+    });
   }
 }
 

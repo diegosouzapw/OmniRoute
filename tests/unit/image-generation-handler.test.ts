@@ -787,6 +787,67 @@ test("handleImageGeneration sends Antigravity image requests with native image_g
   }
 });
 
+test("handleImageGeneration sends Gemini AI Studio image requests with API-key auth", async () => {
+  const originalFetch = globalThis.fetch;
+  let captured;
+
+  globalThis.fetch = async (url, options = {}) => {
+    captured = {
+      url: String(url),
+      headers: options.headers,
+      body: JSON.parse(String(options.body || "{}")),
+    };
+
+    return new Response(
+      JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: "A revised image prompt" },
+                { inlineData: { mimeType: "image/png", data: "Z2VtaW5pLWltYWdl" } },
+              ],
+            },
+          },
+        ],
+      }),
+      { status: 200, headers: { "content-type": "application/json" } }
+    );
+  };
+
+  try {
+    const result = await handleImageGeneration({
+      body: {
+        model: "gemini/gemini-3-pro-image",
+        prompt: "painted beach",
+        size: "1024x1024",
+      },
+      credentials: { apiKey: "ai-studio-key" },
+      log: null,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(
+      captured.url,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent"
+    );
+    assert.equal(captured.headers["x-goog-api-key"], "ai-studio-key");
+    assert.deepEqual(captured.body, {
+      contents: [{ role: "user", parts: [{ text: "painted beach" }] }],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"],
+        candidateCount: 1,
+        imageConfig: { aspectRatio: "1:1" },
+      },
+    });
+    assert.deepEqual(result.data.data, [
+      { b64_json: "Z2VtaW5pLWltYWdl", revised_prompt: "A revised image prompt" },
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("handleImageGeneration rejects Antigravity image requests without projectId", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => {
