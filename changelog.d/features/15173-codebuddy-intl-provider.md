@@ -1,4 +1,1 @@
-# CodeBuddy International (codebuddy-intl) Provider
-
-Added the CodeBuddy International (`codebuddy.ai`) provider under the `cbai` alias (#15173).
-Parametrizes the shared CodeBuddy device-auth flow, executor, token refresh, and quota fetcher by realm.
+- **CodeBuddy International (codebuddy-intl) Provider**: Added the CodeBuddy International (`codebuddy.ai`) provider under the `cbai` alias (#15173). Parametrizes the shared CodeBuddy device-auth flow, executor, token refresh, and quota fetcher by realm.
