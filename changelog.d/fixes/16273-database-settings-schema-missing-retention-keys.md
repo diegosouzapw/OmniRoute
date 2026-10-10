@@ -1,0 +1,1 @@
+- **fix(settings):** accept the five stored retention durations missing from the database settings schema so the dashboard retention field takes effect ([#16273](https://github.com/diegosouzapw/OmniRoute/pull/16273)) — thanks @maxmad64bis
