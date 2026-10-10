@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   ReactFlow,
   Controls,
@@ -74,16 +74,19 @@ export function FlowCanvas({
   const generationRef = useRef(0);
   const initTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef(true);
-  const activeFitKeyRef = useRef(fitKey);
+  // A graph identity, not just its key value: a -> b -> a still disposes the
+  // original graph and must never accept its delayed initializer again.
+  const initIdentity = useMemo(() => ({ fitKey }), [fitKey]);
+  const activeInitRef = useRef(initIdentity);
 
   useLayoutEffect(() => {
-    activeFitKeyRef.current = fitKey;
-  }, [fitKey]);
+    activeInitRef.current = initIdentity;
+  }, [initIdentity]);
 
   const onInit = useCallback(
     (instance: ReactFlowInstance) => {
       // React Flow defers onInit itself; it may arrive after our cleanup ran.
-      if (!mountedRef.current || activeFitKeyRef.current !== fitKey) return;
+      if (!mountedRef.current || activeInitRef.current !== initIdentity) return;
       if (initTimerRef.current !== null) clearTimeout(initTimerRef.current);
       const generation = ++generationRef.current;
       rfInstance.current = instance;
@@ -97,7 +100,7 @@ export function FlowCanvas({
         }
       }, REFIT_DELAY_MS);
     },
-    [fitKey]
+    [initIdentity]
   );
 
   useEffect(() => {

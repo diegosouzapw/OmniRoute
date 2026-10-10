@@ -110,3 +110,14 @@ it("still initializes the active graph after StrictMode replays lifecycle effect
   act(() => vi.runAllTimers());
   expect(instances.at(-1)!.fitView).toHaveBeenCalledWith({ padding: 0.22, duration: 250 });
 });
+
+it("rejects an old initializer even when a later graph reuses the same fitKey value", () => {
+  act(() => root!.render(<FlowCanvas nodes={[]} edges={[]} fitKey="a" />));
+  act(() => root!.render(<FlowCanvas nodes={[]} edges={[]} fitKey="b" />));
+  act(() => root!.render(<FlowCanvas nodes={[]} edges={[]} fitKey="a" />));
+  act(() => initializers[0]());
+  act(() => vi.runAllTimers());
+  expect(instances[0].fitView).not.toHaveBeenCalled();
+  expect(instances[1].fitView).not.toHaveBeenCalled();
+  expect(instances[2].fitView).toHaveBeenCalledWith({ padding: 0.22, duration: 250 });
+});
