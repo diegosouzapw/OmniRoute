@@ -12,6 +12,7 @@
 import fs from "fs";
 import path from "path";
 
+import { portableSnapshotFile, portableSnapshotId } from "./backupPaths";
 import type { SqliteAdapter } from "./adapters/types";
 
 export const MAX_DB_BACKUPS = 20;
@@ -128,7 +129,9 @@ export function resolveDbBackupRetention(
   env: NodeJS.ProcessEnv = process.env
 ): { maxFiles: number; retentionDays: number } {
   const maxFiles =
-    (env.DB_BACKUP_MAX_FILES ? parsePositiveInt(env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS) : undefined) ??
+    (env.DB_BACKUP_MAX_FILES
+      ? parsePositiveInt(env.DB_BACKUP_MAX_FILES, MAX_DB_BACKUPS)
+      : undefined) ??
     getStoredInteger(db, DB_BACKUP_MAX_FILES_KEY, 1) ??
     getDatabaseSettingsKeepLastNBackups(db) ??
     MAX_DB_BACKUPS;
@@ -158,7 +161,28 @@ export type BackupFamily = {
   primaryMtimeMs: number;
   latestMtimeMs: number;
   files: string[];
+  directory?: string;
 };
+
+function collectPortableFamily(backupDir: string, name: string): BackupFamily | null {
+  const base = portableSnapshotId(name);
+  if (!base) return null;
+  try {
+    const file = portableSnapshotFile(path.join(backupDir, name));
+    const stat = fs.statSync(file);
+    return {
+      base,
+      hasPrimary: true,
+      primaryMtimeMs: stat.mtimeMs,
+      latestMtimeMs: stat.mtimeMs,
+      files: [path.join(name, "snapshot.sqlite")],
+      directory: name,
+    };
+  } catch {
+    // Invalid/foreign directories and symlinks are never retention authority.
+    return null;
+  }
+}
 
 export function collectBackupFamilies(backupDir: string): BackupFamily[] {
   if (!fs.existsSync(backupDir)) return [];
@@ -167,6 +191,11 @@ export function collectBackupFamilies(backupDir: string): BackupFamily[] {
 
   for (const name of fs.readdirSync(backupDir)) {
     if (!name.startsWith("db_")) continue;
+    if (portableSnapshotId(name)) {
+      const family = collectPortableFamily(backupDir, name);
+      if (family) families.set(name, family);
+      continue;
+    }
     const base = getBackupFamilyBase(name);
     const filePath = path.join(backupDir, name);
 
@@ -253,6 +282,16 @@ export function unlinkSyncWithRetry(
   return false;
 }
 
+function removeEmptyPortableDirectory(backupDir: string, directory?: string): void {
+  if (!directory) return;
+  try {
+    // Never recursively remove published directories: preserve any foreign content.
+    fs.rmdirSync(path.join(backupDir, directory));
+  } catch {
+    // A concurrent writer or unrelated entry keeps the directory in place.
+  }
+}
+
 /**
  * Delete backup families beyond `maxFiles` (newest kept), older than `retentionDays`
  * (0 disables the age rule), or orphaned (sidecars whose primary is already gone).
@@ -301,6 +340,7 @@ export function pruneBackupDirectory(options: {
       }
     }
     if (anyDeletedInFamily) {
+      removeEmptyPortableDirectory(backupDir, family.directory);
       deletedBackupFamilies += 1;
     }
   }

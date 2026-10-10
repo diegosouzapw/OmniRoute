@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkcijas</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinācijas</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Pakalpojumu sniedzēji</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Pakalpojumu sniedzēji</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI un MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ nonākt jūsu čaulas vēsturē. → [CLI integrācijas](docs/guides/CLI-INTEGRA
 
 <div align="center">
 
-## 🌐 357 MI pakalpojumu sniedzēji — 152 katalogā atzīmēti kā bezmaksas
+## 🌐 372 MI pakalpojumu sniedzēji — 154 katalogā atzīmēti kā bezmaksas
 
 </div>
 

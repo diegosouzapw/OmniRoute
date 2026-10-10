@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funkcijos</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Deriniai</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Paslaugų teikėjai</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Paslaugų teikėjai</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI ir MCP</a></td>
   </tr>
   <tr>
@@ -674,7 +674,7 @@ patekti į jūsų komandų apvalkalo istoriją. → [CLI integracijos](docs/guid
 
 <div align="center">
 
-## 🌐 357 DI teikėjai — 152 kataloge pažymėti kaip nemokami
+## 🌐 372 DI teikėjai — 154 kataloge pažymėti kaip nemokami
 
 </div>
 

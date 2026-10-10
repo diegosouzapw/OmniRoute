@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ 功能</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 組合</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 提供者</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 提供者</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI 與 MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # 亦支援：claude opencode qwen aider goos
 
 <div align="center">
 
-## 🌐 357 個 AI 提供者 — 152 個標記為免費
+## 🌐 372 個 AI 提供者 — 154 個標記為免費
 
 </div>
 

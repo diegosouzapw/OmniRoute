@@ -105,7 +105,7 @@
   <tr>
     <td align="right"><b>⚙️ ფუნქციები</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 კომბინაციები</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 პროვაიდერები</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 პროვაიდერები</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI და MCP</a></td>
   </tr>
   <tr>
@@ -663,7 +663,7 @@ omniroute configure codex          # ასევე: claude opencode qwen aider
 
 <div align="center">
 
-## 🌐 357 AI-პროვაიდერი — 152 კატალოგში მონიშნული უფასო
+## 🌐 372 AI-პროვაიდერი — 154 კატალოგში მონიშნული უფასო
 
 </div>
 

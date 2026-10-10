@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ មុខងារ</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 បន្សំ</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 អ្នកផ្ដល់សេវា</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 អ្នកផ្ដល់សេវា</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ omniroute configure codex          # ក៏មានផងដែរ៖ claude op
 
 <div align="center">
 
-## 🌐 អ្នកផ្តល់សេវា AI ចំនួន 357 — 152 ត្រូវបានកំណត់សម្គាល់ថាឥតគិតថ្លៃក្នុងកាតាឡុក
+## 🌐 អ្នកផ្តល់សេវា AI ចំនួន 372 — 154 ត្រូវបានកំណត់សម្គាល់ថាឥតគិតថ្លៃក្នុងកាតាឡុក
 
 </div>
 

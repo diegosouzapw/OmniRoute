@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Imkoniyatlar</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinatsiyalar</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Provayderlar</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provayderlar</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI va MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ qobiq tarixiga yozilishidan saqlaydi. → [CLI integratsiyalari](docs/guides/CLI
 
 <div align="center">
 
-## 🌐 357 ta AI provayderi — katalogda 152 tasi bepul deb belgilangan
+## 🌐 372 ta AI provayderi — katalogda 154 tasi bepul deb belgilangan
 
 </div>
 

@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Mga Feature</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Mga Combo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Mga Provider</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Mga Provider</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI at MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ ng iyong shell history. → [Mga Integrasyon ng CLI](docs/guides/CLI-INTEGRATION
 
 <div align="center">
 
-## 🌐 357 AI Provider — 152 Minarkahan sa Catalog bilang Libre
+## 🌐 372 AI Provider — 154 Minarkahan sa Catalog bilang Libre
 
 </div>
 

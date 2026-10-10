@@ -12,43 +12,48 @@
     },
     {
       "name": "es_connectors",
-      "pattern": "\\b(?:ademas|además|adicionalmente|por otra parte)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ademas|además|adicionalmente|por otra parte)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "también ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_emphasis",
-      "pattern": "\\b(?:muy|realmente|extremadamente|bastante)\\s+(?=[a-záéíóúñ])",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:muy|realmente|extremadamente|bastante)\\s+(?=[a-záéíóúñ])",
       "replacement": "",
       "context": "all",
       "category": "structural",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "es_redundant_phrasing",
-      "pattern": "\\b(?:asegurate de|asegúrate de|asegurate que|asegúrate que|ten cuidado de)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:asegurate de|asegúrate de|asegurate que|asegúrate que|ten cuidado de)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "asegura ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "es_redundant_because",
-      "pattern": "\\b(?:debido a que|por la razon de que|por la razón de que|la razon es porque|la razón es porque)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:debido a que|por la razon de que|por la razón de que|la razon es porque|la razón es porque)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "porque ",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "es_redundant_directive",
-      "pattern": "\\b(?:es importante que|deberias|deberías|recuerda que)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:es importante que|deberias|deberías|recuerda que)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     },
     {
       "name": "es_list_conjunction",
@@ -84,7 +89,7 @@
     },
     {
       "name": "es_passive_voice",
-      "pattern": "\\b(?:esta siendo usado|está siendo usado|esta siendo llamada|está siendo llamada|esta siendo generado|está siendo generado|fue creado|fue generado|fue implementado)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:esta siendo usado|está siendo usado|esta siendo llamada|está siendo llamada|esta siendo generado|está siendo generado|fue creado|fue generado|fue implementado)(?![\\p{L}\\p{N}_])",
       "replacement": "usa",
       "replacementMap": {
         "esta siendo usado": "usa",
@@ -99,7 +104,8 @@
       },
       "context": "all",
       "category": "structural",
-      "minIntensity": "full"
+      "minIntensity": "full",
+      "flags": "giu"
     }
   ]
 }

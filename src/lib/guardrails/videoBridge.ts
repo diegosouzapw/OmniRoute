@@ -5,13 +5,13 @@ import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
   resolveVideoBridgeRuntimeSettings,
   resolveVisionBridgeRuntimeSettings,
+  resolveVideoAudioTranscriptionRuntimeSettings,
   type VideoAnalysisMode,
 } from "@/shared/constants/modalityBridgeDefaults";
 
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
 import type { BridgeCacheStore } from "./modalityBridge/bridgeCache";
 import {
-  describeVideoPart as defaultDescribeVideoPart,
   extractVideoFocusHint,
   extractVideoParts,
   loadVideoPartBytes,
@@ -30,6 +30,7 @@ import {
 import { getSharedVideoResultCacheFor } from "./videoBridgeResultCache";
 import { type VisionModelConfig } from "./visionBridgeHelpers";
 import { getBestVisionModel } from "./visionBridgeRouter";
+import { createVideoSttAdapter, type VideoSttAdapterDependencies } from "./videoBridgeSttAdapter";
 
 export type { VideoAnalysisContext } from "./videoBridgePipeline";
 
@@ -105,7 +106,7 @@ type VideoBridgeBody = {
   [key: string]: unknown;
 };
 
-export interface VideoBridgeDependencies {
+export interface VideoBridgeDependencies extends VideoSttAdapterDependencies {
   getSettings?: () => Promise<Record<string, unknown>>;
   getCapabilities?: (model: string) => { supportsVideo: boolean | null };
   describePart?: (part: VideoPart, analysis: VideoAnalysisContext) => Promise<DescribedVideo>;
@@ -195,8 +196,17 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
         extractFrames: this.deps.extractFrames,
         fetchRemote: this.deps.fetchRemote,
       },
-      transcription: { describePart: defaultDescribeVideoPart },
-      cache,
+      transcription: {
+        describePart: createVideoSttAdapter({
+          cache,
+          dependencies: this.deps,
+          principalId: context.apiKeyInfo?.id,
+          settings: persisted,
+        }),
+      },
+      // Whole-result cache predates STT consent/model identity. Do not let a visual-only
+      // entry satisfy a consented request or an STT entry satisfy an opted-out request.
+      cache: resolveVideoAudioTranscriptionRuntimeSettings(persisted).enabled ? null : cache,
       selectVideoModel,
       overrideDescribePart: this.deps.describePart,
       callVisionModel: this.deps.callVisionModel,
