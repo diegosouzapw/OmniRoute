@@ -16,6 +16,8 @@ const purgeRequestHistoryRoute =
 const settingsDb = await import("../../src/lib/db/settings.ts");
 const cleanup = await import("../../src/lib/db/cleanup.ts");
 const aggregateHistory = await import("../../src/lib/usage/aggregateHistory.ts");
+const { DEFAULT_DATABASE_SETTINGS } = await import("../../src/types/databaseSettings.ts");
+const { databaseSettingsSchema } = await import("../../src/shared/validation/settingsSchemas.ts");
 
 type CountRow = {
   count: number;
@@ -365,4 +367,98 @@ test("cleanupUsageHistory rolls up and deletes old rows using the same day bound
   assert.equal(daily.total_requests, 1);
   assert.equal(daily.total_input_tokens, 100);
   assert.equal(daily.total_output_tokens, 40);
+});
+
+test("PATCH persists the dashboard conversation-nodes retention", async () => {
+  const current = databaseSettings.getUserDatabaseSettings();
+  const response = await databaseSettingsRoute.PATCH(
+    makeJsonRequest("PATCH", {
+      retention: { ...current.retention, conversationTurnNodes: 3 },
+    }) as never
+  );
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(body.retention.conversationTurnNodes, 3);
+
+  const db = core.getDbInstance();
+  const stored = db
+    .prepare(
+      "SELECT value FROM key_value WHERE namespace = 'databaseSettings' AND key = 'retention.conversationTurnNodes'"
+    )
+    .get() as { value: string } | undefined;
+  assert.equal(JSON.parse(stored?.value ?? "null"), 3);
+
+  const getResponse = await databaseSettingsRoute.GET(makeJsonRequest("GET") as never);
+  const getBody = await getResponse.json();
+
+  assert.equal(getResponse.status, 200);
+  assert.equal(getBody.retention.conversationTurnNodes, 3);
+});
+
+test("PATCH without the five new keys leaves stored values unchanged", async () => {
+  const before = databaseSettings.getUserDatabaseSettings().retention;
+  const remembered = {
+    configAudit: before.configAudit,
+    conversationTurnNodes: before.conversationTurnNodes,
+    domainCostHistory: before.domainCostHistory,
+    compressionCacheStats: before.compressionCacheStats,
+    compressionRunTelemetry: before.compressionRunTelemetry,
+  };
+  const {
+    configAudit: _droppedConfigAudit,
+    conversationTurnNodes: _droppedConversationTurnNodes,
+    domainCostHistory: _droppedDomainCostHistory,
+    compressionCacheStats: _droppedCompressionCacheStats,
+    compressionRunTelemetry: _droppedCompressionRunTelemetry,
+    ...eightKeys
+  } = databaseSettings.getUserDatabaseSettings().retention;
+
+  const response = await databaseSettingsRoute.PATCH(
+    makeJsonRequest("PATCH", { retention: eightKeys }) as never
+  );
+
+  assert.equal(response.status, 200);
+
+  const after = databaseSettings.getUserDatabaseSettings().retention;
+  assert.equal(after.configAudit, remembered.configAudit);
+  assert.equal(after.conversationTurnNodes, remembered.conversationTurnNodes);
+  assert.equal(after.domainCostHistory, remembered.domainCostHistory);
+  assert.equal(after.compressionCacheStats, remembered.compressionCacheStats);
+  assert.equal(after.compressionRunTelemetry, remembered.compressionRunTelemetry);
+});
+
+test("every stored retention duration is accepted by the settings schema", () => {
+  const storedKeys = Object.keys(DEFAULT_DATABASE_SETTINGS.retention).sort();
+  const schemaKeys = Object.keys(databaseSettingsSchema.shape.retention.shape).sort();
+
+  assert.deepEqual(schemaKeys, storedKeys);
+});
+
+test("out-of-range retention durations are rejected", async () => {
+  const current = databaseSettings.getUserDatabaseSettings();
+  const before = current.retention.conversationTurnNodes;
+
+  const tooLow = await databaseSettingsRoute.PATCH(
+    makeJsonRequest("PATCH", {
+      retention: { ...current.retention, conversationTurnNodes: 0 },
+    }) as never
+  );
+  assert.equal(tooLow.status, 400);
+
+  const tooHigh = await databaseSettingsRoute.PATCH(
+    makeJsonRequest("PATCH", {
+      retention: { ...current.retention, conversationTurnNodes: 3651 },
+    }) as never
+  );
+  assert.equal(tooHigh.status, 400);
+
+  const neighborTooHigh = await databaseSettingsRoute.PATCH(
+    makeJsonRequest("PATCH", {
+      retention: { ...current.retention, configAudit: 366 },
+    }) as never
+  );
+  assert.equal(neighborTooHigh.status, 400);
+
+  assert.equal(databaseSettings.getUserDatabaseSettings().retention.conversationTurnNodes, before);
 });
