@@ -19,7 +19,7 @@ All requests require a valid Bearer token or session cookie. Obtain a token via 
 GET system › env › repair
 
 ```bash
-curl https://localhost:20128/api/system/env/repair \
+curl http://localhost:20128/api/system/env/repair \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -28,7 +28,7 @@ curl https://localhost:20128/api/system/env/repair \
 POST system › env › repair
 
 ```bash
-curl -X POST https://localhost:20128/api/system/env/repair \
+curl -X POST http://localhost:20128/api/system/env/repair \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -38,8 +38,10 @@ curl -X POST https://localhost:20128/api/system/env/repair \
 
 GET system › version
 
+Running version, latest published version, auto-update status and npm release channel. `releaseChannel` and `channels` are additive (rail 3.8.54); `channel` keeps meaning the deployment mode used by the dashboard updater.
+
 ```bash
-curl https://localhost:20128/api/system/version \
+curl http://localhost:20128/api/system/version \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN"
 ```
 
@@ -48,7 +50,7 @@ curl https://localhost:20128/api/system/version \
 POST system › version
 
 ```bash
-curl -X POST https://localhost:20128/api/system/version \
+curl -X POST http://localhost:20128/api/system/version \
   -H "Authorization: Bearer $OMNIROUTE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
