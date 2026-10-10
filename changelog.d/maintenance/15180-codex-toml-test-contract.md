@@ -1,0 +1,1 @@
+- **test(compat):** Align Codex provider-overlay expectations with smol-toml null-prototype tables while retaining strict field checks, and match the server-owned tool-loop flag label to its existing Brazilian Portuguese translation. Related to #15180.

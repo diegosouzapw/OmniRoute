@@ -27,6 +27,11 @@ function fixture(base?: string) {
   delete process.env.OMNIROUTE_API_KEY;
   return codexHome;
 }
+// smol-toml represents parsed tables as null-prototype maps.
+function expectedTomlTable<T extends Record<string, unknown>>(entries: T): T {
+  return Object.assign(Object.create(null), entries);
+}
+
 function overlay(codexHome: string) {
   return parse(readFileSync(join(codexHome, "auto-best-coding.config.toml"), "utf8"));
 }
@@ -52,14 +57,17 @@ test("setup defines its missing provider in the overlay and preserves the base c
   const profile = overlay(codexHome);
   assert.equal(profile.model, "auto/best-coding");
   assert.equal(profile.model_provider, "omniroute");
-  assert.deepEqual(profile.model_providers, {
-    omniroute: {
-      name: "OmniRoute",
-      base_url: "https://proxy.example/v1",
-      wire_api: "responses",
-      requires_openai_auth: false,
-    },
-  });
+  assert.deepEqual(
+    profile.model_providers,
+    expectedTomlTable({
+      omniroute: expectedTomlTable({
+        name: "OmniRoute",
+        base_url: "https://proxy.example/v1",
+        wire_api: "responses",
+        requires_openai_auth: false,
+      }),
+    })
+  );
   assert.equal(readFileSync(join(codexHome, "config.toml"), "utf8"), baseConfig);
 });
 
@@ -70,14 +78,17 @@ test("fresh local setup needs no base config and uses the selected port", async 
     0
   );
   const profile = overlay(codexHome);
-  assert.deepEqual(profile.model_providers, {
-    omniroute: {
-      name: "OmniRoute",
-      base_url: "http://localhost:21456/v1",
-      wire_api: "responses",
-      requires_openai_auth: false,
-    },
-  });
+  assert.deepEqual(
+    profile.model_providers,
+    expectedTomlTable({
+      omniroute: expectedTomlTable({
+        name: "OmniRoute",
+        base_url: "http://localhost:21456/v1",
+        wire_api: "responses",
+        requires_openai_auth: false,
+      }),
+    })
+  );
   assert.equal(existsSync(join(codexHome, "config.toml")), false);
 });
 
