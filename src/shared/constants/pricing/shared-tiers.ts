@@ -146,6 +146,15 @@ export const CLAUDE_SONNET_5_PRICING = {
   cache_creation: 2.5,
 };
 
+// Claude Haiku 5 / 5.5 — platform.claude.com eco tier
+export const CLAUDE_HAIKU_5_PRICING = {
+  input: 1.0,
+  output: 5.0,
+  cached: 0.1,
+  reasoning: 5.0,
+  cache_creation: 1.25,
+};
+
 export const GLM_PRICING = {
   // GLM-5.3 Flash (2026-08-26, https://models.dev / Z.AI)
   "glm-5.3-flash": {

@@ -25,6 +25,7 @@ export const KNOWN_MODEL_PRICING: Record<string, ModelPricing> = {
   "claude-sonnet-5": { inputCostPer1M: 2.0, outputCostPer1M: 10.0, isFree: false },
   "claude-sonnet-5-5": { inputCostPer1M: 2.0, outputCostPer1M: 10.0, isFree: false },
   "claude-haiku-4-5": { inputCostPer1M: 0.8, outputCostPer1M: 4.0, isFree: false },
+  "claude-haiku-5-5": { inputCostPer1M: 1.0, outputCostPer1M: 5.0, isFree: false },
   "gemini-2.5-flash": { inputCostPer1M: 0.15, outputCostPer1M: 0.6, isFree: false },
   "gemini-2.5-pro": { inputCostPer1M: 1.25, outputCostPer1M: 5.0, isFree: false },
   "deepseek-chat": { inputCostPer1M: 0.27, outputCostPer1M: 1.1, isFree: false },

@@ -34,6 +34,7 @@ export const vertex_partnerProvider: RegistryEntry = {
     { id: "claude-sonnet-4", name: "Claude Sonnet 4", targetFormat: "claude" },
     { id: "claude-opus-4-5", name: "Claude Opus 4.5", targetFormat: "claude" },
     { id: "claude-haiku-4-5", name: "Claude Haiku 4.5", targetFormat: "claude" },
+    { id: "claude-haiku-5-5", name: "Claude Haiku 5.5", targetFormat: "claude" },
   ],
   liveCatalogAuthoritative: false,
 };

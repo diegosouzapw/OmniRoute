@@ -154,5 +154,14 @@ export const claudeProvider: RegistryEntry = {
       contextLength: 200000,
       maxOutputTokens: 64000,
     },
+    {
+      id: "claude-haiku-5-5",
+      name: "Claude Haiku 5.5",
+      contextLength: 1000000,
+      maxOutputTokens: 128000,
+      supportsXHighEffort: true,
+      supportedThinkingEfforts: ["low", "medium", "high", "xhigh"],
+      unsupportedParams: ["temperature", "top_p", "top_k"],
+    },
   ],
 };

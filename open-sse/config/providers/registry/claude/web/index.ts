@@ -41,5 +41,10 @@ export const claude_webProvider: RegistryEntry = {
       name: "Claude Haiku 4.5 (web)",
       toolCalling: false,
     },
+    {
+      id: "claude-haiku-5-5",
+      name: "Claude Haiku 5.5 (web)",
+      toolCalling: false,
+    },
   ],
 };

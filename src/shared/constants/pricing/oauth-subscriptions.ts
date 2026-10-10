@@ -116,6 +116,13 @@ export const DEFAULT_PRICING_OAUTH = {
       reasoning: 5.0,
       cache_creation: 1.25,
     },
+    "claude-haiku-5-5": {
+      input: 1.0,
+      output: 5.0,
+      cached: 0.1,
+      reasoning: 5.0,
+      cache_creation: 1.25,
+    },
   },
   cx: {
     "gpt-6-astra": GPT_6_ASTRA_CODEX_PRICING,
