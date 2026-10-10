@@ -1174,10 +1174,6 @@ async function handleComboChatInner({
     executeAttempt: executeTargetAttempt,
   };
 
-  const quotaShareConcurrencyEnabled =
-    getStrategyTraits(strategy).quotaShareConcurrencySlot &&
-    resilienceSettings.quotaShareConcurrencyLimit.enabled;
-
   // FASE 2.1: acquire the per-connection concurrency slot for the selected
   // quota-share target once, around the whole dispatch (including any
   // cooldown-aware re-dispatch), so concurrent requests to one subscription
@@ -1186,7 +1182,8 @@ async function handleComboChatInner({
   // saturated queue is a no-op (fail-open). Released in the finally below.
   let quotaShareConcurrencyRelease: (() => void) | null = null;
   const qsConnectionId = orderedTargets[0]?.connectionId;
-  if (quotaShareConcurrencyEnabled && qsConnectionId) {
+  const qsLimitEnabled = resilienceSettings.quotaShareConcurrencyLimit.enabled;
+  if (getStrategyTraits(strategy).quotaShareConcurrencySlot && qsLimitEnabled && qsConnectionId) {
     const qsCap = await lookupPositiveCap(qsConnectionId);
     quotaShareConcurrencyRelease = await acquireQuotaShareConcurrencySlot(
       orderedTargets[0],
