@@ -1,0 +1,1 @@
+- **fix(sse):** requests to Gemini 3.x through the direct Gemini and Vertex paths no longer end on a model turn, which Gemini rejected with HTTP 400 ([#16296](https://github.com/diegosouzapw/OmniRoute/pull/16296)) — thanks @ArchdukeViel
