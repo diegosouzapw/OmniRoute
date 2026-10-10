@@ -1029,7 +1029,12 @@ export async function collectCatalog(
       baseURL: opts.baseURL,
       apiFormat: opts.apiFormat,
     });
-    const enrichmentEntry = lookupEnrichment(entry.id, enrichment, canonicalToAlias);
+    const enrichmentEntry = lookupEnrichment(
+      entry.id,
+      enrichment,
+      canonicalToAlias,
+      entry.owned_by
+    );
     applyEnrichment(mapped, enrichmentEntry, {
       providerTag: opts.providerTag !== false,
     });
@@ -1066,9 +1071,13 @@ export async function collectCatalog(
         baseURL: opts.baseURL,
         apiFormat: opts.apiFormat,
       });
-      applyEnrichment(mapped, lookupEnrichment(entry.id, enrichment, canonicalToAlias), {
-        providerTag: opts.providerTag !== false,
-      });
+      applyEnrichment(
+        mapped,
+        lookupEnrichment(entry.id, enrichment, canonicalToAlias, entry.owned_by),
+        {
+          providerTag: opts.providerTag !== false,
+        }
+      );
       const mid = mapped.id.startsWith(X + "/") ? mapped.id.slice(X.length + 1) : mapped.id;
       const key = X + "/" + mid;
       collected.set(key, mapped);

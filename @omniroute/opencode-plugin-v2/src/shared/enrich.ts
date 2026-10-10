@@ -86,15 +86,19 @@ export function buildCanonicalToAliasMap(
  *      a mapping for `canonical`, try `<alias>/<modelId>`. This rescues
  *      duplicate rows like `claude/claude-opus-4-7` (canonical) when
  *      enrichment only indexed under `cc/claude-opus-4-7` (alias).
- *   3. Bare `<modelId>` as a last resort. Already covered by step 1 in
- *      practice (fetcher writes bare keys), but kept defensive.
+ *   3. Bare `<modelId>` as a last resort. A bare key matches by model name only,
+ *      but its entry describes one provider (label, free budget, pricing). It is
+ *      returned whole only when that provider owns the row (`ownedBy` or the id
+ *      prefix); otherwise only its model name is kept, so a generic-adapter row
+ *      such as `ih/kimi-k3` is not labelled with an unrelated provider (#14966).
  *
  * Returns `undefined` when no lookup hits.
  */
 export function lookupEnrichment(
   rawId: string,
   enrichment: OmniRouteEnrichmentMap | undefined,
-  canonicalToAlias: Map<string, string>
+  canonicalToAlias: Map<string, string>,
+  ownedBy?: string
 ): OmniRouteEnrichmentEntry | undefined {
   if (!enrichment) return undefined;
   const direct = enrichment.get(rawId);
@@ -109,9 +113,25 @@ export function lookupEnrichment(
       if (viaAlias) return viaAlias;
     }
     const bare = enrichment.get(modelId);
-    if (bare) return bare;
+    if (bare) return bareFallbackEntry(bare, prefix, ownedBy);
   }
   return undefined;
+}
+
+/** A bare-key hit keeps its provider metadata only when that provider owns the row. */
+function bareFallbackEntry(
+  entry: OmniRouteEnrichmentEntry,
+  prefix: string,
+  ownedBy: string | undefined
+): OmniRouteEnrichmentEntry {
+  const owners = new Set([prefix, ownedBy].filter((v): v is string => Boolean(v)));
+  const entryProviders = [entry.providerAlias, entry.providerCanonical].filter(
+    (v): v is string => typeof v === "string" && v.trim().length > 0
+  );
+  if (entryProviders.length === 0 || entryProviders.some((p) => owners.has(p.trim()))) {
+    return entry;
+  }
+  return entry.name ? { name: entry.name } : {};
 }
 
 /**

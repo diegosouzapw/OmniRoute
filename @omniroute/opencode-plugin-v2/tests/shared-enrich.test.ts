@@ -45,3 +45,58 @@ describe("canonicalDedupSet", () => {
     assert.ok(!drop.has("cc/model-x"));
   });
 });
+
+// #14966: a bare-id fallback hit is model-scoped evidence, but the entry it returns is
+// provider-scoped. A generic-adapter row (`ih/glm-5.3`, owned_by `ih`) must not borrow
+// an unrelated provider's label, free budget or pricing from the bare `glm-5.3` key.
+describe("lookupEnrichment bare-id fallback (#14966)", () => {
+  const foreign: OmniRouteEnrichmentMap = new Map([
+    [
+      "kimi-k3",
+      {
+        name: "kimi-k3",
+        providerAlias: "ollama-cloud",
+        providerCanonical: "ollama-cloud",
+        providerDisplayName: "Ollama-cloud",
+        freeType: "recurring-credit",
+        creditTokens: 1_000_000,
+        pricing: { input: 0, output: 0 },
+      },
+    ],
+    [
+      "nova-3",
+      {
+        name: "Nova 3 (Transcription)",
+        providerAlias: "deepgram",
+        providerCanonical: "deepgram",
+        providerDisplayName: "Deepgram",
+        pricing: { input: 1, output: 2 },
+      },
+    ],
+  ]);
+  const c2a = buildCanonicalToAliasMap(foreign);
+
+  it("keeps only the model name when the bare entry belongs to another provider", () => {
+    const hit = lookupEnrichment("ih/kimi-k3", foreign, c2a, "ih");
+    assert.deepEqual(hit, { name: "kimi-k3" });
+  });
+
+  it("keeps only the model name when the row owner is unknown", () => {
+    const hit = lookupEnrichment("ih/kimi-k3", foreign, c2a);
+    assert.deepEqual(hit, { name: "kimi-k3" });
+  });
+
+  it("keeps the whole entry when the row is owned by the entry's provider", () => {
+    const hit = lookupEnrichment("dg/nova-3", foreign, c2a, "deepgram");
+    assert.equal(hit?.providerDisplayName, "Deepgram");
+    assert.deepEqual(hit?.pricing, { input: 1, output: 2 });
+  });
+
+  it("does not change a direct hit", () => {
+    const direct: OmniRouteEnrichmentMap = new Map([
+      ["ih/kimi-k3", { name: "Kimi K3", providerAlias: "ih", providerDisplayName: "InferHub" }],
+    ]);
+    const hit = lookupEnrichment("ih/kimi-k3", direct, new Map(), "ih");
+    assert.equal(hit?.providerDisplayName, "InferHub");
+  });
+});

@@ -402,11 +402,7 @@ test("provider hook: enrichment fetcher NOT called when features.enrichment:fals
   );
   const out = await hook.models!({} as never, { auth: apiAuth("sk") as never });
   assert.equal(called, 0, "enrichment fetcher NOT called when gated off");
-  assert.equal(
-    out["omniroute/claude-sonnet-4-6"].name,
-    "claude-sonnet-4-6",
-    "raw id preserved"
-  );
+  assert.equal(out["omniroute/claude-sonnet-4-6"].name, "claude-sonnet-4-6", "raw id preserved");
 });
 
 test("provider hook: compression metadata fetcher NOT called by default (opt-in)", async () => {
@@ -514,8 +510,7 @@ test("config hook: features.mcpAutoEmit:true writes mcp entry with provider apiK
   const input: { provider?: Record<string, unknown>; mcp?: Record<string, unknown> } = {};
   await hook(input as never);
   const entry = input.mcp?.["opencode-omniroute"] as
-    | { type: string; url: string; enabled: boolean; headers: Record<string, string> }
-    | undefined;
+    { type: string; url: string; enabled: boolean; headers: Record<string, string> } | undefined;
   assert.ok(entry, "mcp entry written");
   assert.equal(entry.type, "remote");
   assert.equal(
@@ -852,6 +847,31 @@ test("lookupEnrichment: short-alias (e.g. dg/nova-3) → bare-id fallback hits",
   // but bare `nova-3` is. Bare fallback hits.
   const hit = lookupEnrichment("dg/nova-3", map, c2a);
   assert.equal(hit?.name, "Nova 3 (Transcription)");
+});
+
+test("lookupEnrichment: bare-id fallback drops a foreign provider's metadata [#14966]", () => {
+  // `ih/kimi-k3` comes from a generic adapter (owned_by `ih`). The bare `kimi-k3` key
+  // belongs to ollama-cloud: its label, free budget and pricing must not be carried over.
+  const map: OmniRouteEnrichmentMap = new Map([
+    [
+      "kimi-k3",
+      {
+        name: "kimi-k3",
+        providerAlias: "ollama-cloud",
+        providerCanonical: "ollama-cloud",
+        providerDisplayName: "Ollama-cloud",
+        freeType: "recurring-credit",
+        creditTokens: 1_000_000,
+      },
+    ],
+  ]);
+  const c2a = buildCanonicalToAliasMap(map);
+  assert.deepEqual(lookupEnrichment("ih/kimi-k3", map, c2a, "ih"), { name: "kimi-k3" });
+  assert.deepEqual(lookupEnrichment("ih/kimi-k3", map, c2a), { name: "kimi-k3" });
+  // The entry's own provider keeps the whole entry.
+  const own = lookupEnrichment("ollama/kimi-k3", map, c2a, "ollama-cloud");
+  assert.equal(own?.providerDisplayName, "Ollama-cloud");
+  assert.equal(own?.creditTokens, 1_000_000);
 });
 
 test("lookupEnrichment: nothing matches → undefined", () => {
