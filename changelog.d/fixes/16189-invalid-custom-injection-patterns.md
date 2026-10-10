@@ -1,0 +1,1 @@
+- Preserve built-in and valid custom prompt-injection rules when another custom pattern has invalid regex syntax. Emit one bounded configuration warning per evaluation without logging pattern or request text, while preserving disabled modes, thresholds, and HTTP rejection behavior. Fixes #16189.

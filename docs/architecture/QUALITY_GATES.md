@@ -274,6 +274,8 @@ These run on a cron schedule (and `workflow_dispatch`), never on PRs. All are ad
 | `nightly-mutation`     | Stryker mutation-testing score over the fast unit lane — surviving mutants surface weak asserts                                                     | **Advisory** |
 | `nightly-compat`       | Node engine compatibility matrix across the supported `engines.node` ranges                                                                         | **Advisory** |
 
+Performance baselines (heap, TTFB, build time) are recorded, not gated: see [`PERF_BASELINE.md`](../ops/PERF_BASELINE.md) (`npm run perf:lts-baseline`).
+
 ---
 
 ## Velocity phase (2026-08-30 → v4.0 LTS): every baseline loosened by 20%

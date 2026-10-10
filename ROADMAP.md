@@ -64,6 +64,8 @@ branch model:
 
 New features land in the v4 channel. The LTS line is stability-first.
 
+See also: [LTS GO/NO-GO checklist](docs/ops/LTS_GO_NO_GO.md) and the [3.9.0 cut runbook](docs/ops/RELEASE_CHECKLIST.md#390-lts-cut-rehearsed-in-3858) (dry-run, fork rehearsal, PR preview artifact).
+
 ## Phase 4 — v4.0: the modular platform
 
 The monolith is intentionally disassembled on `develop`:
