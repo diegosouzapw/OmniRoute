@@ -1,1 +1,1 @@
-- Include four existing regression suites in the mutation-test selection so strict coverage checks account for their assertions.
+- Include five existing regression suites in the mutation-test selection so strict coverage checks account for their assertions.
