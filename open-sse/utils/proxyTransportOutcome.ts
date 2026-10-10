@@ -11,6 +11,7 @@ import {
   hasTransportCrossEvidence,
   noteProxyRefusal,
   proxyEgressKey,
+  recordSlowServe,
   recordTransportFailure,
   recordTransportSuccess,
   transportDestinationKey,
@@ -62,6 +63,26 @@ export function recordProxiedSuccess(proxyUrl: string | null, targetUrl: string)
   try {
     if (!isProxySkipRecentlyFailedEnabled()) return;
     recordTransportSuccess(transportDestinationKey(targetUrl), proxyEgressKey(proxyUrl));
+  } catch {
+    /* evidence is best-effort; never break the request path */
+  }
+}
+
+/**
+ * Test-only seam: record one headers wait answered in time as slow
+ * cross-evidence. Best effort, never throws. The direct sentinel is never
+ * evidence (it can never be accused either), so it is kept out here and
+ * readers need no filter. Production writes through `noteServed`.
+ */
+export function __noteSlowServeOutcomeForTesting(
+  key: string | null,
+  destination: string | null,
+  nowMs: number = Date.now()
+): void {
+  try {
+    if (key === null || key === "" || key === "direct") return;
+    if (destination === null || destination === "") return;
+    recordSlowServe(key, destination, nowMs);
   } catch {
     /* evidence is best-effort; never break the request path */
   }

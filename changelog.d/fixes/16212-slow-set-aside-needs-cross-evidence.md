@@ -1,0 +1,1 @@
+- **fix(proxies):** set aside a slow egress only with cross-egress serve evidence ([#16212](https://github.com/diegosouzapw/OmniRoute/pull/16212)) — thanks @maxmad64bis
