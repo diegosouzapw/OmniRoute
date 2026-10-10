@@ -35,6 +35,18 @@
 export const AWS_REGION_PATTERN = /^[a-z]{2}-[a-z]+-\d{1,2}$/;
 
 /**
+ * Normalize (trim + lowercase) a stored region and return it only when it matches the canonical
+ * AWS region shape; otherwise return `fallback`. For sinks that interpolate the region into an
+ * upstream host (e.g. `oidc.{region}.amazonaws.com`) and must never throw — such as the
+ * background token refresh — so a tampered `providerSpecificData.region` cannot steer the
+ * request (and the credentials it carries) off AWS (GHSA-6mwv-4mrm-5p3m).
+ */
+export function safeAwsRegion(region: unknown, fallback = "us-east-1"): string {
+  const normalized = typeof region === "string" ? region.trim().toLowerCase() : "";
+  return AWS_REGION_PATTERN.test(normalized) ? normalized : fallback;
+}
+
+/**
  * Regions where the Amazon Q Developer *profile* is currently hosted (AWS docs: "Supported
  * Regions for the Q Developer console and Q Developer profile"). These are the guaranteed
  * discovery targets and the only regions trusted as a runtime fallback when no profileArn is
