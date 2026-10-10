@@ -26,10 +26,6 @@ function stubFetch(
       return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
     }
     requestedPaths.push(new URL(href).pathname);
-    if (href.includes("/api/combos")) {
-      counter.combos += 1;
-      return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-    }
     counter.models += 1;
     return {
       ok: true,
@@ -148,9 +144,9 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
       });
       const published = publishedOf(added);
       assert.equal(counter.models, 1);
-      assert.equal(counter.combos, 1);
+      assert.equal(counter.combos, 0);
       assert.ok(
-        !requestedPaths.some((p) => p.includes("/api/combos/auto")),
+        !requestedPaths.some((p) => p.includes("/api/combos")),
         `retired route must never be requested, got ${JSON.stringify(requestedPaths)}`
       );
       assert.ok(published.has("ttl-hit/m1"));
@@ -215,8 +211,13 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
       if (href.includes("/api/providers")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
       }
-      counter.combos += 1;
-      return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
+      counter.models += 1;
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ data: [{ id: "m1" }] }),
+      };
     }) as typeof fetch;
     const origLog = console.log;
     const origWarn = console.warn;
@@ -274,9 +275,6 @@ describe("plugin-v2 P1 parity: TTL 300s + disk snapshot", () => {
       const href = String(url);
       if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
-      }
-      if (href.includes("/api/combos")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
       }
       return { ok: false, status: 500, statusText: "Down", json: async () => ({}) };
     }) as typeof fetch;
@@ -363,7 +361,6 @@ describe("the snapshot carries the display overlay across a restart", () => {
         "omni",
         {
           models: [{ id: "cc/sonnet" }],
-          combos: [],
           providers: [],
           enrichment,
           fetchedAt: Date.now(),

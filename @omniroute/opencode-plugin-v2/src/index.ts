@@ -3,14 +3,13 @@ import {
   optionalTierFingerprint,
   catalogContentFingerprint,
   createLogger,
-  defaultOmniRouteCombosFetcher,
   defaultOmniRouteEnrichmentFetcher,
   defaultOmniRouteModelsFetcher,
   defaultOmniRouteProvidersFetcher,
   type OmniRouteEnrichmentMap,
   type OmniRouteProviderConnection,
 } from "./shared/index.js";
-import type { OmniRouteRawCombo, OmniRouteRawModelEntry } from "./shared/index.js";
+import type { OmniRouteRawModelEntry } from "./shared/index.js";
 import { buildProviderPayload, collectCatalog } from "./catalog.js";
 import {
   UNREACHABLE_COOLDOWN_MS,
@@ -32,12 +31,7 @@ import {
   toResolvedOptions,
 } from "./options.js";
 
-/**
- * A fetch result that says whether it succeeded. Returning a bare `[]` on
- * failure makes an outage indistinguishable from a gateway that legitimately
- * has no combos — and the difference decides whether the last known value
- * should be kept or dropped.
- */
+/** Fetch result contract for an optional catalog source. */
 type SourceResult<T> = { ok: true; value: T } | { ok: false };
 
 /** Warn-once guard for the usage-memory startup notice (one warn per process). */
@@ -165,23 +159,6 @@ export default Plugin.define({
       log,
       resolved.managementReadToken === undefined
     );
-    const fetchCombosSafe = async (): Promise<SourceResult<OmniRouteRawCombo[]>> => {
-      try {
-        return {
-          ok: true,
-          value: await defaultOmniRouteCombosFetcher(
-            resolved.baseURL,
-            resolved.managementReadToken ?? resolved.apiKey,
-            timeouts.combos
-          ),
-        };
-      } catch (err) {
-        const reason = err instanceof Error ? err.message : String(err);
-        reportSourceError("/api/combos", reason);
-        log.warn(`[omniroute-v2] combos fetch failed, keeping the last known combos: ${reason}`);
-        return { ok: false };
-      }
-    };
     // Providers connections follow the same rule: gated on usableOnly (no
     // request when false, v1 parity), soft-fail to [] so the filter degrades
     // to keep-all instead of hiding the catalog.
@@ -229,7 +206,7 @@ export default Plugin.define({
 
     /**
      * Fetch in two tiers. Models are what a catalog *is*: without them there
-     * is nothing to publish. Everything else — combos, the
+     * is nothing to publish. Everything else — the
      * provider list, the enrichment overlay — improves an already usable
      * catalog, so awaiting any of them before publishing makes the catalog
      * hostage to the slowest source: a gateway that accepts the connection
@@ -242,15 +219,10 @@ export default Plugin.define({
      */
     async function refreshSnapshot(): Promise<CatalogSnapshot> {
       // Models are what a catalog *is*; everything else improves one that
-      // already works. Combos used to sit here too, so a gateway slow to
-      // answer /api/combos held the whole picker back — the very thing the
-      // staged publish exists to prevent.
+      // already works. The staged publish keeps the catalog independent of
+      // the slowest optional source.
       const essential = fetchModelsSafe();
-      const optional = Promise.all([
-        fetchCombosSafe(),
-        fetchProvidersSafe(),
-        fetchEnrichmentSafe(),
-      ]);
+      const optional = Promise.all([fetchProvidersSafe(), fetchEnrichmentSafe()]);
       const models = await essential;
       const previous = state.entries.get(cacheKey);
       // A gateway that just failed everything gets a short breather: serving
@@ -267,7 +239,6 @@ export default Plugin.define({
       // returns nothing, which is a different answer from "I could not ask".
       const snapshot: CatalogSnapshot = {
         models,
-        combos: previous?.combos ?? [],
         providers: previous?.providers ?? [],
         enrichment: previous?.enrichment ?? new Map(),
         fetchedAt: Date.now(),
@@ -296,8 +267,7 @@ export default Plugin.define({
      */
     async function upgradeWithOptional(
       base: CatalogSnapshot,
-      [combos, providers, enrichment]: [
-        SourceResult<OmniRouteRawCombo[]>,
+      [providers, enrichment]: [
         SourceResult<OmniRouteProviderConnection[]>,
         SourceResult<OmniRouteEnrichmentMap>,
       ]
@@ -307,14 +277,11 @@ export default Plugin.define({
       // the gateway's answer), a failure keeps what we had.
       const upgraded: CatalogSnapshot = {
         ...base,
-        combos: combos.ok ? combos.value : base.combos,
         providers: providers.ok ? providers.value : base.providers,
         enrichment: enrichment.ok ? enrichment.value : base.enrichment,
       };
       const unchanged =
-        upgraded.combos === base.combos &&
-        upgraded.providers === base.providers &&
-        upgraded.enrichment === base.enrichment;
+        upgraded.providers === base.providers && upgraded.enrichment === base.enrichment;
       if (unchanged) return;
       state.entries.set(cacheKey, upgraded);
       if (upgraded.models.length > 0) {
@@ -325,8 +292,7 @@ export default Plugin.define({
       // its catalog once per TTL window for an identical result.
       const optionalFingerprint = optionalTierFingerprint(
         upgraded.providers ?? [],
-        upgraded.enrichment,
-        upgraded.combos
+        upgraded.enrichment
       );
       const optionalChanged = state.optionalFingerprint !== optionalFingerprint;
       state.optionalFingerprint = optionalFingerprint;
@@ -404,21 +370,19 @@ export default Plugin.define({
         const stale = state.entries.get(cacheKey);
         if (stale !== undefined && stale.models.length > 0) {
           log.warn(
-            `[omniroute-v2] models fetch returned empty, keeping last-known catalog (${stale.models.length} models, ${stale.combos.length} combos)`
+            `[omniroute-v2] models fetch returned empty, keeping last-known catalog (${stale.models.length} models)`
           );
           effective = stale;
         }
       }
       const counts = await (async (): Promise<{
         models: number;
-        combos: number;
       }> => {
         // fetcher-level fail-open covers fetches; this guard covers mapper throws.
         try {
           const collected = await collectCatalog(resolved, {
             onSourceError: reportSourceError,
             models: async () => effective.models,
-            combos: async () => effective.combos,
             providers: async () => effective.providers ?? [],
             enrichment: async () => effective.enrichment ?? new Map(),
           });
@@ -429,11 +393,11 @@ export default Plugin.define({
           log.warn(
             `[omniroute-v2] catalog publish failed, keeping current catalog: ${err instanceof Error ? err.message : String(err)}`
           );
-          return { models: 0, combos: 0 };
+          return { models: 0 };
         }
       })();
       void counts;
-      const fingerprint = catalogContentFingerprint(effective.models, effective.combos);
+      const fingerprint = catalogContentFingerprint(effective.models);
       const changed = state.fingerprint !== undefined && state.fingerprint !== fingerprint;
       state.fingerprint = fingerprint;
       if (changed) {

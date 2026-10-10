@@ -212,6 +212,17 @@ describe("identity table", () => {
 });
 
 describe("invalid options say what to fix", () => {
+  it("rejects the retired combos timeout key", () => {
+    assert.throws(
+      () => parsePluginOptions({ baseURL: "http://gw.example.com", timeouts: { combos: 8000 } }),
+      (err: Error) => {
+        assert.match(err.message, /invalid plugin options/);
+        assert.match(err.message, /unknown option "combos"/);
+        return true;
+      }
+    );
+  });
+
   it("names an unknown key instead of dumping the validator output", () => {
     assert.throws(
       () => parsePluginOptions({ baseURL: "http://gw.example.com", modelCacheTtl: 300000 }),
@@ -237,11 +248,12 @@ describe("invalid options say what to fix", () => {
     const parsed = parsePluginOptions({
       baseURL: "http://gw.example.com",
       modelCacheTtlMs: 300000,
-      timeouts: { models: 15000, combos: 8000 },
+      timeouts: { models: 15000, enrichment: 8000 },
       geminiSanitization: false,
     });
     assert.equal(parsed.modelCacheTtlMs, 300000);
     assert.equal(resolveTimeouts(parsed).models, 15000);
+    assert.equal(resolveTimeouts(parsed).enrichment, 8000);
   });
 
   it("leaves providersAllow absent by default", () => {

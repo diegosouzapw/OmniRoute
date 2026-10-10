@@ -69,7 +69,6 @@ describe("catalog provider template", () => {
     const draft = fakeDraft();
     await publishCatalog(draft, baseOpts, {
       fetcher: async () => [],
-      combosFetcher: async () => [],
     });
     const p = draft.providers.get("omniroute");
     assert.ok(p);
@@ -95,9 +94,8 @@ describe("catalog provider template", () => {
         },
         { id: "plain" },
       ],
-      combosFetcher: async () => [],
     });
-    assert.deepEqual(res, { models: 2, combos: 0 });
+    assert.deepEqual(res, { models: 2 });
     const m = draft.models.get("omniroute/gpt-x");
     assert.ok(m);
     assert.equal(m?.providerID, "omniroute");
@@ -115,7 +113,7 @@ describe("catalog allowlist", () => {
     const res = await publishCatalog(
       draft,
       { ...baseOpts, visibleModels: ["cc/keep-me"] },
-      { fetcher: stubModels, combosFetcher: async () => [] }
+      { fetcher: stubModels }
     );
     assert.equal(res.models, 1);
     assert.ok(draft.models.has("omniroute/cc/keep-me"));
@@ -127,7 +125,7 @@ describe("catalog allowlist", () => {
     const res = await publishCatalog(
       draft,
       { ...baseOpts, visibleModels: ["cc/keep-me"], hiddenModels: ["cc/keep-me"] },
-      { fetcher: stubModels, combosFetcher: async () => [] }
+      { fetcher: stubModels }
     );
     assert.equal(res.models, 0);
   });
@@ -137,7 +135,7 @@ describe("catalog allowlist", () => {
     const res = await publishCatalog(
       draft,
       { ...baseOpts, hiddenModels: ["drop-me"] },
-      { fetcher: stubModels, combosFetcher: async () => [] }
+      { fetcher: stubModels }
     );
     assert.equal(res.models, 2);
     assert.ok(!draft.models.has("omniroute/cc/drop-me"));
@@ -158,9 +156,8 @@ describe("catalog fail-open", () => {
         fetcher: async () => {
           throw new Error("boom 500");
         },
-        combosFetcher: async () => [],
       });
-      assert.deepEqual(res, { models: 0, combos: 0 });
+      assert.deepEqual(res, { models: 0 });
     } finally {
       console.warn = origWarn;
     }
@@ -168,187 +165,41 @@ describe("catalog fail-open", () => {
     assert.match(warns[0], /models fetch failed/);
     assert.ok(draft.providers.has("omniroute"));
   });
-
-  it("combos fetch throw keeps models, warns, returns models-only counts", async () => {
-    const draft = fakeDraft();
-    const warns: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      warns.push(String(args[0]));
-    };
-    try {
-      const res = await publishCatalog(draft, baseOpts, {
-        fetcher: async () => [{ id: "m1" }],
-        enrichmentFetcher: async () => new Map(),
-        combosFetcher: async () => {
-          throw Object.assign(new Error("Not Found"), { status: 404 });
-        },
-      });
-      assert.deepEqual(res, { models: 1, combos: 0 });
-    } finally {
-      console.warn = origWarn;
-    }
-    assert.equal(warns.length, 1);
-    assert.match(warns[0], /combos fetch failed/);
-    assert.ok(draft.models.has("omniroute/m1"));
-  });
-
-  it("combos fetch 403 (PROD) keeps models, warns, never rejects", async () => {
-    const draft = fakeDraft();
-    const warns: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      warns.push(String(args[0]));
-    };
-    try {
-      const res = await publishCatalog(draft, baseOpts, {
-        fetcher: async () => [{ id: "m1" }],
-        enrichmentFetcher: async () => new Map(),
-        combosFetcher: async () => {
-          throw new Error(
-            "[omniroute-v2] GET https://gw.example.com/api/combos failed: 403 Forbidden"
-          );
-        },
-      });
-      assert.deepEqual(res, { models: 1, combos: 0 });
-    } finally {
-      console.warn = origWarn;
-    }
-    assert.equal(warns.length, 1);
-    assert.match(warns[0], /combos fetch failed/);
-    assert.match(warns[0], /403/);
-    assert.ok(draft.models.has("omniroute/m1"));
-  });
-
-  it("combos fetch 500 keeps models, warns, never rejects", async () => {
-    const draft = fakeDraft();
-    const warns: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      warns.push(String(args[0]));
-    };
-    try {
-      const res = await publishCatalog(draft, baseOpts, {
-        fetcher: async () => [{ id: "m1" }],
-        enrichmentFetcher: async () => new Map(),
-        combosFetcher: async () => {
-          throw new Error(
-            "[omniroute-v2] GET https://gw.example.com/api/combos failed: 500 Internal Server Error"
-          );
-        },
-      });
-      assert.deepEqual(res, { models: 1, combos: 0 });
-    } finally {
-      console.warn = origWarn;
-    }
-    assert.equal(warns.length, 1);
-    assert.match(warns[0], /combos fetch failed/);
-    assert.match(warns[0], /500/);
-    assert.ok(draft.models.has("omniroute/m1"));
-  });
-
-  it("combos fetch timeout (AbortError) keeps models, warns, never rejects", async () => {
-    const draft = fakeDraft();
-    const warns: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      warns.push(String(args[0]));
-    };
-    try {
-      const res = await publishCatalog(draft, baseOpts, {
-        fetcher: async () => [{ id: "m1" }],
-        enrichmentFetcher: async () => new Map(),
-        combosFetcher: async () => {
-          const err = new Error("This operation was aborted");
-          err.name = "AbortError";
-          throw err;
-        },
-      });
-      assert.deepEqual(res, { models: 1, combos: 0 });
-    } finally {
-      console.warn = origWarn;
-    }
-    assert.equal(warns.length, 1);
-    assert.match(warns[0], /combos fetch failed/);
-    assert.ok(draft.models.has("omniroute/m1"));
-  });
 });
 
-describe("catalog combo vs combo", () => {
-  it("two combos sharing an id publish under their own names without colliding", async () => {
+describe("catalog combo rows from the models source", () => {
+  it("two server-provided combo rows publish under their own ids", async () => {
     const draft = fakeDraft();
-    const warns: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      warns.push(String(args[0]));
-    };
-    try {
-      const res = await publishCatalog(draft, baseOpts, {
-        fetcher: async () => [{ id: "dupe" }],
-        enrichmentFetcher: async () => new Map(),
-        combosFetcher: async () => [
-          {
-            id: "dupe",
-            name: "Dupe Combo",
-            models: [{ kind: "model", model: "dupe" }],
-          },
-          {
-            id: "dupe",
-            name: "Dupe Combo Again",
-            models: [{ kind: "model", model: "dupe" }],
-          },
-        ],
-      });
-      assert.deepEqual(res, { models: 1, combos: 2 });
-    } finally {
-      console.warn = origWarn;
-    }
-    // Under name-based keying the combos publish at their own keys
-    // (`omniroute/Dupe Combo` and `omniroute/Dupe Combo Again`) — they no
-    // longer collide with the model `dupe` at `omniroute/dupe`.
-    assert.equal(warns.length, 0);
+    const res = await publishCatalog(draft, baseOpts, {
+      fetcher: async () => [
+        { id: "dupe" },
+        { id: "Dupe Combo", owned_by: "combo" },
+        { id: "Dupe Combo Again", owned_by: "combo" },
+      ],
+      enrichmentFetcher: async () => new Map(),
+    });
+    assert.deepEqual(res, { models: 3 });
     const m = draft.models.get("omniroute/dupe");
     assert.ok(m, "raw model remains at its own key");
     assert.equal(m?.name, "dupe");
     const combo1 = draft.models.get("omniroute/Dupe Combo");
-    assert.ok(combo1, "first combo published under its name");
+    assert.ok(combo1, "first combo row published under its id");
     const combo2 = draft.models.get("omniroute/Dupe Combo Again");
-    assert.ok(combo2, "second combo published under its name");
+    assert.ok(combo2, "second combo row published under its id");
     assert.equal(combo2?.name, "Dupe Combo Again");
   });
 });
 
-describe("catalog model bare vs combo", () => {
-  it("bare model id and a same-suffix combo name no longer collide", async () => {
+describe("catalog model bare vs combo row", () => {
+  it("bare model id and a same-suffix combo row do not collide", async () => {
     const draft = fakeDraft();
-    const warns: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      warns.push(String(args[0]));
-    };
-    try {
-      const res = await publishCatalog(draft, baseOpts, {
-        fetcher: async () => [{ id: "dupe" }],
-        enrichmentFetcher: async () => new Map(),
-        combosFetcher: async () => [
-          {
-            id: "dupe",
-            name: "Dupe Combo",
-            models: [{ kind: "model", model: "dupe" }],
-          },
-        ],
-      });
-      assert.deepEqual(res, { models: 1, combos: 1 });
-    } finally {
-      console.warn = origWarn;
-    }
-    // Name-based keying: the combo advertises `Dupe Combo`, so it sits at
-    // `omniroute/Dupe Combo` instead of collapsing onto the raw model's
-    // `omniroute/dupe` key (the accidental-collision class the warn was
-    // written for). Both entries publish, nothing warns.
-    assert.equal(warns.length, 0);
+    const res = await publishCatalog(draft, baseOpts, {
+      fetcher: async () => [{ id: "dupe" }, { id: "Dupe Combo", owned_by: "combo" }],
+      enrichmentFetcher: async () => new Map(),
+    });
+    assert.deepEqual(res, { models: 2 });
     assert.ok(draft.models.get("omniroute/dupe"), "raw model keeps its id key");
-    assert.ok(draft.models.get("omniroute/Dupe Combo"), "combo published under its name");
+    assert.ok(draft.models.get("omniroute/Dupe Combo"), "combo row published under its id");
   });
 });
 
@@ -376,7 +227,6 @@ describe("catalog capability presets", () => {
         fetcher: async () => [{ id: "free-m" }, { id: "paid-m" }],
         enrichmentFetcher: async () =>
           new Map([["free-m", { freeType: "recurring-monthly" as const }]]),
-        combosFetcher: async () => [],
       }
     );
     assert.equal(res.models, 1);
@@ -394,11 +244,10 @@ describe("catalog capability presets", () => {
         {
           fetcher: async () => [{ id: "m1" }, { id: "m2" }],
           enrichmentFetcher: async () => new Map(),
-          combosFetcher: async () => [],
         }
       );
       // #15392 stopped publishing auto combos, so counts no longer include autoCombos.
-      assert.deepEqual(res, { models: 0, combos: 0 });
+      assert.deepEqual(res, { models: 0 });
     } finally {
       restore();
     }
@@ -415,7 +264,6 @@ describe("catalog capability presets", () => {
         { ...baseOpts, freeOnly: true, enrichment: false },
         {
           fetcher: async () => [{ id: "m1" }],
-          combosFetcher: async () => [],
         }
       );
       assert.equal(res.models, 0);
@@ -426,22 +274,19 @@ describe("catalog capability presets", () => {
     assert.match(warns[0], /freeOnly.*enrichment|enrichment.*free/i);
   });
 
-  it("freeOnly drops combos without an enrichment entry", async () => {
+  it("freeOnly drops a combo row without an enrichment entry", async () => {
     const draft = fakeDraft();
     const res = await publishCatalog(
       draft,
       { ...baseOpts, freeOnly: true },
       {
-        fetcher: async () => [{ id: "m1" }],
+        fetcher: async () => [{ id: "m1" }, { id: "combo-a", owned_by: "combo" }],
         enrichmentFetcher: async () => new Map([["m1", { freeType: "keyless" as const }]]),
-        combosFetcher: async () => [
-          { id: "combo-a", name: "Combo A", models: [{ kind: "model", model: "m1" }] },
-        ],
       }
     );
     assert.equal(res.models, 1);
-    assert.equal(res.combos, 0);
-    assert.ok(!draft.models.has("omniroute/Combo A"));
+    assert.ok(draft.models.has("omniroute/m1"));
+    assert.ok(!draft.models.has("omniroute/combo-a"));
   });
 
   it("toolsOnly keeps only tool-calling models", async () => {
@@ -454,7 +299,6 @@ describe("catalog capability presets", () => {
           { id: "with-tools", capabilities: { tool_calling: true } },
           { id: "no-tools" },
         ],
-        combosFetcher: async () => [],
       }
     );
     assert.equal(res.models, 1);
@@ -462,29 +306,21 @@ describe("catalog capability presets", () => {
     assert.ok(!draft.models.has("omniroute/no-tools"));
   });
 
-  it("toolsOnly drops a combo with a member lacking tool calls", async () => {
+  it("toolsOnly drops a combo row lacking tool calls", async () => {
     const draft = fakeDraft();
     const res = await publishCatalog(
       draft,
       { ...baseOpts, toolsOnly: true },
       {
-        fetcher: async () => [{ id: "a", capabilities: { tool_calling: true } }, { id: "b" }],
-        combosFetcher: async () => [
-          {
-            id: "mixed",
-            name: "Mixed",
-            models: [
-              { kind: "model", model: "a" },
-              { kind: "model", model: "b" },
-            ],
-          },
-          { id: "pure", name: "Pure", models: [{ kind: "model", model: "a" }] },
+        fetcher: async () => [
+          { id: "pure", owned_by: "combo", capabilities: { tool_calling: true } },
+          { id: "mixed", owned_by: "combo" },
         ],
       }
     );
-    assert.equal(res.combos, 1);
-    assert.ok(draft.models.has("omniroute/Pure"));
-    assert.ok(!draft.models.has("omniroute/Mixed"));
+    assert.equal(res.models, 1);
+    assert.ok(draft.models.has("omniroute/pure"));
+    assert.ok(!draft.models.has("omniroute/mixed"));
   });
 
   it("visionOnly keeps image-input models from either server convention", async () => {
@@ -498,7 +334,6 @@ describe("catalog capability presets", () => {
           { id: "txt", input_modalities: ["text"] },
           { id: "vis", capabilities: { vision: true } },
         ],
-        combosFetcher: async () => [],
       }
     );
     assert.equal(res.models, 2);
@@ -514,8 +349,6 @@ describe("catalog capability presets", () => {
       { ...baseOpts, visionOnly: true },
       {
         fetcher: async () => [],
-        combosFetcher: async () => [],
-        autoCombosFetcher: async () => [{ id: "auto", variant: undefined, candidateCount: 3 }],
       }
     );
     // #15392 no longer requests the virtual auto-combo route, so the entry is absent.
@@ -534,7 +367,6 @@ describe("catalog capability presets", () => {
           { id: "b" },
           { id: "c", capabilities: { tool_calling: true } },
         ],
-        combosFetcher: async () => [],
       }
     );
     assert.equal(res.models, 1);
@@ -551,7 +383,6 @@ describe("catalog capability presets", () => {
           { id: "a", capabilities: { tool_calling: true } },
           { id: "b", capabilities: { tool_calling: true } },
         ],
-        combosFetcher: async () => [],
       }
     );
     assert.equal(res.models, 1);
@@ -578,7 +409,6 @@ describe("catalog capability presets", () => {
           { id: "dead/bad", capabilities: { tool_calling: true } },
           { id: "cc/plain" },
         ],
-        combosFetcher: async () => [],
         providersFetcher: async () => [
           { id: "c1", provider: "claude", isActive: true, testStatus: "active" },
         ],
@@ -598,11 +428,10 @@ describe("catalog capability presets", () => {
           { id: "paid", capabilities: { tool_calling: true }, input_modalities: ["text", "image"] },
           { id: "plain" },
         ],
-        combosFetcher: async () => [],
       }
     );
     // #15392 stopped publishing auto combos, so counts no longer include autoCombos.
-    assert.deepEqual(res, { models: 2, combos: 0 });
+    assert.deepEqual(res, { models: 2 });
   });
 
   it("presets shrink a large stub catalog below threshold", async () => {
@@ -626,7 +455,7 @@ describe("catalog capability presets", () => {
     const resTools = await publishCatalog(
       draftTools,
       { ...baseOpts, toolsOnly: true, ...allVisible },
-      { fetcher: stubModels, combosFetcher: async () => [] }
+      { fetcher: stubModels }
     );
     assert.ok(resTools.models < 200, `toolsOnly kept ${resTools.models}`);
     assert.equal(resTools.models, 100);
@@ -634,7 +463,7 @@ describe("catalog capability presets", () => {
     const resVision = await publishCatalog(
       draftVision,
       { ...baseOpts, visionOnly: true, ...allVisible },
-      { fetcher: stubModels, combosFetcher: async () => [] }
+      { fetcher: stubModels }
     );
     assert.ok(resVision.models < 200, `visionOnly kept ${resVision.models}`);
     assert.equal(resVision.models, 160);
@@ -642,7 +471,7 @@ describe("catalog capability presets", () => {
     const resFree = await publishCatalog(
       draftFree,
       { ...baseOpts, freeOnly: true, ...allVisible },
-      { fetcher: stubModels, enrichmentFetcher: freeEnrichment, combosFetcher: async () => [] }
+      { fetcher: stubModels, enrichmentFetcher: freeEnrichment }
     );
     assert.ok(resFree.models < 200, `freeOnly kept ${resFree.models}`);
     assert.equal(resFree.models, 50);

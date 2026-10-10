@@ -44,25 +44,5 @@
       "max_output_tokens": 8000,
       "capabilities": { "tool_calling": true }
     }
-  ],
-  "combos": [
-    {
-      "id": "combo-fast",
-      "name": "Combo Fast",
-      "strategy": "priority",
-      "models": [
-        { "kind": "model", "model": "m-alpha" },
-        { "kind": "model", "model": "cc/m-gamma" }
-      ]
-    },
-    {
-      "id": "good-combo",
-      "name": "Good Combo",
-      "strategy": "priority",
-      "models": [
-        { "kind": "model", "model": "m-beta" },
-        { "kind": "model", "model": "local-delta" }
-      ]
-    }
   ]
 }

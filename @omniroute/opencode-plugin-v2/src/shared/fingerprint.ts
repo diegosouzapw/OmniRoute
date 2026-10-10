@@ -5,28 +5,21 @@ import { createHash } from "node:crypto";
  * identity) so lazy refresh can reload-after-publish only when something
  * actually changed.
  *
- * sha256 over sorted `id + "|" + (release_date ?? "")` lines for models
- * plus sorted combo ids, joined with `\n`. Order-insensitive: two
- * snapshots with the same entries in different order hash identically.
+ * sha256 over sorted `id + "|" + (release_date ?? "")` lines for models,
+ * joined with `\n`. Order-insensitive: two snapshots with the same entries
+ * in different order hash identically.
  */
-export function catalogContentFingerprint(
-  models: { id: string; release_date?: string }[],
-  combos: { id: string }[]
-): string {
+export function catalogContentFingerprint(models: { id: string; release_date?: string }[]): string {
   const modelLines = models
     .map((m) => `${m.id}|${m.release_date ?? ""}`)
     .sort()
     .join("\n");
-  const comboLines = combos
-    .map((c) => c.id)
-    .sort()
-    .join("\n");
-  return createHash("sha256").update(`${modelLines}\n${comboLines}`).digest("hex");
+  return createHash("sha256").update(modelLines).digest("hex");
 }
 
 /**
- * Digest of the optional tier (combos membership, provider connections,
- * enrichment). The catalog fingerprint covers model and combo ids only, so an
+ * Digest of the optional tier (provider connections,
+ * enrichment). The catalog fingerprint covers model ids only, so an
  * overlay that moves — a renamed model, a provider going unusable — leaves it
  * unchanged. Reloading on every refresh instead would ask the host to rebuild
  * its catalog once per TTL window for nothing.
@@ -51,18 +44,9 @@ export function optionalTierFingerprint(
           pricing?: Record<string, number | undefined>;
         }
       >
-    | undefined,
-  combos: { id: string; name?: string; models?: unknown[] }[] = []
+    | undefined
 ): string {
   const parts: string[] = [];
-  // Membership matters: a combo keeping its id while losing a member is a
-  // different combo to anyone picking it.
-  parts.push(
-    combos
-      .map((c) => c.id + "|" + (c.name ?? "") + "|" + String(c.models?.length ?? 0))
-      .sort()
-      .join(",")
-  );
   // A provider going quiet or getting renamed is as visible to the user as a
   // price move: its activity flag and display name belong in the digest.
   parts.push(

@@ -3,11 +3,8 @@ import assert from "node:assert/strict";
 import { createReadStream } from "node:fs";
 import { publishCatalog } from "../src/catalog.js";
 import {
-  mapComboToModelV2 as sharedMapCombo,
   mapRawModelToModelV2 as sharedMapModel,
-  type OmniRouteCombosFetcher,
   type OmniRouteModelsFetcher,
-  type OmniRouteRawCombo,
   type OmniRouteRawModelEntry,
 } from "../src/shared/index.js";
 type BetaDraft = {
@@ -27,7 +24,6 @@ type BetaDraft = {
 
 interface Fixture {
   models: OmniRouteRawModelEntry[];
-  combos: OmniRouteRawCombo[];
 }
 
 /**
@@ -110,10 +106,8 @@ describe("v1-vs-v2 catalog parity", () => {
   it("same fixture models publish the same key set modulo documented exclusions", async () => {
     const fixture = await loadFixture();
     assert.equal(fixture.models.length, 5);
-    assert.equal(fixture.combos.length, 2);
 
     const fetcher: OmniRouteModelsFetcher = async () => fixture.models;
-    const combosFetcher: OmniRouteCombosFetcher = async () => fixture.combos;
 
     const recorded = await loadV1Parity();
     assert.equal(recorded.hookId, "opencode-omniroute", "v1 published under its own provider id");
@@ -123,10 +117,9 @@ describe("v1-vs-v2 catalog parity", () => {
     const v1Keys = recorded.publishedKeys;
 
     const draft = fakeDraft();
-    const counts = await publishCatalog(draft, TEST_OPTS, { fetcher, combosFetcher });
+    const counts = await publishCatalog(draft, TEST_OPTS, { fetcher });
     assert.equal(counts.models, 5);
-    assert.equal(counts.combos, 2);
-    assert.deepEqual(counts, { models: 5, combos: 2 });
+    assert.deepEqual(counts, { models: 5 });
 
     // Final converted Record<string, any> shape (legacy→info boundary in
     // src/catalog.ts assignModelFields): api resolves to the
@@ -140,27 +133,13 @@ describe("v1-vs-v2 catalog parity", () => {
     assert.equal(mAlpha.capabilities.tools, true);
     assert.equal(mAlpha.cost[0].input, 0);
 
-    // Measured key shapes: v1 namespaces the friendly name
-    // (`Combo Fast` -> `omniroute/combo-fast`) and keys the colliding combo
-    // by its raw id (`good-combo` -> `omniroute/good-combo`, combo wins over
-    // the same-named raw model). v2 publishes combos under their advertised
-    // NAME verbatim (`Combo Fast` -> `omniroute/Combo Fast`,
-    // `Good Combo` -> `omniroute/Good Combo`) — the string GET /v1/models
-    // advertises and POST /v1/chat/completions routes (getComboByName), so
-    // the raw model at `omniroute/good-combo` no longer collides with the
-    // combo and survives alongside it. The raw-model key set is therefore
-    // still identical on both sides; only the combo keys intentionally
-    // diverge (slug vs advertised name).
-    const v1Combo = v1Keys.filter((k) => k.startsWith("combo-") || k === "good-combo").sort();
-    const comboNameKeys = new Set(["Combo Fast", "Good Combo"]);
-    const v2Combo = [...draft.models.keys()]
-      .map(stripX)
-      .filter((k) => comboNameKeys.has(k))
-      .sort();
-    // slug("Combo Fast") = "combo-fast", slug("Good Combo") = "good-combo".
-    assert.deepEqual(v1Combo, ["combo-fast", "good-combo"]);
-    assert.deepEqual(v2Combo, ["Combo Fast", "Good Combo"]);
-    assert.deepEqual(recorded.comboSlugs, ["combo-fast", "good-combo"]);
+    // The fixture raw model `good-combo` keeps its id key: no combo fetch
+    // overwrites it anymore. v1 keyed the same-named combo by slug and let
+    // it win over the raw model; v2 serves the `/v1/models` rows as-is.
+    assert.ok(
+      draft.models.has("omniroute/good-combo"),
+      "raw model keeps its id key alongside any same-named server row"
+    );
     const v1Models = v1Keys.filter((k) => !k.startsWith("combo-") && k !== "good-combo").sort();
     // Anchor v1 model keys as literals (modulo the slashed-id exclusion
     // documented above: the bare `cc/m-gamma` key fails the
@@ -168,38 +147,17 @@ describe("v1-vs-v2 catalog parity", () => {
     assert.deepEqual(v1Models, ["local-delta", "m-alpha", "m-beta"]);
     const v2Models = [...draft.models.keys()]
       .map(stripX)
-      .filter((k) => !k.includes("/") && !comboNameKeys.has(k))
+      .filter((k) => !k.includes("/"))
       .sort();
     assert.deepEqual(v2Models, ["good-combo", "local-delta", "m-alpha", "m-beta"]);
     // Raw-model keys are identical on both sides once the combo keys are
     // removed: v1's `good-combo` entry is the combo overwriting the raw
-    // model, v2's is the raw model itself (the combo moved to its name key).
+    // model, v2's is the raw model itself.
     assert.deepEqual(
       v2Models,
       [...v1Models, "good-combo"].sort(),
       "raw model keys parity modulo the v1 combo overwrite"
     );
-
-    // Under v2 the combo is published under its advertised name and the
-    // same-id raw model survives untouched; the accidental-collision class
-    // the v1 warn was written for no longer exists (no warn expected).
-    const warns: string[] = [];
-    const origWarn = console.warn;
-    console.warn = (...args: unknown[]) => {
-      warns.push(String(args[0]));
-    };
-    try {
-      const draft2 = fakeDraft();
-      await publishCatalog(draft2, TEST_OPTS, { fetcher, combosFetcher });
-      assert.ok(draft2.models.has("omniroute/Good Combo"), "combo keyed by its name in v2");
-      assert.ok(
-        draft2.models.has("omniroute/good-combo"),
-        "raw model keeps its id key alongside the combo"
-      );
-    } finally {
-      console.warn = origWarn;
-    }
-    assert.ok(!warns.some((w) => w.includes("collides with a model id")));
 
     // Mapper-level parity for the slashed-id exclusion: v1 and shared mappers
     // must produce identical ModelV2 payloads for every fixture entry.
@@ -227,39 +185,11 @@ describe("v1-vs-v2 catalog parity", () => {
         `model mapper parity for ${entry.id}`
       );
     }
-    const byId = new Map(fixture.models.map((m) => [m.id, m]));
-    for (const combo of fixture.combos) {
-      const members = (combo.models ?? [])
-        .filter((s) => s?.kind !== "combo-ref" && typeof s?.model === "string")
-        .map((s) => byId.get(s.model as string))
-        .filter((m): m is OmniRouteRawModelEntry => m !== undefined);
-      const viaSharedFull = sharedMapCombo(combo, members, "omniroute", TEST_OPTS.baseURL);
-      const expected = recorded.mappedCombos[combo.id];
-      assert.ok(expected, `v1 output recorded for ${combo.id}`);
-      // The combo mapper now publishes `id: combo.name` (the advertised name
-      // GET /v1/models routes — see combos-map.ts comment); v1 used the slug
-      // of the name (`combo-fast`/`good-combo`). Strip `id` before comparing
-      // so the payload parity stays focused on capabilities/limits/api.
-      const viaShared = JSON.parse(JSON.stringify({ ...viaSharedFull, providerID: undefined }));
-      const exp = JSON.parse(JSON.stringify({ ...(expected as object), providerID: undefined }));
-      const sharedId: string = viaSharedFull.id;
-      const expectedId: string = (expected as { id: string }).id;
-      assert.equal(
-        sharedId,
-        combo.name ?? combo.id,
-        `combo advertised id is its name for ${combo.id}`
-      );
-      delete (viaShared as { id?: unknown }).id;
-      delete (exp as { id?: unknown }).id;
-      assert.deepEqual(viaShared, exp, `combo mapper parity (minus id) for ${combo.id}`);
-      assert.notEqual(sharedId, expectedId, `v1-vs-v2 id divergence documented for ${combo.id}`);
-    }
   });
 
-  it("fixture is rejected when it drifts from the 5+2 shape (guard against silent shrink)", async () => {
+  it("fixture is rejected when it drifts from the 5-model shape (guard against silent shrink)", async () => {
     const fixture = await loadFixture();
     assert.ok(fixture.models.length >= 5, "fixture must keep at least 5 models");
-    assert.ok(fixture.combos.length >= 2, "fixture must keep at least 2 combos");
   });
 });
 

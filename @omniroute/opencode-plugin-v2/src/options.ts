@@ -17,7 +17,6 @@ const apiFormatSchema = z
 const timeoutsSchema = z
   .object({
     models: z.number().positive().optional(),
-    combos: z.number().positive().optional(),
     autoCombos: z.number().positive().optional(),
     enrichment: z.number().positive().optional(),
   })
@@ -100,7 +99,6 @@ export const DEFAULT_TIMEOUT_MS = 10_000 as const;
 
 export interface EndpointTimeouts {
   models: number;
-  combos: number;
   enrichment: number;
 }
 
@@ -111,7 +109,6 @@ export function resolveTimeouts(
     typeof opts.timeoutMs === "number" && opts.timeoutMs > 0 ? opts.timeoutMs : DEFAULT_TIMEOUT_MS;
   return {
     models: opts.timeouts?.models ?? fallback,
-    combos: opts.timeouts?.combos ?? fallback,
     enrichment: opts.timeouts?.enrichment ?? fallback,
   };
 }

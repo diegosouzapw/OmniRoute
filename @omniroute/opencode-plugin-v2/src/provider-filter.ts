@@ -16,7 +16,6 @@
  * matches `cc/...` rows.
  */
 
-import type { OmniRouteRawCombo } from "./shared/combos-map.js";
 import type { Logger } from "./shared/logger.js";
 
 /** Compiled allowlist. `undefined` means inactive (empty/absent = full catalog). */
@@ -184,38 +183,6 @@ export function filterAllUnknown(filter: ProviderFilter, resolve: ProviderResolv
     if (resolve.known.has(allowed)) return false;
   }
   return true;
-}
-
-/** Read one combo member model id, skipping `combo-ref` steps. */
-function comboMemberIds(combo: OmniRouteRawCombo): string[] {
-  const steps = Array.isArray(combo.models) ? combo.models : [];
-  const out: string[] = [];
-  for (const step of steps) {
-    if (step?.kind === "combo-ref") continue;
-    const modelId = typeof step?.model === "string" ? step.model : "";
-    if (modelId.length === 0) continue;
-    out.push(modelId);
-  }
-  return out;
-}
-
-/**
- * Whether a combo passes: at least one member passes, `combo-ref` steps
- * skipped, zero resolvable members keep (mirrors the usableOnly combo rule).
- */
-export function passesProviderCombo(
-  combo: OmniRouteRawCombo,
-  filter: ProviderFilter | undefined,
-  resolve?: ProviderResolve,
-  allUnknown?: boolean
-): boolean {
-  if (!filter) return true;
-  const members = comboMemberIds(combo);
-  if (members.length === 0) return true;
-  for (const member of members) {
-    if (passesProviderFilter(member, filter, resolve, allUnknown)) return true;
-  }
-  return false;
 }
 
 /** Allow entries unknown to the vocabulary tables (operator spellings back). */

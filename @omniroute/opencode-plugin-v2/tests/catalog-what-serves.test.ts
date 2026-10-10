@@ -110,7 +110,6 @@ describe("publish what serves by default", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -127,7 +126,6 @@ describe("publish what serves by default", () => {
       const opts = { ...baseOpts, managementReadToken: "m" };
       const fetchers = {
         fetcher: async () => raw,
-        combosFetcher: async () => [],
       };
       const unpublished = await collectCatalog(opts, {
         ...fetchers,
@@ -149,7 +147,6 @@ describe("publish what serves by default", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -168,7 +165,6 @@ describe("publish what serves by default", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => ["zzz/old-one"],
         }
       );
@@ -183,15 +179,17 @@ describe("publish what serves by default", () => {
       { ...baseOpts, visibleModels: ["*"], hiddenModels: ["gone/dead"] },
       {
         fetcher: async () =>
-          [staleEntry("gone/dead"), staleEntry("zzz/kept")] as unknown as OmniRouteRawModelEntry[],
-        combosFetcher: async () => [
-          { id: "all-combo", models: [{ kind: "model", model: "zzz/kept" }] },
-        ],
+          [
+            staleEntry("gone/dead"),
+            staleEntry("zzz/kept"),
+            staleEntry("all-combo", "combo"),
+          ] as unknown as OmniRouteRawModelEntry[],
       }
     );
     assert.ok(collected.entries.has("omniroute/zzz/kept"));
     assert.ok(!collected.entries.has("omniroute/gone/dead"));
     assert.ok(collected.entries.has("omniroute/all-combo"));
+    assert.deepEqual(collected.counts, { models: 2 });
   });
 
   it("short pinned id keeps the prefixed model", async () => {
@@ -203,7 +201,6 @@ describe("publish what serves by default", () => {
             staleEntry("cc/keep-me"),
             staleEntry("cc/drop-me"),
           ] as unknown as OmniRouteRawModelEntry[],
-        combosFetcher: async () => [],
       }
     );
     assert.ok(collected.entries.has("omniroute/cc/keep-me"));
@@ -220,7 +217,6 @@ describe("publish what serves by default", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -240,7 +236,6 @@ describe("publish what serves by default", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => crowd("zzz", "zzz/old-one") as unknown as OmniRouteRawModelEntry[],
-          combosFetcher: async () => [],
           usageFetcher: async () => {
             throw new Error("boom 500");
           },
@@ -257,7 +252,6 @@ describe("publish what serves by default", () => {
     let calls = 0;
     const collected = await collectCatalog(baseOpts, {
       fetcher: async () => crowd("zzz", "zzz/old-one") as unknown as OmniRouteRawModelEntry[],
-      combosFetcher: async () => [],
       usageFetcher: async () => {
         calls += 1;
         return ["zzz/old-one"];
@@ -274,7 +268,6 @@ describe("publish what serves by default", () => {
       );
       const fetchers = {
         fetcher: async () => raw,
-        combosFetcher: async () => [],
         usageFetcher: async () => [] as string[],
       };
       const opts = { ...baseOpts, managementReadToken: "m" };
@@ -294,7 +287,6 @@ describe("publish what serves by default", () => {
             ...crowd("zzz", "zzz/used-59"),
             ...crowd("never", "never/never"),
           ] as unknown as OmniRouteRawModelEntry[],
-        combosFetcher: async () => [],
         usageFetcher: async () => used,
       }
     );
@@ -312,7 +304,6 @@ describe("usage memory option", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => {
             calls += 1;
             return ["zzz/old-one"];
@@ -332,7 +323,6 @@ describe("usage memory option", () => {
         { ...baseOpts, managementReadToken: "m", usageMemory: true },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => {
             calls += 1;
             return ["zzz/old-one"];
@@ -352,7 +342,6 @@ describe("usage memory option", () => {
         { ...baseOpts, managementReadToken: "m", usageMemory: false },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => {
             calls += 1;
             return ["zzz/old-one"];
@@ -370,7 +359,6 @@ describe("usage memory option", () => {
       const raw = await entriesThroughReader(crowd("zzz", "zzz/old-one"));
       const collected = await collectCatalog(baseOpts, {
         fetcher: async () => raw,
-        combosFetcher: async () => [],
         usageFetcher: async () => {
           calls += 1;
           return ["zzz/old-one"];
@@ -389,7 +377,6 @@ describe("usage memory option", () => {
         { ...baseOpts, usageMemory: true },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => {
             calls += 1;
             return ["zzz/old-one"];
@@ -414,7 +401,6 @@ describe("usage memory option", () => {
           { ...baseOpts, managementReadToken: "m" },
           {
             fetcher: async () => raw,
-            combosFetcher: async () => [],
             usageFetcher: async () => {
               throw new Error("boom 500");
             },
@@ -435,7 +421,6 @@ describe("usage memory option", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => ["old-one"],
         }
       );
@@ -458,7 +443,6 @@ describe("usage memory option", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => ["base/vivid-high"],
         }
       );
@@ -484,7 +468,6 @@ describe("retired entries stay out of the default view", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => ["old/gone"],
         }
       );
@@ -507,7 +490,6 @@ describe("retired entries stay out of the default view", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => {
             throw new Error("boom 500");
           },
@@ -532,7 +514,6 @@ describe("retired entries stay out of the default view", () => {
         { ...baseOpts, visibleModels: ["old/gone"] },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
         }
       );
       assert.ok(collected.entries.has("omniroute/old/gone"));
@@ -562,7 +543,6 @@ describe("flat effort-variant ids stay out of the default view", () => {
           { ...baseOpts, managementReadToken: "m" },
           {
             fetcher: async () => raw,
-            combosFetcher: async () => [],
             usageFetcher: async () => [],
           }
         );
@@ -592,7 +572,6 @@ describe("flat effort-variant ids stay out of the default view", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => ["o/m-high"],
         }
       );
@@ -614,7 +593,6 @@ describe("flat effort-variant ids stay out of the default view", () => {
         { ...baseOpts, visibleModels: ["o/m-medium"] },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
         }
       );
       assert.ok(collected.entries.has("omniroute/o/m-medium"));
@@ -635,7 +613,6 @@ describe("flat effort-variant ids stay out of the default view", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -663,7 +640,6 @@ describe("fresh cap per owner", () => {
         { ...baseOpts, managementReadToken: "m", showcasePerOwner: 3 },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -679,7 +655,6 @@ describe("fresh cap per owner", () => {
         { ...baseOpts, managementReadToken: "m", freshPerOwner: 3 },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -695,7 +670,6 @@ describe("fresh cap per owner", () => {
         { ...baseOpts, managementReadToken: "m" },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -711,7 +685,6 @@ describe("fresh cap per owner", () => {
         { ...baseOpts, visibleModels: ["*"], freshPerOwner: 3 },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
         }
       );
       for (let i = 0; i < 11; i++) assert.ok(collected.entries.has(`omniroute/cap/m-${i}`));
@@ -729,7 +702,6 @@ describe("showcase size option", () => {
       { ...baseOpts, managementReadToken: "m", showcasePerOwner: 3 },
       {
         fetcher: async () => raw,
-        combosFetcher: async () => [],
         usageFetcher: async () => [],
       }
     );
@@ -747,7 +719,6 @@ describe("showcase size option", () => {
       { ...baseOpts, managementReadToken: "m" },
       {
         fetcher: async () => raw,
-        combosFetcher: async () => [],
         usageFetcher: async () => [],
       }
     );
@@ -759,7 +730,6 @@ describe("showcase size option", () => {
     const raw = await entriesThroughReader(crowd("aaa", "aaa/target"));
     const fetchers = {
       fetcher: async () => raw,
-      combosFetcher: async () => [],
       usageFetcher: async () => [] as string[],
     };
     const tokenOpts = { ...baseOpts, managementReadToken: "m" };
@@ -774,7 +744,6 @@ describe("showcase size option", () => {
       { ...baseOpts, visibleModels: ["*"], showcasePerOwner: 3 },
       {
         fetcher: async () => crowd("aaa", "aaa/target") as unknown as OmniRouteRawModelEntry[],
-        combosFetcher: async () => [],
       }
     );
     for (let i = 0; i < 10; i++) assert.ok(collected.entries.has(`omniroute/aaa/filler-${i}`));
@@ -806,7 +775,6 @@ describe("freshness window in days", () => {
         { ...baseOpts, managementReadToken: "m", showcasePerOwner: 3, freshWindowDays: 7 },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -838,7 +806,6 @@ describe("freshness window in days", () => {
         { ...baseOpts, managementReadToken: "m", showcasePerOwner: 3 },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -869,7 +836,6 @@ describe("freshness window in days", () => {
         { ...baseOpts, managementReadToken: "m", showcasePerOwner: 3, freshWindowDays: 180 },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -907,7 +873,6 @@ describe("freshness window in days", () => {
         },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
           usageFetcher: async () => [],
         }
       );
@@ -935,7 +900,6 @@ describe("freshness window in days", () => {
         { ...baseOpts, visibleModels: ["*"], freshWindowDays: 7 },
         {
           fetcher: async () => raw,
-          combosFetcher: async () => [],
         }
       );
       assert.ok(collected.entries.has("omniroute/win/old"));

@@ -102,9 +102,6 @@ function downFetch(): typeof fetch {
     if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
       return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
     }
-    if (href.includes("/api/combos")) {
-      return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-    }
     return { ok: false, status: 500, statusText: "Down", json: async () => ({}) };
   }) as typeof fetch;
 }
@@ -132,7 +129,6 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
           { id: "stale-c", api: { id: "openai-compatible", npm: "@ai-sdk/openai-compatible" } },
           { id: "good-1", context_length: 128000, capabilities: { tool_calling: true } },
         ],
-        combos: [],
         providers: [],
         writtenAt: Date.now(),
       })
@@ -190,9 +186,6 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
       if (href.includes("/api/pricing") || href.includes("/api/free-tier")) {
         return { ok: true, status: 200, statusText: "OK", json: async () => ({}) };
       }
-      if (href.includes("/api/combos")) {
-        return { ok: true, status: 200, statusText: "OK", json: async () => ({ combos: [] }) };
-      }
       return {
         ok: true,
         status: 200,
@@ -225,12 +218,11 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
         },
         {
           models: async () => [{ id: "fresh-1" }],
-          combos: async () => [],
           providers: async () => [],
           enrichment: async () => new Map(),
         }
       );
-      assert.deepEqual(collected.counts, { models: 1, combos: 0 });
+      assert.deepEqual(collected.counts, { models: 1 });
     } finally {
       globalThis.fetch = origFetch;
       disk.restore();
@@ -320,7 +312,6 @@ describe("plugin-v2 snapshot stale-entry filter", () => {
         v: 2,
         identityFingerprint: fingerprint,
         models: [{ id: "good-1", capabilities: { tool_calling: true } }],
-        combos: [],
         autoCombos: [{ id: "auto" }],
         providers: [],
         writtenAt: Date.now(),
