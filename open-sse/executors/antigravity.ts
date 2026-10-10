@@ -24,7 +24,8 @@ import {
 import { persistCreditBalance, getAllPersistedCreditBalances } from "@/lib/db/creditBalance";
 import { setConnectionRateLimitUntil } from "@/lib/db/providers";
 import { markAntigravityModelQuotaExhausted } from "../services/antigravityFamilyCooldown.ts";
-import { getMitmAlias } from "@/lib/db/models";
+import { cleanModelName } from "./antigravity/modelResolution.ts";
+export { cleanModelName } from "./antigravity/modelResolution.ts";
 import { resolveAntigravityOutputCap } from "./antigravityOutputCap.ts";
 export { MAX_ANTIGRAVITY_OUTPUT_TOKENS } from "./antigravityOutputCap.ts";
 import {
@@ -33,10 +34,7 @@ import {
 } from "../services/antigravityProjectBootstrap.ts";
 import { persistDiscoveredAntigravityProjectId } from "../services/antigravityProjectPersist.ts";
 import { markAntigravityMissingCloudCodeProject } from "../services/antigravityProjectPersistence.ts";
-import {
-  resolveAntigravityModelId,
-  getAntigravityModelFallbacks,
-} from "../config/antigravityModelAliases.ts";
+import { getAntigravityModelFallbacks } from "../config/antigravityModelAliases.ts";
 import {
   shouldStripCloudCodeThinking,
   stripCloudCodeThinkingConfig,
@@ -255,54 +253,6 @@ export function markConnectionQuotaExhausted(
  * Accumulate one Antigravity SSE `data:` payload into `collected`. Exported for unit
  * tests (the markdown / candidate-parts extraction branches). @internal
  */
-
-/**
- * Strip provider prefixes (e.g. "antigravity/model" → "model").
- * Ensures the model name sent to the upstream API never contains a routing prefix.
- *
- * `modelIdOverride` (#3786): when the per-request Pro-family fallback chain forces a
- * specific upstream id, pass it here. It is an ALREADY-RESOLVED upstream id, so it bypasses
- * the MITM/static alias resolution and is used verbatim (after prefix stripping).
- */
-export async function cleanModelName(
-  model: string,
-  modelIdOverride?: string,
-  provider = "antigravity"
-): Promise<string> {
-  if (modelIdOverride) {
-    return modelIdOverride.includes("/") ? modelIdOverride.split("/").pop()! : modelIdOverride;
-  }
-  if (!model) return model;
-  const stripped = model.includes("/") ? model.split("/").pop()! : model;
-  let clean = stripped;
-
-  // 1. Check dynamic MITM aliases first (authoritative after first sync).
-  //    Built during model sync — contains ONLY currently-available models.
-  //    Obsolete/removed models are automatically excluded.
-  try {
-    const mitmAliases = await getMitmAlias(provider);
-    if (mitmAliases && typeof mitmAliases === "object") {
-      const aliases = mitmAliases as Record<string, unknown>;
-      const raw = aliases[stripped];
-      // Only honor string aliases; corrupted/non-string DB values fall through
-      // to the static alias resolution below (never return undefined here).
-      if (typeof raw === "string" && raw) {
-        // Strip the provider prefix if present; use the raw model ID otherwise.
-        const prefix = `${provider}/`;
-        clean = raw.startsWith(prefix) ? raw.slice(prefix.length) : raw;
-      }
-    }
-  } catch {
-    // DB not available (build phase, transient error) — fall through to static aliases
-  }
-
-  // 2. Fall back to static aliases if MITM didn't resolve
-  if (clean === stripped) {
-    clean = resolveAntigravityModelId(clean);
-  }
-
-  return clean;
-}
 
 function applyAntigravityGenerationDefaults(
   request: Record<string, unknown>,
@@ -726,7 +676,12 @@ export class AntigravityExecutor extends BaseExecutor {
       return resp as unknown as never;
     }
 
-    const upstreamModel = await cleanModelName(model, modelIdOverride);
+    const upstreamModel = await cleanModelName(
+      model,
+      modelIdOverride,
+      this.provider,
+      credentials?.connectionId
+    );
     const isClaude = upstreamModel.toLowerCase().includes("claude");
     // #10104: newer Gemini endpoints reject a request ending on a `model` turn with
     // HTTP 400 "Requests ending with a model turn are not supported" — the same
@@ -1184,7 +1139,12 @@ export class AntigravityExecutor extends BaseExecutor {
 
     // Look up the chain by the NORMALLY-resolved upstream id (honours MITM/static aliases).
     // If a MITM alias remapped the id away from a known Pro tier, no chain applies → fast path.
-    const resolvedUpstreamId = await cleanModelName(input.model);
+    const resolvedUpstreamId = await cleanModelName(
+      input.model,
+      undefined,
+      this.provider,
+      input.credentials.connectionId
+    );
     const chain = getAntigravityModelFallbacks(resolvedUpstreamId);
 
     if (chain.length <= 1) {

@@ -7,6 +7,7 @@
 import { isRetiredGitHubCopilotModelId } from "@omniroute/open-sse/config/providers/registry/github/retiredModels.ts";
 
 import { getDbInstance } from "./core";
+import { isSyncedAtFresh } from "./models/syncedCatalogFreshness";
 import { getProviderConnectionsCount, touchConnectionSyncedModelsAt } from "./providers";
 import { type JsonRecord, getKeyValue } from "./models/shared";
 import {
@@ -422,6 +423,20 @@ export async function getSyncedAvailableModelsForConnection(
   } catch {
     return [];
   }
+}
+
+/** Read only the active selected Antigravity account's fresh catalog, never its siblings. */
+export async function getFreshAntigravityModelsForConnection(
+  connectionId: string
+): Promise<SyncedAvailableModel[]> {
+  const row = getDbInstance()
+    .prepare(
+      `SELECT provider, synced_models_at AS syncedModelsAt FROM provider_connections
+       WHERE id = ? AND is_active = 1 AND provider IN ('antigravity', 'agy')`
+    )
+    .get(connectionId) as { provider: string; syncedModelsAt: string | null } | undefined;
+  if (!row || !isSyncedAtFresh(row.syncedModelsAt)) return [];
+  return getSyncedAvailableModelsForConnection(row.provider, connectionId);
 }
 
 /**
