@@ -49,7 +49,16 @@ services:
       - "${APP_BIND_HOST:-127.0.0.1}:${API_PORT:-20129}:${API_PORT:-20129}"
       - "${APP_BIND_HOST:-127.0.0.1}:${LIVE_WS_PORT:-20132}:${LIVE_WS_PORT:-20132}"
     volumes:
-      - ./data:/app/data
+      # - ./data:/app/data
+      # Some managed-deploy platforms run the Docker daemon as root while the
+      # container runs as an unprivileged user, causing EACCES on the first
+      # write to a bind mount. If that happens, either `chown` the host
+      # `./data` dir to the container uid, or opt into a Docker-managed named
+      # volume by swapping the line above for the block below (uncomment both
+      # this line and the `omniroute-data:` entry under `volumes:`) — see
+      # docs/getting-started/SELF_HOST_GUIDE.md#common-issues for the
+      # backup/restore caveat that comes with a named volume.
+      - omniroute-data:/app/data
     depends_on:
       redis:
         condition: service_healthy
@@ -62,3 +71,5 @@ services:
 
 volumes:
   redis-data:
+  # Only used if you opted into the named-volume alternative above.
+  omniroute-data:

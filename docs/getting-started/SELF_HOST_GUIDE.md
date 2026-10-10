@@ -318,6 +318,29 @@ Raise `OMNIROUTE_MEMORY_MB` in `.env` (e.g. `4096`), then
 </details>
 
 <details>
+<summary><code>EACCES: permission denied</code> writing to <code>/app/data</code></summary>
+
+`docker-compose.selfhost.yml` bind-mounts `./data:/app/data` by default, so
+the container inherits the host directory's ownership. Some managed-deploy
+platforms run the Docker daemon as root while the container process runs as
+an unprivileged user, which can cause `EACCES` on the first write.
+
+Two ways to fix it, without changing the documented default:
+
+- **`chown` the host dir** to the container's uid so the bind mount is
+  writable (check the image's Dockerfile for the exact uid, typically the
+  `node` user).
+- **Opt into a Docker-managed named volume** instead of the bind mount: in
+  `docker-compose.selfhost.yml`, swap the `- ./data:/app/data` line for the
+  commented `- omniroute-data:/app/data` alternative right below it. Note
+  that this changes where your data lives — `bin/snapshot-data.sh` and
+  `bin/restore-data.sh` read/write `./data` on the host directly, so they
+  will not see a named volume's contents unless you back it up separately
+  (e.g. `docker run --rm -v omniroute-data:/data -v "$PWD":/backup alpine
+  tar czf /backup/omniroute-data.tar.gz -C /data .`).
+</details>
+
+<details>
 <summary>Web-cookie providers (Gemini Web, Claude Turnstile) fail with
 <code>Executable doesn't exist at .../ms-playwright/chromium</code></summary>
 
