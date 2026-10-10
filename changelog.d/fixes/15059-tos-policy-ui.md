@@ -1,0 +1,2 @@
+- Expose the global ToS-avoid opt-in on the Combos dashboard, keep unconfirmed settings disabled, preserve the last confirmed value when saving fails, and refresh the auto catalog after saving.
+- Explain the default auto exclusion before connecting affected providers in the provider detail and onboarding pages, and align first-run documentation with account requirements.

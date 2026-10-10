@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 Md de tokens gratuits / mois
+## 💰 ~1.62B tokens par mois sur les offres gratuites de tiers
 
 </div>
 
+> **Utilisez vos propres comptes fournisseurs.** Il s'agit d'un total estimé d'offres gratuites de tiers, chacune soumise à ses propres critères d'admissibilité, et non de tokens accordés par OmniRoute. Inscrivez-vous, obtenez les identifiants requis et connectez les fournisseurs que vous pouvez utiliser ; chaque fournisseur contrôle ses limites, sa disponibilité et ses conditions.
+>
 > Cumuler manuellement les offres gratuites est fastidieux — des dizaines de SDK, des dizaines de limites de débit, et aucun moyen de savoir de quelle capacité vous disposez réellement. OmniRoute répertorie **489 entrées d’offres gratuites réparties sur 35 clés de pools récurrents** et calcule le total de tokens affiché à partir des **17 pools disposant d’un budget mensuel positif publié, auxquels s’ajoutent cinq plafonds Groq par modèle**, avec déduplication des pools partagés. Les quotas qui ne deviennent accessibles qu’après une vérification d’identité régionale (actuellement : ModelScope) sont affichés séparément, soit +~6 M après vérification d’identité régionale, et ne sont jamais inclus dans le total principal. Le résultat reste visible dans le tableau de bord (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Carte du budget des offres gratuites d’OmniRoute : ~1,62 Md de tokens gratuits par mois en régime permanent, jusqu’à ~2,22 Md le premier mois grâce aux crédits d’inscription, provenant de 35 clés de pools récurrents documentées couvrant 489 entrées d’offres gratuites répertoriées derrière un point d’accès unique. Calcul transparent avec déduplication des pools — chaque pool partagé n’est compté qu’une seule fois, notamment 17 pools récurrents disposant d’un budget mensuel positif publié, auxquels s’ajoutent cinq plafonds Groq par modèle ; 13 fournisseurs sont marqués « avoid » dans le catalogue des risques liés aux conditions d’utilisation afin que vous puissiez décider. La barre de budget comprend Mistral 1 Md, Nara 210 M, LLM7 150 M, xKiro 150 M, Groq 30 M (cinq plafonds par modèle) et des pools plus petits, ainsi que les crédits d’inscription du premier mois et les fournisseurs gratuits en permanence sans plafond de tokens, présentés séparément afin qu’ils ne gonflent jamais le total principal. Consommation et solde disponibles en direct sur /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Démarrer</b></td>
     <td align="center"><a href="#-quick-start">🚀 Démarrage rapide</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Installation</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Sans configuration</a></td>
+    <td align="center"><a href="#first-run">🆓 Connecter un fournisseur</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Découvrir</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Fonctionne dès l'installation — pas de clés, pas de configuration
+<a id="first-run"></a>
+
+## 🆓 Installez, connectez un fournisseur, puis routez via un point d'accès unique
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fonctionne dès l'installation — zéro configuration. Trois étapes : 1. Installer — npm i -g omniroute, le serveur démarre sur localhost:20128. 2. Pointer votre outil vers http://localhost:20128/v1 — tout outil compatible OpenAI (Claude Code, Cursor, Cline). 3. Il répond — appeler le modèle auto pour une réponse instantanée, sans clé API, sans inscription, sans configuration. Le fournisseur sans clé OpenCode Free est pré-câblé dans le combo auto, donc une nouvelle installation répond immédiatement."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Trois étapes : installez et démarrez OmniRoute, connectez un fournisseur admissible avec votre propre compte ou clé API, puis dirigez votre outil vers localhost:20128/v1 avec une clé API OmniRoute et le modèle auto. Le routage dépend des connexions admissibles disponibles et des limites des fournisseurs."/>
 
 ```bash
-# Nouvelle installation, zéro identifiants — `auto` fonctionne déjà :
+# Après avoir connecté un fournisseur, copiez votre clé OmniRoute depuis Tableau de bord → Endpoints :
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Vous préférez un backend gratuit spécifique ? Appelez `oc/…` (OpenCode Free) directement. Ensuite, passez à `auto` et laissez OmniRoute choisir.</sub>
+<sub>`auto` nécessite une route admissible. Une nouvelle installation peut ne disposer d'aucune cible admissible sans clé, et un fournisseur sans clé peut refuser les clients tiers. `auto` exclut par défaut les fournisseurs marqués `tos: avoid`, dont Kiro et OpenCode Free. Connecter un compte ne modifie pas cette politique. Consultez [Guide des offres gratuites](docs/getting-started/FREE-TIERS-GUIDE.md) avant de choisir un fournisseur.</sub>
 
 <sub>📦 Scripts de démarrage rapide à copier-coller pour **Python, Node.js, PHP et cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombo → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Kebijakan ketentuan layanan tidak dapat dimuat. Coba lagi sebelum mengubahnya.",
+    "autoTosSaveError": "Kebijakan ketentuan layanan tidak dapat disimpan. Pengaturan sebelumnya masih ditampilkan. Coba lagi.",
+    "autoTosIncludeLabel": "Sertakan penyedia bertanda ToS: avoid dalam auto",
+    "autoTosDescription": "Nonaktif secara bawaan. Berlaku untuk semua kombinasi auto, bukan hanya satu akun. Menghubungkan penyedia tidak mengaktifkan opsi ini.",
     "title": "kombo",
     "description": "Buat kombo model dengan perutean berbobot dan dukungan fallback",
     "autoCatalogTitle": "Katalog perutean otomatis",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Penyedia ini dikecualikan dari auto secara bawaan",
+    "tosAvoidNoticeDescription": "Status ketentuan layanannya ditandai avoid. Menghubungkan akun tidak mengubah kebijakan ini. Tinjau ketentuan penyedia sebelum mengaktifkan persetujuan global untuk semua kombinasi auto.",
+    "tosAvoidNoticeAction": "Tinjau kebijakan auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

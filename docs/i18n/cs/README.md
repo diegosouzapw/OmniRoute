@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mld. tokenů zdarma / měsíc
+## 💰 ~1.62B tokenů měsíčně napříč bezplatnými tarify třetích stran
 
 </div>
 
+> **Použijte vlastní účty u poskytovatelů.** Jde o odhadovaný součet bezplatných tarifů třetích stran se samostatnými podmínkami způsobilosti, nikoli o příděl tokenů od OmniRoute. Zaregistrujte se, získejte potřebné přihlašovací údaje a připojte poskytovatele, které můžete používat; každý poskytovatel určuje vlastní limity, dostupnost a podmínky.
+>
 > Ruční kombinování bezplatných tarifů je náročné — desítky SDK, desítky limitů požadavků a žádný přehled o tom, kolik toho skutečně máte k dispozici. OmniRoute eviduje **489 položek bezplatných tarifů v rámci 35 klíčů opakovaných fondů** a celkový počet tokenů vypočítává ze **17 fondů se zveřejněným kladným měsíčním rozpočtem a pěti limitů Groq pro jednotlivé modely**, přičemž odstraňuje duplicity sdílených fondů. Kvóty, které se zpřístupní až po regionálním ověření identity (aktuálně: ModelScope), jsou uvedeny samostatně jako dalších ~6 mil. za regionálním ověřením identity a nikdy se nezapočítávají do hlavního údaje. Výsledek zůstává viditelný na ovládacím panelu (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Karta rozpočtu bezplatných tarifů OmniRoute: stabilně ~1,62 mld. tokenů zdarma měsíčně, v prvním měsíci až ~2,22 mld. díky kreditům za registraci, z 35 zdokumentovaných klíčů opakovaných fondů pokrývajících 489 katalogizovaných položek bezplatných tarifů za jediným koncovým bodem. Poctivý výpočet s odstraněním duplicit fondů — každý sdílený fond se počítá pouze jednou, včetně 17 opakovaných fondů se zveřejněným kladným měsíčním rozpočtem tokenů a pěti limitů Groq pro jednotlivé modely; 13 poskytovatelů je v katalogu rizik smluvních podmínek označeno jako nevhodných, abyste se mohli rozhodnout sami. Ukazatel rozpočtu zahrnuje Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (pět limitů pro jednotlivé modely) a menší fondy; kredity za registraci v prvním měsíci a trvale bezplatní poskytovatelé bez limitu tokenů jsou navíc uvedeni samostatně, aby nikdy nenavyšovali hlavní údaj. Aktuální využití a zbývající množství na /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Začínáme</b></td>
     <td align="center"><a href="#-quick-start">🚀 Rychlý start</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Instalace</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Bez konfigurace</a></td>
+    <td align="center"><a href="#first-run">🆓 Připojte poskytovatele</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Informace</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Funguje ihned po instalaci — bez klíčů, bez konfigurace
+<a id="first-run"></a>
+
+## 🆓 Nainstalujte, připojte poskytovatele a směrujte přes jediný endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Funguje ihned po instalaci — nulová konfigurace. Tři kroky: 1. Instalace — npm i -g omniroute, server se spustí na localhost:20128. 2. Nasměrujte svůj nástroj na http://localhost:20128/v1 — jakýkoli nástroj kompatibilní s OpenAI (Claude Code, Cursor, Cline). 3. Odpovídá — zavolejte model auto pro okamžitou odpověď, bez API klíče, bez registrace, bez konfigurace. Poskytovatel bez klíče OpenCode Free je předem zapojen do kombinace auto, takže čerstvá instalace reaguje ihned po vybalení."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Tři kroky: nainstalujte a spusťte OmniRoute, připojte způsobilého poskytovatele pomocí vlastního účtu nebo klíče API a nasměrujte nástroj na localhost:20128/v1 s klíčem API OmniRoute a modelem auto. Směrování závisí na dostupných způsobilých spojeních a limitech poskytovatelů."/>
 
 ```bash
-# Čerstvá instalace, nulové přihlašovací údaje — auto již funguje:
+# Po připojení poskytovatele zkopírujte klíč OmniRoute z Panel → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Preferujete konkrétní bezplatný backend? Zavolejte přímo `oc/…` (OpenCode Free). Poté přejděte na `auto` a nechte OmniRoute vybrat.</sub>
+<sub>`auto` potřebuje způsobilou trasu. Nová instalace nemusí mít žádné způsobilé cíle bez klíče a poskytovatel bez klíče může odmítat klienty třetích stran. `auto` ve výchozím nastavení vylučuje poskytovatele označené `tos: avoid`, včetně Kiro a OpenCode Free. Připojení účtu tuto zásadu nemění. Před výběrem poskytovatele si přečtěte [Průvodce bezplatnými tarify](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Skripty pro rychlý start ke zkopírování a vložení pro **Python, Node.js, PHP a cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

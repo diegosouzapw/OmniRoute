@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 月間約16.2億無料トークン
+## 💰 サードパーティーの無料枠を合計して月間 ~1.62B トークン
 
 </div>
 
+> **自分のプロバイダーアカウントを用意してください。** これは、それぞれ利用条件が異なるサードパーティーの無料枠を合計した推定値であり、OmniRoute からのトークン付与ではありません。登録し、必要な認証情報を取得して、利用できるプロバイダーを接続してください。制限、可用性、規約は各プロバイダーが管理します。
+>
 > 無料枠を手作業で積み上げるのは大変です。数十ものSDK、数十ものレート制限があり、実際にどれだけ利用できるのかも分かりません。OmniRouteは、**35個の継続プールキーにまたがる489件の無料枠エントリ**をカタログ化し、**公開済みの月間予算がプラスである17個のプールと、モデルごとに設定された5個のGroq上限**から、共有プールを重複排除してトークン総数を算出します。地域別の本人確認を完了した後でのみ利用可能になるクォータ（現時点ではModelScope）は別枠で表示され、地域別本人確認後に利用できる約600万トークンは総数には決して加算されません。結果はダッシュボード（`/dashboard/free-tiers`）で常に確認できます。
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRouteの無料枠予算カード：毎月約16.2億の無料トークンを継続的に利用でき、登録クレジットを含めると初月は最大約22.2億。1つのエンドポイントから利用できる、35個の文書化された継続プールキーにまたがる489件のカタログ化済み無料枠エントリに基づきます。共有プールを重複排除した正確な計算で、各共有プールは1回だけ集計されます。公開済みの月間トークン予算がプラスである17個の継続プールと、モデルごとに設定された5個のGroq上限を含みます。利用規約リスクカタログでは13プロバイダーに回避推奨の印が付けられており、利用するかどうかは自身で判断できます。予算バーにはMistral 10億、Nara 2.1億、LLM7 1.5億、xKiro 1.5億、Groq 3,000万（モデルごとの上限5個）および小規模なプールが含まれます。また、初月の登録クレジットと、トークン上限のない恒久無料プロバイダーは別々に表示されるため、総数が水増しされることはありません。使用量と残量は/dashboard/free-tiersでリアルタイムに確認できます。"/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 はじめる</b></td>
     <td align="center"><a href="#-quick-start">🚀 クイックスタート</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 インストール</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 設定不要</a></td>
+    <td align="center"><a href="#first-run">🆓 プロバイダーを接続</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 学ぶ</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 インストール後すぐに動作 — キーも設定も不要
+<a id="first-run"></a>
+
+## 🆓 インストールし、プロバイダーを接続して、単一のエンドポイント経由でルーティング
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="インストール後すぐに動作 — 設定不要。3つのステップ：1. インストール — npm i -g omniroute、サーバーはlocalhost:20128で起動します。2. ツールをhttp://localhost:20128/v1にポイントします — OpenAI互換ツール（Claude Code、Cursor、Cline）なら何でも。3. 応答します — APIキー、サインアップ、設定なしで、即座に返信を得るためにモデルautoを呼び出します。キーレスプロバイダーOpenCode Freeはautoコンボに事前に配線されているため、新規インストールで箱から出してすぐに応答します。"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="3つの手順：OmniRoute をインストールして起動し、自分のアカウントまたは API キーで利用条件を満たすプロバイダーを接続した後、OmniRoute の API キーと auto モデルを使い、ツールの接続先を localhost:20128/v1 に設定します。ルーティングは利用可能で条件を満たす接続とプロバイダーの制限に依存します。"/>
 
 ```bash
-# 新規インストール、認証情報ゼロ — `auto`はすでに動作します：
+# プロバイダーの接続後、ダッシュボード → Endpoints から OmniRoute キーをコピー：
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>特定の無料バックエンドをご希望ですか？`oc/…` (OpenCode Free) を直接呼び出してください。その後、`auto`に移行してOmniRouteに選択させましょう。</sub>
+<sub>`auto` には利用条件を満たすルートが必要です。新規インストール時には条件を満たすキー不要の接続先がない場合があり、キー不要のプロバイダーもサードパーティークライアントを拒否することがあります。 `auto` は、Kiro や OpenCode Free など、`tos: avoid` と表示されたプロバイダーを既定で除外します。アカウントを接続しても、このポリシーは変わりません。 プロバイダーを選ぶ前に、[無料利用枠ガイド](docs/getting-started/FREE-TIERS-GUIDE.md)を確認してください。</sub>
 
 <sub>📦 **Python、Node.js、PHP、cURL** のクイックスタートスクリプトをコピー＆ペースト → [`examples/quickstart/`](examples/quickstart/)</sub>
 

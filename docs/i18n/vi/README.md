@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 tỷ Token Miễn phí / Tháng
+## 💰 ~1.62B token mỗi tháng trên các gói miễn phí của bên thứ ba
 
 </div>
 
+> **Dùng tài khoản nhà cung cấp của chính bạn.** Đây là tổng ước tính từ các gói miễn phí của bên thứ ba với điều kiện sử dụng riêng, không phải token do OmniRoute cấp. Hãy đăng ký, lấy thông tin xác thực khi cần và kết nối các nhà cung cấp mà bạn có thể sử dụng; mỗi nhà cung cấp tự quản lý giới hạn, tính khả dụng và điều khoản.
+>
 > Việc cộng gộp các gói miễn phí theo cách thủ công rất phiền phức — hàng chục SDK, hàng chục giới hạn tốc độ và không thể biết chính xác bạn thực sự có bao nhiêu. OmniRoute lập danh mục **489 mục gói miễn phí thuộc 35 khóa pool định kỳ** và tính tổng số token nổi bật từ **17 pool có ngân sách hằng tháng dương được công bố, cùng với năm hạn mức Groq theo từng mô hình**, đồng thời loại bỏ trùng lặp giữa các pool dùng chung. Những hạn ngạch chỉ được mở sau khi xác minh danh tính theo khu vực (hiện tại: ModelScope) được hiển thị riêng, +~6 triệu sau bước xác minh danh tính theo khu vực và không bao giờ được cộng vào con số nổi bật. Kết quả luôn hiển thị trên bảng điều khiển (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Thẻ ngân sách gói miễn phí của OmniRoute: duy trì ~1,62 tỷ token miễn phí mỗi tháng, lên đến ~2,22 tỷ trong tháng đầu tiên nhờ tín dụng đăng ký, từ 35 khóa pool định kỳ đã được ghi nhận, bao phủ 489 mục gói miễn phí được lập danh mục phía sau một endpoint duy nhất. Phép tính minh bạch đã loại bỏ trùng lặp theo pool — mỗi pool dùng chung chỉ được tính một lần, bao gồm 17 pool định kỳ có ngân sách token hằng tháng dương được công bố, cùng với năm hạn mức Groq theo từng mô hình; 13 nhà cung cấp được đánh dấu cần tránh trong danh mục rủi ro điều khoản để bạn tự quyết định. Thanh ngân sách bao gồm Mistral 1 tỷ, Nara 210 triệu, LLM7 150 triệu, xKiro 150 triệu, Groq 30 triệu (năm hạn mức theo từng mô hình) và các pool nhỏ hơn, cùng với tín dụng đăng ký trong tháng đầu tiên và các nhà cung cấp miễn phí vĩnh viễn không có giới hạn token được hiển thị riêng để chúng không bao giờ làm tăng con số nổi bật. Mức đã dùng/còn lại theo thời gian thực tại /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Bắt đầu</b></td>
     <td align="center"><a href="#-quick-start">🚀 Bắt đầu nhanh</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Cài đặt</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Không cần cấu hình</a></td>
+    <td align="center"><a href="#first-run">🆓 Kết nối nhà cung cấp</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Tìm hiểu</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Hoạt động ngay khi bạn cài đặt — không cần khóa, không cần cấu hình
+<a id="first-run"></a>
+
+## 🆓 Cài đặt, kết nối nhà cung cấp rồi định tuyến qua một điểm cuối
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hoạt động ngay khi bạn cài đặt — không cần cấu hình. Ba bước: 1. Cài đặt — npm i -g omniroute, máy chủ khởi động trên localhost:20128. 2. Trỏ công cụ của bạn đến http://localhost:20128/v1 — bất kỳ công cụ nào tương thích với OpenAI (Claude Code, Cursor, Cline). 3. Nó trả lời — gọi model auto để nhận phản hồi tức thì, không cần khóa API, không cần đăng ký, không cần cấu hình. Nhà cung cấp không khóa OpenCode Free được tích hợp sẵn vào combo auto, vì vậy một bản cài đặt mới sẽ phản hồi ngay lập tức."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Ba bước: cài đặt và khởi động OmniRoute, kết nối nhà cung cấp đủ điều kiện bằng tài khoản hoặc khóa API của bạn, rồi trỏ công cụ đến localhost:20128/v1 bằng khóa API OmniRoute và mô hình auto. Việc định tuyến phụ thuộc vào các kết nối đủ điều kiện hiện có và giới hạn của nhà cung cấp."/>
 
 ```bash
-# Cài đặt mới, không cần thông tin đăng nhập — `auto` đã hoạt động:
+# Sau khi kết nối nhà cung cấp, sao chép khóa OmniRoute từ Bảng điều khiển → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Bạn muốn một backend miễn phí cụ thể? Gọi `oc/…` (OpenCode Free) trực tiếp. Sau đó chuyển sang `auto` và để OmniRoute chọn.</sub>
+<sub>`auto` cần một tuyến đủ điều kiện. Bản cài đặt mới có thể không có đích đủ điều kiện dùng không cần khóa, và nhà cung cấp không yêu cầu khóa có thể từ chối ứng dụng khách bên thứ ba. Theo mặc định, `auto` loại trừ các nhà cung cấp được đánh dấu `tos: avoid`, gồm Kiro và OpenCode Free. Kết nối tài khoản không thay đổi chính sách này. Đọc [Hướng dẫn về các gói miễn phí](docs/getting-started/FREE-TIERS-GUIDE.md) trước khi chọn nhà cung cấp.</sub>
 
 <sub>📦 Các script khởi động nhanh copy-paste cho **Python, Node.js, PHP và cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

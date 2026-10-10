@@ -4,7 +4,7 @@
 
 ---
 
-> **Ní ṣókí**: Fi sílẹ̀ → So olùpèsè ọ̀fẹ́ kan pọ̀ → Darí IDE rẹ sí OmniRoute. Ó parí.
+> **Ní ṣókí**: Fi sori ẹrọ → So olùpèsè tó yẹ pọ̀ → Darí IDE rẹ sí OmniRoute. Ó parí.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute máa bẹ̀rẹ̀ ní `http://localhost:20128`. Pátákó ìdarí ná�
 
 ---
 
-## Ìgbésẹ̀ 3: So Olùpèsè Ọ̀fẹ́ Kan Pọ̀
+## Ìgbésẹ̀ 3: So Olùpèsè Tó Yẹ Pọ̀
 
-O lè lo OmniRoute **láìsan owó kankan** nípa sísopọ̀ olùpèsè ọ̀fẹ́ kan.
+Yan olùpèsè tí àwọn àdéhùn àti ìpín lílò rẹ bá àìní rẹ mu. Ní **Pátákó Ìṣàkóso → Àwọn Olùpèsè**, so àkọọlẹ̀ tàbí kọ́kọ́rọ́ API tirẹ pọ̀, kí o sì dán ìsopọ̀ náà wò. A kò ṣe ìdánilójú ìwọlé ọ̀fẹ́ tàbí lílò láìsí kọ́kọ́rọ́.
 
-### Àṣàyàn A: Kiro (Claude Ọ̀fẹ́ — Kò Nílò Káàdì Kírẹ́díìtì)
-
-1. Ṣí pátákó ìdarí náà ní `http://localhost:20128`
-2. Lọ sí **Àwọn Olùpèsè** → **Ṣàfikún Olùpèsè**
-3. Yan **Kiro AI**
-4. Tẹ **Sopọ̀** (kò nílò kọ́kọ́rọ́ API!)
-5. Ó parí! O ti lè wọ àwọn model Claude lọ́fẹ̀ẹ́ báyìí.
-
-### Àṣàyàn B: OpenCode Ọ̀fẹ́ (Kò Nílò Ìfàṣẹsí)
-
-1. Ṣí pátákó ìdarí náà ní `http://localhost:20128`
-2. Lọ sí **Àwọn Olùpèsè** → **Ṣàfikún Olùpèsè**
-3. Yan **OpenCode Free**
-4. Tẹ **Sopọ̀** (kò nílò kọ́kọ́rọ́ API!)
-5. Ó parí! O ti lè wọ ọ̀pọ̀ model lọ́fẹ̀ẹ́ báyìí.
-
-### Àṣàyàn C: Pollinations (Kò Nílò Kọ́kọ́rọ́)
-
-1. Ṣí pátákó ìdarí náà ní `http://localhost:20128`
-2. Lọ sí **Àwọn Olùpèsè** → **Ṣàfikún Olùpèsè**
-3. Yan **Pollinations**
-4. Tẹ **Sopọ̀** (kò nílò kọ́kọ́rọ́ API!)
-5. Ó parí! O ti lè wọ GPT-5, Claude, Gemini, àti àwọn míì lọ́fẹ̀ẹ́ báyìí.
+Ní ètò àkọ́kọ́, `auto` yọ àwọn olùpèsè tí a samisi `tos: avoid` kúrò, pẹ̀lú Kiro àti OpenCode Free. Sísopọ̀ àkọọlẹ̀ kò yí ìlànà yìí padà. Àṣàyàn ìfọwọ́sí láti fi wọ́n kún un ní **Pátákó Ìṣàkóso → Àwọn Combo** kan gbogbo combo aládàáṣiṣẹ́. Ka [Ìtọ́sọ́nà Àwọn Ìpele Ọ̀fẹ́](./FREE-TIERS-GUIDE.md) kí o tó yan olùpèsè.
 
 ---
 
@@ -154,7 +132,7 @@ O lè rí àwọn kúlẹ̀kúlẹ̀ ìbéèrè náà nípa títẹ [Àbójútó
 
 - **[Ìtọ́sọ́nà Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Jẹ́ kí OmniRoute yan AI tó dára jù lọ fún ọ
 - **[Ìtọ́sọ́nà Àwọn Olùpèsè](./PROVIDERS-GUIDE.md)** — So àwọn olùpèsè sí i pọ̀ (ọ̀fẹ́ àti ti owó)
-- **[Ìtọ́sọ́nà Àwọn Ìpele Ọ̀fẹ́](./FREE-TIERS-GUIDE.md)** — Gba AI ọ̀fẹ́ láìsí káàdì kírẹ́díìtì
+- **[Ìtọ́sọ́nà Àwọn Ìpele Ọ̀fẹ́](./FREE-TIERS-GUIDE.md)** — Ṣàyẹ̀wò àdéhùn àwọn olùpèsè àti ààlà àwọn ètò ọ̀fẹ́
 - **[Ṣíṣe Àwárí Àṣìṣe](../guides/TROUBLESHOOTING.md)** — Ṣàtúnṣe àwọn ìṣòro tó wọ́pọ̀
 
 ---
@@ -163,7 +141,7 @@ O lè rí àwọn kúlẹ̀kúlẹ̀ ìbéèrè náà nípa títẹ [Àbójútó
 
 ### "Ṣé mo nílò kọ́kọ́rọ́ API?"
 
-**Rárá!** O lè lo àwọn olùpèsè ọ̀fẹ́ (Kiro, OpenCode Free, Pollinations) láìsí kọ́kọ́rọ́ API kankan. Kàn so wọ́n pọ̀ nínú pátákó ìdarí.
+Kọ́kọ́rọ́ API OmniRoute ń jẹ́rìí àwọn irinṣẹ́ rẹ. Àwọn ẹ̀rí ìwọlé iṣẹ́ orísun dá lórí olùpèsè: àwọn kan nílò kọ́kọ́rọ́ API tàbí wíwọlé sí àkọọlẹ̀. A kò ṣe ìdánilójú ìwọlé ọ̀fẹ́.
 
 ### "Kí ni `auto`?"
 

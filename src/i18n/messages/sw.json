@@ -3384,6 +3384,10 @@
     "comboRefMember": "Mchanganyiko → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Jumuisha watoa huduma wenye alama ToS: avoid katika auto",
+    "autoTosDescription": "Imezimwa kwa chaguo-msingi. Inatumika kwa michanganyiko yote ya auto, si akaunti moja tu. Kuunganisha mtoa huduma hakuwezeshi chaguo hili.",
+    "autoTosSaveError": "Imeshindikana kuhifadhi sera ya ToS. Mpangilio wa awali bado unaonyeshwa. Jaribu tena.",
+    "autoTosLoadError": "Imeshindikana kupakia sera ya ToS. Jaribu tena kabla ya kuibadilisha.",
     "title": "Mikusanyiko",
     "description": "Unda mikusanyiko ya modeli yenye uelekezaji wenye uzani na usaidizi wa kutumia mbadala",
     "autoCatalogTitle": "Katalogi ya uelekezaji kiotomatiki",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Mtoa huduma huyu ameondolewa kwenye auto kwa chaguo-msingi",
+    "tosAvoidNoticeDescription": "Hali yake ya ToS imewekwa alama avoid. Kuunganisha akaunti hakubadilishi sera hii. Soma masharti ya mtoa huduma kabla ya kuwezesha chaguo la jumla kwa michanganyiko yote ya auto.",
+    "tosAvoidNoticeAction": "Angalia sera ya auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

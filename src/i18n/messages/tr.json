@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinasyon → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid olarak işaretlenen sağlayıcıları auto'ya dahil et",
+    "autoTosDescription": "Varsayılan olarak kapalıdır. Yalnızca bir hesaba değil, tüm auto kombinasyonlarına uygulanır. Sağlayıcı bağlamak bu seçeneği açmaz.",
+    "autoTosSaveError": "ToS politikası kaydedilemedi. Önceki ayar gösterilmeye devam ediyor. Yeniden deneyin.",
+    "autoTosLoadError": "ToS politikası yüklenemedi. Değiştirmeden önce yeniden deneyin.",
     "title": "Kombolar",
     "description": "Ağırlıklı yönlendirme ve yedek model desteğiyle model komboları oluşturun",
     "autoCatalogTitle": "Otomatik yönlendirme kataloğu",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Bu sağlayıcı varsayılan olarak auto'dan hariç tutulur",
+    "tosAvoidNoticeDescription": "ToS durumu avoid olarak işaretlenmiştir. Hesap bağlamak bu politikayı değiştirmez. Tüm auto kombinasyonları için genel seçeneği açmadan önce sağlayıcının koşullarını inceleyin.",
+    "tosAvoidNoticeAction": "auto politikasını incele",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

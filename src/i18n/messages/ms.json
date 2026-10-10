@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombo → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Sertakan penyedia bertanda ToS: avoid dalam auto",
+    "autoTosDescription": "Dimatikan secara lalai. Terpakai kepada semua kombo auto, bukan hanya satu akaun. Menyambungkan penyedia tidak menghidupkan pilihan ini.",
+    "autoTosSaveError": "Dasar ToS tidak dapat disimpan. Tetapan sebelumnya masih dipaparkan. Cuba lagi.",
+    "autoTosLoadError": "Dasar ToS tidak dapat dimuatkan. Cuba lagi sebelum mengubahnya.",
     "title": "Kombo",
     "description": "Cipta gabungan model dengan penghalaan berwajaran dan sokongan sandaran",
     "autoCatalogTitle": "Katalog penghalaan automatik",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Penyedia ini dikecualikan daripada auto secara lalai",
+    "tosAvoidNoticeDescription": "Status ToS penyedia ini ditandakan avoid. Menyambungkan akaun tidak mengubah dasar ini. Semak syarat penyedia sebelum mengaktifkan pilihan global untuk semua kombo auto.",
+    "tosAvoidNoticeAction": "Semak dasar auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

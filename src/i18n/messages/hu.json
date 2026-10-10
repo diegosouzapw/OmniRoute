@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombináció → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Nem sikerült betölteni a felhasználási feltételekre vonatkozó szabályzatot. Módosítás előtt próbálja újra.",
+    "autoTosSaveError": "Nem sikerült menteni a felhasználási feltételekre vonatkozó szabályzatot. Továbbra is az előző beállítás látható. Próbálja újra.",
+    "autoTosIncludeLabel": "A ToS: avoid jelölésű szolgáltatók bevonása az auto használatába",
+    "autoTosDescription": "Alapértelmezés szerint kikapcsolva. Minden auto kombinációra vonatkozik, nem csak egy fiókra. Egy szolgáltató csatlakoztatása nem kapcsolja be ezt a lehetőséget.",
     "title": "Kombók",
     "description": "Modellkombinációk létrehozása súlyozott útválasztással és tartalék támogatással",
     "autoCatalogTitle": "Auto-routing katalógus",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Ez a szolgáltató alapértelmezés szerint ki van zárva az auto használatából",
+    "tosAvoidNoticeDescription": "A felhasználási feltételek állapota avoid jelölésű. Egy fiók csatlakoztatása nem módosítja ezt a szabályzatot. Az összes auto kombinációra érvényes közös engedély bekapcsolása előtt tekintse át a szolgáltató feltételeit.",
+    "tosAvoidNoticeAction": "Az auto szabályzatának áttekintése",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

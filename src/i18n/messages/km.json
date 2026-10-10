@@ -3384,6 +3384,10 @@
     "comboRefMember": "បន្សំ → {name}"
   },
   "combos": {
+    "autoTosLoadError": "មិនអាចផ្ទុកគោលការណ៍លក្ខខណ្ឌសេវាកម្មបានទេ។ សូមព្យាយាមម្តងទៀតមុនពេលផ្លាស់ប្តូរវា។",
+    "autoTosSaveError": "មិនអាចរក្សាទុកគោលការណ៍លក្ខខណ្ឌសេវាកម្មបានទេ។ ការកំណត់ពីមុននៅតែត្រូវបានបង្ហាញ។ សូមព្យាយាមម្តងទៀត។",
+    "autoTosIncludeLabel": "រួមបញ្ចូលអ្នកផ្តល់សេវាដែលបានសម្គាល់ ToS: avoid ក្នុង auto",
+    "autoTosDescription": "បិទតាមលំនាំដើម។ អនុវត្តចំពោះបន្សំ auto ទាំងអស់ មិនមែនគ្រាន់តែគណនីមួយទេ។ ការភ្ជាប់អ្នកផ្តល់សេវាមិនបើកជម្រើសនេះទេ។",
     "title": "បន្សំ",
     "description": "បង្កើតបន្សំម៉ូដែលដោយប្រើការបញ្ជូនតាមទម្ងន់ និងការគាំទ្រការបម្រុងទុក",
     "autoCatalogTitle": "កាតាឡុកបញ្ជូនដោយស្វ័យប្រវត្តិ",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "អ្នកផ្តល់សេវានេះត្រូវបានដកចេញពី auto តាមលំនាំដើម",
+    "tosAvoidNoticeDescription": "ស្ថានភាពលក្ខខណ្ឌសេវាកម្មរបស់វាត្រូវបានសម្គាល់ថា avoid។ ការភ្ជាប់គណនីមិនផ្លាស់ប្តូរគោលការណ៍នេះទេ។ សូមពិនិត្យលក្ខខណ្ឌរបស់អ្នកផ្តល់សេវា មុនពេលបើកការអនុញ្ញាតរួមសម្រាប់បន្សំ auto ទាំងអស់។",
+    "tosAvoidNoticeAction": "ពិនិត្យគោលការណ៍ auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

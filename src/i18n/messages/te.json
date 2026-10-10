@@ -3384,6 +3384,10 @@
     "comboRefMember": "కాంబో → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid అని గుర్తించిన ప్రొవైడర్లను autoలో చేర్చండి",
+    "autoTosDescription": "డిఫాల్ట్‌గా ఆఫ్‌లో ఉంటుంది. ఒక్క ఖాతాకే కాకుండా అన్ని auto కాంబోలకు వర్తిస్తుంది. ప్రొవైడర్‌ను కనెక్ట్ చేయడం ఈ ఎంపికను ప్రారంభించదు.",
+    "autoTosSaveError": "ToS విధానాన్ని సేవ్ చేయలేకపోయాము. మునుపటి సెట్టింగ్ ఇంకా చూపబడుతోంది. మళ్లీ ప్రయత్నించండి.",
+    "autoTosLoadError": "ToS విధానాన్ని లోడ్ చేయలేకపోయాము. మార్చే ముందు మళ్లీ ప్రయత్నించండి.",
     "title": "కాంబోలు",
     "description": "వెయిటెడ్ రూటింగ్ మరియు ఫాల్బ్యాక్ మద్దతుతో మోడల్ కాంబోలను సృష్టించండి",
     "autoCatalogTitle": "ఆటో-రూటింగ్ కేటలాగ్",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ఈ ప్రొవైడర్ డిఫాల్ట్‌గా auto నుండి మినహాయించబడింది",
+    "tosAvoidNoticeDescription": "దీని ToS స్థితి avoidగా గుర్తించబడింది. ఖాతాను కనెక్ట్ చేయడం ఈ విధానాన్ని మార్చదు. అన్ని auto కాంబోల కోసం గ్లోబల్ ఎంపికను ప్రారంభించే ముందు ప్రొవైడర్ నిబంధనలను చదవండి.",
+    "tosAvoidNoticeAction": "auto విధానాన్ని చూడండి",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

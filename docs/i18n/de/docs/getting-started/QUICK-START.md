@@ -4,7 +4,7 @@
 
 ---
 
-> **Kurzfassung**: Installieren → Einen kostenlosen Anbieter verbinden → Ihre IDE auf OmniRoute verweisen. Fertig.
+> **Kurzfassung**: Installieren → Geeigneten Anbieter verbinden → IDE auf OmniRoute ausrichten. Fertig.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute startet unter `http://localhost:20128`. Das Dashboard wird automatisch
 
 ---
 
-## Schritt 3: Einen kostenlosen Anbieter verbinden
+## Schritt 3: Einen geeigneten Anbieter verbinden
 
-Sie können OmniRoute **völlig kostenlos** verwenden, indem Sie einen kostenlosen Anbieter verbinden.
+Wählen Sie einen Anbieter, dessen Bedingungen und Kontingente zu Ihrem Bedarf passen. Verbinden Sie unter **Dashboard → Anbieter** Ihr eigenes Konto oder Ihren API-Schlüssel und testen Sie die Verbindung. Kostenloser Zugriff und Verfügbarkeit ohne Schlüssel sind nicht garantiert.
 
-### Option A: Kiro (kostenloses Claude — keine Kreditkarte)
-
-1. Öffnen Sie das Dashboard unter `http://localhost:20128`
-2. Gehen Sie zu **Anbieter** → **Anbieter hinzufügen**
-3. Wählen Sie **Kiro AI**
-4. Klicken Sie auf **Verbinden** (kein API-Schlüssel erforderlich!)
-5. Fertig! Sie haben jetzt kostenlosen Zugriff auf Claude-Modelle.
-
-### Option B: OpenCode Free (keine Authentifizierung)
-
-1. Öffnen Sie das Dashboard unter `http://localhost:20128`
-2. Gehen Sie zu **Anbieter** → **Anbieter hinzufügen**
-3. Wählen Sie **OpenCode Free**
-4. Klicken Sie auf **Verbinden** (kein API-Schlüssel erforderlich!)
-5. Fertig! Sie haben jetzt kostenlosen Zugriff auf mehrere Modelle.
-
-### Option C: Pollinations (kein Schlüssel erforderlich)
-
-1. Öffnen Sie das Dashboard unter `http://localhost:20128`
-2. Gehen Sie zu **Anbieter** → **Anbieter hinzufügen**
-3. Wählen Sie **Pollinations**
-4. Klicken Sie auf **Verbinden** (kein API-Schlüssel erforderlich!)
-5. Fertig! Sie haben jetzt kostenlosen Zugriff auf GPT-5, Claude, Gemini und weitere Modelle.
+`auto` schließt Anbieter mit der Kennzeichnung `tos: avoid`, darunter Kiro und OpenCode Free, standardmäßig aus. Das Verbinden eines Kontos ändert diese Richtlinie nicht. Die Freigabe unter **Dashboard → Combos** gilt für alle automatischen Combos. Lesen Sie [Leitfaden zu kostenlosen Tarifen](./FREE-TIERS-GUIDE.md), bevor Sie einen Anbieter auswählen.
 
 ---
 
@@ -154,7 +132,7 @@ Sie können die Details der Anfrage einsehen, indem Sie in der linken Seitenleis
 
 - **[Auto-Combo-Leitfaden](./AUTO-COMBO-GUIDE.md)** — Lassen Sie OmniRoute die beste KI für Sie auswählen
 - **[Anbieterleitfaden](./PROVIDERS-GUIDE.md)** — Weitere Anbieter verbinden (kostenlos und kostenpflichtig)
-- **[Leitfaden zu kostenlosen Tarifen](./FREE-TIERS-GUIDE.md)** — Kostenlose KI ohne Kreditkarte nutzen
+- **[Leitfaden zu kostenlosen Tarifen](./FREE-TIERS-GUIDE.md)** — Bedingungen der Anbieter und Grenzen kostenloser Tarife prüfen
 - **[Fehlerbehebung](../guides/TROUBLESHOOTING.md)** — Häufige Probleme beheben
 
 ---
@@ -163,7 +141,7 @@ Sie können die Details der Anfrage einsehen, indem Sie in der linken Seitenleis
 
 ### „Benötige ich einen API-Schlüssel?“
 
-**Nein!** Sie können kostenlose Anbieter (Kiro, OpenCode Free, Pollinations) ohne API-Schlüssel verwenden. Verbinden Sie diese einfach im Dashboard.
+Der OmniRoute-API-Schlüssel authentifiziert Ihre Werkzeuge. Die Zugangsdaten des vorgelagerten Dienstes hängen vom Anbieter ab: Manche verlangen einen API-Schlüssel oder eine Kontoanmeldung. Kostenloser Zugriff ist nicht garantiert.
 
 ### „Was ist `auto`?“
 

@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Inkludi fornituri mmarkati ToS: avoid f’auto",
+    "autoTosDescription": "Mitfi awtomatikament. Japplika għall-combos auto kollha, mhux għal kont wieħed biss. Il-konnessjoni ta’ fornitur ma tattivax din l-għażla.",
+    "autoTosSaveError": "Il-politika ToS ma setgħetx tiġi ssejvjata. Għadu jidher l-issettjar ta’ qabel. Erġa’ pprova.",
+    "autoTosLoadError": "Il-politika ToS ma setgħetx titgħabba. Erġa’ pprova qabel tibdilha.",
     "title": "Kombinazzjonijiet",
     "description": "Oħloq kombinazzjonijiet ta’ mudelli b’instradar ponderat u appoġġ għal alternattivi ta’ riżerva",
     "autoCatalogTitle": "Katalgu tal-instradar awtomatiku",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Dan il-fornitur huwa eskluż minn auto awtomatikament",
+    "tosAvoidNoticeDescription": "L-istatus ToS tiegħu huwa mmarkat avoid. Il-konnessjoni ta’ kont ma tbiddilx din il-politika. Aqra t-termini tal-fornitur qabel tattiva l-għażla globali għall-combos auto kollha.",
+    "tosAvoidNoticeAction": "Ara l-politika auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

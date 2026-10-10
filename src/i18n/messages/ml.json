@@ -3384,6 +3384,10 @@
     "comboRefMember": "കോമ്പോ → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid എന്ന് അടയാളപ്പെടുത്തിയ ദാതാക്കളെ auto-യിൽ ഉൾപ്പെടുത്തുക",
+    "autoTosDescription": "സ്വതവേ ഓഫാണ്. ഒരൊറ്റ അക്കൗണ്ടിന് മാത്രമല്ല, എല്ലാ auto കോംബോകൾക്കും ബാധകമാണ്. ദാതാവിനെ ബന്ധിപ്പിക്കുന്നത് ഈ ഓപ്ഷൻ പ്രവർത്തനക്ഷമമാക്കില്ല.",
+    "autoTosSaveError": "ToS നയം സംരക്ഷിക്കാനായില്ല. മുമ്പത്തെ ക്രമീകരണം തന്നെയാണ് കാണിക്കുന്നത്. വീണ്ടും ശ്രമിക്കുക.",
+    "autoTosLoadError": "ToS നയം ലോഡ് ചെയ്യാനായില്ല. മാറ്റുന്നതിന് മുമ്പ് വീണ്ടും ശ്രമിക്കുക.",
     "title": "കോംബോകൾ",
     "description": "വെയ്റ്റഡ് റൂട്ടിംഗും ഫാൾബാക്ക് പിന്തുണയും ഉപയോഗിച്ച് മോഡൽ കോംബോകൾ സൃഷ്ടിക്കുക",
     "autoCatalogTitle": "ഓട്ടോ-റൂട്ടിംഗ് കാറ്റലോഗ്",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ഈ ദാതാവിനെ സ്വതവേ auto-യിൽ നിന്ന് ഒഴിവാക്കിയിരിക്കുന്നു",
+    "tosAvoidNoticeDescription": "ഇതിന്റെ ToS നില avoid എന്നാണ്. അക്കൗണ്ട് ബന്ധിപ്പിക്കുന്നത് ഈ നയം മാറ്റില്ല. എല്ലാ auto കോംബോകൾക്കുമായി ആഗോള ഓപ്ഷൻ പ്രവർത്തനക്ഷമമാക്കുന്നതിന് മുമ്പ് ദാതാവിന്റെ നിബന്ധനകൾ പരിശോധിക്കുക.",
+    "tosAvoidNoticeAction": "auto നയം പരിശോധിക്കുക",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

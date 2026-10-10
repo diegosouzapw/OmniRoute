@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombo → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Xidmət şərtləri siyasətini yükləmək mümkün olmadı. Dəyişməzdən əvvəl yenidən cəhd edin.",
+    "autoTosSaveError": "Xidmət şərtləri siyasətini saxlamaq mümkün olmadı. Əvvəlki parametr hələ də göstərilir. Yenidən cəhd edin.",
+    "autoTosIncludeLabel": "ToS: avoid kimi işarələnmiş provayderləri auto-ya daxil et",
+    "autoTosDescription": "Standart olaraq söndürülüb. Tək hesaba deyil, bütün auto kombinasiyalarına aiddir. Provayderi qoşmaq bu seçimi aktivləşdirmir.",
     "title": "Kombinasiyalar",
     "description": "Çəkili yönləndirmə və ehtiyat keçid dəstəyi ilə model kombinasiyaları yaradın",
     "autoCatalogTitle": "Avtomatik marşrutlaşdırma kataloqu",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Bu provayder standart olaraq auto-dan çıxarılıb",
+    "tosAvoidNoticeDescription": "Onun xidmət şərtləri statusu avoid kimi işarələnib. Hesab qoşmaq bu siyasəti dəyişmir. Bütün auto kombinasiyaları üçün ümumi razılığı aktivləşdirməzdən əvvəl provayderin şərtlərini nəzərdən keçirin.",
+    "tosAvoidNoticeAction": "auto siyasətini nəzərdən keçir",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

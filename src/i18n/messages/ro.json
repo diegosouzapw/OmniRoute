@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Include în auto furnizorii marcați ToS: avoid",
+    "autoTosDescription": "Dezactivat implicit. Se aplică tuturor combinațiilor auto, nu doar unui cont. Conectarea unui furnizor nu activează această opțiune.",
+    "autoTosSaveError": "Politica ToS nu a putut fi salvată. Setarea anterioară este încă afișată. Încearcă din nou.",
+    "autoTosLoadError": "Politica ToS nu a putut fi încărcată. Încearcă din nou înainte de a o modifica.",
     "title": "Combo-uri",
     "description": "Creați combinații de modele cu rutare ponderată și suport alternativ",
     "autoCatalogTitle": "Catalog de rutare automată",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Acest furnizor este exclus implicit din auto",
+    "tosAvoidNoticeDescription": "Starea sa ToS este marcată avoid. Conectarea unui cont nu modifică această politică. Consultă termenii furnizorului înainte de a activa opțiunea globală pentru toate combinațiile auto.",
+    "tosAvoidNoticeAction": "Consultă politica auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

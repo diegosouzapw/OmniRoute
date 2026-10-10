@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Téacschomhartha Saor in Aisce / Mí
+## 💰 ~1.62B Comhartha sa Mhí thar Shraitheanna Saor in Aisce Tríú Páirtithe
 
 </div>
 
+> **Úsáid do chuntais soláthraí féin.** Is comhiomlán measta é seo de shraitheanna saor in aisce tríú páirtithe a bhfuil coinníollacha incháilitheachta ar leith acu, ní leithdháileadh comharthaí ó OmniRoute. Cláraigh, faigh dintiúir nuair is gá, agus ceangail na soláthraithe is féidir leat a úsáid; rialaíonn gach soláthraí a theorainneacha, a infhaighteacht agus a théarmaí féin.
+>
 > Is crá croí é sraitheanna saor in aisce a chruachadh de láimh — na mórán SDKanna, na mórán teorainneacha ráta, agus gan tuairim agat cé mhéad atá agat i ndáiríre. Déanann OmniRoute catalógú ar **489 iontráil sraithe saor in aisce thar 35 eochair chomhthiomsaithe athfhillteacha** agus ríomhann sé an phríomhfhigiúr téacschomharthaí ó na **17 gcomhthiomsú a bhfuil buiséad míosúil dearfach foilsithe acu, mar aon le cúig uasteorainn Groq in aghaidh na samhla**, agus comhthiomsuithe comhroinnte á ndídhúbailt. Taispeántar ar leithligh cuótaí nach gcuirtear ar fáil ach tar éis seiceáil réigiúnach aitheantais (faoi láthair: ModelScope), +~6M taobh thiar d’fhíorú réigiúnach aitheantais, agus ní chuirtear leis an bpríomhfhigiúr riamh iad. Bíonn an toradh le feiceáil i gcónaí ar an deais (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Cárta buiséid sraithe saor in aisce OmniRoute: ~1.62B téacschomhartha saor in aisce sa mhí go seasta, suas le ~2.22B sa chéad mhí le creidmheasanna clárúcháin, ó 35 eochair chomhthiomsaithe athfhillteacha dhoiciméadaithe a chlúdaíonn 489 iontráil chatalógaithe sraithe saor in aisce taobh thiar de chríochphointe amháin. Matamaitic ionraic dhídhúbailte de réir comhthiomsaithe — ní áirítear gach comhthiomsú comhroinnte ach uair amháin, lena n-áirítear 17 gcomhthiomsú athfhillteacha a bhfuil buiséad míosúil dearfach foilsithe téacschomharthaí acu, mar aon le cúig uasteorainn Groq in aghaidh na samhla; tá 13 sholáthraí marcáilte mar chinn le seachaint sa chatalóg riosca téarmaí ionas gur tusa a dhéanfaidh an cinneadh. Áirítear sa bharra buiséid Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (cúig uasteorainn in aghaidh na samhla) agus comhthiomsuithe níos lú, chomh maith le creidmheasanna clárúcháin don chéad mhí agus soláthraithe atá saor in aisce go buan gan uasteorainn téacschomharthaí, a thaispeántar ar leithligh ionas nach n-ardaíonn siad an príomhfhigiúr go saorga riamh. An méid a úsáideadh/an méid atá fágtha beo ar /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Tús</b></td>
     <td align="center"><a href="#-quick-start">🚀 Mearthosú</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Suiteáil</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Gan chumraíocht</a></td>
+    <td align="center"><a href="#first-run">🆓 Ceangail soláthraí</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Foghlaim</b></td>
@@ -215,20 +217,23 @@
 
 <div align="center">
 
-## 🆓 Oibríonn sé ón nóiméad a shuiteálann tú é — gan eochracha, gan chumraíocht
+<a id="first-run"></a>
+
+## 🆓 Suiteáil, ceangail soláthraí, agus ródáil trí chríochphointe amháin
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Oibríonn sé ón nóiméad a shuiteálann tú é — gan aon chumraíocht. Trí chéim: 1. Suiteáil — npm i -g omniroute, tosaíonn an freastalaí ar localhost:20128. 2. Dírigh d’uirlis ar http://localhost:20128/v1 — aon uirlis atá comhoiriúnach le OpenAI (Claude Code, Cursor, Cline). 3. Freagraíonn sé — glaoigh ar an tsamhail auto chun freagra láithreach a fháil, gan eochair API, gan chlárú, gan chumraíocht. Tá an soláthraí gan eochair OpenCode Free réamhshreangaithe sa teaglaim auto, mar sin freagraíonn suiteáil úr láithreach."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Trí chéim: suiteáil agus tosaigh OmniRoute, ceangail soláthraí incháilithe le do chuntas féin nó d&#x27;eochair API féin, ansin dírigh d&#x27;uirlis ar localhost:20128/v1 le heochair API OmniRoute agus an tsamhail auto. Braitheann an ródú ar naisc incháilithe atá ar fáil agus ar theorainneacha na soláthraithe."/>
 
 ```bash
-# Suiteáil úr, gan aon dintiúir — oibríonn `auto` cheana féin:
+# Tar éis soláthraí a cheangal, cóipeáil d'eochair OmniRoute ó Deais → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>An fearr leat inneall sonrach saor in aisce? Glaoigh ar `oc/…` (OpenCode Free) go díreach. Ansin aistrigh go `auto` agus lig do OmniRoute an rogha a dhéanamh.</sub>
+<sub>Teastaíonn bealach incháilithe ó `auto`. D'fhéadfadh sé nach mbeadh spriocanna incháilithe gan eochair i suiteáil nua, agus d'fhéadfadh soláthraí gan eochair cliaint tríú páirtí a dhiúltú. Eisiann `auto` soláthraithe marcáilte `tos: avoid` de réir réamhshocraithe, Kiro agus OpenCode Free san áireamh. Ní athraíonn ceangal cuntais an polasaí seo. Léigh [Treoir do Shraitheanna Saor in Aisce](docs/getting-started/FREE-TIERS-GUIDE.md) sula roghnaíonn tú soláthraí.</sub>
 
 <sub>📦 Scripteanna mearthosaithe le cóipeáil agus greamú do **Python, Node.js, PHP, agus cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

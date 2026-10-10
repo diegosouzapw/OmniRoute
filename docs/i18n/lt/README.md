@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mlrd. nemokamų žetonų per mėnesį
+## 💰 ~1.62B žetonų per mėnesį bendrai trečiųjų šalių nemokamuose planuose
 
 </div>
 
+> **Naudokite savo paskyras pas teikėjus.** Tai apytikris bendras trečiųjų šalių nemokamų planų, turinčių atskiras tinkamumo sąlygas, kiekis, o ne OmniRoute skiriami žetonai. Užsiregistruokite, prireikus gaukite prisijungimo duomenis ir prijunkite teikėjus, kuriais galite naudotis; kiekvienas teikėjas pats nustato savo apribojimus, prieinamumą ir sąlygas.
+>
 > Rankiniu būdu sujungti nemokamus planus yra varginantis darbas — dešimtys SDK, dešimtys dažnio apribojimų ir jokio aiškumo, kiek išteklių iš tikrųjų turite. OmniRoute kataloguoja **489 nemokamų planų įrašus, susietus su 35 pasikartojančių telkinių raktais**, o antraštėje rodomą žetonų skaičių apskaičiuoja pagal **17 telkinių, kuriems paskelbtas teigiamas mėnesio biudžetas, ir penkis atskirų Groq modelių limitus**, pašalindama bendrų telkinių dubliavimą. Kvotos, kurios tampa prieinamos tik patvirtinus regioninę tapatybę (šiuo metu: ModelScope), rodomos atskirai — dar ~6 mln. patvirtinus regioninę tapatybę — ir niekada neįtraukiamos į antraštėje pateikiamą sumą. Rezultatas visada matomas valdymo skydelyje (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute nemokamų planų biudžeto kortelė: nuolat ~1,62 mlrd. nemokamų žetonų per mėnesį ir iki ~2,22 mlrd. pirmąjį mėnesį su registracijos kreditais, gaunamais iš 35 dokumentuotų pasikartojančių telkinių raktų, apimančių 489 kataloguotus nemokamų planų įrašus už vieno galinio taško. Sąžiningas skaičiavimas pašalinant telkinių dubliavimą — kiekvienas bendras telkinys skaičiuojamas vieną kartą, įskaitant 17 pasikartojančių telkinių su paskelbtu teigiamu mėnesio žetonų biudžetu ir penkis atskirų Groq modelių limitus; naudojimo sąlygų rizikos kataloge 13 paslaugų teikėjų pažymėti kaip vengtini, kad galėtumėte nuspręsti patys. Biudžeto juostoje pateikiami Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (penki atskirų modelių limitai) ir mažesni telkiniai, o pirmojo mėnesio registracijos kreditai bei visam laikui nemokami paslaugų teikėjai be žetonų limito rodomi atskirai, kad niekada dirbtinai nepadidintų antraštėje pateikiamo skaičiaus. Tiesioginiai sunaudotų ir likusių žetonų duomenys pasiekiami adresu /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Pradžia</b></td>
     <td align="center"><a href="#-quick-start">🚀 Greita pradžia</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Diegimas</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Be konfigūravimo</a></td>
+    <td align="center"><a href="#first-run">🆓 Prijunkite teikėją</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Sužinokite</b></td>
@@ -215,20 +217,23 @@
 
 <div align="center">
 
-## 🆓 Veikia iškart įdiegus — nereikia nei raktų, nei konfigūracijos
+<a id="first-run"></a>
+
+## 🆓 Įdiekite, prijunkite teikėją ir maršrutizuokite per vieną galinį tašką
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Veikia iškart įdiegus — nereikia jokios konfigūracijos. Trys žingsniai: 1. Įdiekite — npm i -g omniroute, serveris paleidžiamas adresu localhost:20128. 2. Nukreipkite savo įrankį į http://localhost:20128/v1 — tinka bet kuris su OpenAI suderinamas įrankis (Claude Code, Cursor, Cline). 3. Jis atsako — iškvieskite modelį auto ir akimirksniu gaukite atsakymą be API rakto, registracijos ar konfigūracijos. Rakto nereikalaujantis teikėjas OpenCode Free yra iš anksto įtrauktas į auto derinį, todėl ką tik įdiegta sistema veikia iškart."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Trys žingsniai: įdiekite ir paleiskite OmniRoute, prijunkite reikalavimus atitinkantį teikėją naudodami savo paskyrą arba API raktą ir nukreipkite įrankį į localhost:20128/v1 su OmniRoute API raktu ir modeliu auto. Maršrutizavimas priklauso nuo pasiekiamų tinkamų ryšių ir teikėjų apribojimų."/>
 
 ```bash
-# Naujas diegimas, jokių prisijungimo duomenų — `auto` jau veikia:
+# Prijungę teikėją, nukopijuokite OmniRoute raktą iš Valdymo skydelis → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Pageidaujate konkretaus nemokamo teikėjo? Iškvieskite `oc/…` (OpenCode Free) tiesiogiai. Tada pereikite prie `auto` ir leiskite OmniRoute pasirinkti.</sub>
+<sub>`auto` reikia tinkamo maršruto. Naujoje įdiegtyje gali nebūti tinkamų tikslų be rakto, o teikėjas be rakto gali atmesti trečiųjų šalių klientus. `auto` pagal numatytąją nuostatą neįtraukia teikėjų, pažymėtų `tos: avoid`, įskaitant Kiro ir OpenCode Free. Paskyros prijungimas šios politikos nekeičia. Prieš rinkdamiesi teikėją perskaitykite [Nemokamų planų vadovas](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Nukopijuojami ir iškart paleidžiami greitosios pradžios scenarijai, skirti **Python, Node.js, PHP ir cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

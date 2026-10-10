@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid ဟု သတ်မှတ်ထားသော ဝန်ဆောင်မှုပေးသူများကို auto တွင် ထည့်သွင်းရန်",
+    "autoTosDescription": "မူလအတိုင်း ပိတ်ထားသည်။ အကောင့်တစ်ခုတည်းအတွက် မဟုတ်ဘဲ auto combo အားလုံးအတွက် သက်ရောက်သည်။ ဝန်ဆောင်မှုပေးသူကို ချိတ်ဆက်ခြင်းက ဤရွေးချယ်မှုကို ဖွင့်မပေးပါ။",
+    "autoTosSaveError": "ToS မူဝါဒကို မသိမ်းဆည်းနိုင်ပါ။ ယခင်ဆက်တင်ကိုသာ ပြထားဆဲဖြစ်သည်။ ထပ်မံကြိုးစားပါ။",
+    "autoTosLoadError": "ToS မူဝါဒကို မဖတ်ယူနိုင်ပါ။ မပြောင်းမီ ထပ်မံကြိုးစားပါ။",
     "title": "ပေါင်းစပ်မော်ဒယ်များ",
     "description": "အလေးချိန်အလိုက် လမ်းကြောင်းခွဲခြင်းနှင့် အရန်ပံ့ပိုးမှုပါဝင်သော မော်ဒယ်ပေါင်းစပ်မှုများကို ဖန်တီးပါ",
     "autoCatalogTitle": "အလိုအလျောက် လမ်းကြောင်းခွဲခြင်း ကတ်တလောက်",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ဤဝန်ဆောင်မှုပေးသူကို မူလအတိုင်း auto မှ ဖယ်ထားသည်",
+    "tosAvoidNoticeDescription": "၎င်း၏ ToS အခြေအနေကို avoid ဟု သတ်မှတ်ထားသည်။ အကောင့်ချိတ်ဆက်ခြင်းက ဤမူဝါဒကို မပြောင်းလဲပါ။ auto combo အားလုံးအတွက် အများသုံးရွေးချယ်မှုကို မဖွင့်မီ ဝန်ဆောင်မှုပေးသူ၏ စည်းကမ်းများကို ဖတ်ရှုပါ။",
+    "tosAvoidNoticeAction": "auto မူဝါဒကို ကြည့်ရန်",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

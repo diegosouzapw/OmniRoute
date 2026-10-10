@@ -6,7 +6,7 @@
 
 # Brzi početak: Pokrenite OmniRoute za 3 minute
 
-> **TL;DR**: Instalirajte → Povežite besplatnog provajdera → Usmjerite svoj IDE na OmniRoute. Gotovo.
+> **TL;DR**: Instalirajte → Povežite odgovarajućeg provajdera → Usmjerite IDE na OmniRoute. Gotovo.
 
 ---
 
@@ -49,33 +49,11 @@ OmniRoute se pokreće na `http://localhost:20128`. Kontrolna tabla se otvara aut
 
 ---
 
-## Korak 3: Povežite besplatnog provajdera
+## Korak 3: Povežite odgovarajućeg provajdera
 
-Možete koristiti OmniRoute **bez ikakvog plaćanja** povezivanjem besplatnog provajdera.
+Odaberite provajdera čiji uslovi i kvote odgovaraju vašim potrebama. U **Kontrolna ploča → Provajderi** povežite vlastiti račun ili API ključ, pa testirajte vezu. Besplatan pristup i dostupnost bez ključa nisu zagarantovani.
 
-### Opcija A: Kiro (Besplatni Claude — Bez kreditne kartice)
-
-1. Otvorite kontrolnu tablu na `http://localhost:20128`
-2. Idite na **Providers** → **Add Provider**
-3. Odaberite **Kiro AI**
-4. Kliknite na **Connect** (nije potreban API ključ!)
-5. Gotovo! Sada imate besplatan pristup Claude modelima.
-
-### Opcija B: OpenCode Free (Bez autorizacije)
-
-1. Otvorite kontrolnu tablu na `http://localhost:20128`
-2. Idite na **Providers** → **Add Provider**
-3. Odaberite **OpenCode Free**
-4. Kliknite na **Connect** (nije potreban API ključ!)
-5. Gotovo! Sada imate besplatan pristup više modela.
-
-### Opcija C: Pollinations (Nije potreban ključ)
-
-1. Otvorite kontrolnu tablu na `http://localhost:20128`
-2. Idite na **Providers** → **Add Provider**
-3. Odaberite **Pollinations**
-4. Kliknite na **Connect** (nije potreban API ključ!)
-5. Gotovo! Sada imate besplatan pristup GPT-5, Claude, Gemini i drugim modelima.
+`auto` po zadanim postavkama isključuje provajdere označene `tos: avoid`, uključujući Kiro i OpenCode Free. Povezivanje računa ne mijenja tu politiku. Opcija uključivanja u **Kontrolna ploča → Kombinacije** važi za sve automatske kombinacije. Prije odabira provajdera pročitajte [Vodič za besplatne pakete](./FREE-TIERS-GUIDE.md).
 
 ---
 
@@ -156,7 +134,7 @@ Detalje zahtjeva možete vidjeti klikom na [Monitoring/Logs](http://localhost:20
 
 - **[Vodič za Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Neka OmniRoute odabere najbolji AI za vas
 - **[Vodič za provajdere](./PROVIDERS-GUIDE.md)** — Povežite više provajdera (besplatnih i plaćenih)
-- **[Vodič za besplatne pakete](./FREE-TIERS-GUIDE.md)** — Dobijte besplatan AI bez kreditne kartice
+- **[Vodič za besplatne pakete](./FREE-TIERS-GUIDE.md)** — Pregledajte uslove provajdera i ograničenja besplatnih paketa
 - **[Rješavanje problema](../guides/TROUBLESHOOTING.md)** — Popravite uobičajene probleme
 
 ---
@@ -165,7 +143,7 @@ Detalje zahtjeva možete vidjeti klikom na [Monitoring/Logs](http://localhost:20
 
 ### "Da li mi treba API ključ?"
 
-**Ne!** Možete koristiti besplatne provajdere (Kiro, OpenCode Free, Pollinations) bez ikakvog API ključa. Samo ih povežite na kontrolnoj tabli.
+API ključ OmniRoutea autentificira vaše alate. Pristupni podaci za nadređenu uslugu zavise od provajdera: neki zahtijevaju API ključ ili prijavu na račun. Besplatan pristup nije zagarantovan.
 
 ### "Šta je `auto`?"
 

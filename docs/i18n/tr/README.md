@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 Ayda ~1,62 Milyar Ücretsiz Token
+## 💰 Üçüncü Taraf Ücretsiz Katmanlarında Ayda Toplam ~1.62B Token
 
 </div>
 
+> **Kendi sağlayıcı hesaplarınızı kullanın.** Bu, ayrı uygunluk koşullarına sahip üçüncü taraf ücretsiz katmanlarının tahmini toplamıdır; OmniRoute tarafından verilen bir token tahsisi değildir. Kaydolun, gerektiğinde kimlik bilgilerini edinin ve kullanabildiğiniz sağlayıcıları bağlayın; her sağlayıcı kendi sınırlarını, kullanılabilirliğini ve koşullarını belirler.
+>
 > Ücretsiz katmanları elle bir araya getirmek zahmetlidir — onlarca SDK, onlarca hız sınırı ve gerçekte ne kadar kotanız olduğuna dair hiçbir fikir yok. OmniRoute, **35 yinelenen havuz anahtarında 489 ücretsiz katman girdisini** kataloglar ve token başlığını, **yayımlanmış pozitif aylık bütçeye sahip 17 havuz ile modele özel beş Groq sınırından**, ortak havuzları tekilleştirerek hesaplar. Yalnızca bölgesel kimlik doğrulamasından sonra kullanılabilen kotalar (bugün için: ModelScope) ayrı gösterilir; bölgesel kimlik doğrulamasının arkasındaki +~6M hiçbir zaman başlıktaki toplama dahil edilmez. Sonuç kontrol panelinde (`/dashboard/free-tiers`) görünür kalır.
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute ücretsiz katman bütçe kartı: ayda düzenli olarak ~1,62 milyar ücretsiz token; kayıt kredileriyle ilk ayda ~2,22 milyara kadar; tek bir uç noktanın arkasında kataloglanmış 489 ücretsiz katman girdisini kapsayan, belgelenmiş 35 yinelenen havuz anahtarından. Ortak havuzları tekilleştiren dürüst hesaplama — yayımlanmış pozitif aylık token bütçesine sahip 17 yinelenen havuz ve modele özel beş Groq sınırı dahil olmak üzere her ortak havuz yalnızca bir kez sayılır; koşul riski kataloğunda 13 sağlayıcı kaçınılacak olarak işaretlenmiştir, böylece kararı siz verirsiniz. Bütçe çubuğunda Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (modele özel beş sınır) ve daha küçük havuzlar bulunur; ayrıca ilk ay kayıt kredileri ile kalıcı olarak ücretsiz ve token sınırı olmayan sağlayıcılar, başlıktaki sayıyı hiçbir zaman şişirmemeleri için ayrı gösterilir. Canlı kullanılan/kalan değerleri /dashboard/free-tiers üzerinde."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Başlangıç</b></td>
     <td align="center"><a href="#-quick-start">🚀 Hızlı Başlangıç</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Kurulum</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Sıfır Yapılandırma</a></td>
+    <td align="center"><a href="#first-run">🆓 Sağlayıcı bağlayın</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Öğrenin</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Yüklediğiniz anda çalışır — anahtar yok, yapılandırma yok
+<a id="first-run"></a>
+
+## 🆓 Kurun, bir sağlayıcı bağlayın ve tek uç noktadan yönlendirin
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Yüklediğiniz anda çalışır — sıfır yapılandırma. Üç adım: 1. Kurulum — npm i -g omniroute, sunucu localhost:20128 üzerinde başlar. 2. Aracınızı http://localhost:20128/v1 adresine yönlendirin — herhangi bir OpenAI uyumlu araç (Claude Code, Cursor, Cline). 3. Cevap verir — anında yanıt için `auto` modelini çağırın, API anahtarı, kayıt veya yapılandırma yok. Anahtarsız sağlayıcı OpenCode Free, `auto` kombinasyonuna önceden bağlanmıştır, bu nedenle yeni bir kurulum kutudan çıktığı gibi yanıt verir."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Üç adım: OmniRoute&#x27;u kurup başlatın, kendi hesabınız veya API anahtarınızla uygun bir sağlayıcı bağlayın, ardından OmniRoute API anahtarı ve auto modeliyle aracınızı localhost:20128/v1 adresine yönlendirin. Yönlendirme, kullanılabilir uygun bağlantılara ve sağlayıcı sınırlarına bağlıdır."/>
 
 ```bash
-# Yeni kurulum, sıfır kimlik bilgisi — `auto` zaten çalışıyor:
+# Sağlayıcı bağladıktan sonra OmniRoute anahtarınızı Kontrol Paneli → Endpoints bölümünden kopyalayın:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Belirli bir ücretsiz arka ucu mu tercih ediyorsunuz? `oc/…` (OpenCode Free) adresini doğrudan çağırın. Ardından `auto`'ya geçin ve OmniRoute'un seçmesine izin verin.</sub>
+<sub>`auto` uygun bir rota gerektirir. Yeni kurulumda uygun anahtarsız hedefler bulunmayabilir; anahtarsız sağlayıcılar da üçüncü taraf istemcileri reddedebilir. `auto`, Kiro ve OpenCode Free dahil `tos: avoid` işaretli sağlayıcıları varsayılan olarak hariç tutar. Hesap bağlamak bu politikayı değiştirmez. Sağlayıcı seçmeden önce [Ücretsiz Katmanlar Kılavuzu](docs/getting-started/FREE-TIERS-GUIDE.md) belgesini inceleyin.</sub>
 
 <sub>📦 **Python, Node.js, PHP ve cURL** için kopyala-yapıştır hızlı başlangıç betikleri → [`examples/quickstart/`](examples/quickstart/)</sub>
 

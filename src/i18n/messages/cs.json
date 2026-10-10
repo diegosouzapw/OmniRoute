@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinace → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Zásady podmínek služby se nepodařilo načíst. Před změnou to zkuste znovu.",
+    "autoTosSaveError": "Zásady podmínek služby se nepodařilo uložit. Stále se zobrazuje předchozí nastavení. Zkuste to znovu.",
+    "autoTosIncludeLabel": "Zahrnout do auto poskytovatele označené ToS: avoid",
+    "autoTosDescription": "Ve výchozím nastavení vypnuto. Platí pro všechny kombinace auto, nejen pro jeden účet. Připojení poskytovatele tuto možnost nezapne.",
     "title": "Komba",
     "description": "Vytvářejte kombinace modelů s váženým směrováním a podporou záloh",
     "autoCatalogTitle": "Katalog automatického směrování",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Tento poskytovatel je ve výchozím nastavení z auto vyloučen",
+    "tosAvoidNoticeDescription": "Jeho stav podmínek služby je označen jako avoid. Připojení účtu tyto zásady nezmění. Před zapnutím společného souhlasu pro všechny kombinace auto si přečtěte podmínky poskytovatele.",
+    "tosAvoidNoticeAction": "Zkontrolovat zásady auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

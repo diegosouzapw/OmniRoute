@@ -3384,6 +3384,10 @@
     "comboRefMember": "காம்போ → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid எனக் குறிக்கப்பட்ட வழங்குநர்களை auto-வில் சேர்க்கவும்",
+    "autoTosDescription": "இயல்பாக முடக்கப்பட்டுள்ளது. ஒரு கணக்குக்கு மட்டுமல்ல, அனைத்து auto கூட்டுகளுக்கும் பொருந்தும். வழங்குநரை இணைப்பதால் இந்தத் தேர்வு இயக்கப்படாது.",
+    "autoTosSaveError": "ToS கொள்கையைச் சேமிக்க முடியவில்லை. முந்தைய அமைப்பே இன்னும் காட்டப்படுகிறது. மீண்டும் முயலவும்.",
+    "autoTosLoadError": "ToS கொள்கையை ஏற்ற முடியவில்லை. மாற்றுவதற்கு முன் மீண்டும் முயலவும்.",
     "title": "காம்போக்கள்",
     "description": "எடையிட்ட வழிப்படுத்தல் மற்றும் மாற்று ஆதரவுடன் மாதிரி காம்போக்களை உருவாக்கவும்",
     "autoCatalogTitle": "தானாக ரூட்டிங் பட்டியல்",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "இந்த வழங்குநர் இயல்பாக auto-விலிருந்து விலக்கப்பட்டுள்ளார்",
+    "tosAvoidNoticeDescription": "இதன் ToS நிலை avoid எனக் குறிக்கப்பட்டுள்ளது. கணக்கை இணைப்பதால் இந்தக் கொள்கை மாறாது. அனைத்து auto கூட்டுகளுக்கும் பொதுவான தேர்வை இயக்குவதற்கு முன் வழங்குநரின் விதிமுறைகளைப் படிக்கவும்.",
+    "tosAvoidNoticeAction": "auto கொள்கையைப் பார்க்கவும்",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

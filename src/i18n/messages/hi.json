@@ -3384,6 +3384,10 @@
     "comboRefMember": "कॉम्बो → {name}"
   },
   "combos": {
+    "autoTosLoadError": "सेवा की शर्तों की नीति लोड नहीं हो सकी। इसे बदलने से पहले फिर कोशिश करें।",
+    "autoTosSaveError": "सेवा की शर्तों की नीति सहेजी नहीं जा सकी। पिछली सेटिंग अभी भी दिखाई जा रही है। फिर कोशिश करें।",
+    "autoTosIncludeLabel": "ToS: avoid चिह्नित प्रदाताओं को auto में शामिल करें",
+    "autoTosDescription": "डिफ़ॉल्ट रूप से बंद है। सभी auto कॉम्बो पर लागू होता है, केवल एक खाते पर नहीं। प्रदाता जोड़ने से यह विकल्प चालू नहीं होता।",
     "title": "संयोजन",
     "description": "भारित रूटिंग और फ़ॉलबैक समर्थन के साथ मॉडल कॉम्बो बनाएं",
     "autoCatalogTitle": "ऑटो-रूटिंग कैटलॉग",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "यह प्रदाता डिफ़ॉल्ट रूप से auto से बाहर है",
+    "tosAvoidNoticeDescription": "इसकी सेवा की शर्तों की स्थिति avoid चिह्नित है। खाता जोड़ने से यह नीति नहीं बदलती। सभी auto कॉम्बो के लिए वैश्विक अनुमति चालू करने से पहले प्रदाता की शर्तें पढ़ें।",
+    "tosAvoidNoticeAction": "auto नीति की समीक्षा करें",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 Tokeni ~1.62B za Bure / Mwezi
+## 💰 Tokeni ~1.62B kwa Mwezi kwa Jumla katika Vifurushi vya Bure vya Wahusika Wengine
 
 </div>
 
+> **Tumia akaunti zako mwenyewe za watoa huduma.** Hii ni jumla inayokadiriwa ya vifurushi vya bure vya wahusika wengine vyenye masharti tofauti ya kustahiki, si mgao wa tokeni unaotolewa na OmniRoute. Jisajili, pata taarifa za kuingia panapohitajika, na uunganishe watoa huduma unaoweza kutumia; kila mtoa huduma hudhibiti mipaka, upatikanaji na masharti yake.
+>
 > Kukusanya viwango vya bure kwa mkono ni kazi ngumu — SDK nyingi, vikomo vingi vya matumizi, na hujui kwa hakika una kiasi gani. OmniRoute inaorodhesha **vipengee 489 vya viwango vya bure katika funguo 35 za hifadhi zinazojirudia** na hukokotoa jumla ya tokeni kutokana na **hifadhi 17 zenye bajeti chanya ya kila mwezi iliyochapishwa pamoja na vikomo vitano vya Groq kwa kila modeli**, huku nakala zinazoingia kwenye hifadhi moja zikiondolewa. Mgao unaopatikana tu baada ya ukaguzi wa utambulisho wa kikanda (kwa sasa: ModelScope) unaonyeshwa kando, +~6M baada ya uthibitishaji wa utambulisho wa kikanda, na kamwe haujumuishwi katika jumla kuu. Matokeo yanaendelea kuonekana kwenye dashibodi (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Kadi ya bajeti ya kiwango cha bure cha OmniRoute: takribani tokeni 1.62B za bure kwa mwezi kwa kiwango cha kudumu, hadi takribani 2.22B katika mwezi wa kwanza pamoja na salio la kujisajili, kutoka kwa funguo 35 za hifadhi zinazojirudia zilizoandikwa ambazo zinajumuisha vipengee 489 vya viwango vya bure vilivyoorodheshwa nyuma ya endpoint moja. Hesabu ya uwazi iliyondoa nakala za hifadhi — kila hifadhi inayoshirikiwa huhesabiwa mara moja, ikijumuisha hifadhi 17 zinazojirudia zenye bajeti chanya ya tokeni za kila mwezi iliyochapishwa pamoja na vikomo vitano vya Groq kwa kila modeli; watoa huduma 13 wametiwa alama ya kuepukwa katika katalogi ya hatari za masharti ili uamue mwenyewe. Upau wa bajeti unajumuisha Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (vikomo vitano kwa kila modeli) na hifadhi ndogo zaidi, pamoja na salio la kujisajili la mwezi wa kwanza na watoa huduma wa bure kabisa wasio na kikomo cha tokeni wanaoonyeshwa kando ili kamwe wasiongeze jumla kuu kwa njia isiyo sahihi. Matumizi na kiasi kilichosalia moja kwa moja kwenye /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Anza</b></td>
     <td align="center"><a href="#-quick-start">🚀 Anza Haraka</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Sakinisha</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Bila Usanidi</a></td>
+    <td align="center"><a href="#first-run">🆓 Unganisha mtoa huduma</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Jifunze</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Hufanya kazi mara tu unapoipakia — hakuna funguo, hakuna usanidi
+<a id="first-run"></a>
+
+## 🆓 Sakinisha, unganisha mtoa huduma, kisha elekeza kupitia sehemu moja ya mwisho
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hufanya kazi mara tu unapoipakia — usanidi sifuri. Hatua tatu: 1. Sakinisha — npm i -g omniroute, seva inaanza kwenye localhost:20128. 2. Elekeza zana yako kwenye http://localhost:20128/v1 — zana yoyote inayooana na OpenAI (Claude Code, Cursor, Cline). 3. Inajibu — piga model auto kwa jibu la papo hapo, bila ufunguo wa API, bila kujisajili, bila usanidi. Mtoa huduma asiye na ufunguo OpenCode Free tayari amewekwa kwenye mchanganyiko wa auto, kwa hivyo usakinishaji mpya unajibu mara moja."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Hatua tatu: sakinisha na uanzishe OmniRoute, unganisha mtoa huduma anayestahiki kwa akaunti yako au ufunguo wako wa API, kisha elekeza zana yako kwa localhost:20128/v1 kwa ufunguo wa API wa OmniRoute na modeli auto. Uelekezaji hutegemea miunganisho inayopatikana na inayostahiki pamoja na mipaka ya watoa huduma."/>
 
 ```bash
-# Usakinishaji mpya, sifa sifuri — `auto` tayari inafanya kazi:
+# Baada ya kuunganisha mtoa huduma, nakili ufunguo wako wa OmniRoute kutoka Dashibodi → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Unapendelea backend maalum isiyolipishwa? Piga `oc/…` (OpenCode Free) moja kwa moja. Kisha panda hadi `auto` na umruhusu OmniRoute achague.</sub>
+<sub>`auto` inahitaji njia inayostahiki. Usakinishaji mpya unaweza kukosa malengo yanayostahiki bila ufunguo, na mtoa huduma asiyehitaji ufunguo anaweza kukataa programu za wateja za wahusika wengine. Kwa chaguo-msingi, `auto` huwaondoa watoa huduma walio na alama `tos: avoid`, wakiwemo Kiro na OpenCode Free. Kuunganisha akaunti hakubadilishi sera hii. Soma [Mwongozo wa Viwango vya Bure](docs/getting-started/FREE-TIERS-GUIDE.md) kabla ya kuchagua mtoa huduma.</sub>
 
 <sub>📦 Nakili-bandika hati za kuanza haraka kwa **Python, Node.js, PHP, na cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

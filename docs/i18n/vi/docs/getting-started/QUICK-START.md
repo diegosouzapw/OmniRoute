@@ -4,7 +4,7 @@
 
 ---
 
-> **Tóm tắt**: Cài đặt → Kết nối một nhà cung cấp miễn phí → Trỏ IDE của bạn tới OmniRoute. Xong.
+> **Tóm tắt**: Cài đặt → Kết nối nhà cung cấp đủ điều kiện → Trỏ IDE đến OmniRoute. Hoàn tất.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute khởi động tại `http://localhost:20128`. Bảng điều khiển 
 
 ---
 
-## Bước 3: Kết nối một nhà cung cấp miễn phí
+## Bước 3: Kết nối nhà cung cấp đủ điều kiện
 
-Bạn có thể sử dụng OmniRoute **mà không phải trả bất kỳ khoản phí nào** bằng cách kết nối một nhà cung cấp miễn phí.
+Chọn nhà cung cấp có điều khoản và hạn mức phù hợp với nhu cầu. Trong **Bảng điều khiển → Nhà cung cấp**, kết nối tài khoản hoặc khóa API của bạn rồi kiểm tra kết nối. Quyền truy cập miễn phí và khả năng dùng không cần khóa không được bảo đảm.
 
-### Tùy chọn A: Kiro (Claude miễn phí — Không cần thẻ tín dụng)
-
-1. Mở bảng điều khiển tại `http://localhost:20128`
-2. Đi tới **Nhà cung cấp** → **Thêm nhà cung cấp**
-3. Chọn **Kiro AI**
-4. Nhấp vào **Kết nối** (không cần API key!)
-5. Xong! Giờ đây bạn có quyền truy cập miễn phí vào các mô hình Claude.
-
-### Tùy chọn B: OpenCode Free (Không cần xác thực)
-
-1. Mở bảng điều khiển tại `http://localhost:20128`
-2. Đi tới **Nhà cung cấp** → **Thêm nhà cung cấp**
-3. Chọn **OpenCode Free**
-4. Nhấp vào **Kết nối** (không cần API key!)
-5. Xong! Giờ đây bạn có quyền truy cập miễn phí vào nhiều mô hình.
-
-### Tùy chọn C: Pollinations (Không cần khóa)
-
-1. Mở bảng điều khiển tại `http://localhost:20128`
-2. Đi tới **Nhà cung cấp** → **Thêm nhà cung cấp**
-3. Chọn **Pollinations**
-4. Nhấp vào **Kết nối** (không cần API key!)
-5. Xong! Giờ đây bạn có quyền truy cập miễn phí vào GPT-5, Claude, Gemini và nhiều mô hình khác.
+Theo mặc định, `auto` loại trừ các nhà cung cấp được đánh dấu `tos: avoid`, gồm Kiro và OpenCode Free. Kết nối tài khoản không thay đổi chính sách này. Tùy chọn cho phép tham gia trong **Bảng điều khiển → Combo** áp dụng cho mọi combo tự động. Đọc [Hướng dẫn về các gói miễn phí](./FREE-TIERS-GUIDE.md) trước khi chọn nhà cung cấp.
 
 ---
 
@@ -154,7 +132,7 @@ Bạn có thể xem chi tiết yêu cầu bằng cách nhấp vào [Giám sát/N
 
 - **[Hướng dẫn Auto-Combo](./AUTO-COMBO-GUIDE.md)** — Để OmniRoute chọn AI phù hợp nhất cho bạn
 - **[Hướng dẫn về nhà cung cấp](./PROVIDERS-GUIDE.md)** — Kết nối thêm các nhà cung cấp (miễn phí và trả phí)
-- **[Hướng dẫn về các gói miễn phí](./FREE-TIERS-GUIDE.md)** — Sử dụng AI miễn phí mà không cần thẻ tín dụng
+- **[Hướng dẫn về các gói miễn phí](./FREE-TIERS-GUIDE.md)** — Xem điều khoản của nhà cung cấp và giới hạn của gói miễn phí
 - **[Khắc phục sự cố](../guides/TROUBLESHOOTING.md)** — Khắc phục các sự cố thường gặp
 
 ---
@@ -163,7 +141,7 @@ Bạn có thể xem chi tiết yêu cầu bằng cách nhấp vào [Giám sát/N
 
 ### "Tôi có cần API key không?"
 
-**Không!** Bạn có thể sử dụng các nhà cung cấp miễn phí (Kiro, OpenCode Free, Pollinations) mà không cần API key. Chỉ cần kết nối chúng trong bảng điều khiển.
+Khóa API OmniRoute xác thực các công cụ của bạn. Thông tin xác thực của dịch vụ phía trên tùy thuộc vào nhà cung cấp: một số yêu cầu khóa API hoặc đăng nhập tài khoản. Quyền truy cập miễn phí không được bảo đảm.
 
 ### "`auto` là gì?"
 

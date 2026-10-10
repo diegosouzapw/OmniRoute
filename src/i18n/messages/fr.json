@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combinaison → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Impossible de charger la politique relative aux conditions d’utilisation. Réessayez avant de la modifier.",
+    "autoTosSaveError": "Impossible d’enregistrer la politique relative aux conditions d’utilisation. Le réglage précédent reste affiché. Réessayez.",
+    "autoTosIncludeLabel": "Inclure dans auto les fournisseurs marqués ToS: avoid",
+    "autoTosDescription": "Désactivé par défaut. S’applique à toutes les combinaisons auto, pas seulement à un compte. Connecter un fournisseur n’active pas cette option.",
     "title": "Combinaisons",
     "description": "Créez des combinaisons de modèles avec un routage pondéré et une prise en charge de secours",
     "autoCatalogTitle": "Catalogue de routage automatique",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Ce fournisseur est exclu de auto par défaut",
+    "tosAvoidNoticeDescription": "Son statut relatif aux conditions d’utilisation est marqué avoid. Connecter un compte ne modifie pas cette politique. Consultez les conditions du fournisseur avant d’activer l’autorisation globale pour toutes les combinaisons auto.",
+    "tosAvoidNoticeAction": "Consulter la politique de auto",
     "codexReleaseCooldown": "Réinitialiser le cooldown local",
     "codexReleaseCooldownHint": "Permet de réessayer ce compte Codex. N’échange pas de crédit de réinitialisation et ne modifie pas les limites du fournisseur.",
     "codexReleasingCooldown": "Clearing…",

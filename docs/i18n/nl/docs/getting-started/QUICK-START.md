@@ -4,7 +4,7 @@
 
 ---
 
-> **TL;DR**: Installeren → Een gratis provider verbinden → Je IDE naar OmniRoute verwijzen. Klaar.
+> **TL;DR**: Installeren → Geschikte aanbieder verbinden → Je IDE op OmniRoute richten. Klaar.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute start op `http://localhost:20128`. Het dashboard wordt automatisch geo
 
 ---
 
-## Stap 3: Een gratis provider verbinden
+## Stap 3: Een geschikte aanbieder verbinden
 
-Je kunt OmniRoute **geheel kosteloos gebruiken** door een gratis provider te verbinden.
+Kies een aanbieder waarvan de voorwaarden en quota bij je behoeften passen. Verbind bij **Dashboard → Aanbieders** je eigen account of API-sleutel en test vervolgens de verbinding. Gratis toegang en beschikbaarheid zonder sleutel zijn niet gegarandeerd.
 
-### Optie A: Kiro (gratis Claude — geen creditcard)
-
-1. Open het dashboard op `http://localhost:20128`
-2. Ga naar **Providers** → **Provider toevoegen**
-3. Selecteer **Kiro AI**
-4. Klik op **Verbinden** (geen API-sleutel nodig!)
-5. Klaar! Je hebt nu gratis toegang tot Claude-modellen.
-
-### Optie B: OpenCode Free (geen authenticatie)
-
-1. Open het dashboard op `http://localhost:20128`
-2. Ga naar **Providers** → **Provider toevoegen**
-3. Selecteer **OpenCode Free**
-4. Klik op **Verbinden** (geen API-sleutel nodig!)
-5. Klaar! Je hebt nu gratis toegang tot meerdere modellen.
-
-### Optie C: Pollinations (geen sleutel nodig)
-
-1. Open het dashboard op `http://localhost:20128`
-2. Ga naar **Providers** → **Provider toevoegen**
-3. Selecteer **Pollinations**
-4. Klik op **Verbinden** (geen API-sleutel nodig!)
-5. Klaar! Je hebt nu gratis toegang tot GPT-5, Claude, Gemini en meer.
+`auto` sluit aanbieders met de aanduiding `tos: avoid`, waaronder Kiro en OpenCode Free, standaard uit. Een account verbinden verandert dit beleid niet. De optie om deze aanbieders toe te laten bij **Dashboard → Combo's** geldt voor alle automatische combo's. Lees [Handleiding voor gratis abonnementen](./FREE-TIERS-GUIDE.md) voordat je een aanbieder kiest.
 
 ---
 
@@ -154,7 +132,7 @@ Je kunt de details van het verzoek bekijken door in de linkerzijbalk op [Monitor
 
 - **[Auto-Combo-handleiding](./AUTO-COMBO-GUIDE.md)** — Laat OmniRoute de beste AI voor je kiezen
 - **[Providerhandleiding](./PROVIDERS-GUIDE.md)** — Verbind meer providers (gratis en betaald)
-- **[Handleiding voor gratis abonnementen](./FREE-TIERS-GUIDE.md)** — Krijg gratis AI zonder creditcard
+- **[Handleiding voor gratis abonnementen](./FREE-TIERS-GUIDE.md)** — Bekijk de voorwaarden van aanbieders en de grenzen van gratis abonnementen
 - **[Probleemoplossing](../guides/TROUBLESHOOTING.md)** — Los veelvoorkomende problemen op
 
 ---
@@ -163,7 +141,7 @@ Je kunt de details van het verzoek bekijken door in de linkerzijbalk op [Monitor
 
 ### "Heb ik een API-sleutel nodig?"
 
-**Nee!** Je kunt gratis providers (Kiro, OpenCode Free en Pollinations) zonder API-sleutel gebruiken. Verbind ze eenvoudig via het dashboard.
+De OmniRoute-API-sleutel authenticeert je tools. De toegangsgegevens voor de achterliggende dienst hangen af van de aanbieder: sommige vereisen een API-sleutel of accountaanmelding. Gratis toegang is niet gegarandeerd.
 
 ### "Wat is `auto`?"
 

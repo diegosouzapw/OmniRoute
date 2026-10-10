@@ -3384,6 +3384,10 @@
     "comboRefMember": "ਕੰਬੋ → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid ਵਜੋਂ ਨਿਸ਼ਾਨਬੱਧ ਪ੍ਰਦਾਤਾਵਾਂ ਨੂੰ auto ਵਿੱਚ ਸ਼ਾਮਲ ਕਰੋ",
+    "autoTosDescription": "ਮੂਲ ਰੂਪ ਵਿੱਚ ਬੰਦ ਹੈ। ਸਿਰਫ਼ ਇੱਕ ਖਾਤੇ ਲਈ ਨਹੀਂ, ਸਾਰੇ auto ਕੰਬੋ ਲਈ ਲਾਗੂ ਹੁੰਦਾ ਹੈ। ਪ੍ਰਦਾਤਾ ਜੋੜਨ ਨਾਲ ਇਹ ਵਿਕਲਪ ਚਾਲੂ ਨਹੀਂ ਹੁੰਦਾ।",
+    "autoTosSaveError": "ToS ਨੀਤੀ ਸੰਭਾਲੀ ਨਹੀਂ ਜਾ ਸਕੀ। ਪਿਛਲੀ ਸੈਟਿੰਗ ਅਜੇ ਵੀ ਦਿਖਾਈ ਜਾ ਰਹੀ ਹੈ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+    "autoTosLoadError": "ToS ਨੀਤੀ ਲੋਡ ਨਹੀਂ ਹੋ ਸਕੀ। ਬਦਲਣ ਤੋਂ ਪਹਿਲਾਂ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
     "title": "ਕੌਂਬੋ",
     "description": "ਭਾਰਿਤ ਰਾਊਟਿੰਗ ਅਤੇ ਫਾਲਬੈਕ ਸਹਾਇਤਾ ਨਾਲ ਮਾਡਲ ਕੌਂਬੋ ਬਣਾਓ",
     "autoCatalogTitle": "ਆਟੋ-ਰਾਊਟਿੰਗ ਕੈਟਾਲਾਗ",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ਇਹ ਪ੍ਰਦਾਤਾ ਮੂਲ ਰੂਪ ਵਿੱਚ auto ਤੋਂ ਬਾਹਰ ਹੈ",
+    "tosAvoidNoticeDescription": "ਇਸ ਦੀ ToS ਸਥਿਤੀ avoid ਵਜੋਂ ਨਿਸ਼ਾਨਬੱਧ ਹੈ। ਖਾਤਾ ਜੋੜਨ ਨਾਲ ਇਹ ਨੀਤੀ ਨਹੀਂ ਬਦਲਦੀ। ਸਾਰੇ auto ਕੰਬੋ ਲਈ ਗਲੋਬਲ ਵਿਕਲਪ ਚਾਲੂ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਪ੍ਰਦਾਤਾ ਦੀਆਂ ਸ਼ਰਤਾਂ ਪੜ੍ਹੋ।",
+    "tosAvoidNoticeAction": "auto ਨੀਤੀ ਵੇਖੋ",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

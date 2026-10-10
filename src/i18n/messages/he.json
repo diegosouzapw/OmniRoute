@@ -3384,6 +3384,10 @@
     "comboRefMember": "שילוב → {name}"
   },
   "combos": {
+    "autoTosLoadError": "לא ניתן לטעון את מדיניות תנאי השירות. יש לנסות שוב לפני שמשנים אותה.",
+    "autoTosSaveError": "לא ניתן לשמור את מדיניות תנאי השירות. ההגדרה הקודמת עדיין מוצגת. יש לנסות שוב.",
+    "autoTosIncludeLabel": "כלול ב-auto ספקים המסומנים ToS: avoid",
+    "autoTosDescription": "כבוי כברירת מחדל. חל על כל שילובי auto, ולא רק על חשבון אחד. חיבור ספק אינו מפעיל אפשרות זו.",
     "title": "שילובים",
     "description": "צור שילובי דגמים עם ניתוב משוקלל ותמיכה ב-fallback",
     "autoCatalogTitle": "קטלוג ניתוב אוטומטי",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "ספק זה מוחרג מ-auto כברירת מחדל",
+    "tosAvoidNoticeDescription": "מצב תנאי השירות שלו מסומן avoid. חיבור חשבון אינו משנה מדיניות זו. יש לעיין בתנאי הספק לפני הפעלת ההרשאה הכללית לכל שילובי auto.",
+    "tosAvoidNoticeAction": "עיון במדיניות auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

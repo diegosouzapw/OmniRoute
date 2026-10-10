@@ -3384,6 +3384,10 @@
     "comboRefMember": "تركيبة → {name}"
   },
   "combos": {
+    "autoTosLoadError": "تعذر تحميل سياسة شروط الخدمة. أعد المحاولة قبل تغييرها.",
+    "autoTosSaveError": "تعذر حفظ سياسة شروط الخدمة. لا يزال الإعداد السابق معروضًا. أعد المحاولة.",
+    "autoTosIncludeLabel": "تضمين مقدمي الخدمة المصنفين ToS: avoid في auto",
+    "autoTosDescription": "معطّل افتراضيًا. يسري على جميع مجموعات auto، وليس على حساب واحد فقط. ربط مقدم خدمة لا يفعّل هذا الخيار.",
     "title": "المجموعات",
     "description": "أنشئ مجموعات نماذج باستخدام التوجيه المرجّح والتبديل الاحتياطي",
     "autoCatalogTitle": "كتالوج التوجيه التلقائي",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "مقدم الخدمة هذا مستبعد من auto افتراضيًا",
+    "tosAvoidNoticeDescription": "حالة شروط الخدمة لديه مصنفة avoid. ربط حساب لا يغيّر هذه السياسة. راجع شروط مقدم الخدمة قبل تفعيل الاشتراك العام لجميع مجموعات auto.",
+    "tosAvoidNoticeAction": "مراجعة سياسة auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

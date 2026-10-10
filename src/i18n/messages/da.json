@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombination → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Politikken for tjenestevilkår kunne ikke indlæses. Prøv igen, før du ændrer den.",
+    "autoTosSaveError": "Politikken for tjenestevilkår kunne ikke gemmes. Den tidligere indstilling vises stadig. Prøv igen.",
+    "autoTosIncludeLabel": "Medtag udbydere markeret ToS: avoid i auto",
+    "autoTosDescription": "Slået fra som standard. Gælder alle auto-kombinationer, ikke kun én konto. Tilslutning af en udbyder aktiverer ikke denne mulighed.",
     "title": "Kombinationer",
     "description": "Skab modelkombinationer med vægtet routing og fallback-understøttelse",
     "autoCatalogTitle": "Auto-routing katalog",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Denne udbyder er som standard udelukket fra auto",
+    "tosAvoidNoticeDescription": "Udbyderens status for tjenestevilkår er markeret avoid. Tilslutning af en konto ændrer ikke denne politik. Læs udbyderens vilkår, før du aktiverer det fælles tilvalg for alle auto-kombinationer.",
+    "tosAvoidNoticeAction": "Gennemgå politikken for auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

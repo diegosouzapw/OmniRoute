@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosLoadError": "An kasa loda manufar sharuddan sabis. Sake gwadawa kafin ka canza ta.",
+    "autoTosSaveError": "An kasa adana manufar sharuddan sabis. Ana nuna saitin da ya gabata har yanzu. Sake gwadawa.",
+    "autoTosIncludeLabel": "Haɗa masu ba da sabis da aka yi wa alamar ToS: avoid a cikin auto",
+    "autoTosDescription": "A kashe yake ta tsohuwa. Ya shafi duk haɗuwar auto, ba asusu ɗaya kaɗai ba. Haɗa mai ba da sabis ba ya kunna wannan zaɓi.",
     "title": "Haɗe-haɗe",
     "description": "Ƙirƙiri haɗe-haɗen samfura tare da rarrabawa bisa nauyi da goyon bayan madadin",
     "autoCatalogTitle": "Kundin rarrabawa ta atomatik",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "An ware wannan mai ba da sabis daga auto ta tsohuwa",
+    "tosAvoidNoticeDescription": "An yi wa matsayin sharuddan sabis ɗinsa alamar avoid. Haɗa asusu ba ya canza wannan manufa. Duba sharuddan mai ba da sabis kafin ka kunna izini na gama-gari ga duk haɗuwar auto.",
+    "tosAvoidNoticeAction": "Duba manufar auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

@@ -3384,6 +3384,10 @@
     "comboRefMember": "Комбинация → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Правилата за условията на ползване не могат да се заредят. Опитайте отново, преди да ги променяте.",
+    "autoTosSaveError": "Правилата за условията на ползване не могат да се запазят. Все още се показва предишната настройка. Опитайте отново.",
+    "autoTosIncludeLabel": "Включване в auto на доставчици, отбелязани с ToS: avoid",
+    "autoTosDescription": "Изключено по подразбиране. Важи за всички комбинации auto, а не само за един акаунт. Свързването на доставчик не включва тази опция.",
     "title": "Комбота",
     "description": "Създавайте комбинации от модели с претеглено маршрутизиране и резервна поддръжка",
     "autoCatalogTitle": "Каталог за автоматично маршрутизиране",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Този доставчик е изключен от auto по подразбиране",
+    "tosAvoidNoticeDescription": "Статусът на условията му на ползване е отбелязан като avoid. Свързването на акаунт не променя тези правила. Прегледайте условията на доставчика, преди да включите общото разрешение за всички комбинации auto.",
+    "tosAvoidNoticeAction": "Преглед на правилата за auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

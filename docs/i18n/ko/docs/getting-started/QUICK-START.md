@@ -4,7 +4,7 @@
 
 ---
 
-> **요약**: 설치 → 무료 제공업체 연결 → IDE가 OmniRoute를 가리키도록 설정. 끝입니다.
+> **요약**: 설치 → 이용 조건을 충족하는 제공업체 연결 → IDE를 OmniRoute로 연결. 완료.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute는 `http://localhost:20128`에서 시작됩니다. 대시보드가 자
 
 ---
 
-## 3단계: 무료 제공업체 연결
+## 3단계: 이용 조건을 충족하는 제공업체 연결
 
-무료 제공업체를 연결하면 비용을 **전혀 지불하지 않고도** OmniRoute를 사용할 수 있습니다.
+약관과 할당량이 요구 사항에 맞는 제공업체를 선택하세요. **대시보드 → 제공업체**에서 본인 계정이나 API 키를 연결한 다음 연결을 테스트하세요. 무료 이용이나 키 없는 이용 가능 여부는 보장되지 않습니다.
 
-### 옵션 A: Kiro(무료 Claude — 신용카드 불필요)
-
-1. `http://localhost:20128`에서 대시보드를 엽니다
-2. **Providers** → **Add Provider**로 이동합니다
-3. **Kiro AI**를 선택합니다
-4. **Connect**를 클릭합니다(API 키 불필요!)
-5. 완료되었습니다! 이제 Claude 모델을 무료로 사용할 수 있습니다.
-
-### 옵션 B: OpenCode Free(인증 불필요)
-
-1. `http://localhost:20128`에서 대시보드를 엽니다
-2. **Providers** → **Add Provider**로 이동합니다
-3. **OpenCode Free**를 선택합니다
-4. **Connect**를 클릭합니다(API 키 불필요!)
-5. 완료되었습니다! 이제 여러 모델을 무료로 사용할 수 있습니다.
-
-### 옵션 C: Pollinations(키 불필요)
-
-1. `http://localhost:20128`에서 대시보드를 엽니다
-2. **Providers** → **Add Provider**로 이동합니다
-3. **Pollinations**를 선택합니다
-4. **Connect**를 클릭합니다(API 키 불필요!)
-5. 완료되었습니다! 이제 GPT-5, Claude, Gemini 등을 무료로 사용할 수 있습니다.
+`auto`는 Kiro와 OpenCode Free를 포함해 `tos: avoid`로 표시된 제공업체를 기본적으로 제외합니다. 계정을 연결해도 이 정책은 바뀌지 않습니다. **대시보드 → 콤보**의 포함 허용 옵션은 모든 자동 콤보에 적용됩니다. 제공업체를 선택하기 전에 [무료 티어 가이드](./FREE-TIERS-GUIDE.md)를 확인하세요.
 
 ---
 
@@ -154,7 +132,7 @@ omniroute launch-codex --model auto
 
 - **[Auto-Combo 가이드](./AUTO-COMBO-GUIDE.md)** — OmniRoute가 최적의 AI를 선택하도록 설정
 - **[제공업체 가이드](./PROVIDERS-GUIDE.md)** — 더 많은 제공업체 연결(무료 및 유료)
-- **[무료 티어 가이드](./FREE-TIERS-GUIDE.md)** — 신용카드 없이 무료 AI 사용
+- **[무료 티어 가이드](./FREE-TIERS-GUIDE.md)** — 제공업체 약관과 무료 등급 제한 확인
 - **[문제 해결](../guides/TROUBLESHOOTING.md)** — 일반적인 문제 해결
 
 ---
@@ -163,7 +141,7 @@ omniroute launch-codex --model auto
 
 ### "API 키가 필요한가요?"
 
-**아니요!** 무료 제공업체(Kiro, OpenCode Free, Pollinations)는 API 키 없이 사용할 수 있습니다. 대시보드에서 연결하기만 하면 됩니다.
+OmniRoute API 키는 도구를 인증합니다. 상위 서비스의 인증 정보는 제공업체에 따라 다르며, 일부는 API 키나 계정 로그인이 필요합니다. 무료 이용은 보장되지 않습니다.
 
 ### "`auto`란 무엇인가요?"
 

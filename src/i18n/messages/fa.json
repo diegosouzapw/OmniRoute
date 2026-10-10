@@ -3384,6 +3384,10 @@
     "comboRefMember": "ترکیب → {name}"
   },
   "combos": {
+    "autoTosLoadError": "بارگذاری سیاست شرایط استفاده ممکن نشد. پیش از تغییر آن دوباره تلاش کنید.",
+    "autoTosSaveError": "ذخیرهٔ سیاست شرایط استفاده ممکن نشد. همچنان تنظیم قبلی نمایش داده می‌شود. دوباره تلاش کنید.",
+    "autoTosIncludeLabel": "ارائه‌دهندگان با برچسب ToS: avoid را در auto بگنجان",
+    "autoTosDescription": "به‌طور پیش‌فرض خاموش است. برای همهٔ ترکیب‌های auto اعمال می‌شود، نه فقط یک حساب. اتصال یک ارائه‌دهنده این گزینه را فعال نمی‌کند.",
     "title": "ترکیبها",
     "description": "ایجاد ترکیبهای مدل با مسیریابی وزندار و پشتیبانی از جایگزین",
     "autoCatalogTitle": "کاتالوگ مسیریابی خودکار",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "این ارائه‌دهنده به‌طور پیش‌فرض از auto کنار گذاشته شده است",
+    "tosAvoidNoticeDescription": "وضعیت شرایط استفادهٔ آن با avoid مشخص شده است. اتصال یک حساب این سیاست را تغییر نمی‌دهد. پیش از فعال‌کردن اجازهٔ سراسری برای همهٔ ترکیب‌های auto، شرایط ارائه‌دهنده را بررسی کنید.",
+    "tosAvoidNoticeAction": "بررسی سیاست auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

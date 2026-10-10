@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mljrd. bezmaksas tokenu mēnesī
+## 💰 ~1.62B tokenu mēnesī kopā trešo pušu bezmaksas plānos
 
 </div>
 
+> **Izmantojiet savus kontus pie sniedzējiem.** Tas ir aplēsts trešo pušu bezmaksas plānu kopapjoms ar atsevišķiem atbilstības nosacījumiem, nevis OmniRoute piešķirti tokeni. Reģistrējieties, iegūstiet piekļuves datus, kur tie vajadzīgi, un pievienojiet sniedzējus, kurus varat izmantot; katrs sniedzējs nosaka savus ierobežojumus, pieejamību un noteikumus.
+>
 > Bezmaksas līmeņu manuāla apvienošana ir apgrūtinoša — desmitiem SDK, desmitiem ātruma ierobežojumu un nekādas skaidrības par to, cik daudz jums patiesībā ir pieejams. OmniRoute katalogā ir **489 bezmaksas līmeņu ieraksti 35 periodisko kopu atslēgās**, un kopējais tokenu skaits tiek aprēķināts no **17 kopām ar publicētu pozitīvu mēneša budžetu un pieciem Groq ierobežojumiem katram modelim**, novēršot koplietotu kopu dublēšanos. Kvotas, kas kļūst pieejamas tikai pēc reģionālās identitātes pārbaudes (pašlaik: ModelScope), tiek rādītas atsevišķi — vēl ~6M pēc reģionālās identitātes pārbaudes — un nekad netiek pieskaitītas galvenajam skaitlim. Rezultāts vienmēr ir redzams informācijas panelī (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute bezmaksas līmeņu budžeta kartīte: stabili ~1,62 mljrd. bezmaksas tokenu mēnesī, līdz pat ~2,22 mljrd. pirmajā mēnesī ar reģistrācijas kredītiem, no 35 dokumentētām periodisko kopu atslēgām, kas aptver 489 katalogā iekļautus bezmaksas līmeņu ierakstus aiz viena galapunkta. Godīgs aprēķins ar kopu dublēšanās novēršanu — katra koplietotā kopa tiek ieskaitīta tikai vienreiz, tostarp 17 periodiskās kopas ar publicētu pozitīvu mēneša tokenu budžetu un pieci Groq ierobežojumi katram modelim; 13 pakalpojumu sniedzēji lietošanas noteikumu riska katalogā ir atzīmēti kā tādi, no kuriem jāizvairās, lai lēmumu varētu pieņemt jūs. Budžeta joslā ir iekļauti Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (pieci ierobežojumi katram modelim) un mazākas kopas, savukārt pirmā mēneša reģistrācijas kredīti un pastāvīgi bezmaksas pakalpojumu sniedzēji bez tokenu ierobežojuma tiek parādīti atsevišķi, lai tie nekad mākslīgi nepalielinātu galveno skaitli. Aktuālais izmantotais/atlikušais apjoms vietnē /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Sākt</b></td>
     <td align="center"><a href="#-quick-start">🚀 Ātrā sākšana</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Instalēšana</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Bez konfigurēšanas</a></td>
+    <td align="center"><a href="#first-run">🆓 Pievienojiet pakalpojuma sniedzēju</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Uzzināt</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Darbojas uzreiz pēc instalēšanas — bez atslēgām, bez konfigurācijas
+<a id="first-run"></a>
+
+## 🆓 Instalējiet, pievienojiet sniedzēju un maršrutējiet caur vienu galapunktu
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Darbojas uzreiz pēc instalēšanas — bez konfigurācijas. Trīs soļi: 1. Instalēt — npm i -g omniroute, serveris startējas uz localhost:20128. 2. Novirziet savu rīku uz http://localhost:20128/v1 — jebkurš ar OpenAI saderīgs rīks (Claude Code, Cursor, Cline). 3. Tas atbild — izsauciet modeli auto, lai saņemtu tūlītēju atbildi, bez API atslēgas, bez reģistrācijas, bez konfigurācijas. Bezatlēgu nodrošinātājs OpenCode Free ir iepriekš konfigurēts auto kombinācijā, tāpēc svaiga instalācija darbojas uzreiz."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Trīs soļi: instalējiet un palaidiet OmniRoute, pievienojiet atbilstošu sniedzēju ar savu kontu vai API atslēgu un novirziet rīku uz localhost:20128/v1, izmantojot OmniRoute API atslēgu un modeli auto. Maršrutēšana ir atkarīga no pieejamajiem atbilstošajiem savienojumiem un sniedzēju ierobežojumiem."/>
 
 ```bash
-# Svaiga instalācija, nulles akreditācijas dati — `auto` jau darbojas:
+# Pēc sniedzēja pievienošanas nokopējiet OmniRoute atslēgu no Panelis → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Dodat priekšroku konkrētam bezmaksas aizmugursistēmas risinājumam? Izsauciet `oc/…` (OpenCode Free) tieši. Pēc tam pārejiet uz `auto` un ļaujiet OmniRoute izvēlēties.</sub>
+<sub>`auto` vajadzīgs atbilstošs maršruts. Jaunā instalācijā var nebūt atbilstošu mērķu bez atslēgas, un sniedzējs bez atslēgas var noraidīt trešo pušu klientus. `auto` pēc noklusējuma izslēdz sniedzējus ar atzīmi `tos: avoid`, tostarp Kiro un OpenCode Free. Konta pievienošana šo politiku nemaina. Pirms sniedzēja izvēles izlasiet [Bezmaksas līmeņu ceļvedis](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Kopēt-ielīmēt ātrās palaišanas skripti priekš **Python, Node.js, PHP un cURL** → [`examples/quickstart/`] (examples/quickstart/)</sub>
 

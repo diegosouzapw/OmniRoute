@@ -3384,6 +3384,10 @@
     "comboRefMember": "Combo → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Die Richtlinie zu den Nutzungsbedingungen konnte nicht geladen werden. Versuchen Sie es vor einer Änderung erneut.",
+    "autoTosSaveError": "Die Richtlinie zu den Nutzungsbedingungen konnte nicht gespeichert werden. Die vorherige Einstellung wird weiterhin angezeigt. Versuchen Sie es erneut.",
+    "autoTosIncludeLabel": "Mit ToS: avoid markierte Anbieter in auto einbeziehen",
+    "autoTosDescription": "Standardmäßig deaktiviert. Gilt für alle auto-Kombinationen, nicht nur für ein Konto. Das Verbinden eines Anbieters aktiviert diese Option nicht.",
     "title": "Kombinationen",
     "description": "Erstellen Sie Modellkombinationen mit gewichtetem Routing und Fallback-Unterstützung",
     "autoCatalogTitle": "Katalog für automatisches Routing",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Dieser Anbieter ist standardmäßig von auto ausgeschlossen",
+    "tosAvoidNoticeDescription": "Sein Status für die Nutzungsbedingungen ist als avoid markiert. Das Verbinden eines Kontos ändert diese Richtlinie nicht. Prüfen Sie die Bedingungen des Anbieters, bevor Sie die globale Freigabe für alle auto-Kombinationen aktivieren.",
+    "tosAvoidNoticeAction": "Richtlinie für auto prüfen",
     "codexReleaseCooldown": "Lokale Sperre aufheben",
     "codexReleaseCooldownHint": "Diesen Codex-Account erneut zulassen. Verbraucht keinen Reset-Credit und ändert keine Limits beim Anbieter.",
     "codexReleasingCooldown": "Wird aufgehoben…",

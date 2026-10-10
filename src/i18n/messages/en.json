@@ -3387,6 +3387,10 @@
     "title": "Combos",
     "description": "Create model combos with weighted routing and fallback support",
     "autoCatalogTitle": "Auto-routing catalog",
+    "autoTosLoadError": "Could not load the ToS policy. Retry before changing it.",
+    "autoTosSaveError": "Could not save the ToS policy. The previous setting is still shown. Try again.",
+    "autoTosIncludeLabel": "Include providers marked ToS: avoid in auto",
+    "autoTosDescription": "Off by default. Applies to all auto combos, not just one account. Connecting a provider does not enable this option.",
     "autoCatalogTemplateCount": "{count} templates",
     "autoCatalogDescription": "Built-in auto/* combos resolved dynamically from connected providers. Use any of these IDs as the model field — no setup needed.",
     "autoCatalogExpand": "Expand auto-routing catalog",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "This provider is excluded from auto by default",
+    "tosAvoidNoticeDescription": "Its ToS status is marked avoid. Connecting an account does not change this policy. Review the provider terms before using the global opt-in for all auto combos.",
+    "tosAvoidNoticeAction": "Review the auto policy",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

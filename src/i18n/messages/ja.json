@@ -3384,6 +3384,10 @@
     "comboRefMember": "コンボ → {name}"
   },
   "combos": {
+    "autoTosLoadError": "利用規約のポリシーを読み込めませんでした。変更する前に再試行してください。",
+    "autoTosSaveError": "利用規約のポリシーを保存できませんでした。以前の設定が引き続き表示されています。再試行してください。",
+    "autoTosIncludeLabel": "ToS: avoid とマークされたプロバイダーを auto に含める",
+    "autoTosDescription": "デフォルトではオフです。1つのアカウントだけでなく、すべての auto コンボに適用されます。プロバイダーを接続しても、このオプションは有効になりません。",
     "title": "コンボ",
     "description": "重み付けルーティングとフォールバックのサポートを備えたモデルのコンボを作成する",
     "autoCatalogTitle": "自動ルーティングカタログ",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "このプロバイダーはデフォルトで auto から除外されています",
+    "tosAvoidNoticeDescription": "利用規約のステータスが avoid とマークされています。アカウントを接続しても、このポリシーは変わりません。すべての auto コンボに対する共通の許可を有効にする前に、プロバイダーの規約を確認してください。",
+    "tosAvoidNoticeAction": "auto のポリシーを確認",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

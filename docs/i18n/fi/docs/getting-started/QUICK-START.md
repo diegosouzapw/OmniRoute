@@ -4,7 +4,7 @@
 
 ---
 
-> **TL;DR**: Asenna → Yhdistä maksuton palveluntarjoaja → Ohjaa IDE käyttämään OmniRoutea. Valmista.
+> **TL;DR**: Asenna → Yhdistä kelvollinen palveluntarjoaja → Ohjaa IDE OmniRouteen. Valmis.
 
 ---
 
@@ -47,33 +47,11 @@ OmniRoute käynnistyy osoitteessa `http://localhost:20128`. Hallintapaneeli avau
 
 ---
 
-## Vaihe 3: Yhdistä maksuton palveluntarjoaja
+## Vaihe 3: Yhdistä kelvollinen palveluntarjoaja
 
-Voit käyttää OmniRoutea **täysin maksutta** yhdistämällä maksuttoman palveluntarjoajan.
+Valitse palveluntarjoaja, jonka ehdot ja kiintiöt sopivat tarpeisiisi. Yhdistä oma tilisi tai API-avaimesi kohdassa **Hallintapaneeli → Palveluntarjoajat** ja testaa yhteys. Maksutonta käyttöä tai saatavuutta ilman avainta ei taata.
 
-### Vaihtoehto A: Kiro (maksuton Claude — ei luottokorttia)
-
-1. Avaa hallintapaneeli osoitteessa `http://localhost:20128`
-2. Siirry kohtaan **Providers** → **Add Provider**
-3. Valitse **Kiro AI**
-4. Napsauta **Connect** (API-avainta ei tarvita!)
-5. Valmista! Voit nyt käyttää Claude-malleja maksutta.
-
-### Vaihtoehto B: OpenCode Free (ei tunnistautumista)
-
-1. Avaa hallintapaneeli osoitteessa `http://localhost:20128`
-2. Siirry kohtaan **Providers** → **Add Provider**
-3. Valitse **OpenCode Free**
-4. Napsauta **Connect** (API-avainta ei tarvita!)
-5. Valmista! Voit nyt käyttää useita malleja maksutta.
-
-### Vaihtoehto C: Pollinations (avainta ei tarvita)
-
-1. Avaa hallintapaneeli osoitteessa `http://localhost:20128`
-2. Siirry kohtaan **Providers** → **Add Provider**
-3. Valitse **Pollinations**
-4. Napsauta **Connect** (API-avainta ei tarvita!)
-5. Valmista! Voit nyt käyttää maksutta GPT-5:tä, Claudea, Geminiä ja muita malleja.
+`auto` sulkee oletusarvoisesti pois `tos: avoid` -merkityt palveluntarjoajat, kuten Kiron ja OpenCode Freen. Tilin yhdistäminen ei muuta tätä käytäntöä. Kohdan **Hallintapaneeli → Combot** sallimisvalinta koskee kaikkia automaattisia comboja. Lue [Maksuttomien käyttöpakettien opas](./FREE-TIERS-GUIDE.md) ennen palveluntarjoajan valintaa.
 
 ---
 
@@ -154,7 +132,7 @@ Näet pyynnön tiedot napsauttamalla vasemmasta sivupalkista kohtaa [Monitoring/
 
 - **[Auto-Combo-opas](./AUTO-COMBO-GUIDE.md)** — Anna OmniRouten valita sinulle paras tekoäly
 - **[Palveluntarjoajaopas](./PROVIDERS-GUIDE.md)** — Yhdistä lisää palveluntarjoajia (maksuttomia ja maksullisia)
-- **[Maksuttomien käyttöpakettien opas](./FREE-TIERS-GUIDE.md)** — Käytä tekoälyä maksutta ilman luottokorttia
+- **[Maksuttomien käyttöpakettien opas](./FREE-TIERS-GUIDE.md)** — Tarkista palveluntarjoajien ehdot ja maksuttomien tasojen rajat
 - **[Vianmääritys](../guides/TROUBLESHOOTING.md)** — Korjaa yleisiä ongelmia
 
 ---
@@ -163,7 +141,7 @@ Näet pyynnön tiedot napsauttamalla vasemmasta sivupalkista kohtaa [Monitoring/
 
 ### "Tarvitsenko API-avaimen?"
 
-**Et!** Voit käyttää maksuttomia palveluntarjoajia (Kiro, OpenCode Free ja Pollinations) ilman API-avainta. Yhdistä ne vain hallintapaneelissa.
+OmniRouten API-avain todentaa työkalusi. Taustapalvelun tunnistetiedot riippuvat palveluntarjoajasta: jotkin vaativat API-avaimen tai tilille kirjautumisen. Maksutonta käyttöä ei taata.
 
 ### "Mikä `auto` on?"
 

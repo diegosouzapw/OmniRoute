@@ -3384,6 +3384,10 @@
     "comboRefMember": "සංයෝජනය → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid ලෙස සලකුණු කළ සපයන්නන් auto වෙත ඇතුළත් කරන්න",
+    "autoTosDescription": "පෙරනිමියෙන් අක්‍රියයි. එක් ගිණුමකට පමණක් නොව සියලු auto සංයෝජනවලට අදාළ වේ. සපයන්නෙකු සම්බන්ධ කිරීමෙන් මෙම විකල්පය සක්‍රිය නොවේ.",
+    "autoTosSaveError": "ToS ප්‍රතිපත්තිය සුරැකිය නොහැකි විය. පෙර සැකසුම තවමත් පෙන්වයි. නැවත උත්සාහ කරන්න.",
+    "autoTosLoadError": "ToS ප්‍රතිපත්තිය පූරණය කළ නොහැකි විය. වෙනස් කිරීමට පෙර නැවත උත්සාහ කරන්න.",
     "title": "සංයෝජන",
     "description": "බරිත මාර්ගගත කිරීම සහ විකල්ප සහාය සහිත ආකෘති සංයෝජන සාදන්න",
     "autoCatalogTitle": "ස්වයංක්රීය මාර්ගගත කිරීමේ නාමාවලිය",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "මෙම සපයන්නා පෙරනිමියෙන් auto වෙතින් ඉවත් කර ඇත",
+    "tosAvoidNoticeDescription": "එහි ToS තත්ත්වය avoid ලෙස සලකුණු කර ඇත. ගිණුමක් සම්බන්ධ කිරීමෙන් මෙම ප්‍රතිපත්තිය වෙනස් නොවේ. සියලු auto සංයෝජන සඳහා පොදු විකල්පය සක්‍රිය කිරීමට පෙර සපයන්නාගේ කොන්දේසි කියවන්න.",
+    "tosAvoidNoticeAction": "auto ප්‍රතිපත්තිය බලන්න",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

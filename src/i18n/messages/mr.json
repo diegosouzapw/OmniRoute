@@ -3384,6 +3384,10 @@
     "comboRefMember": "कॉम्बो → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "ToS: avoid म्हणून चिन्हांकित प्रदाते auto मध्ये समाविष्ट करा",
+    "autoTosDescription": "मूलतः बंद. केवळ एका खात्याला नव्हे, सर्व auto कॉम्बोंना लागू होते. प्रदाता जोडल्याने हा पर्याय सुरू होत नाही.",
+    "autoTosSaveError": "ToS धोरण जतन करता आले नाही. आधीची सेटिंगच दिसत आहे. पुन्हा प्रयत्न करा.",
+    "autoTosLoadError": "ToS धोरण लोड करता आले नाही. बदलण्यापूर्वी पुन्हा प्रयत्न करा.",
     "title": "कॉम्बोज",
     "description": "भारित रूटिंग आणि फॉलबॅक समर्थनासह मॉडेल कॉम्बोज तयार करा",
     "autoCatalogTitle": "ऑटो-राउटिंग कॅटलॉग",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "हा प्रदाता मूलतः auto मधून वगळलेला आहे",
+    "tosAvoidNoticeDescription": "याची ToS स्थिती avoid आहे. खाते जोडल्याने हे धोरण बदलत नाही. सर्व auto कॉम्बोंसाठी जागतिक पर्याय सुरू करण्यापूर्वी प्रदात्याच्या अटी वाचा.",
+    "tosAvoidNoticeAction": "auto धोरण पाहा",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

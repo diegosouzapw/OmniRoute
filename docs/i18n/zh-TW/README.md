@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 每月約 1.62B 個免費 Token
+## 💰 第三方免費方案合計每月約 ~1.62B tokens
 
 </div>
 
+> **請使用您自己的供應商帳戶。** 這是各自有獨立資格要求的第三方免費方案之估計總量，並非 OmniRoute 配發的 token 額度。請註冊、依要求取得憑證，並連接您有資格使用的供應商；各供應商自行決定其限制、可用性與條款。
+>
 > 手動疊加免費方案非常痛苦——數十個 SDK、數十種速率限制，而且完全不知道自己實際擁有多少額度。OmniRoute 收錄了 **489 個免費方案項目，涵蓋 35 個週期性資源池鍵**，並根據**具有已公開正數每月預算的 17 個資源池，加上五個 Groq 單模型上限**計算 Token 總額，同時依共用資源池去除重複計算。只有在完成區域身分驗證後才開放的配額（目前為 ModelScope）會分開顯示，即通過區域身分驗證後可額外獲得約 6M，且絕不計入總額。結果會持續顯示在儀表板上（`/dashboard/free-tiers`）。
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute 免費方案預算卡：每月穩定提供約 1.62B 個免費 Token，若包含註冊點數，首月最高可達約 2.22B；透過單一端點提供 35 個有記錄的週期性資源池鍵，涵蓋 489 個已收錄的免費方案項目。誠實的資源池去重計算——每個共用資源池僅計算一次，包括具有已公開正數每月 Token 預算的 17 個週期性資源池，以及五個 Groq 單模型上限；條款風險目錄中有 13 個提供者被標記為避免使用，由您自行決定。預算長條包含 Mistral 1B、Nara 210M、LLM7 150M、xKiro 150M、Groq 30M（五個單模型上限）及較小型資源池；此外，首月註冊點數與永久免費且無 Token 上限的提供者會分開顯示，因此絕不會誇大總額。可在 /dashboard/free-tiers 查看即時已用量／剩餘量。"/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 開始使用</b></td>
     <td align="center"><a href="#-quick-start">🚀 快速開始</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 安裝</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 零設定</a></td>
+    <td align="center"><a href="#first-run">🆓 連接供應商</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 瞭解</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 安裝後立即生效 — 無需金鑰，無需配置
+<a id="first-run"></a>
+
+## 🆓 安裝、連接供應商，再透過單一端點路由請求
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="安裝後立即生效 — 零配置。三個步驟：1. 安裝 — npm i -g omniroute，伺服器在 localhost:20128 啟動。2. 將您的工具指向 http://localhost:20128/v1 — 任何與 OpenAI 相容的工具 (Claude Code, Cursor, Cline)。3. 它會回應 — 呼叫模型 auto 即可立即獲得回覆，無需 API 金鑰、無需註冊、無需配置。無金鑰提供者 OpenCode Free 已預先連接到 auto 組合中，因此全新安裝即可立即回應。"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="三個步驟：安裝並啟動 OmniRoute，使用您自己的帳戶或 API 金鑰連接符合資格的供應商，再使用 OmniRoute API 金鑰與 auto 模型，將工具指向 localhost:20128/v1。路由取決於可用且符合資格的連線與供應商限制。"/>
 
 ```bash
-# 全新安裝，零憑證 — `auto` 已可運作：
+# 連接供應商後，從儀表板 → Endpoints 複製您的 OmniRoute 金鑰：
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>偏好特定的免費後端？直接呼叫 `oc/…` (`OpenCode Free`)。然後升級到 `auto`，讓 `OmniRoute` 選擇。</sub>
+<sub>`auto` 需要符合資格的路由。全新安裝的執行個體可能沒有符合資格的免金鑰目標，而免金鑰供應商也可能拒絕第三方用戶端。 `auto` 預設排除標記為 `tos: avoid` 的供應商，包括 Kiro 和 OpenCode Free。連接帳戶不會改變此政策。 選擇供應商前，請閱讀[免費方案指南](docs/getting-started/FREE-TIERS-GUIDE.md)。</sub>
 
 <sub>📦 **Python、Node.js、PHP 和 cURL** 的複製貼上快速入門腳本 → [`examples/quickstart/`](examples/quickstart/)</sub>
 

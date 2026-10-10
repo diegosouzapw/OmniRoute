@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B Libreng Token / Buwan
+## 💰 ~1.62B Token Bawat Buwan sa Pinagsamang Libreng Tier ng mga Third Party
 
 </div>
 
+> **Gamitin ang sarili mong mga account sa provider.** Ito ay tinantiyang kabuuan ng mga libreng tier ng third party na may magkakahiwalay na kundisyon ng pagiging kwalipikado, hindi token na ipinagkakaloob ng OmniRoute. Mag-sign up, kumuha ng mga kredensiyal kung kailangan, at ikonekta ang mga provider na maaari mong gamitin; bawat provider ang nagtatakda ng sarili nitong limitasyon, availability, at mga tuntunin.
+>
 > Masakit sa ulo ang manu-manong pagsasama-sama ng mga libreng tier — dose-dosenang SDK, dose-dosenang limitasyon sa rate, at walang malinaw na ideya kung gaano karami talaga ang mayroon ka. Itinatala ng OmniRoute ang **489 na entry ng libreng tier sa 35 umuulit na pool key** at kinakalkula ang pangunahing bilang ng token mula sa **17 pool na may inilathalang positibong buwanang badyet, kasama ang limang cap ng Groq kada modelo**, na inaalis ang mga duplikado batay sa pinagsasaluhang pool. Ang mga quota na nagiging available lamang pagkatapos ng panrehiyong pag-verify ng pagkakakilanlan (sa kasalukuyan: ModelScope) ay hiwalay na ipinapakita, +~6M sa likod ng panrehiyong pag-verify ng pagkakakilanlan, at hindi kailanman isinasama sa pangunahing bilang. Nananatiling nakikita ang resulta sa dashboard (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Card ng badyet para sa libreng tier ng OmniRoute: tuloy-tuloy na ~1.62B libreng token kada buwan, hanggang ~2.22B sa unang buwan gamit ang mga credit sa pag-sign up, mula sa 35 dokumentadong umuulit na pool key na sumasaklaw sa 489 nakatalogong entry ng libreng tier sa likod ng iisang endpoint. Tapat na pagkalkulang inalisan ng mga duplikado ayon sa pool — isang beses lamang binibilang ang bawat pinagsasaluhang pool, kabilang ang 17 umuulit na pool na may inilathalang positibong buwanang badyet sa token at limang cap ng Groq kada modelo; 13 provider ang minarkahang iwasan sa katalogo ng panganib sa mga tuntunin upang ikaw ang magpasya. Kasama sa bar ng badyet ang Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (limang cap kada modelo), at mas maliliit na pool, pati ang mga credit sa pag-sign up para sa unang buwan at mga permanenteng libreng provider na walang cap sa token, na hiwalay na ipinapakita upang hindi kailanman mapalaki nang artipisyal ang pangunahing bilang. Live na nagamit/natitira sa /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Magsimula</b></td>
     <td align="center"><a href="#-quick-start">🚀 Mabilisang Pagsisimula</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 I-install</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Walang Configuration</a></td>
+    <td align="center"><a href="#first-run">🆓 Ikonekta ang provider</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Matuto</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Gumagana agad pagka-install mo — walang keys, walang config
+<a id="first-run"></a>
+
+## 🆓 I-install, ikonekta ang provider, at magruta sa iisang endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Gumagana agad pagka-install mo — zero config. Tatlong hakbang: 1. I-install — npm i -g omniroute, ang server ay magbubukas sa localhost:20128. 2. Ituro ang iyong tool sa http://localhost:20128/v1 — anumang tool na compatible sa OpenAI (Claude Code, Cursor, Cline). 3. Sumasagot ito — tawagan ang model auto para sa agarang tugon, nang walang API key, walang pagpaparehistro, walang configuration. Ang keyless provider na OpenCode Free ay pre-wired sa auto combo, kaya ang isang bagong install ay tumutugon agad."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Tatlong hakbang: i-install at simulan ang OmniRoute, ikonekta ang kwalipikadong provider gamit ang sarili mong account o API key, at ituro ang tool sa localhost:20128/v1 gamit ang API key ng OmniRoute at modelong auto. Nakadepende ang pagruruta sa mga available at kwalipikadong koneksiyon at sa mga limitasyon ng provider."/>
 
 ```bash
-# Bagong install, zero credentials — gumagana na ang `auto`:
+# Pagkatapos ikonekta ang provider, kopyahin ang OmniRoute key mula sa Dashboard → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Mas gusto mo ba ang isang partikular na libreng backend? Direktang tawagan ang `oc/…` (OpenCode Free). Pagkatapos ay lumipat sa `auto` at hayaan ang OmniRoute na pumili.</sub>
+<sub>Kailangan ng `auto` ng kwalipikadong ruta. Maaaring walang kwalipikadong target na walang key sa bagong installation, at maaaring tanggihan ng provider na walang key ang mga third-party client. Bilang default, hindi isinasama ng `auto` ang mga provider na may markang `tos: avoid`, kabilang ang Kiro at OpenCode Free. Hindi binabago ng pagkonekta ng account ang patakarang ito. Basahin ang [Gabay sa mga Libreng Tier](docs/getting-started/FREE-TIERS-GUIDE.md) bago pumili ng provider.</sub>
 
 <sub>📦 Kopyahin-i-paste ang mga quickstart script para sa **Python, Node.js, PHP, at cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

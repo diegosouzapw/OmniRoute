@@ -3384,6 +3384,10 @@
     "comboRefMember": "Kombinacija → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Pravila uvjeta korištenja nije moguće učitati. Pokušajte ponovno prije promjene.",
+    "autoTosSaveError": "Pravila uvjeta korištenja nije moguće spremiti. I dalje se prikazuje prethodna postavka. Pokušajte ponovno.",
+    "autoTosIncludeLabel": "Uključi u auto pružatelje označene s ToS: avoid",
+    "autoTosDescription": "Isključeno prema zadanim postavkama. Vrijedi za sve auto kombinacije, a ne samo za jedan račun. Povezivanje pružatelja ne uključuje ovu mogućnost.",
     "title": "Kombinacije",
     "description": "Stvorite kombinacije modela s ponderiranim usmjeravanjem i podrškom za rezervne opcije",
     "autoCatalogTitle": "Katalog automatskog usmjeravanja",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Ovaj je pružatelj prema zadanim postavkama isključen iz auto",
+    "tosAvoidNoticeDescription": "Njegov status uvjeta korištenja označen je kao avoid. Povezivanje računa ne mijenja ova pravila. Pregledajte uvjete pružatelja prije uključivanja zajedničke suglasnosti za sve auto kombinacije.",
+    "tosAvoidNoticeAction": "Pregledaj pravila za auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

@@ -3384,6 +3384,10 @@
     "comboRefMember": "Teaglaim → {name}"
   },
   "combos": {
+    "autoTosLoadError": "Níorbh fhéidir an polasaí téarmaí seirbhíse a lódáil. Bain triail eile as sula n-athraíonn tú é.",
+    "autoTosSaveError": "Níorbh fhéidir an polasaí téarmaí seirbhíse a shábháil. Tá an socrú roimhe seo fós á thaispeáint. Bain triail eile as.",
+    "autoTosIncludeLabel": "Cuir soláthraithe marcáilte ToS: avoid san áireamh in auto",
+    "autoTosDescription": "Múchta de réir réamhshocraithe. Baineann sé le gach teaglaim auto, ní le cuntas amháin. Ní chumasaítear an rogha seo trí sholáthraí a nascadh.",
     "title": "Teaglamaí",
     "description": "Cruthaigh teaglamaí samhlacha le ródú ualaithe agus tacaíocht cúltaca",
     "autoCatalogTitle": "Catalóg ródaithe uathoibríoch",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "Tá an soláthraí seo eisiata ó auto de réir réamhshocraithe",
+    "tosAvoidNoticeDescription": "Tá a stádas téarmaí seirbhíse marcáilte avoid. Ní athraíonn nascadh cuntais an polasaí seo. Léigh téarmaí an tsoláthraí sula gcumasaíonn tú an rogha dhomhanda do gach teaglaim auto.",
+    "tosAvoidNoticeAction": "Athbhreithnigh polasaí auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

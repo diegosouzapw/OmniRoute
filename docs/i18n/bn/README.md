@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 প্রতি মাসে ~1.62B বিনামূল্যের টোকেন
+## 💰 তৃতীয় পক্ষের বিনামূল্যের স্তরগুলো মিলিয়ে মাসে ~1.62B টোকেন
 
 </div>
 
+> **প্রদানকারীদের কাছে নিজের অ্যাকাউন্ট ব্যবহার করুন।** এটি পৃথক যোগ্যতার শর্তযুক্ত তৃতীয় পক্ষের বিনামূল্যের স্তরগুলোর আনুমানিক মোট, OmniRoute থেকে দেওয়া টোকেন নয়। নিবন্ধন করুন, প্রয়োজনে প্রবেশতথ্য সংগ্রহ করুন এবং ব্যবহার করতে পারেন এমন প্রদানকারীদের যুক্ত করুন; প্রত্যেক প্রদানকারী নিজের সীমা, প্রাপ্যতা ও শর্ত নিয়ন্ত্রণ করে।
+>
 > হাতে হাতে ফ্রি টিয়ার একত্র করা কষ্টসাধ্য — ডজনখানেক SDK, ডজনখানেক রেট লিমিট, আর আপনার কাছে আসলে কতটা আছে সে সম্পর্কে কোনো ধারণাই থাকে না। OmniRoute **35টি পুনরাবৃত্ত পুল কী জুড়ে 489টি ফ্রি-টিয়ার এন্ট্রি** তালিকাভুক্ত করে এবং **প্রকাশিত ধনাত্মক মাসিক বাজেটসহ 17টি পুল ও প্রতি-মডেলে পাঁচটি Groq ক্যাপ** থেকে টোকেনের মূল সংখ্যাটি গণনা করে, যেখানে শেয়ার্ড পুল অনুযায়ী ডিডুপ্লিকেট করা হয়। যেসব কোটা কেবল আঞ্চলিক পরিচয় যাচাইয়ের পর চালু হয় (বর্তমানে: ModelScope), সেগুলো আলাদাভাবে দেখানো হয়—আঞ্চলিক পরিচয় যাচাইয়ের পেছনে +~6M—এবং কখনোই মূল সংখ্যার সঙ্গে যোগ করা হয় না। ফলাফলটি ড্যাশবোর্ডে (`/dashboard/free-tiers`) দৃশ্যমান থাকে।
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoute ফ্রি-টিয়ার বাজেট কার্ড: নিয়মিতভাবে প্রতি মাসে ~1.62B বিনামূল্যের টোকেন, সাইনআপ ক্রেডিটসহ প্রথম মাসে সর্বোচ্চ ~2.22B, একটি এন্ডপয়েন্টের পেছনে 489টি তালিকাভুক্ত ফ্রি-টিয়ার এন্ট্রি কভার করা 35টি নথিভুক্ত পুনরাবৃত্ত পুল কী থেকে। স্বচ্ছ পুল-ডিডুপ্লিকেটেড হিসাব — প্রতিটি শেয়ার্ড পুল একবার গণনা করা হয়েছে, যার মধ্যে প্রকাশিত ধনাত্মক মাসিক টোকেন বাজেটসহ 17টি পুনরাবৃত্ত পুল এবং প্রতি-মডেলে পাঁচটি Groq ক্যাপ রয়েছে; শর্তাবলির ঝুঁকি-তালিকায় 13টি প্রদানকারীকে এড়িয়ে চলার জন্য চিহ্নিত করা হয়েছে, তাই সিদ্ধান্ত আপনার। বাজেট বারে রয়েছে Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (প্রতি-মডেলে পাঁচটি ক্যাপ) এবং ছোট পুলগুলো; পাশাপাশি প্রথম মাসের সাইনআপ ক্রেডিট ও স্থায়ীভাবে বিনামূল্যের টোকেন-ক্যাপবিহীন প্রদানকারীদের আলাদাভাবে দেখানো হয়েছে, যাতে তারা কখনোই মূল সংখ্যাকে বাড়িয়ে না দেখায়। /dashboard/free-tiers-এ ব্যবহৃত/অবশিষ্ট পরিমাণ সরাসরি দেখুন।"/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 শুরু করুন</b></td>
     <td align="center"><a href="#-quick-start">🚀 দ্রুত শুরু</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 ইনস্টল করুন</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 শূন্য-কনফিগারেশন</a></td>
+    <td align="center"><a href="#first-run">🆓 প্রদানকারী যুক্ত করুন</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 জানুন</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 ইনস্টॉल করার সাথে সাথেই কাজ করে — কোনো কী লাগবে না, কোনো কনফিগারেশন নেই
+<a id="first-run"></a>
+
+## 🆓 ইনস্টল করুন, প্রদানকারী যুক্ত করুন, তারপর এক এন্ডপয়েন্ট দিয়ে রাউট করুন
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Works the second you install it — zero config. Three steps: 1. Install — npm i -g omniroute, server boots on localhost:20128. 2. Point your tool at http://localhost:20128/v1 — any OpenAI-compatible tool (Claude Code, Cursor, Cline). 3. It answers — call model auto for an instant reply, with no API key, no signup, no configuration. Keyless provider OpenCode Free is pre-wired into the auto combo, so a fresh install responds out of the box."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="তিন ধাপ: OmniRoute ইনস্টল করে চালু করুন, নিজের অ্যাকাউন্ট বা API কী দিয়ে যোগ্য প্রদানকারী যুক্ত করুন, তারপর OmniRoute API কী ও auto মডেল ব্যবহার করে টুলকে localhost:20128/v1-এ নির্দেশ করুন। রাউটিং উপলব্ধ যোগ্য সংযোগ এবং প্রদানকারীর সীমার ওপর নির্ভর করে।"/>
 
 ```bash
-# Fresh install, zero credentials — `auto` already works:
+# প্রদানকারী যুক্ত করার পরে ড্যাশবোর্ড → Endpoints থেকে নিজের OmniRoute কী কপি করুন:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>নির্দিষ্ট কোনো ফ্রি ব্যাকএন্ড পছন্দ করেন? সরাসরি `oc/…` (OpenCode Free) কল করুন। এরপর `auto`-তে রূপান্তর করুন এবং OmniRoute-কে বেছে নিতে দিন।</sub>
+<sub>`auto`-এর একটি যোগ্য রুট দরকার। নতুন ইনস্টলেশনে কী ছাড়া যোগ্য গন্তব্য নাও থাকতে পারে, আর কী না চাওয়া প্রদানকারী তৃতীয় পক্ষের ক্লায়েন্ট প্রত্যাখ্যান করতে পারে। `auto` ডিফল্টভাবে Kiro ও OpenCode Free-সহ `tos: avoid` চিহ্নিত প্রদানকারীদের বাদ দেয়। অ্যাকাউন্ট যুক্ত করলে এই নীতি বদলায় না। প্রদানকারী বেছে নেওয়ার আগে [বিনামূল্যের টিয়ার নির্দেশিকা](docs/getting-started/FREE-TIERS-GUIDE.md) পড়ুন।</sub>
 
 <sub>📦 **Python, Node.js, PHP এবং cURL**-এর জন্য কপি-পেস্ট কুইকস্টার্ট স্ক্রিপ্টসমূহ → [`examples/quickstart/`](examples/quickstart/)</sub>
 

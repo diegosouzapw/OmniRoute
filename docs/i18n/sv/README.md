@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1.62B kostnadsfria token / månad
+## 💰 ~1.62B tokens per månad över tredjeparters gratisnivåer
 
 </div>
 
+> **Använd dina egna leverantörskonton.** Detta är en uppskattad totalsumma för tredjeparters gratisnivåer med separata behörighetskrav, inte tokens som OmniRoute tilldelar dig. Registrera dig, skaffa inloggningsuppgifter där de krävs och anslut de leverantörer du kan använda; varje leverantör bestämmer sina gränser, sin tillgänglighet och sina villkor.
+>
 > Att kombinera kostnadsfria nivåer manuellt är besvärligt — dussintals SDK:er, dussintals hastighetsgränser och ingen aning om hur mycket du faktiskt har. OmniRoute katalogiserar **489 poster för kostnadsfria nivåer över 35 återkommande poolnycklar** och beräknar det angivna antalet token utifrån de **17 poolerna med en publicerad positiv månadsbudget plus fem Groq-gränser per modell**, deduplicerade efter delad pool. Kvoter som endast blir tillgängliga efter en regional identitetskontroll (i dag: ModelScope) visas separat, +~6M bakom regional identitetsverifiering, och räknas aldrig in i huvudvärdet. Resultatet förblir synligt på instrumentpanelen (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="OmniRoutes budgetkort för kostnadsfria nivåer: ~1.62B kostnadsfria token per månad löpande, upp till ~2.22B den första månaden med registreringskrediter, från 35 dokumenterade återkommande poolnycklar som omfattar 489 katalogiserade poster för kostnadsfria nivåer bakom en enda slutpunkt. Ärlig matematik deduplicerad per pool — varje delad pool räknas en gång, inklusive 17 återkommande pooler med en publicerad positiv månatlig tokenbudget plus fem Groq-gränser per modell; 13 leverantörer är markerade som bör undvikas i katalogen över villkorsrisker, så att du kan avgöra själv. Budgetstapeln omfattar Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (fem gränser per modell) och mindre pooler, plus registreringskrediter för den första månaden och permanent kostnadsfria leverantörer utan tokengräns som visas separat så att de aldrig blåser upp huvudvärdet. Aktuell användning/återstående mängd på /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Kom igång</b></td>
     <td align="center"><a href="#-quick-start">🚀 Snabbstart</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Installation</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Ingen konfiguration</a></td>
+    <td align="center"><a href="#first-run">🆓 Anslut en leverantör</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Lär dig</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 Fungerar direkt efter installation — inga nycklar, ingen konfiguration
+<a id="first-run"></a>
+
+## 🆓 Installera, anslut en leverantör och routa via en enda endpoint
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Fungerar direkt efter installation — noll konfiguration. Tre steg: 1. Installera — npm i -g omniroute, servern startar på localhost:20128. 2. Rikta ditt verktyg mot http://localhost:20128/v1 — vilket OpenAI-kompatibelt verktyg som helst (Claude Code, Cursor, Cline). 3. Det svarar — anropa modell auto för ett omedelbart svar, utan API-nyckel, ingen registrering, ingen konfiguration. Den nyckellösa leverantören OpenCode Free är förkonfigurerad i auto-kombinationen, så en ny installation svarar direkt."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Tre steg: installera och starta OmniRoute, anslut en behörig leverantör med ditt eget konto eller din API-nyckel och peka ditt verktyg mot localhost:20128/v1 med en OmniRoute-API-nyckel och modellen auto. Routningen beror på tillgängliga behöriga anslutningar och leverantörernas gränser."/>
 
 ```bash
-# Ny installation, inga referenser — `auto` fungerar redan:
+# När du har anslutit en leverantör kopierar du din OmniRoute-nyckel från Kontrollpanel → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Föredrar du en specifik gratis backend? Anropa `oc/…` (OpenCode Free) direkt. Gå sedan över till `auto` och låt OmniRoute välja.</sub>
+<sub>`auto` behöver en behörig rutt. En ny installation kan sakna behöriga mål utan nyckel, och en nyckelfri leverantör kan avvisa tredjepartsklienter. `auto` utesluter som standard leverantörer märkta `tos: avoid`, däribland Kiro och OpenCode Free. Att ansluta ett konto ändrar inte denna policy. Läs [Guide till kostnadsfria nivåer](docs/getting-started/FREE-TIERS-GUIDE.md) innan du väljer en leverantör.</sub>
 
 <sub>📦 Kopiera-klistra in snabbstartsskript för **Python, Node.js, PHP och cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 

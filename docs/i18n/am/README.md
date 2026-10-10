@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 በወር ~1.62B ነፃ ቶከኖች
+## 💰 በሦስተኛ ወገን ነፃ እቅዶች በአጠቃላይ ~1.62B ቶከኖች በወር
 
 </div>
 
+> **የራስዎን የአቅራቢ መለያዎች ይጠቀሙ።** ይህ የተለያዩ የብቃት ውሎች ያሏቸው የሦስተኛ ወገን ነፃ እቅዶች ግምታዊ ድምር ነው፣ OmniRoute የሚሰጠው የቶከን ድጎማ አይደለም። ይመዝገቡ፣ ሲያስፈልግ የመግቢያ መረጃ ያግኙና ሊጠቀሙባቸው የሚችሉ አቅራቢዎችን ያገናኙ፤ እያንዳንዱ አቅራቢ ገደቦቹን፣ ተገኝነቱንና ውሎቹን ይቆጣጠራል።
+>
 > ነፃ የአገልግሎት ደረጃዎችን በእጅ ማዋሃድ አስቸጋሪ ነው — በደርዘን የሚቆጠሩ SDKዎች፣ በደርዘን የሚቆጠሩ የፍጥነት ገደቦች፣ እና በእርግጥ ምን ያህል እንዳለዎት የማወቂያ መንገድ የለም። OmniRoute **በ35 ተደጋጋሚ የፑል ቁልፎች ውስጥ 489 የነፃ ደረጃ ግቤቶችን** በካታሎግ ያደራጃል፤ እንዲሁም የቶከን ዋና ቁጥሩን **ይፋ የተደረገ አዎንታዊ ወርሃዊ በጀት ካላቸው 17 ፑሎች እና ለእያንዳንዱ ሞዴል ከተወሰኑ አምስት የGroq ገደቦች** ያሰላል፤ የጋራ ፑሎችንም አንድ ጊዜ ብቻ ይቆጥራል። ከክልላዊ ማንነት ማረጋገጫ በኋላ ብቻ የሚከፈቱ ኮታዎች (በአሁኑ ጊዜ፦ ModelScope) ለብቻቸው ይታያሉ፤ ከክልላዊ ማንነት ማረጋገጫ በስተጀርባ +~6M ይገኛሉ፣ እና በዋናው ቁጥር ውስጥ ፈጽሞ አይደመሩም። ውጤቱ በዳሽቦርዱ (`/dashboard/free-tiers`) ላይ ሁልጊዜ ይታያል።
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="የOmniRoute ነፃ ደረጃ በጀት ካርድ፦ በመደበኛነት በወር ~1.62B ነፃ ቶከኖች፣ በመጀመሪያው ወር ከምዝገባ ክሬዲቶች ጋር እስከ ~2.22B፤ ይህም በአንድ የመዳረሻ ነጥብ በስተጀርባ 489 በካታሎግ የተመዘገቡ የነፃ ደረጃ ግቤቶችን ከሚሸፍኑ 35 በሰነድ የተረጋገጡ ተደጋጋሚ የፑል ቁልፎች ይገኛል። ግልጽ፣ ፑሎችን በማይደጋገም መልኩ የሚቆጥር ስሌት — እያንዳንዱ የጋራ ፑል አንድ ጊዜ ብቻ ይቆጠራል፤ ይህም ይፋ የተደረገ አዎንታዊ ወርሃዊ የቶከን በጀት ያላቸውን 17 ተደጋጋሚ ፑሎች እና ለእያንዳንዱ ሞዴል የተወሰኑ አምስት የGroq ገደቦችን ያካትታል፤ እርስዎ እንዲወስኑ 13 አቅራቢዎች በውሎች ስጋት ካታሎግ ውስጥ እንዲወገዱ ምልክት ተደርጎባቸዋል። የበጀት አሞሌው Mistral 1B፣ Nara 210M፣ LLM7 150M፣ xKiro 150M፣ Groq 30M (ለእያንዳንዱ ሞዴል አምስት ገደቦች) እና አነስተኛ ፑሎችን ያካትታል፤ እንዲሁም የመጀመሪያ ወር የምዝገባ ክሬዲቶች እና በቋሚነት ነፃ የሆኑ የቶከን ገደብ የሌላቸው አቅራቢዎች ዋናውን ቁጥር እንዳያጋንኑ ለብቻቸው ይታያሉ። በቀጥታ ያገለገለው/የቀረው መጠን በ /dashboard/free-tiers ላይ።"/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 ይጀምሩ</b></td>
     <td align="center"><a href="#-quick-start">🚀 ፈጣን ጅምር</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 ይጫኑ</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 ያለ ውቅር</a></td>
+    <td align="center"><a href="#first-run">🆓 አቅራቢን ያገናኙ</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 ይማሩ</b></td>
@@ -214,20 +216,23 @@
 
 <div align="center">
 
-## 🆓 እንደጫኑት ወዲያውኑ ይሰራል — ምንም ቁልፎች የሉም፣ ምንም ቅንብር የለም
+<a id="first-run"></a>
+
+## 🆓 ይጫኑ፣ አቅራቢን ያገናኙና በአንድ መጨረሻ ነጥብ በኩል ያስተላልፉ
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="እንደጫኑት ወዲያውኑ ይሰራል — ምንም ቅንብር የለም። ሶስት ደረጃዎች: 1. ይጫኑ — npm i -g omniroute፣ ሰርቨሩ በ localhost:20128 ላይ ይጀምራል። 2. መሳሪያዎን ወደ http://localhost:20128/v1 ያመልክቱ — ማንኛውም ከ OpenAI ጋር ተኳሃኝ የሆነ መሳሪያ (Claude Code, Cursor, Cline)። 3. ይመልሳል — ፈጣን ምላሽ ለማግኘት auto ሞዴሉን ይጠቀሙ፣ ያለ API ቁልፍ፣ ያለ ምዝገባ፣ ያለ ቅንብር። ቁልፍ የሌለው አቅራቢ OpenCode Free በ auto ጥምር ውስጥ አስቀድሞ የተገጠመ ነው፣ ስለዚህ አዲስ ጭነት ወዲያውኑ ምላሽ ይሰጣል።"/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="ሦስት ደረጃዎች፦ OmniRouteን ይጫኑና ያስጀምሩ፣ ብቁ አቅራቢን በራስዎ መለያ ወይም API ቁልፍ ያገናኙ፣ ከዚያ መሣሪያዎን በOmniRoute API ቁልፍና auto ሞዴል ወደ localhost:20128/v1 ያመልክቱ። ማስተላለፉ በሚገኙ ብቁ ግንኙነቶችና በአቅራቢዎች ገደቦች ላይ ይወሰናል።"/>
 
 ```bash
-# አዲስ ጭነት፣ ዜሮ ምስክርነቶች — auto አስቀድሞ ይሰራል።
+# አቅራቢን ካገናኙ በኋላ የOmniRoute ቁልፍዎን ከዳሽቦርድ → Endpoints ይቅዱ፦
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>የተለየ ነፃ የኋላ-መጨረሻ ይመርጣሉ? `oc/…` (OpenCode Free)ን በቀጥታ ይደውሉ። ከዚያ ወደ `auto` ያሻሽሉ እና OmniRoute እንዲመርጥ ያድርጉ።</sub>
+<sub>`auto` ብቁ መንገድ ይፈልጋል። አዲስ ጭነት ያለ ቁልፍ የሚሠሩ ብቁ መዳረሻዎች ላይኖሩት ይችላሉ፤ ቁልፍ የማይፈልግ አቅራቢም የሦስተኛ ወገን ደንበኛ ፕሮግራሞችን ሊከለክል ይችላል። `auto` በነባሪነት Kiro እና OpenCode Freeን ጨምሮ `tos: avoid` የተባሉ አቅራቢዎችን ያስወግዳል። መለያ ማገናኘት ይህን ፖሊሲ አይቀይርም። አቅራቢ ከመምረጥዎ በፊት [የነፃ ደረጃዎች መመሪያ](docs/getting-started/FREE-TIERS-GUIDE.md) ያንብቡ።</sub>
 
 <sub>📦 ለ**Python, Node.js, PHP, እና cURL** ፈጣን ማስጀመሪያ ስክሪፕቶችን ይቅዱ-ይለጥፉ → [`examples/quickstart/`] (examples/quickstart/)</sub>
 

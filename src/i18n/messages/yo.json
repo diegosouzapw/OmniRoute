@@ -3384,6 +3384,10 @@
     "comboRefMember": "Àkópọ̀ → {name}"
   },
   "combos": {
+    "autoTosIncludeLabel": "Fi àwọn olùpèsè tí a samisi ToS: avoid sí auto",
+    "autoTosDescription": "Ó wà ní pípa ní ìbẹ̀rẹ̀. Ó kan gbogbo àkójọpọ̀ auto, kì í ṣe àkọọlẹ̀ kan ṣoṣo. Síso olùpèsè pọ̀ kò tan àṣàyàn yìí.",
+    "autoTosSaveError": "A kò lè fi ìlànà ToS pamọ́. Ètò ìṣáájú ṣì hàn. Gbìyànjú lẹ́ẹ̀kan sí i.",
+    "autoTosLoadError": "A kò lè ṣí ìlànà ToS. Gbìyànjú lẹ́ẹ̀kan sí i kí o tó yí i padà.",
     "title": "Àwọn àkójọpọ̀",
     "description": "Ṣẹ̀dá àwọn àkójọpọ̀ awoṣe pẹ̀lú ìtọ́sọ́nà oníwọ̀n àti àtìlẹ́yìn ìpadàsẹ́yìn",
     "autoCatalogTitle": "Àkójọ ìtọ́sọ́nà aládàáṣe",
@@ -5268,6 +5272,9 @@
     }
   },
   "providers": {
+    "tosAvoidNoticeTitle": "A yọ olùpèsè yìí kúrò nínú auto ní ìbẹ̀rẹ̀",
+    "tosAvoidNoticeDescription": "A samisi ipò ToS rẹ̀ sí avoid. Síso àkọọlẹ̀ pọ̀ kò yí ìlànà yìí padà. Ka àwọn àdéhùn olùpèsè kí o tó tan àṣàyàn àpapọ̀ fún gbogbo àkójọpọ̀ auto.",
+    "tosAvoidNoticeAction": "Wo ìlànà auto",
     "codexReleaseCooldown": "Clear local cooldown",
     "codexReleaseCooldownHint": "Allow this Codex account to be tried again. Does not redeem a reset credit or change upstream limits.",
     "codexReleasingCooldown": "Clearing…",

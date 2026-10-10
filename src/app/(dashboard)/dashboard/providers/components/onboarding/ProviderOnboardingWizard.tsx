@@ -15,6 +15,7 @@ import {
   OAuthModal,
 } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
+import ProviderTosNotice from "@/shared/components/ProviderTosNotice";
 
 import {
   buildProviderSpecificData,
@@ -589,6 +590,10 @@ export default function ProviderOnboardingWizard() {
         <div className="rounded-lg border border-primary/25 bg-primary/10 p-3 text-sm text-primary">
           {status}
         </div>
+      )}
+
+      {selectedProvider && (step === "credentials" || step === "oauth") && (
+        <ProviderTosNotice providerId={selectedProvider.id} />
       )}
 
       {step === "type" && (

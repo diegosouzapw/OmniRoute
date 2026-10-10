@@ -19,10 +19,12 @@
 
 <div align="center">
 
-## 💰 ~1,62 mlrd. besplatnih tokena mjesečno
+## 💰 ~1.62B tokena mjesečno u besplatnim paketima trećih strana
 
 </div>
 
+> **Koristite vlastite račune kod provajdera.** Ovo je procijenjeni zbir besplatnih paketa trećih strana s odvojenim uslovima pristupa, a ne dodjela tokena od OmniRoutea. Registrujte se, pribavite pristupne podatke gdje su potrebni i povežite provajdere koje možete koristiti; svaki provajder određuje svoja ograničenja, dostupnost i uslove.
+>
 > Ručno kombinovanje besplatnih nivoa je mukotrpno — deseci SDK-ova, deseci ograničenja brzine i nikakva predstava o tome koliko zapravo imate. OmniRoute katalogizira **489 stavki besplatnih nivoa raspoređenih u 35 ključeva periodičnih skupova** i izračunava istaknuti broj tokena na osnovu **17 skupova s objavljenim pozitivnim mjesečnim budžetom te pet Groq ograničenja po modelu**, uz uklanjanje duplikata prema zajedničkom skupu. Kvote koje postaju dostupne tek nakon regionalne provjere identiteta (trenutno: ModelScope) prikazane su zasebno, +~6M iza regionalne provjere identiteta, i nikada se ne pribrajaju istaknutom broju. Rezultat ostaje vidljiv na kontrolnoj ploči (`/dashboard/free-tiers`).
 
 <img src="./docs/diagrams/free-tier-budget.svg" width="100%" alt="Kartica budžeta besplatnih nivoa OmniRoutea: stabilnih ~1,62 mlrd. besplatnih tokena mjesečno, do ~2,22 mlrd. u prvom mjesecu s kreditima za registraciju, iz 35 dokumentovanih ključeva periodičnih skupova koji obuhvataju 489 katalogiziranih stavki besplatnih nivoa iza jedne krajnje tačke. Pošten izračun s uklonjenim duplikatima skupova — svaki zajednički skup računa se jednom, uključujući 17 periodičnih skupova s objavljenim pozitivnim mjesečnim budžetom tokena te pet Groq ograničenja po modelu; 13 pružalaca označeno je oznakom izbjegavati u katalogu rizika uslova korištenja, tako da vi odlučujete. Traka budžeta uključuje Mistral 1B, Nara 210M, LLM7 150M, xKiro 150M, Groq 30M (pet ograničenja po modelu) i manje skupove, uz kredite za registraciju u prvom mjesecu i trajno besplatne pružaoce bez ograničenja broja tokena koji su prikazani zasebno kako nikada ne bi uvećavali istaknuti broj. Trenutna potrošnja/preostali iznos na /dashboard/free-tiers."/>
@@ -96,7 +98,7 @@
     <td align="right"><b>🚀 Početak</b></td>
     <td align="center"><a href="#-quick-start">🚀 Brzi početak</a></td>
     <td align="center"><a href="#-more-install-methods--docker-source-pnpm-arch">📦 Instalacija</a></td>
-    <td align="center"><a href="#-works-the-second-you-install-it--no-keys-no-config">🆓 Bez konfiguracije</a></td>
+    <td align="center"><a href="#first-run">🆓 Povežite provajdera</a></td>
   </tr>
   <tr>
     <td align="right"><b>💡 Saznajte više</b></td>
@@ -215,20 +217,23 @@
 
 <div align="center">
 
-## 🆓 Radi čim ga instalirate — bez ključeva, bez konfiguracije
+<a id="first-run"></a>
+
+## 🆓 Instalirajte, povežite provajdera i usmjeravajte kroz jednu krajnju tačku
 
 </div>
 
-<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Radi čim ga instalirate — nulta konfiguracija. Tri koraka: 1. Instalirajte — npm i -g omniroute, server se pokreće na localhost:20128. 2. Usmjerite svoj alat na http://localhost:20128/v1 — bilo koji alat kompatibilan sa OpenAI (Claude Code, Cursor, Cline). 3. Odgovara — pozovite model auto za trenutni odgovor, bez API ključa, bez registracije, bez konfiguracije. Besplatni provajder OpenCode Free je unaprijed povezan sa auto kombinacijom, tako da svježa instalacija odgovara odmah."/>
+<img src="./docs/diagrams/works-zero-config.svg" width="100%" alt="Tri koraka: instalirajte i pokrenite OmniRoute, povežite odgovarajućeg provajdera vlastitim računom ili API ključem, pa usmjerite alat na localhost:20128/v1 uz API ključ OmniRoutea i model auto. Usmjeravanje zavisi od dostupnih odgovarajućih veza i ograničenja provajdera."/>
 
 ```bash
-# Svježa instalacija, nula akreditiva — 'auto' već radi:
+# Nakon povezivanja provajdera kopirajte ključ OmniRoutea iz Kontrolna ploča → Endpoints:
 curl http://localhost:20128/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_OMNIROUTE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"auto","messages":[{"role":"user","content":"Hello!"}]}'
 ```
 
-<sub>Preferirate specifični besplatni backend? Pozovite `oc/…` (OpenCode Free) direktno. Zatim pređite na `auto` i pustite OmniRoute da odabere.</sub>
+<sub>`auto` treba odgovarajuću rutu. Nova instalacija možda nema odgovarajuće ciljeve bez ključa, a provajder bez ključa može odbiti klijente trećih strana. `auto` po zadanim postavkama isključuje provajdere označene `tos: avoid`, uključujući Kiro i OpenCode Free. Povezivanje računa ne mijenja tu politiku. Prije odabira provajdera pročitajte [Vodič za besplatne pakete](docs/getting-started/FREE-TIERS-GUIDE.md).</sub>
 
 <sub>📦 Kopirajte i zalijepite skripte za brzi početak za **Python, Node.js, PHP i cURL** → [`examples/quickstart/`](examples/quickstart/)</sub>
 
