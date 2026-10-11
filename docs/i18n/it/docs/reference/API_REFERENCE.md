@@ -418,6 +418,12 @@ Un mirror in modalità `dual` può essere riconosciuto anche senza il parametro 
 
 I client che visualizzano un selettore di modelli dovrebbero richiedere `?prefix=alias` — è ciò che fa l'[estensione OmniCopilot per VS Code](../guides/VSCODE-COPILOT.md).
 
+### Modelli di chat nascosti individualmente
+
+Un modello contrassegnato come **Nascosto** nella pagina del suo provider viene escluso dal catalogo e rifiutato con HTTP `404` / `model_not_found` quando richiesto esplicitamente. Il controllo usa il provider e il modello risolti, tenendo conto degli alias del provider, dei prefissi dei nodi dei provider compatibili e dei valori predefiniti della connessione. Un combo salta le destinazioni nascoste e può usarne un’altra visibile; se non rimane alcuna destinazione eseguibile, restituisce lo stesso codice di errore. Rendere nuovamente visibile il modello ha effetto dalla richiesta successiva. Le impostazioni di visibilità specifiche per le immagini non nascondono il modello di chat con lo stesso ID.
+
+Questa impostazione individuale è separata dalle [liste di inclusione ed esclusione per l’esposizione dei modelli](../routing/MODEL_EXPOSURE_LIST.md), che filtrano la pubblicazione nel catalogo e i candidati all’instradamento automatico mantenendo l’invio esplicito. Le autorizzazioni dei modelli della chiave API continuano ad applicarsi indipendentemente. La modalità predefinita dei prefissi del catalogo resta `dual`.
+
 ### Varianti dei modelli senza ragionamento
 
 Per i modelli Claude in grado di ragionare, `/v1/models` pubblicizza anche una variante **senza ragionamento** il cui ID ha come prefisso `claude-3-omniroute-no-thinking/`:

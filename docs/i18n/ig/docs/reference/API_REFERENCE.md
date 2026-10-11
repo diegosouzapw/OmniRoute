@@ -418,6 +418,12 @@ A pụkwara ịmata mirror nọ n'ọnọdụ `dual` na-enweghị query paramete
 Client ndị na-egosipụta ihe nhọpụta ụdịdị kwesịrị ịrịọ `?prefix=alias` — nke a bụ ihe
 [OmniCopilot VS Code extension](../guides/VSCODE-COPILOT.md) na-eme.
 
+### Ụdị nkata e zoro n’otu n’otu
+
+Ụdị a kara **Ezoro ezo** na peeji nke onye na-eweta ya anaghịzi apụta na katalọgụ, a na-ajụkwa arịrịọ kpọmkwem maka ya na HTTP `404` / `model_not_found`. Nnyocha ahụ na-eji onye na-eweta na ụdị a chọpụtala, na-eburu aha ọzọ nke onye na-eweta, nganiihu node nke ndị na-eweta dakọtara, na ụkpụrụ ndabara njikọ n’uche. Combo na-amafere ebe e zoro ezo ma nwee ike iji ebe ọzọ a na-ahụ anya; ọ bụrụ na enweghị ebe fọdụrụ a pụrụ ịrụ ọrụ na ya, ọ na-eweghachi otu koodu njehie ahụ. Ime ka ụdị ahụ pụta ọzọ na-amalite ịdị irè site na arịrịọ na-esote. Ntọala pụrụ iche maka ngosi ihe onyonyo naanị anaghị ezo ụdị nkata nwere otu ID ahụ.
+
+Ntọala a maka ụdị ọ bụla dị iche na [ndepụta ikwe na igbochi ngosi ụdị](../routing/MODEL_EXPOSURE_LIST.md), nke na-enyocha ihe katalọgụ na-egosi na nhọrọ maka iduzi arịrịọ na-akpaghị aka, ma na-ahapụ iziga arịrịọ kpọmkwem. Ikike ụdị nke igodo API ka na-arụ ọrụ n’onwe ha. Ụdị ndabara nke nganiihu katalọgụ ka bụ `dual`.
+
 ### Ụdịdị dị iche iche na-enweghị echiche
 
 Maka ụdịdị Claude nwere ikike iche echiche, `/v1/models` na-egosipụtakwa ụdị **na-enweghị echiche** nke id ya nwere nganiihu `claude-3-omniroute-no-thinking/`:

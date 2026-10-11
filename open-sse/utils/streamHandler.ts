@@ -1,3 +1,4 @@
+import { hasTrustedEmptyTurn } from "./emptyTurnPolicy.ts";
 import type { StreamControllerOptions } from "./streamControllerTypes.ts";
 import { trackPendingRequest } from "@/lib/usageDb";
 import { STREAM_ACTIVE_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS } from "../config/constants.ts";
@@ -602,6 +603,7 @@ function resolveSilentCloseOutcome(input: {
   clientTerminalSeen: boolean;
   clientResponseFormat?: string | null;
   contentWatcher: StreamContentWatcher;
+  permitsEmptyTurn?: () => boolean;
 }): SilentCloseOutcome | null {
   if (!input.bytesWereForwarded) return null;
 
@@ -640,14 +642,9 @@ function resolveSilentCloseOutcome(input: {
   const watcher = input.contentWatcher;
   if (watcher.sawError()) return null;
   if (watcher.sawSseFrame() && !watcher.sawContent() && !watcher.sawLegitEmptyTerminal()) {
-    // #16072: a terminal frame the client actually received that declares a
-    // NORMAL stop (finish_reason "stop" / stop_reason "end_turn"|"stop_sequence")
-    // is the upstream's own verdict that the turn is complete — an empty
-    // assistant turn is a valid answer (agent "no reply needed" turns), the
-    // same philosophy as #15505's clean empty end_turn and #14160's trusted
-    // empty stop. Gated on clientTerminalSeen: a stream dropped before any
-    // terminal never delivered that verdict and keeps the empty-content error.
-    if (!(input.clientTerminalSeen && watcher.sawNormalStopTerminal())) {
+    // A translated/client stop is insufficient: the executed native protocol
+    // must also have supplied an ordinary terminal on a trusted origin.
+    if (!(input.clientTerminalSeen && input.permitsEmptyTurn?.())) {
       return { kind: "error", reason: "Provider returned empty content" };
     }
   }
@@ -658,7 +655,7 @@ function resolveSilentCloseOutcome(input: {
 export function createDisconnectAwareStream(
   transformStream,
   streamController,
-  options: { highWaterMark?: number } = {}
+  options: { highWaterMark?: number; permitsEmptyTurn?: () => boolean } = {}
 ) {
   const reader = transformStream.readable.getReader();
   const writer = transformStream.writable.getWriter();
@@ -757,6 +754,7 @@ export function createDisconnectAwareStream(
               clientTerminalSeen,
               clientResponseFormat: streamController.clientResponseFormat,
               contentWatcher,
+              permitsEmptyTurn: options.permitsEmptyTurn,
             });
 
             if (silentClose?.kind === "truncated") {
@@ -803,6 +801,7 @@ export function createDisconnectAwareStream(
           noteClientChunk(value);
         } catch (error) {
           if (!streamController.isConnected()) {
+            reader.cancel(new Error("Downstream disconnected")).catch(() => { });
             try {
               controller.close();
             } catch {
@@ -813,6 +812,7 @@ export function createDisconnectAwareStream(
 
           if (clientTerminalSeen) {
             streamController.handleComplete();
+            reader.cancel(new Error("Client terminal seen")).catch(() => { });
             try {
               controller.close();
             } catch {
@@ -824,7 +824,6 @@ export function createDisconnectAwareStream(
           streamController.handleError(error);
 
           // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
-          // This prevents TransferEncodingError on the client side
           const errorMsg = getErrorMessage(error);
           const statusCode = getErrorStatusCode(error);
 
@@ -917,7 +916,10 @@ export function pipeWithDisconnect(
     return createDisconnectAwareStream(
       { readable: transformedBody, writable: createNoopAbortWritable() },
       streamController,
-      { highWaterMark: opts.highWaterMark }
+      {
+        highWaterMark: opts.highWaterMark,
+        permitsEmptyTurn: () => hasTrustedEmptyTurn(providerResponse),
+      }
     );
   }
 
@@ -1185,6 +1187,9 @@ export function pipeWithDisconnect(
   return createDisconnectAwareStream(
     { readable: transformedBody, writable: createNoopAbortWritable() },
     wrappedController,
-    { highWaterMark: opts.highWaterMark }
+    {
+      highWaterMark: opts.highWaterMark,
+      permitsEmptyTurn: () => hasTrustedEmptyTurn(providerResponse),
+    }
   );
 }

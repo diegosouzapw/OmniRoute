@@ -449,6 +449,12 @@ laukas, nurodantis pagrindinį ID.
 Klientai, rodantys modelio pasirinkimo sąrašą, turėtų pateikti užklausą su `?prefix=alias` — būtent taip daro
 [OmniCopilot VS Code plėtinys](../guides/VSCODE-COPILOT.md).
 
+### Atskirai paslėpti pokalbių modeliai
+
+Modelis, teikėjo puslapyje pažymėtas kaip **Paslėptas**, pašalinamas iš katalogo, o aiški jo užklausa atmetama su HTTP `404` / `model_not_found`. Patikra naudoja nustatytą teikėją ir modelį, atsižvelgdama į teikėjo alternatyvius vardus, suderinamų teikėjų mazgų priešdėlius ir numatytąsias ryšio reikšmes. Combo praleidžia paslėptus tikslus ir gali naudoti kitą matomą tikslą; jei nelieka vykdytino tikslo, grąžina tą patį klaidos kodą. Pakartotinis rodymas įsigalioja nuo kitos užklausos. Tik vaizdams taikomi matomumo pakeitimai nepaslepia pokalbių modelio su tuo pačiu ID.
+
+Šis atskiro modelio nustatymas skiriasi nuo [leidžiamų ir draudžiamų viešinti modelių sąrašų](../routing/MODEL_EXPOSURE_LIST.md), kurie filtruoja katalogo pasiūlą ir automatinio maršruto parinkimo kandidatus, bet išlaiko aiškiai nurodyto modelio iškvietimą. API rakto modelių leidimai ir toliau taikomi nepriklausomai. Numatytasis katalogo priešdėlių režimas lieka `dual`.
+
 ### Modelių variantai be mąstymo
 
 Mąstymą palaikantiems Claude modeliams `/v1/models` taip pat pateikia **nemąstantį** variantą, kurio ID prasideda prefiksu `claude-3-omniroute-no-thinking/`:

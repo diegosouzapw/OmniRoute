@@ -423,6 +423,12 @@ GET /v1/models?prefix=canonical    # tikai pilnais piegādātāja-ID prefikss
 
 Klienti, kas izveido modeļu izvēlni, vajadzētu pieprasīt `?prefix=alias` — to dara [OmniCopilot VS Code paplašinājums](../guides/VSCODE-COPILOT.md).
 
+### Atsevišķi paslēpti tērzēšanas modeļi
+
+Modelis, kas pakalpojuma sniedzēja lapā atzīmēts kā **Paslēpts**, tiek izslēgts no kataloga, un tiešs pieprasījums tam tiek noraidīts ar HTTP `404` / `model_not_found`. Pārbaude izmanto noteikto pakalpojuma sniedzēju un modeli, ņemot vērā sniedzēja aizstājvārdus, saderīgu sniedzēju mezglu prefiksus un savienojuma noklusējuma vērtības. Combo izlaiž paslēptos mērķus un var izmantot citu redzamu mērķi; ja nepaliek neviens izpildāms mērķis, tas atgriež to pašu kļūdas kodu. Atkārtota parādīšana stājas spēkā ar nākamo pieprasījumu. Redzamības pārrakstījumi, kas attiecas tikai uz attēliem, nepaslēpj tērzēšanas modeli ar to pašu ID.
+
+Šis atsevišķā modeļa iestatījums ir nodalīts no [modeļu publiskošanas atļaušanas un aizliegšanas sarakstiem](../routing/MODEL_EXPOSURE_LIST.md), kuri filtrē kataloga piedāvājumu un automātiskās maršrutēšanas kandidātus, saglabājot tiešu izsaukšanu. API atslēgas modeļu atļaujas joprojām tiek piemērotas neatkarīgi. Kataloga prefiksu noklusējuma režīms paliek `dual`.
+
 ### Domāšanas variants bez domāšanas
 
 Domāšanas spējīgiem Claude modeļiem `/v1/models` arī reklamē **domāšanas variantu bez domāšanas**, kura ID ir ar prefiksu `claude-3-omniroute-no-thinking/`:

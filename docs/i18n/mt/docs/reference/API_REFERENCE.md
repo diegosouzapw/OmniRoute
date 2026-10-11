@@ -418,6 +418,12 @@ Mera fil-modalità `dual` tista’ tiġi rikonoxxuta wkoll mingħajr il-parametr
 
 Il-klijenti li jirrendu selettur tal-mudelli għandhom jitolbu `?prefix=alias` — dan huwa dak li tagħmel l-[estensjoni OmniCopilot għal VS Code](../guides/VSCODE-COPILOT.md).
 
+### Mudelli taċ-chat moħbija individwalment
+
+Mudell immarkat bħala **Moħbi** fil-paġna tal-fornitur tiegħu jitneħħa mill-katalgu u jiġi miċħud b’HTTP `404` / `model_not_found` meta jintalab b’mod espliċitu. Il-verifika tuża l-fornitur u l-mudell identifikati, billi tqis l-ismijiet alternattivi tal-fornitur, il-prefissi tan-nodi ta’ fornituri kompatibbli u l-valuri prestabbiliti tal-konnessjoni. Combo jaqbeż il-miri moħbija u jista’ juża mira oħra viżibbli; jekk ma tibqa’ ebda mira li tista’ titħaddem, jirritorna l-istess kodiċi tal-iżball. Meta l-mudell jerġa’ jintwera, il-bidla tidħol fis-seħħ mit-talba li jmiss. Is-settings ta’ viżibbiltà speċifiċi għall-immaġnijiet biss ma jaħbux il-mudell taċ-chat bl-istess ID.
+
+Dan is-setting għal kull mudell huwa separat mil-[listi ta’ permess u ta’ ċaħda għall-espożizzjoni tal-mudelli](../routing/MODEL_EXPOSURE_LIST.md), li jiffiltraw il-wiri fil-katalgu u l-kandidati għar-routing awtomatiku filwaqt li jżommu t-trażmissjoni espliċita. Il-permessi tal-mudelli taċ-ċavetta API jibqgħu japplikaw b’mod indipendenti. Il-modalità prestabbilita tal-prefissi tal-katalgu tibqa’ `dual`.
+
 ### Varjanti tal-mudelli mingħajr ħsieb
 
 Għall-mudelli Claude li għandhom il-kapaċità tal-ħsieb, `/v1/models` jirreklama wkoll varjant **mingħajr ħsieb** li l-id tiegħu jkollu l-prefiss `claude-3-omniroute-no-thinking/`:

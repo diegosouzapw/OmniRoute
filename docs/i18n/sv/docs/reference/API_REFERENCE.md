@@ -445,6 +445,12 @@ som pekar på det primära id:t.
 Klienter som visar en modellväljare bör begära `?prefix=alias` – det är vad
 [OmniCopilot-tillägget för VS Code](../guides/VSCODE-COPILOT.md) gör.
 
+### Individuellt dolda chattmodeller
+
+En modell som markeras som **Dold** på leverantörens sida utesluts ur katalogen och avvisas med HTTP `404` / `model_not_found` när den begärs uttryckligen. Kontrollen använder den identifierade leverantören och modellen och tar hänsyn till leverantörsalias, prefix för kompatibla leverantörsnoder och anslutningens standardvärden. En combo hoppar över dolda mål och kan använda ett annat synligt mål; om inget körbart mål återstår returneras samma felkod. Att visa modellen igen får effekt från nästa begäran. Åsidosättningar av synlighet som endast gäller bilder döljer inte chattmodellen med samma ID.
+
+Denna inställning för enskilda modeller är separat från [tillåtelse- och blockeringslistorna för modellexponering](../routing/MODEL_EXPOSURE_LIST.md), som filtrerar katalogens utbud och kandidater för automatisk routning men behåller uttrycklig sändning. API-nyckelns modellbehörigheter fortsätter att gälla oberoende. Katalogens standardläge för prefix är fortfarande `dual`.
+
 ### Modellvarianter utan tänkande
 
 För Claude-modeller med stöd för tänkande presenterar `/v1/models` även en variant **utan tänkande**, vars id har prefixet `claude-3-omniroute-no-thinking/`:

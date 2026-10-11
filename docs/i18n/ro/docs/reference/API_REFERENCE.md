@@ -418,6 +418,12 @@ O oglindă în modul `dual` poate fi recunoscută și fără parametrul de inter
 
 Clienții care afișează un selector de modele ar trebui să solicite `?prefix=alias` — aceasta este abordarea folosită de [extensia OmniCopilot pentru VS Code](../guides/VSCODE-COPILOT.md).
 
+### Modele de chat ascunse individual
+
+Un model marcat ca **Ascuns** pe pagina furnizorului său este exclus din catalog și respins cu HTTP `404` / `model_not_found` când este solicitat explicit. Verificarea folosește furnizorul și modelul determinate, ținând cont de aliasurile furnizorului, prefixele nodurilor furnizorilor compatibili și valorile implicite ale conexiunii. Un combo ignoră țintele ascunse și poate folosi o altă țintă vizibilă; dacă nu mai rămâne nicio țintă executabilă, returnează același cod de eroare. Reafișarea modelului intră în vigoare la următoarea cerere. Suprascrierile de vizibilitate valabile numai pentru imagini nu ascund modelul de chat cu același ID.
+
+Această setare individuală este separată de [listele de permitere și blocare a expunerii modelelor](../routing/MODEL_EXPOSURE_LIST.md), care filtrează prezentarea în catalog și candidații pentru rutarea automată, păstrând trimiterea explicită. Permisiunile pentru modele ale cheii API continuă să se aplice independent. Modul implicit al prefixelor din catalog rămâne `dual`.
+
 ### Variante de modele fără raționament
 
 Pentru modelele Claude capabile de raționament, `/v1/models` prezintă și o variantă **fără raționament**, al cărei id are prefixul `claude-3-omniroute-no-thinking/`:

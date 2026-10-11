@@ -423,6 +423,12 @@ tí ó ń tọ́ka sí id àkọ́kọ́.
 Àwọn oníbàárà tí ń ṣàfihàn ibi yíyan módelì yẹ kí wọ́n béèrè `?prefix=alias` — èyí ni ohun tí
 [ẹ̀ka OmniCopilot VS Code](../guides/VSCODE-COPILOT.md) ń ṣe.
 
+### Àwọn àwòṣe ìjíròrò tí a fi pamọ́ lọ́kọ̀ọ̀kan
+
+Àwòṣe tí a samisi **Fífarapamọ́** lórí ojú-ewé olùpèsè rẹ̀ ni a yọ kúrò nínú kátálọ́ọ̀gù, a sì kọ ìbéèrè tí ó tọ́ka sí i ní tààrà pẹ̀lú HTTP `404` / `model_not_found`. Àyẹ̀wò náà lo olùpèsè àti àwòṣe tí a ti pinnu, ó sì ka àwọn orúkọ àfidípò olùpèsè, àwọn ìpele ìbẹ̀rẹ̀ nóòdù àwọn olùpèsè tó bára mu, àti àwọn iye àkọ́kọ́ ìsopọ̀ sí. Combo fo àwọn ibi-afẹ́ tí a fi pamọ́, ó sì lè lo ibi-afẹ́ mìíràn tí ó hàn; bí kò bá sí ibi-afẹ́ tí a lè ṣiṣẹ́ mọ́, ó dá kóòdù àṣìṣe kan náà padà. Ṣíṣí àwòṣe sílẹ̀ láti hàn padà bẹ̀rẹ̀ sí í ṣiṣẹ́ láti ìbéèrè tó tẹ̀ lé e. Àwọn àtúnṣe ìhàn tí ó kan àwòrán nìkan kò fi àwòṣe ìjíròrò tó ní ID kan náà pamọ́.
+
+Ètò yìí fún àwòṣe kọ̀ọ̀kan yàtọ̀ sí [àwọn àkójọ ìyọ̀nda àti ìdènà fífi àwòṣe hàn](../routing/MODEL_EXPOSURE_LIST.md). Àwọn àkójọ náà ṣàlẹ̀mọ́ ohun tí kátálọ́ọ̀gù ń fi hàn àti àwọn àṣàyàn ìtọ́sọ́nà aládàáṣiṣẹ́, ṣùgbọ́n wọ́n ṣì gba ìfiránṣẹ́ tó tọ́ka sí àwòṣe ní tààrà láyè. Àwọn ìyọ̀nda àwòṣe ti kọ́kọ́rọ́ API ṣì ń ṣiṣẹ́ lọ́tọ̀. Ìpo àkọ́kọ́ àwọn ìpele ìbẹ̀rẹ̀ kátálọ́ọ̀gù ṣì jẹ́ `dual`.
+
 ### Àwọn ẹ̀yà módelì tí kò ní ìrònú
 
 Fún àwọn módelì Claude tó lè ronú, `/v1/models` tún ń polówó ẹ̀yà **tí kò ní ìrònú** tí id rẹ̀ bẹ̀rẹ̀ pẹ̀lú `claude-3-omniroute-no-thinking/`:

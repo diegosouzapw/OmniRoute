@@ -1,0 +1,1 @@
+- **fix(skills):** `skillRegistry.resolveVersion` now honors the `>=`, `<=` and `==` constraints. It read only the first character of the constraint as the operator, so `">=1.0.0"` was parsed as `>` against `"=1.0.0"` and never matched any version.

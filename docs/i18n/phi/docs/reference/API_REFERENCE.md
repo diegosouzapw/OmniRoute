@@ -420,6 +420,12 @@ field na tumuturo sa pangunahing id.
 Ang mga client na nagre-render ng model picker ay dapat humiling ng `?prefix=alias` — ito ang ginagawa ng
 [OmniCopilot VS Code extension](../guides/VSCODE-COPILOT.md).
 
+### Mga chat model na indibidwal na nakatago
+
+Ang modelong minarkahang **Nakatago** sa pahina ng provider nito ay hindi isinasama sa katalogo at tinatanggihan gamit ang HTTP `404` / `model_not_found` kapag tahasang hinihiling. Ginagamit ng pagsusuri ang natukoy na provider at modelo, kasama ang mga alias ng provider, mga prefix ng node ng katugmang provider, at mga default ng koneksyon. Nilalaktawan ng combo ang mga nakatagong target at maaari itong gumamit ng ibang nakikitang target; kung walang natitirang target na maaaring patakbuhin, ibinabalik nito ang parehong error code. Magkakabisa ang muling pagpapakita sa susunod na request. Ang mga override ng visibility para lamang sa mga larawan ay hindi nagtatago ng chat model na may parehong ID.
+
+Hiwalay ang setting na ito ng bawat modelo sa [mga listahan ng pinapayagan at ipinagbabawal na paglalantad ng modelo](../routing/MODEL_EXPOSURE_LIST.md). Sinasala ng mga listahang iyon ang pagpapakita sa katalogo at mga kandidato para sa awtomatikong routing habang pinapanatili ang tahasang pagpapadala. Patuloy na hiwalay na ipinapatupad ang mga pahintulot sa modelo ng API key. Nananatiling `dual` ang default na prefix mode ng katalogo.
+
 ### Mga variant ng modelo na walang thinking
 
 Para sa mga Claude model na may kakayahang mag-thinking, naglalathala rin ang `/v1/models` ng isang **no-thinking** variant na ang id ay may prefix na `claude-3-omniroute-no-thinking/`:

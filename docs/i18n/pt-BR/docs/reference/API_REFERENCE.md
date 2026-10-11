@@ -423,6 +423,12 @@ que aponta para o ID principal.
 Clientes que renderizam um seletor de modelos devem solicitar `?prefix=alias` — é isso que a
 [extensão OmniCopilot para VS Code](../guides/VSCODE-COPILOT.md) faz.
 
+### Modelos de chat ocultos individualmente
+
+Um modelo marcado como **Oculto** na página do seu provedor é excluído do catálogo e rejeitado com HTTP `404` / `model_not_found` quando solicitado explicitamente. A verificação usa o provedor e o modelo resolvidos, incluindo aliases do provedor, prefixos de nós de provedores compatíveis e valores padrão da conexão. Um combo ignora destinos ocultos e pode usar outro destino visível; quando não resta nenhum destino executável, retorna o mesmo código de erro. Voltar a exibir o modelo tem efeito na próxima solicitação. As substituições de visibilidade exclusivas de imagens não ocultam o modelo de chat com o mesmo ID.
+
+Essa configuração individual é separada das [listas de permissão e bloqueio da exposição de modelos](../routing/MODEL_EXPOSURE_LIST.md), que filtram a exibição no catálogo e os candidatos ao roteamento automático, mantendo o envio explícito. As permissões de modelos da chave de API continuam sendo aplicadas de forma independente. O modo padrão dos prefixos do catálogo permanece `dual`.
+
 ### Variantes de modelo sem raciocínio
 
 Para modelos Claude com capacidade de raciocínio, `/v1/models` também anuncia uma variante **sem raciocínio** cujo ID tem o prefixo `claude-3-omniroute-no-thinking/`:

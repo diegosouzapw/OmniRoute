@@ -430,6 +430,12 @@ Un reflejo en modo `dual` también puede reconocerse sin el parámetro de consul
 
 Los clientes que muestran un selector de modelos deben solicitar `?prefix=alias`; esto es lo que hace la [extensión OmniCopilot para VS Code](../guides/VSCODE-COPILOT.md).
 
+### Modelos de chat ocultos individualmente
+
+Un modelo marcado como **Oculto** en la página de su proveedor se excluye del catálogo y se rechaza con HTTP `404` / `model_not_found` cuando se solicita explícitamente. La comprobación utiliza el proveedor y el modelo resueltos, teniendo en cuenta los alias del proveedor, los prefijos de nodos de proveedores compatibles y los valores predeterminados de la conexión. Un combo omite los destinos ocultos y puede utilizar otro destino visible; si no queda ningún destino ejecutable, devuelve el mismo código de error. Volver a mostrar el modelo surte efecto en la siguiente solicitud. Las excepciones de visibilidad exclusivas de imágenes no ocultan el modelo de chat con el mismo ID.
+
+Esta configuración individual es independiente de las [listas de inclusión y exclusión para la exposición de modelos](../routing/MODEL_EXPOSURE_LIST.md), que filtran la publicación en el catálogo y los candidatos del enrutamiento automático, pero conservan el envío explícito. Los permisos de modelos de la clave API siguen aplicándose de forma independiente. El modo predeterminado de prefijos del catálogo sigue siendo `dual`.
+
 ### Variantes de modelos sin razonamiento
 
 Para los modelos Claude con capacidad de razonamiento, `/v1/models` también anuncia una variante **sin razonamiento** cuyo id lleva el prefijo `claude-3-omniroute-no-thinking/`:

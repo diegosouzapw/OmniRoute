@@ -428,6 +428,12 @@ odkazujúce na primárne id.
 Klienti, ktorí zobrazujú výber modelu, by mali požadovať `?prefix=alias` — takto to robí
 [rozšírenie OmniCopilot pre VS Code](../guides/VSCODE-COPILOT.md).
 
+### Individuálne skryté modely chatu
+
+Model označený na stránke svojho poskytovateľa ako **Skrytý** sa vyradí z katalógu a pri explicitnom vyžiadaní sa odmietne s HTTP `404` / `model_not_found`. Kontrola používa určeného poskytovateľa a model, pričom zohľadňuje aliasy poskytovateľa, prefixy uzlov kompatibilných poskytovateľov a predvolené hodnoty pripojenia. Combo preskočí skryté ciele a môže použiť iný viditeľný cieľ; ak nezostane žiadny vykonateľný cieľ, vráti rovnaký chybový kód. Opätovné zobrazenie sa prejaví od nasledujúcej požiadavky. Prepísania viditeľnosti len pre obrázky neskryjú model chatu s rovnakým ID.
+
+Toto nastavenie jednotlivého modelu je oddelené od [zoznamov povoleného a zakázaného zverejnenia modelov](../routing/MODEL_EXPOSURE_LIST.md), ktoré filtrujú ponuku katalógu a kandidátov automatického smerovania, ale zachovávajú explicitné odosielanie. Oprávnenia k modelom dané kľúčom API sa naďalej uplatňujú nezávisle. Predvolený režim prefixov katalógu zostáva `dual`.
+
 ### Varianty modelov bez premýšľania
 
 Pre modely Claude podporujúce premýšľanie uvádza `/v1/models` aj variant **bez premýšľania**, ktorého id má predponu `claude-3-omniroute-no-thinking/`:

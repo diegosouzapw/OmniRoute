@@ -1,0 +1,1 @@
+- **test(auto-combo):** seed provider connections in the `auto/coding:fast` and `auto/coding:reliable` weight-composition tests, since #15979 excludes the ToS-avoid keyless opencode pool by default and an empty pool returns default weights before the tier overlay (#15306) — thanks @shipsfromrio

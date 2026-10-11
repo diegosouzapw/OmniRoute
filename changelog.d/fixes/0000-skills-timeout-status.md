@@ -1,0 +1,1 @@
+- **fix(skills):** a skill that outlives the executor timeout is now recorded as `timeout` instead of `error`, so execution history and analytics can tell timeouts from handler failures. The race timer is also cleared once the handler settles; it used to stay pending for the full timeout (30 s by default) after every execution.

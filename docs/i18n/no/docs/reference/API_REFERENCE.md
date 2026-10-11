@@ -447,6 +447,12 @@ som peker til den primære ID-en.
 Klienter som gjengir en modellvelger, bør be om `?prefix=alias` – dette er hva
 [OmniCopilot VS Code-utvidelsen](../guides/VSCODE-COPILOT.md) gjør.
 
+### Individuelt skjulte chatmodeller
+
+En modell som er merket **Skjult** på leverandørens side, fjernes fra katalogen og avvises med HTTP `404` / `model_not_found` når den forespørres eksplisitt. Kontrollen bruker leverandøren og modellen som er identifisert etter oppløsning av leverandøraliaser, prefikser for kompatible leverandørnoder og tilkoblingens standardverdier. En combo hopper over skjulte mål og kan bruke et annet synlig mål; hvis ingen kjørbare mål gjenstår, returneres samme feilkode. Når modellen gjøres synlig igjen, gjelder det fra neste forespørsel. Overstyringer av synlighet som bare gjelder bilder, skjuler ikke chatmodellen med samme ID.
+
+Denne innstillingen for hver modell er adskilt fra [tillatelses- og blokkeringslistene for modelleksponering](../routing/MODEL_EXPOSURE_LIST.md), som filtrerer katalogens tilbud og kandidater til automatisk ruting, men beholder eksplisitt sending. API-nøkkelens modelltillatelser gjelder fortsatt uavhengig. Standardmodusen for katalogprefikser er fortsatt `dual`.
+
 ### Modeller uten "tenkning"-variant
 
 For Claude-modeller med tenkeevne annonserer `/v1/models` også en **uten-tenkning**-variant hvis ID er prefikset med `claude-3-omniroute-no-thinking/`:

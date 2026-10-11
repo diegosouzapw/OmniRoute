@@ -423,6 +423,12 @@ ki kaže na primarni ID.
 Odjemalci, ki prikazujejo izbirnik modelov, naj zahtevajo `?prefix=alias` — tako ravna
 [razširitev OmniCopilot za VS Code](../guides/VSCODE-COPILOT.md).
 
+### Posamično skriti modeli za klepet
+
+Model, ki je na strani svojega ponudnika označen kot **Skrit**, je izključen iz kataloga, izrecna zahteva zanj pa je zavrnjena s HTTP `404` / `model_not_found`. Preverjanje uporablja razrešenega ponudnika in model ter upošteva vzdevke ponudnika, predpone vozlišč združljivih ponudnikov in privzete vrednosti povezave. Combo preskoči skrite cilje in lahko uporabi drug viden cilj; če ne ostane noben izvedljiv cilj, vrne isto kodo napake. Ponovni prikaz začne veljati pri naslednji zahtevi. Preglasitve vidnosti, ki veljajo samo za slike, ne skrijejo modela za klepet z istim ID-jem.
+
+Ta nastavitev posameznega modela je ločena od [seznamov dovoljenega in prepovedanega izpostavljanja modelov](../routing/MODEL_EXPOSURE_LIST.md), ki filtrirajo ponudbo kataloga in kandidate za samodejno usmerjanje, pri tem pa ohranijo izrecno pošiljanje. Dovoljenja za modele ključa API se še naprej uporabljajo neodvisno. Privzeti način predpon kataloga ostaja `dual`.
+
 ### Različice modelov brez razmišljanja
 
 Za modele Claude, ki podpirajo razmišljanje, `/v1/models` objavi tudi različico **brez razmišljanja**, katere ID ima predpono `claude-3-omniroute-no-thinking/`:

@@ -412,6 +412,12 @@ wanda ke nuna id na farko.
 Abokan hulɗa da ke nuna na'urar zaɓen samfuri ya kamata su nemi `?prefix=alias` — wannan ne abin da
 [ƙarin OmniCopilot na VS Code](../guides/VSCODE-COPILOT.md) yake yi.
 
+### Samfuran hira da aka ɓoye ɗaya bayan ɗaya
+
+Samfurin da aka yi wa alamar **A ɓoye** a shafin mai samar da shi ana cire shi daga kundin, kuma ana ƙin buƙatarsa kai tsaye da HTTP `404` / `model_not_found`. Binciken yana amfani da mai samarwa da samfurin da aka tantance, yana la’akari da sunayen madadin mai samarwa, kari na farkon sunayen nodes na masu samarwa masu dacewa, da ƙimomin asali na haɗin. Combo yana tsallake maƙasudan da aka ɓoye kuma zai iya amfani da wani maƙasudi da ake gani; idan babu maƙasudin da za a iya aiwatarwa, yana mayar da lambar kuskure iri ɗaya. Sake nuna samfurin yana aiki daga buƙata ta gaba. Saitunan ganuwa na musamman ga hotuna kawai ba sa ɓoye samfurin hira mai ID iri ɗaya.
+
+Wannan saitin kowane samfurin ya bambanta da [jerin izini da hana bayyana samfura](../routing/MODEL_EXPOSURE_LIST.md), waɗanda ke tace abin da ake nunawa a kundin da zaɓuɓɓukan karkatarwa ta atomatik, amma suna ci gaba da ba da damar aikawa kai tsaye. Izinin samfura na maɓallin API yana ci gaba da aiki dabam. Yanayin asali na kari na farkon sunaye a kundin yana nan `dual`.
+
 ### Bambance-bambancen samfuri marasa tunani
 
 Ga samfuran Claude masu iya tunani, `/v1/models` yana kuma tallata bambancin **mara tunani** wanda id ɗinsa yake da farkon `claude-3-omniroute-no-thinking/`:

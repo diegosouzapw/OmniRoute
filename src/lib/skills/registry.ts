@@ -244,8 +244,9 @@ class SkillRegistry {
     const versions = this.getSkillVersions(name, apiKeyId);
     if (versions.length === 0) return undefined;
 
-    const operator = constraint.charAt(0);
-    const version = constraint.slice(1);
+    // Two-character operators (">=", "<=", "==") must be matched before their one-character prefixes.
+    const operator = /^(>=|<=|==|\^|~|>|<)/.exec(constraint)?.[1] ?? "";
+    const version = constraint.slice(operator.length);
 
     switch (operator) {
       case "^":
