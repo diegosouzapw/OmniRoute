@@ -10,6 +10,10 @@
  */
 import { OMNIROUTE_RESPONSE_HEADERS } from "@/shared/constants/headers";
 import { buildStreamingResponseHeaders as defaultBuildStreaming } from "./responseHeaders.ts";
+import {
+  shouldStripAnthropicAccountHeaders,
+  type AnthropicAccountHeaderPolicyKeyInfo,
+} from "./upstreamAccountHeaders.ts";
 
 export function assembleStreamingResponseHeaders(
   args: {
@@ -27,6 +31,9 @@ export function assembleStreamingResponseHeaders(
     isCombo?: boolean;
     requestedConnectionId?: string | null;
     selectedConnectionId?: string | null;
+    // The requesting key's upstream anthropic-ratelimit-* / anthropic-organization-id
+    // header policy (see upstreamAccountHeaders.ts). Omitted = forward as before.
+    apiKeyInfo?: AnthropicAccountHeaderPolicyKeyInfo | null;
   },
   buildStreamingResponseHeaders: typeof defaultBuildStreaming = defaultBuildStreaming
 ): Record<string, string> {
@@ -43,6 +50,10 @@ export function assembleStreamingResponseHeaders(
       isCombo: args.isCombo,
       requestedConnectionId: args.requestedConnectionId,
       selectedConnectionId: args.selectedConnectionId,
+      stripAnthropicAccountHeaders: shouldStripAnthropicAccountHeaders(
+        args.apiKeyInfo,
+        args.provider
+      ),
     }),
     "x-omniroute-request-id": args.pendingRequestId,
   };
