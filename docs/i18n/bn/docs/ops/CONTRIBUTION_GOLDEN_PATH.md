@@ -4,48 +4,29 @@
 
 ---
 
-একটি pull request-এর জন্য সবচেয়ে ছোট নির্ভরযোগ্য development loop বেছে নিতে এই নির্দেশিকাটি ব্যবহার করুন। এটি নিচে লিঙ্ক করা ক্ষেত্র-নির্দিষ্ট architecture এবং security document-গুলোর
-বিকল্প নয়; এটি প্রতিটি সাধারণ পরিবর্তনের ধরনকে তার contract, focused check এবং CI coverage-এর
-সঙ্গে সংযুক্ত করে।
+একটি pull request-এর জন্য সবচেয়ে ছোট ও নির্ভরযোগ্য development loop বেছে নিতে এই নির্দেশিকাটি ব্যবহার করুন। এটি নিচে লিঙ্ক করা ক্ষেত্র-নির্দিষ্ট architecture ও security document-গুলোর বিকল্প নয়; বরং প্রতিটি সাধারণ পরিবর্তনের ধরনকে তার contract, focused check এবং CI coverage-এর সঙ্গে সংযুক্ত করে।
 
 ## প্রতিটি পরিবর্তন যে পথ অনুসরণ করে
 
-1. **সম্পাদনার আগে base বেছে নিন।** সর্বোচ্চ সক্রিয় `release/v*` branch খুঁজে নিয়ে
-   তার tip থেকে branch তৈরি করুন। `main` নয়, সেই branch-টিকেই target করুন। কোনো release freeze সক্রিয় থাকলে frozen
-   branch-টিকে target করবেন না; বরং
-   [Branching & Release Model](BRANCHING_MODEL.md)-এ বর্ণিত পরবর্তী সক্রিয় cycle ব্যবহার করুন।
-2. **Contract-গুলোর নাম উল্লেখ করুন।** পরিবর্তনটি প্রভাবিত করে এমন প্রতিটি catalog, schema, generated artifact, public API অথবা user
-   interface শনাক্ত করুন। নিচের table-এ ন্যূনতম প্রারম্ভিক set দেওয়া আছে।
-3. **Focused test লিখুন বা হালনাগাদ করুন।** `src/`, `open-sse/`, `electron/` অথবা
-   `bin/`-এ production পরিবর্তনের জন্য একই PR-এ একটি automated test আবশ্যক। প্রথমে behavior প্রমাণ করে এমন সবচেয়ে ছোট test file-গুলো চালান,
-   তারপর তালিকাভুক্ত focused gate-গুলো চালান।
-4. **CI-কে বিস্তৃত matrix চালাতে দিন।** সম্পূর্ণ unit shard, Vitest, coverage ratchet এবং
-   production build PR-এ চলে। শুধুমাত্র তখনই স্থানীয়ভাবে broad suite চালান, যখন কোনো focused failure আরও
-   বিস্তৃত প্রভাবের ইঙ্গিত দেয় অথবা পরিবর্তনটি একাধিক subsystem জুড়ে বিস্তৃত হয়।
-5. **Review-এর আগে সমন্বয় করুন।** সক্রিয় base fetch করুন, এর নতুন commit এবং এর তুলনায় আপনার diff
-   পর্যালোচনা করুন, তারপর contributor workflow অনুযায়ী base-টি rebase অথবা merge করুন। Generated-file
-   এবং catalog conflict-গুলো তাদের source থেকে সমাধান করুন, সেগুলো regenerate করুন, focused loop আবার চালান এবং নিশ্চিত করুন যে
-   PR এখনও সক্রিয় release branch-টিকেই target করছে।
-6. **প্রমাণ নথিভুক্ত করুন।** PR template-এ চালানো command, যোগ বা পরিবর্তন করা প্রতিটি test file,
-   migration অথবা feature flag এবং এখনও pending থাকা যেকোনো CI-only validation তালিকাভুক্ত করুন।
+1. **সম্পাদনার আগে base বেছে নিন।** সর্বোচ্চ সক্রিয় `release/v*` branch খুঁজে তার tip থেকে branch তৈরি করুন। `main` নয়, সেই branch-কে target করুন। কোনো release freeze সক্রিয় থাকলে frozen branch-কে target করবেন না; [Branching & Release Model](BRANCHING_MODEL.md)-এ বর্ণিত পরবর্তী সক্রিয় cycle ব্যবহার করুন।
+2. **Contract-গুলোর নাম উল্লেখ করুন।** পরিবর্তনটি প্রভাবিত করে এমন প্রতিটি catalog, schema, generated artifact, public API বা user interface শনাক্ত করুন। নিচের table-এ ন্যূনতম প্রারম্ভিক set দেওয়া হয়েছে।
+3. **Focused test লিখুন বা update করুন।** `src/`, `open-sse/`, `electron/` বা `bin/`-এ production পরিবর্তনের জন্য একই PR-এ একটি automated test থাকা আবশ্যক। আচরণটি প্রমাণ করে এমন সবচেয়ে ছোট test file-গুলো চালান, তারপর তালিকাভুক্ত focused gate-গুলো চালান।
+4. **বিস্তৃত matrix CI-কে চালাতে দিন।** সম্পূর্ণ unit shard, Vitest, coverage ratchet এবং production build PR-এ চলে। কেবল তখনই স্থানীয়ভাবে বিস্তৃত suite চালান, যখন কোনো focused failure বৃহত্তর প্রভাবের ইঙ্গিত দেয় বা পরিবর্তনটি একাধিক subsystem জুড়ে বিস্তৃত হয়।
+5. **Review-এর আগে সমন্বয় করুন।** সক্রিয় base fetch করুন, এর নতুন commit এবং এর তুলনায় আপনার diff পর্যালোচনা করুন, তারপর contributor workflow অনুযায়ী base-টি rebase বা merge করুন। Generated file ও catalog-এর conflict তাদের source থেকে সমাধান করুন, সেগুলো পুনরায় generate করুন, focused loop আবার চালান এবং নিশ্চিত করুন যে PR এখনও সক্রিয় release branch-কে target করছে।
+6. **প্রমাণ নথিভুক্ত করুন।** PR template-এ চালানো command-গুলো, যোগ বা পরিবর্তন করা প্রতিটি test file, migration বা feature flag এবং এখনও pending থাকা যেকোনো CI-only validation-এর তালিকা দিন।
 
-## পরিবর্তনের ধরন অনুযায়ী Golden path
+## পরিবর্তনের ধরন অনুযায়ী আদর্শ পথ
 
-নিচের command-গুলো ন্যূনতম focused check; এগুলো আপনার পরিবর্তিত behavior সরাসরি cover করে এমন
-test এড়িয়ে যাওয়ার অনুমতি নয়।
+নিচের command-গুলো ন্যূনতম focused check; এগুলো আপনার পরিবর্তিত আচরণ সরাসরি cover করে এমন test বাদ দেওয়ার অনুমতি নয়।
 
 ### Provider
 
 **Contract**
 
-- `src/shared/constants/providers/`-এ থাকা Provider definition এবং
-  `src/shared/constants/providers.ts`-এ এর composition।
-- `open-sse/config/providerRegistry.ts` অথবা এর extracted registry file-গুলোতে থাকা model এবং capability।
-- প্রযোজ্য ক্ষেত্রে executor/translator selection, OAuth অথবা API-key configuration, dashboard asset এবং generated
-  provider reference।
-- Public credential-গুলোকে অবশ্যই `resolvePublicCred()` ব্যবহার করতে হবে; error response-গুলোকে shared sanitized
-  error helper ব্যবহার করতে হবে। `docs/security/PUBLIC_CREDS.md` (git; `/docs`-এ compile করা হয় না) এবং
-  [Error Sanitization](../security/ERROR_SANITIZATION.md) দেখুন।
+- `src/shared/constants/providers/`-এ provider definition এবং `src/shared/constants/providers.ts`-এ এর composition।
+- `open-sse/config/providerRegistry.ts` বা এর extracted registry file-গুলোতে model ও capability।
+- প্রযোজ্য ক্ষেত্রে executor/translator selection, OAuth বা API-key configuration, dashboard asset এবং generated provider reference।
+- Public credential-এর ক্ষেত্রে অবশ্যই `resolvePublicCred()` ব্যবহার করতে হবে; error response-এর ক্ষেত্রে shared sanitized error helper ব্যবহার করতে হবে। `docs/security/PUBLIC_CREDS.md` (git-এ আছে; `/docs`-এ compile করা হয় না) এবং [Error Sanitization](../security/ERROR_SANITIZATION.md) দেখুন।
 
 **Focused loop**
 
@@ -58,38 +39,35 @@ npm run gen:provider-reference   # catalog পরিবর্তিত হলে
 npm run lint
 ```
 
-প্রভাবিত প্রতিটি request family-ও test করুন: chat, Responses, images, embeddings, audio অথবা video।
-Generated catalog এবং golden diff-গুলোকে contract change হিসেবে review করুন; সেগুলো অন্ধভাবে গ্রহণ করবেন না।
+প্রভাবিত প্রতিটি request family-ও test করুন: chat, Responses, images, embeddings, audio বা video। Generated catalog এবং golden diff-কে contract পরিবর্তন হিসেবে পর্যালোচনা করুন; না দেখে সেগুলো গ্রহণ করবেন না।
 
 ### Routing
 
 **Contract**
 
-- `src/shared/constants/routingStrategies.ts`-এ থাকা public strategy value এবং UI metadata।
-- `open-sse/services/combo.ts` এবং `open-sse/services/combo/`-এর অধীনে dispatch এবং ordering।
+- `src/shared/constants/routingStrategies.ts`-এ public strategy value ও UI metadata।
+- `open-sse/services/combo.ts` এবং `open-sse/services/combo/`-এর অধীনে dispatch ও ordering।
 - Combo schema, persistence, resilience state, model capability এবং API/UI control।
-- Behavior পরিবর্তিত হলে [Auto-Combo Engine](../routing/AUTO-COMBO.md) এবং resilience documentation।
+- আচরণ পরিবর্তিত হলে [Auto-Combo Engine](../routing/AUTO-COMBO.md) এবং resilience documentation।
 
 **Focused loop**
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
-npm run test:combo:matrix        # strategy অথবা dispatch পরিবর্তন
+npm run test:combo:matrix        # strategy বা dispatch পরিবর্তন
 npm run check:known-symbols      # strategy registration পরিবর্তন
 npm run lint
 ```
 
-স্থানীয়ভাবে deterministic mocked-upstream test ব্যবহার করুন। Live combo smoke-এর জন্য credential প্রয়োজন এবং সেগুলো
-manual, CI-এর বিকল্প নয়।
+স্থানীয়ভাবে deterministic mocked-upstream test ব্যবহার করুন। Live combo smoke test-এর জন্য credential প্রয়োজন এবং সেগুলো manual; এগুলো CI-এর বিকল্প নয়।
 
 ### UI / UX
 
 **Contract**
 
-- `src/app/` এবং `src/shared/components/`-এর অধীনে Next.js route/page এবং shared component boundary।
-- API response shape, loading/empty/error state, keyboard ও screen-reader behavior,
-  responsive layout, theming এবং locale expansion।
-- `src/i18n/messages/en.json`-এ থাকা English UI source string; নতুন user-facing copy hard-code করবেন না।
+- `src/app/` এবং `src/shared/components/`-এর অধীনে Next.js route/page ও shared component boundary।
+- API response shape, loading/empty/error state, keyboard ও screen-reader আচরণ, responsive layout, theming এবং locale expansion।
+- `src/i18n/messages/en.json`-এ English UI source string; নতুন user-facing copy hard-code করবেন না।
 
 **Focused loop**
 
@@ -100,20 +78,15 @@ npm run check:dashboard-typecheck
 npm run lint
 ```
 
-Interaction অথবা visual পরিবর্তনের জন্য app চালান এবং narrow ও wide উভয় viewport পরীক্ষা করুন। CI
-production build এবং বিস্তৃত suite চালায়; visual behavior-এর জন্য এখনও পরিবর্তনের উপযোগী একটি focused component, Playwright
-অথবা নথিভুক্ত manual check প্রয়োজন।
+Interaction বা visual পরিবর্তনের জন্য app চালান এবং narrow ও wide—উভয় viewport পরীক্ষা করুন। CI production build এবং বিস্তৃত suite চালায়; visual আচরণের জন্য তবুও পরিবর্তনের উপযোগী focused component, Playwright বা নথিভুক্ত manual check প্রয়োজন।
 
 ### i18n
 
 **Contract**
 
 - `src/i18n/messages/en.json` হলো UI source; `config/i18n.json` হলো locale source।
-- CLI catalog-গুলো `bin/cli/locales/`-এর অধীনে আলাদাভাবে থাকে।
-- ICU placeholder এবং tag হুবহু সংরক্ষণ করুন। Product/provider/model name,
-  protocol এবং header name, command, code/JSON identifier, URL, environment variable অথবা
-  `OmniRoute`, `OAuth`, `MCP` এবং `A2A`-এর মতো protected term অনুবাদ করবেন না। বর্তমান source list হলো
-  `scripts/i18n/glossary/protected-terms.json`।
+- CLI catalog-গুলো আলাদাভাবে `bin/cli/locales/`-এর অধীনে থাকে।
+- ICU placeholder ও tag হুবহু সংরক্ষণ করুন। Product/provider/model-এর নাম, protocol ও header-এর নাম, command, code/JSON identifier, URL, environment variable অথবা `OmniRoute`, `OAuth`, `MCP` ও `A2A`-এর মতো protected term অনুবাদ করবেন না। বর্তমান source list হলো `scripts/i18n/glossary/protected-terms.json`।
 
 **Focused loop**
 
@@ -126,21 +99,18 @@ npm run check:cli-i18n          # CLI string/catalog পরিবর্তিত
 npm run lint
 ```
 
-এটি বিদ্যমান system-এর জন্য নির্দেশনা, এর tooling অথবা key model সম্প্রসারণের আমন্ত্রণ নয়।
-Replacement system design করার সময় i18n patch-গুলো সীমিত ও সুনির্দিষ্ট রাখুন। Task-এ generated translation স্পষ্টভাবে প্রয়োজন না হলে এবং
-resulting diff review না করে থাকলে external service call করে এমন translation
-command চালাবেন না।
+এটি বিদ্যমান system-এর জন্য নির্দেশনা, এর tooling বা key model সম্প্রসারণের আমন্ত্রণ নয়। Replacement system design করার সময় i18n patch-গুলো সীমিত ও সুনির্দিষ্ট রাখুন। Task-এ generated translation স্পষ্টভাবে প্রয়োজন না হলে এবং ফলস্বরূপ diff আপনি পর্যালোচনা না করলে external service কল করে এমন translation command চালাবেন না।
 
 ### CLI
 
 **Contract**
 
-- `bin/cli/`-এর পাবলিক কমান্ড ও ফ্ল্যাগ, জেনারেট করা API কমান্ড, এক্সিট কোড, stdout/stderr ও
-  JSON আউটপুটের গঠন, কনফিগারেশন/এনভায়রনমেন্টের আচরণ এবং প্যাকেজে অন্তর্ভুক্ত ফাইলসমূহ।
-- CLI-তে ব্যবহারকারীর জন্য দৃশ্যমান স্ট্রিংগুলো অবশ্যই CLI i18n স্তর ব্যবহার করবে এবং `en`/`pt-BR` ক্যাটালগগুলোকে সামঞ্জস্যপূর্ণ রাখবে।
-- সমর্থিত রানটাইম হিসেবে Node এবং প্রকাশিত বাইনারি কনট্র্যাক্ট অক্ষুণ্ণ রাখুন।
+- `bin/cli/`-এর পাবলিক কমান্ড ও ফ্ল্যাগ, জেনারেট করা API কমান্ড, এক্সিট কোড, stdout/stderr এবং
+  JSON আউটপুটের গঠন, কনফিগ/এনভায়রনমেন্টের আচরণ এবং প্যাকেজভুক্ত ফাইল।
+- CLI-এর ব্যবহারকারীমুখী স্ট্রিংগুলোকে অবশ্যই CLI i18n স্তর ব্যবহার করতে হবে এবং `en`/`pt-BR` ক্যাটালগগুলো সামঞ্জস্যপূর্ণ রাখতে হবে।
+- Node-কে সমর্থিত রানটাইম হিসেবে এবং প্রকাশিত বাইনারি কনট্র্যাক্ট অক্ষুণ্ণ রাখুন।
 
-**কেন্দ্রভিত্তিক লুপ**
+**কেন্দ্রিক লুপ**
 
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
@@ -150,19 +120,19 @@ npm run check:pack-policy     # প্যাকেজ-সারফেসের �
 npm run lint
 ```
 
-যখন আচরণ পার্সিং, ফাইল বা এক্সিট স্ট্যাটাসের ওপর নির্ভর করে, তখন একটি অস্থায়ী ডেটা ডিরেক্টরিতে হুবহু কমান্ডটি ব্যবহার করুন।
-CI আরও বিস্তৃত প্যাকেজ আর্টিফ্যাক্ট ও ইকোসিস্টেম যাচাই সম্পাদন করে।
+পার্সিং, ফাইল বা এক্সিট স্ট্যাটাসের ওপর আচরণ নির্ভর করলে একটি অস্থায়ী ডেটা ডিরেক্টরিতে হুবহু কমান্ডটি ব্যবহার করুন।
+CI আরও বিস্তৃত প্যাকেজ আর্টিফ্যাক্ট ও ইকোসিস্টেম পরীক্ষা সম্পাদন করে।
 
 ### ডেটাবেস
 
 **কনট্র্যাক্টসমূহ**
 
-- `src/lib/db/`-এর অধীনে থাকা ডোমেইন মডিউলগুলো; নির্দিষ্ট মডিউল সরাসরি ইমপোর্ট করুন (পুরোনো `localDb.ts` রি-এক্সপোর্ট স্তরটি সরানো হয়েছে)।
+- `src/lib/db/`-এর অধীনে থাকা ডোমেইন মডিউল; নির্দিষ্ট মডিউল সরাসরি ইমপোর্ট করুন (পুরোনো `localDb.ts` রি-এক্সপোর্ট স্তরটি সরানো হয়েছে)।
 - `src/lib/db/migrations/`-এর অধীনে নম্বরযুক্ত, আইডেমপোটেন্ট SQL মাইগ্রেশন, ট্রানজ্যাকশনের নিরাপত্তা, আপগ্রেডের
   আচরণ, ইনডেক্স এবং স্কিমা দ্বারা প্রভাবিত প্রতিটি কলার।
-- রুট ও হ্যান্ডলার কখনো সরাসরি র’ SQL ইস্যু করে না।
+- রুট ও হ্যান্ডলার কখনোই সরাসরি raw SQL চালায় না।
 
-**কেন্দ্রভিত্তিক লুপ**
+**কেন্দ্রিক লুপ**
 
 ```bash
 npm run check:migration-numbering
@@ -172,20 +142,20 @@ node --import tsx/esm --test tests/unit/db/migration-<number>.test.ts
 npm run lint
 ```
 
-মাইগ্রেশন যোগ করার সময় একটি নতুন ডেটাবেস এবং পূর্ববর্তী স্কিমা থেকে আপগ্রেড—উভয়ই পরীক্ষা করুন। ডেটাবেস টেস্টগুলোকে
-অবশ্যই হ্যান্ডেল বন্ধ করতে হবে এবং ক্লিনআপের সময় `resetDbInstance()` কল করতে হবে। কেবল সেরা-প্রচেষ্টা Bun অ্যাডাপ্টার পাথ পরিবর্তিত হলেই
-`npm run test:bun:db` চালান; Node-ই কর্তৃত্বপূর্ণ হিসেবে বহাল থাকবে।
+মাইগ্রেশন যোগ করার সময় একটি নতুন ডেটাবেস এবং আগের স্কিমা থেকে আপগ্রেড—উভয়ই পরীক্ষা করুন। ডেটাবেস পরীক্ষাগুলোকে
+অবশ্যই হ্যান্ডল বন্ধ করতে হবে এবং ক্লিনআপের সময় `resetDbInstance()` কল করতে হবে। শুধুমাত্র best-effort Bun অ্যাডাপ্টার পাথ পরিবর্তিত হলেই
+`npm run test:bun:db` চালান; Node-ই কর্তৃত্বপূর্ণ থাকে।
 
 ### বিল্ড / ডিপ্লয়
 
 **কনট্র্যাক্টসমূহ**
 
-- রুট ও ওয়ার্কস্পেস ম্যানিফেস্ট/লকফাইল, `scripts/build/`, Next.js স্ট্যান্ডঅ্যালোন অ্যাসেম্বলি, `dist/`
+- রুট ও ওয়ার্কস্পেস ম্যানিফেস্ট/লকফাইল, `scripts/build/`, Next.js standalone অ্যাসেম্বলি, `dist/`
   প্যাকেজের বিষয়বস্তু, Electron প্ল্যাটফর্ম মেটাডেটা, CI ওয়ার্কফ্লো এবং ডিপ্লয়মেন্ট সেন্টিনেল।
 - সমর্থিত Node রেঞ্জ এবং `CLAUDE.md`-এ অনুমোদিত তালিকাভুক্ত Bun-এর ব্যবহার অবশ্যই অক্ষুণ্ণ রাখতে হবে।
-- বিল্ড আর্টিফ্যাক্টগুলো আনট্র্যাকড থাকবে; ডিপেন্ডেন্সি, লাইসেন্স, ওয়ার্কফ্লো ও প্যাকেজ নীতিমালা প্রযোজ্য হবে।
+- বিল্ড আর্টিফ্যাক্টগুলো ট্র্যাক না করেই রাখুন; ডিপেন্ডেন্সি, লাইসেন্স, ওয়ার্কফ্লো এবং প্যাকেজ নীতি প্রযোজ্য।
 
-**কেন্দ্রভিত্তিক লুপ**
+**কেন্দ্রিক লুপ**
 
 ```bash
 node --import tsx/esm --test tests/unit/build/<behavior>.test.ts
@@ -195,32 +165,54 @@ npm run check:pack-policy      # প্রকাশিত প্যাকেজ 
 npm run lint
 ```
 
-পরিবর্তনটি কম্পাইলেশন, স্ট্যান্ডঅ্যালোন অ্যাসেম্বলি, অ্যাসেট বা রানটাইম বান্ডলিংকে প্রভাবিত করলেই কেবল স্থানীয়ভাবে `npm run build` ব্যবহার করুন।
-শুধু রিলিজ/ডিপ্লয় যাচাইয়ের জন্য `npm run build:release` ব্যবহার করুন। CI-এর বিল্ডই চূড়ান্ত ক্রস-প্ল্যাটফর্ম সংকেত; প্ল্যাটফর্ম-নির্দিষ্ট Electron পরিবর্তনের জন্য সংশ্লিষ্ট কেন্দ্রভিত্তিক বিল্ড
-বা স্মোক-টেস্টের প্রমাণ প্রয়োজন।
+শুধুমাত্র পরিবর্তনটি কম্পাইলেশন, standalone অ্যাসেম্বলি, অ্যাসেট বা রানটাইম বান্ডলিংকে প্রভাবিত করলে স্থানীয়ভাবে `npm run build` ব্যবহার করুন।
+শুধুমাত্র রিলিজ/ডিপ্লয় যাচাইয়ের জন্য `npm run build:release` ব্যবহার করুন। CI-এর বিল্ডই
+চূড়ান্ত ক্রস-প্ল্যাটফর্ম সংকেত; প্ল্যাটফর্ম-নির্দিষ্ট Electron পরিবর্তনের জন্য সংশ্লিষ্ট কেন্দ্রিক বিল্ড
+বা smoke প্রমাণ প্রয়োজন।
 
-## লোকাল লুপ বনাম CI
+## লোকাল ক্যান্ডিডেট লুপ
 
-| প্রতিটি প্যাচের জন্য লোকালি চালান                                               | CI বিস্তৃত সংকেত প্রদান করে                                              |
+সোর্স টেস্ট দিয়ে প্রমাণ করা যায় না যে প্যাকেজ করা আর্টিফ্যাক্টটি চালু হয়: প্যাকেজিং তালিকা, বাদ দেওয়া ডিপেন্ডেন্সি এবং নেটিভ বাইনারির সমস্যা কেবল tarball ইনস্টল ও চালু করার পরই দেখা দেয়। `npm run dev:candidate` (`scripts/dev/candidate.mjs`) হলো RFC #8084-এর একবার বিল্ড / যাচাই / প্রমোট প্রবাহের লোকাল অংশ: এটি একটি ক্যান্ডিডেট বিল্ড করে, ঠিক সেই আর্টিফ্যাক্টটি যাচাই করে, ডিরেক্টরি পুনর্নামকরণের মাধ্যমে সেটিকে প্রমোট করে এবং প্রমোট করা স্লটের স্বাস্থ্য পরীক্ষা ব্যর্থ হলে সেটিকে রোল ব্যাক করে।
+
+```bash
+npm run dev:candidate -- run --dry-run --json  # পরিকল্পনাটি প্রিন্ট করুন, কিছুই পরিবর্তন করবেন না
+npm run dev:candidate -- run                   # বিল্ড + যাচাই + প্রমোট, স্বয়ংক্রিয় রোলব্যাক
+npm run dev:candidate -- build                 # npm pack + _artifacts/candidate/<id>/-এ ইনস্টল
+npm run dev:candidate -- validate --id <id>    # একটি ফাঁকা পোর্টে চালু করুন, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # current ও previous অদলবদল করুন
+npm run dev:candidate -- run --from-tarball <file.tgz>  # অন্যত্র (CI) বিল্ড করা tarball পুনরায় ব্যবহার করুন
+```
+
+- **একবারই বিল্ড করুন।** `build` বর্তমান ট্রি প্যাক করে (এর জন্য `dist/server.js` প্রয়োজন, তাই প্রথমে `npm run build:release` চালান) অথবা `--from-tarball` কপি করে, তারপর tarball-টি একটি বিচ্ছিন্ন npm prefix-এ ইনস্টল করে, কারণ tarball-এ কোনো `node_modules` থাকে না। আইডি হলো সংক্ষিপ্ত `HEAD` sha (ট্রিতে লোকাল পরিবর্তন থাকলে `-dirty`) অথবা tarball-এর ক্ষেত্রে `tgz-<sha256>`। ইতিমধ্যে বিল্ড করা কোনো পরিচ্ছন্ন আইডি পুনরায় বিল্ড না করে আবার ব্যবহার করা হয়; সেটি পুনরায় বিল্ড করতে `--force` দিন।
+- **সোর্স নয়, প্যাকেজ যাচাই করুন।** `validate` নতুন `DATA_DIR=<candidate>/data`, নকল সিক্রেটসহ ইনস্টল করা CLI (`serve --port <free port>`) চালু করে এবং অপারেটরের `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` ও `INITIAL_PASSWORD` এনভায়রনমেন্ট থেকে সরিয়ে দেয়, যাতে এটি একটি নতুন ইনস্টলের চাবিবিহীন লুপব্যাক অবস্থান যাচাই করে। এটি `GET /api/health` থেকে 200 ফেরত আসার জন্য অপেক্ষা করে, `GET /v1/models` থেকে 200 ফেরত আসা আবশ্যক করে, প্রসেস গ্রুপ বন্ধ করে এবং tarball হ্যাশের সঙ্গে ফলাফলটি `validation.json`-এ রেকর্ড করে।
+- **একই আর্টিফ্যাক্ট প্রমোট করুন।** বর্তমান tarball হ্যাশের জন্য সফল যাচাই না থাকলে `promote` কোনো ক্যান্ডিডেট গ্রহণ করে না। ডিফল্ট সক্রিয় স্লট হলো `_artifacts/candidate/current`; `--target <dir>` একই ফাইলসিস্টেমে অন্য একটি ডিরেক্টরি নির্বাচন করে এবং তার আগের স্লট হয় `<dir>.previous`। প্রতিটি পুনর্নামকরণ অ্যাটমিক, এবং মাঝপথে ব্যর্থ হলে ইতিমধ্যে সম্পন্ন হওয়া পুনর্নামকরণগুলো উল্টে দেওয়া হয়।
+- **রোল ব্যাক করুন।** `run` প্রমোট করা স্লটটি আবার যাচাই করে এবং সেই পরীক্ষা ব্যর্থ হলে `current` ও `previous` পুনরায় অদলবদল করে। প্রথম যাচাইয়ে ব্যর্থ কোনো ক্যান্ডিডেট কখনো প্রমোট করা হয় না।
+
+সবকিছু gitignore-এ থাকা `_artifacts/candidate/`-এর অধীনে লেখা হয়; বিদ্যমান OmniRoute ইনস্টলেশন এবং তার ডেটা ডিরেক্টরি কখনো স্পর্শ করা হয় না। প্রমোট করা CLI হলো `_artifacts/candidate/current/prefix/bin/omniroute`; এটি ব্যবহার করার সময় আপনার নিজস্ব `DATA_DIR` দিয়ে চালু করুন। প্রস্থান কোড: `0` সফল, `1` যাচাই বা প্রমোশন ব্যর্থ, `2` ব্যবহারজনিত ত্রুটি অথবা বিল্ড অনুপস্থিত।
+
+## স্থানীয় লুপ বনাম CI
+
+| প্রতিটি প্যাচের জন্য স্থানীয়ভাবে চালান                                         | CI সামগ্রিক সংকেত প্রদান করে                                             |
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| উপরের সরাসরি আচরণগত পরীক্ষা এবং ক্যাটাগরি গেটসমূহ                               | শার্ড করা সম্পূর্ণ ইউনিট স্যুট এবং সিরিয়াল পরীক্ষা                      |
+| উপরের সরাসরি আচরণ পরীক্ষা এবং ক্যাটাগরি গেট                                     | শার্ড করা পূর্ণ ইউনিট স্যুট এবং সিরিয়াল পরীক্ষা                         |
 | `npm run lint`                                                                  | Vitest স্যুট এবং কভারেজ/গুণমান র্যাচেট                                   |
-| প্রভাবিত কনট্র্যাক্টে প্রয়োজন হলেই শুধু টাইপচেক বা বিল্ড                       | প্রোডাকশন বিল্ড, নিরাপত্তা, ডকস, ডিপেন্ডেন্সি এবং PR-নীতি গেটসমূহ        |
+| প্রভাবিত কন্ট্রাক্টে প্রয়োজন হলেই শুধু টাইপচেক বা বিল্ড                        | প্রোডাকশন বিল্ড, নিরাপত্তা, ডকস, ডিপেন্ডেন্সি এবং PR-পলিসি গেট           |
 | অটোমেশন আচরণটি প্রমাণ করতে না পারলেই শুধু ম্যানুয়াল ইন্টারঅ্যাকশন/লাইভ পরীক্ষা | ওয়ার্কফ্লো দ্বারা কনফিগার করা ক্রস-জব ইন্টিগ্রেশন ও প্ল্যাটফর্ম পরীক্ষা |
 
-একটি সফল ফোকাসড লুপ পরিবর্তিত কনট্র্যাক্ট সম্পর্কে প্রমাণ দেয়, সম্পর্কহীন CI পরীক্ষাগুলো
-পাস করবে—এমন নিশ্চয়তা নয়। বিপরীতভাবে, প্রতিটি লোকাল সম্পাদনাকে সম্পূর্ণ রিপোজিটরি ম্যাট্রিক্সের জন্য অপেক্ষা করাবেন না।
+একটি সফল ফোকাসড লুপ পরিবর্তিত কন্ট্রাক্ট সম্পর্কে প্রমাণ দেয়, সম্পর্কহীন CI পরীক্ষাগুলো
+পাস করবে—তার প্রমাণ নয়। অন্যদিকে, প্রতিটি স্থানীয় সম্পাদনাকে সম্পূর্ণ রিপোজিটরি ম্যাট্রিক্সের জন্য অপেক্ষা করাবেন না।
 
 ## সমন্বয় চেকলিস্ট
 
 রিভিউয়ের অনুরোধ করার আগে:
 
-- নিশ্চিত করুন যে PR-এর বেস এখনও সর্বোচ্চ সক্রিয় `release/v*` ব্রাঞ্চ।
-- সেই বেস ফেচ করুন এবং আপনি ব্রাঞ্চ তৈরি করার পর থেকে যুক্ত হওয়া কমিটগুলো রিভিউ করুন।
-- অনিচ্ছাকৃত বা জেনারেট করা অপ্রয়োজনীয় পরিবর্তনের জন্য `git diff <active-base>...HEAD` পর্যালোচনা করুন।
-- সোর্স আপডেট করে এবং আউটপুট পুনরায় জেনারেট করে ক্যাটালগ ও জেনারেট করা ডকুমেন্টের কনফ্লিক্ট সমাধান করুন।
-- সমন্বয়ের পর PR-এর বিবরণে তালিকাভুক্ত প্রতিটি ফোকাসড পরীক্ষা/গেট পুনরায় চালান।
-- পরিবর্তিত বেসের সঙ্গে মেলাতে কখনোই অ্যাসারশন দুর্বল করবেন না বা আবশ্যক পরীক্ষা বাদ দেবেন না।
+- নিশ্চিত করুন যে PR বেসটি এখনও সর্বোচ্চ সক্রিয় `release/v*` ব্রাঞ্চ।
+- সেই বেসটি ফেচ করুন এবং আপনি ব্রাঞ্চ করার পর থেকে যুক্ত হওয়া কমিটগুলো পর্যালোচনা করুন।
+- অনিচ্ছাকৃত বা জেনারেটেড পরিবর্তন শনাক্ত করতে `git diff <active-base>...HEAD` পর্যালোচনা করুন।
+- সোর্স আপডেট করে এবং আউটপুট পুনরায় জেনারেট করে ক্যাটালগ ও জেনারেটেড-ডকুমেন্টের কনফ্লিক্ট সমাধান করুন।
+- সমন্বয়ের পর PR বিবরণে তালিকাভুক্ত প্রতিটি ফোকাসড পরীক্ষা/গেট পুনরায় চালান।
+- পরিবর্তিত বেসের সঙ্গে শুধু মিল রাখার জন্য কখনোই অ্যাসারশন দুর্বল করবেন না বা প্রয়োজনীয় পরীক্ষা বাদ দেবেন না।
 
 রিলিজ-ফ্রিজ এবং রিটার্গেটিংয়ের নিয়মের জন্য
 [ব্রাঞ্চিং ও রিলিজ মডেল](BRANCHING_MODEL.md) দেখুন। সম্পূর্ণ CI তালিকার জন্য

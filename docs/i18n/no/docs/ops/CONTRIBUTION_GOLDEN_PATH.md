@@ -5,34 +5,34 @@
 ---
 
 Bruk denne veiledningen til å velge den minste pålitelige utviklingssløyfen for en pull request. Den
-erstatter ikke de områdespesifikke arkitektur- og sikkerhetsdokumentene det lenkes til nedenfor; den kobler hver vanlige
-endringstype til tilhørende kontrakter, fokuserte kontroller og CI-dekning.
+erstatter ikke de områdespesifikke arkitektur- og sikkerhetsdokumentene det lenkes til nedenfor; den knytter hver vanlige
+endringstype til dens kontrakter, fokuserte kontroller og CI-dekning.
 
-## Forløpet alle endringer følger
+## Forløpet hver endring følger
 
-1. **Velg basisgrenen før du redigerer.** Finn den høyeste aktive `release/v*`-grenen, og opprett en gren fra
-   det nyeste commit-et. Bruk denne grenen som mål, ikke `main`. Hvis en utgivelsesfrys er aktiv, skal du ikke bruke den fryste
+1. **Velg basis før du redigerer.** Finn den høyeste aktive `release/v*`-grenen, og opprett en gren fra
+   spissen av den. Bruk denne grenen som mål, ikke `main`. Hvis en versjonsfrys er aktiv, må du ikke bruke den fryste
    grenen som mål; bruk den neste aktive syklusen som er beskrevet i
    [Modell for grener og utgivelser](BRANCHING_MODEL.md).
 2. **Navngi kontraktene.** Identifiser alle kataloger, skjemaer, genererte artefakter, offentlige API-er eller
-   brukergrensesnitt som endringen påvirker. Tabellen nedenfor viser det minste anbefalte utgangspunktet.
+   brukergrensesnitt som endringen påvirker. Tabellen nedenfor angir det minste utgangspunktet.
 3. **Skriv eller oppdater fokuserte tester.** Produksjonsendringer i `src/`, `open-sse/`, `electron/` eller
-   `bin/` krever en automatisert test i samme PR. Kjør de minste testfilene som beviser
-   virkemåten, og deretter de oppførte fokuserte kontrollene.
-4. **La CI kjøre den brede matrisen.** De fullstendige enhetstestdelene, Vitest, dekningssperren og
-   produksjonsbygget kjøres for PR-en. Kjør bare en bred testpakke lokalt når en fokusert feil peker mot
-   større konsekvenser, eller når endringen berører flere delsystemer.
-5. **Avstem før gjennomgang.** Hent den aktive basisgrenen, undersøk de nye commit-ene og diffen din mot
-   den, og utfør deretter rebase eller merge av basisgrenen i henhold til arbeidsflyten for bidragsytere. Løs konflikter i genererte filer
-   og kataloger med utgangspunkt i kilden deres, generer dem på nytt, kjør den fokuserte sløyfen på nytt, og bekreft at
-   PR-en fortsatt er rettet mot den aktive utgivelsesgrenen.
-6. **Dokumenter bevisene.** Oppgi i PR-malen hvilke kommandoer som ble kjørt, alle testfiler som ble lagt til eller endret,
-   migreringer eller funksjonsflagg og eventuell validering som bare utføres i CI og fortsatt gjenstår.
+   `bin/` krever en automatisert test i samme PR. Kjør de minste testfilene som dokumenterer
+   oppførselen, og deretter de oppførte fokuserte kontrollene.
+4. **La CI kjøre den brede matrisen.** Alle enhetstestsegmenter, Vitest, dekningsskralle og
+   produksjonsbygg kjøres for PR-en. Kjør en bred testpakke lokalt bare når en fokusert feil indikerer
+   større påvirkning, eller når endringen omfatter flere delsystemer.
+5. **Samordne før gjennomgang.** Hent den aktive basisgrenen, undersøk dens nye commits og diffen din mot
+   den, og rebase eller flett deretter inn basisgrenen i henhold til arbeidsflyten for bidragsytere. Løs konflikter i genererte filer
+   og kataloger fra kilden deres, generer dem på nytt, kjør den fokuserte sløyfen på nytt, og bekreft at
+   PR-en fortsatt har den aktive utgivelsesgrenen som mål.
+6. **Dokumenter bevisene.** Oppgi kommandoene som ble kjørt, alle testfiler som ble lagt til eller endret,
+   migreringer eller funksjonsflagg og eventuell validering som bare utføres i CI og fortsatt gjenstår, i PR-malen.
 
 ## Anbefalte forløp etter endringstype
 
-Kommandoene nedenfor er et minimum av fokuserte kontroller, ikke en tillatelse til å hoppe over en test som dekker
-virkemåten du endret, direkte.
+Kommandoene nedenfor er de minste fokuserte kontrollene, ikke en tillatelse til å hoppe over en test som direkte dekker
+oppførselen du endret.
 
 ### Leverandør
 
@@ -40,11 +40,11 @@ virkemåten du endret, direkte.
 
 - Leverandørdefinisjonen i `src/shared/constants/providers/` og sammensetningen av den i
   `src/shared/constants/providers.ts`.
-- Modeller og funksjonalitet i `open-sse/config/providerRegistry.ts` eller de utskilte registerfilene.
-- Valg av eksekverings- eller oversettelsesmekanisme, OAuth- eller API-nøkkelkonfigurasjon, ressurser for kontrollpanelet og den genererte
-  leverandørreferansen når det er relevant.
-- Offentlig legitimasjon må bruke `resolvePublicCred()`; feilresponser må bruke de delte rensede
-  feilfunksjonene. Se `docs/security/PUBLIC_CREDS.md` (git; kompileres ikke inn i `/docs`) og
+- Modeller og funksjoner i `open-sse/config/providerRegistry.ts` eller de utskilte registerfilene.
+- Valg av utfører/oversetter, konfigurasjon av OAuth eller API-nøkkel, dashboard-ressurser og generert
+  leverandørreferanse når det er aktuelt.
+- Offentlig legitimasjon må bruke `resolvePublicCred()`; feilsvar må bruke de delte, rensede
+  feilhjelperne. Se `docs/security/PUBLIC_CREDS.md` (git; kompileres ikke inn i `/docs`) og
   [Rensing av feil](../security/ERROR_SANITIZATION.md).
 
 **Fokusert sløyfe**
@@ -58,7 +58,7 @@ npm run gen:provider-reference   # når katalogen endres; commit den genererte d
 npm run lint
 ```
 
-Test også alle berørte forespørselsfamilier: chat, Responses, bilder, innebygginger, lyd eller video.
+Test også alle berørte forespørselsfamilier: chat, Responses, bilder, embeddings, lyd eller video.
 Gjennomgå genererte katalog- og golden-differ som kontraktsendringer; ikke godta dem ukritisk.
 
 ### Ruting
@@ -66,15 +66,15 @@ Gjennomgå genererte katalog- og golden-differ som kontraktsendringer; ikke godt
 **Kontrakter**
 
 - Offentlige strategiverdier og UI-metadata i `src/shared/constants/routingStrategies.ts`.
-- Distribuering og rekkefølge under `open-sse/services/combo.ts` og `open-sse/services/combo/`.
-- Combo-skjemaer, persistens, robusthetstilstand, modellfunksjonalitet og API-/UI-kontroller.
-- [Auto-Combo-motor](../routing/AUTO-COMBO.md) og dokumentasjon om robusthet når virkemåten endres.
+- Distribusjon og rekkefølge under `open-sse/services/combo.ts` og `open-sse/services/combo/`.
+- Combo-skjemaer, persistens, robusthetstilstand, modellfunksjoner og API-/UI-kontroller.
+- [Auto-Combo-motor](../routing/AUTO-COMBO.md) og dokumentasjon om robusthet når oppførselen endres.
 
 **Fokusert sløyfe**
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
-npm run test:combo:matrix        # endringer i strategi eller distribuering
+npm run test:combo:matrix        # endringer i strategi eller distribusjon
 npm run check:known-symbols      # endringer i strategiregistrering
 npm run lint
 ```
@@ -86,11 +86,11 @@ manuelle, ikke erstatninger for CI.
 
 **Kontrakter**
 
-- Next.js-ruten/-siden og grensene for delte komponenter under `src/app/` og
+- Next.js-rute/-side og grenser for delte komponenter under `src/app/` og
   `src/shared/components/`.
-- API-responsformater, tilstander for lasting/tomt innhold/feil, virkemåte for tastatur og skjermlesere,
-  responsiv layout, temaer og utvidelse av språkstøtte.
-- Engelske UI-kildestrenger i `src/i18n/messages/en.json`; ikke hardkod ny brukervendt tekst.
+- API-svarformer, tilstander for lasting/tomt innhold/feil, oppførsel for tastatur og skjermleser,
+  responsiv utforming, temaer og utvidelse av språkinnstillinger.
+- Engelske UI-kildestrenger i `src/i18n/messages/en.json`; ikke hardkod ny brukersynlig tekst.
 
 **Fokusert sløyfe**
 
@@ -102,7 +102,7 @@ npm run lint
 ```
 
 Kjør appen ved interaksjons- eller visuelle endringer, og kontroller både smale og brede visningsområder. CI kjører
-produksjonsbygget og bredere testpakker; visuell virkemåte krever fortsatt en fokusert komponenttest, Playwright-test
+produksjonsbygget og bredere testpakker; visuell oppførsel trenger fortsatt en fokusert komponenttest, Playwright-test
 eller dokumentert manuell kontroll som passer til endringen.
 
 ### i18n
@@ -111,7 +111,7 @@ eller dokumentert manuell kontroll som passer til endringen.
 
 - `src/i18n/messages/en.json` er UI-kilden; `config/i18n.json` er kilden for språkinnstillinger.
 - CLI-katalogene ligger separat under `bin/cli/locales/`.
-- Bevar ICU-plassholdere og -tagger nøyaktig. Ikke oversett produkt-, leverandør- eller modellnavn,
+- Bevar ICU-plassholdere og tagger nøyaktig. Ikke oversett produkt-/leverandør-/modellnavn,
   protokoll- og headernavn, kommandoer, kode-/JSON-identifikatorer, URL-er, miljøvariabler eller
   beskyttede termer som `OmniRoute`, `OAuth`, `MCP` og `A2A`. Den gjeldende kildelisten er
   `scripts/i18n/glossary/protected-terms.json`.
@@ -127,8 +127,8 @@ npm run check:cli-i18n          # når CLI-strenger/-kataloger endres
 npm run lint
 ```
 
-Dette er veiledning for det eksisterende systemet, ikke en oppfordring til å utvide verktøyene eller nøkkelmodellen.
-Hold i18n-endringer kirurgisk presise mens erstatningssystemet utformes. Ikke kjør oversettelseskommandoer
+Dette er veiledning for det eksisterende systemet, ikke en invitasjon til å utvide verktøyene eller nøkkelmodellen.
+Hold i18n-oppdateringer kirurgisk presise mens erstatningssystemet utformes. Ikke kjør oversettelseskommandoer
 som kaller eksterne tjenester, med mindre oppgaven uttrykkelig krever genererte oversettelser og
 du har gjennomgått den resulterende diffen.
 
@@ -138,30 +138,30 @@ du har gjennomgått den resulterende diffen.
 
 - Offentlige kommandoer og flagg i `bin/cli/`, genererte API-kommandoer, avslutningskoder, stdout/stderr og
   JSON-utdataformater, konfigurasjons-/miljøoppførsel og pakkede filer.
-- Brukerrettede CLI-strenger må bruke CLI-ens i18n-lag og holde `en`/`pt-BR`-katalogene synkronisert.
-- Bevar Node som støttet kjøretidsmiljø og den publiserte binærkontrakten.
+- Brukerrettede CLI-strenger må bruke CLI-ens i18n-lag og holde `en`-/`pt-BR`-katalogene samkjørte.
+- Bevar Node som støttet kjøretidsmiljø og kontrakten for den publiserte binærfilen.
 
 **Fokusert løkke**
 
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
 npm run check:cli-i18n
-npm run build:cli             # genererte/pakkede CLI-endringer
+npm run build:cli             # genererte/samlede CLI-endringer
 npm run check:pack-policy     # endringer i pakkens offentlige grensesnitt
 npm run lint
 ```
 
-Bruk den nøyaktige kommandoen i en midlertidig datamappe når oppførselen avhenger av parsing, filer eller
-avslutningsstatus. CI utfører de mer omfattende kontrollene av pakkeartefakter og økosystemet.
+Bruk den nøyaktige kommandoen i en midlertidig datamappe når oppførselen avhenger av tolking, filer eller
+avslutningsstatus. CI utfører de bredere kontrollene av pakkeartefakter og økosystemet.
 
 ### Database
 
 **Kontrakter**
 
-- Domenemoduler under `src/lib/db/`; importer spesifikke moduler direkte (det gamle reeksportlaget `localDb.ts` ble fjernet).
+- Domenemoduler under `src/lib/db/`; importer bestemte moduler direkte (det gamle reeksportlaget `localDb.ts` ble fjernet).
 - Nummererte, idempotente SQL-migreringer under `src/lib/db/migrations/`, transaksjonssikkerhet, oppgraderings-
   oppførsel, indekser og alle kallere som påvirkes av skjemaet.
-- Ruter og behandlere kjører aldri rå SQL direkte.
+- Ruter og behandlere utfører aldri rå SQL direkte.
 
 **Fokusert løkke**
 
@@ -175,15 +175,15 @@ npm run lint
 
 Test både en ny database og oppgradering fra det forrige skjemaet når du legger til en migrering. Databasetester
 må lukke håndtak og kalle `resetDbInstance()` under opprydding. Kjør `npm run test:bun:db` bare når
-adapterbanen for Bun, som støttes etter beste evne, endres; Node forblir autoritativ.
+den uforpliktende Bun-adapterbanen endres; Node forblir autoritativ.
 
-### Bygging / distribusjon
+### Bygging / utrulling
 
 **Kontrakter**
 
 - Rot- og arbeidsområdemanifester/låsefil, `scripts/build/`, frittstående Next.js-sammenstilling, innholdet i
-  `dist/`-pakken, Electron-plattformmetadata, CI-arbeidsflyter og distribusjonsmarkører.
-- Støttede Node-versjonsområder og den tillatte bruken av Bun i `CLAUDE.md` må forbli intakte.
+  `dist/`-pakken, Electron-plattformmetadata, CI-arbeidsflyter og utrullingsmarkører.
+- Støttede Node-intervaller og den tillatte Bun-bruken i `CLAUDE.md` må forbli intakte.
 - Byggeartefakter skal ikke spores; retningslinjer for avhengigheter, lisenser, arbeidsflyter og pakker gjelder.
 
 **Fokusert løkke**
@@ -197,33 +197,74 @@ npm run lint
 ```
 
 Bruk `npm run build` lokalt bare når endringen påvirker kompilering, frittstående sammenstilling, ressurser
-eller pakking for kjøretidsmiljøet. Bruk `npm run build:release` bare for validering av utgivelse/distribusjon. CI-byggingen er
-det endelige signalet på tvers av plattformer; plattformspesifikke Electron-endringer krever tilsvarende fokusert bygging
+eller kjøretidsbundling. Bruk `npm run build:release` bare for validering av utgivelse/utrulling. CIs bygging er
+det endelige signalet på tvers av plattformer; plattformspesifikke Electron-endringer trenger et tilsvarende fokusert bygg
 eller dokumentasjon fra en røyktest.
+
+## Lokal kandidatsløyfe
+
+Tester av kildekoden kan ikke bevise at den pakkede artefakten starter: pakkelister, fjernede avhengigheter
+og plattformspesifikke binærfiler feiler først når tarball-filen er installert og startet. `npm run dev:candidate`
+(`scripts/dev/candidate.mjs`) er den lokale delen av bygg én gang / valider / promoter-flyten fra
+RFC #8084: Den bygger én kandidat, validerer nøyaktig denne artefakten, promoterer den ved å gi
+kataloger nytt navn og ruller den tilbake når det promoterte sporet ikke består helsesjekken.
+
+```bash
+npm run dev:candidate -- run --dry-run --json  # skriv ut planen, ikke endre noe
+npm run dev:candidate -- run                   # bygg + valider + promoter, automatisk tilbakerulling
+npm run dev:candidate -- build                 # npm pack + installer i _artifacts/candidate/<id>/
+npm run dev:candidate -- validate --id <id>    # start på en ledig port, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # bytt om current og previous
+npm run dev:candidate -- run --from-tarball <file.tgz>  # gjenbruk en tarball-fil bygget et annet sted (CI)
+```
+
+- **Bygg én gang.** `build` pakker det gjeldende treet (det krever `dist/server.js`, så kjør
+  `npm run build:release` først) eller kopierer `--from-tarball`, og installerer deretter tarball-filen i et
+  isolert npm-prefiks, fordi tarball-filen ikke inneholder noen `node_modules`. ID-en er den korte `HEAD`-
+  sha-en (`-dirty` når treet har lokale endringer) eller `tgz-<sha256>` for en tarball-fil. En ren ID som
+  allerede er bygget, gjenbrukes i stedet for å bygges på nytt. Bruk `--force` for å bygge den på nytt.
+- **Valider pakken, ikke kildekoden.** `validate` starter den installerte CLI-en
+  (`serve --port <free port>`) med en ny `DATA_DIR=<candidate>/data`, falske hemmeligheter og operatørens
+  `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` og `INITIAL_PASSWORD` fjernet fra
+  miljøet, slik at den kontrollerer en ny installasjons nøkkelfrie loopback-oppsett. Den venter på at
+  `GET /api/health` skal returnere 200, krever at `GET /v1/models` returnerer 200, stopper prosessgruppen
+  og registrerer resultatet i `validation.json` sammen med tarball-filens hash.
+- **Promoter den samme artefakten.** `promote` avviser en kandidat uten en bestått validering for den
+  gjeldende tarball-hashen. Det aktive standardsporet er `_artifacts/candidate/current`; `--target <dir>`
+  velger en annen katalog på samme filsystem, og det forrige sporet er `<dir>.previous`.
+  Hver navneendring er atomisk, og en feil underveis reverserer navneendringene som allerede er utført.
+- **Rull tilbake.** `run` validerer det promoterte sporet på nytt og bytter `current` og `previous` tilbake når
+  denne kontrollen mislykkes. En kandidat som ikke består den første valideringen, blir aldri promotert.
+
+Alt skrives under den git-ignorerte `_artifacts/candidate/`; en eksisterende OmniRoute-
+installasjon og datakatalogen dens blir aldri berørt. Den promoterte CLI-en er
+`_artifacts/candidate/current/prefix/bin/omniroute`; start den med din egen `DATA_DIR` når du bruker
+den. Avslutningskoder: `0` suksess, `1` mislykket validering eller promotering, `2` bruksfeil eller manglende bygg.
 
 ## Lokal løkke kontra CI
 
-| Kjør lokalt for hver endring                                                        | CI gir det brede signalet                                                          |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Direkte atferdstester og kategorikontroller ovenfor                                 | Parallellisert full enhetstestsamling og serielle tester                           |
-| `npm run lint`                                                                      | Vitest-testsamlinger og gradvise krav til dekning/kvalitet                         |
-| Typekontroll eller bygging bare når den berørte kontrakten krever det               | Produksjonsbygg, sikkerhet, dokumentasjon, avhengigheter og PR-regler              |
-| Manuell interaksjon/direktesjekker bare når automatisering ikke kan bevise atferden | Integrasjons- og plattformsjekker på tvers av jobber, konfigurert av arbeidsflyten |
+| Kjør lokalt for hver endring                                                            | CI gir det brede signalet                                                             |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Direkte atferdstester og kategorikontroller ovenfor                                     | Oppdelt komplett enhetstestsamling og sekvensielle tester                             |
+| `npm run lint`                                                                          | Vitest-testsamlinger og trinnvise krav til dekning/kvalitet                           |
+| Typekontroll eller bygging bare når den berørte kontrakten krever det                   | Produksjonsbygging, sikkerhet, dokumentasjon, avhengigheter og PR-regler              |
+| Manuell interaksjon/sanntidskontroller bare når automatisering ikke kan bevise atferden | Integrasjons- og plattformkontroller på tvers av jobber, konfigurert av arbeidsflyten |
 
-En grønn, fokusert løkke er dokumentasjon på den endrede kontrakten, ikke et bevis på at urelaterte CI-kontroller
-vil bestå. Omvendt bør du ikke la hver lokale endring vente på hele repositoriummatrisen.
+En grønn, fokusert løkke er dokumentasjon på at den endrede kontrakten fungerer, ikke et bevis på at urelaterte CI-kontroller
+vil bestås. Omvendt bør du ikke la hver lokale endring vente på hele matrisen for repositoriet.
 
-## Sjekkliste for avstemming
+## Sjekkliste for samordning
 
 Før du ber om gjennomgang:
 
 - Bekreft at PR-ens basisgren fortsatt er den høyeste aktive `release/v*`-grenen.
-- Hent denne basisgrenen, og gjennomgå commits som har kommet inn siden du opprettet grenen.
+- Hent denne basisgrenen, og gjennomgå commits som har kommet inn siden du opprettet grenen din.
 - Gjennomgå `git diff <active-base>...HEAD` for utilsiktede eller genererte endringer.
 - Løs konflikter i kataloger og genererte dokumenter ved å oppdatere kilden og generere utdataene på nytt.
-- Kjør på nytt alle fokuserte tester/kontroller som er oppført i PR-beskrivelsen, etter avstemmingen.
-- Aldri svekk forventninger eller fjern påkrevde tester bare for å tilpasse deg en flyttet basisgren.
+- Kjør på nytt hver fokuserte test/kontroll som er oppført i PR-beskrivelsen etter samordningen.
+- Du må aldri svekke valideringer eller fjerne påkrevde tester bare for å samsvare med en flyttet basisgren.
 
-For regler om utgivelsesfrys og endring av målgren, se
-[Modell for branching og utgivelser](BRANCHING_MODEL.md). For den fullstendige CI-oversikten, se
+For regler om lanseringsfrys og endring av målgren, se
+[Forgrenings- og lanseringsmodell](BRANCHING_MODEL.md). For en fullstendig oversikt over CI, se
 [Referanse for kvalitetskontroller](../architecture/QUALITY_GATES.md).

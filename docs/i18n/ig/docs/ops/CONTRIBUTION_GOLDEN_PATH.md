@@ -4,73 +4,73 @@
 
 ---
 
-Jiri ntuziaka a họrọ usoro mmepe kacha nta a pụrụ ịdabere na ya maka pull request. Ọ naghị
-anọchi akwụkwọ nhazi usoro na nchekwa akọwapụtara maka mpaghara ọ bụla nke e nyere njikọ ha n'okpuru; ọ na-ejikọta ụdị
+Jiri ntuziaka a họrọ okirikiri mmepe kacha nta nke a pụrụ ịtụkwasị obi maka arịrịọ pull. Ọ naghị
+anọchi anya akwụkwọ nhazi usoro na nchekwa akọwapụtara maka mpaghara ndị e jikọtara n'okpuru; ọ na-ejikọta ụdị
 mgbanwe ọ bụla a na-ahụkarị na nkwekọrịta ya, nyocha ndị e lekwasịrị anya na ha, na mkpuchi CI.
 
-## Ụzọ mgbanwe ọ bụla na-agbaso
+## Ụzọ mgbanwe ọ bụla na-eso
 
-1. **Họrọ base tupu ịmalite ndezi.** Chọta branch `release/v*` kachasị elu nke ka na-arụ ọrụ ma mepụta branch site
-   n'ọnụ ya. Mee branch ahụ ka ọ bụrụ target, ọ bụghị `main`. Ọ bụrụ na release freeze dị ire, emela branch
-   ahụ a kpọnwụrụ akpọnwụ ka ọ bụrụ target; jiri cycle na-arụ ọrụ nke na-esote dịka akọwara na
-   [Branching & Release Model](BRANCHING_MODEL.md).
-2. **Kpọọ nkwekọrịta ndị ahụ aha.** Chọpụta catalog, schema, artifact emepụtara, public API, ma ọ bụ user
-   interface ọ bụla mgbanwe ahụ na-emetụta. Tebụl dị n'okpuru na-enye otu kacha nta a ga-eji malite.
-3. **Dee ma ọ bụ melite ule ndị e lekwasịrị anya na ha.** Mgbanwe production na `src/`, `open-sse/`, `electron/`, ma ọ bụ
-   `bin/` chọrọ automated test n'otu PR ahụ. Gbaa faịlụ ule kacha nta ndị na-egosi
-   behavior ahụ, emesịa gbaa focused gates ndị e depụtara.
-4. **Hapụ CI ka ọ gbaa matrix sara mbara.** Unit shards zuru ezu, Vitest, coverage ratchet, na
-   production build na-agba na PR ahụ. Gbaa suite sara mbara n'igwe mpaghara naanị mgbe focused failure na-egosi
-   mmetụta sara mbara karị ma ọ bụ mgbe mgbanwe ahụ gafere ọtụtụ subsystem.
-5. **Mee ka ihe kwekọọ tupu review.** Fetch base na-arụ ọrụ, nyochaa commit ọhụrụ ya na diff gị ma e jiri ya
-   tụnyere, emesịa rebase ma ọ bụ merge base ahụ dịka contributor workflow si dị. Dozie esemokwu generated-file
-   na catalog site na source ha, mepụtaghachi ha, gbakwaa focused loop ahụ ọzọ, ma kwadoo na
-   PR ahụ ka na-eme active release branch ka ọ bụrụ target.
-6. **Dekọọ ihe akaebe.** Na template PR, depụta command ndị a gbara, faịlụ ule ọ bụla agbakwunyere ma ọ bụ gbanwere,
-   migration ma ọ bụ feature flag, na validation ọ bụla a ga-eme naanị na CI nke ka na-echere.
+1. **Họrọ base tupu idezi.** Chọta ngalaba `release/v*` kachasị elu nke ka na-arụ ọrụ wee mepụta ngalaba site na
+   tip ya. Mee ka ngalaba ahụ bụrụ target, ọ bụghị `main`. Ọ bụrụ na release freeze na-arụ ọrụ, emela ngalaba
+   e kpọnwụrụ akpọnwụ ka ọ bụrụ target; jiri okirikiri na-arụ ọrụ na-esote nke akọwara na
+   [Ụdị Branching & Release](BRANCHING_MODEL.md).
+2. **Kpọọ nkwekọrịta ndị ahụ aha.** Chọpụta catalog, schema, artifact emepụtara, API ọha, ma ọ bụ user
+   interface niile mgbanwe ahụ na-emetụta. Tebụl dị n'okpuru na-enye usoro mmalite kacha nta.
+3. **Dee ma ọ bụ melite ule ndị e lekwasịrị anya na ha.** Mgbanwe production dị na `src/`, `open-sse/`, `electron/`, ma ọ bụ
+   `bin/` chọrọ ule akpaaka n'otu PR ahụ. Gbaa faịlụ ule kacha nta ndị na-egosi na
+   omume ahụ ziri ezi, wee gbaa gates ndị e lekwasịrị anya na ha nke edepụtara.
+4. **Kwe ka CI gbaa matrix sara mbara.** Unit shards zuru ezu, Vitest, coverage ratchet, na
+   production build na-agba na PR ahụ. Gbaa suite sara mbara na mpaghara gị naanị mgbe ọdịda e lekwasịrị anya na ya na-egosi
+   mmetụta sara mbara karị, ma ọ bụ mgbe mgbanwe ahụ gbasara ọtụtụ subsystems.
+5. **Mee ka ihe kwekọọ tupu review.** Fetch base na-arụ ọrụ, nyochaa commits ọhụrụ ya na diff gị megide
+   ya, wee rebase ma ọ bụ merge base dịka workflow ndị na-enye aka si dị. Dozie esemokwu generated-file
+   na catalog site na source ha, mepụtaghachi ha, gbakọọ okirikiri e lekwasịrị anya na ya ọzọ, ma gosi na
+   PR ahụ ka na-atụ aka na ngalaba release na-arụ ọrụ.
+6. **Dekọọ ihe akaebe.** N'ime template PR, depụta commands ndị a gbara, faịlụ ule ọ bụla agbakwunyere ma ọ bụ gbanwere,
+   migrations ma ọ bụ feature flags, na validation ọ bụla nke naanị CI ka na-echere.
 
-## Ụzọ ndị a kwadoro dịka ụdị mgbanwe si dị
+## Ụzọ ndị a tụkwasịrị obi dịka ụdị mgbanwe si dị
 
-Command ndị dị n'okpuru bụ focused checks kacha nta, ọ bụghị ikike ịwụli ule na-enyocha kpọmkwem
-behavior ị gbanwere.
+Commands ndị dị n'okpuru bụ nyocha kacha nta e lekwasịrị anya na ha, ọ bụghị ikike ịhapụ ule na-enyocha ozugbo
+omume ị gbanwere.
 
 ### Provider
 
 **Nkwekọrịta**
 
-- Nkọwa provider na `src/shared/constants/providers/` na otu e si chịkọta ya na
+- Nkọwa provider dị na `src/shared/constants/providers/` na nhazi ya dị na
   `src/shared/constants/providers.ts`.
-- Model na capability dị na `open-sse/config/providerRegistry.ts` ma ọ bụ faịlụ registry e wepụtara na ya.
-- Nhọrọ executor/translator, nhazi OAuth ma ọ bụ API-key, asset dashboard, na provider reference emepụtara
-  mgbe ọ dị mkpa.
-- Public credential ga-eji `resolvePublicCred()`; error response ga-eji shared sanitized
-  error helper. Hụ `docs/security/PUBLIC_CREDS.md` (git; a naghị compile ya n'ime `/docs`) na
-  [Error Sanitization](../security/ERROR_SANITIZATION.md).
+- Models na capabilities dị na `open-sse/config/providerRegistry.ts` ma ọ bụ faịlụ registry e wepụtara na ya.
+- Nhọrọ executor/translator, nhazi OAuth ma ọ bụ API-key, assets dashboard, na reference
+  provider emepụtara mgbe ọ dị mkpa.
+- Credentials ọha ga-eji `resolvePublicCred()`; responses njehie ga-eji helpers njehie a sachapụrụ
+  nke a na-ekekọrịta. Hụ `docs/security/PUBLIC_CREDS.md` (git; anaghị etinye ya n'ime `/docs`) na
+  [Nnọpụiche Ozi Njehie](../security/ERROR_SANITIZATION.md).
 
-**Focused loop**
+**Okirikiri e lekwasịrị anya na ya**
 
 ```bash
 npm run check:provider-consistency
 npm run check:provider-assets
 node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
-npm run gen:provider-reference   # mgbe catalog gbanwere; mee commit nke diff emepụtara
+npm run gen:provider-reference   # mgbe catalog gbanwere; commit diff emepụtara
 npm run lint
 ```
 
-Nwalee request family ọ bụla emetụtara: chat, Responses, images, embeddings, audio, ma ọ bụ video.
-Nyochaa catalog emepụtara na golden diff dịka mgbanwe nkwekọrịta; anabatala ha n'eleghị anya nke ọma.
+Nwalekwa request family ọ bụla emetụtara: chat, Responses, images, embeddings, audio, ma ọ bụ video.
+Nyochaa catalog emepụtara na golden diffs dịka mgbanwe nkwekọrịta; anabatala ha n'enweghị nyocha.
 
 ### Routing
 
 **Nkwekọrịta**
 
-- Public strategy value na metadata UI dị na `src/shared/constants/routingStrategies.ts`.
+- Strategy values ọha na metadata UI dị na `src/shared/constants/routingStrategies.ts`.
 - Dispatch na ordering n'okpuru `open-sse/services/combo.ts` na `open-sse/services/combo/`.
-- Combo schema, persistence, resilience state, model capability, na njikwa API/UI.
-- [Auto-Combo Engine](../routing/AUTO-COMBO.md) na akwụkwọ resilience mgbe behavior gbanwere.
+- Combo schemas, persistence, resilience state, model capabilities, na API/UI controls.
+- [Auto-Combo Engine](../routing/AUTO-COMBO.md) na akwụkwọ resilience mgbe omume gbanwere.
 
-**Focused loop**
+**Okirikiri e lekwasịrị anya na ya**
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
@@ -79,20 +79,20 @@ npm run check:known-symbols      # mgbanwe ndebanye strategy
 npm run lint
 ```
 
-Jiri ule mocked-upstream nke deterministic n'igwe mpaghara. Live combo smoke chọrọ credential ma bụrụ
-nke a na-eji aka eme, ọ bụghị ihe nnọchi anya CI.
+Jiri ule mocked-upstream deterministic na mpaghara gị. Live combo smokes chọrọ credentials ma bụrụ
+nke aka, ha abụghị ihe nnọchi CI.
 
 ### UI / UX
 
 **Nkwekọrịta**
 
-- Route/page Next.js na ókè shared component n'okpuru `src/app/` na
+- Route/page Next.js na oke shared component n'okpuru `src/app/` na
   `src/shared/components/`.
-- Ọdịdị API response, state loading/empty/error, behavior keyboard na screen-reader,
+- Ọdịdị API response, ọnọdụ loading/empty/error, omume keyboard na screen-reader,
   responsive layout, theming, na mgbasawanye locale.
-- English UI source string dị na `src/i18n/messages/en.json`; etinyela copy ọhụrụ onye ọrụ ga-ahụ ozugbo na code.
+- English UI source strings dị na `src/i18n/messages/en.json`; etinyela copy ọhụrụ ndị user ga-ahụ ozugbo n'ime koodu.
 
-**Focused loop**
+**Okirikiri e lekwasịrị anya na ya**
 
 ```bash
 node --import tsx --test tests/unit/dashboard/<feature>.test.ts
@@ -101,69 +101,69 @@ npm run check:dashboard-typecheck
 npm run lint
 ```
 
-Gbaa app ahụ maka mgbanwe interaction ma ọ bụ visual ma lelee viewport dị warara na nke sara mbara. CI na-agba
-production build na suite ndị sara mbara karị; behavior visual ka chọrọ focused component, Playwright,
-ma ọ bụ documented manual check dabara na mgbanwe ahụ.
+Gbaa app ahụ maka mgbanwe interaction ma ọ bụ visual ma lelee ma viewports dị warara ma ndị sara mbara. CI na-agba
+production build na suites sara mbara; omume visual ka chọrọ component e lekwasịrị anya na ya, Playwright,
+ma ọ bụ nyocha aka edekọtara nke dabara na mgbanwe ahụ.
 
 ### i18n
 
 **Nkwekọrịta**
 
-- `src/i18n/messages/en.json` bụ source UI; `config/i18n.json` bụ source locale.
-- Catalog CLI dị iche n'okpuru `bin/cli/locales/`.
-- Debe placeholder na tag ICU otu ha dị kpọmkwem. Atụgharịla aha product/provider/model,
-  aha protocol na header, command, identifier code/JSON, URL, environment variable, ma ọ bụ
-  okwu echedoro dịka `OmniRoute`, `OAuth`, `MCP`, na `A2A`. Source list dị ugbu a bụ
+- `src/i18n/messages/en.json` bụ UI source; `config/i18n.json` bụ locale source.
+- Catalogs CLI dị iche n'okpuru `bin/cli/locales/`.
+- Chekwaa ICU placeholders na tags kpọmkwem. Atụgharịla aha product/provider/model,
+  aha protocol na header, commands, code/JSON identifiers, URLs, environment variables, ma ọ bụ
+  okwu echedoro dịka `OmniRoute`, `OAuth`, `MCP`, na `A2A`. Ndepụta source dị ugbu a bụ
   `scripts/i18n/glossary/protected-terms.json`.
 
-**Focused loop**
+**Okirikiri e lekwasịrị anya na ya**
 
 ```bash
 npm run i18n:sync-ui:dry
 npm run i18n:check-ui-coverage
 npm run i18n:check-value-drift
 npm run i18n:check-glossary
-npm run check:cli-i18n          # mgbe string/catalog CLI gbanwere
+npm run check:cli-i18n          # mgbe strings/catalogs CLI gbanwere
 npm run lint
 ```
 
-Nke a bụ ntuziaka maka system dị ugbu a, ọ bụghị oku ka a gbasaa tooling ma ọ bụ key model ya.
-Debe patch i18n ka ọ metụta naanị ihe dị mkpa mgbe a ka na-emepụta system nnọchi ya. Agbala command ntụgharị
-na-akpọ external service ọ gwụla ma ọrụ ahụ chọrọ kpọmkwem translation emepụtara ma
-ị nyochala diff sitere na ya.
+Nke a bụ ntuziaka maka usoro dị ugbu a, ọ bụghị ọkpụkpọ òkù ịgbasa tooling ma ọ bụ key model ya.
+Debe patches i18n ka ha metụta naanị ihe dị mkpa ka a na-emepụta usoro ga-anọchi ya. Agbala commands ntụgharị asụsụ
+na-akpọ external services ma ọ bụrụ na ọrụ ahụ achọghị translations emepụtara n'ụzọ doro anya ma
+ị nyochabeghị diff sitere na ya.
 
 ### CLI
 
 **Nkwekọrịta**
 
-- Iwu ọhaneze na ọkọlọtọ dị na `bin/cli/`, iwu API ndị emepụtara, koodu ọpụpụ, stdout/stderr na
-  ọdịdị mmepụta JSON, omume nhazi/g gburugburu ebe obibi, na faịlụ ndị etinyere na ngwugwu.
-- Eriri CLI ndị ọrụ na-ahụ ga-eji oyi akwa i18n nke CLI ma mee ka katalọgụ `en`/`pt-BR` kwekọọ.
-- Debe Node dịka runtime a na-akwado ma chekwaa nkwekọrịta binary e bipụtara.
+- Iwu ọha na flags dị na `bin/cli/`, iwu API ndị emepụtara, koodu ọpụpụ, stdout/stderr na
+  ọdịdị mmepụta JSON, omume nhazi/environment, na faịlụ ndị etinyere na ngwugwu.
+- Eriri CLI ndị onye ọrụ na-ahụ ga-eji oyi akwa i18n nke CLI ma debe katalọgụ `en`/`pt-BR` ka ha kwekọọ.
+- Debe Node dịka runtime a na-akwado yana nkwekọrịta binary e bipụtara.
 
-**Usoro nlele lekwasịrị anya**
+**Usoro nnwale ezubere iche**
 
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
 npm run check:cli-i18n
-npm run build:cli             # mgbanwe CLI ndị emepụtara/ejikọtara
-npm run check:pack-policy     # mgbanwe n'akụkụ ngwugwu
+npm run build:cli             # mgbanwe CLI ndị emepụtara/ejikọtara ọnụ
+npm run check:pack-policy     # mgbanwe n'akụkụ ngwugwu a na-ekpughe
 npm run lint
 ```
 
-Jiri iwu ahụ kpọmkwem n'ime ndekọ data nwa oge mgbe omume dabere na parsing, faịlụ, ma ọ bụ ọnọdụ
-ọpụpụ. CI na-eme nyocha ndị sara mbara karị maka artefakt ngwugwu na ecosystem.
+Jiri kpọmkwem iwu ahụ n'ime ndekọ data nwa oge mgbe omume dabere na parsing, faịlụ, ma ọ bụ ọnọdụ
+ọpụpụ. CI na-eme nyocha sara mbara karị nke artifact ngwugwu na ecosystem.
 
 ### Ebe nchekwa data
 
 **Nkwekọrịta**
 
-- Modul ngalaba dị n'okpuru `src/lib/db/`; bubata modul ndị akọwapụtara ozugbo (e wepụrụ oyi akwa mbupụ-ọzọ `localDb.ts` ochie).
-- Mbugharị SQL nwere nọmba, nke enwere ike ịme ugboro ugboro n'enweghị mmetụta ọzọ, dị n'okpuru `src/lib/db/migrations/`, nchekwa azụmahịa, omume
-  nkwalite, index, na onye ọkpụkpọ ọ bụla schema ahụ metụtara.
+- Modul domain ndị dị n'okpuru `src/lib/db/`; webata modul akọwapụtara ozugbo (e wepụrụ oyi akwa re-export ochie `localDb.ts`).
+- Mbugharị SQL ndị nwere nọmba ma bụrụ idempotent n'okpuru `src/lib/db/migrations/`, nchekwa transaction, omume
+  upgrade, indexes, na onye ọ bụla na-akpọ ha nke schema metụtara.
 - Routes na handlers anaghị enye raw SQL ozugbo.
 
-**Usoro nlele lekwasịrị anya**
+**Usoro nnwale ezubere iche**
 
 ```bash
 npm run check:migration-numbering
@@ -173,20 +173,20 @@ node --import tsx/esm --test tests/unit/db/migration-<number>.test.ts
 npm run lint
 ```
 
-Nwalee ma ebe nchekwa data ọhụrụ ma nkwalite sitere na schema gara aga mgbe ị na-agbakwunye mbugharị. Nnwale ebe nchekwa data
-ga-emechi handles ma kpọọ `resetDbInstance()` n'oge nhicha. Gbaa `npm run test:bun:db` naanị mgbe
-ụzọ adapter Bun nke best-effort gbanwere; Node ka bụ isi ntụaka.
+Mgbe ị na-agbakwunye migration, nwalee ma ebe nchekwa data ọhụrụ ma upgrade sitere na schema gara aga. Nnwale ebe nchekwa data
+ga-emechi handles ma kpọọ `resetDbInstance()` n'oge cleanup. Gbaa `npm run test:bun:db` naanị mgbe
+ụzọ Bun adapter nke best-effort gbanwere; Node ka bụ isi ntụaka a na-ekwenye.
 
-### Mwube / mbuga
+### Mwube / mbugharị
 
 **Nkwekọrịta**
 
-- Manifests/lockfile nke mgbọrọgwụ na workspace, `scripts/build/`, nchịkọta standalone Next.js, ọdịnaya ngwugwu `dist/`,
-  metadata ikpo okwu Electron, workflows CI, na sentinels mbuga.
-- Oke Node ndị a na-akwado na ojiji Bun e depụtara na ndepụta ikike dị na `CLAUDE.md` ga-anọgide dịka ha dị.
-- Artefakt mwube agaghị eso na nsuso; atumatu dependency, ikike, workflow, na ngwugwu ga-emetụta.
+- Manifests/lockfile nke root na workspace, `scripts/build/`, nchịkọta standalone nke Next.js, ọdịnaya ngwugwu
+  `dist/`, metadata platform Electron, workflows CI, na sentinels deployment.
+- Ranges Node a na-akwado na ojiji Bun e nyere ohere na `CLAUDE.md` ga-anọgide otú ha dị.
+- Artifacts mwube agaghị eso na nsuso; iwu gbasara dependencies, licenses, workflows, na ngwugwu ka na-emetụta.
 
-**Usoro nlele lekwasịrị anya**
+**Usoro nnwale ezubere iche**
 
 ```bash
 node --import tsx/esm --test tests/unit/build/<behavior>.test.ts
@@ -198,32 +198,73 @@ npm run lint
 
 Jiri `npm run build` na mpaghara naanị mgbe mgbanwe ahụ metụtara compilation, nchịkọta standalone, assets,
 ma ọ bụ bundling runtime. Jiri `npm run build:release` naanị maka nkwado release/deploy. Mwube CI bụ
-akara ikpeazụ gafee ikpo okwu dị iche iche; mgbanwe Electron akọwapụtara maka otu ikpo okwu chọrọ mwube lekwasịrị anya kwekọrọ
+akara ikpeazụ cross-platform; mgbanwe Electron ndị metụtara otu platform chọrọ mwube ezubere iche kwekọrọ
 ma ọ bụ ihe akaebe smoke.
 
-## Okirikiri mpaghara ma e jiri ya tụnyere CI
+## Usoro okirikiri candidate nke mpaghara
 
-| Gbaa na mpaghara maka patch ọ bụla                                              | CI na-enye akara ngosi sara mbara                               |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Nnwale omume kpọmkwem na ọnụ ụzọ otu ndị dị n'elu                               | Usoro nnwale unit zuru ezu e kewara ekewa na nnwale serial      |
-| `npm run lint`                                                                  | Usoro nnwale Vitest na mmụba a na-amanye n'ogo coverage/quality |
-| Mee typecheck ma ọ bụ build naanị mgbe nkwekọrịta emetụtara chọrọ ya            | Build mmepụta, nchekwa, docs, dependency, na ọnụ ụzọ amụma PR   |
-| Mee nyocha mmekọrịta aka/live naanị mgbe automation enweghị ike igosi omume ahụ | Nnwale njikọta cross-job na platform ndị workflow haziri        |
+Nnwale source enweghị ike igosi na artifact e tinyere na package ga-ebido: ndepụta packaging, dependencies e wepụrụ,
+na native binaries na-ada naanị mgbe etinyere tarball ma malite ya. `npm run dev:candidate`
+(`scripts/dev/candidate.mjs`) bụ akụkụ mpaghara nke usoro build-once / validate / promote sitere na
+RFC #8084: ọ na-ewu otu candidate, na-enyocha kpọmkwem artifact ahụ, na-akwalite ya site n'ịgbanwe
+aha directory, ma na-eweghachi ya mgbe slot e kwalitere dara health check ya.
 
-Okirikiri lekwasịrị anya nke na-aga nke ọma bụ ihe akaebe gbasara nkwekọrịta agbanwere, ọ bụghị ihe na-egosi na nyocha CI ndị na-enweghị njikọ
-ga-agafe. N'aka nke ọzọ, emela ka ndezi mpaghara ọ bụla chere matrix repository zuru ezu.
+```bash
+npm run dev:candidate -- run --dry-run --json  # bipụta atụmatụ ahụ, agbanwela ihe ọ bụla
+npm run dev:candidate -- run                   # wuo + nyochaa + kwalite, weghachi na-akpaghị aka
+npm run dev:candidate -- build                 # npm pack + tinye n'ime _artifacts/candidate/<id>/
+npm run dev:candidate -- validate --id <id>    # bido na port efu, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # gbanwee current na previous
+npm run dev:candidate -- run --from-tarball <file.tgz>  # jiri ọzọ tarball e wuru ebe ọzọ (CI)
+```
+
+- **Wuo naanị otu ugboro.** `build` na-etinye tree dị ugbu a na package (ọ chọrọ `dist/server.js`, ya mere buru ụzọ mee
+  `npm run build:release`) ma ọ bụ detuo `--from-tarball`, wee tinye tarball ahụ n'ime
+  npm prefix dịpụrụ adịpụ, n'ihi na tarball ahụ enweghị `node_modules`. Id ahụ bụ `HEAD`
+  sha dị mkpụmkpụ (`-dirty` mgbe tree ahụ nwere mgbanwe mpaghara) ma ọ bụ `tgz-<sha256>` maka tarball. A ga-eji id dị ọcha
+  e wurula mee ihe ọzọ kama iwughachi ya; nyefee `--force` iji wughachi ya.
+- **Nyochaa package ahụ, ọ bụghị source ahụ.** `validate` na-amalite CLI e tinyere
+  (`serve --port <free port>`) site na `DATA_DIR=<candidate>/data` ọhụrụ, secrets adịgboroja, ebe ewepụrụ
+  `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` na `INITIAL_PASSWORD` nke onye ọrụ nchịkwa na
+  environment, ka o wee nyochaa ọnọdụ keyless loopback nke nrụnye ọhụrụ. Ọ na-eche ka
+  `GET /api/health` weghachite 200, na-achọ ka `GET /v1/models` weghachite 200, kwụsị process group,
+  ma dekọọ mkpebi ahụ na `validation.json` tinyere hash nke tarball.
+- **Kwalite otu artifact ahụ.** `promote` na-ajụ candidate na-enweghị validation gafere nke kwekọrọ na
+  hash tarball ya dị ugbu a. Slot na-arụ ọrụ na ndabara bụ `_artifacts/candidate/current`; `--target <dir>`
+  na-ahọrọ directory ọzọ dị n'otu filesystem ahụ, ebe slot ya gara aga bụ `<dir>.previous`.
+  Mgbanwe aha nke ọ bụla bụ atomic, ma ọdịda n'etiti usoro ahụ na-emegharị azụ mgbanwe aha ndị emerela.
+- **Weghachi azụ.** `run` na-enyocha slot e kwalitere ọzọ ma na-agbanwe `current` na `previous` azụ mgbe
+  nyocha ahụ dara. A naghị akwalite candidate dara na validation mbụ.
+
+A na-ede ihe niile n'okpuru `_artifacts/candidate/` nke git na-eleghara anya; a naghị emetụ nrụnye OmniRoute
+dị adị na data directory ya aka. CLI e kwalitere bụ
+`_artifacts/candidate/current/prefix/bin/omniroute`; jiri `DATA_DIR` nke gị malite ya mgbe ị na-eji
+ya. Exit codes: `0` ihe gara nke ọma, `1` validation ma ọ bụ promotion dara, `2` njehie ojiji ma ọ bụ build na-efu.
+
+## Usoro mpaghara megide CI
+
+| Gbaa na mpaghara maka patch ọ bụla                                         | CI na-enye mgbaàmà sara mbara                                             |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Nnwale omume kpọmkwem na ọnụ ụzọ otu ndị dị n'elu                          | Nchịkọta nnwale unit zuru ezu e kewara ekewa na nnwale ndị na-aga n'usoro |
+| `npm run lint`                                                             | Nchịkọta Vitest na usoro ratchet maka mkpuchi/ịdịmma                      |
+| Nyocha ụdị ma ọ bụ wuo naanị mgbe nkwekọrịta emetụtara chọrọ ya            | Nrụpụta production, nchekwa, docs, dependency, na ọnụ ụzọ iwu PR          |
+| Mmekọrịta aka/nyocha ozugbo naanị mgbe akpaaka enweghị ike igosi omume ahụ | Nnwale njikọta n'etiti job na nke platform nke workflow haziri            |
+
+Usoro lekwasịrị anya nke na-egosi akwụkwọ ndụ akwụkwọ ndụ bụ ihe akaebe gbasara nkwekọrịta agbanwere, ọ bụghị ihe akaebe na nnwale CI ndị na-enweghị njikọ
+ga-agafe. N'aka nke ọzọ, emela ka ndezi mpaghara ọ bụla chere matriks repository zuru ezu.
 
 ## Ndepụta nyocha maka ime ka ihe kwekọọ
 
-Tupu ịrịọ ka e nyochaa ya:
+Tupu ịrịọ nyocha:
 
-- Kwenye na ntọala PR ka bụ alaka `release/v*` kachasị elu nke ka na-arụ ọrụ.
-- Fetch ntọala ahụ ma nyochaa commits ndị batara kemgbe i mepụtara alaka gị.
-- Nyochaa `git diff <active-base>...HEAD` maka mgbanwe mberede ma ọ bụ mgbanwe e mepụtara na-akpaghị aka.
+- Gosi na ntọala PR ka bụ alaka `release/v*` kacha elu nke ka na-arụ ọrụ.
+- Fetch ntọala ahụ ma nyochaa commit ndị batara kemgbe i mepụtara alaka gị.
+- Nyochaa `git diff <active-base>...HEAD` maka mgbanwe ndị mere na mberede ma ọ bụ ndị emepụtara.
 - Dozie esemokwu catalog na generated-document site n'imelite isi mmalite ma mepụtaghachi output.
-- Gbaa ọzọ nnwale/ọnụ ụzọ niile lekwasịrị anya edepụtara na nkọwa PR mgbe emechara ime ka ihe kwekọọ.
-- Ebelatala ike assertions ma ọ bụ wepụ nnwale achọrọ naanị ka ha kwekọọ na ntọala gbanwere.
+- Gbaa ọzọ nnwale/ọnụ ụzọ ọ bụla lekwasịrị anya nke edepụtara na nkọwa PR mgbe emechara ime ka ihe kwekọọ.
+- Ebelatala ike assertion ma ọ bụ wepụ nnwale achọrọ naanị iji kwekọọ na ntọala a kwagara.
 
 Maka iwu release-freeze na retargeting, jiri
-[Ụdị Alaka na Mwepụta](BRANCHING_MODEL.md). Maka ndepụta CI zuru ezu, jiri
-[Ntụaka Ọnụ Ụzọ Ogo](../architecture/QUALITY_GATES.md).
+[Ụdị Alaka & Mwepụta](BRANCHING_MODEL.md). Maka ndepụta CI zuru ezu, jiri
+[Ntụaka Ọnụ Ụzọ Ịdịmma](../architecture/QUALITY_GATES.md).

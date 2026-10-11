@@ -5,34 +5,34 @@
 ---
 
 Verwenden Sie diesen Leitfaden, um für einen Pull Request die kleinste zuverlässige Entwicklungsschleife auszuwählen. Er ersetzt nicht
-die unten verlinkten bereichsspezifischen Architektur- und Sicherheitsdokumente, sondern verknüpft jeden häufigen
-Änderungstyp mit seinen Verträgen, gezielten Prüfungen und seiner CI-Abdeckung.
+die unten verlinkten bereichsspezifischen Architektur- und Sicherheitsdokumente, sondern verknüpft jeden gängigen
+Änderungstyp mit seinen Verträgen, gezielten Prüfungen und der CI-Abdeckung.
 
 ## Der Ablauf für jede Änderung
 
-1. **Wählen Sie vor der Bearbeitung die Basis aus.** Ermitteln Sie den höchsten aktiven `release/v*`-Branch und erstellen Sie Ihren Branch von
-   dessen Spitze. Verwenden Sie diesen Branch als Ziel, nicht `main`. Wenn ein Release-Freeze aktiv ist, verwenden Sie nicht den eingefrorenen
+1. **Wählen Sie vor der Bearbeitung die Basis aus.** Suchen Sie den höchsten aktiven `release/v*`-Branch und erstellen Sie Ihren Branch
+   von dessen Spitze. Verwenden Sie diesen Branch und nicht `main` als Ziel. Wenn ein Release-Freeze aktiv ist, verwenden Sie nicht den eingefrorenen
    Branch als Ziel, sondern den nächsten aktiven Zyklus, der im
-   [Branching- & Release-Modell](BRANCHING_MODEL.md) beschrieben ist.
-2. **Benennen Sie die Verträge.** Ermitteln Sie jeden Katalog, jedes Schema, jedes generierte Artefakt, jede öffentliche API und jede
-   Benutzeroberfläche, die von der Änderung betroffen ist. Die nachstehende Tabelle enthält die mindestens erforderliche Ausgangsmenge.
-3. **Schreiben oder aktualisieren Sie gezielte Tests.** Produktionsänderungen in `src/`, `open-sse/`, `electron/` oder
+   [Branching- und Release-Modell](BRANCHING_MODEL.md) beschrieben ist.
+2. **Benennen Sie die Verträge.** Identifizieren Sie jeden Katalog, jedes Schema, jedes generierte Artefakt, jede öffentliche API und jede
+   Benutzeroberfläche, die von der Änderung betroffen sind. Die folgende Tabelle enthält die mindestens erforderliche Ausgangsmenge.
+3. **Schreiben oder aktualisieren Sie gezielte Tests.** Produktivcodeänderungen in `src/`, `open-sse/`, `electron/` oder
    `bin/` erfordern einen automatisierten Test im selben PR. Führen Sie zunächst die kleinstmöglichen Testdateien aus, die das
-   Verhalten nachweisen, und anschließend die aufgeführten gezielten Prüfungen.
-4. **Lassen Sie CI die breite Matrix ausführen.** Die vollständigen Unit-Shards, Vitest, die Coverage-Ratchet und
-   der Produktions-Build werden für den PR ausgeführt. Führen Sie eine breite Suite lokal nur dann aus, wenn ein gezielter Fehler auf
-   umfassendere Auswirkungen hindeutet oder wenn die Änderung mehrere Subsysteme betrifft.
-5. **Gleichen Sie vor dem Review ab.** Rufen Sie die aktive Basis ab, prüfen Sie deren neue Commits und Ihren Diff gegenüber
-   dieser Basis und führen Sie anschließend gemäß dem Contributor-Workflow einen Rebase durch oder mergen Sie die Basis. Beheben Sie Konflikte bei generierten Dateien
-   und Katalogen ausgehend von deren Quelle, generieren Sie sie neu, führen Sie die gezielte Schleife erneut aus und bestätigen Sie, dass der
-   PR weiterhin auf den aktiven Release-Branch zielt.
-6. **Dokumentieren Sie die Nachweise.** Geben Sie in der PR-Vorlage die ausgeführten Befehle, jede hinzugefügte oder geänderte Testdatei,
-   Migrationen oder Feature-Flags sowie alle noch ausstehenden, ausschließlich in CI durchgeführten Validierungen an.
+   Verhalten belegen, und anschließend die aufgeführten gezielten Prüfungen.
+4. **Lassen Sie CI die umfassende Matrix ausführen.** Die vollständigen Unit-Test-Shards, Vitest, die schrittweise angehobene Abdeckungsanforderung und
+   der Produktions-Build werden für den PR ausgeführt. Führen Sie eine umfassende Suite lokal nur dann aus, wenn ein gezielter Fehler auf
+   weiterreichende Auswirkungen hindeutet oder wenn die Änderung mehrere Subsysteme betrifft.
+5. **Gleichen Sie die Änderungen vor dem Review ab.** Rufen Sie die aktive Basis ab, prüfen Sie deren neue Commits und Ihren Diff im Vergleich
+   dazu und führen Sie anschließend gemäß dem Contributor-Workflow einen Rebase oder Merge der Basis durch. Beheben Sie Konflikte bei generierten Dateien
+   und Katalogen ausgehend von deren Quelle, generieren Sie sie erneut, führen Sie die gezielte Schleife erneut aus und bestätigen Sie, dass der
+   PR weiterhin auf den aktiven Release-Branch abzielt.
+6. **Dokumentieren Sie Nachweise.** Führen Sie in der PR-Vorlage die ausgeführten Befehle, jede hinzugefügte oder geänderte Testdatei,
+   Migrationen oder Feature-Flags sowie alle noch ausstehenden, ausschließlich in CI durchgeführten Validierungen auf.
 
-## Standardpfade nach Änderungstyp
+## Empfohlene Abläufe nach Änderungstyp
 
-Die nachstehenden Befehle sind die mindestens erforderlichen gezielten Prüfungen und keine Erlaubnis, einen Test auszulassen, der das von Ihnen geänderte
-Verhalten direkt abdeckt.
+Die folgenden Befehle sind die mindestens erforderlichen gezielten Prüfungen und keine Erlaubnis, einen Test auszulassen, der das
+von Ihnen geänderte Verhalten direkt abdeckt.
 
 ### Provider
 
@@ -41,10 +41,10 @@ Verhalten direkt abdeckt.
 - Provider-Definition in `src/shared/constants/providers/` und deren Zusammenstellung in
   `src/shared/constants/providers.ts`.
 - Modelle und Fähigkeiten in `open-sse/config/providerRegistry.ts` oder den daraus extrahierten Registry-Dateien.
-- Executor-/Translator-Auswahl, OAuth- oder API-Schlüssel-Konfiguration, Dashboard-Assets und gegebenenfalls die generierte
+- Auswahl von Executor/Translator, OAuth- oder API-Key-Konfiguration, Dashboard-Assets und gegebenenfalls die generierte
   Provider-Referenz.
-- Öffentliche Anmeldedaten müssen `resolvePublicCred()` verwenden; Fehlerantworten müssen die gemeinsam genutzten Hilfsfunktionen zur
-  Bereinigung von Fehlern verwenden. Siehe `docs/security/PUBLIC_CREDS.md` (Git; wird nicht in `/docs` kompiliert) und
+- Öffentliche Zugangsdaten müssen `resolvePublicCred()` verwenden; Fehlerantworten müssen die gemeinsam genutzten bereinigten
+  Fehlerhilfsfunktionen verwenden. Siehe `docs/security/PUBLIC_CREDS.md` (git; wird nicht nach `/docs` kompiliert) und
   [Fehlerbereinigung](../security/ERROR_SANITIZATION.md).
 
 **Gezielte Schleife**
@@ -54,7 +54,7 @@ npm run check:provider-consistency
 npm run check:provider-assets
 node --import tsx/esm --test tests/unit/provider-translate-path-golden.test.ts
 node --import tsx/esm --test tests/unit/<provider-or-executor>.test.ts
-npm run gen:provider-reference   # wenn sich der Katalog ändert; committen Sie den generierten Diff
+npm run gen:provider-reference   # wenn sich der Katalog ändert; den generierten Diff committen
 npm run lint
 ```
 
@@ -66,21 +66,21 @@ Prüfen Sie generierte Katalog- und Golden-Diffs als Vertragsänderungen; übern
 **Verträge**
 
 - Öffentliche Strategiewerte und UI-Metadaten in `src/shared/constants/routingStrategies.ts`.
-- Dispatch und Reihenfolge unter `open-sse/services/combo.ts` und `open-sse/services/combo/`.
-- Combo-Schemas, Persistenz, Resilienzstatus, Modellfähigkeiten und API-/UI-Steuerelemente.
-- [Auto-Combo-Engine](../routing/AUTO-COMBO.md) und Resilienz-Dokumentation, wenn sich das Verhalten ändert.
+- Weiterleitung und Reihenfolge unter `open-sse/services/combo.ts` und `open-sse/services/combo/`.
+- Combo-Schemas, Persistenz, Resilienzstatus, Modellfähigkeiten sowie API-/UI-Steuerelemente.
+- [Auto-Combo-Engine](../routing/AUTO-COMBO.md) und Resilienzdokumentation, wenn sich das Verhalten ändert.
 
 **Gezielte Schleife**
 
 ```bash
 node --import tsx/esm --test tests/unit/combo-<behavior>.test.ts
-npm run test:combo:matrix        # Änderungen an Strategie oder Dispatch
+npm run test:combo:matrix        # Änderungen an Strategie oder Weiterleitung
 npm run check:known-symbols      # Änderungen an der Strategieregistrierung
 npm run lint
 ```
 
-Verwenden Sie lokal deterministische Tests mit simuliertem Upstream. Live-Combo-Smoke-Tests erfordern Anmeldedaten und werden
-manuell durchgeführt; sie sind kein Ersatz für CI.
+Verwenden Sie lokal deterministische Tests mit gemockten Upstream-Diensten. Live-Combo-Smoke-Tests erfordern Zugangsdaten und werden
+manuell ausgeführt; sie ersetzen keine CI-Tests.
 
 ### UI / UX
 
@@ -88,9 +88,9 @@ manuell durchgeführt; sie sind kein Ersatz für CI.
 
 - Next.js-Routen/-Seiten und Grenzen gemeinsam genutzter Komponenten unter `src/app/` und
   `src/shared/components/`.
-- API-Antwortstrukturen, Lade-/Leer-/Fehlerzustände, Tastatur- und Screenreader-Verhalten,
-  responsives Layout, Theming und Erweiterung der Gebietsschemata.
-- Englische UI-Quelltexte in `src/i18n/messages/en.json`; codieren Sie neue benutzersichtbare Texte nicht fest ein.
+- API-Antwortstrukturen, Lade-/Leer-/Fehlerzustände, Verhalten für Tastatur und Screenreader,
+  responsives Layout, Themes und Erweiterung der Gebietsschemas.
+- Englische UI-Quelltexte in `src/i18n/messages/en.json`; codieren Sie keine neuen benutzerseitig sichtbaren Texte hart.
 
 **Gezielte Schleife**
 
@@ -102,18 +102,18 @@ npm run lint
 ```
 
 Führen Sie die Anwendung bei Interaktions- oder visuellen Änderungen aus und prüfen Sie sowohl schmale als auch breite Viewports. CI führt den
-Produktions-Build und umfassendere Suites aus; visuelles Verhalten benötigt dennoch eine gezielte Komponenten- oder Playwright-Prüfung
-beziehungsweise eine für die Änderung angemessene dokumentierte manuelle Prüfung.
+Produktions-Build und umfassendere Suites aus; visuelles Verhalten erfordert dennoch eine gezielte Komponentenprüfung, einen Playwright-Test
+oder eine dokumentierte manuelle Prüfung, die für die Änderung geeignet ist.
 
 ### i18n
 
 **Verträge**
 
-- `src/i18n/messages/en.json` ist die UI-Quelle; `config/i18n.json` ist die Quelle für Gebietsschemata.
+- `src/i18n/messages/en.json` ist die UI-Quelle; `config/i18n.json` ist die Quelle der Gebietsschemas.
 - CLI-Kataloge befinden sich separat unter `bin/cli/locales/`.
-- Behalten Sie ICU-Platzhalter und -Tags exakt bei. Übersetzen Sie keine Produkt-/Provider-/Modellnamen,
+- Bewahren Sie ICU-Platzhalter und Tags exakt. Übersetzen Sie keine Produkt-/Provider-/Modellnamen,
   Protokoll- und Header-Namen, Befehle, Code-/JSON-Bezeichner, URLs, Umgebungsvariablen oder
-  geschützten Begriffe wie `OmniRoute`, `OAuth`, `MCP` und `A2A`. Die aktuelle Quellliste befindet sich unter
+  geschützte Begriffe wie `OmniRoute`, `OAuth`, `MCP` und `A2A`. Die aktuelle Quellliste befindet sich unter
   `scripts/i18n/glossary/protected-terms.json`.
 
 **Gezielte Schleife**
@@ -123,14 +123,14 @@ npm run i18n:sync-ui:dry
 npm run i18n:check-ui-coverage
 npm run i18n:check-value-drift
 npm run i18n:check-glossary
-npm run check:cli-i18n          # wenn sich CLI-Zeichenfolgen/-Kataloge ändern
+npm run check:cli-i18n          # wenn sich CLI-Texte/-Kataloge ändern
 npm run lint
 ```
 
-Dies ist eine Anleitung für das bestehende System und keine Aufforderung, dessen Werkzeuge oder Schlüsselmodell zu erweitern.
+Dies ist eine Anleitung für das bestehende System und keine Aufforderung, dessen Tooling oder Schlüsselmodell zu erweitern.
 Halten Sie i18n-Patches gezielt und klein, während das Ersatzsystem entwickelt wird. Führen Sie keine Übersetzungsbefehle
-aus, die externe Dienste aufrufen, sofern die Aufgabe nicht ausdrücklich generierte Übersetzungen erfordert und
-Sie den resultierenden Diff geprüft haben.
+aus, die externe Dienste aufrufen, es sei denn, die Aufgabe erfordert ausdrücklich generierte Übersetzungen und
+Sie haben den daraus resultierenden Diff geprüft.
 
 ### CLI
 
@@ -138,10 +138,10 @@ Sie den resultierenden Diff geprüft haben.
 
 - Öffentliche Befehle und Flags in `bin/cli/`, generierte API-Befehle, Exit-Codes, stdout/stderr und
   JSON-Ausgabeformate, Konfigurations-/Umgebungsverhalten sowie paketierte Dateien.
-- Benutzerseitige CLI-Zeichenketten müssen die CLI-i18n-Schicht verwenden, und die Kataloge `en`/`pt-BR` müssen synchron gehalten werden.
+- Benutzerseitige CLI-Zeichenfolgen müssen die CLI-i18n-Schicht verwenden, und die Kataloge `en`/`pt-BR` müssen synchron gehalten werden.
 - Node muss als unterstützte Laufzeitumgebung und der veröffentlichte Binärvertrag müssen erhalten bleiben.
 
-**Fokussierter Durchlauf**
+**Fokussierter Zyklus**
 
 ```bash
 node --import tsx/esm --test tests/unit/cli/<command>.test.ts
@@ -151,19 +151,19 @@ npm run check:pack-policy     # Änderungen an der Paketoberfläche
 npm run lint
 ```
 
-Verwenden Sie den exakten Befehl in einem temporären Datenverzeichnis, wenn das Verhalten vom Parsen, von Dateien oder vom Exit-
-Status abhängt. CI führt die umfassenderen Prüfungen von Paketartefakten und des Ökosystems durch.
+Verwende den exakten Befehl in einem temporären Datenverzeichnis, wenn das Verhalten vom Parsen, von Dateien oder vom Exit-
+Status abhängt. CI führt die umfassenderen Prüfungen von Paketartefakten und Ökosystem durch.
 
 ### Datenbank
 
 **Verträge**
 
-- Domänenmodule unter `src/lib/db/`; importieren Sie spezifische Module direkt (die alte Reexport-Schicht `localDb.ts` wurde entfernt).
+- Domänenmodule unter `src/lib/db/`; importiere spezifische Module direkt (die alte Re-Export-Schicht `localDb.ts` wurde entfernt).
 - Nummerierte, idempotente SQL-Migrationen unter `src/lib/db/migrations/`, Transaktionssicherheit, Upgrade-
-  Verhalten, Indizes und jeder vom Schema betroffene Aufrufer.
-- Routen und Handler führen niemals direkt Raw SQL aus.
+  Verhalten, Indizes und alle vom Schema betroffenen Aufrufer.
+- Routen und Handler führen niemals direkt unformatiertes SQL aus.
 
-**Fokussierter Durchlauf**
+**Fokussierter Zyklus**
 
 ```bash
 npm run check:migration-numbering
@@ -173,57 +173,78 @@ node --import tsx/esm --test tests/unit/db/migration-<number>.test.ts
 npm run lint
 ```
 
-Testen Sie beim Hinzufügen einer Migration sowohl eine neue Datenbank als auch ein Upgrade vom vorherigen Schema. Datenbanktests
-müssen Handles schließen und während der Bereinigung `resetDbInstance()` aufrufen. Führen Sie `npm run test:bun:db` nur aus, wenn
+Teste beim Hinzufügen einer Migration sowohl eine neue Datenbank als auch das Upgrade vom vorherigen Schema. Datenbanktests
+müssen Handles schließen und während der Bereinigung `resetDbInstance()` aufrufen. Führe `npm run test:bun:db` nur aus, wenn
 sich der Best-Effort-Bun-Adapterpfad ändert; Node bleibt maßgeblich.
 
 ### Build / Bereitstellung
 
 **Verträge**
 
-- Root- und Workspace-Manifeste/Lockfile, `scripts/build/`, eigenständige Next.js-Assemblierung, `dist/`-
-  Paketinhalte, Electron-Plattformmetadaten, CI-Workflows und Bereitstellungs-Sentinels.
-- Unterstützte Node-Bereiche und die zugelassene Bun-Verwendung in `CLAUDE.md` müssen erhalten bleiben.
+- Root- und Workspace-Manifeste/Lockfile, `scripts/build/`, eigenständige Next.js-Zusammenstellung, Inhalte des
+  `dist/`-Pakets, Electron-Plattformmetadaten, CI-Workflows und Bereitstellungs-Sentinels.
+- Unterstützte Node-Bereiche und die in `CLAUDE.md` explizit zugelassene Bun-Nutzung müssen unverändert bleiben.
 - Build-Artefakte bleiben nicht versioniert; Richtlinien für Abhängigkeiten, Lizenzen, Workflows und Pakete gelten.
 
-**Fokussierter Durchlauf**
+**Fokussierter Zyklus**
 
 ```bash
 node --import tsx/esm --test tests/unit/build/<behavior>.test.ts
 npm run check:build-scope
-npm run check:lockfile         # Änderungen an Abhängigkeiten oder am Lockfile
+npm run check:lockfile         # Änderungen an Abhängigkeiten oder Lockfile
 npm run check:pack-policy      # Änderungen an der veröffentlichten Paketoberfläche
 npm run lint
 ```
 
-Verwenden Sie `npm run build` lokal nur, wenn sich die Änderung auf die Kompilierung, die eigenständige Assemblierung, Assets
-oder die Laufzeitbündelung auswirkt. Verwenden Sie `npm run build:release` nur für die Release-/Bereitstellungsvalidierung. Der Build
-der CI ist das endgültige plattformübergreifende Signal; plattformspezifische Electron-Änderungen benötigen den passenden fokussierten Build
-oder Smoke-Test-Nachweise.
+Verwende `npm run build` lokal nur, wenn die Änderung die Kompilierung, die eigenständige Zusammenstellung, Assets
+oder die Laufzeitbündelung betrifft. Verwende `npm run build:release` nur für die Release-/Bereitstellungsvalidierung. Der CI-Build ist
+das abschließende plattformübergreifende Signal; plattformspezifische Electron-Änderungen benötigen den entsprechenden fokussierten Build
+oder einen Smoke-Testnachweis.
 
-## Lokale Schleife im Vergleich zu CI
+## Lokaler Kandidatenzyklus
+
+Tests des Quellcodes können nicht beweisen, dass das paketierte Artefakt startet: Fehler in Paketierungslisten, entfernten Abhängigkeiten und nativen Binärdateien treten erst auf, wenn der Tarball installiert und gestartet wird. `npm run dev:candidate` (`scripts/dev/candidate.mjs`) ist die lokale Seite des in RFC #8084 beschriebenen Ablaufs „einmal erstellen / validieren / hochstufen“: Der Befehl erstellt einen einzelnen Kandidaten, validiert exakt dieses Artefakt, stuft es durch Umbenennen von Verzeichnissen hoch und setzt es zurück, wenn die Zustandsprüfung des hochgestuften Slots fehlschlägt.
+
+```bash
+npm run dev:candidate -- run --dry-run --json  # Plan ausgeben, nichts ändern
+npm run dev:candidate -- run                   # Erstellen + validieren + hochstufen, automatische Rücksetzung
+npm run dev:candidate -- build                 # npm pack + Installation in _artifacts/candidate/<id>/
+npm run dev:candidate -- validate --id <id>    # An einem freien Port starten, /api/health + /v1/models
+npm run dev:candidate -- promote --id <id>     # <id> → current, current → previous
+npm run dev:candidate -- rollback              # current und previous vertauschen
+npm run dev:candidate -- run --from-tarball <file.tgz>  # Einen andernorts erstellten Tarball wiederverwenden (CI)
+```
+
+- **Einmal erstellen.** `build` paketiert den aktuellen Verzeichnisbaum (dafür ist `dist/server.js` erforderlich, führen Sie daher zuerst `npm run build:release` aus) oder kopiert `--from-tarball` und installiert den Tarball anschließend in ein isoliertes npm-Präfix, da der Tarball kein `node_modules` enthält. Die ID ist der kurze `HEAD`-SHA (`-dirty`, wenn der Verzeichnisbaum lokale Änderungen enthält) oder `tgz-<sha256>` für einen Tarball. Eine unveränderte ID, die bereits erstellt wurde, wird wiederverwendet statt erneut erstellt; übergeben Sie `--force`, um sie neu zu erstellen.
+- **Das Paket validieren, nicht den Quellcode.** `validate` startet die installierte CLI (`serve --port <free port>`) mit einem neuen `DATA_DIR=<candidate>/data` und vorgetäuschten Geheimnissen; `OMNIROUTE_API_KEY`, `STORAGE_ENCRYPTION_KEY` und `INITIAL_PASSWORD` des Betreibers werden aus der Umgebung entfernt, sodass die schlüssellose Loopback-Konfiguration einer Neuinstallation geprüft wird. Der Befehl wartet, bis `GET /api/health` den Status 200 zurückgibt, verlangt, dass `GET /v1/models` den Status 200 zurückgibt, beendet die Prozessgruppe und speichert das Ergebnis zusammen mit dem Tarball-Hash in `validation.json`.
+- **Dasselbe Artefakt hochstufen.** `promote` lehnt einen Kandidaten ab, für dessen aktuellen Tarball-Hash keine erfolgreiche Validierung vorliegt. Der standardmäßige aktive Slot ist `_artifacts/candidate/current`; mit `--target <dir>` wird ein anderes Verzeichnis im selben Dateisystem ausgewählt, dessen vorheriger Slot `<dir>.previous` ist. Jede Umbenennung ist atomar, und bei einem Fehler während des Vorgangs werden die bereits ausgeführten Umbenennungen rückgängig gemacht.
+- **Zurücksetzen.** `run` validiert den hochgestuften Slot erneut und vertauscht `current` und `previous` wieder, wenn diese Prüfung fehlschlägt. Ein Kandidat, der die erste Validierung nicht besteht, wird niemals hochgestuft.
+
+Alles wird unter dem von Git ignorierten Pfad `_artifacts/candidate/` gespeichert; eine bestehende OmniRoute-Installation und ihr Datenverzeichnis werden niemals verändert. Die hochgestufte CLI befindet sich unter `_artifacts/candidate/current/prefix/bin/omniroute`; starten Sie sie bei der Verwendung mit Ihrem eigenen `DATA_DIR`. Exit-Codes: `0` Erfolg, `1` fehlgeschlagene Validierung oder Hochstufung, `2` Verwendungsfehler oder fehlender Build.
+
+## Lokaler Zyklus im Vergleich zu CI
 
 | Lokal für jeden Patch ausführen                                                                         | CI liefert das umfassende Signal                                                               |
 | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Direkte Verhaltenstests und die oben genannten Kategorie-Gates                                          | Aufgeteilte vollständige Unit-Test-Suite und serielle Tests                                    |
-| `npm run lint`                                                                                          | Vitest-Suites sowie schrittweise erhöhte Abdeckungs-/Qualitätsvorgaben                         |
+| Direkte Verhaltenstests und oben aufgeführte Kategorie-Gates                                            | Aufgeteilte vollständige Unit-Test-Suite und serielle Tests                                    |
+| `npm run lint`                                                                                          | Vitest-Suites und schrittweise Verschärfung von Abdeckung/Qualität                             |
 | Typprüfung oder Build nur, wenn der betroffene Vertrag dies erfordert                                   | Produktions-Build sowie Sicherheits-, Dokumentations-, Abhängigkeits- und PR-Richtlinien-Gates |
-| Manuelle Interaktions-/Live-Prüfungen nur, wenn die Automatisierung das Verhalten nicht nachweisen kann | Workflow-konfigurierte jobübergreifende Integrations- und Plattformprüfungen                   |
+| Manuelle Interaktions-/Live-Prüfungen nur, wenn die Automatisierung das Verhalten nicht nachweisen kann | Workflowübergreifende Integrations- und Plattformprüfungen                                     |
 
-Eine erfolgreiche fokussierte Schleife ist ein Nachweis für den geänderten Vertrag, aber kein Beweis dafür, dass nicht damit zusammenhängende CI-Prüfungen
+Ein erfolgreicher fokussierter Zyklus ist ein Nachweis für den geänderten Vertrag, aber kein Beweis dafür, dass nicht damit zusammenhängende CI-Prüfungen
 erfolgreich sein werden. Umgekehrt sollte nicht jede lokale Änderung auf die vollständige Repository-Matrix warten müssen.
 
-## Checkliste für den Abgleich
+## Checkliste für die Abstimmung
 
-Vor dem Anfordern einer Überprüfung:
+Vor dem Anfordern eines Reviews:
 
 - Bestätigen Sie, dass die PR-Basis weiterhin der höchste aktive `release/v*`-Branch ist.
 - Rufen Sie diese Basis ab und prüfen Sie die Commits, die seit dem Erstellen Ihres Branches hinzugekommen sind.
 - Prüfen Sie `git diff <active-base>...HEAD` auf unbeabsichtigte oder generierte Änderungen.
 - Beheben Sie Konflikte bei Katalogen und generierten Dokumenten, indem Sie die Quelle aktualisieren und die Ausgabe neu generieren.
-- Führen Sie nach dem Abgleich alle fokussierten Tests/Gates erneut aus, die in der PR-Beschreibung aufgeführt sind.
+- Führen Sie nach der Abstimmung alle fokussierten Tests/Gates erneut aus, die in der PR-Beschreibung aufgeführt sind.
 - Schwächen Sie niemals Assertions ab und entfernen Sie keine erforderlichen Tests, nur um sie an eine verschobene Basis anzupassen.
 
-Die Regeln für Release-Freezes und Retargeting finden Sie unter
+Die Regeln für Release-Freeze und Retargeting finden Sie unter
 [Branching- und Release-Modell](BRANCHING_MODEL.md). Das vollständige CI-Inventar finden Sie in der
 [Referenz zu Qualitäts-Gates](../architecture/QUALITY_GATES.md).
