@@ -1,0 +1,1 @@
+- fix(ci): keep recurring baseline headroom reports in workflow summaries and retained artifacts without recreating a permanent issue; preserve measurements and quality gates (#12149).

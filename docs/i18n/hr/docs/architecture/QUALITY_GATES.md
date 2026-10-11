@@ -312,12 +312,14 @@ ugovor dokumentacije/okruženja, paritet i18n-a, jedinični testovi) nepromijenj
   ublažavanje (`scripts/quality/relax-baselines.mjs`); odbija se pokrenuti dvaput s istom
   napomenom.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mjeri svaku numeričku kontrolu na isti način kao CI i ispisuje preostalu rezervu za svaku kontrolu
-  (`scripts/quality/baseline-headroom.mjs`). Noćni zadatak `baseline-headroom` objavljuje
-  tablicu u aktivnom problemu **📈 Rezerva početnih granica (faza ubrzanog razvoja)** i dodaje oznaku
-  `headroom-alert` kada je bilo koja kontrola unutar 10% svojeg ograničenja ili ga je već premašila. Taj je problem
-  rano upozorenje: proračun koji se popuni u nekoliko dana znači da je ublažavanje potrošilo
-  nekoliko PR-ova, a ne cijeli tim — pogledajte napomene `_rebaseline_*` problematične kontrole.
+  mjeri svaku brojčanu provjeru kvalitete na isti način kao CI i ispisuje preostalu rezervu za svaku provjeru
+  (`scripts/quality/baseline-headroom.mjs`). Noćni zadatak `baseline-headroom` objavljuje tablicu
+  u sažetku izvođenja tijeka rada i učitava izvješće JSON/Markdown pod nazivom
+  `baseline-headroom-<run_id>`, koje se čuva 90 dana. Redci upozorenja i kritični redci označavaju
+  provjere kojima je do granice preostalo najviše 10% ili koje su je već premašile.
+  Pregledavajte ta izvješća kao rano upozorenje na trošenje proračuna; provjerite bilješke
+  `_rebaseline_*` za odgovarajuću provjeru. Zadatak više ne stvara ni ažurira trajnu prijavu problema;
+  #12149 čuva povijest prethodnih izvješća.
 
 **Način rada za novi kod (Clean-as-You-Code) — od 2026-08-30, samo ubrzani put za PR-ove**
 

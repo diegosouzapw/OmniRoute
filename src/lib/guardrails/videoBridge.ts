@@ -5,13 +5,13 @@ import { getResolvedModelCapabilities } from "@/lib/modelCapabilities";
 import {
   resolveVideoBridgeRuntimeSettings,
   resolveVisionBridgeRuntimeSettings,
+  resolveVideoAudioTranscriptionRuntimeSettings,
   type VideoAnalysisMode,
 } from "@/shared/constants/modalityBridgeDefaults";
 
 import { BaseGuardrail, type GuardrailContext, type GuardrailResult } from "./base";
 import type { BridgeCacheStore } from "./modalityBridge/bridgeCache";
 import {
-  describeVideoPart as defaultDescribeVideoPart,
   extractVideoFocusHint,
   extractVideoParts,
   loadVideoPartBytes,
@@ -30,6 +30,7 @@ import {
 import { getSharedVideoResultCacheFor } from "./videoBridgeResultCache";
 import { type VisionModelConfig } from "./visionBridgeHelpers";
 import { getBestVisionModel } from "./visionBridgeRouter";
+import { createVideoSttAdapter, type VideoSttAdapterDependencies } from "./videoBridgeSttAdapter";
 
 export type { VideoAnalysisContext } from "./videoBridgePipeline";
 
@@ -105,7 +106,7 @@ type VideoBridgeBody = {
   [key: string]: unknown;
 };
 
-export interface VideoBridgeDependencies {
+export interface VideoBridgeDependencies extends VideoSttAdapterDependencies {
   getSettings?: () => Promise<Record<string, unknown>>;
   getCapabilities?: (model: string) => { supportsVideo: boolean | null };
   describePart?: (part: VideoPart, analysis: VideoAnalysisContext) => Promise<DescribedVideo>;
@@ -171,6 +172,12 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
     const capabilities = (this.deps.getCapabilities ?? getResolvedModelCapabilities)(model);
     if (capabilities.supportsVideo === true) return { block: false };
 
+    // Raw cue fields stay sensitive even when describing the video fails or
+    // maxVideos leaves it untouched. Retention must not depend on replacement.
+    const rawTranscriptObserved = parts.some(
+      (part) => part.transcript !== undefined || part.audioTranscript !== undefined
+    );
+
     const analysis = resolveVideoAnalysisContext(body, runtime.analysisMode);
     const visionRuntime = resolveVisionBridgeRuntimeSettings(persisted);
     const configuredModel = runtime.model.trim() || visionRuntime.model.trim();
@@ -195,8 +202,17 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
         extractFrames: this.deps.extractFrames,
         fetchRemote: this.deps.fetchRemote,
       },
-      transcription: { describePart: defaultDescribeVideoPart },
-      cache,
+      transcription: {
+        describePart: createVideoSttAdapter({
+          cache,
+          dependencies: this.deps,
+          principalId: context.apiKeyInfo?.id,
+          settings: persisted,
+        }),
+      },
+      // Whole-result cache predates STT consent/model identity. Do not let a visual-only
+      // entry satisfy a consented request or an STT entry satisfy an opted-out request.
+      cache: resolveVideoAudioTranscriptionRuntimeSettings(persisted).enabled ? null : cache,
       selectVideoModel,
       overrideDescribePart: this.deps.describePart,
       callVisionModel: this.deps.callVisionModel,
@@ -298,7 +314,11 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
 
     const videosProcessed = attemptedParts.length - failures;
     const videosReplaced = descriptions.filter((description) => description !== null).length;
-    if (videosReplaced === 0) return { block: false };
+    if (videosReplaced === 0) {
+      return rawTranscriptObserved
+        ? { block: false, meta: { videoBridgeObserved: true } }
+        : { block: false };
+    }
 
     return {
       block: false,
@@ -316,12 +336,9 @@ export class VideoBridgeGuardrail extends BaseGuardrail {
         focusWindowsApplied,
         focusHintsApplied,
         transcriptCuesApplied,
-        // True iff at least one transcript cue (declared transcript OR fused
-        // audio) was rendered into a replaced part — i.e. there is a redacted
-        // shadow for a downstream log/Memory consumer to prefer. Explicitly
-        // `false` (never omitted) for a video with frames but no transcript,
-        // so plain-video logging/Memory stays unaffected.
-        videoBridgeObserved: logRedactionEntries.length > 0,
+        // Protect both rendered cues and raw fields on unreplaced video parts.
+        // Frames without transcript fields retain their normal logging policy.
+        videoBridgeObserved: rawTranscriptObserved || logRedactionEntries.length > 0,
         ...(logRedactionEntries.length > 0 ? { videoBridgeLogRedaction: logRedactionEntries } : {}),
         contactSheetsUsed,
         audioFusionRuns,

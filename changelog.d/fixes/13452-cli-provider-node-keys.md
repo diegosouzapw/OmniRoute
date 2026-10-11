@@ -1,0 +1,1 @@
+- fix(cli): attach compatible provider-node credentials through the management API so `keys add` preserves the node endpoint and never falls back to an unbound SQLite credential (#13452).

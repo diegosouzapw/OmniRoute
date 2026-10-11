@@ -1,0 +1,1 @@
+- **tests:** Provider icon regression coverage prepares the real icon catalog during test collection, verifies the lazy loader's placeholder-to-fallback transition, and unmounts React roots between cases. This avoids cold dependency transformation consuming individual test deadlines while preserving URL, prototype-guard, and asset-provenance assertions.

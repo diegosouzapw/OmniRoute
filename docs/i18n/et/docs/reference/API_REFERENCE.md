@@ -395,6 +395,12 @@ väli, mis viitab peamisele id-le.
 Kliendid, mis kuvavad mudeli valija, peaksid päringu tegema `?prefix=alias` — see on see, mida
 [OmniCopilot VS Code laiendus](../guides/VSCODE-COPILOT.md) teeb.
 
+### Eraldi peidetud vestlusmudelid
+
+Mudel, mis on pakkuja lehel märgitud **Peidetuks**, jäetakse kataloogist välja ning selle otsene päring lükatakse tagasi vastusega HTTP `404` / `model_not_found`. Kontroll kasutab lahendatud pakkujat ja mudelit, arvestades pakkuja aliaseid, ühilduvate pakkujate sõlmede eesliiteid ning ühenduse vaikeväärtusi. Combo jätab peidetud sihtmärgid vahele ja võib kasutada mõnda teist nähtavat sihtmärki; kui ühtegi käivitatavat sihtmärki ei jää, tagastab see sama veakoodi. Mudeli taasnähtavaks tegemine jõustub järgmisest päringust. Ainult piltidele kehtivad nähtavuse ülekirjutused ei peida sama ID-ga vestlusmudelit.
+
+See mudelipõhine säte on eraldi [mudelite avaldamise lubamis- ja keelamisloenditest](../routing/MODEL_EXPOSURE_LIST.md), mis filtreerivad kataloogis esitatavaid mudeleid ja automaatse marsruutimise kandidaate, säilitades otsese väljakutsumise. API-võtme mudeliõigused kehtivad endiselt sõltumatult. Kataloogi eesliidete vaikerežiim jääb `dual`.
+
 ### Mittemõtlevad mudelivariandid
 
 Mõtlemisvõimeliste Claude mudelite jaoks reklaamib `/v1/models` ka **mittemõtlemise** varianti, mille id-le on lisatud eesliide `claude-3-omniroute-no-thinking/`:

@@ -338,7 +338,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # பயனர்-நிலை
-<project>/.compression/rules/hi/filler.json   # திட்ட-நிலை
 ```
 
 ### மொழிப் பொதிகளுக்கான சிறந்த நடைமுறைகள்

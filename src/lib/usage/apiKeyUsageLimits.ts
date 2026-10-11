@@ -1,6 +1,7 @@
 import { getDbInstance } from "@/lib/db/core";
 import type { ProviderLimitsCacheEntry } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStartIso } from "@/lib/db/quotaResetEvents";
+import { sumSearchLedgerSpendSince } from "@/lib/db/costLedger";
 import { calculateCostDetailed } from "./costCalculator";
 import { isFeatureFlagEnabled } from "@/shared/utils/featureFlags";
 import {
@@ -513,6 +514,9 @@ async function getApiKeyUsdSpendSince(apiKeyId: string, sinceIso: string): Promi
     total += costUsd;
   }
 
+  // Web search spend is not in usage_history; it lives in request_cost_ledger
+  // under the search-only service_tier marker, so chat rows are never re-counted.
+  total += sumSearchLedgerSpendSince(apiKeyId, sinceIso);
   return { totalUsd: roundUsd(total), hasUnpricedUsage };
 }
 

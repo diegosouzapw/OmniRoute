@@ -3,6 +3,7 @@
  * implementation; the only change is that closed-over request state arrives
  * through deps.
  */
+import { markEmptyTurnExecution, inheritEmptyTurnPolicy } from "../../utils/emptyTurnPolicy.ts";
 
 import type { BaseExecutor } from "../../executors/base.ts";
 import type { AgentGoalPolicy } from "../../utils/agentGoalPolicy.ts";
@@ -365,6 +366,7 @@ export async function executeProviderRequest(
               }
             );
             const res = normalizeExecutorResult(rawExecutorResult);
+            res.response = markEmptyTurnExecution(res.response, res.url, execCreds);
             trace("post_executor", { status: res?.response?.status });
 
             // When a payload override rewrote body.model (custom-model alias →
@@ -620,11 +622,14 @@ export async function executeProviderRequest(
               return {
                 ...res,
                 _executionCredentials: execCreds,
-                response: new Response(clientBody, {
-                  status: res.response.status,
-                  statusText: res.response.statusText,
-                  headers: new Headers(normalizeHeaders(res.response.headers)),
-                }),
+                response: inheritEmptyTurnPolicy(
+                  res.response,
+                  new Response(clientBody, {
+                    status: res.response.status,
+                    statusText: res.response.statusText,
+                    headers: new Headers(normalizeHeaders(res.response.headers)),
+                  })
+                ),
               };
             }
 
@@ -693,7 +698,10 @@ export async function executeProviderRequest(
 
       return {
         ...rawResult,
-        response: new Response(payload, { status, statusText, headers: responseHeaders }),
+        response: inheritEmptyTurnPolicy(
+          rawResult.response,
+          new Response(payload, { status, statusText, headers: responseHeaders })
+        ),
         _dedupSnapshot: {
           status,
           statusText,

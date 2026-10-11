@@ -3,6 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { globSync } from "tinyglobby";
 
+import { extractPathLiteralEdges } from "./lib/pathLiteralEdges.mjs";
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const SRC_ROOTS = ["src", "open-sse"];
 const IMPORT_RE =
@@ -79,7 +81,14 @@ export function buildTestImpactMap(root = ROOT) {
     }
   }
   for (const k of Object.keys(map)) map[k].sort();
-  return { generatedFrom: "import-graph", sources: map, testFileCount: testFiles.length };
+  // #16068: tests that read a workflow/config/doc as a file have no import edge.
+  const artifacts = extractPathLiteralEdges({ root, testFiles });
+  return {
+    generatedFrom: "import-graph",
+    sources: map,
+    artifacts,
+    testFileCount: testFiles.length,
+  };
 }
 
 if (fileURLToPath(import.meta.url) === path.resolve(process.argv[1] || "")) {
@@ -88,6 +97,6 @@ if (fileURLToPath(import.meta.url) === path.resolve(process.argv[1] || "")) {
   const out = path.join(ROOT, "config/quality/test-impact-map.json");
   fs.writeFileSync(out, JSON.stringify(map, null, 2) + "\n");
   console.log(
-    `test-impact-map: ${Object.keys(map.sources).length} source files mapped from ${testFileCount} test files`
+    `test-impact-map: ${Object.keys(map.sources).length} source files + ${Object.keys(map.artifacts).length} artifact files mapped from ${testFileCount} test files`
   );
 }

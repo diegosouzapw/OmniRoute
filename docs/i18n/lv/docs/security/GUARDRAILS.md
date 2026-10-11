@@ -329,6 +329,8 @@ Modelim nosūtītais saturs paliek nemainīgs. Novērots pieprasījums arī neai
 nekādu ilgstošu atmiņu (tiek izlaista gan pieprasījuma, gan atbildes atvasināta ekstrakcija),
 tāpēc modeļa paša atbilde nevar atspoguļot transkripta tekstu atmiņā.
 
+**Neapstrādāti video lauki (#12430).** Ja tilts ir ieslēgts un iebūvētais video atbalsts nav zināms vai nav pieejams, definētie `transcript`/`audioTranscript` lauki arī aktivizē `videoBridgeObserved`, pat ja apraksts neizdodas vai sasniegts `maxVideos` ierobežojums. `null` un tukšas virknes tiek ieskaitītas; neesoši lauki un ar video nesaistīti metadati netiek. Saglabātajās kopijās šie lauki tiek aizklāti vai pieprasījums izlaists, un kešatmiņas/Memory netiek izmantotas. Pakalpojuma sniedzējam nosūtītie dati nemainās.
+
 Papildu saglabātās kopijas izmanto to pašu novērotā pieprasījuma signālu. Neapstrādāts
 pirmsaizsardzības klienta pieprasījuma momentuzņēmums, atmiņā esošais gaidošais pieprasījums un agrīns
 noraidīto pieprasījumu žurnāls strukturāli aizstāj transkripta laukus video daļās;

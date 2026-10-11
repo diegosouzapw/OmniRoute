@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Funzionalità</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Combo</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Provider</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Provider</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI e MCP</a></td>
   </tr>
   <tr>
@@ -675,7 +675,7 @@ che i segreti finiscano nella cronologia della shell. → [Integrazioni CLI](doc
 
 <div align="center">
 
-## 🌐 357 provider di IA — 152 contrassegnati come gratuiti nel catalogo
+## 🌐 372 provider di IA — 154 contrassegnati come gratuiti nel catalogo
 
 </div>
 
@@ -1281,7 +1281,7 @@ Metriche canoniche al 2026-08-24: **1.029 video unici** · **11.132.922 visualiz
   <tr><td nowrap><b>Runtime</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Linguaggio</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> in <code>src/</code> e <code>open-sse/</code> (zero <code>any</code> nel core dalla v2.0)</td></tr>
   <tr><td nowrap><b>Framework</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, journaling WAL) + LowDB (JSON legacy) — 137 moduli di dominio, 193 migrazioni</td></tr>
+  <tr><td nowrap><b>Database</b></td><td>better-sqlite3 (SQLite, journaling WAL) + LowDB (JSON legacy) — 137 moduli di dominio, 202 migrazioni</td></tr>
   <tr><td nowrap><b>Memoria</b></td><td>Ricerca full-text SQLite FTS5 + embedding vettoriali quantizzati int8, decadimento tipizzato</td></tr>
   <tr><td nowrap><b>Schemi</b></td><td>Zod 4 — validazione I/O degli strumenti MCP + contratti API</td></tr>
   <tr><td nowrap><b>Protocolli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

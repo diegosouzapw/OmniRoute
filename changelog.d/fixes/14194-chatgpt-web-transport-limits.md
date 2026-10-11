@@ -1,0 +1,1 @@
+- Backport the upstream v6.1.7 conservative 500,000-character ChatGPT Web reasoning preflight limit for Medium/High and Pro Extra High, including multipart stages and final parts. Instant, Pro mode, and Luna keep their existing limits. This partial backport retains the v4.0.7 vendor pin; the full refresh and live acceptance remain pending. Refs #14194.

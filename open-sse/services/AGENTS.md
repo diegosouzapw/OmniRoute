@@ -22,6 +22,7 @@ Live count: `ls open-sse/services/*.ts | wc -l` (currently 134). More including 
 
 ### Account & Token Management
 
+- **`providerConnectionPool.ts`** — Shared alias/custom-node connection pools for direct authentication and combo discovery; preserves node ownership and leaves caller ACL/pin filtering in place.
 - **`tokenRefresh.ts`** — OAuth token expiration detection and refresh.
 - **`accountFallback.ts`** — Account switching on quota/rate-limit. Also houses model lockout.
 - **`sessionManager.ts`** — Request session state across retries.

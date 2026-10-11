@@ -41,6 +41,7 @@ export const FREE_TIER_TOS: Record<string, TosVerdict> = {
   opencode: "avoid",
   "duckduckgo-web": "avoid",
   agy: "avoid",
+  antigravity: "avoid", // Both registered IDs use the same Antigravity integration.
   kiro: "avoid",
   "amazon-q": "avoid",
   "muse-spark-web": "avoid",

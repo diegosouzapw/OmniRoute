@@ -12,6 +12,7 @@ import { CLAUDE_WEB_FINGERPRINT } from "../config/claudeWebFingerprint.ts";
 import { FETCH_TIMEOUT_MS } from "../config/constants.ts";
 import { tlsFetchClaude } from "../services/claudeTlsClient.ts";
 import { buildErrorBody, sanitizeErrorMessage } from "../utils/error.ts";
+import { currentAppliedProxySink } from "../utils/proxyFetch.ts";
 import {
   BaseExecutor,
   mergeAbortSignals,
@@ -152,6 +153,8 @@ async function getOrganizationId(
       timeoutMs: FETCH_TIMEOUT_MS,
       signal: combineWithTimeout(signal),
     });
+    const sink = currentAppliedProxySink();
+    if (sink && response.status >= 400) sink.upstreamStatus = response.status;
     if (response.status === 401) {
       return { organizationId: null, failure: "authentication" };
     }
@@ -329,6 +332,8 @@ async function errorResponseForTransport(
   result: ClaudeWebTransportResult,
   turn: PreparedClaudeWebTurn
 ): Promise<Response> {
+  const sink = currentAppliedProxySink();
+  if (sink && result.status >= 400) sink.upstreamStatus = result.status;
   const bodyText = await readTransportErrorText(result);
   if (result.status === 401) {
     invalidateClaudeWebTurn(turn, "conversation");

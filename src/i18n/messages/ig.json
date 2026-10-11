@@ -5732,6 +5732,8 @@
     "targetFormatAuto": "Ndabara (akpaka)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Token Mmepụta Kachasị Elu",
+    "maxOutputTokenOverrideHint": "Tinye ọnụọgụ token zuru ezu karịrị efu. Hapụ ya oghere iji jiri uru ndabara.",
     "contextWindowOverrideLabel": "Ntọala Nnọchi Windo Context",
     "contextWindowOverridePlaceholder": "dịka ọmụmaatụ 131072",
     "contextWindowOverrideHint": "Jiri aka tọọ ezigbo windo context nke ụdị a (token) mgbe onye na-eweta ya kọọrọ ya n'ụzọ na-ezighi ezi. Nke a na-emeri ụkpụrụ achọpụtara na-akpaghị aka/nke katalọgụ ma gbochie ntụgharị ngwakọta iwepụ ụdị a.",

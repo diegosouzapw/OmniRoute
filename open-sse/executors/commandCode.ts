@@ -16,6 +16,7 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
+import { applyFieldDowngradeRecovery } from "./base/fieldDowngradeRecovery.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -1011,7 +1012,7 @@ export class CommandCodeExecutor extends BaseExecutor {
       sanitizedBody,
       stream
     );
-    let cliTransformedBody: unknown = initialCliTransformedBody;
+    let cliTransformedBody = initialCliTransformedBody;
 
     let cliUpstream = await fetch(cliUrl, {
       method: "POST",
@@ -1020,18 +1021,19 @@ export class CommandCodeExecutor extends BaseExecutor {
       signal: abortSignal,
     });
 
-    // #14629: same reactive reasoning_effort recovery for the CLI fallback fetch.
+    // The CLI keeps reasoning fields in params; retries must still send the full envelope.
     const cliRecovery = await applyReasoningEffortRecovery({
       response: cliUpstream,
       url: cliUrl,
       provider: this.provider,
       model,
-      body: cliTransformedBody,
+      body: cliTransformedBody.params,
       fetchOptions: { method: "POST", headers: cliHeaders, signal: abortSignal },
       fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      serializeBody: (params) => JSON.stringify({ ...cliTransformedBody, params }),
     });
     cliUpstream = cliRecovery.response;
-    cliTransformedBody = cliRecovery.body;
+    cliTransformedBody = { ...cliTransformedBody, params: cliRecovery.body };
 
     if (!cliUpstream.ok) {
       const errorText = await cliUpstream.text().catch(() => {
@@ -1103,6 +1105,18 @@ export class CommandCodeExecutor extends BaseExecutor {
     });
     upstream = recovery.response;
     transformedBody = recovery.body;
+
+    upstream = await applyFieldDowngradeRecovery({
+      response: upstream,
+      url,
+      provider: this.provider,
+      model,
+      body: transformedBody,
+      fetchOptions: { method: "POST", headers, signal: abortSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      serializeBody: (retryBody) => JSON.stringify(retryBody),
+      strippedFields: new Set<string>(),
+    });
 
     if (upstream.ok) {
       return { response: upstream, url, headers, transformedBody };

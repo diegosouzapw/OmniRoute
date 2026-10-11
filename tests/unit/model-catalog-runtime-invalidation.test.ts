@@ -272,6 +272,8 @@ test("#9199 a capability mutation during preparation detaches the obsolete gener
 
 test("#9199 a mutation during a cooperative catalog build detaches the obsolete generation", async () => {
   await settingsDb.updateSettings({ blockedProviders: [] });
+  // Keep auto/best-coding eligible before the test changes its provider visibility.
+  await seedOpenAiConnection();
 
   let firstSettled = false;
   const firstPromise = v1ModelsCatalog

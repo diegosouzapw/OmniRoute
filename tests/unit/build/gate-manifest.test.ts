@@ -100,3 +100,16 @@ test("real aggregator list mode uses the manifest without running any gate", () 
     assert.equal(actual.releaseAcceptance, false);
   }
 });
+
+test("the static scan uses the same frozen cycle ratchet as CI", () => {
+  const manifest = JSON.parse(readFileSync("config/quality/gate-manifest.json", "utf8"));
+  const { scripts } = JSON.parse(readFileSync("package.json", "utf8"));
+  const full = resolveProfile(manifest, scripts, "quality-scan");
+  assert.ok(full.some((gate) => gate.name === "check:cycles:ratchet"));
+  assert.equal(
+    full.some((gate) => gate.name === "check:cycles"),
+    false
+  );
+  assert.match(readFileSync(".github/workflows/ci.yml", "utf8"), /npm run check:cycles:ratchet/);
+  assert.equal(scripts["check:cycles:ratchet"], "node scripts/check/check-cycles.mjs --ratchet");
+});

@@ -29,7 +29,10 @@ import os from "node:os";
 import path from "node:path";
 
 const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-14989-synced-image-"));
+const TEST_LOG_DIR = path.join(TEST_DATA_DIR, "logs");
 process.env.DATA_DIR = TEST_DATA_DIR;
+process.env.LOG_DIR = TEST_LOG_DIR;
+process.env.APP_LOG_TO_FILE = "false";
 
 const core = await import("../../src/lib/db/core.ts");
 const nodesDb = await import("../../src/lib/db/providers/nodes.ts");
@@ -39,11 +42,14 @@ const { resolveLocalSyncedEndpointRoute } =
   await import("../../src/lib/providerModels/syncedEndpointRouting.ts");
 
 const NODE_ID = "openai-compatible-chat-14989aaa-0000-4000-8000-000000000000";
+const IMAGE_NODE_ID = "generic-image-node";
+const IMAGE_NODE_MODEL = "org/style-adapter-v1";
 
 async function resetStorage() {
   core.resetDbInstance();
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
   fs.mkdirSync(TEST_DATA_DIR, { recursive: true });
+  fs.mkdirSync(TEST_LOG_DIR, { recursive: true });
 }
 
 test.after(() => {
@@ -87,6 +93,30 @@ async function seedUserDefinedOpenAICompatibleImageConnection() {
   return connection;
 }
 
+async function seedDedicatedImageNode() {
+  await nodesDb.createProviderNode({
+    id: IMAGE_NODE_ID,
+    type: "openai-compatible",
+    name: "Image Node",
+    prefix: "image-node",
+    apiType: "images-generations",
+    baseUrl: "https://images.example.test/v1",
+  });
+}
+
+async function createDedicatedImageConnection(name: string) {
+  return providersDb.createProviderConnection({
+    provider: IMAGE_NODE_ID,
+    authType: "apikey",
+    apiKey: `test-${name}`,
+    name,
+    isActive: true,
+    testStatus: "active",
+    priority: 1,
+    providerSpecificData: { baseUrl: "https://images.example.test/v1" },
+  });
+}
+
 test("control: the synced row itself carries supportedEndpoints: ['images'] for the connection", async () => {
   await resetStorage();
   await seedUserDefinedOpenAICompatibleImageConnection();
@@ -126,4 +156,117 @@ test("#14989: resolveLocalSyncedEndpointRoute cannot find a synced image model o
   );
   assert.equal(route?.provider, NODE_ID);
   assert.equal(route?.model, "gpt-image-1.5");
+});
+
+test("an image node supplies endpoints for an exact unannotated synced model and keeps connection affinity", async () => {
+  await resetStorage();
+  await seedDedicatedImageNode();
+  const targetConnection = await createDedicatedImageConnection("target-connection");
+  const otherConnection = await createDedicatedImageConnection("other-connection");
+
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    IMAGE_NODE_ID,
+    String(targetConnection.id),
+    [{ id: IMAGE_NODE_MODEL, name: "Style Adapter" }]
+  );
+  await modelsDb.replaceSyncedAvailableModelsForConnection(
+    IMAGE_NODE_ID,
+    String(otherConnection.id),
+    [{ id: "org/base-image-v1", name: "Base Image" }]
+  );
+
+  const route = await resolveLocalSyncedEndpointRoute(
+    `${IMAGE_NODE_ID}/${IMAGE_NODE_MODEL}`,
+    "images"
+  );
+
+  assert.deepEqual(route, {
+    provider: IMAGE_NODE_ID,
+    model: IMAGE_NODE_MODEL,
+    connectionIds: [String(targetConnection.id)],
+  });
+});
+
+for (const overrideCase of [
+  {
+    name: "a raw model override takes precedence over explicit synced endpoints",
+    overrideId: IMAGE_NODE_MODEL,
+    syncedEndpoint: "chat",
+    overrideEndpoint: "images",
+    resolves: true,
+  },
+  {
+    name: "an explicit raw model override can deny the node's image endpoint",
+    overrideId: IMAGE_NODE_MODEL,
+    syncedEndpoint: "images",
+    overrideEndpoint: "chat",
+    resolves: false,
+  },
+  {
+    name: "an operator-prefixed override can enable an explicitly non-image synced model",
+    overrideId: `image-node/${IMAGE_NODE_MODEL}`,
+    syncedEndpoint: "chat",
+    overrideEndpoint: "images",
+    resolves: true,
+  },
+  {
+    name: "an explicit operator-prefixed override can deny the node's image endpoint",
+    overrideId: `image-node/${IMAGE_NODE_MODEL}`,
+    syncedEndpoint: "images",
+    overrideEndpoint: "chat",
+    resolves: false,
+  },
+] as const) {
+  test(overrideCase.name, async () => {
+    await resetStorage();
+    await seedDedicatedImageNode();
+    const connection = await createDedicatedImageConnection("override-connection");
+    await modelsDb.replaceSyncedAvailableModelsForConnection(IMAGE_NODE_ID, String(connection.id), [
+      {
+        id: IMAGE_NODE_MODEL,
+        name: "Style Adapter",
+        supportedEndpoints: [overrideCase.syncedEndpoint],
+      },
+    ]);
+    await modelsDb.updateCustomModel(
+      IMAGE_NODE_ID,
+      overrideCase.overrideId,
+      { supportedEndpoints: [overrideCase.overrideEndpoint] },
+      { createIfMissing: true }
+    );
+
+    const route = await resolveLocalSyncedEndpointRoute(
+      `${IMAGE_NODE_ID}/${IMAGE_NODE_MODEL}`,
+      "images"
+    );
+
+    assert.deepEqual(
+      route,
+      overrideCase.resolves
+        ? {
+            provider: IMAGE_NODE_ID,
+            model: IMAGE_NODE_MODEL,
+            connectionIds: [String(connection.id)],
+          }
+        : null
+    );
+  });
+}
+
+test("an image node does not admit an unknown model or change embeddings routing", async () => {
+  await resetStorage();
+  await seedDedicatedImageNode();
+  const connection = await createDedicatedImageConnection("known-model-connection");
+  await modelsDb.replaceSyncedAvailableModelsForConnection(IMAGE_NODE_ID, String(connection.id), [
+    { id: IMAGE_NODE_MODEL, name: "Style Adapter" },
+  ]);
+
+  assert.equal(
+    await resolveLocalSyncedEndpointRoute(`${IMAGE_NODE_ID}/org/unknown-model`, "images"),
+    null
+  );
+  assert.equal(
+    await resolveLocalSyncedEndpointRoute(`${IMAGE_NODE_ID}/${IMAGE_NODE_MODEL}`, "embeddings"),
+    null
+  );
 });

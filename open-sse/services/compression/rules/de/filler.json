@@ -4,11 +4,12 @@
   "rules": [
     {
       "name": "de_polite_framing",
-      "pattern": "\\b(?:bitte|kannst du|koenntest du|könntest du|ich moechte|ich möchte|ich brauche)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:bitte|kannst du|koenntest du|könntest du|ich moechte|ich möchte|ich brauche)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "de_pleasantries",
@@ -20,35 +21,39 @@
     },
     {
       "name": "de_hedging",
-      "pattern": "\\b(?:ich denke dass|ich glaube dass|es scheint dass|vielleicht|wahrscheinlich|moeglicherweise|möglicherweise)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:ich denke dass|ich glaube dass|es scheint dass|vielleicht|wahrscheinlich|moeglicherweise|möglicherweise)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "de_filler_adverbs",
-      "pattern": "\\b(?:grundsaetzlich|grundsätzlich|eigentlich|buchstaeblich|buchstäblich|einfach)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:grundsaetzlich|grundsätzlich|eigentlich|buchstaeblich|buchstäblich|einfach)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "de_self_reference",
-      "pattern": "^(?:ich versuche|ich will|ich moechte|ich möchte|ich brauche)\\b\\s*",
+      "pattern": "^(?:ich versuche|ich will|ich moechte|ich möchte|ich brauche)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "user",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "de_verbose_request",
-      "pattern": "\\b(?:kannst du erklaeren|kannst du erklären|koenntest du erklaeren|könntest du erklären)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:kannst du erklaeren|kannst du erklären|koenntest du erklaeren|könntest du erklären)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Erklaere ",
       "context": "user",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "de_qualifiers",
@@ -60,11 +65,12 @@
     },
     {
       "name": "de_softeners",
-      "pattern": "\\b(?:wenn moeglich|wenn möglich|wenn du zeit hast|ohne eile)\\b[,.!?\\s]*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:wenn moeglich|wenn möglich|wenn du zeit hast|ohne eile)(?![\\p{L}\\p{N}_])[,.!?\\s]*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     }
   ]
 }

@@ -3,9 +3,10 @@ import {
   analyzePrefix,
   generatePromptCacheKey,
 } from "../../../src/lib/promptCache/prefixAnalyzer.ts";
-import { getCachedProviderConnections } from "../../../src/lib/db/readCache";
+import { getCachedProviderPoolConnections } from "../providerConnectionPool.ts";
 import { parseModel } from "../model.ts";
 import type { ResolvedComboTarget } from "./types.ts";
+import { getStrategyTraits } from "./strategyRegistry.ts";
 import { getOAuthSessionAvailability } from "../oauthSessionOccupancy.ts";
 
 interface PromptCacheAffinityTarget {
@@ -199,7 +200,7 @@ export async function expandPromptCacheAffinityTargets(
   await Promise.all(
     providers.map(async (provider) => {
       try {
-        const connections = (await getCachedProviderConnections({
+        const connections = (await getCachedProviderPoolConnections({
           provider,
           isActive: true,
         })) as Array<Record<string, unknown>>;
@@ -280,7 +281,9 @@ export function expandPromptCacheAffinityTargetsFromConnections(
  * reorder must not silently override, even though affinity is still free to
  * pick among the remaining/fallback targets. `quota-share` and `weighted`
  * were already protected before this fix; session stickiness and an explicit
- * auto-router pin remain independently protected via their own flags.
+ * auto-router pin remain independently protected via their own flags. The protected set
+ * (auto / quota-share / quota-weighted / weighted / priority / fill-first / lkgp) is the
+ * `protectsFirstTargetFromAffinity` trait in the strategy registry.
  */
 export function shouldProtectOriginalFirst(
   stickyStuck: boolean,
@@ -290,13 +293,7 @@ export function shouldProtectOriginalFirst(
   return (
     stickyStuck ||
     autoUsedExplicitRouter ||
-    strategy === "auto" ||
-    strategy === "quota-share" ||
-    strategy === "weighted" ||
-    strategy === "priority" ||
-    strategy === "fill-first" ||
-    strategy === "lkgp" ||
-    strategy === "quota-weighted"
+    getStrategyTraits(strategy).protectsFirstTargetFromAffinity
   );
 }
 

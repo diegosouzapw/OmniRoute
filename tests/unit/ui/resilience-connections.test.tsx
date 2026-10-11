@@ -58,6 +58,7 @@ function makeConnection(overrides: Record<string, unknown> = {}) {
     isCoolingDown: false,
     breaker: { state: "CLOSED", failureCount: 0, retryAfterMs: 0, lastFailureKind: null },
     lockouts: [],
+    availability: { state: "AVAILABLE" },
     ...overrides,
   };
 }
@@ -262,17 +263,22 @@ describe("ConnectionsTable", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("status badge shows correct variant for cooling_down", async () => {
+  it("status cell shows coarse badge plus typed availability label", async () => {
     const { default: Table } =
       await import("../../../src/app/(dashboard)/dashboard/resilience/connections/components/ConnectionsTable");
-    const conn = makeConnection({ connectionStatus: "cooling_down" });
+    const conn = makeConnection({
+      connectionStatus: "terminal",
+      availability: { state: "QUOTA_EXHAUSTED", nextEligibleRecheckAt: "2026-10-08T12:00:00.000Z" },
+    });
     let el: HTMLDivElement;
     act(() => {
       el = render(
         <Table connections={[conn]} receivedAt={Date.now()} degraded={[]} />
       ) as HTMLDivElement;
     });
-    expect(el!.textContent).toContain("table.coolingDown");
+    expect(el!.textContent).toContain("table.terminal");
+    expect(el!.textContent).toContain("Quota exhausted");
+    expect(el!.textContent).toContain("2026-10-08T12:00:00.000Z");
   });
 
   it("status badge handles breaker={null} without crashing (optional chaining)", async () => {

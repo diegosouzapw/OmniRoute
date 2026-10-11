@@ -4,8 +4,8 @@
   "rules": [
     {
       "name": "de_articles",
-      "pattern": "\\b(?:[Dd]er|[Dd]ie|[Dd]as|[Dd]en|[Dd]em|[Dd]es|[Ee]in|[Ee]ine|[Ee]inen|[Ee]inem|[Ee]iner|[Ee]ines)\\s+(?=[a-zäöüß])",
-      "flags": "g",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:[Dd]er|[Dd]ie|[Dd]as|[Dd]en|[Dd]em|[Dd]es|[Ee]in|[Ee]ine|[Ee]inen|[Ee]inem|[Ee]iner|[Ee]ines)\\s+(?=[a-zäöüß])",
+      "flags": "gu",
       "replacement": "",
       "context": "all",
       "category": "terse",
@@ -93,7 +93,7 @@
     },
     {
       "name": "de_ultra_dependency_abbreviation",
-      "pattern": "\\b(?:Abhängigkeit|Abhängigkeiten)\\b",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:Abhängigkeit|Abhängigkeiten)(?![\\p{L}\\p{N}_])",
       "replacement": "Dep",
       "replacementMap": {
         "Abhängigkeit": "Dep",
@@ -101,7 +101,8 @@
       },
       "context": "all",
       "category": "ultra",
-      "minIntensity": "ultra"
+      "minIntensity": "ultra",
+      "flags": "giu"
     }
   ]
 }

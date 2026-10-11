@@ -9,8 +9,9 @@ function regInternals(reg: JobRegistry): TestRegistry {
   return reg as TestRegistry;
 }
 
-import test from "node:test";
+import test, { type TestContext } from "node:test";
 import assert from "node:assert/strict";
+import { setImmediate as settle } from "node:timers/promises";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -24,6 +25,39 @@ process.env.DISABLE_SQLITE_AUTO_BACKUP = "true";
 const core = await import("@/lib/db/core.ts");
 const index = await import("@/lib/jobRegistry/index.ts");
 const { getJobRegistry, __resetJobRegistry } = index;
+
+/** Fail statement execution while leaving job lookups and the real DB intact. */
+function failHistoryWrites(t: TestContext, operations: Array<"record" | "prune">) {
+  const db = core.getDbInstance();
+  const prepare = db.prepare.bind(db);
+  const attempts: Array<"record" | "prune"> = [];
+  let failing = true;
+  t.mock.method(db, "prepare", (sql: string) => {
+    const statement = prepare(sql);
+    const operation = /^\s*INSERT INTO job_runs\b/.test(sql)
+      ? "record"
+      : /^\s*DELETE FROM job_runs\b/.test(sql)
+        ? "prune"
+        : null;
+    if (!operation || !operations.includes(operation)) return statement;
+    return {
+      ...statement,
+      run(...params: unknown[]) {
+        attempts.push(operation);
+        if (failing) {
+          throw Object.assign(new Error("database is locked"), { code: "SQLITE_BUSY" });
+        }
+        return statement.run(...params);
+      },
+    };
+  });
+  return {
+    attempts,
+    recover() {
+      failing = false;
+    },
+  };
+}
 
 let nowIso: string;
 function def(
@@ -592,3 +626,147 @@ test("cronGetter: throws falls back to static cron", async () => {
   assert.ok(calls >= 1, "job should fire with static cron fallback when cronGetter throws");
   reg.stop("throwing");
 });
+
+for (const outcome of ["success", "failure", "throw", "throw-empty"] as const) {
+  test(`history: failed recording is contained after handler ${outcome}`, async (t) => {
+    const reg = getJobRegistry();
+    let calls = 0;
+    reg.register(
+      def("j", async () => {
+        calls++;
+        if (outcome === "throw") throw new Error("handler failed");
+        if (outcome === "throw-empty") throw new Error("");
+        return {
+          success: outcome === "success",
+          error: outcome === "failure" ? "handler failed" : undefined,
+          recordsAffected: 7,
+        };
+      })
+    );
+    const fault = failHistoryWrites(t, ["record"]);
+    const errors = t.mock.method(console, "error", () => {});
+
+    assert.deepEqual(await reg.runNow("j"), { started: true });
+    await settle();
+    assert.equal(calls, 1, "a history failure must not retry the handler");
+    assert.deepEqual(fault.attempts, ["record"], "do not record the DB error as a job failure");
+    assert.equal(errors.mock.callCount(), 1);
+    assert.match(errors.mock.calls[0].arguments.join(" "), /record.*j.*database is locked/i);
+    assert.equal(reg.getRuns("j").length, 0);
+
+    fault.recover();
+    assert.deepEqual(await reg.runNow("j"), { started: true });
+    await settle();
+    assert.equal(calls, 2, "the running guard must be released after a history failure");
+    const [run] = reg.getRuns("j");
+    assert.equal(run.status, outcome === "success" ? "success" : "failure");
+    assert.equal(
+      run.errorMessage,
+      outcome === "success" ? null : outcome === "throw-empty" ? "" : "handler failed"
+    );
+    assert.equal(run.recordsAffected, outcome.startsWith("throw") ? 0 : 7);
+  });
+}
+
+test("history: failed pruning preserves the recorded result and permits another run", async (t) => {
+  const reg = getJobRegistry();
+  let calls = 0;
+  reg.register(
+    def("j", async () => {
+      calls++;
+      return { success: true, recordsAffected: 3 };
+    })
+  );
+  const fault = failHistoryWrites(t, ["prune"]);
+  const errors = t.mock.method(console, "error", () => {});
+  await reg.runNow("j");
+  await settle();
+  assert.deepEqual(fault.attempts, ["prune"]);
+  assert.equal(errors.mock.callCount(), 1);
+  assert.match(errors.mock.calls[0].arguments.join(" "), /prune.*j.*database is locked/i);
+  assert.equal(reg.getRuns("j")[0].status, "success");
+  assert.equal(reg.getRuns("j")[0].recordsAffected, 3);
+
+  fault.recover();
+  await reg.runNow("j");
+  await settle();
+  assert.equal(calls, 2);
+  assert.equal(reg.getRuns("j").length, 2);
+});
+
+test("history: simultaneous failures release one queued run without blocking other jobs", async (t) => {
+  const reg = getJobRegistry();
+  let calls = 0;
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => (release = resolve));
+  reg.register(
+    def("j", async () => {
+      calls++;
+      await gate;
+      return { success: true };
+    })
+  );
+  let otherCalls = 0;
+  reg.register(
+    def("other", async () => {
+      otherCalls++;
+      return { success: true };
+    })
+  );
+  const fault = failHistoryWrites(t, ["record", "prune"]);
+  const errors = t.mock.method(console, "error", () => {});
+
+  await reg.runNow("j");
+  const queued = reg.runNow("j");
+  assert.deepEqual(await reg.runNow("j"), { started: false, reason: "already_queued" });
+  assert.equal(calls, 1, "the queued request must wait for the current handler");
+  release();
+  assert.deepEqual(await queued, { started: true });
+  await settle();
+  assert.equal(calls, 2, "only the explicitly queued request runs again");
+  assert.equal(fault.attempts.filter((op) => op === "record").length, 2);
+  assert.equal(fault.attempts.filter((op) => op === "prune").length, 2);
+  assert.equal(errors.mock.callCount(), 4);
+
+  await reg.runNow("other");
+  await settle();
+  assert.equal(otherCalls, 1, "other jobs still execute while history is unavailable");
+  fault.recover();
+  await reg.runNow("j");
+  await settle();
+  assert.equal(calls, 3);
+  assert.equal(reg.getRuns("j").length, 1);
+});
+
+for (const type of ["interval", "cron"] as const) {
+  test(`history: ${type} scheduling continues after a pruning failure`, async (t) => {
+    const reg = getJobRegistry();
+    let calls = 0;
+    reg.register(
+      def(
+        "j",
+        async () => {
+          calls++;
+          return { success: true };
+        },
+        { type, intervalMs: 1000, cron: "* * * * * *", config: { timezone: "UTC" } }
+      )
+    );
+    const fault = failHistoryWrites(t, ["prune"]);
+    const errors = t.mock.method(console, "error", () => {});
+    t.mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: 0 });
+    t.after(() => reg.stopAll());
+
+    reg.start("j");
+    if (type === "cron") t.mock.timers.tick(1000);
+    await settle();
+    assert.equal(calls, 1);
+    assert.equal(errors.mock.callCount(), 1);
+
+    fault.recover();
+    t.mock.timers.tick(1000);
+    await settle();
+    assert.equal(calls, 2);
+    assert.equal(reg.getRuns("j").length, 2);
+  });
+}

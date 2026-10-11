@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ Karatteristiċi</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 Kombinazzjonijiet</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 Fornituri</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 Fornituri</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI &amp; MCP</a></td>
   </tr>
   <tr>
@@ -665,7 +665,7 @@ mill-istorja tas-shell tiegħek. → [Integrazzjonijiet tas-CLI](docs/guides/CLI
 
 <div align="center">
 
-## 🌐 357 Fornitur tal-IA — 152 Immarkati bħala Bla Ħlas fil-Katalgu
+## 🌐 372 Fornitur tal-IA — 154 Immarkati bħala Bla Ħlas fil-Katalgu
 
 </div>
 
@@ -1265,7 +1265,7 @@ Metriċi kanoniċi fl-2026-08-24: **1.029 vidjo uniku** · **11.132.922 dehra ma
   <tr><td nowrap><b>Ambjent ta’ eżekuzzjoni</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>Lingwa</b></td><td>TypeScript 6.0 — <b>100% TypeScript</b> f’<code>src/</code> u <code>open-sse/</code> kollha (l-ebda <code>any</code> fil-qalba minn v2.0 ’l hawn)</td></tr>
   <tr><td nowrap><b>Qafas</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>Bażi tad-data</b></td><td>better-sqlite3 (SQLite, ġurnalizzazzjoni WAL) + LowDB (legat JSON) — 137 modulu tad-dominju, 193 migrazzjoni</td></tr>
+  <tr><td nowrap><b>Bażi tad-data</b></td><td>better-sqlite3 (SQLite, ġurnalizzazzjoni WAL) + LowDB (legat JSON) — 137 modulu tad-dominju, 202 migrazzjoni</td></tr>
   <tr><td nowrap><b>Memorja</b></td><td>Test sħiħ SQLite FTS5 + inkorporazzjonijiet vettorjali kkwantizzati b’int8, tnaqqis ittajpjat</td></tr>
   <tr><td nowrap><b>Skemi</b></td><td>Zod 4 — validazzjoni tal-I/O tal-għodod MCP + kuntratti tal-API</td></tr>
   <tr><td nowrap><b>Protokolli</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

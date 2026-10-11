@@ -1,0 +1,1 @@
+- **fix(images):** Route unannotated synced image models using the configured provider node endpoint type, preserving explicit model overrides and connection affinity ([#16017](https://github.com/diegosouzapw/OmniRoute/pull/16017)) — thanks @D4rk4

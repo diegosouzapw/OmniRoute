@@ -307,12 +307,14 @@ kontrakt för dokumentation/miljö, i18n-paritet, enhetstester) är oförändrad
   engångsvisa lättnaden (`scripts/quality/relax-baselines.mjs`); vägrar att köras två gånger med
   samma anteckning.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  mäter varje numerisk spärr på samma sätt som CI och skriver ut återstående marginal per spärr
-  (`scripts/quality/baseline-headroom.mjs`). Det nattliga jobbet `baseline-headroom` publicerar
-  tabellen i det löpande ärendet **📈 Baslinjemarginal (hastighetsfas)** och lägger till etiketten
-  `headroom-alert` när någon spärr ligger inom 10 % från sitt tak eller redan har överskridit det. Ärendet
-  är den tidiga varningen: en budget som fylls på några dagar innebär att lättnaden förbrukas av
-  ett fåtal PR:er, inte av hela teamet — kontrollera `_rebaseline_*`-anteckningarna för den berörda spärren.
+  mäter varje numerisk kvalitetskontroll på samma sätt som CI och visar den återstående marginalen per kontroll
+  (`scripts/quality/baseline-headroom.mjs`). Det nattliga jobbet `baseline-headroom` publicerar tabellen
+  i sammanfattningen av arbetsflödets körning och laddar upp JSON/Markdown-rapporten som
+  `baseline-headroom-<run_id>`, som sparas i 90 dagar. Varningsrader och kritiska rader markerar
+  kontroller med högst 10% marginal kvar till taket eller som redan har överskridit det.
+  Granska rapporterna som en tidig varning om att budgetarna förbrukas; läs den berörda kontrollens
+  `_rebaseline_*`-anteckningar. Jobbet skapar eller uppdaterar inte längre något permanent ärende;
+  #12149 bevarar historiken från tidigare rapporter.
 
 **Läge för ny kod (Clean-as-You-Code) — sedan 2026-08-30, endast snabbspår för PR:er**
 

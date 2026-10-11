@@ -1,0 +1,1 @@
+- Keep full translation catalogs out of the global error boundary's client bundles by generating small localized error catalogs before production builds. All supported languages and the English fallback remain available. ([#15958](https://github.com/diegosouzapw/OmniRoute/pull/15958)).
