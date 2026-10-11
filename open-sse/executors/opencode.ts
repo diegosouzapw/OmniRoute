@@ -93,8 +93,9 @@ import {
 } from "./opencodeParkResume.ts";
 
 /**
- * The main OpenCode Zen host (the `opencode-zen` registry entry). Used to scope the `x-api-key` auth override (#12633) away
- * from `opencode-go`, which serves a different upstream (`.../zen/go/v1`).
+ * The main OpenCode Zen host (the `opencode-zen` registry entry). Used to scope
+ * the `x-api-key` auth override (#12633) away from `opencode-go`, which serves a
+ * different upstream (`.../zen/go/v1`).
  */
 const ZEN_BASE_URL = "https://opencode.ai/zen/v1";
 
