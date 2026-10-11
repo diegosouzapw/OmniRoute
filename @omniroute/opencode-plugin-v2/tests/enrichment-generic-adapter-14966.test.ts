@@ -7,6 +7,7 @@ import {
   type OmniRouteEnrichmentMap,
 } from "../src/shared/enrich.js";
 import { mapRawModelToModelV2 } from "../src/shared/models-map.js";
+import { isUsableRawModelId, usableProviderAliasSet } from "../src/shared/usable.js";
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -32,7 +33,7 @@ describe("bare-key fallback keeps generic-adapter attribution isolated (#14966)"
         providerAlias: "qwen-cloud",
         providerCanonical: "qwen-cloud",
         providerDisplayName: "Qwen-cloud",
-        freeType: "credits",
+        freeType: "recurring-credit",
         creditTokens: 1_000_000,
         pricing: { input: 0, output: 0 },
       },
@@ -135,6 +136,58 @@ describe("generic-adapter prefixes get their registry label (#14966)", () => {
     );
     applyEnrichment(model, found, { providerTag: true });
     assert.ok(model.name.includes("InferHub"), `got: ${model.name}`);
+  });
+
+  it("keeps active generic-adapter models with usableOnly, but drops disabled ones", async () => {
+    globalThis.fetch = (async (href: string | URL | Request) => {
+      const url = String(href);
+      if (url.includes("/api/providers")) {
+        return ok({
+          connections: [
+            {
+              provider: "openai-compatible-chat-abc123",
+              isActive: true,
+              providerSpecificData: { prefix: "ih", nodeName: "InferHub" },
+            },
+          ],
+        });
+      }
+      if (url.includes("/api/free-tier/summary")) return ok({ perModel: [] });
+      return ok({});
+    }) as typeof fetch;
+    const enrichment = await defaultOmniRouteEnrichmentFetcher("https://gw.example.com", "k");
+    const active = usableProviderAliasSet(
+      [{ id: "conn-1", provider: "openai-compatible-chat-abc123", isActive: true }],
+      enrichment
+    );
+    assert.equal(isUsableRawModelId("ih/glm-5.3", active), true);
+    const disabled = usableProviderAliasSet(
+      [{ id: "conn-1", provider: "openai-compatible-chat-abc123", isActive: false }],
+      enrichment
+    );
+    assert.equal(isUsableRawModelId("ih/glm-5.3", disabled), false);
+  });
+
+  it("does not treat an adapter label as recovered pricing after a catalog failure", async () => {
+    globalThis.fetch = (async (href: string | URL | Request) => {
+      const url = String(href);
+      if (url.includes("/api/pricing/models")) return new Response("down", { status: 503 });
+      if (url.includes("/api/providers")) {
+        return ok({
+          connections: [
+            {
+              provider: "openai-compatible-chat-abc123",
+              providerSpecificData: { prefix: "ih", nodeName: "InferHub" },
+            },
+          ],
+        });
+      }
+      return ok({});
+    }) as typeof fetch;
+    await assert.rejects(
+      defaultOmniRouteEnrichmentFetcher("https://gw.example.com", "k"),
+      /enrichment catalog source failed/
+    );
   });
 
   it("a failed registry fetch is fail-open: catalog unaffected, no labels", async () => {

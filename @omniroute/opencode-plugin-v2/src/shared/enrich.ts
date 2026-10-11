@@ -546,6 +546,8 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
     report("/api/free-tier/summary", `HTTP ${freeStatus}`);
   }
 
+  const hasModelMetadata = out.size > 0;
+
   // 4. Generic-adapter prefix labels from /api/providers (best-effort, #14966).
   // A generic `openai-compatible-chat-*` connection is the only place that
   // knows its `providerSpecificData.prefix` maps to e.g. "InferHub" — without
@@ -585,6 +587,7 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
         if (typeof nodeName !== "string" || nodeName.trim().length === 0) continue;
         out.set(`${prefix}/${GENERIC_ADAPTER_NODE_SENTINEL}`, {
           providerAlias: prefix,
+          providerCanonical: provider,
           providerDisplayName: nodeName.trim(),
         });
       }
@@ -609,7 +612,7 @@ export const defaultOmniRouteEnrichmentFetcher: OmniRouteEnrichmentFetcher = asy
   const sourceFailed = (status: number): boolean =>
     status === -1 || (status !== 0 && (status < 200 || status >= 300));
   const catalogFailed = sourceFailed(catalogStatus);
-  const pricingBroughtSomething = !sourceFailed(priceStatus) && out.size > 0;
+  const pricingBroughtSomething = !sourceFailed(priceStatus) && hasModelMetadata;
   if (catalogFailed && !pricingBroughtSomething) {
     throw new Error(
       `enrichment catalog source failed (pricing/models: ${catalogStatus}, pricing: ${priceStatus})`
