@@ -160,3 +160,66 @@ test("om-usage ?format=json rejects an invalid key and never leaks a stack trace
     "error bodies must not carry stack frames (ERROR_SANITIZATION)"
   );
 });
+
+test("om-usage preserves raw quota in json while text scales remaining quota by cutoff", async () => {
+  // #15530 — Clarify raw vs cutoff-adjusted usage percentages contract:
+  // For 60% raw usage and a 25% cutoff, raw remaining is 40%, whereas
+  // cutoff-adjusted remaining is (40 - 25) / (100 - 25) * 100 = 20% left.
+  const customDeps = allowedDeps({
+    getProviderConnections: async () => [
+      {
+        id: "conn-claude",
+        provider: "claude",
+        isActive: true,
+        quotaWindowThresholds: { "weekly (7d)": 25 },
+      },
+    ],
+    getAllProviderLimitsCache: () => ({
+      "conn-claude": {
+        plan: "Claude Max",
+        quotas: {
+          "weekly (7d)": {
+            used: 60,
+            total: 100,
+            remaining: 40,
+            resetAt: "2026-08-25T03:00:00.000Z",
+          },
+        },
+        message: null,
+        fetchedAt: new Date(NOW).toISOString(),
+      },
+    }),
+  });
+
+  // 1. JSON format returns raw snapshot quotas and connection thresholds
+  const jsonResponse = await handleInternalUsageCommandHttpRequest(
+    new Request("http://localhost/api/usage/om-usage?format=json", {
+      headers: { Authorization: "Bearer sk-allowed" },
+    }),
+    customDeps
+  );
+  assert.equal(jsonResponse.status, 200);
+  const body = (await jsonResponse.json()) as {
+    allowed: boolean;
+    provider: {
+      quotas: Record<string, { used: number; total: number; remaining: number }>;
+      quotaWindowThresholds: Record<string, number> | null;
+    } | null;
+  };
+  assert.equal(body.allowed, true);
+  assert.equal(body.provider?.quotas["weekly (7d)"]?.used, 60);
+  assert.equal(body.provider?.quotas["weekly (7d)"]?.remaining, 40);
+  assert.deepEqual(body.provider?.quotaWindowThresholds, { "weekly (7d)": 25 });
+
+  // 2. Text format computes cutoff-adjusted remaining: (40 - 25) / (100 - 25) * 100 = 20% left
+  const textResponse = await handleInternalUsageCommandHttpRequest(
+    new Request("http://localhost/api/usage/om-usage", {
+      headers: { Authorization: "Bearer sk-allowed" },
+    }),
+    customDeps
+  );
+  assert.equal(textResponse.status, 200);
+  const text = await textResponse.text();
+  assert.match(text, /Weekly/);
+  assert.match(text, /20% left/);
+});

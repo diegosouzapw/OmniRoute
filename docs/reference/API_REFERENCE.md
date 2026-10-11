@@ -807,6 +807,57 @@ distinguishes them.
 **Auth:** the caller's own Bearer API key, validated with `isValidApiKey` — this is _not_ the
 management surface (`/api/keys/…`), which stays behind `requireManagementAuth`.
 
+### Raw vs. Cutoff-Adjusted Quota Percentages
+
+When consuming `/api/usage/om-usage`, callers should note the distinction between the
+percentages presented by the **plain-text output** and the structured **JSON output**:
+
+| Aspect               | Plain-text format (`/api/usage/om-usage` / `@@om-usage`)                             | JSON format (`?format=json`)                                          |
+| :------------------- | :----------------------------------------------------------------------------------- | :-------------------------------------------------------------------- |
+| **Output field**     | `NN% left` (e.g., `20% left`)                                                        | `provider.quotas` / `providers[].quotas`                              |
+| **Measurement**      | **Cutoff-adjusted usable allowance**: remaining capacity above the cutoff threshold  | **Raw upstream quota**: unadjusted provider measurement               |
+| **Cutoff scaling**   | Scaled via `effectiveRemainingPercent()` so the protected reserve reads as `0% left` | None (raw snapshot values as reported by the provider)                |
+| **Threshold data**   | Incorporated into the displayed percentage                                           | Stored in `quotaWindowThresholds` per connection (or server defaults) |
+| **Primary consumer** | Interactive CLIs, terminal prompts, human operators                                  | Programmatic integrations, dashboards, analytics, billing trackers    |
+
+#### The Cutoff Adjustment Formula
+
+OmniRoute supports proactive quota cutoffs to prevent upstream exhaustion (configured via connection
+`quotaWindowThresholds`, provider defaults, or global resilience settings). When a cutoff threshold
+(e.g., `cutoff = 25%`) is active on a quota window, the text renderer calculates remaining allowance as:
+
+- If `remaining <= cutoff`: returns `0%`.
+- If `remaining > cutoff`: returns `((remaining - cutoff) / (100 - cutoff)) * 100`.
+
+The formatted text output rounds this to the nearest integer (`Math.round(...)`).
+
+#### Illustrative Example
+
+Consider a provider window with **60% raw usage** (hence **40% raw remaining quota**) and a configured
+**25% remaining-quota cutoff** threshold:
+
+| Representation                | Calculation                                        | Remaining |                Implied Used                |
+| :---------------------------- | :------------------------------------------------- | :-------: | :----------------------------------------: |
+| **Raw JSON (`?format=json`)** | Upstream snapshot (`quotas[window]`)               |  **40%**  |                  **60%**                   |
+| **Text format (`NN% left`)**  | `((40 - 25) / (100 - 25)) * 100 = (15 / 75) * 100` |  **20%**  | **80%** (if calculating `100 - remaining`) |
+
+- **Why text shows 20% left:** Out of the 40% physical quota left on the account, 25% is reserved by the
+  cutoff policy. The caller has only 15% out of 75% usable headroom remaining before the router stops
+  routing to this connection. Scaling ensures the connection signals exhaustion (`0% left`) exactly when
+  routing will cease.
+- **Why JSON preserves raw values:** The JSON payload returns the exact provider snapshot (`UsageSnapshot`)
+  so external tools have access to ground-truth upstream utilization and connection-level
+  `quotaWindowThresholds` without server-side lossy scaling.
+
+#### Consumer Migration Guidance
+
+If an external integration (such as an editor plugin or agent extension) previously scraped the text
+endpoint (`NN% left`) and computed used percentage as `100 - NN`, migrating to `?format=json` means:
+
+- Reading raw JSON values will reflect **actual upstream consumption** (60% used in the example above).
+- If the integration wishes to preserve the text endpoint's usable-allowance semantics, it can evaluate
+  the effective remaining formula client-side using `quotaWindowThresholds` for connection-level overrides.
+
 ---
 
 ## Semantic Cache
