@@ -6,6 +6,7 @@ import {
   PLUGIN_ID,
   providerIdFor,
   resolveTimeouts,
+  toResolvedOptions,
 } from "../src/options.js";
 
 describe("parsePluginOptions", () => {
@@ -284,5 +285,16 @@ describe("providerId is bounded because it reaches a filesystem path", () => {
         ok
       );
     }
+  });
+});
+
+describe("resolved relay defaults", () => {
+  it("relays the four catalog filter defaults from parse to resolved options", () => {
+    const parsed = parsePluginOptions({ baseURL: "https://gw.example.com" });
+    const resolved = toResolvedOptions(parsed);
+    assert.equal(resolved.usableOnly, parsed.usableOnly);
+    assert.equal(resolved.freeOnly, parsed.freeOnly);
+    assert.equal(resolved.toolsOnly, parsed.toolsOnly);
+    assert.equal(resolved.visionOnly, parsed.visionOnly);
   });
 });
