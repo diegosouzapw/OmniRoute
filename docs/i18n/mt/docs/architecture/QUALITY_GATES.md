@@ -307,12 +307,14 @@ kuntratt tad-dokumentazzjoni/ambjent, parità i18n, testijiet tal-unitajiet) ma 
   ta' darba (`scripts/quality/relax-baselines.mjs`); jirrifjuta li jitħaddem darbtejn bl-istess
   nota.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  ikejjel kull punt ta' kontroll numeriku bl-istess mod bħas-CI u jistampa l-marġni disponibbli li jifdal għal kull punt ta' kontroll
-  (`scripts/quality/baseline-headroom.mjs`). Il-job ta' billejl `baseline-headroom` jippubblika t-
-  tabella fil-kwistjoni attiva **📈 Marġni disponibbli tal-linja bażi (fażi tal-veloċità)** u jżid it-
-  tikketta `headroom-alert` meta xi punt ta' kontroll ikun sa 10% mil-limitu massimu tiegħu jew ikun diġà qabżu. Dik il-kwistjoni
-  hija t-twissija bikrija: baġit li jimtela fi ftit jiem ifisser li l-illaxkar qed jiġi kkunsmat minn
-  ftit PRs, mhux mit-tim kollu — ara n-noti `_rebaseline_*` tal-punt ta' kontroll li qed jikkawża l-problema.
+  ikejjel kull kontroll numeriku tal-kwalità bl-istess mod bħas-CI u juri l-marġni li fadal għal kull kontroll
+  (`scripts/quality/baseline-headroom.mjs`). Il-kompitu ta’ billejl `baseline-headroom` jippubblika t-tabella
+  fis-sommarju tal-eżekuzzjoni tal-fluss tax-xogħol u jtella’ r-rapport JSON/Markdown bħala
+  `baseline-headroom-<run_id>`, li jinżamm għal 90 jum. Ir-ringieli ta’ twissija u dawk kritiċi jindikaw
+  kontrolli li fadlilhom 10% jew inqas sal-limitu tagħhom jew li diġà qabżuh.
+  Irrevedi dawn ir-rapporti bħala twissija bikrija li l-baġits qed jintużaw; eżamina n-noti
+  `_rebaseline_*` tal-kontroll ikkonċernat. Il-kompitu m’għadux joħloq jew jaġġorna issue permanenti;
+  #12149 iżomm l-istorja tar-rapporti preċedenti.
 
 **Modalità għal kodiċi ġdid (Clean-as-You-Code) — mill-2026-08-30, rotta rapida tal-PR biss**
 

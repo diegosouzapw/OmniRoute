@@ -380,3 +380,50 @@ test.after(() => {
   resetAllCircuitBreakers();
   clearAllModelLockouts();
 });
+
+// --- Typed availability (Section 2) --------------------------------------------------
+
+test("availability: fresh credits_exhausted -> QUOTA_EXHAUSTED", async () => {
+  const until = new Date(Date.now() + 3_600_000).toISOString();
+  const id = await seedConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "avail-quota",
+    priority: 1,
+    isActive: true,
+    testStatus: "credits_exhausted",
+    lastErrorAt: new Date(Date.now() - 60_000).toISOString(),
+    rateLimitedUntil: until,
+  });
+  const body = await json(await GET(makeReq()));
+  assert.equal(findConn(body, id).availability.state, "QUOTA_EXHAUSTED");
+});
+
+test("availability: active clean connection -> AVAILABLE", async () => {
+  const id = await seedConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "avail-ok",
+    priority: 1,
+    isActive: true,
+    testStatus: "active",
+  });
+  const body = await json(await GET(makeReq()));
+  assert.equal(findConn(body, id).availability.state, "AVAILABLE");
+});
+
+test("availability: old terminal -> STALE_TERMINAL (never silently cleared)", async () => {
+  const id = await seedConnection({
+    provider: "openai",
+    authType: "apikey",
+    name: "avail-stale",
+    priority: 1,
+    isActive: true,
+    testStatus: "expired",
+    lastErrorAt: "2020-01-01T00:00:00.000Z",
+  });
+  const body = await json(await GET(makeReq()));
+  const conn = findConn(body, id);
+  assert.equal(conn.availability.state, "STALE_TERMINAL");
+  assert.notEqual(conn.availability.state, "AVAILABLE");
+});

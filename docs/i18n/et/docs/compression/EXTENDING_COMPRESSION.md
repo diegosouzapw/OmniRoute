@@ -333,7 +333,6 @@ Või paigutage see tuvastatud asukohta:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Kasutaja tasemel
-<project>/.compression/rules/hi/filler.json   # Projekti tasemel
 ```
 
 ### Keelepakettide parimad tavad

@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Tharla earráid",
+      "description": "Tharla earráid gan choinne. Taifeadadh í seo agus fiosróidh ár bhfoireann í.",
+      "detailsAriaLabel": "Sonraí earráide",
+      "retryAriaLabel": "Déan iarracht eile an leathanach a luchtú",
+      "tryAgain": "Bain Triail Eile As",
+      "statusAriaLabel": "Oscail stádas an chórais",
+      "systemStatus": "Stádas an Chórais"
+    }
+  }
+}

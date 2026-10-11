@@ -316,12 +316,14 @@ doküman/ortam sözleşmesi, i18n eşliği, birim testleri) değişmedi — baş
 - `npm run quality:relax-baselines -- --pct 20 --note velocity_YYYY_MM_DD [--dry-run]` — tek seferlik
   gevşetme (`scripts/quality/relax-baselines.mjs`); aynı notla ikinci kez çalışmayı reddeder.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  her sayısal kapıyı CI ile aynı şekilde ölçer ve kapı başına kalan ek kapasiteyi yazdırır
-  (`scripts/quality/baseline-headroom.mjs`). Gecelik `baseline-headroom` işi, tabloyu yaşayan
-  **📈 Baseline headroom (velocity phase)** kaydına gönderir ve herhangi bir kapı sınırının %10'una
-  yaklaştığında veya sınırı zaten aştığında `headroom-alert` etiketini ekler. Bu kayıt erken uyarı
-  işlevi görür: birkaç gün içinde dolan bir bütçe, gevşetmenin tüm ekip tarafından değil, birkaç PR
-  tarafından tüketildiği anlamına gelir — sorunlu kapının `_rebaseline_*` notlarına bakın.
+  her sayısal kalite kontrolünü CI ile aynı şekilde ölçer ve her kontrol için kalan payı gösterir
+  (`scripts/quality/baseline-headroom.mjs`). Her gece çalışan `baseline-headroom` işi tabloyu
+  iş akışı çalıştırmasının özetinde yayımlar ve JSON/Markdown raporunu
+  `baseline-headroom-<run_id>` adıyla yükler; rapor 90 gün saklanır. Uyarı ve kritik satırlar,
+  üst sınıra kadar en fazla 10% payı kalan veya sınırı zaten aşmış kontrolleri gösterir.
+  Bu raporları ayrılan bütçelerin tüketilmesine ilişkin erken uyarı olarak inceleyin; ilgili kontrolün
+  `_rebaseline_*` notlarına bakın. İş artık kalıcı bir sorun kaydı oluşturmaz veya güncellemez;
+  #12149 önceki raporların geçmişini korur.
 
 **Yeni kod modu (Clean-as-You-Code) — 2026-08-30'dan beri, yalnızca PR hızlı yolu**
 

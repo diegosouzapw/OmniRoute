@@ -107,7 +107,7 @@
   <tr>
     <td align="right"><b>⚙️ सुविधाहरू</b></td>
     <td align="center"><a href="#-combos--the-flagship">🎯 कम्बोहरू</a></td>
-    <td align="center"><a href="#-357-ai-providers--152-catalog-marked-free">🌐 प्रदायकहरू</a></td>
+    <td align="center"><a href="#-372-ai-providers--154-catalog-marked-free">🌐 प्रदायकहरू</a></td>
     <td align="center"><a href="#-full-cli--a2a--mcp">🔌 CLI र MCP</a></td>
   </tr>
   <tr>
@@ -673,7 +673,7 @@ omniroute configure codex          # यी पनि: claude opencode qwen aide
 
 <div align="center">
 
-## 🌐 357 AI प्रदायकहरू — 152 क्याटलगमा निःशुल्कका रूपमा चिन्हित
+## 🌐 372 AI प्रदायकहरू — 154 क्याटलगमा निःशुल्कका रूपमा चिन्हित
 
 </div>
 
@@ -1273,7 +1273,7 @@ OMNIROUTE_SKIP_POSTINSTALL=1 npm install -g omniroute   # CI=1 ले पनि 
   <tr><td nowrap><b>रनटाइम</b></td><td>Node.js 22.x / 24.x LTS — <code>&gt;=22.22.2 &lt;23 || &gt;=24.0.0 &lt;27</code></td></tr>
   <tr><td nowrap><b>भाषा</b></td><td>TypeScript 6.0 — <code>src/</code> र <code>open-sse/</code> भरि <b>100% TypeScript</b> (v2.0 देखि कोरमा शून्य <code>any</code>)</td></tr>
   <tr><td nowrap><b>फ्रेमवर्क</b></td><td>Next.js 16 + React 19 + Tailwind CSS 4</td></tr>
-  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिङ) + LowDB (JSON लिगेसी) — 137 डोमेन मोड्युल, 193 माइग्रेसन</td></tr>
+  <tr><td nowrap><b>डेटाबेस</b></td><td>better-sqlite3 (SQLite, WAL जर्नलिङ) + LowDB (JSON लिगेसी) — 137 डोमेन मोड्युल, 202 माइग्रेसन</td></tr>
   <tr><td nowrap><b>मेमोरी</b></td><td>SQLite FTS5 पूर्ण-पाठ + int8-क्वान्टाइज्ड भेक्टर एम्बेडिङ, टाइपयुक्त क्षय</td></tr>
   <tr><td nowrap><b>स्किमा</b></td><td>Zod 4 — MCP उपकरण I/O प्रमाणीकरण + API सम्झौताहरू</td></tr>
   <tr><td nowrap><b>प्रोटोकल</b></td><td>MCP (stdio / HTTP / SSE) + A2A v0.3 (JSON-RPC 2.0 + SSE)</td></tr>

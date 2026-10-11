@@ -254,6 +254,7 @@
     "log": "Afișează jurnalele serverului în linie",
     "no_recovery": "Dezactivează repornirea automată în caz de eroare (mod de depanare)",
     "max_restarts": "Numărul maxim de reporniri după erori în interval de 30 s înainte de abandonare (implicit: 2)",
+    "headless": "Rulează doar motorul proxy: panou dezactivat (404), subsisteme opționale omise (setează OMNIROUTE_HEADLESS=1)",
     "tray": "Pornește în bara de sistem (doar pe desktop, opțional)",
     "no_tray": "Dezactivează pictograma din bara de sistem",
     "ready_timeout": "Timpul de expirare al verificării disponibilității, în ms (și OMNIROUTE_READY_TIMEOUT_MS, implicit 60000)",

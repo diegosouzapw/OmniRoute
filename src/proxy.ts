@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { runAuthzPipeline } from "./server/authz/pipeline";
+import { headlessGateResponse } from "./lib/system/headless";
 
 // #10627: the proxy runs in its own Next.js runtime and never executes
 // instrumentation-node.ts's startup warm-ups, so its FIRST request used to
@@ -21,6 +22,11 @@ void import("./lib/db/readCache")
   });
 
 export async function proxy(request: NextRequest) {
+  // Headless mode (R0.1, OMNIROUTE_HEADLESS=1): dashboard pages answer 404 JSON
+  // before the pipeline runs; every other route is untouched. See
+  // src/lib/system/headless.ts and docs/guides/HEADLESS.md.
+  const headlessResponse = headlessGateResponse(request.nextUrl.pathname);
+  if (headlessResponse) return headlessResponse;
   return runAuthzPipeline(request, { enforce: true });
 }
 

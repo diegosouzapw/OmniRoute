@@ -17,6 +17,7 @@ import type {
   ProviderExecutionOutcome,
   ProviderExecutionPolicy,
 } from "./providerExecutionPipeline.ts";
+import { bufferedResponsesFailure } from "./bufferedResponsesFailure.ts";
 import { translateNonStreamingClientResponse } from "./nonStreamingClientTranslate.ts";
 import { parseNonStreamingResponseBody, isJsonRecord } from "./nonStreamingResponseParse.ts";
 import { restoreNonStreamingToolNames } from "./passthroughToolNames.ts";
@@ -34,6 +35,7 @@ import {
   getModelFamily,
 } from "../../services/modelFamilyFallback.ts";
 import { isEmptyContentResponse } from "../../services/errorClassifier.ts";
+import { hasTrustedEmptyTurn } from "../../utils/emptyTurnPolicy.ts";
 import { FORMATS } from "../../translator/formats.ts";
 import { hasActiveClaudeThinking } from "../../utils/thinkingBudget.ts";
 
@@ -263,6 +265,8 @@ function finishOk(
     requestUrl?: string;
   }
 ): NonStreamingProviderLegResult {
+  const failed = bufferedResponsesFailure(input, params, { legError, extractUsage, buildReceipt });
+  if (failed) return failed;
   // F-02: restore + sanitize + translate is the only success tail.
   // Fallback/retry must not skip this with responseToolNameMap: null.
   const restoreClaudeNames = params.sourceFormat === "claude" && params.targetFormat === "claude";
@@ -978,7 +982,12 @@ export async function runNonStreamingProviderLeg(
   // #14160: pass the provider so first-party APIs (antigravity) keep empty
   // completions with a normal stop reason as valid 200s instead of synthetic
   // 502s feeding model lockout.
-  if (isEmptyContentResponse(responseBody, { provider })) {
+  if (
+    isEmptyContentResponse(responseBody, {
+      provider,
+      trustedEmptyTurn: hasTrustedEmptyTurn(executorResult.response),
+    })
+  ) {
     const errMsg = "Provider returned empty content";
     if (allowModelFallback) {
       const triedModels = new Set<string>([currentModel]);

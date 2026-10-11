@@ -311,12 +311,14 @@ docs/env-contract, i18n-pariteit, unit-tests) blijven ongewijzigd — een rode t
   eenmalige versoepeling (`scripts/quality/relax-baselines.mjs`); weigert tweemaal met dezelfde
   notitie te worden uitgevoerd.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  meet elke numerieke controle zoals CI dat doet en toont de resterende speelruimte per controle
-  (`scripts/quality/baseline-headroom.mjs`). De nachtelijke `baseline-headroom`-taak plaatst de
-  tabel in het doorlopende issue **📈 Baseline-speelruimte (velocity-fase)** en voegt het label
-  `headroom-alert` toe wanneer een controle binnen 10% van zijn limiet zit of deze al heeft overschreden. Dat issue
-  is de vroegtijdige waarschuwing: een budget dat binnen enkele dagen volloopt, betekent dat de versoepeling door
-  enkele PR's wordt verbruikt en niet door het hele team — bekijk de `_rebaseline_*`-notities van de betreffende controle.
+  meet elke numerieke kwaliteitscontrole op dezelfde manier als CI en toont de resterende ruimte per controle
+  (`scripts/quality/baseline-headroom.mjs`). De nachtelijke taak `baseline-headroom` publiceert de tabel
+  in de samenvatting van de workflowuitvoering en uploadt het JSON/Markdown-rapport als
+  `baseline-headroom-<run_id>`, dat 90 dagen wordt bewaard. Waarschuwingsrijen en kritieke rijen markeren
+  controles met nog maximaal 10% ruimte tot hun bovengrens of controles die deze al hebben overschreden.
+  Bekijk deze rapporten als vroege waarschuwing voor het verbruik van de budgetten; raadpleeg de
+  `_rebaseline_*`-notities van de betrokken controle. De taak maakt of actualiseert geen permanente issue meer;
+  #12149 bewaart de geschiedenis van de eerdere rapporten.
 
 **Modus voor nieuwe code (Clean-as-You-Code) — sinds 2026-08-30, alleen het snelle pad voor PR's**
 

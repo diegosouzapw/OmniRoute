@@ -133,7 +133,7 @@ test("KiroExecutor.execute does not retry a malformed-body 400 across endpoints"
 
   globalThis.fetch = (async (url: string) => {
     calledUrls.push(String(url));
-    return new Response("REQUEST_BODY_INVALID", { status: 400 });
+    return new Response("ValidationException: bad field", { status: 400 });
   }) as typeof fetch;
 
   try {

@@ -1,33 +1,62 @@
 import http from "node:http";
 import net from "node:net";
+import { randomBytes, timingSafeEqual } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
 
-const listenPort = 9223;
+const listenPort = Number(process.env.CDP_PROXY_LISTEN_PORT) || 9223;
 const upstreamHost = "127.0.0.1";
-const upstreamPort = 9222;
+const upstreamPort = Number(process.env.CDP_PROXY_UPSTREAM_PORT) || 9222;
 
-// SECURITY (#13679): this proxy republishes Chromium's loopback CDP onto
+// SECURITY (#13679, #14486): this proxy republishes Chromium's loopback CDP onto
 // 0.0.0.0:9223 with no auth of its own — CDP grants full control over a
-// live browser session (Runtime.evaluate, cookie theft, etc). When the
-// operator sets CDP_PROXY_TOKEN, every request/WS-upgrade MUST present it as
-// an `X-Omni-Cdp-Token: <token>` header before a single byte is forwarded
-// upstream, mirroring the gate docker/vnc-browser/chromium/cdp-bridge.py
-// already has (#12571). Left unset, the proxy keeps its historical
-// zero-config behavior — the primary mitigation for the shared-bridge risk
-// is docker-compose.yml isolating this service onto its own network so no
-// unrelated sibling container can reach it at all.
-const TOKEN = process.env.CDP_PROXY_TOKEN || "";
+// live browser session (Runtime.evaluate, cookie theft, etc). Every
+// request/WS-upgrade MUST present the shared secret as an
+// `X-Omni-Cdp-Token: <token>` header before a single byte is forwarded
+// upstream, mirroring docker/vnc-browser/chromium/cdp-bridge.py (#12571).
+// The proxy FAILS CLOSED: with no token configured it rejects everything.
+//
+// Token source: CDP_PROXY_TOKEN, or — when that is empty and CDP_PROXY_TOKEN_FILE
+// is set — a secret auto-generated on first start into that file (a volume
+// shared read-only with the OmniRoute app container, which sends it back).
+// The token value is never logged.
 const TOKEN_HEADER = "x-omni-cdp-token";
+
+function loadToken() {
+  const fromEnv = process.env.CDP_PROXY_TOKEN || "";
+  if (fromEnv) return fromEnv;
+  const file = process.env.CDP_PROXY_TOKEN_FILE || "";
+  if (!file) return "";
+  try {
+    const existing = readFileSync(file, "utf8").trim();
+    if (existing) return existing;
+  } catch {
+    // fall through to generation
+  }
+  try {
+    const generated = randomBytes(32).toString("hex");
+    writeFileSync(file, generated + "\n", { mode: 0o644 });
+    return generated;
+  } catch {
+    return "";
+  }
+}
+
+const TOKEN = loadToken();
 
 if (!TOKEN) {
   console.error(
-    "[cdp-proxy] WARNING: running without CDP_PROXY_TOKEN — every request is forwarded " +
-      "unauthenticated. Set CDP_PROXY_TOKEN to require an X-Omni-Cdp-Token header (#13679)."
+    "[cdp-proxy] WARNING: no CDP_PROXY_TOKEN (or usable CDP_PROXY_TOKEN_FILE) configured — " +
+      "failing CLOSED: every request is rejected until a token is set (#14486)."
   );
 }
 
 function hasValidToken(headers) {
-  if (!TOKEN) return true;
-  return headers[TOKEN_HEADER] === TOKEN;
+  if (!TOKEN) return false;
+  const presented = headers[TOKEN_HEADER];
+  if (typeof presented !== "string") return false;
+  const a = Buffer.from(presented);
+  const b = Buffer.from(TOKEN);
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 function proxyHeaders(headers) {

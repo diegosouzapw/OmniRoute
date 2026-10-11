@@ -33,6 +33,10 @@ import { GET as getProviderModels } from "../models/route";
 import { isDegradedDiscovery } from "./degradedLocalCatalog";
 import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 import { findStaleComboModelRefs, type StaleComboModelRef } from "@/lib/combos/staleModelRefs";
+import {
+  isStaleComboAutoPruneEnabled,
+  pruneStaleComboModelRefs,
+} from "@/lib/combos/staleModelPrune";
 import { logAuditEvent } from "@/lib/compliance/index";
 
 type JsonRecord = Record<string, unknown>;
@@ -715,11 +719,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       );
     }
 
-    // #13505: flag (never prune) combo steps pinned to models this sync dropped.
-    // Detection must not fail the sync, so errors are swallowed.
+    // #13505: flag combo steps pinned to models this sync dropped. Failed and
+    // degraded syncs returned above; a free-only import is a deliberate subset,
+    // so it never prunes. Errors must not fail the sync, so they are swallowed.
     let staleComboRefs: StaleComboModelRef[] = [];
+    let prunedComboRefs: StaleComboModelRef[] = [];
     try {
       staleComboRefs = await findStaleComboModelRefs(logProvider);
+      if (
+        staleComboRefs.length > 0 &&
+        !importFreeOnly &&
+        !freeFilterEmpty &&
+        isStaleComboAutoPruneEnabled()
+      ) {
+        prunedComboRefs = await pruneStaleComboModelRefs(staleComboRefs);
+        for (const ref of prunedComboRefs) {
+          logAuditEvent({
+            action: "combo.stale_model_ref.pruned",
+            actor: "system",
+            target: ref.comboName,
+            resourceType: "combo",
+            details: { connectionId: id, provider: logProvider, ...ref },
+          });
+        }
+        staleComboRefs = staleComboRefs.filter((ref) => !prunedComboRefs.includes(ref));
+      }
       if (staleComboRefs.length > 0) {
         if (!quiet) {
           log.warn(
@@ -788,6 +812,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       models: persistedModels,
       importedModels,
       staleComboRefs,
+      prunedComboRefs,
     });
   } catch (error: any) {
     // Log error

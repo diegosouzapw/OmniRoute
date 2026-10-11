@@ -554,6 +554,23 @@ export async function sweep(): Promise<number> {
 /**
  * Check a single connection and refresh if due.
  */
+async function getRefreshRecoveryUpdate(connectionId: string) {
+  // Refresh proves credentials work, not that inference quota has recovered. Read
+  // after the network call: an inference request may have set a cooldown meanwhile.
+  const current = await getProviderConnectionById(connectionId);
+  if (current?.rateLimitedUntil && Date.parse(current.rateLimitedUntil) > Date.now()) {
+    return {};
+  }
+  return {
+    testStatus: "active",
+    lastError: null,
+    lastErrorAt: null,
+    lastErrorType: null,
+    lastErrorSource: null,
+    errorCode: null,
+  };
+}
+
 export async function checkConnection(conn) {
   if (!conn?.id) return;
 
@@ -972,12 +989,7 @@ export async function checkConnection(conn) {
         const updateData: ConnectionUpdate = {
           accessToken: refreshResult.accessToken,
           lastHealthCheckAt: now,
-          testStatus: "active",
-          lastError: null,
-          lastErrorAt: null,
-          lastErrorType: null,
-          lastErrorSource: null,
-          errorCode: null,
+          ...(await getRefreshRecoveryUpdate(conn.id)),
           expiredRetryCount: null,
           expiredRetryAt: null,
         };
@@ -1174,12 +1186,7 @@ export async function checkConnection(conn) {
       const updateData: any = {
         accessToken: result.accessToken,
         lastHealthCheckAt: now,
-        testStatus: "active",
-        lastError: null,
-        lastErrorAt: null,
-        lastErrorType: null,
-        lastErrorSource: null,
-        errorCode: null,
+        ...(await getRefreshRecoveryUpdate(conn.id)),
         expiredRetryCount: null,
         expiredRetryAt: null,
       };

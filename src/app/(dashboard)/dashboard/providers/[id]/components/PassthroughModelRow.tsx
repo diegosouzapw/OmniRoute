@@ -12,6 +12,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/shared/components";
 import { parseContextWindowOverrideInput, providerText } from "../providerPageHelpers";
 import ModelCompatPopover from "./ModelCompatPopover";
+import ModelOutputTokenEditor from "./ModelOutputTokenEditor";
 import { ModelSourceBadge, type ModelCompatSavePatch } from "./ModelRow";
 
 // ---------------------------------------------------------------------------
@@ -50,6 +51,10 @@ export interface PassthroughModelRowProps {
   // context-window override that #4125 added for custom models — and that the
   // PUT compatOnly branch has always accepted for these rows — was unreachable
   // from the UI. Absent handler keeps the row exactly as it was.
+  supportsVision?: boolean;
+  maxOutputTokenOverride?: number | null;
+  onSaveMaxOutputTokenOverride?: (modelId: string, value: number | null) => Promise<boolean>;
+  savingOutputOverride?: boolean;
   contextWindowOverride?: number | null;
   onSaveContextWindowOverride?: (modelId: string, value: number | null) => Promise<void>;
   savingContextOverride?: boolean;
@@ -84,6 +89,10 @@ export default function PassthroughModelRow({
   onTestModel,
   testStatus,
   testingModel,
+  supportsVision,
+  maxOutputTokenOverride,
+  onSaveMaxOutputTokenOverride,
+  savingOutputOverride,
   contextWindowOverride,
   onSaveContextWindowOverride,
   savingContextOverride,
@@ -223,6 +232,18 @@ export default function PassthroughModelRow({
       <div className="flex min-w-0 items-center justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <ModelSourceBadge source={source} />
+          {supportsVision === true && (
+            <Badge variant="success" className="shrink-0 px-1.5 py-0 text-[10px]">
+              {t("visionCapableLabel")}
+            </Badge>
+          )}
+          <ModelOutputTokenEditor
+            modelId={modelId}
+            value={maxOutputTokenOverride}
+            onSave={onSaveMaxOutputTokenOverride}
+            saving={savingOutputOverride}
+            t={t}
+          />
           {isFree && (
             <Badge variant="success" className="shrink-0 px-1.5 py-0 text-[10px]">
               {providerText(t, "freeBadge", "Free")}

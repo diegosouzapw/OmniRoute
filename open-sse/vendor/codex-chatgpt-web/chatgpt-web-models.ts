@@ -19,7 +19,9 @@ export const CHATGPT_WEB_INSTANT_AUTO_COMPACT_TOKEN_LIMIT = 32_000;
 export const CHATGPT_WEB_MEDIUM_HIGH_CONTEXT_WINDOW = 90_000;
 export const CHATGPT_WEB_MEDIUM_HIGH_AUTO_COMPACT_TOKEN_LIMIT = 80_000;
 export const CHATGPT_WEB_INSTANT_COMPOSER_CHAR_LIMIT = 211_256;
-export const CHATGPT_WEB_MEDIUM_HIGH_COMPOSER_CHAR_LIMIT = 1_048_572;
+// Partial backport of the conservative reasoning composer ceiling from upstream v6.1.7,
+// commit f9ad4ae83a579287105ad822dd0c3e0029b04ef6. The overall vendor remains v4.0.7.
+export const CHATGPT_WEB_MEDIUM_HIGH_COMPOSER_CHAR_LIMIT = 500_000;
 /** Hidden ChatGPT product prompt and Codex Native schema reserve included in usage estimates. */
 export const CHATGPT_WEB_PLATFORM_RESERVE_TOKENS = 8_192;
 /** Pro-account usable browser windows and separately measured one-message boundaries. */
@@ -33,7 +35,8 @@ export const CHATGPT_WEB_PRO_STANDARD_CONTEXT_WINDOW =
 export const CHATGPT_WEB_PRO_MODEL_CONTEXT_WINDOW =
   CHATGPT_WEB_PRO_MODEL_MESSAGE_TOKEN_LIMIT + CHATGPT_WEB_PLATFORM_RESERVE_TOKENS + 1;
 export const CHATGPT_WEB_PRO_INSTANT_COMPOSER_CHAR_LIMIT = 545_000;
-export const CHATGPT_WEB_PRO_REASONING_COMPOSER_CHAR_LIMIT = 1_045_000;
+export const CHATGPT_WEB_PRO_REASONING_COMPOSER_CHAR_LIMIT =
+  CHATGPT_WEB_MEDIUM_HIGH_COMPOSER_CHAR_LIMIT;
 export const CHATGPT_WEB_PRO_MODEL_COMPOSER_CHAR_LIMIT = 1_635_000;
 /**
  * The underlying Luna model owns this context window. ChatGPT Free's much smaller browser request

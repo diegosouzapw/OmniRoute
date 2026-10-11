@@ -70,6 +70,11 @@
       "configSource": "<custom-config>",
       "provider": "blackbox-web"
     },
+    "cbai": {
+      "className": "CodeBuddyIntlExecutor",
+      "configSource": "codebuddy-intl",
+      "provider": "codebuddy-intl"
+    },
     "cbcn": {
       "className": "CodeBuddyCnExecutor",
       "configSource": "codebuddy-cn",
@@ -154,6 +159,11 @@
       "className": "CodeBuddyCnExecutor",
       "configSource": "codebuddy-cn",
       "provider": "codebuddy-cn"
+    },
+    "codebuddy-intl": {
+      "className": "CodeBuddyIntlExecutor",
+      "configSource": "codebuddy-intl",
+      "provider": "codebuddy-intl"
     },
     "codex": {
       "className": "CodexExecutor",
@@ -575,10 +585,20 @@
       "configSource": "<custom-config>",
       "provider": "tinycms-web"
     },
+    "tm": {
+      "className": "TwinmindExecutor",
+      "configSource": "<custom-config>",
+      "provider": "twinmind"
+    },
     "trae": {
       "className": "TraeExecutor",
       "configSource": "trae",
       "provider": "trae"
+    },
+    "twinmind": {
+      "className": "TwinmindExecutor",
+      "configSource": "<custom-config>",
+      "provider": "twinmind"
     },
     "uc": {
       "className": "UcExecutor",
@@ -686,6 +706,6 @@
       "provider": "zai-web"
     }
   },
-  "keyCount": 137,
+  "keyCount": 141,
   "sharedInstances": []
 }

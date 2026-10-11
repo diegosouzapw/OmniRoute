@@ -95,6 +95,8 @@ OmniRoute 具有三种彼此独立但又相互关联的弹性机制。每种机�
 
 **防惊群保护：** 防止并发失败导致冷却时间被过度延长或 `backoffLevel` 被重复递增。
 
+Kiro 中带有非空签名的二进制 `reasoningContentEvent` 帧，会通过执行器以空的 `reasoning_content` 增量保留推理活动信号，不会转发签名本身。元数据、不完整的帧和空签名不会重新启动内容等待计时；活动流的独立时限和客户端取消仍然有效。 (`open-sse/executors/kiro/reasoning.ts`).
+
 **终止状态（不是冷却）：**
 
 - `banned` — 由封禁关键词/账户封禁检测设置（参见 [BAN_DETECTION](../security/BAN_DETECTION.md)），也会在上游连续三次拒绝单次请求时设置（`request_rejected`，例如 Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`）；单次拒绝只会使连接进入冷却

@@ -332,7 +332,6 @@ await loadRulePack("./my-custom-rules/hi/filler.json");
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # 使用者層級
-<project>/.compression/rules/hi/filler.json   # 專案層級
 ```
 
 ### 語言套件的最佳實務

@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Kien hemm problema",
+      "description": "Seħħ żball mhux mistenni. Dan ġie rreġistrat u t-tim tagħna se jinvestigah.",
+      "detailsAriaLabel": "Dettalji tal-iżball",
+      "retryAriaLabel": "Erġa' pprova tgħabbi l-paġna",
+      "tryAgain": "Erġa' Pprova",
+      "statusAriaLabel": "Iftaħ l-istatus tas-sistema",
+      "systemStatus": "Status tas-Sistema"
+    }
+  }
+}

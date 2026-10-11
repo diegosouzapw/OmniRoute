@@ -9,6 +9,7 @@
 import { errorResponse } from "@omniroute/open-sse/utils/error.ts";
 import { HTTP_STATUS } from "@omniroute/open-sse/config/constants.ts";
 import { isModelAllowedForKey } from "@/lib/db/apiKeys";
+import { withHiddenModelGate } from "./hiddenModelGate.ts";
 import {
   checkResolvedModelPermission,
   markLocalModelPolicyResponse,
@@ -137,4 +138,15 @@ export function createResolvedModelGate(opts: {
     ),
   };
   return (resolvedModels) => rejectUnauthorizedResolvedModels({ ...base, resolvedModels });
+}
+
+/**
+ * #12666: the dispatch gate chat.ts uses — key/combo authorization first (its rejection keeps
+ * precedence), then hidden-model enforcement on the same resolved targets. Composed here so the
+ * frozen chat.ts does not grow (file-size gate).
+ */
+export function createVisibleResolvedModelGate(
+  opts: Parameters<typeof createResolvedModelGate>[0]
+): (resolvedModels: Iterable<string>) => Promise<Response | null> {
+  return withHiddenModelGate(createResolvedModelGate(opts));
 }

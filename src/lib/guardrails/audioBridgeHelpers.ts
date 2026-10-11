@@ -21,6 +21,7 @@ export interface AudioPart {
 
 export interface AudioTranscriptionConfig {
   model: string;
+  signal?: AbortSignal;
   timeoutMs: number;
 }
 
@@ -199,7 +200,10 @@ async function resolveAudioBytes(
           timeoutMs: config.timeoutMs,
         }));
     const remote = await fetchRemote(part.ref, { signal });
-    return { bytes: remote.buffer, mime: remote.contentType.split(";", 1)[0]?.trim().toLowerCase() };
+    return {
+      bytes: remote.buffer,
+      mime: remote.contentType.split(";", 1)[0]?.trim().toLowerCase(),
+    };
   }
   return { bytes: Buffer.from(part.ref, "base64") };
 }
@@ -257,13 +261,12 @@ async function sendAudioTranscriptionRequest(
 ): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs);
+  const signal = config.signal
+    ? AbortSignal.any([config.signal, controller.signal])
+    : controller.signal;
   try {
-    const { bytes, mime: detectedMime } = await resolveAudioBytes(
-      part,
-      config,
-      deps,
-      controller.signal
-    );
+    signal.throwIfAborted();
+    const { bytes, mime: detectedMime } = await resolveAudioBytes(part, config, deps, signal);
     const configuredFormat = part.format?.trim().toLowerCase();
     const format =
       configuredFormat || (detectedMime ? AUDIO_MIME_FORMAT[detectedMime] : undefined) || "wav";
@@ -288,7 +291,7 @@ async function sendAudioTranscriptionRequest(
       `http://localhost:${port}/v1/audio/transcriptions`,
       {
         method: "POST",
-        signal: controller.signal,
+        signal,
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${bearer}`,

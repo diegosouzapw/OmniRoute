@@ -308,12 +308,14 @@ hợp đồng tài liệu/môi trường, tính tương ứng i18n, kiểm thử
   nới lỏng một lần (`scripts/quality/relax-baselines.mjs`); từ chối chạy lần hai với cùng
   một ghi chú.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  đo mọi cổng số theo cách CI thực hiện và in ra dư địa còn lại của từng cổng
-  (`scripts/quality/baseline-headroom.mjs`). Tác vụ `baseline-headroom` hằng đêm đăng
-  bảng vào issue đang được duy trì **📈 Dư địa đường cơ sở (giai đoạn tăng tốc)** và thêm nhãn
-  `headroom-alert` khi bất kỳ cổng nào chỉ còn cách giới hạn tối đa trong phạm vi 10% hoặc đã vượt giới hạn. Issue đó
-  là cảnh báo sớm: một ngân sách bị lấp đầy chỉ trong vài ngày nghĩa là phần nới lỏng đang bị tiêu thụ bởi
-  một vài PR, chứ không phải bởi toàn bộ nhóm — hãy xem các ghi chú `_rebaseline_*` của cổng vi phạm.
+  đo từng kiểm tra chất lượng dạng số giống như CI và hiển thị phần dư còn lại trước giới hạn của từng kiểm tra
+  (`scripts/quality/baseline-headroom.mjs`). Tác vụ hằng đêm `baseline-headroom` công bố bảng
+  trong phần tóm tắt lần chạy quy trình và tải báo cáo JSON/Markdown lên với tên
+  `baseline-headroom-<run_id>`, được lưu trong 90 ngày. Các hàng cảnh báo và nghiêm trọng chỉ ra
+  những kiểm tra chỉ còn tối đa 10% dư địa trước mức trần hoặc đã vượt mức trần.
+  Xem các báo cáo này như cảnh báo sớm về việc sử dụng hạn mức; kiểm tra các ghi chú
+  `_rebaseline_*` của kiểm tra liên quan. Tác vụ không còn tạo hay cập nhật một issue thường trực;
+  #12149 giữ lại lịch sử các báo cáo trước đây.
 
 **Chế độ mã mới (Clean-as-You-Code) — từ 2026-08-30, chỉ dành cho đường chạy nhanh của PR**
 

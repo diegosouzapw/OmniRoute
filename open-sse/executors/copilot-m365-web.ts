@@ -77,7 +77,7 @@ function describeUpdateFrameShape(frame: Record<string, unknown> | null): string
 }
 
 function errorResponse(message: string, status = 502): Response {
-  return new Response(JSON.stringify({ error: { message } }), {
+  return new Response(JSON.stringify({ error: { message: sanitizeErrorMessage(message) } }), {
     status,
     headers: { "Content-Type": "application/json" },
   });
