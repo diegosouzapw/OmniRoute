@@ -415,6 +415,12 @@ Eine Spiegel-ID im `dual`-Modus kann auch ohne den Abfrageparameter erkannt werd
 
 Clients, die eine Modellauswahl darstellen, sollten `?prefix=alias` anfordern — so verfährt auch die [OmniCopilot-VS-Code-Erweiterung](../guides/VSCODE-COPILOT.md).
 
+### Einzeln ausgeblendete Chatmodelle
+
+Ein Modell, das auf der Seite seines Anbieters als **Ausgeblendet** markiert ist, wird aus dem Katalog ausgeschlossen und bei expliziter Anforderung mit HTTP `404` / `model_not_found` abgewiesen. Die Prüfung verwendet den aufgelösten Anbieter und das Modell unter Berücksichtigung von Anbieter-Aliasen, Knotenpräfixen kompatibler Anbieter und Verbindungsstandardwerten. Eine Combo überspringt ausgeblendete Ziele und kann ein anderes sichtbares Ziel verwenden; bleibt kein ausführbares Ziel übrig, gibt sie denselben Fehlercode zurück. Das erneute Einblenden wirkt ab der nächsten Anfrage. Sichtbarkeitsüberschreibungen nur für Bilder blenden das Chatmodell mit derselben ID nicht aus.
+
+Diese Einstellung für einzelne Modelle ist von den [Freigabe- und Sperrlisten für die Modellanzeige](../routing/MODEL_EXPOSURE_LIST.md) getrennt. Diese filtern das Katalogangebot und die Kandidaten für automatisches Routing, erhalten aber den expliziten Aufruf. Die Modellberechtigungen des API-Schlüssels gelten weiterhin unabhängig davon. Der standardmäßige Präfixmodus des Katalogs bleibt `dual`.
+
 ### Modellvarianten ohne Denkmodus
 
 Für denkfähige Claude-Modelle bietet `/v1/models` außerdem eine **No-Thinking-Variante** an, deren ID das Präfix `claude-3-omniroute-no-thinking/` trägt:

@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "Default (awtomatiko)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Max Output Token",
+    "maxOutputTokenOverrideHint": "Maglagay ng positibong buong bilang ng mga token. Iwanang blangko para sa default.",
     "contextWindowOverrideLabel": "Override sa Context Window",
     "contextWindowOverridePlaceholder": "hal. 131072",
     "contextWindowOverrideHint": "Manwal na itakda ang totoong context window (mga token) ng modelong ito kapag mali ang ulat ng provider. Mas nangingibabaw ito kaysa sa mga auto-detected/catalog na halaga at pinipigilan ang combo routing na alisin ang modelo.",
@@ -6856,13 +6858,13 @@
     "rateLimitOverridesModelConcurrencyPlaceholder": "glm-5=1\nglm-4.7=3",
     "rateLimitOverridesModelConcurrencyHint": "Optional: one model=cap per line, matched against the exact upstream model id. Queues excess requests locally; blank means no per-model cap.",
     "rateLimitOverridesModelConcurrencyInvalid": "Invalid per-model concurrency entry \"{entry}\" — use model=cap with a whole number from 1 to {max}.",
-    "codexPaidCreditsShort": "Extra credits",
-    "codexPaidCreditsToggleTitle": "Allow paid Codex credits after subscription quota runs out (additional charges may apply)",
-    "codexPaidCreditsEnabled": "Codex paid credits enabled (additional charges may apply)",
-    "codexPaidCreditsDisabled": "Codex paid credits disabled",
-    "failedUpdateCodexPaidCredits": "Failed to update Codex paid-credit policy",
-    "allowCodexPaidCreditsLabel": "Allow paid Codex credits",
-    "allowCodexPaidCreditsDescription": "Allow this account to use paid credits after its subscription quota reaches the cutoff. Requires available credits reported by OpenAI; may incur charges. Spark limits and upstream cooldowns still apply. Credit availability is checked even if quota preflight is disabled."
+    "codexPaidCreditsShort": "Mga dagdag na kredito",
+    "codexPaidCreditsToggleTitle": "Payagan ang mga bayad na kredito sa Codex kapag naubos ang quota ng subscription (maaaring may dagdag na singil)",
+    "codexPaidCreditsEnabled": "Pinagana ang mga bayad na kredito sa Codex (maaaring may dagdag na singil)",
+    "codexPaidCreditsDisabled": "Hindi pinagana ang mga bayad na kredito sa Codex",
+    "failedUpdateCodexPaidCredits": "Hindi ma-update ang patakaran sa mga bayad na kredito sa Codex",
+    "allowCodexPaidCreditsLabel": "Payagan ang mga bayad na kredito sa Codex",
+    "allowCodexPaidCreditsDescription": "Payagan ang account na ito na gumamit ng mga bayad na kredito kapag umabot na sa itinakdang cutoff ang quota ng subscription nito. Kailangan ng mga magagamit na kredito ayon sa ulat ng OpenAI; maaaring may singil. Nalalapat pa rin ang mga limitasyon ng Spark at ang mga cooldown ng upstream. Sinusuri ang pagkakaroon ng mga kredito kahit hindi pinagana ang paunang pagsusuri ng quota, maliban kung ganap na naka-off ang lokal na pag-filter ng quota (parehong hindi pinagana ang paunang pagsusuri ng quota at ang patakaran sa limitasyon)."
   },
   "settings": {
     "title": "Mga setting",
@@ -10246,10 +10248,10 @@
     "lastRefreshed": "Huling na-refresh",
     "providerQuota": "Quota ng Provider",
     "providerQuotaHomeHint": "Live na status sa lahat ng nakakonektang account",
-    "codexPaidCreditsLabel": "Paid Codex credits",
-    "codexPaidCreditsAvailable": "Available (balance not reported)",
-    "codexPaidCreditsUnavailable": "Unavailable or spending limit reached",
-    "codexPaidCreditsUnlimited": "Unlimited"
+    "codexPaidCreditsLabel": "Mga bayad na kredito sa Codex",
+    "codexPaidCreditsAvailable": "Magagamit (hindi iniulat ang balanse)",
+    "codexPaidCreditsUnavailable": "Hindi magagamit o naabot na ang limitasyon sa paggastos",
+    "codexPaidCreditsUnlimited": "Walang limitasyon"
   },
   "modals": {
     "waitingAuth": "Naghihintay ng Awtorisasyon",

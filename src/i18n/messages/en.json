@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "Default (auto)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Max Output Tokens",
+    "maxOutputTokenOverrideHint": "Enter a positive whole number of tokens. Leave blank to use the default.",
     "contextWindowOverrideLabel": "Context Window Override",
     "contextWindowOverridePlaceholder": "e.g. 131072",
     "contextWindowOverrideHint": "Manually set this model's real context window (tokens) when the provider misreports it. Wins over auto-detected/catalog values and prevents combo routing from dropping the model.",

@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "ነባሪ (ራስ-ሰር)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "ከፍተኛው የውጤት ቶከኖች ብዛት",
+    "maxOutputTokenOverrideHint": "አዎንታዊ ሙሉ የቶከን ብዛት ያስገቡ። ነባሪውን እሴት ለመጠቀም ባዶ ይተዉት።",
     "contextWindowOverrideLabel": "የአውድ መስኮት መሻሪያ",
     "contextWindowOverridePlaceholder": "ለምሳሌ 131072",
     "contextWindowOverrideHint": "አቅራቢው የተሳሳተ መረጃ ሲያቀርብ፣ የዚህን ሞዴል ትክክለኛ የአውድ መስኮት (ቶከኖች) በእጅ ያዘጋጁ። ይህ በራስ-ሰር ከተገኙ/ከካታሎግ እሴቶች ይቀድማል፣ እንዲሁም የጥምር ማዘዋወር ሞዴሉን እንዳያስወግድ ይከላከላል።",

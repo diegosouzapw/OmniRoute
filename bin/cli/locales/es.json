@@ -254,6 +254,7 @@
     "log": "Mostrar los registros del servidor en línea",
     "no_recovery": "Desactivar el reinicio automático tras un fallo (modo de depuración)",
     "max_restarts": "Número máximo de reinicios tras fallos en un plazo de 30 s antes de desistir (predeterminado: 2)",
+    "headless": "Ejecutar solo el motor de proxy: panel desactivado (404), subsistemas opcionales omitidos (establece OMNIROUTE_HEADLESS=1)",
     "tray": "Iniciar en la bandeja del sistema (solo para escritorio, opcional)",
     "no_tray": "Desactivar el icono de la bandeja del sistema",
     "ready_timeout": "Tiempo de espera de la comprobación de disponibilidad en ms (también OMNIROUTE_READY_TIMEOUT_MS, predeterminado: 60000)",

@@ -1,5 +1,8 @@
+import { intersectAllowedConnectionIds } from "./chat/connectionConstraints.ts";
+import { hasQoderCallerTools } from "@omniroute/open-sse/services/qoderCapabilities";
 import { randomUUID } from "crypto";
 import { resolveChatRequestBody } from "./requestBody";
+import { getComboCredentialAvailability } from "./comboCredentialAvailability.ts";
 import * as chatAdmission from "./chatAdmission.ts";
 import { buildClientRawRequest, resolveDispatchClientRawRequest } from "./chat/clientRawRequest.ts";
 export { buildClientRawRequest, resolveDispatchClientRawRequest };
@@ -115,7 +118,10 @@ import {
 import { buildModalityBridgeHeader } from "@/lib/guardrails/modalityBridge/bridgeStats";
 import type { VideoBridgeLogRedactionEntry } from "@/lib/guardrails/videoBridge";
 import { reanchorVideoBridgeRedaction } from "@/lib/guardrails/videoBridge";
-import { resolveConversationId } from "@omniroute/open-sse/services/conversationTracker.ts";
+import {
+  resolveClientSessionId,
+  resolveConversationId,
+} from "@omniroute/open-sse/services/conversationTracker.ts";
 import {
   classifyProviderBreakerResult,
   isAntigravityMissingProjectError,
@@ -125,7 +131,7 @@ import {
 import { markAntigravityMissingCloudCodeProject } from "@omniroute/open-sse/services/antigravityProjectPersistence.ts";
 import { connectionHasExtraKeys } from "@omniroute/open-sse/services/apiKeyRotator.ts";
 import { wrapResponseWithOAuthSessionRelease } from "@omniroute/open-sse/services/oauthSessionOccupancy.ts";
-import { inheritProviderProbeResponse } from "@/shared/utils/providerProbeResult";
+import { inheritProviderProbeResponse, inheritResponsePolicies } from "./chat/responsePolicies.ts";
 import { resolveProviderId } from "@/shared/constants/providers";
 import {
   extractReasoningIntent,
@@ -326,25 +332,6 @@ async function getCombosCachedForChat(): Promise<ComboLike[]> {
   combosCacheVersionSnapshot = getCombosCacheVersion();
   combosCachePromise = getCombos().catch(() => []) as Promise<ComboLike[]>;
   return combosCachePromise;
-}
-
-function normalizeAllowedConnectionIds(value: unknown): string[] | null {
-  if (!Array.isArray(value)) return null;
-  const ids = value.filter(
-    (entry): entry is string => typeof entry === "string" && entry.trim().length > 0
-  );
-  return ids.length > 0 ? ids : null;
-}
-
-function intersectAllowedConnectionIds(primary: unknown, secondary: unknown): string[] | null {
-  const first = normalizeAllowedConnectionIds(primary);
-  const second = normalizeAllowedConnectionIds(secondary);
-
-  if (first && second) {
-    return first.filter((id) => second.includes(id));
-  }
-
-  return first || second || null;
 }
 
 /** Shape of the videoBridgeLog param threaded to executeChatWithBreaker -> handleChatCore (#12150 P1b). */
@@ -965,6 +952,7 @@ async function handleChatImplementation(
       model: modelStr,
       apiKeyId: apiKeyInfo?.id ?? null,
       clientSessionIdHeader: clientConversationHeader,
+      clientSessionId: resolveClientSessionId(request.headers, body),
       correlationId: reqId,
     }));
   } catch (error) {
@@ -1206,6 +1194,7 @@ async function handleChatImplementation(
         allowedConnections,
         resolvedModel,
         {
+          requireToolCalling: hasQoderCallerTools(body),
           sessionKey: sessionAffinityKey,
           ...(target?.allowRateLimitedConnection ? { allowRateLimitedConnections: true } : {}),
           ...(target?.connectionId ? { forcedConnectionId: target.connectionId } : {}),
@@ -1213,12 +1202,8 @@ async function handleChatImplementation(
           ...(managedLease ? { lease: credentialLease(managedLease) } : {}),
         }
       );
-      if (
-        !creds ||
-        ("allRateLimited" in creds && creds.allRateLimited) ||
-        ("waitingForCapacity" in creds && creds.waitingForCapacity)
-      )
-        return false;
+      const availability = getComboCredentialAvailability(creds);
+      if (availability !== true) return availability;
 
       // OAuth selection must happen atomically with occupancy reservation in the
       // actual dispatch. Availability preflight may finish well before a combo
@@ -1665,7 +1650,7 @@ async function handleSingleModelChat(
     if (modelStr.startsWith(runtimeOptions.providerId + "/")) return resolvedProvider;
     return runtimeOptions.providerId;
   })();
-  const resolvedModelGate = resolvedPolicy.createResolvedModelGate({
+  const resolvedModelGate = resolvedPolicy.createVisibleResolvedModelGate({
     apiKeyInfo,
     apiKey: extractApiKey(request),
     contextModel: runtimeOptions.authorizationContextModel,
@@ -1817,6 +1802,7 @@ async function handleSingleModelChat(
               effectiveAllowedConnections,
               model,
               {
+                requireToolCalling: hasQoderCallerTools(body),
                 sessionKey: occupancySessionKey,
                 reserveOAuthSession: true,
                 excludeConnectionIds: Array.from(excludedConnectionIds),
@@ -1907,7 +1893,7 @@ async function handleSingleModelChat(
             requestRetryBudgetLeftMs = Math.max(0, requestRetryBudgetLeftMs - retryDecision.waitMs);
             log.info(
               "COOLDOWN_RETRY",
-              `${provider}/${model} cooldown elapsed — restarting request attempt ${requestRetryAttempt + 1}/${retrySettings.maxRetries}`
+              `${provider}/${model} cooldown elapsed — restarting request (retry ${requestRetryAttempt}/${retrySettings.maxRetries})`
             );
             continue requestAttemptLoop;
           }
@@ -2239,7 +2225,7 @@ async function handleSingleModelChat(
           credentials?.connectionId
         );
         if (requestBody.stream === true) {
-          return inheritProviderProbeResponse(
+          return inheritResponsePolicies(
             successResponse,
             wrapResponseWithOAuthSessionRelease(successResponse, releaseOAuthSession)
           );
@@ -2659,6 +2645,7 @@ async function handleSingleModelChat(
               ),
               isCombo,
               headers: result.response.headers,
+              structuredError: { code: result.errorCode, type: result.errorType },
             })
           );
 

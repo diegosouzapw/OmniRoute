@@ -6,12 +6,18 @@
  * - [2026-07-24] [Composer] - Aggregate usage_history in SQL instead of loading all rows into JS
  */
 
+import { setImmediate as yieldToEventLoop } from "node:timers/promises";
 import { getCostSummary } from "@/domain/costRules";
 import { getApiKeys } from "@/lib/db/apiKeys";
 import { getDbInstance } from "@/lib/db/core";
 import { getAllProviderLimitsCache, getProviderLimitsCache } from "@/lib/db/providerLimits";
 import { getProviderQuotaWindowStart } from "@/lib/db/quotaResetEvents";
 import { calculateCost } from "@/lib/usage/costCalculator";
+import {
+  COST_MATCH_BATCH_SIZE,
+  RecordedCostMatcher,
+  type RecordedCostRow,
+} from "./recordedCostMatcher";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const RECORDED_COST_MATCH_TOLERANCE_MS = 30_000;
@@ -58,13 +64,6 @@ interface UsageCostRow {
 interface RecordedCostSummary {
   totalCost: number;
   entryCount: number;
-}
-
-interface RecordedCostRow {
-  rowId: number;
-  apiKeyId: string;
-  timestamp: number;
-  cost: number;
 }
 
 interface ProviderWindowCostModelRow {
@@ -478,11 +477,11 @@ function appendNamedPlaceholders(
     .join(", ");
 }
 
-function getRecordedCostsByApiKey(
+async function getRecordedCostsByApiKey(
   apiKeyIds: string[],
   sinceMs: number,
   untilMs: number
-): Map<string, RecordedCostRow[]> {
+): Promise<Map<string, RecordedCostRow[]>> {
   if (apiKeyIds.length === 0) return new Map();
 
   try {
@@ -509,7 +508,9 @@ function getRecordedCostsByApiKey(
       .all(params);
 
     const byApiKey = new Map<string, RecordedCostRow[]>();
+    let processed = 0;
     for (const row of rows) {
+      if (++processed % COST_MATCH_BATCH_SIZE === 0) await yieldToEventLoop();
       if (!row.apiKeyId || !Number.isFinite(row.timestamp) || !Number.isFinite(row.cost)) {
         continue;
       }
@@ -523,44 +524,12 @@ function getRecordedCostsByApiKey(
   }
 }
 
-function findClosestRecordedCost(
-  candidates: RecordedCostRow[] | undefined,
-  timestampMs: number,
-  usedRecordedRows: Set<number>
-): RecordedCostRow | null {
-  if (!candidates?.length || !Number.isFinite(timestampMs)) return null;
-
-  let best: RecordedCostRow | null = null;
-  let bestDelta = Number.POSITIVE_INFINITY;
-
-  for (const candidate of candidates) {
-    if (usedRecordedRows.has(candidate.rowId)) continue;
-    const delta = Math.abs(candidate.timestamp - timestampMs);
-    if (delta > RECORDED_COST_MATCH_TOLERANCE_MS) {
-      if (candidate.timestamp > timestampMs + RECORDED_COST_MATCH_TOLERANCE_MS) break;
-      continue;
-    }
-    if (delta < bestDelta) {
-      best = candidate;
-      bestDelta = delta;
-    }
-  }
-
-  if (best) usedRecordedRows.add(best.rowId);
-  return best;
-}
-
 async function getUsageRowCostUsd(
   row: UsageCostRow,
-  recordedCostsByApiKey: Map<string, RecordedCostRow[]>,
-  usedRecordedRows: Set<number>
+  matcher: RecordedCostMatcher
 ): Promise<number> {
   const usageTimestampMs = Date.parse(row.timestamp ?? "");
-  const recordedCost = findClosestRecordedCost(
-    row.apiKeyId ? recordedCostsByApiKey.get(row.apiKeyId) : undefined,
-    usageTimestampMs,
-    usedRecordedRows
-  );
+  const recordedCost = matcher.takeClosest(usageTimestampMs, RECORDED_COST_MATCH_TOLERANCE_MS);
   if (recordedCost) return Math.max(0, toNumber(recordedCost.cost));
 
   return calculateCost(
@@ -614,12 +583,13 @@ async function buildApiKeyCostAllocations(args: {
   filter: UsageHistoryFilter;
   usageRequestCount: number;
   recordedSummary: RecordedCostSummary | undefined;
-  recordedCostsByApiKey: Map<string, RecordedCostRow[]>;
-  usedRecordedRows: Set<number>;
+  getMatcher: (apiKeyId: string) => Promise<RecordedCostMatcher>;
 }): Promise<number[]> {
-  const calculatedCosts = await Promise.all(
-    args.groups.map((group) => getAggregatedGroupCostUsd(group))
-  );
+  const calculatedCosts: number[] = [];
+  for (const group of args.groups) {
+    calculatedCosts.push(await getAggregatedGroupCostUsd(group));
+    if (calculatedCosts.length % COST_MATCH_BATCH_SIZE === 0) await yieldToEventLoop();
+  }
 
   if (!args.recordedSummary || args.recordedSummary.entryCount <= 0) {
     return calculatedCosts;
@@ -636,13 +606,16 @@ async function buildApiKeyCostAllocations(args: {
   const apiKeyId = args.groups[0]?.apiKeyId;
   if (!apiKeyId) return calculatedCosts;
 
+  const matcher = await args.getMatcher(apiKeyId);
   const detailedRows = fetchDetailedUsageRowsForApiKey(args.filter, apiKeyId);
-  const rowCosts = await Promise.all(
-    detailedRows.map((row) =>
-      getUsageRowCostUsd(row, args.recordedCostsByApiKey, args.usedRecordedRows)
-    )
-  );
-  const detailedTotal = roundUsd(rowCosts.reduce((sum, value) => sum + value, 0));
+  let total = 0;
+  for (let i = 0; i < detailedRows.length; i++) {
+    total += await getUsageRowCostUsd(detailedRows[i], matcher);
+    // Awaiting an already-resolved promise only drains microtasks. A real
+    // event-loop yield lets inference, timers and HTTP health probes progress.
+    if ((i + 1) % COST_MATCH_BATCH_SIZE === 0) await yieldToEventLoop();
+  }
+  const detailedTotal = roundUsd(total);
   return distributeRecordedCostAcrossGroups(args.groups, detailedTotal, calculatedCosts);
 }
 
@@ -674,8 +647,17 @@ export async function getProviderWindowCostBreakdown({
   const currentApiKeyNames = await getCurrentApiKeyNames();
   const apiKeyIds = uniqueApiKeyIds(aggregatedRows);
   const recordedSummaries = getRecordedCostSummariesByApiKey(apiKeyIds, window.startMs, nowMs);
-  const recordedCostsByApiKey = getRecordedCostsByApiKey(apiKeyIds, window.startMs, nowMs);
-  const usedRecordedRows = new Set<number>();
+  // Aggregate-only keys never need detailed records. Matchers are request-local:
+  // repeated groups for a key share consumption, concurrent requests do not.
+  const matchers = new Map<string, RecordedCostMatcher>();
+  const getMatcher = async (apiKeyId: string): Promise<RecordedCostMatcher> => {
+    const existing = matchers.get(apiKeyId);
+    if (existing) return existing;
+    const rows = await getRecordedCostsByApiKey([apiKeyId], window.startMs, nowMs);
+    const matcher = await RecordedCostMatcher.create(rows.get(apiKeyId) ?? []);
+    matchers.set(apiKeyId, matcher);
+    return matcher;
+  };
   const byApiKey = new Map<string, ProviderWindowCostAggregateRow>();
 
   const groupsByApiKey = new Map<string, AggregatedUsageCostRow[]>();
@@ -703,8 +685,7 @@ export async function getProviderWindowCostBreakdown({
       filter,
       usageRequestCount,
       recordedSummary: apiKeyId ? recordedSummaries.get(apiKeyId) : undefined,
-      recordedCostsByApiKey,
-      usedRecordedRows,
+      getMatcher,
     });
 
     let limitUsd: number | null = null;

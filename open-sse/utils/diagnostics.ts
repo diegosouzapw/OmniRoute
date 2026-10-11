@@ -198,7 +198,8 @@ export function synthResponsesFailure(reason?: MalformedReason): string {
  */
 export function detectMalformedNonStream(
   resp: unknown,
-  provider?: string | null
+  provider?: string | null,
+  trustedEmptyTurn = false
 ): MalformedReason | null {
   if (!resp || typeof resp !== "object") return "empty_choices";
 
@@ -217,14 +218,19 @@ export function detectMalformedNonStream(
             Array.isArray(it.content) &&
             (it.content as unknown[]).some((c) => {
               const part = c as Record<string, unknown>;
-              return typeof part?.text === "string" && (part.text as string).length > 0;
+              return (
+                (typeof part?.text === "string" && part.text.length > 0) ||
+                (part?.type === "refusal" &&
+                  typeof part.refusal === "string" &&
+                  part.refusal.length > 0)
+              );
             })
           );
         }
         // function_call / other structural items count
         return Boolean(it.type);
       });
-    if (!hasOutput) return "empty_choices";
+    if (!hasOutput && !(trustedEmptyTurn && body.status === "completed")) return "empty_choices";
     const status = typeof body.status === "string" ? body.status : "";
     // OpenAI Responses spec: "incomplete" (budget exhausted — max_output_tokens
     // / max_tool_calls) and "cancelled" are legal terminal states, not a body
@@ -316,6 +322,12 @@ export function detectMalformedNonStream(
     // "length" is the OpenAI-style spelling some Claude-compatible shims
     // (ollama qwen3 with the reasoning budget exhausted) emit for the same
     // truncated-completion case — sentinel content + stop_reason "length".
+    if (
+      trustedEmptyTurn &&
+      content.length === 0 &&
+      (stopReason === "end_turn" || stopReason === "stop_sequence")
+    )
+      return null;
     if (stopReason === "max_tokens" || stopReason === "tool_use" || stopReason === "length")
       return null;
     // content:[] with no stop_reason at all is non-terminal, not empty (#9971).
@@ -331,6 +343,7 @@ export function detectMalformedNonStream(
     const c = choice as Record<string, unknown>;
     const msg = c?.message as Record<string, unknown> | undefined;
     if (typeof msg?.content === "string" && (msg.content as string).length > 0) return true;
+    if (typeof msg?.refusal === "string" && msg.refusal.length > 0) return true;
     // #5559: some OpenAI-compatible upstreams (e.g. Cline via OAuth) return
     // `message.content` as an array of Anthropic-style content blocks rather than
     // a plain string. An array with at least one non-empty text block is real
@@ -377,7 +390,8 @@ export function detectMalformedNonStream(
       return (
         c?.finish_reason === "length" ||
         c?.finish_reason === "tool_calls" ||
-        c?.finish_reason === "content_filter"
+        c?.finish_reason === "content_filter" ||
+        (trustedEmptyTurn && c?.finish_reason === "stop")
       );
     });
     if (truncated) return null;

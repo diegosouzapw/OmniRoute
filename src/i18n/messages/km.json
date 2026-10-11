@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "លំនាំដើម (ស្វ័យប្រវត្តិ)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "ថូខិនបញ្ចេញអតិបរមា",
+    "maxOutputTokenOverrideHint": "បញ្ចូលចំនួនថូខឹនជាចំនួនគត់វិជ្ជមាន។ ទុកទទេដើម្បីប្រើតម្លៃលំនាំដើម។",
     "contextWindowOverrideLabel": "ការកំណត់ទំហំបង្អួចបរិបទជំនួស",
     "contextWindowOverridePlaceholder": "ឧ. 131072",
     "contextWindowOverrideHint": "កំណត់ទំហំ context window ពិតប្រាកដរបស់ម៉ូដែលនេះដោយដៃ (ជាចំនួន token) នៅពេល provider រាយការណ៍មិនត្រឹមត្រូវ។ ការកំណត់នេះមានអាទិភាពលើតម្លៃដែលរកឃើញដោយស្វ័យប្រវត្តិ/តម្លៃក្នុងកាតាឡុក ហើយការពារ combo routing មិនឱ្យដកម៉ូដែលនេះចេញ។",

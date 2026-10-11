@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "發生了一些錯誤",
+      "description": "發生了意外錯誤。此錯誤已被記錄，我們的團隊將進行調查。",
+      "detailsAriaLabel": "錯誤詳情",
+      "retryAriaLabel": "重試加載頁面",
+      "tryAgain": "再試一次",
+      "statusAriaLabel": "開啟系統狀態",
+      "systemStatus": "系統狀態"
+    }
+  }
+}

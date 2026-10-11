@@ -254,6 +254,7 @@
     "log": "Mostra i log del server in linea",
     "no_recovery": "Disabilita il riavvio automatico in caso di arresto anomalo (modalità di debug)",
     "max_restarts": "Numero massimo di riavvii in seguito ad arresti anomali entro 30 s prima di rinunciare (predefinito: 2)",
+    "headless": "Esegui solo il motore proxy: dashboard disattivata (404), sottosistemi opzionali saltati (imposta OMNIROUTE_HEADLESS=1)",
     "tray": "Avvia nell'area di notifica di sistema (solo desktop, attivazione facoltativa)",
     "no_tray": "Disabilita l'icona nell'area di notifica di sistema",
     "ready_timeout": "Timeout della verifica di disponibilità in ms (anche OMNIROUTE_READY_TIMEOUT_MS, valore predefinito 60000)",

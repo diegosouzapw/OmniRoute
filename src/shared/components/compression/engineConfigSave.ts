@@ -65,7 +65,10 @@ export function buildEngineDetailUpdate(
   return {
     compressToolResults: next.compressToolResults !== false,
     ...("maxToolLength" in next
-      ? { maxToolLength: typeof cap === "number" && Number.isNaN(cap) ? null : Math.floor(cap) }
+      ? {
+          maxToolLength:
+            typeof cap === "number" && Number.isNaN(cap) ? null : Math.floor(Number(cap)),
+        }
       : {}),
   };
 }

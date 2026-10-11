@@ -1,0 +1,1 @@
+- **fix(sse):** Preserve structured Responses refusals through translation and combo validation, and retain received text when a matching terminal message snapshot is empty. Refusals remain refusals instead of empty-response failures ([#16007](https://github.com/diegosouzapw/OmniRoute/pull/16007)).

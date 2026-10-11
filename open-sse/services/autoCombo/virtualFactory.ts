@@ -36,6 +36,7 @@ import { getSyncedAvailableModelsByConnection, getCustomModels } from "@/lib/db/
 import { filterPaidOnlyCandidatesWithDiagnosis } from "./paidModelFilter";
 import { filterLockoutCandidates, warnPoolDrop } from "./modelLockoutFilter";
 import { filterModelExposureCandidates } from "./modelExposureFilter";
+import { failClosedAutoConfig } from "./failClosedPool";
 import {
   filterSubscriptionOnlyCandidates,
   orderPoolByRung,
@@ -975,7 +976,6 @@ export async function createVirtualAutoComboFromPrepared(
     candidatePool.length = 0;
     candidatePool.push(...overrideFilteredPool);
   }
-
   if (candidatePool.length === 0) {
     log.warn("AUTO", "No connected providers with valid credentials for virtual auto-combo");
     const emptyPool: string[] = [];
@@ -984,6 +984,7 @@ export async function createVirtualAutoComboFromPrepared(
       weights: { ...DEFAULT_WEIGHTS },
       explorationRate: 0.05,
       routerStrategy: "lkgp",
+      ...failClosedAutoConfig(spec),
     };
     return {
       id: `virtual-auto-${variant || "default"}`,
@@ -1089,7 +1090,6 @@ export async function createVirtualAutoComboFromPrepared(
       );
     }
   }
-
   let weights: ScoringWeights = { ...DEFAULT_WEIGHTS };
   let explorationRate = 0.05; // Default exploration rate
   let routerStrategy = "lkgp"; // All auto variants use LKGP
@@ -1167,8 +1167,8 @@ export async function createVirtualAutoComboFromPrepared(
     weights,
     explorationRate,
     routerStrategy,
+    ...failClosedAutoConfig(spec),
   };
-
   // Chaos mode fans out to the top-N most stable models in parallel. Panel size
   // is capped to keep a single IDE request from fanning out to dozens of providers;
   // operators can override via env var OMNIROUTE_CHAOS_MAX_PANEL (default 5).

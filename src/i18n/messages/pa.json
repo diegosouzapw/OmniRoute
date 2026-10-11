@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "ਡਿਫੌਲਟ (ਆਟੋ)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "ਵੱਧ ਤੋਂ ਵੱਧ ਆਉਟਪੁੱਟ ਟੋਕਨ",
+    "maxOutputTokenOverrideHint": "ਟੋਕਨਾਂ ਦੀ ਧਨਾਤਮਕ ਪੂਰਨ ਸੰਖਿਆ ਦਰਜ ਕਰੋ। ਮੂਲ ਮੁੱਲ ਲਈ ਖਾਲੀ ਛੱਡੋ।",
     "contextWindowOverrideLabel": "ਕਾਂਟੈਕਸਟ ਵਿੰਡੋ ਓਵਰਰਾਈਡ",
     "contextWindowOverridePlaceholder": "ਜਿਵੇਂ ਕਿ 131072",
     "contextWindowOverrideHint": "ਜਦੋਂ ਪ੍ਰਦਾਤਾ ਇਸਦੀ ਗਲਤ ਜਾਣਕਾਰੀ ਦਿੰਦਾ ਹੈ, ਤਾਂ ਇਸ ਮਾਡਲ ਦੀ ਅਸਲ ਸੰਦਰਭ ਵਿੰਡੋ (ਟੋਕਨ) ਨੂੰ ਹੱਥੀਂ ਸੈੱਟ ਕਰੋ। ਇਹ ਆਪਣੇ-ਆਪ ਪਤਾ ਲਗਾਏ/ਕੈਟਾਲਾਗ ਮੁੱਲਾਂ ਉੱਤੇ ਤਰਜੀਹ ਲੈਂਦਾ ਹੈ ਅਤੇ ਕੰਬੋ ਰੂਟਿੰਗ ਨੂੰ ਮਾਡਲ ਹਟਾਉਣ ਤੋਂ ਰੋਕਦਾ ਹੈ।",

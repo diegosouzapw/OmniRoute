@@ -307,12 +307,14 @@ contractul pentru documentație/mediu, paritatea i18n, testele unitare) sunt nes
   într-o singură etapă (`scripts/quality/relax-baselines.mjs`); refuză să ruleze de două ori cu aceeași
   notă.
 - `npm run quality:headroom [-- --only deadExports,fileSize] [--json out.json --md out.md]` —
-  măsoară fiecare poartă numerică la fel ca CI și afișează marja rămasă pentru fiecare poartă
-  (`scripts/quality/baseline-headroom.mjs`). Jobul nocturn `baseline-headroom` publică
-  tabelul în tichetul activ **📈 Marja valorilor de referință (faza de viteză)** și adaugă eticheta
-  `headroom-alert` atunci când orice poartă se află la cel mult 10% de limita sa sau a depășit-o deja. Acel tichet
-  reprezintă avertizarea timpurie: un buget care se umple în câteva zile înseamnă că relaxarea este consumată de
-  câteva PR-uri, nu de întreaga echipă — consultați notele `_rebaseline_*` ale porții problematice.
+  măsoară fiecare verificare numerică în același mod ca CI și afișează marja rămasă pentru fiecare verificare
+  (`scripts/quality/baseline-headroom.mjs`). Sarcina nocturnă `baseline-headroom` publică tabelul
+  în rezumatul rulării fluxului de lucru și încarcă raportul JSON/Markdown sub numele
+  `baseline-headroom-<run_id>`, păstrat timp de 90 de zile. Rândurile de avertizare și cele critice indică
+  verificările cărora le mai rămâne cel mult 10% până la plafon sau care l-au depășit deja.
+  Consultați aceste rapoarte ca avertizare timpurie privind consumarea bugetelor; examinați notele
+  `_rebaseline_*` ale verificării afectate. Sarcina nu mai creează și nu mai actualizează un tichet permanent;
+  #12149 păstrează istoricul rapoartelor anterioare.
 
 **Modul pentru cod nou (Clean-as-You-Code) — începând cu 2026-08-30, numai pentru calea rapidă a PR-urilor**
 

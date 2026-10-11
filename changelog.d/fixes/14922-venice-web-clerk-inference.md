@@ -1,0 +1,1 @@
+- fix(providers): venice-web now mints a Clerk session JWT from the `__client` cookie and calls the real `outerface.venice.ai` inference endpoint (#14922)

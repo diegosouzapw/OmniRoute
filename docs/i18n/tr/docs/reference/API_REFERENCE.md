@@ -391,6 +391,12 @@ GET /v1/models?prefix=canonical    # yalnızca tam sağlayıcı kimliği ön eki
 
 Bir model seçici oluşturan istemciler `?prefix=alias` istemelidir — [OmniCopilot VS Code uzantısı](../guides/VSCODE-COPILOT.md) da bunu yapar.
 
+### Tek tek gizlenen sohbet modelleri
+
+Sağlayıcısının sayfasında **Gizli** olarak işaretlenen model katalogdan çıkarılır ve açıkça istendiğinde HTTP `404` / `model_not_found` ile reddedilir. Denetim, sağlayıcı takma adlarını, uyumlu sağlayıcı düğümlerinin öneklerini ve bağlantı varsayılanlarını dikkate alarak çözümlenen sağlayıcı ve modeli kullanır. Combo gizli hedefleri atlar ve başka bir görünür hedefi kullanabilir; yürütülebilir hedef kalmazsa aynı hata kodunu döndürür. Modeli yeniden görünür yapmak bir sonraki istekten itibaren geçerlidir. Yalnızca görsellere yönelik görünürlük geçersiz kılmaları aynı ID'ye sahip sohbet modelini gizlemez.
+
+Bu model bazındaki ayar, açıkça istek göndermeyi korurken katalogda gösterimi ve otomatik yönlendirme adaylarını filtreleyen [model gösterimi izin ve engelleme listelerinden](../routing/MODEL_EXPOSURE_LIST.md) ayrıdır. API anahtarının model izinleri bağımsız olarak uygulanmaya devam eder. Kataloğun varsayılan önek modu `dual` olarak kalır.
+
 ### Düşünmesiz model varyantları
 
 Düşünme özelliğine sahip Claude modelleri için `/v1/models`, kimliğinin başına `claude-3-omniroute-no-thinking/` eklenmiş bir **düşünmesiz** varyantı da sunar:

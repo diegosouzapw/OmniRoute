@@ -1,0 +1,1 @@
+- Cline model discovery now includes the current free-model bucket alongside the full paid catalog, preserving each upstream model ID and retaining the last complete cache when either catalog is unavailable. ClinePass remains subscription-only; catalog discovery does not change upstream API-key access restrictions.

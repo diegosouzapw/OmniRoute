@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "ડિફૉલ્ટ (ઓટો)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "મહત્તમ આઉટપુટ ટોકન્સ",
+    "maxOutputTokenOverrideHint": "ટોકનની ધન પૂર્ણાંક સંખ્યા દાખલ કરો. મૂળભૂત મૂલ્ય માટે ખાલી રાખો.",
     "contextWindowOverrideLabel": "કોન્ટેક્સ્ટ વિન્ડો ઓવરરાઇડ",
     "contextWindowOverridePlaceholder": "દા.ત. 131072",
     "contextWindowOverrideHint": "જ્યારે પ્રોવાઇડર ખોટી માહિતી આપે ત્યારે આ મોડેલની વાસ્તવિક કોન્ટેક્સ્ટ વિન્ડો (ટોકન્સ) મેન્યુઅલી સેટ કરો. ઓટો-ડિટેક્ટ થયેલ/કેટલોગ મૂલ્યો કરતાં આને પ્રાધાન્ય મળે છે અને કોમ્બો રૂટિંગને મોડેલ છોડી દેવાથી અટકાવે છે.",

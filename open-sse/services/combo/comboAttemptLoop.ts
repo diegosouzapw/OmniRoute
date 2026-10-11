@@ -62,6 +62,7 @@ import { collectCircuitOpenExclusions, evaluateExecuteTargetGates } from "./exec
 import { executeTargetAttempt } from "./executeTargetAttempt.ts";
 import { buildComboDiag } from "./executeTargetClassify.ts";
 import type { AttemptLoopDeps, AttemptLoopState, ExecuteTargetResult } from "./attemptLoopTypes.ts";
+import { getStrategyTraits } from "./strategyRegistry.ts";
 
 /** A second in-flight copy of a body larger than this sits in the TLS send buffer. */
 const HEDGE_MAX_BODY_BYTES = 256 * 1024;
@@ -276,7 +277,7 @@ export async function dispatchWithCooldownRetry(opts: {
       // and a slow upstream holds both copies for the whole headers wait.
       const bodySmallEnoughToHedge = isBodySmallEnoughToHedge(deps.body);
       const hasProtectedPriorityTarget =
-        deps.strategy === "priority" &&
+        getStrategyTraits(deps.strategy).honorsFallbackOnlyTargets &&
         state.orderedTargets.some((target) => target.fallbackOnlyOnQuotaExhaustion === true);
 
       const executeTarget = async (i: number): Promise<ExecuteTargetResult> => {

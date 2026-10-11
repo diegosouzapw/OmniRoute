@@ -476,6 +476,8 @@ export default function ConnectionRow({
 
   const statusPresentation = getStatusPresentation(connection, effectiveStatus, isCooldown, t);
   const rateLimitEnabled = !!connection.rateLimitProtection;
+  const rateLimitAutoProtected = connection.rateLimitAutoProtected === true;
+  const rateLimitShielded = rateLimitEnabled || rateLimitAutoProtected;
   const quotaVisible = connection.quotaVisible !== false;
   const codexPolicy =
     connection.providerSpecificData &&
@@ -672,7 +674,7 @@ export default function ConnectionRow({
             <button
               onClick={() => onToggleRateLimit(!rateLimitEnabled)}
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium transition-all cursor-pointer ${
-                rateLimitEnabled
+                rateLimitShielded
                   ? "bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25"
                   : "bg-black/[0.03] dark:bg-white/[0.03] text-text-muted/50 hover:text-text-muted hover:bg-black/[0.06] dark:hover:bg-white/[0.06]"
               }`}
@@ -681,7 +683,7 @@ export default function ConnectionRow({
               }
             >
               <span className="material-symbols-outlined text-[13px]">shield</span>
-              {rateLimitEnabled ? t("rateLimitProtected") : t("rateLimitUnprotected")}
+              {rateLimitShielded ? t("rateLimitProtected") : t("rateLimitUnprotected")}
             </button>
             {onToggleQuotaVisibility && (
               <ProviderQuotaVisibilityToggle

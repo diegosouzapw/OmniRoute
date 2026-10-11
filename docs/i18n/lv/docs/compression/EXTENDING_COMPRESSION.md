@@ -333,7 +333,6 @@ Vai ievietojiet to atpazītā vietā:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Lietotāja līmenis
-<project>/.compression/rules/hi/filler.json   # Projekta līmenis
 ```
 
 ### Valodu pakotņu paraugprakse

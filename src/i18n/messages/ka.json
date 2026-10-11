@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "ნაგულისხმევი (ავტომატური)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "გამოტანის ტოკენების მაქსიმუმი",
+    "maxOutputTokenOverrideHint": "შეიყვანეთ ტოკენების დადებითი მთელი რაოდენობა. ნაგულისხმევი მნიშვნელობისთვის დატოვეთ ცარიელი.",
     "contextWindowOverrideLabel": "კონტექსტის ფანჯრის ხელით განსაზღვრა",
     "contextWindowOverridePlaceholder": "მაგ. 131072",
     "contextWindowOverrideHint": "ხელით მიუთითეთ ამ მოდელის რეალური კონტექსტის ფანჯარა (ტოკენებში), თუ პროვაიდერი მას არასწორად აცხადებს. ეს მნიშვნელობა უპირატესია ავტომატურად აღმოჩენილ/კატალოგის მნიშვნელობებთან შედარებით და ხელს უშლის კომბინირებული მარშრუტიზაციისას მოდელის გამოტოვებას.",

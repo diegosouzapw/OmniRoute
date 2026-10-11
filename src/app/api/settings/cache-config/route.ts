@@ -11,6 +11,9 @@ import { resetSemanticCacheManager } from "@omniroute/open-sse/services/cache/se
 import { getEmbeddingOptions } from "./embeddingOptions";
 import { z } from "zod";
 import { isValidationFailure, validateBody } from "@/shared/validation/helpers";
+import { redactCacheSecrets, CacheCredentialEndpointError } from "@/lib/db/cacheSecrets";
+import { validateEmbeddingEndpoint } from "@omniroute/open-sse/services/cache/embeddingEndpoint";
+import { sanitizeErrorMessage } from "@omniroute/open-sse/utils/error";
 
 ensureSemanticCacheDbBridge();
 
@@ -110,9 +113,9 @@ export async function GET(request: NextRequest) {
       }
     }
     config.embeddingOptions = embeddingOptions;
-    return NextResponse.json(config);
+    return NextResponse.json(redactCacheSecrets(config));
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }
 
@@ -131,11 +134,21 @@ export async function PUT(request: NextRequest) {
 
     const validation = validateBody(cacheConfigUpdateSchema, rawBody);
     if (isValidationFailure(validation)) {
-      return validation.response;
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
     const updates: Partial<UserDatabaseSettings["cache"]> = {};
     const body = validation.data;
+    if (body.semanticCacheEmbeddingBaseUrl) {
+      try {
+        validateEmbeddingEndpoint(body.semanticCacheEmbeddingBaseUrl);
+      } catch {
+        return NextResponse.json(
+          { error: "Embedding endpoint is invalid or blocked" },
+          { status: 400 }
+        );
+      }
+    }
 
     if (body.semanticCacheEnabled !== undefined) {
       updates.semanticCacheEnabled = body.semanticCacheEnabled;
@@ -168,10 +181,10 @@ export async function PUT(request: NextRequest) {
       updates.semanticCacheEmbeddingBaseUrl = body.semanticCacheEmbeddingBaseUrl ?? undefined;
     }
     if (body.semanticCacheEmbeddingApiKey !== undefined) {
-      updates.semanticCacheEmbeddingApiKey = body.semanticCacheEmbeddingApiKey ?? undefined;
+      updates.semanticCacheEmbeddingApiKey = body.semanticCacheEmbeddingApiKey ?? "";
     }
     if (body.semanticCacheRedisUrl !== undefined) {
-      updates.semanticCacheRedisUrl = body.semanticCacheRedisUrl ?? undefined;
+      updates.semanticCacheRedisUrl = body.semanticCacheRedisUrl ?? "";
     }
     if (body.semanticCacheRedisPrefix !== undefined) {
       updates.semanticCacheRedisPrefix = body.semanticCacheRedisPrefix;
@@ -216,6 +229,9 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    if (error instanceof CacheCredentialEndpointError) {
+      return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 400 });
+    }
+    return NextResponse.json({ error: sanitizeErrorMessage(error) }, { status: 500 });
   }
 }

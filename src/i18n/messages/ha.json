@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "Na asali (ta atomatik)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Matsakaicin Alamomin Fitarwa",
+    "maxOutputTokenOverrideHint": "Shigar da adadin token mai cikakkiyar lamba tabbatacciya. Bar shi babu komai don amfani da ƙimar asali.",
     "contextWindowOverrideLabel": "Sauya Iyakar Tagar Mahallin Bayanai",
     "contextWindowOverridePlaceholder": "misali 131072",
     "contextWindowOverrideHint": "Saita a hannu ainihin iyakar tagar mahallin bayanai na wannan samfurin (tokens) idan mai samarwa ya bayar da bayanin da ba daidai ba. Wannan saitin yana fifita ƙimomin da aka gano ta atomatik/na kundin bayanai, kuma yana hana tsarin haɗa hanyoyi cire samfurin.",

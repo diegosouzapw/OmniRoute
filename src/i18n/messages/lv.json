@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "Noklusējums (automātiski)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Maksimālais izvades tokenu skaits",
+    "maxOutputTokenOverrideHint": "Ievadiet pozitīvu veselu tokenu skaitu. Atstājiet tukšu, lai izmantotu noklusējumu.",
     "contextWindowOverrideLabel": "Konteksta loga manuāla pārrakstīšana",
     "contextWindowOverridePlaceholder": "piem., 131072",
     "contextWindowOverrideHint": "Manuāli iestatīt šī modeļa faktisko konteksta logu (tokenos), ja nodrošinātājs to norāda nepareizi. Šai vērtībai ir prioritāte pār automātiski noteiktajām un katalogā esošajām vērtībām, un tā novērš modeļa izslēgšanu no kombinētās maršrutēšanas.",

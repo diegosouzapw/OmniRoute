@@ -63,6 +63,9 @@ test("resolveRetryAfterInstant rejects missing, malformed, numeric-string, and e
     "not-a-date",
     Number.NaN,
     Number.POSITIVE_INFINITY,
+    Number.MAX_VALUE,
+    8_640_000_000_000_001,
+    new Date(Number.NaN),
     0,
     -1,
     new Date(Date.now() - 60_000),
@@ -161,6 +164,8 @@ test("parseRetryAfterHeader resolves seconds and HTTP dates and rejects unusable
     "-1",
     "90garbage",
     "garbage",
+    "9999999999999",
+    String(Number.MAX_VALUE),
     new Date(Date.now() - 60_000).toUTCString(),
   ]) {
     assert.equal(parseRetryAfterHeader(new Headers({ "Retry-After": value })), null, value);

@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "Predefinit (awtomatiku)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Numru Massimu ta' Tokens tal-Output",
+    "maxOutputTokenOverrideHint": "Daħħal numru sħiħ pożittiv ta’ tokens. Ħalli vojt biex tuża l-valur predefinit.",
     "contextWindowOverrideLabel": "Valur Alternattiv għat-Tieqa tal-Kuntest",
     "contextWindowOverridePlaceholder": "eż. 131072",
     "contextWindowOverrideHint": "Issettja manwalment it-tieqa tal-kuntest reali ta’ dan il-mudell (tokens) meta l-fornitur jirrapportaha ħażin. Dan jieħu preċedenza fuq il-valuri identifikati awtomatikament jew dawk tal-katalgu u jipprevjeni lir-routing ikkombinat milli jeskludi l-mudell.",

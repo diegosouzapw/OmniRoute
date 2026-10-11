@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "Default (otomatis)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Token Output Maks",
+    "maxOutputTokenOverrideHint": "Masukkan jumlah token berupa bilangan bulat positif. Kosongkan untuk menggunakan nilai default.",
     "contextWindowOverrideLabel": "Penggantian Jendela Konteks",
     "contextWindowOverridePlaceholder": "mis. 131072",
     "contextWindowOverrideHint": "Atur secara manual jendela konteks riil model ini (token) ketika penyedia salah melaporkannya. Mengalahkan nilai yang terdeteksi otomatis/katalog dan mencegah perutean kombo menjatuhkan model.",

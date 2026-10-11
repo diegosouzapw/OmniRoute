@@ -336,7 +336,6 @@ Ili ga smjestite na prepoznato mjesto:
 
 ```
 ~/.omniroute/compression/rules/hi/filler.json  # Na razini korisnika
-<project>/.compression/rules/hi/filler.json   # Na razini projekta
 ```
 
 ### Najbolje prakse za jezične pakete

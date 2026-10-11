@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "Oletus (automaattinen)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "Enimmäistulostusmerkit",
+    "maxOutputTokenOverrideHint": "Anna positiivinen kokonaisluku tokeneita. Jätä tyhjäksi käyttääksesi oletusarvoa.",
     "contextWindowOverrideLabel": "Konteksti-ikkunan ohitus",
     "contextWindowOverridePlaceholder": "esim. 131072",
     "contextWindowOverrideHint": "Aseta manuaalisesti tämän mallin todellinen konteksti-ikkuna (tokenit), jos tarjoaja ilmoittaa sen väärin. Ohittaa automaattisesti havaitut/luettelon arvot ja estää yhdistelmäreititystä pudottamasta mallia.",

@@ -5857,6 +5857,8 @@
     "targetFormatAuto": "డిఫాల్ట్ (ఆటో)",
     "targetFormatGemini": "Gemini",
     "targetFormatAntigravity": "Antigravity",
+    "maxOutputTokenOverrideLabel": "గరిష్ట అవుట్‌పుట్ టోకెన్‌లు",
+    "maxOutputTokenOverrideHint": "టోకెన్ల ధన పూర్ణాంక సంఖ్యను నమోదు చేయండి. డిఫాల్ట్ విలువ కోసం ఖాళీగా ఉంచండి.",
     "contextWindowOverrideLabel": "కాంటెక్స్ట్ విండో ఓవర్‌రైడ్",
     "contextWindowOverridePlaceholder": "ఉదా. 131072",
     "contextWindowOverrideHint": "ప్రొవైడర్ తప్పుగా నివేదించినప్పుడు ఈ మోడల్ యొక్క నిజమైన కాంటెక్స్ట్ విండోను (టోకెన్లు) మాన్యువల్‌గా సెట్ చేయండి. ఇది ఆటో-డిటెక్ట్ చేయబడిన/కేటలాగ్ విలువల కంటే ప్రాధాన్యత పొందుతుంది మరియు కాంబో రూటింగ్ మోడల్‌ను వదిలివేయకుండా నిరోధిస్తుంది.",

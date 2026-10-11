@@ -575,7 +575,14 @@ export class GeminiWebExecutor extends BaseExecutor {
       };
       signal?.addEventListener("abort", abortBrowser, { once: true });
 
-      context = await browser.newContext({ userAgent: GEMINI_USER_AGENT });
+      // #15076: apply the proxy configured for gemini-web (provider/global scope). Resolved per
+      // context so the shared leased browser needs no invalidation when the proxy changes.
+      const { resolvePlaywrightProxy } = await import("../services/browserPool.ts");
+      const proxy = await resolvePlaywrightProxy("gemini-web");
+      context = await browser.newContext({
+        userAgent: GEMINI_USER_AGENT,
+        ...(proxy ? { proxy } : {}),
+      });
 
       // Parse cookies — strips attributes like Path, Domain, Expires
       const cookiePairs = parseCookies(cookie);
