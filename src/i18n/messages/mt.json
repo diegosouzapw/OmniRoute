@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Agħlaq"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Itfi l-ġenerazzjoni ta’ varjanti tal-livell ta’ ħsieb (eż. -low, -medium, -high) fil-katalgu /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Ikkattura dawriet ta' konversazzjoni simplifikati (prompt tal-utent, tweġiba tal-assistent, għodod imsejħa) għal sessjonijiet ta' coding-agent u esponihom permezz ta' GET /v1/me/sessions/{id}/messages lis-sid tas-sessjoni. Mitfi awtomatikament: id-dawriet ma jiġux ikkatturati sakemm din il-flag ma tkunx attivata. Qatt ma jiġu kkatturati għal noLog API keys.",
   "connectionTest": {
     "title": "Messaġġ tat-test",
     "description": "Ibgħat talba reali waħda permezz ta’ dan il-kont. Dan juża ammont żgħir mill-kwota u jista’ jibda perjodu ta’ użu, skont il-fornitur.",

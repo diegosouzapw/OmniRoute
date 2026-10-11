@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "ඉවත දමන්න"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "/v1/models නාමාවලිය තුළ චින්තන මට්ටමේ ප්රභේද (උදා. -low, -medium, -high) ජනනය කිරීම අක්රිය කරන්න.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "coding-agent සැසි සඳහා සරල කළ සංවාද වාර (පරිශීලක ප්‍රේරකය, සහයක ප්‍රතිචාරය, කැඳවූ මෙවලම්) ග්‍රහණය කර ඒවා GET /v1/me/sessions/{id}/messages හරහා සැසියේ හිමිකරුට ලබා දෙන්න. පෙරනිමියෙන් අක්‍රියයි: මෙම flag එක සක්‍රීය කර ඇත්නම් මිස වාර ග්‍රහණය කර නොගනී. noLog API keys සඳහා කිසි විටෙකත් ග්‍රහණය කර නොගනී.",
   "connectionTest": {
     "title": "පරීක්ෂණ පණිවිඩය",
     "description": "මෙම ගිණුම හරහා එක් සැබෑ ඉල්ලීමක් යවන්න. මෙය කෝටාවෙන් කුඩා ප්රමාණයක් භාවිත කරන අතර, සැපයුම්කරු අනුව භාවිත කාල කවුළුවක් ආරම්භ කළ හැක.",

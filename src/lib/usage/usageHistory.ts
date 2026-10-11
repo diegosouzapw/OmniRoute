@@ -35,6 +35,9 @@ import {
   storeCompletedDetail,
   getCompletedDetails,
 } from "./completedRequestDetails";
+import * as sessions from "./usageHistory/agentSessionUsage";
+import type { AgentSessionTurn } from "@omniroute/open-sse/handlers/chatCore/agentSessionTurn.ts";
+import { loggableSessionTurn, saveSessionTurn } from "./usageHistory/sessionTurn";
 import { shouldPersistToDisk } from "./migrations";
 import { emitUsageRecorded } from "./usageEvents";
 import {
@@ -862,6 +865,9 @@ export interface UsageEntry {
   endpoint?: string | null;
   /** Opaque CLIProxyAPI auth_index. Never a label, path, token, or email. */
   cpaAuthIndex?: string | null;
+  /** Coding-agent session and project of the request; attributes the row to an agent session. */
+  agentContext?: sessions.AgentContext | null;
+  sessionTurn?: AgentSessionTurn | null; // stored only for keyed, non-noLog requests
 }
 
 /**
@@ -877,6 +883,8 @@ export async function saveRequestUsage(entry: UsageEntry) {
 
     const tokensInput = getLoggedInputTokens(entry.tokens);
     const tokensOutput = getLoggedOutputTokens(entry.tokens);
+    const sessionUsage = await sessions.buildAgentSessionUsage(entry, timestamp, serviceTier);
+    const sessionTurn = await loggableSessionTurn(entry);
     const connection = entry.connectionId
       ? (db.prepare("SELECT * FROM provider_connections WHERE id = ?").get(entry.connectionId) as
           Record<string, unknown> | undefined)
@@ -935,13 +943,16 @@ export async function saveRequestUsage(entry: UsageEntry) {
         return; // duplicate — do not insert
       }
 
+      const agentSessionId = sessions.recordAgentSession(db, sessionUsage);
+      saveSessionTurn(db, agentSessionId, sessionTurn, entry, timestamp);
       db.prepare(
         `
         INSERT INTO usage_history (provider, model, connection_id, account_key, account_label,
           account_label_priority, api_key_id, api_key_name, tokens_input, tokens_output,
           tokens_cache_read, tokens_cache_creation, tokens_reasoning, service_tier, status, success,
-          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, cpa_auth_index, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          latency_ms, ttft_ms, error_code, combo_strategy, endpoint, cpa_auth_index, agent_session_id,
+          timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `
       ).run(
         entry.provider ? resolveProviderId(entry.provider) : null,
@@ -970,6 +981,7 @@ export async function saveRequestUsage(entry: UsageEntry) {
         entry.comboStrategy || entry.combo_strategy || null,
         entry.endpoint || null,
         entry.cpaAuthIndex || null,
+        agentSessionId,
         timestamp
       );
 

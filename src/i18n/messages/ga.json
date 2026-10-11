@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Dún"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Díchumasaigh giniúint leaganacha leibhéil smaointeoireachta (m.sh. -low, -medium, -high) i gcatalóg /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Gabh sealanna comhrá simplithe (leid úsáideora, freagra cúntóra, uirlisí ar glaodh orthu) le haghaidh seisiúin gníomhaire códaithe agus cuir ar fáil iad trí GET /v1/me/sessions/{id}/messages d'úinéir an tseisiúin. Múchta de réir réamhshocraithe: ní ghabhtar sealanna mura bhfuil an bhratach seo cumasaithe. Ní ghabhtar choíche le haghaidh eochracha API noLog.",
   "connectionTest": {
     "title": "Teachtaireacht tástála",
     "description": "Seol fíoriarratas amháin tríd an gcuntas seo. Úsáideann sé seo méid beag cuóta agus féadfaidh sé tús a chur le tréimhse úsáide, ag brath ar an soláthraí.",

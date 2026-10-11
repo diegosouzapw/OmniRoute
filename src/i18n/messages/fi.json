@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Sulje"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Poista käytöstä ajattelutason varianttien (esim. -low, -medium, -high) luonti /v1/models-luettelossa.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Tallenna yksinkertaistetut keskusteluvuorot (käyttäjän kehote, avustajan vastaus, kutsutut työkalut) koodausagentti-istunnoista ja tuo ne istunnon omistajan saataville reitin GET /v1/me/sessions/{id}/messages kautta. Oletusarvoisesti pois käytöstä: vuoroja ei tallenneta, ellei tätä asetusta ole otettu käyttöön. Ei tallenneta koskaan noLog-API-avaimille.",
   "connectionTest": {
     "title": "Testiviesti",
     "description": "Lähetä yksi oikea pyyntö tämän tilin kautta. Tämä käyttää pienen määrän kiintiötä ja voi käynnistää käyttöjakson palveluntarjoajasta riippuen.",

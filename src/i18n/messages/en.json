@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Dismiss"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Disable the generation of thinking level variants (e.g. -low, -medium, -high) in the /v1/models catalog.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Capture simplified conversation turns (user prompt, assistant response, called tools) for coding-agent sessions and expose them through GET /v1/me/sessions/{id}/messages to the session owner. Off by default: turns are not captured unless this flag is enabled. Never captured for noLog API keys.",
   "connectionTest": {
     "title": "Test message",
     "description": "Send one real request through this account. This uses a small amount of quota and can start a usage window, depending on the provider.",

@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Stäng"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Inaktivera genereringen av varianter med olika tankenivåer (t.ex. -low, -medium, -high) i katalogen /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Fånga förenklade konversationsturer (användarprompt, assistantsvar, anropade verktyg) för kodningsagentsessioner och exponera dem via GET /v1/me/sessions/{id}/messages för sessionsägaren. Inaktiverat som standard: turer fångas inte såvida inte denna flagga är aktiverad. Fångas aldrig för noLog-API-nycklar.",
   "connectionTest": {
     "title": "Testmeddelande",
     "description": "Skicka en riktig begäran via det här kontot. Detta använder en liten del av kvoten och kan starta ett användningsfönster, beroende på leverantören.",

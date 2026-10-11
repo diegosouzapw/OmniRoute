@@ -89,15 +89,12 @@ import {
 } from "../translator/helpers/toolCallHelper.ts";
 import { restoreClaudeToolName } from "../services/claudeCodeToolRemapper.ts";
 import { normalizeFinalOpenAIStreamChunk } from "./openAIStreamChunk.ts";
-import { collectClaudeDelta } from "./streamClaudeDelta.ts";
+import { collectClaudeDelta, collectToolUseName, withToolUseNames } from "./streamClaudeDelta.ts";
 import { createStreamTiming, registerStreamTiming, type StreamTiming } from "./streamTiming.ts";
 import { buildUsageOnlyChunk } from "./usageOnlyChunk.ts";
 import { normalizeArrayContentChunk } from "./arrayContentDelta.ts";
 
-/**
- * Race a response body read against a timeout.
- * Prevents indefinite hangs when the upstream sends headers but stalls on the body.
- */
+/** Race a body read against a timeout to prevent hanging after upstream headers arrive. */
 export function withBodyTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number = FETCH_BODY_TIMEOUT_MS
@@ -768,7 +765,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     connectionId = null,
     apiKeyInfo = null,
     body = null,
-    onComplete = null,
+    onComplete: onCompleteOption = null,
     onFailure = null,
     dropResponsesCommentary,
     customToolNames = new Set<string>(),
@@ -852,6 +849,8 @@ export function createSSEStream(options: StreamOptions = {}) {
   let passthroughSawFinishReason = false;
   /** Passthrough: accumulate tool_calls deltas for call log responseBody */
   const passthroughToolCalls = new Map<string, ToolCall>();
+  const clientToolUseNames: string[] = []; // tool_use names the Claude client got, session turns only
+  const onComplete = withToolUseNames(onCompleteOption, clientToolUseNames);
   let passthroughToolCallSeq = 0;
   const allowedToolNames = extractAllowedToolNames(body);
   let skipPassthroughEvent = false;
@@ -1223,6 +1222,7 @@ export function createSSEStream(options: StreamOptions = {}) {
     }
 
     const output = formatSSE(itemSanitized, sourceFormat);
+    collectToolUseName(clientToolUseNames, itemSanitized);
     clientPayloadCollector.push(itemSanitized);
     reqLogger?.appendConvertedChunk?.(output);
     forwardedValuableChunk = true;
@@ -1918,6 +1918,7 @@ export function createSSEStream(options: StreamOptions = {}) {
                     toolNameMap,
                     body
                   );
+                  collectToolUseName(clientToolUseNames, parsed);
                   // Track content length and accumulate from Claude format
                   if (parsed.delta?.text) {
                     totalContentLength += parsed.delta.text.length;

@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Lukk"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Deaktiver generering av varianter for resonneringsnivå (f.eks. -low, -medium, -high) i /v1/models-katalogen.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Registrer forenklede samtalevendinger (brukerprompt, assistentrespons, kalte verktøy) for kodeagent-økter og eksponer dem via GET /v1/me/sessions/{id}/messages for økteieren. Deaktivert som standard: vendinger registreres ikke med mindre dette flagget er aktivert. Registreres aldri for noLog-API-nøkler.",
   "connectionTest": {
     "title": "Testmelding",
     "description": "Send én reell forespørsel gjennom denne kontoen. Dette bruker en liten del av kvoten og kan starte et bruksvindu, avhengig av leverandøren.",

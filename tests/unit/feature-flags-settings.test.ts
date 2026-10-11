@@ -53,9 +53,9 @@ const {
 // PROXY_OPERATOR_EGRESS_ENABLED (operator-pushed dated observed addresses per
 // pool member, default off) takes it to 82; USAGE_LIMIT_IGNORE_UNPRICED (#14799,
 // opt-in flag to count unpriced usage as $0 in USD quotas, default off) to 83;
-// REASONING_REPLAY_ENABLED (#12486, default on) to 84; COMBO_AUTO_PRUNE_STALE_STEPS
-// (#13505, default off) to 85.
-const EXPECTED_FEATURE_FLAG_COUNT = 85;
+// REASONING_REPLAY_ENABLED (#12486) to 84; COMBO_AUTO_PRUNE_STALE_STEPS
+// (#13505) to 85; AGENT_SESSION_MESSAGES_ENABLED (#14864, default off) to 86.
+const EXPECTED_FEATURE_FLAG_COUNT = 86;
 
 // ──────────────────────────────────────────────────────
 // Test group 1 — Flag definitions registry

@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Aizvērt"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Atspējot domāšanas līmeņu variantu (piem., -low, -medium, -high) ģenerēšanu /v1/models katalogā.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Fiksēt vienkāršotus sarunas soļus (lietotāja uzvedne, asistenta atbilde, izsauktie rīki) kodēšanas aģenta sesijām un padarīt tos pieejamus sesijas īpašniekam, izmantojot GET /v1/me/sessions/{id}/messages. Pēc noklusējuma izslēgts: soļi netiek fiksēti, ja vien šis karodziņš nav iespējots. Nekad netiek fiksēts noLog API atslēgām.",
   "connectionTest": {
     "title": "Testa ziņojums",
     "description": "Nosūtiet vienu reālu pieprasījumu, izmantojot šo kontu. Tas patērē nelielu kvotas daļu un atkarībā no pakalpojumu sniedzēja var sākt lietojuma periodu.",

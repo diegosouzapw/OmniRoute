@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Zatvori"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Onemogućite generisanje varijanti nivoa razmišljanja (npr. -low, -medium, -high) u /v1/models katalogu.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Zabilježi pojednostavljene korake razgovora (korisnički upit, odgovor asistenta, pozvani alati) za sesije agenta za kodiranje i izloži ih vlasniku sesije putem GET /v1/me/sessions/{id}/messages. Podrazumijevano isključeno: koraci se ne bilježe osim ako ova zastavica nije omogućena. Nikada se ne bilježe za noLog API ključeve.",
   "connectionTest": {
     "title": "Testna poruka",
     "description": "Pošaljite jedan stvarni zahtjev putem ovog računa. Ovo koristi malu količinu kvote i može pokrenuti period korištenja, zavisno od pružaoca usluge.",

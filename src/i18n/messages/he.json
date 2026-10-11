@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "סגירה"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "השבתת היצירה של וריאציות של רמת החשיבה (למשל -low, -medium, -high) בקטלוג /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "לכידת סבבי שיחה מפושטים (הנחיית משתמש, תגובת עוזר, כלים שנקראו) עבור הפעלות של סוכן קידוד וחשיפתם באמצעות GET /v1/me/sessions/{id}/messages לבעל ההפעלה. כבוי כברירת מחדל: סבבים אינם נלכדים אלא אם כן דגל זה מופעל. לעולם אינם נלכדים עבור מפתחות API מסוג noLog.",
   "connectionTest": {
     "title": "הודעת בדיקה",
     "description": "שליחת בקשה אמיתית אחת דרך חשבון זה. פעולה זו משתמשת בכמות קטנה מהמכסה ועשויה להתחיל חלון שימוש, בהתאם לספק.",

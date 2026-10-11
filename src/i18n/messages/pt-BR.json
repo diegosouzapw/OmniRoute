@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Dispensar"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Desative a geração de variantes de nível de pensamento (por exemplo, -low, -medium, -high) no catálogo /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Capturar turnos de conversa simplificados (prompt do usuário, resposta do assistente, ferramentas chamadas) para sessões de coding-agent e expô-los através de GET /v1/me/sessions/{id}/messages para o proprietário da sessão. Desativado por padrão: os turnos não são capturados a menos que esta flag esteja ativada. Nunca são capturados para chaves de API noLog.",
   "connectionTest": {
     "title": "Mensagem de teste",
     "description": "Envie uma solicitação real por meio desta conta. Isso usa uma pequena parte da cota e pode iniciar uma janela de uso, dependendo do provedor.",

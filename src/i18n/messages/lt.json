@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Uždaryti"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Išjungti mąstymo lygio variantų (pvz., -low, -medium, -high) generavimą /v1/models kataloge.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Fiksuoti supaprastintus pokalbio etapus (naudotojo užklausą, asistento atsakymą, iškviestus įrankius) programavimo agentų sesijoms ir pateikti juos sesijos savininkui per GET /v1/me/sessions/{id}/messages. Pagal numatytuosius nustatymus išjungta: etapai nefiksuojami, nebent ši vėliavėlė yra įjungta. Niekada nefiksuojama noLog API raktams.",
   "connectionTest": {
     "title": "Bandomasis pranešimas",
     "description": "Per šią paskyrą išsiųsti vieną tikrą užklausą. Tam sunaudojamas nedidelis kvotos kiekis ir, priklausomai nuo teikėjo, gali būti pradėtas naudojimo laikotarpis.",

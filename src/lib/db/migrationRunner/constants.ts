@@ -223,6 +223,20 @@ export const RENAMED_MIGRATION_COMPATIBILITY = [
     toVersion: "101",
     toName: "api_key_usage_limits",
   },
+  {
+    // Early self-service stack builds occupied the upstream attempt-timing slot.
+    fromVersion: "194",
+    fromName: "api_key_self_service_settings",
+    toVersion: "207",
+    toName: "api_key_self_service_settings",
+  },
+  {
+    // Later self-service stack builds (#14771) used 197, now proxy_subscription_core_config.
+    fromVersion: "197",
+    fromName: "api_key_self_service_settings",
+    toVersion: "207",
+    toName: "api_key_self_service_settings",
+  },
 ] as const;
 
 export const LEGACY_VERSION_SLOT_MIGRATIONS = [

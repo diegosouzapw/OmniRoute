@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Tutup"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Lumpuhkan penjanaan varian tahap pemikiran (cth. -low, -medium, -high) dalam katalog /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Rakam giliran perbualan yang dipermudah (gesaan pengguna, respons pembantu, alat yang dipanggil) untuk sesi ejen pengekodan dan dedahkannya melalui GET /v1/me/sessions/{id}/messages kepada pemilik sesi. Dimatikan secara lalai: giliran tidak dirakam melainkan bendera ini didayakan. Tidak pernah dirakam untuk kunci API noLog.",
   "connectionTest": {
     "title": "Mesej ujian",
     "description": "Hantar satu permintaan sebenar melalui akaun ini. Tindakan ini menggunakan sedikit kuota dan boleh memulakan tempoh penggunaan, bergantung pada penyedia.",

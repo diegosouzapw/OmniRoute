@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Yi watsi"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Kashe samar da nau'ikan matakan tunani (misali -low, -medium, -high) a cikin kundin /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Ɗauki sauƙaƙan zagayen tattaunawa (umarnin mai amfani, amsar mataimaki, kayan aikin da aka kira) don zamomin coding-agent kuma a bayyana su ta hanyar GET /v1/me/sessions/{id}/messages ga mai zaman. A kashe yake a asali: ba a ɗaukar zagayen tattaunawa sai idan an kunna wannan alamar. Ba a taɓa ɗauka ba ga mabuɗan API na noLog.",
   "connectionTest": {
     "title": "Saƙon gwaji",
     "description": "Aika ainihin buƙata guda ɗaya ta wannan asusun. Wannan yana amfani da ɗan kaso na ƙayyadadden adadin amfani kuma yana iya fara lokacin amfani, gwargwadon mai samarwa.",

@@ -14843,6 +14843,7 @@
     "dismissAriaLabel": "Mechie"
   },
   "featureFlagOmnirouteDisableThinkingLevelVariantsDescription": "Gbanyụọ imepụta ụdị ọkwa echiche dị iche iche (dịka -low, -medium, -high) na katalọgụ /v1/models.",
+  "featureFlagAgentSessionMessagesEnabledDescription": "Dekọọ nsonso mkparịta ụka dị mfe (ntụziaka onye ọrụ, azịza onye enyemaka, ngwaọrụ ndị a kpọrọ) maka nnọkọ coding-agent ma gosipụta ha site na GET /v1/me/sessions/{id}/messages nye onye nwe nnọkọ ahụ. Agbanyụrụ ya na ndabara: anaghị edekọ nsonso ndị a ma ọ bụghị ma agbanyere flag a. Anaghị edekọ ya ma ọlị maka noLog API keys.",
   "connectionTest": {
     "title": "Ozi nnwale",
     "description": "Zipụ otu arịrịọ n'ezie site na akaụntụ a. Nke a na-eji obere oke e nyere ma nwee ike ịmalite oge ojiji, dabere na onye na-eweta ọrụ.",
