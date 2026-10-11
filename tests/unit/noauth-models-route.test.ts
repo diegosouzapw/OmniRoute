@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-opencode-models-"));
+const TEST_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "omniroute-noauth-models-"));
 process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
@@ -16,19 +16,20 @@ test.after(() => {
   fs.rmSync(TEST_DATA_DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 });
 
-// #3047 — OpenCode Free (no-auth) has no connection row, so the
+// #3047 — a no-auth provider (originally OpenCode Free, now exercised through
+// uncloseai) has no connection row, so the
 // "Import from /models" button used to hit a 404 and silently no-op. The models
 // route must serve a non-empty model list when called with a no-auth provider id.
 // #3611 — the source may now be "upstream" (live fetch succeeded) or
 // "local_catalog" (live fetch failed/unavailable); both are acceptable here.
 test("models route serves models for a no-auth provider id (#3047)", async () => {
   const response = await modelsRoute.GET(
-    new Request("http://localhost/api/providers/opencode/models?refresh=true"),
-    { params: { id: "opencode" } }
+    new Request("http://localhost/api/providers/uncloseai/models?refresh=true"),
+    { params: { id: "uncloseai" } }
   );
   assert.equal(response.status, 200);
   const body = await response.json();
-  assert.equal(body.provider, "opencode");
+  assert.equal(body.provider, "uncloseai");
   assert.ok(
     body.source === "local_catalog" || body.source === "upstream",
     `source must be 'local_catalog' or 'upstream', got '${body.source}'`
@@ -48,7 +49,7 @@ test("models route still 404s for an unknown provider/connection id", async () =
   assert.equal(response.status, 404);
 });
 
-// #3611 — OpenCode Free (noAuth + modelsUrl) must fetch live models from the
+// #3611 — a noAuth provider with a modelsUrl (uncloseai) must fetch live models from the
 // provider's modelsUrl instead of always returning the stale local_catalog.
 
 const LIVE_MODEL_LIST = [
@@ -60,7 +61,7 @@ test("models route fetches live models from modelsUrl for noAuth provider with m
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url: string | URL, _init?: RequestInit) => {
     const urlStr = String(url);
-    if (urlStr === "https://opencode.ai/zen/v1/models") {
+    if (urlStr === "https://hermes.ai.unturf.com/v1/models") {
       return Response.json({ data: LIVE_MODEL_LIST });
     }
     return new Response("unexpected fetch: " + urlStr, { status: 500 });
@@ -68,12 +69,12 @@ test("models route fetches live models from modelsUrl for noAuth provider with m
 
   try {
     const response = await modelsRoute.GET(
-      new Request("http://localhost/api/providers/opencode/models"),
-      { params: { id: "opencode" } }
+      new Request("http://localhost/api/providers/uncloseai/models"),
+      { params: { id: "uncloseai" } }
     );
     assert.equal(response.status, 200);
     const body = await response.json();
-    assert.equal(body.provider, "opencode");
+    assert.equal(body.provider, "uncloseai");
     assert.equal(
       body.source,
       "upstream",
@@ -90,9 +91,9 @@ test("models route fetches live models from modelsUrl for noAuth provider with m
 
 test("metadata-only no-auth connection row still uses public model discovery", async () => {
   const connection = await providersDb.createProviderConnection({
-    provider: "opencode",
+    provider: "uncloseai",
     authType: "apikey",
-    name: "opencode-metadata",
+    name: "uncloseai-metadata",
     isActive: true,
     testStatus: "unknown",
     providerSpecificData: {
@@ -102,7 +103,7 @@ test("metadata-only no-auth connection row still uses public model discovery", a
   });
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url: string | URL) => {
-    if (String(url) === "https://opencode.ai/zen/v1/models") {
+    if (String(url) === "https://hermes.ai.unturf.com/v1/models") {
       return Response.json({ data: LIVE_MODEL_LIST });
     }
     return new Response("unexpected", { status: 500 });
@@ -115,7 +116,7 @@ test("metadata-only no-auth connection row still uses public model discovery", a
     );
     assert.equal(response.status, 200);
     const body = await response.json();
-    assert.equal(body.provider, "opencode");
+    assert.equal(body.provider, "uncloseai");
     assert.equal(body.connectionId, connection.id);
     assert.equal(body.source, "upstream");
     assert.ok(body.models.some((model: { id: string }) => model.id === "live-model-alpha"));
@@ -127,7 +128,7 @@ test("metadata-only no-auth connection row still uses public model discovery", a
 test("models route falls back to local_catalog when live modelsUrl fetch throws (#3611 fallback on error)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url: string | URL, _init?: RequestInit) => {
-    if (String(url) === "https://opencode.ai/zen/v1/models") {
+    if (String(url) === "https://hermes.ai.unturf.com/v1/models") {
       throw new Error("network failure");
     }
     return new Response("unexpected", { status: 500 });
@@ -135,12 +136,12 @@ test("models route falls back to local_catalog when live modelsUrl fetch throws 
 
   try {
     const response = await modelsRoute.GET(
-      new Request("http://localhost/api/providers/opencode/models"),
-      { params: { id: "opencode" } }
+      new Request("http://localhost/api/providers/uncloseai/models"),
+      { params: { id: "uncloseai" } }
     );
     assert.equal(response.status, 200);
     const body = await response.json();
-    assert.equal(body.provider, "opencode");
+    assert.equal(body.provider, "uncloseai");
     assert.equal(body.source, "local_catalog", "should fall back to local_catalog on fetch error");
     assert.ok(Array.isArray(body.models) && body.models.length > 0, "should have catalog models");
   } finally {
@@ -151,7 +152,7 @@ test("models route falls back to local_catalog when live modelsUrl fetch throws 
 test("models route falls back to local_catalog when live modelsUrl fetch returns non-OK (#3611 fallback on non-OK)", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url: string | URL, _init?: RequestInit) => {
-    if (String(url) === "https://opencode.ai/zen/v1/models") {
+    if (String(url) === "https://hermes.ai.unturf.com/v1/models") {
       return new Response("Service Unavailable", { status: 503 });
     }
     return new Response("unexpected", { status: 500 });
@@ -159,12 +160,12 @@ test("models route falls back to local_catalog when live modelsUrl fetch returns
 
   try {
     const response = await modelsRoute.GET(
-      new Request("http://localhost/api/providers/opencode/models"),
-      { params: { id: "opencode" } }
+      new Request("http://localhost/api/providers/uncloseai/models"),
+      { params: { id: "uncloseai" } }
     );
     assert.equal(response.status, 200);
     const body = await response.json();
-    assert.equal(body.provider, "opencode");
+    assert.equal(body.provider, "uncloseai");
     assert.equal(
       body.source,
       "local_catalog",

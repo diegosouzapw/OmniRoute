@@ -19,7 +19,7 @@ const VERBATIM_BODY = `{"type":"server_error","message":"Error from provider (Co
 
 test("opencode 400 model-unavailable", async (t) => {
   await t.test("locks the model on the pinned verbatim (opencode)", () => {
-    const r = checkFallbackError(400, VERBATIM_BODY, 0, null, "opencode");
+    const r = checkFallbackError(400, VERBATIM_BODY, 0, null, "opencode-zen");
     assert.equal(r.shouldFallback, true);
     assert.equal((r as { ruleScope?: string }).ruleScope, "model");
     assert.equal(r.reason, "model_capacity");
@@ -46,7 +46,7 @@ test("opencode 400 model-unavailable", async (t) => {
       `{"type":"invalid_request","message":"improperly formed request: invalid message format"}`,
       0,
       null,
-      "opencode"
+      "opencode-zen"
     );
     assert.equal(r.shouldFallback, true);
     assert.equal(r.cooldownMs, 0);
@@ -61,7 +61,7 @@ test("opencode 400 model-unavailable", async (t) => {
     // "model_capacity", 400) tuple, and combo routing reads it via isModelLocked.
     clearAllModelLockouts();
     recordModelLockoutFailure(
-      "opencode",
+      "opencode-zen",
       "conn-test-400",
       "deepseek-v4-flash-free",
       "model_capacity",
@@ -70,7 +70,7 @@ test("opencode 400 model-unavailable", async (t) => {
       null,
       { exactCooldownMs: 3_600_000, maxCooldownMs: 1_800_000 }
     );
-    assert.equal(isModelLocked("opencode", "conn-test-400", "deepseek-v4-flash-free"), true);
+    assert.equal(isModelLocked("opencode-zen", "conn-test-400", "deepseek-v4-flash-free"), true);
     clearAllModelLockouts();
   });
 
@@ -89,7 +89,7 @@ test("opencode 400 model-unavailable", async (t) => {
       // either registry), so both derivations agree on connection — pinned here
       // for all four family members plus the monthly-quota body rule, which
       // keeps its exact verbatim cooldown (13 days, not the scaled default).
-      for (const provider of ["opencode", "opencode-zen", "opencode-go", "opencode-cli"]) {
+      for (const provider of ["opencode-zen", "opencode-go", "opencode-cli"]) {
         const r = checkFallbackError(429, "rate limit reached, slow down", 0, null, provider, {
           "x-ratelimit-remaining-requests": "0",
         });
@@ -113,7 +113,7 @@ test("opencode 400 model-unavailable", async (t) => {
         "[429] Monthly usage limit reached. Resets in 13 days.",
         0,
         null,
-        "opencode",
+        "opencode-zen",
         null
       );
       assert.equal(monthly.reason, "quota_exhausted");
@@ -139,7 +139,7 @@ test("opencode 400 model-unavailable", async (t) => {
         `{"error":{"message":"${marker}"}}`,
         0,
         null,
-        "opencode",
+        "opencode-zen",
         null
       );
       assert.equal(r.reason, "rate_limit_exceeded", marker);

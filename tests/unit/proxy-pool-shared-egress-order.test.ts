@@ -68,7 +68,7 @@ function refuse(m: Member) {
 function logEgress(m: Member, egressIp: string | null) {
   proxyLogger.logProxyEvent({
     status: "success",
-    provider: "opencode",
+    provider: "opencode-go",
     targetUrl: "https://api.opencode.ai/chat",
     proxy: { type: "http", host: m.host, port: m.port },
     egressIp,
@@ -91,7 +91,7 @@ function flush() {
   proxyLogger.flushProxyLogsSync();
 }
 
-function hotFor(members: Member[], provider: string | null = "opencode") {
+function hotFor(members: Member[], provider: string | null = "opencode-go") {
   return rotation.buildHotEgressPredicate(provider, members);
 }
 
@@ -100,14 +100,14 @@ async function dbPool(size: number): Promise<Member[]> {
   for (let i = 0; i < size; i++) {
     const m = member();
     const proxy = await proxiesDb.createProxy({ name: `member ${seq}`, ...m });
-    await proxiesDb.addProxyToScopePool("provider", "opencode", proxy.id);
+    await proxiesDb.addProxyToScopePool("provider", "opencode-go", proxy.id);
     members.push(m);
   }
   return members;
 }
 
 async function pick() {
-  const resolved = await proxiesDb.resolveProxyForScopeFromRegistry("provider", "opencode");
+  const resolved = await proxiesDb.resolveProxyForScopeFromRegistry("provider", "opencode-go");
   return (resolved as { proxy: { host: string } }).proxy.host;
 }
 
@@ -223,7 +223,7 @@ test("functional: the second request avoids the refused egress address", async (
   logEgress(b, "203.0.113.7");
   flush();
   assert.equal(await pick(), a.host);
-  noteProxyOutcome("opencode", {
+  noteProxyOutcome("opencode-go", {
     proxy: { type: "http", host: a.host, port: a.port },
     upstreamStatus: 429,
   });

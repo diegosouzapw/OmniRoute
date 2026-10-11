@@ -24,7 +24,7 @@ test("S1: Opencode 429 with x-ratelimit-remaining-requests=0 → QUOTA_EXHAUSTED
   // engine locks the provider connection (not just the model), forcing fallback to
   // a different provider.
   const reason = classifyError(429, "Rate limit reached", {
-    provider: "opencode",
+    provider: "opencode-zen",
     headers: { "x-ratelimit-remaining-requests": "0" },
     body: { error: { message: "Rate limit reached" } },
   });
@@ -66,7 +66,7 @@ test("S2: Minimax 429 with x-model-quota-remaining header → QUOTA_EXHAUSTED wi
 test("S2b: provider error rules match canonical-cased plain header records", async () => {
   const { getProviderErrorRuleMatch } = await import("../../open-sse/config/providerErrorRules.ts");
 
-  const opencodeMatch = getProviderErrorRuleMatch("OpenCode", 429, {
+  const opencodeMatch = getProviderErrorRuleMatch("OpenCode-Zen", 429, {
     "X-RateLimit-Remaining-Requests": "0",
   });
   assert.ok(opencodeMatch, "Opencode quota headers must be case-insensitive");
@@ -117,7 +117,7 @@ test("S4: End-to-end — checkFallbackError forwards provider+headers to classif
     "rate limit reached", // generic body that would normally be RATE_LIMIT_EXCEEDED
     0, // backoffLevel
     null, // model
-    "opencode", // provider
+    "opencode-zen", // provider
     { "x-ratelimit-remaining-requests": "0" }, // headers
     null, // profileOverride
     null // structuredError

@@ -128,7 +128,7 @@ async function runWith(
   ambientPort: number,
   count: number,
   first429s: number,
-  provider = "opencode"
+  provider = "opencode-go"
 ) {
   installFetch(first429s);
   const exec = new OpencodeExecutor(provider);
@@ -177,7 +177,7 @@ describe("opencode 429 pool re-selection per attempt", () => {
       error() {},
     };
     installFetch(1);
-    const exec = new OpencodeExecutor("opencode");
+    const exec = new OpencodeExecutor("opencode-go");
     const sink: Record<string, unknown> = {
       proxy: null,
       reselectPoolMember: async () => memberB(),
@@ -260,7 +260,7 @@ describe("opencode 429 pool re-selection per attempt", () => {
       error() {},
     };
     installFetch(1);
-    const exec = new OpencodeExecutor("opencode");
+    const exec = new OpencodeExecutor("opencode-go");
     // Resolver hands back the ambient member itself (same host and port as
     // the request egressed through): reselectedProxy stays unset and no
     // "pool re-selected" line is logged. The sink's recorded proxy is the
@@ -296,7 +296,7 @@ describe("opencode 429 pool re-selection per attempt", () => {
 
   it("keeps an account's own proxy even when the pool re-selected a member", async () => {
     installFetch(1);
-    const exec = new OpencodeExecutor("opencode");
+    const exec = new OpencodeExecutor("opencode-go");
     const sink: Record<string, unknown> = {
       proxy: null,
       reselectPoolMember: async () => memberB(),

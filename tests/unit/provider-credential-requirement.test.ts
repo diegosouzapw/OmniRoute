@@ -12,7 +12,7 @@ import { FREE_MODEL_BUDGETS } from "@omniroute/open-sse/config/freeModelCatalog.
 
 test("classifies each credential model from the real registries", () => {
   // noAuth: the connect form never asks for a key.
-  assert.equal(getCredentialRequirement("opencode"), "none");
+  assert.equal(getCredentialRequirement("uncloseai"), "none");
   // Literal anonymous token: routable with no user credential, key still honoured.
   assert.equal(getCredentialRequirement("aihorde"), "optional");
   assert.equal(getCredentialRequirement("kilocode"), "optional");
@@ -38,7 +38,7 @@ test("worksWithoutCredential excludes oauth — signing in is still a barrier", 
 test("listNoCredentialProviders is derived, not a hand-kept list", () => {
   const ids = listNoCredentialProviders();
   assert.ok(ids.length > 0);
-  assert.ok(ids.includes("opencode"));
+  assert.ok(ids.includes("uncloseai"));
   assert.ok(ids.includes("ovhcloud"));
   assert.ok(ids.includes("aihorde"));
   assert.ok(!ids.includes("groq"), "key-gated providers must never be listed");

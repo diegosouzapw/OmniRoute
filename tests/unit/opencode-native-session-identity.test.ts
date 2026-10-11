@@ -37,7 +37,7 @@ test("explicit OpenCode session wins over native aliases", () => {
   );
 });
 
-test("executor carries Claude metadata identity to upstream and tool cache", () => {
+test("executor carries Claude metadata identity to upstream", () => {
   const executor = new OpencodeExecutor("opencode-go");
   const build = (id: string) =>
     executor.buildHeaders(
@@ -55,7 +55,6 @@ test("executor carries Claude metadata identity to upstream and tool cache", () 
     build("conversation-a")["x-opencode-session"],
     build("conversation-b")["x-opencode-session"]
   );
-  assert.equal(executor._clientSession, "conversation-b");
 });
 
 test("native aliases never add OpenCode headers to a generic forwarding call", () => {

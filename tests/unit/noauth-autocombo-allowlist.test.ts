@@ -1,8 +1,8 @@
 /**
  * Auto-combo no-auth allowlist — the `auto`/`auto-*` candidate pool must only
  * pull in no-auth (keyless) providers verified to work without any credential on
- * our reference egress. As of this change that allowlist is narrowed to
- * `opencode`: on the reference VPS (.15) it answers 200 with zero configuration.
+ * our reference egress. The allowlist is currently EMPTY: its only member, the
+ * keyless `opencode` provider, was removed (docs/reference/REMOVED_PROVIDERS.md).
  * The other no-auth providers
  * (duckduckgo-web, aihorde) stay OUT of every auto/* pool
  * until re-verified — they remain usable via direct `<alias>/<model>` calls, they
@@ -53,8 +53,8 @@ test.after(async () => {
   }
 });
 
-const ALLOWED_NOAUTH_PROVIDERS = ["opencode"];
-const EXCLUDED_NOAUTH_PROVIDERS = ["duckduckgo-web", "aihorde"];
+const ALLOWED_NOAUTH_PROVIDERS: string[] = [];
+const EXCLUDED_NOAUTH_PROVIDERS = ["duckduckgo-web", "aihorde", "opencode"];
 
 test("fresh install: the allowlisted no-auth providers are present in the auto-combo pool", async () => {
   const combo = await virtualFactory.createVirtualAutoCombo(undefined);

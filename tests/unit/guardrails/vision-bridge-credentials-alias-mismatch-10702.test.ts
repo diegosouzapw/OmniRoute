@@ -34,18 +34,18 @@ test("issue #10702: hasUsableCredentialsForModel resolves alias-prefixed model t
   );
 });
 
-test("issue #10702: hasUsableCredentialsForModel resolves alias-prefixed model to the raw provider id (opencode / alias oc)", async () => {
+test("issue #10702: hasUsableCredentialsForModel resolves alias-prefixed model to the raw provider id (uncloseai / alias unc)", async () => {
   await providersDb.createProviderConnection({
-    provider: "opencode",
+    provider: "uncloseai",
     authType: "apikey",
-    apiKey: "sk-test-opencode-key",
+    apiKey: "sk-test-uncloseai-key",
     isActive: true,
   });
 
-  const result = await hasUsableCredentialsForModel("oc/some-vision-model");
+  const result = await hasUsableCredentialsForModel("unc/some-vision-model");
   assert.equal(
     result,
     true,
-    "the credentialed opencode connection must be found via its public alias 'oc'"
+    "the credentialed uncloseai connection must be found via its public alias 'unc'"
   );
 });

@@ -75,10 +75,10 @@ test("#13575: resolveProxyForConnection rotates round-robin across a multi-membe
   assert.deepEqual(distinctChatHosts, new Set([a.host, b.host, c.host]));
 });
 
-test("#13575: egress-bucketed-quota providers (opencode) stay pinned on the chat path", async () => {
+test("#13575: egress-bucketed-quota providers (opencode-go) stay pinned on the chat path", async () => {
   const a = await makeProxy();
   const b = await makeProxy();
-  const connId = await makeConnection("opencode");
+  const connId = await makeConnection("opencode-go");
   await proxiesDb.addProxyToScopePool("account", connId, a.id);
   await proxiesDb.addProxyToScopePool("account", connId, b.id);
 

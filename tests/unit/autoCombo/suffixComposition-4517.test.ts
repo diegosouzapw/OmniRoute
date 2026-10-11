@@ -47,14 +47,16 @@ describe("suffixComposition :free tier (#4517)", () => {
   });
 
   it("buildAutoCandidateFilter keeps noAuth free providers", () => {
-    // Regression: opencode was noAuth and free, but the
-    // pre-fix `freeProviders` list omitted it, so the filter rejected
-    // its candidates even though it IS free upstream.
+    // Regression: noAuth providers are free, but the pre-fix `freeProviders`
+    // list omitted them, so the filter rejected their candidates even though
+    // they ARE free upstream.
     const filter = buildAutoCandidateFilter("coding", "free");
     assert.notEqual(filter, null);
 
-    assert.equal(filter!({ provider: "opencode", model: "big-pickle" }), true);
-    assert.equal(filter!({ provider: "opencode", model: "minimax-m3-free" }), true);
+    assert.equal(
+      filter!({ provider: "uncloseai", model: "Lorbus/Qwen3.6-27B-int4-AutoRound" }),
+      true
+    );
     assert.equal(filter!({ provider: "duckduckgo-web", model: "gpt-4o-mini" }), true);
   });
 
@@ -88,10 +90,10 @@ describe("suffixComposition :free tier (#4517)", () => {
     // category check is a pass-through (no vision/reasoning filter), so
     // any free model should be kept.
     const filter = buildAutoCandidateFilter("coding", "free");
-    assert.equal(filter!({ provider: "opencode", model: "minimax-m3-free" }), true);
+    assert.equal(filter!({ provider: "duckduckgo-web", model: "gpt-4o-mini" }), true);
     // The "reasoning" category also pairs with ":free" and keeps free models.
     const reasoningFilter = buildAutoCandidateFilter("reasoning", "free");
-    // big-pickle (model_capabilities: reasoning=1) should pass the reasoning check.
-    assert.equal(reasoningFilter!({ provider: "opencode", model: "big-pickle" }), true);
+    // A reasoning-capable model on a free provider should pass the reasoning check.
+    assert.equal(reasoningFilter!({ provider: "kiro", model: "claude-sonnet-4-5" }), true);
   });
 });

@@ -9,7 +9,7 @@ type TransformedBody = Record<string, unknown> & {
 };
 
 function transform(model: string, body: Record<string, unknown>) {
-  const executor = new OpencodeExecutor("opencode");
+  const executor = new OpencodeExecutor("opencode-zen");
 
   return executor.transformRequest(model, body, false, {}) as TransformedBody;
 }

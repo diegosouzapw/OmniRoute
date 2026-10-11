@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { opencodeProvider } from "../../open-sse/config/providers/registry/opencode/index.ts";
+import { opencode_zenProvider } from "../../open-sse/config/providers/registry/opencode/zen/index.ts";
 
 // #10867: Muse Spark is served by OpenCode Zen only on the OpenAI Responses API
 // (/responses), not /chat/completions. Without targetFormat:"openai-responses"
@@ -8,8 +8,8 @@ import { opencodeProvider } from "../../open-sse/config/providers/registry/openc
 // upstream returns null/empty content.
 test("muse-spark-1.2 and muse-spark-1.2-contributor-free route to the Responses API", () => {
   for (const id of ["muse-spark-1.2", "muse-spark-1.2-contributor-free"]) {
-    const model = opencodeProvider.models.find((m) => m.id === id);
-    assert.ok(model, `${id} should be registered in the opencode provider`);
+    const model = opencode_zenProvider.models.find((m) => m.id === id);
+    assert.ok(model, `${id} should be registered in the opencode-zen provider`);
     assert.equal(
       model?.targetFormat,
       "openai-responses",

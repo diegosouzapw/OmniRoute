@@ -67,8 +67,10 @@ describe("resolveKeepaliveThreshold", () => {
     assert.equal(resolveKeepaliveThreshold("pol/gpt-5"), SLOW_MS);
   });
 
-  it("returns the slow threshold for anonymous fallback provider (opencode-zen)", () => {
-    assert.equal(resolveKeepaliveThreshold("opencode-zen/gpt-4"), SLOW_MS);
+  it("prices the paid opencode-zen provider at the default tier (no anonymous fallback)", () => {
+    // Its keyless anonymous fallback was the OpenCode Free surface, removed with
+    // that provider (docs/reference/REMOVED_PROVIDERS.md).
+    assert.equal(resolveKeepaliveThreshold("opencode-zen/gpt-4"), DEFAULT_MS);
   });
 
   it("uses a longer threshold for clean-room ChatGPT Web but not its retired alias", () => {
@@ -122,7 +124,7 @@ describe("resolveKeepaliveThreshold", () => {
   it("SLOW_KEEPALIVE_PROVIDERS set contains expected providers", () => {
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("pollinations"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("pol"));
-    assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("opencode-zen"));
+    assert.ok(!SLOW_KEEPALIVE_PROVIDERS.has("opencode-zen"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("chatgpt-web"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("chatgpt-web-codex"));
     assert.ok(SLOW_KEEPALIVE_PROVIDERS.has("grok-web"));

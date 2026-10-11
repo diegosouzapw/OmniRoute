@@ -1,7 +1,7 @@
 /**
  * Tests for #13483: model-only lockout must be enforced for no-auth providers.
  *
- * Before the fix, no-auth providers (opencode, duckduckgo-web, etc.) returned
+ * Before the fix, no-auth providers (uncloseai, duckduckgo-web, etc.) returned
  * synthetic "noauth" credentials early in getProviderCredentials, bypassing the
  * model lockout check. A model_capacity lockout was recorded but never enforced
  * — every request retried the same locked model, paying a wasted upstream
@@ -31,8 +31,8 @@ after(() => {
 });
 
 test("#13483: noauth provider reports a model cooldown when model is lockout-blocked", async () => {
-  const provider = "opencode";
-  const model = "deepseek-v4-flash-free";
+  const provider = "uncloseai";
+  const model = "locked-passthrough-model";
 
   // Record a model lockout for the synthetic "noauth" connection
   recordModelLockoutFailure(provider, "noauth", model, "model_capacity", 400, 1800_000);
@@ -50,7 +50,7 @@ test("#13483: noauth provider reports a model cooldown when model is lockout-blo
 
 test("#13483: noauth provider still works when model is NOT lockout-blocked", async () => {
   clearAllModelLockouts();
-  const provider = "opencode";
+  const provider = "uncloseai";
   const model = "some-other-model";
 
   // No lockout recorded — should return synthetic credentials
@@ -60,8 +60,8 @@ test("#13483: noauth provider still works when model is NOT lockout-blocked", as
 
 test("#13483: noauth lockout does not block a different model", async () => {
   clearAllModelLockouts();
-  const provider = "opencode";
-  const lockedModel = "deepseek-v4-flash-free";
+  const provider = "uncloseai";
+  const lockedModel = "locked-passthrough-model";
   const otherModel = "kimi-latest";
 
   // Lock only one model
@@ -86,18 +86,18 @@ test("#13483: noauth lockout does not affect non-noauth providers", async () => 
   const model = "gpt-4";
 
   // Record lockout for a noauth provider
-  recordModelLockoutFailure("opencode", "noauth", model, "model_capacity", 400, 1800_000);
+  recordModelLockoutFailure("uncloseai", "noauth", model, "model_capacity", 400, 1800_000);
 
   // openai is NOT a noauth provider — it should not be affected by this check
   // (openai has its own connection-based lockout path; this test just verifies
   // the noauth early-return path doesn't leak lockouts to other providers)
   // We can't easily test openai here without DB connections, but we verify
-  // the opencode noauth path specifically.
+  // the uncloseai noauth path specifically.
   const result = (await auth.getProviderCredentials(
-    "opencode",
+    "uncloseai",
     null,
     null,
     model
   )) as CooldownOutcome;
-  assert.equal(result?.allRateLimited, true, "opencode noauth should respect its own lockout");
+  assert.equal(result?.allRateLimited, true, "uncloseai noauth should respect its own lockout");
 });

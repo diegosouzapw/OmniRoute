@@ -18,7 +18,7 @@ import {
  */
 
 const MARKER = "Upstream request failed: Model is unavailable.";
-const FAMILY = ["opencode", "opencode-zen", "opencode-go", "opencode-cli"];
+const FAMILY = ["opencode-zen", "opencode-go", "opencode-cli"];
 const NON_FAMILY = ["agentrouter", "openrouter", "minimax", "unknown-vendor"];
 
 test("marker 400 returns the model-scope lock with the rule-owned cooldown", () => {
@@ -32,7 +32,7 @@ test("marker 400 returns the model-scope lock with the rule-owned cooldown", () 
   }
   // String envelope + canonical-case provider (lookup is case-insensitive).
   const stringEnvelope = getProviderErrorRuleMatch(
-    "OpenCode",
+    "OpenCode-Zen",
     400,
     null,
     `{"message":"${MARKER}"}`
@@ -49,17 +49,17 @@ test("any other 400 stays terminal and locks nothing", () => {
     "{}",
     "",
   ]) {
-    assert.equal(getProviderErrorRuleMatch("opencode", 400, {}, body), null, body);
+    assert.equal(getProviderErrorRuleMatch("opencode-zen", 400, {}, body), null, body);
   }
   // Right marker, wrong status: the rule is 400-only.
-  assert.equal(getProviderErrorRuleMatch("opencode", 429, {}, MARKER), null);
+  assert.equal(getProviderErrorRuleMatch("opencode-zen", 429, {}, MARKER), null);
 });
 
 test("helper is fenced to the opencode family and the allowlist honors it", () => {
   for (const provider of FAMILY) {
     assert.equal(honorsRuleLockScope(provider), true, provider);
   }
-  assert.deepStrictEqual(getOpencodeModelUnavailableMatch("opencode", 400, null, MARKER), {
+  assert.deepStrictEqual(getOpencodeModelUnavailableMatch("opencode-zen", 400, null, MARKER), {
     reason: "model_capacity",
     scope: "model",
     cooldownMs: 3_600_000,
@@ -67,5 +67,5 @@ test("helper is fenced to the opencode family and the allowlist honors it", () =
   for (const provider of NON_FAMILY) {
     assert.equal(getOpencodeModelUnavailableMatch(provider, 400, null, MARKER), null, provider);
   }
-  assert.equal(getOpencodeModelUnavailableMatch("opencode", 429, null, MARKER), null);
+  assert.equal(getOpencodeModelUnavailableMatch("opencode-zen", 429, null, MARKER), null);
 });

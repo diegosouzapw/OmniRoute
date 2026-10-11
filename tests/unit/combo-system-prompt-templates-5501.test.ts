@@ -158,21 +158,6 @@ test("resolveTargetFingerprint: non-fp provider returns null", () => {
   assert.equal(resolveTargetFingerprint({ provider: "openai", executionKey: "k@fp:abc" }), null);
 });
 
-test("resolveTargetFingerprint: pinned fingerprint wins", () => {
-  assert.equal(
-    resolveTargetFingerprint({
-      provider: "opencode",
-      pinnedFingerprint: "pin1",
-      executionKey: "k@fp:abc",
-    }),
-    "pin1"
-  );
-});
-
-test("resolveTargetFingerprint: parses @fp: suffix from executionKey", () => {
-  assert.equal(resolveTargetFingerprint({ provider: "opencode", executionKey: "k@fp:abc" }), "abc");
-});
-
 test("resolveTargetFingerprint: null when no source", () => {
   assert.equal(resolveTargetFingerprint({ provider: "opencode", executionKey: "k" }), null);
 });

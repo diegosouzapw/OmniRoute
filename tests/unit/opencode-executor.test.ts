@@ -72,7 +72,7 @@ describe("OpencodeExecutor", () => {
   });
 
   describe("execute", () => {
-    it('resolves "opencode" executor alias to opencode-zen config', async () => {
+    it("opencode-zen executor uses the opencode-zen config", async () => {
       const aliasExecutor = new OpencodeExecutor("opencode-zen");
       const result = await aliasExecutor.execute(createInput("deepseek-v4-flash-free"));
       assert.equal(result.url, "https://opencode.ai/zen/v1/chat/completions");
@@ -249,12 +249,6 @@ describe("OpencodeExecutor", () => {
         "Content-Type": "application/json",
       });
       assert.deepEqual(fetchCalls[0].options.headers, result.headers);
-    });
-
-    it("announces the event stream for a free-tier model even when the client wants JSON", async () => {
-      const result = await zenExecutor.execute(createInput("big-pickle", false));
-
-      assert.equal(result.headers["Accept"], "text/event-stream");
     });
 
     it("omits authorization when credentials are missing", async () => {

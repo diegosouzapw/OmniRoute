@@ -8,7 +8,7 @@ import {
 } from "../../open-sse/executors/opencode.ts";
 import { resolveChatCoreTargetFormat } from "../../open-sse/handlers/chatCore/targetFormat.ts";
 
-const OPENCODE_PROVIDERS = ["opencode", "opencode-zen", "opencode-go"] as const;
+const OPENCODE_PROVIDERS = ["opencode-zen", "opencode-go"] as const;
 const MUSE_SPARK_MODELS = [
   "muse-spark-1.2",
   "muse-spark-1.3-contributor-free",
@@ -36,8 +36,8 @@ test("every OpenCode Muse Spark model targets the Responses API by family", () =
 });
 
 test("executor strips OpenCode provider prefixes from upstream model ids", () => {
-  const executor = new OpencodeExecutor("opencode");
-  const prefixes = ["opencode/", "oc/", "opencode-zen/", "opencode-go/"];
+  const executor = new OpencodeExecutor("opencode-zen");
+  const prefixes = ["opencode/", "opencode-zen/", "opencode-go/"];
 
   for (const prefix of prefixes) {
     const result = executor.transformRequest(
@@ -56,14 +56,14 @@ test("executor strips OpenCode provider prefixes from upstream model ids", () =>
 
 test("the family rule is scoped to OpenCode and does not catch similar ids", () => {
   assert.equal(getModelTargetFormat("openai", "muse-spark-2.0"), null);
-  assert.equal(getModelTargetFormat("opencode", "muse-sparkish-2.0"), null);
-  assert.equal(getModelTargetFormat("opencode", "spark-muse-2.0"), null);
+  assert.equal(getModelTargetFormat("opencode-zen", "muse-sparkish-2.0"), null);
+  assert.equal(getModelTargetFormat("opencode-zen", "spark-muse-2.0"), null);
   assert.equal(resolveOpencodeTargetFormat("not-a-real-provider", "muse-spark-2.0"), "openai");
 });
 
 test("chatCore applies the family rule to an unregistered future Muse Spark model", () => {
   const result = resolveChatCoreTargetFormat({
-    provider: "opencode",
+    provider: "opencode-zen",
     resolvedModel: "muse-spark-9.9",
     apiFormat: "openai",
     sourceFormat: "openai",
@@ -71,6 +71,6 @@ test("chatCore applies the family rule to an unregistered future Muse Spark mode
     providerSpecificData: undefined,
   });
 
-  assert.equal(result.alias, "oc");
+  assert.equal(result.alias, "opencode-zen");
   assert.equal(result.targetFormat, "openai-responses");
 });

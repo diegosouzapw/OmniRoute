@@ -18,7 +18,7 @@ import {
 
 const MARKER = "Upstream request failed: Endpoint is unavailable.";
 const BARE_MARKER = "Endpoint is unavailable";
-const FAMILY = ["opencode", "opencode-zen", "opencode-go", "opencode-cli"];
+const FAMILY = ["opencode-zen", "opencode-go", "opencode-cli"];
 const NON_FAMILY = ["agentrouter", "openrouter", "minimax", "unknown-vendor"];
 
 test("marker 400 and 429 return the model-scope lock with the rule-owned cooldown", () => {
@@ -34,12 +34,12 @@ test("marker 400 and 429 return the model-scope lock with the rule-owned cooldow
   }
   // Bare envelope without the upstream prefix + canonical-case provider
   // (lookup is case-insensitive).
-  const bareEnvelope = getProviderErrorRuleMatch("OpenCode", 429, null, BARE_MARKER);
+  const bareEnvelope = getProviderErrorRuleMatch("OpenCode-Zen", 429, null, BARE_MARKER);
   assert.equal(bareEnvelope?.scope, "model");
   assert.equal(bareEnvelope?.reason, "model_capacity");
   assert.equal(bareEnvelope?.cooldownMs, 300_000);
   const bareObject = getProviderErrorRuleMatch(
-    "opencode",
+    "opencode-zen",
     400,
     {},
     { error: { message: BARE_MARKER } }
@@ -58,19 +58,19 @@ test("any other 400 or 429 locks nothing", () => {
     "{}",
     "",
   ]) {
-    assert.equal(getProviderErrorRuleMatch("opencode", 400, {}, body), null, body);
+    assert.equal(getProviderErrorRuleMatch("opencode-zen", 400, {}, body), null, body);
   }
   // Generic 429 without the marker stays in rotation.
-  assert.equal(getProviderErrorRuleMatch("opencode", 429, {}, "Rate limit exceeded"), null);
+  assert.equal(getProviderErrorRuleMatch("opencode-zen", 429, {}, "Rate limit exceeded"), null);
   // Right marker, wrong status: the rule covers 400/429 only.
-  assert.equal(getProviderErrorRuleMatch("opencode", 503, {}, MARKER), null);
+  assert.equal(getProviderErrorRuleMatch("opencode-zen", 503, {}, MARKER), null);
 });
 
 test("helper is fenced to the opencode family and the allowlist honors it", () => {
   for (const provider of FAMILY) {
     assert.equal(honorsRuleLockScope(provider), true, provider);
   }
-  assert.deepStrictEqual(getOpencodeModelUnavailableMatch("opencode", 429, null, MARKER), {
+  assert.deepStrictEqual(getOpencodeModelUnavailableMatch("opencode-zen", 429, null, MARKER), {
     reason: "model_capacity",
     scope: "model",
     cooldownMs: 300_000,

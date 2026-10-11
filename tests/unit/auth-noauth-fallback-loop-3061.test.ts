@@ -1,12 +1,13 @@
 /**
- * Issue #3061 — No-auth providers (opencode / opencode-zen) infinite
+ * Issue #3061 — No-auth providers (originally the keyless OpenCode pair) infinite
  * account-fallback loop on a persistent upstream error → unbounded DB growth /
  * disk exhaustion.
  *
  * For a no-auth provider, getProviderCredentials early-returns synthetic
  * credentials with connectionId "noauth" BEFORE honoring the exclusion set
- * (src/sse/services/auth.ts: the NOAUTH_PROVIDERS block and the opencode-zen
- * keyless fallback). So when the chat fallback loop marks the failed "noauth"
+ * (src/sse/services/auth.ts: the NOAUTH_PROVIDERS block and the anonymousFallback
+ * keyless path). Exercised here through duckduckgo-web (true no-auth) and
+ * pollinations (anonymousFallback API-key provider). So when the chat fallback loop marks the failed "noauth"
  * connection and excludes it, the selector hands "noauth" right back → it loops
  * forever, writing key-health + request logs every iteration until the disk
  * fills (see @paraflu's "failure #320" trace in discussion #3038).
@@ -36,23 +37,26 @@ test.after(() => {
 
 // ── Happy path preserved: first selection (nothing excluded) still works ──
 
-test("#3061 opencode no-auth: first selection returns synthetic noauth (happy path preserved)", async () => {
-  const creds = await getProviderCredentials("opencode", null, null, "minimax-m2.5-free");
-  assert.ok(creds, "opencode must resolve to synthetic no-auth credentials on first selection");
+test("#3061 duckduckgo-web no-auth: first selection returns synthetic noauth (happy path preserved)", async () => {
+  const creds = await getProviderCredentials("duckduckgo-web", null, null, "gpt-4o-mini");
+  assert.ok(
+    creds,
+    "duckduckgo-web must resolve to synthetic no-auth credentials on first selection"
+  );
   assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
   assert.equal((creds as { apiKey?: unknown }).apiKey, null);
 });
 
-test("#3061 opencode-zen no-auth: first selection returns synthetic noauth (happy path preserved)", async () => {
-  const creds = await getProviderCredentials("opencode-zen");
-  assert.ok(creds, "opencode-zen must resolve to synthetic no-auth credentials on first selection");
+test("#3061 pollinations anonymous-fallback: first selection returns synthetic noauth (happy path preserved)", async () => {
+  const creds = await getProviderCredentials("pollinations");
+  assert.ok(creds, "pollinations must resolve to synthetic no-auth credentials on first selection");
   assert.equal((creds as { connectionId?: string }).connectionId, "noauth");
 });
 
 // ── The fix: once "noauth" is excluded, selection MUST stop (return null) ──
 
-test("#3061 opencode no-auth: excluding 'noauth' returns null (breaks the fallback loop)", async () => {
-  const creds = await getProviderCredentials("opencode", null, null, "minimax-m2.5-free", {
+test("#3061 duckduckgo-web no-auth: excluding 'noauth' returns null (breaks the fallback loop)", async () => {
+  const creds = await getProviderCredentials("duckduckgo-web", null, null, "gpt-4o-mini", {
     excludeConnectionIds: ["noauth"],
   });
   assert.equal(
@@ -63,13 +67,13 @@ test("#3061 opencode no-auth: excluding 'noauth' returns null (breaks the fallba
   );
 });
 
-test("#3061 opencode-zen no-auth: excluding 'noauth' returns null (breaks the fallback loop)", async () => {
-  const creds = await getProviderCredentials("opencode-zen", null, null, null, {
+test("#3061 pollinations anonymous-fallback: excluding 'noauth' returns null (breaks the fallback loop)", async () => {
+  const creds = await getProviderCredentials("pollinations", null, null, null, {
     excludeConnectionIds: ["noauth"],
   });
   assert.equal(
     creds,
     null,
-    "excluded synthetic noauth must not be re-selected for the opencode-zen keyless path"
+    "excluded synthetic noauth must not be re-selected for the pollinations keyless path"
   );
 });

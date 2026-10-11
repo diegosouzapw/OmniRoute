@@ -14,7 +14,8 @@ test("free onboarding candidates come from the no-auth registry and exclude loca
     ids,
     [...ids].sort((a, b) => a.localeCompare(b))
   );
-  assert.ok(ids.includes("opencode"));
+  assert.ok(ids.includes("uncloseai"));
+  assert.ok(!ids.includes("opencode"), "the removed keyless OpenCode provider is not offered");
   assert.ok(ids.includes("duckduckgo-web"));
   assert.ok(!ids.includes("felo-web"));
   assert.ok(ids.includes("cloudflare-playground"));
@@ -29,13 +30,13 @@ test("free onboarding candidates come from the no-auth registry and exclude loca
 test("already configured providers are removed without changing registry candidates", () => {
   const all = getEligibleFreeOnboardingProviders();
   const available = selectUnconfiguredFreeOnboardingProviders(all, [
-    { provider: "opencode" },
+    { provider: "uncloseai" },
     { provider: "openai" },
   ]);
 
-  assert.ok(!available.some((provider) => provider.id === "opencode"));
+  assert.ok(!available.some((provider) => provider.id === "uncloseai"));
   assert.equal(
-    all.some((provider) => provider.id === "opencode"),
+    all.some((provider) => provider.id === "uncloseai"),
     true
   );
 });

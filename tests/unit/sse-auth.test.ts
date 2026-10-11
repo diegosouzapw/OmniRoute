@@ -118,7 +118,7 @@ test("extractApiKey parses bearer headers and isValidApiKey validates persisted 
 });
 
 test("getProviderCredentials identifies synthetic no-auth credentials", async () => {
-  const credentials = await auth.getProviderCredentials("opencode");
+  const credentials = await auth.getProviderCredentials("uncloseai");
 
   assert.equal(credentials?.connectionId, "noauth");
   assert.equal(credentials?.authType, "none");

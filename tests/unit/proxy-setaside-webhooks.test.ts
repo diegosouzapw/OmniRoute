@@ -139,7 +139,7 @@ test("functional: real set-aside through outcome path emits bus event", async ()
     });
     try {
       bridge.registerProxyTransitionBridge();
-      noteProxyOutcome("opencode", {
+      noteProxyOutcome("opencode-go", {
         proxy: "http://user:pw@host.example:8080",
         upstreamStatus: 429,
       });
