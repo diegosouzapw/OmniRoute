@@ -1,0 +1,1 @@
+- **perf(usage):** repeated usage-history views share one cached response for up to a minute instead of recomputing every five seconds, so the screen spaces its refreshes as designed and serving traffic no longer stalls ([#16300](https://github.com/diegosouzapw/OmniRoute/pull/16300)) — thanks @maxmad64bis

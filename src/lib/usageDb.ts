@@ -33,7 +33,7 @@ export {
 
 export { calculateCost } from "./usage/costCalculator";
 
-export { getUsageStats } from "./usage/usageStats";
+export { getUsageStats, buildActiveRequests } from "./usage/usageStats";
 
 export { saveCallLog, rotateCallLogs, getCallLogs, getCallLogById } from "./usage/callLogs";
 export { getCallLogFilterOptions } from "./usage/callLogFilterOptions";
