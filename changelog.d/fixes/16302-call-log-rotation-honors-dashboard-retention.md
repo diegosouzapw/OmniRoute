@@ -1,0 +1,1 @@
+- **fix(call-log):** Request log rotation now honors the dashboard retention setting, falling back to the configured variable or 7 days ([#16302](https://github.com/diegosouzapw/OmniRoute/pull/16302)) — thanks @maxmad64bis

@@ -5,6 +5,7 @@ import { DEFAULT_DATABASE_SETTINGS, type DatabaseSettings } from "@/types/databa
 import { backupDbFile, setDbBackupMaxFiles } from "./backup";
 import { DATA_DIR, SQLITE_FILE, applyDatabaseOptimizationSettings, getDbInstance } from "./core";
 import { invalidateDbCache } from "./readCache";
+import { registerDbStateResetter } from "./stateReset";
 import {
   CACHE_SECRET_MASK,
   decryptCacheSecrets,
@@ -243,6 +244,131 @@ function getIntegrityCheck(): "ok" | "error" | null {
   }
 }
 
+function toPersistedRetentionDays(value: unknown): number | null {
+  if (typeof value !== "number") return null;
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
+
+type PersistedRetentionRow = { namespace: string; key: string; value: string | null };
+
+function parseRetentionRowValue(row: PersistedRetentionRow): unknown | null {
+  if (row.value === null || row.value === undefined) return null;
+  try {
+    return JSON.parse(row.value);
+  } catch {
+    return null;
+  }
+}
+
+function readNestedSettingsRetention(parsed: unknown): number | null {
+  if (!isRecord(parsed)) return null;
+  const retention = parsed.retention;
+  if (!isRecord(retention)) return null;
+  return toPersistedRetentionDays(retention.callLogs);
+}
+
+function updatePersistedRetention(
+  found: { nested: number | null; settings: number | null; flat: number | null },
+  row: PersistedRetentionRow,
+  parsed: unknown
+): void {
+  if (row.namespace === "databaseSettings" && row.key === "retention.callLogs") {
+    const days = toPersistedRetentionDays(parsed);
+    if (days !== null) found.nested = days;
+  } else if (row.namespace === "databaseSettings" && row.key === "callLogs") {
+    const days = toPersistedRetentionDays(parsed);
+    if (days !== null) found.flat = days;
+  } else if (row.namespace === "settings" && row.key === "databaseSettings") {
+    const days = readNestedSettingsRetention(parsed);
+    if (days !== null) found.settings = days;
+  }
+}
+
+function collectPersistedRetention(rows: PersistedRetentionRow[]): {
+  nested: number | null;
+  settings: number | null;
+  flat: number | null;
+} {
+  const found = {
+    nested: null as number | null,
+    settings: null as number | null,
+    flat: null as number | null,
+  };
+
+  for (const row of rows) {
+    const parsed = parseRetentionRowValue(row);
+    if (parsed === null) continue;
+    updatePersistedRetention(found, row, parsed);
+  }
+
+  return found;
+}
+/**
+ * Reads the dashboard-persisted request log retention without applying defaults.
+ *
+ * Unlike getUserDatabaseSettings() (which always merges DEFAULT_DATABASE_SETTINGS),
+ * this returns null when the operator never saved a value, so the rotation's
+ * fallback stays the explicit variable or 7 days (#4363 precedence, dashboard
+ * level restricted to persisted keys). Migration 046 seeds the legacy flat
+ * `callLogs` key (90) on fresh installs, so the flat form only counts when it
+ * differs from that seed — same guard as backupRetention (#13308).
+ *
+ * The rotation reads this on every pass, so the value is cached in memory for a
+ * short window: a dashboard edit takes effect within the TTL, while repeated
+ * passes cost at most one settings read per window instead of one per call.
+ * Writes through updateDatabaseSettings() and any DB reset clear the entry, so
+ * the cache holds a single entry and cannot grow.
+ */
+const PERSISTED_CALL_LOG_RETENTION_TTL_MS = 60_000;
+
+type PersistedCallLogRetentionCache =
+  { expiresAt: number; hasValue: false } | { expiresAt: number; hasValue: true; value: number };
+
+let persistedCallLogRetentionCache: PersistedCallLogRetentionCache | null = null;
+
+function getCachedPersistedCallLogRetentionDays(): number | null | undefined {
+  const cached = persistedCallLogRetentionCache;
+  if (!cached) return undefined;
+  if (Date.now() > cached.expiresAt) {
+    persistedCallLogRetentionCache = null;
+    return undefined;
+  }
+  return cached.hasValue ? cached.value : null;
+}
+
+function setCachedPersistedCallLogRetentionDays(value: number | null): void {
+  persistedCallLogRetentionCache =
+    value === null
+      ? { expiresAt: Date.now() + PERSISTED_CALL_LOG_RETENTION_TTL_MS, hasValue: false }
+      : { expiresAt: Date.now() + PERSISTED_CALL_LOG_RETENTION_TTL_MS, hasValue: true, value };
+}
+
+function clearPersistedCallLogRetentionCache(): void {
+  persistedCallLogRetentionCache = null;
+}
+
+registerDbStateResetter(clearPersistedCallLogRetentionCache);
+
+export function getPersistedCallLogRetentionDays(): number | null {
+  const cached = getCachedPersistedCallLogRetentionDays();
+  if (cached !== undefined) return cached;
+
+  const db = getDbInstance();
+  const rows = db
+    .prepare(
+      "SELECT namespace, key, value FROM key_value WHERE (namespace = 'databaseSettings' AND key IN ('retention.callLogs', 'callLogs')) OR (namespace = 'settings' AND key = 'databaseSettings')"
+    )
+    .all() as PersistedRetentionRow[];
+
+  const found = collectPersistedRetention(rows);
+  let resolved: number | null = null;
+  if (found.nested !== null) resolved = found.nested;
+  else if (found.settings !== null) resolved = found.settings;
+  else if (found.flat !== null && found.flat !== 90) resolved = found.flat;
+  setCachedPersistedCallLogRetentionDays(resolved);
+  return resolved;
+}
+
 export function getUserDatabaseSettings(): UserDatabaseSettings {
   const settings = cloneDefaultSettings();
   const mainSettings = readNamespace("settings");
@@ -347,6 +473,7 @@ export function updateDatabaseSettings(
   tx();
 
   backupDbFile("pre-write");
+  clearPersistedCallLogRetentionCache();
   invalidateDbCache("settings");
   if (optimizationUpdated) {
     applyDatabaseOptimizationSettings(nextSettings.optimization);

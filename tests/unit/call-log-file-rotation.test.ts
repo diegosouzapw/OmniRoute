@@ -447,3 +447,214 @@ test("hot rotation avoids full artifact listing and bounds stat calls", () => {
   }
   assert.ok(statCalls <= 100, `expected at most 100 stat calls, got ${statCalls}`);
 });
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function clearPersistedRetention() {
+  const db = core.getDbInstance();
+  db.prepare(
+    "DELETE FROM key_value WHERE namespace = 'databaseSettings' AND key IN ('retention.callLogs', 'callLogs')"
+  ).run();
+  try {
+    db.prepare(
+      "DELETE FROM key_value WHERE namespace = 'settings' AND key = 'databaseSettings'"
+    ).run();
+  } catch {}
+}
+
+const PERSISTED_RETENTION_READ =
+  "SELECT namespace, key, value FROM key_value WHERE (namespace = 'databaseSettings' AND key IN ('retention.callLogs', 'callLogs')) OR (namespace = 'settings' AND key = 'databaseSettings')";
+
+function countPersistedRetentionReads(db: ReturnType<typeof core.getDbInstance>) {
+  const original = db.prepare.bind(db);
+  const counter = { reads: 0 };
+  db.prepare = ((sql: string, ...rest: unknown[]) => {
+    if (sql === PERSISTED_RETENTION_READ) counter.reads++;
+    return (original as (...args: unknown[]) => unknown)(sql, ...rest);
+  }) as typeof db.prepare;
+  return {
+    counter,
+    restore: () => {
+      db.prepare = original;
+    },
+  };
+}
+
+function persistDashboardRetention(days: number) {
+  clearPersistedRetention();
+  const db = core.getDbInstance();
+  db.prepare(
+    "INSERT OR REPLACE INTO key_value (namespace, key, value) VALUES ('databaseSettings', 'retention.callLogs', ?)"
+  ).run(JSON.stringify(days));
+}
+
+function countCallLog(id: string): number {
+  return (
+    core.getDbInstance().prepare("SELECT COUNT(*) AS cnt FROM call_logs WHERE id = ?").get(id) as {
+      cnt: number;
+    }
+  ).cnt;
+}
+
+test("rotation keeps a 30-day-old request log when the dashboard keeps 90 days", () => {
+  assert.ok(CALL_LOGS_DIR);
+  fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+  delete process.env.CALL_LOG_RETENTION_DAYS;
+  persistDashboardRetention(90);
+  try {
+    insertCallLog({
+      id: "dashboard-kept",
+      timestamp: new Date(Date.now() - 30 * DAY_MS).toISOString(),
+    });
+
+    rotateCallLogs();
+
+    assert.equal(countCallLog("dashboard-kept"), 1);
+  } finally {
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("rotation drops a 30-day-old request log when the variable caps at 7 days", () => {
+  assert.ok(CALL_LOGS_DIR);
+  fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+  process.env.CALL_LOG_RETENTION_DAYS = "7";
+  persistDashboardRetention(90);
+  try {
+    insertCallLog({
+      id: "variable-capped",
+      timestamp: new Date(Date.now() - 30 * DAY_MS).toISOString(),
+    });
+
+    rotateCallLogs();
+
+    assert.equal(countCallLog("variable-capped"), 0);
+  } finally {
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("rotation drops an 8-day-old request log when neither setting nor variable is set", () => {
+  assert.ok(CALL_LOGS_DIR);
+  fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+  delete process.env.CALL_LOG_RETENTION_DAYS;
+  clearPersistedRetention();
+  try {
+    insertCallLog({
+      id: "default-dropped",
+      timestamp: new Date(Date.now() - 8 * DAY_MS).toISOString(),
+    });
+
+    rotateCallLogs();
+
+    assert.equal(countCallLog("default-dropped"), 0);
+  } finally {
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("rotation falls back to the variable when settings are unavailable", () => {
+  assert.ok(CALL_LOGS_DIR);
+  fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+  delete process.env.CALL_LOG_RETENTION_DAYS;
+  clearPersistedRetention();
+  const db = core.getDbInstance();
+  db.exec("ALTER TABLE key_value RENAME TO key_value_backup");
+  try {
+    assert.throws(() => {
+      db.prepare("SELECT key, value FROM key_value WHERE namespace = ?").all("settings");
+    });
+
+    assert.doesNotThrow(() => rotateCallLogs());
+    insertCallLog({
+      id: "fallback-dropped",
+      timestamp: new Date(Date.now() - 8 * DAY_MS).toISOString(),
+    });
+    rotateCallLogs();
+
+    assert.equal(countCallLog("fallback-dropped"), 0);
+  } finally {
+    db.exec("ALTER TABLE key_value_backup RENAME TO key_value");
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("retention falls back when the persisted value is out of contract", async () => {
+  delete process.env.CALL_LOG_RETENTION_DAYS;
+  persistDashboardRetention(0);
+  try {
+    const { resolveCallLogRetentionDays } = await import("../../src/lib/usage/callLogRetention.ts");
+    assert.equal(resolveCallLogRetentionDays(), 7);
+  } finally {
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("retention honors the dashboard when the variable is invalid", async () => {
+  process.env.CALL_LOG_RETENTION_DAYS = "abc";
+  persistDashboardRetention(90);
+  try {
+    const { resolveCallLogRetentionDays } = await import("../../src/lib/usage/callLogRetention.ts");
+    assert.equal(resolveCallLogRetentionDays(), 90);
+  } finally {
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("retention reads no settings when the variable is set", async () => {
+  process.env.CALL_LOG_RETENTION_DAYS = "30";
+  persistDashboardRetention(90);
+  const db = core.getDbInstance();
+  db.exec("ALTER TABLE key_value RENAME TO key_value_backup");
+  try {
+    const { resolveCallLogRetentionDays } = await import("../../src/lib/usage/callLogRetention.ts");
+    assert.equal(resolveCallLogRetentionDays(), 30);
+  } finally {
+    db.exec("ALTER TABLE key_value_backup RENAME TO key_value");
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("rotation reads the settings once per pass while the dashboard decides", () => {
+  assert.ok(CALL_LOGS_DIR);
+  fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+  delete process.env.CALL_LOG_RETENTION_DAYS;
+  persistDashboardRetention(90);
+  const db = core.getDbInstance();
+  const spy = countPersistedRetentionReads(db);
+  try {
+    rotateCallLogs();
+    rotateCallLogs();
+
+    assert.equal(spy.counter.reads, 1);
+  } finally {
+    spy.restore();
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
+
+test("rotation reads no settings when the variable decides", () => {
+  assert.ok(CALL_LOGS_DIR);
+  fs.mkdirSync(CALL_LOGS_DIR, { recursive: true });
+  process.env.CALL_LOG_RETENTION_DAYS = "7";
+  persistDashboardRetention(90);
+  const db = core.getDbInstance();
+  const spy = countPersistedRetentionReads(db);
+  try {
+    rotateCallLogs();
+
+    assert.equal(spy.counter.reads, 0);
+  } finally {
+    spy.restore();
+    process.env.CALL_LOG_RETENTION_DAYS = "7";
+    clearPersistedRetention();
+  }
+});
