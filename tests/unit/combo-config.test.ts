@@ -293,10 +293,10 @@ test("combo config schema allows zero-latency tuning fields when subfeatures sta
   assert.equal(parsed.config.predictiveTtftMs, 0);
 });
 
-test("resolveComboTargetTimeoutMs inherits the upstream timeout and only shortens it", () => {
+test("resolveComboTargetTimeoutMs honors explicit target timeouts", () => {
   assert.equal(resolveComboTargetTimeoutMs({}, 600000), 600000);
   assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 30000 }, 600000), 30000);
-  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000), 900000);
   assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 0 }, 600000), 600000);
   assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 30000 }, 0), 30000);
   assert.equal(resolveComboTargetTimeoutMs({}, 0), 0);
@@ -313,10 +313,9 @@ test("resolveComboTargetTimeoutMs falls back to the saner combo default when uns
   // Unset config → use the default (capped at the ceiling), NOT the full upstream ceiling.
   // This is what shortens a hung-target failover from 600s to 120s (escalated cmqlrhd7c).
   assert.equal(resolveComboTargetTimeoutMs({}, 600000, 120000), 120000);
-  // Operators can still extend beyond the default, up to the ceiling.
+  // Operators can extend beyond the default when explicitly configured.
   assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 300000 }, 600000, 120000), 300000);
-  // Explicit config above the ceiling is still capped at the ceiling.
-  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000, 120000), 600000);
+  assert.equal(resolveComboTargetTimeoutMs({ targetTimeoutMs: 900000 }, 600000, 120000), 900000);
   // A default larger than the ceiling is clamped to the ceiling.
   assert.equal(resolveComboTargetTimeoutMs({}, 100000, 120000), 100000);
   // Backward-compat: omitting the default arg keeps the legacy inherit-the-ceiling behavior.
