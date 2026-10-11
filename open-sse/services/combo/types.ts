@@ -80,7 +80,10 @@ export type HandleSingleModel = (
  * `false` is the generic availability bucket (credentials, key policy, hidden).
  * `"model_not_in_catalog"` is the live-catalog miss, recorded separately.
  */
-export type ModelAvailabilityResult = boolean | "model_not_in_catalog";
+export type ModelAvailabilityResult =
+  | boolean
+  | "model_not_in_catalog"
+  | { available: false; reason: "connection_cooldown"; retryAfterMs: number };
 
 export type IsModelAvailable = (
   modelStr: string,
@@ -206,6 +209,13 @@ export type AutoProviderCandidate = ProviderCandidate & {
   statusPenalty?: boolean;
   /** Diagnostic reason for statusPenalty (the connection testStatus that triggered it). */
   statusPenaltyReason?: string;
+  /**
+   * #15347: true when this provider has a quota fetcher but it returned nothing readable
+   * (failed fetch, missing credentials, message-only or malformed payload). The candidate
+   * is NOT blocked or evicted: scoring multiplies it by
+   * UNREADABLE_QUOTA_SOFT_DEPRIORITIZE_FACTOR so it ranks strictly below any real reading.
+   */
+  quotaUnreadable?: boolean;
 };
 
 export type ResolvedComboTarget = {

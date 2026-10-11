@@ -22,9 +22,12 @@ import {
   getResponsesFirstByteTimeoutMs,
   getUpstreamTimeoutConfig,
 } from "@/shared/utils/runtimeTimeouts";
-import { guardResponsesStreamFirstByte } from "../utils/firstByteWatchdog.ts";
+import {
+  guardResponsesStreamFirstByte,
+  isResponsesFirstByteTimeout,
+} from "../utils/firstByteWatchdog.ts";
 
-export { isResponsesFirstByteTimeout } from "../utils/firstByteWatchdog.ts";
+export { isResponsesFirstByteTimeout };
 
 export type StallGuardSetup = {
   windowMs: number;
@@ -79,6 +82,143 @@ export function resolveResponsesStallWindowMs(
   const cap = capMs ?? DEFAULT_STREAM_READINESS_TIMEOUT_MS;
   if (!(cap > 0)) return configured;
   return configured > cap ? cap : configured;
+}
+
+/**
+ * Shadow first-byte counters: occurrences and cumulative silent time measured
+ * while the guard stays off, plus shadow-only failures (clone or watch
+ * errors, counted silently and read back through the next hit warn line).
+ * Three module scalars, constant size by construction — nothing grows per
+ * request.
+ */
+let shadowOccurrences = 0;
+let shadowTotalMs = 0;
+let shadowFailures = 0;
+
+export type StallShadowOptions = {
+  stream: boolean | undefined;
+  requestFormat: string | null;
+  windowMs: number;
+  signal?: AbortSignal | null;
+  log?: {
+    warn?: (tag: string, message: string) => void;
+    debug?: (tag: string, message: string) => void;
+  } | null;
+  cid?: string;
+  readBound?: () => number;
+  readConfigured?: () => number;
+};
+
+function shadowApplies<T>(
+  result: T,
+  stream: boolean | undefined,
+  requestFormat: string | null,
+  windowMs: number
+): result is T & { response: Response } {
+  if (!stream || requestFormat !== "openai-responses" || windowMs !== 0) return false;
+  if (!result || typeof result !== "object" || !("response" in result)) return false;
+  const response = (result as { response: Response }).response;
+  return !!response?.ok && !!response.body;
+}
+
+function shadowWindowMs(readBound: () => number, readConfigured: () => number): number | null {
+  const configured = readConfigured();
+  if (configured === 0) return null;
+  const cap = readBound();
+  return cap > 0 ? Math.min(configured, cap) : configured;
+}
+
+function reportShadowHit(
+  log: StallShadowOptions["log"],
+  cid: string,
+  windowMs: number,
+  elapsedMs: number
+): void {
+  shadowOccurrences += 1;
+  shadowTotalMs += elapsedMs;
+  log?.warn?.(
+    "OPENCODE",
+    `${cid}silent streamed reply past ${windowMs}ms ` +
+      `(shadow count ${shadowOccurrences}, total ${shadowTotalMs}ms, ` +
+      `watch failures ${shadowFailures})`
+  );
+}
+
+function reportShadowMiss(_log: StallShadowOptions["log"], _cid: string): void {
+  // A miss is counted silently: the count is read back through the next hit
+  // warn line. At most one clone floats per shadowed request; once the watch
+  // settles the watchdog has cleared its timer and abort listener, so nothing
+  // module-held grows per request and the clone is garbage collected.
+  shadowFailures += 1;
+}
+
+/**
+ * Passive shadow of the stall guard: when the guard does not apply
+ * (`windowMs` 0) but the request is a streamed Responses reply with a 2xx
+ * body, watches a clone of the body for the configured window and counts how
+ * often it would have fired. Never rotates, never cools down, never rejects
+ * toward the caller: the input result is handed back untouched and every
+ * shadow failure lands in `shadowFailures` instead.
+ */
+export function noteStallShadow<T>(result: T, options: StallShadowOptions): T {
+  const {
+    stream,
+    requestFormat,
+    windowMs,
+    signal,
+    log,
+    cid = "",
+    readBound = () => getUpstreamTimeoutConfig().streamReadinessTimeoutMs,
+    readConfigured = getResponsesFirstByteTimeoutMs,
+  } = options;
+  if (!shadowApplies(result, stream, requestFormat, windowMs)) return result;
+  const window = shadowWindowMs(readBound, readConfigured);
+  if (window === null) return result;
+  let clone: Response;
+  try {
+    clone = result.response.clone();
+  } catch {
+    shadowFailures += 1;
+    return result;
+  }
+  const startedAt = Date.now();
+  void guardResponsesStreamFirstByte(clone, window, signal).then(
+    () => {
+      void clone.body?.cancel().catch(() => {
+        shadowFailures += 1;
+      });
+    },
+    (error: unknown) => {
+      if (isResponsesFirstByteTimeout(error)) {
+        reportShadowHit(log, cid, window, Date.now() - startedAt);
+        return;
+      }
+      reportShadowMiss(log, cid);
+    }
+  );
+  return result;
+}
+
+/**
+ * Builds the request-scoped stall wrapper: counts silent streamed replies
+ * that would have fired past the configured window while the guard stays
+ * off, then applies the guard itself. Keeps the executor call site a one-line
+ * wiring hunk; the shadow runs inside `noteStallShadow` next to the guard it
+ * mirrors and never rotates, cools down, or rejects toward the caller.
+ */
+export function makeStallGuardedCall(
+  stream: boolean | undefined,
+  requestFormat: string | null,
+  windowMs: number,
+  signal?: AbortSignal | null,
+  log?: { warn?: (tag: string, message: string) => void } | null,
+  cid = ""
+): <T>(result: T | Promise<T>) => Promise<T> {
+  return <T>(result: T | Promise<T>): Promise<T> =>
+    Promise.resolve(result).then((resolved) => {
+      noteStallShadow(resolved, { stream, requestFormat, windowMs, signal, log, cid });
+      return guardResponsesStall(resolved, windowMs, signal);
+    });
 }
 
 /**

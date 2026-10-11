@@ -21,6 +21,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 
 const core = await import("../../src/lib/db/core.ts");
 const modelsDb = await import("../../src/lib/db/models.ts");
+const settingsDb = await import("../../src/lib/db/settings.ts");
 const virtualFactory = await import("../../open-sse/services/autoCombo/virtualFactory.ts");
 
 async function resetStorage() {
@@ -31,6 +32,11 @@ async function resetStorage() {
 
 test.beforeEach(async () => {
   await resetStorage();
+  // contract changed by #15979 (on top of #15839): `excludeTosAvoid` defaults to on and
+  // uncataloged models inherit the provider's curated `tos: "avoid"` verdict, so every opencode
+  // model is ToS-filtered out of auto/*. Opt out so this file keeps guarding the #7620
+  // hidden-model behaviour; the ToS default is covered by issue-15059-tos-avoid-auto-default.
+  await settingsDb.updateSettings({ excludeTosAvoid: false });
 });
 
 test.after(async () => {

@@ -113,6 +113,19 @@ export const NATIVE_ASSET_ENTRIES = [
 
 /** @type {{label:string, src:string[], dest:string[]}[]} */
 export const EXTRA_MODULE_ENTRIES = [
+  // The source CLI loads tsx/esm dynamically, outside Next's traced server graph.
+  // Keep its compiler and the installed target-platform binary together (#12152).
+  { label: "tsx CLI loader", src: ["node_modules", "tsx"], dest: ["node_modules", "tsx"] },
+  {
+    label: "esbuild CLI compiler",
+    src: ["node_modules", "esbuild"],
+    dest: ["node_modules", "esbuild"],
+  },
+  {
+    label: "esbuild platform binaries",
+    src: ["node_modules", "@esbuild"],
+    dest: ["node_modules", "@esbuild"],
+  },
   {
     // tlsClient.ts intentionally resolves wreq-js through a runtime-dynamic
     // require so Turbopack cannot rewrite the package name to a hashed external.
@@ -840,7 +853,14 @@ function repairEmptyExternalPackageDirs(projectRoot, bundleNodeModules) {
     } catch {
       continue;
     }
-    if (bundleEntries.length > 0 || !fsSync.existsSync(sourcePkgDir)) continue;
+    if (!fsSync.existsSync(sourcePkgDir)) continue;
+    // #15493: a PARTIAL dir (e.g. zod with only v3/v4 subdirs, no package.json) is non-empty
+    // but just as broken — treat "no package.json while the source has one" as hollow too.
+    const isPartial =
+      bundleEntries.length > 0 &&
+      !fsSync.existsSync(path.join(bundlePkgDir, "package.json")) &&
+      fsSync.existsSync(path.join(sourcePkgDir, "package.json"));
+    if (bundleEntries.length > 0 && !isPartial) continue;
 
     let sourceStat;
     try {
@@ -854,7 +874,7 @@ function repairEmptyExternalPackageDirs(projectRoot, bundleNodeModules) {
     // under heavy concurrent build I/O (a transient readdirSync race, not a real
     // hollow placeholder), or a stale non-directory node from an earlier pass.
     if (resolvesToSamePath(sourcePkgDir, bundlePkgDir)) continue;
-    clearStaleDest(bundlePkgDir);
+    if (!isPartial) clearStaleDest(bundlePkgDir);
 
     fsSync.cpSync(sourcePkgDir, bundlePkgDir, { recursive: true, force: true });
     summary.repaired += 1;
@@ -1185,6 +1205,11 @@ export function assembleStandalone({
   // 6. Optionally copy native assets + extra modules (synchronous)
   if (copyNatives) {
     copyNativeAssetsAndExtraModules(projectRoot, resolvedOutDir);
+    // copyNativeAssetsAndExtraModules recopies public/ with force, which
+    // overwrites the build-id stamp copyStaticAndPublic just wrote. Stamp
+    // again after that copy, or sw.js ships with the generic cache name and
+    // a browser keeps the previous deploy's worker.
+    stampServiceWorkerBuildId(resolvedOutDir);
     // Repair hollow externalized package dirs in BOTH locations Turbopack's standalone
     // tracer can populate: the top-level bundle node_modules, and — for projects with a
     // custom distDir (see next.config.mjs) — the nested <relDistDir>/node_modules mirrored

@@ -17,7 +17,7 @@ process.env.DATA_DIR = TEST_DATA_DIR;
 const { handleComboChat } = await import("../../open-sse/services/combo.ts");
 const { lockExactModel, clearAllModelLockouts, isModelLocked } =
   await import("../../open-sse/services/accountFallback.ts");
-const { clearNativeCodexTurnPinsForTests, NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE_CODE } =
+const { clearNativeCodexTurnPinsForTests, getNativeCodexTurnPin } =
   await import("../../open-sse/services/combo/nativeCodexTurnPin.ts");
 const { clearCooldownState } = await import("../../open-sse/services/providerCooldownTracker.ts");
 const { resetAllCircuitBreakers } = await import("../../src/shared/utils/circuitBreaker.ts");
@@ -56,7 +56,12 @@ test.after(async () => {
   process.env.DATA_DIR = ORIGINAL_DATA_DIR;
 });
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Each scenario models a single-account pool. Keep prior scenarios' healthy
+  // accounts from becoming legitimate siblings in dynamic turn-pin expansion.
+  for (const connection of await providersDb.getProviderConnections({})) {
+    await providersDb.deleteProviderConnection(connection.id);
+  }
   clearAllModelLockouts();
   clearCooldownState();
   resetAllCircuitBreakers();
@@ -200,7 +205,7 @@ describe("Native Codex turn pin — short transient model lockout", () => {
     );
   });
 
-  test("quota_exhausted lockout still terminates the unsafe turn with 400", async () => {
+  test("quota exhaustion preserves an unsafe continuation with a retryable 429", async () => {
     const settings = settingsWithCooldownWait(true);
     const conn = await providersDb.createProviderConnection({
       provider: "grok-cli",
@@ -226,15 +231,30 @@ describe("Native Codex turn pin — short transient model lockout", () => {
       allCombos: null,
     });
 
-    assert.equal(res.status, 400);
-    assert.equal((await res.json()).error.code, NATIVE_CODEX_PINNED_MODEL_UNAVAILABLE_CODE);
+    assert.equal(res.status, 429);
+    assert.equal((await res.json()).error.code, "model_cooldown");
+    assert.ok(Number(res.headers.get("Retry-After")) > 0);
     assert.equal(attempted.length, 0);
-    const terminated = logs.find((e) => e.msg.includes("Native Codex turn cannot continue"));
-    assert.ok(terminated, "termination is logged");
-    assert.match(terminated.msg, /model lock: [^;]*quota_exhausted \d+s failureCount=/);
+    assert.ok(logs.some((e) => e.msg.includes("preserving turn for retry")));
+    assert.equal(getNativeCodexTurnPin(midTurnBody, combo.name)?.connectionId, conn.id);
+    clearAllModelLockouts();
+    const recovered = await handleComboChat({
+      body: midTurnBody,
+      combo,
+      clientManagedResponsesContext: true,
+      handleSingleModel: async (_body, model) => {
+        assert.equal(model, grokModel);
+        return new Response("{}", { headers: { "x-omniroute-selected-connection-id": conn.id } });
+      },
+      isModelAvailable: async () => true,
+      log: createLog(),
+      settings,
+      allCombos: null,
+    });
+    assert.equal(recovered.status, 200);
   });
 
-  test("server_error lockout longer than maxWaitMs still terminates the unsafe turn", async () => {
+  test("server_error lockout beyond the wait budget returns retryable 503", async () => {
     const settings = settingsWithCooldownWait(true);
     const conn = await providersDb.createProviderConnection({
       provider: "grok-cli",
@@ -255,10 +275,10 @@ describe("Native Codex turn pin — short transient model lockout", () => {
       allCombos: null,
     });
 
-    assert.equal(res.status, 400);
+    assert.equal(res.status, 503);
   });
 
-  test("with cooldown-wait disabled a short lockout keeps the previous behavior", async () => {
+  test("with cooldown-wait disabled a short lockout returns retryable 503", async () => {
     const settings = settingsWithCooldownWait(false);
     const conn = await providersDb.createProviderConnection({
       provider: "grok-cli",
@@ -279,7 +299,7 @@ describe("Native Codex turn pin — short transient model lockout", () => {
       allCombos: null,
     });
 
-    assert.equal(res.status, 400);
+    assert.equal(res.status, 503);
   });
   test("client abort during the lock wait returns 499 without dispatching", async () => {
     const settings = settingsWithCooldownWait(true);

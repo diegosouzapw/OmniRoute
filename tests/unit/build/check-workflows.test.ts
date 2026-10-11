@@ -17,6 +17,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   parseActionlintOutput,
   parseZizmorOutput,
@@ -24,6 +25,8 @@ import {
   isBinaryAvailable,
   evaluateZizmorRatchet,
   readBaselineZizmorValue,
+  runScheduledGuardCheck,
+  findScheduledJobsWithoutGuard,
   // @ts-expect-error — .mjs helper has no type declarations; runtime shape is known.
 } from "../../../scripts/check/check-workflows.mjs";
 
@@ -34,6 +37,118 @@ const evaluateZizmor = evaluateZizmorRatchet as (
 ) => RatchetVerdict;
 const readZizmorBaseline = readBaselineZizmorValue as (p?: string) => number | null;
 const qualityWorkflowPath = new URL("../../../.github/workflows/quality.yml", import.meta.url);
+const scheduledGuard = findScheduledJobsWithoutGuard as (
+  files: string[]
+) => { file: string; job: string; reason: string }[];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// scheduled-run guard — every scheduled workflow runs only in the upstream repo
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EXPECTED_SCHEDULED_WORKFLOWS = [
+  "docker-publish.yml",
+  "nightly-compat.yml",
+  "nightly-llm-security.yml",
+  "nightly-mutation.yml",
+  "nightly-property.yml",
+  "nightly-release-green.yml",
+  "nightly-resilience.yml",
+  "nightly-schemathesis.yml",
+  "radar-export.yml",
+  "scorecard.yml",
+  "test-quarantine.yml",
+];
+
+function readWorkflowFiles(): string[] {
+  return collectWorkflowFiles(
+    fileURLToPath(new URL("../../../.github/workflows", import.meta.url))
+  ) as unknown as string[];
+}
+
+test("scheduled runs carry the upstream-only guard on every job", () => {
+  const dir = new URL("../../../.github/workflows/", import.meta.url);
+  const files = EXPECTED_SCHEDULED_WORKFLOWS.map((f) => new URL(f, dir).pathname);
+  assert.ok(readWorkflowFiles().length >= files.length);
+  const findings = scheduledGuard(files);
+  assert.deepEqual(findings, []);
+});
+
+test("a scheduled job without the guard is reported", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    fs.writeFileSync(
+      path.join(dir, "nightly-demo.yml"),
+      "on:\n  schedule:\n    - cron: '0 0 * * *'\njobs:\n  demo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n"
+    );
+    const findings = scheduledGuard([path.join(dir, "nightly-demo.yml")]);
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0].job, "demo");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("an unreadable scheduled workflow is reported, never silently accepted", () => {
+  const findings = scheduledGuard([
+    path.join(os.tmpdir(), "check-workflows-guard-missing-99999.yml"),
+  ]);
+  assert.equal(findings.length, 1);
+});
+
+test("invalid yaml and workflows without jobs are reported, never silently accepted", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    fs.writeFileSync(path.join(dir, "broken.yml"), "on:\n  schedule:\n\t- broken: [unclosed\n");
+    fs.writeFileSync(path.join(dir, "no-jobs.yml"), "on:\n  schedule:\n    - cron: '0 0 * * *'\n");
+    assert.equal(scheduledGuard([path.join(dir, "broken.yml")]).length, 1);
+    assert.equal(scheduledGuard([path.join(dir, "no-jobs.yml")]).length, 1);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the guard lets manual and push runs through anywhere, schedule only upstream", () => {
+  const evaluate = (eventName: string, repository: string) =>
+    eventName !== "schedule" || repository === "diegosouzapw/OmniRoute";
+  assert.equal(evaluate("workflow_dispatch", "someone/else"), true);
+  assert.equal(evaluate("push", "someone/else"), true);
+  assert.equal(evaluate("schedule", "diegosouzapw/OmniRoute"), true);
+  assert.equal(evaluate("schedule", "someone/else"), false);
+});
+
+test("a workflow without a schedule trigger reports nothing", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    fs.writeFileSync(
+      path.join(dir, "push-only.yml"),
+      "on:\n  push:\n    branches: [main]\njobs:\n  demo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n"
+    );
+    assert.deepEqual(scheduledGuard([path.join(dir, "push-only.yml")]), []);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the scheduled-guard check reports repository-relative paths", () => {
+  const runCheck = runScheduledGuardCheck as (files: string[]) => {
+    file: string;
+    job: string;
+    reason: string;
+  }[];
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "check-workflows-guard-"));
+  try {
+    const file = path.join(dir, "nightly-demo.yml");
+    fs.writeFileSync(
+      file,
+      "on:\n  schedule:\n    - cron: '0 0 * * *'\njobs:\n  demo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n"
+    );
+    const findings = runCheck([file]);
+    assert.equal(findings.length, 1);
+    assert.ok(!path.isAbsolute(findings[0].file));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 function readQualityWorkflow(): string {
   return fs.readFileSync(qualityWorkflowPath, "utf8");

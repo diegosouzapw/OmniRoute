@@ -394,6 +394,7 @@ test("Cursor turn end exposes upstream cache reads and writes in OpenAI usage", 
   assert.deepEqual(usage.prompt_tokens_details, {
     cached_tokens: 8,
     cache_creation_tokens: 4,
+    cache_creation_in_prompt: true,
   });
   assert.equal(usage.estimated, undefined);
 });
@@ -401,12 +402,12 @@ test("Cursor turn end exposes upstream cache reads and writes in OpenAI usage", 
 test("emitCursorSseError matches buildStreamErrorChunks OpenAI shape", () => {
   const chunks: string[] = [];
   const ctx = newStreamCtx("gpt-5.4-nano-xhigh", (s) => chunks.push(s));
-  const classified = classifyCursorError("not_found: AI Model Not Found");
+  const classified = classifyCursorError("resource_exhausted: too many requests");
   emitCursorSseError(ctx, classified);
 
   const joined = chunks.join("");
   assert.match(joined, /"finish_reason":"error"/);
-  assert.match(joined, /AI Model Not Found/);
+  assert.match(joined, /too many requests/);
   assert.match(joined, /rate_limit_error|rate limit/i);
   assert.match(joined, /data: \[DONE\]/);
   assert.doesNotMatch(joined, /"choices":\s*\[\]/);

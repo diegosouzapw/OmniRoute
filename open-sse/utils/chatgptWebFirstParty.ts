@@ -10,7 +10,11 @@ export interface ChatGptWebFirstPartyModuleContract {
   turnstileManager: string;
   requestClient: string;
   buildSentinelHeaders: string;
+  resolveIntegrity?: string;
+  resolveIntegrityModule?: string;
 }
+
+type PartialFirstPartyModuleContract = Partial<ChatGptWebFirstPartyModuleContract>;
 
 export interface ChatGptWebFirstPartyRequest {
   prompt: string;
@@ -51,7 +55,8 @@ interface BrowserConversationAttachment {
 }
 
 const CHATGPT_ORIGIN = "https://chatgpt.com";
-const CHATGPT_ASSET_PATH_RE = /^\/cdn\/assets\/[A-Za-z0-9_-]+\.js$/;
+const CHATGPT_ASSET_PATH_RE =
+  /^\/(?:cdn|unauth-mweb|auth-mweb)\/(?:assets|scripts)\/[A-Za-z0-9._-]+\.js$/;
 const OAI_UPLOAD_HOST_RE = /(?:^|\.)oaiusercontent\.com$/i;
 const FIRST_PARTY_BRIDGE_KEY = "__omnirouteChatGptFirstPartyV1";
 const FIRST_PARTY_ABORT_KEY = "__omnirouteChatGptAbortV1";
@@ -125,6 +130,68 @@ export function parseChatGptWebFirstPartyModuleContract(
   return contract as ChatGptWebFirstPartyModuleContract;
 }
 
+function parsePartialChatGptWebFirstPartyModuleContract(
+  source: string
+): PartialFirstPartyModuleContract {
+  const result: PartialFirstPartyModuleContract = {};
+
+  const finalizeLocal =
+    source.match(
+      /function ([A-Za-z_$][\w$]*)\(e=!1,t=`none`(?:,n=[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)?)?\)\{return [A-Za-z_$][\w$]*\(`finalized`,e,t(?:,n)?\)\}/
+    )?.[1] ?? source.match(/finalizeChatRequirements\s*:\s*\(\)\s*=>\s*([A-Za-z_$][\w$]*)/)?.[1];
+  if (finalizeLocal)
+    result.finalizeRequirements = exportedName(source, finalizeLocal) ?? finalizeLocal;
+
+  const enforcement = source.match(
+    /Promise\.all\(\[([A-Za-z_$][\w$]*)\.getEnforcementToken\(t,\{forceSync:!0\}\),([A-Za-z_$][\w$]*)\.getEnforcementToken\(t\)\]\)/
+  );
+  const proofLocal =
+    enforcement?.[1] ??
+    source.match(/([A-Za-z_$][\w$]*)\.getEnforcementToken\([^)]*forceSync\s*:\s*!0/)?.[1];
+  const turnstileLocal = enforcement?.[2];
+  if (proofLocal) result.proofManager = exportedName(source, proofLocal) ?? proofLocal;
+  if (turnstileLocal)
+    result.turnstileManager = exportedName(source, turnstileLocal) ?? turnstileLocal;
+
+  const requestClientLocal =
+    source.match(/([A-Za-z_$][\w$]*)\.safePost\(`\/sentinel\/chat-requirements\/prepare`/)?.[1] ??
+    source.match(
+      /([A-Za-z_$][\w$]*)\.(?:safePost|post)\([`"]\/sentinel\/chat-requirements\/prepare[`"]/
+    )?.[1];
+  if (requestClientLocal) {
+    result.requestClient = exportedName(source, requestClientLocal) ?? requestClientLocal;
+  }
+
+  const headerBuilderLocal =
+    source.match(
+      /function ([A-Za-z_$][\w$]*)\(e,t,n,r,i,a\)\{let o=\{\};return e\?\.token\?o\[`OpenAI-Sentinel-Chat-Requirements-Token`\]/
+    )?.[1] ??
+    source.match(
+      /([A-Za-z_$][\w$]*)\s*=\s*[^;]{0,1200}OpenAI-Sentinel-Chat-Requirements-Token/
+    )?.[1];
+  if (headerBuilderLocal) {
+    result.buildSentinelHeaders = exportedName(source, headerBuilderLocal) ?? headerBuilderLocal;
+  }
+
+  const integrityModule = source.match(
+    /(?:^|\}\),)([A-Za-z0-9_$]+):\(function\(e,t,n\)\{n\.d\(t,\{([^}]+)\}\);[\s\S]{0,1800}?async function ([A-Za-z_$][\w$]*)\(e\)\{let t=[A-Za-z_$][\w$]*\(\),n=[A-Za-z_$][\w$]*\(await e\(t\)\)/
+  );
+  if (integrityModule) {
+    const [, moduleId, exportMap, resolveIntegrityLocal] = integrityModule;
+    const resolveIntegrityExport = exportMap.match(
+      new RegExp(
+        `(?:^|,)\\s*([A-Za-z_$][\\w$]*):\\(\\)=>${escapeRegExp(resolveIntegrityLocal)}(?:,|$)`
+      )
+    )?.[1];
+    if (resolveIntegrityExport) {
+      result.resolveIntegrity = resolveIntegrityExport;
+      result.resolveIntegrityModule = moduleId;
+    }
+  }
+
+  return result;
+}
+
 function requireChatGptAssetUrl(value: string): string {
   const url = new URL(value);
   if (url.origin !== CHATGPT_ORIGIN || !CHATGPT_ASSET_PATH_RE.test(url.pathname)) {
@@ -137,9 +204,14 @@ export function collectChatGptWebFirstPartyAssetCandidates(
   resourceUrls: readonly string[],
   modulePreloadUrls: readonly string[]
 ): string[] {
-  return Array.from(new Set([...resourceUrls, ...modulePreloadUrls])).filter(
-    (url) => url.includes("/cdn/assets/") && url.endsWith(".js")
-  );
+  return Array.from(new Set([...resourceUrls, ...modulePreloadUrls])).filter((url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.origin === CHATGPT_ORIGIN && CHATGPT_ASSET_PATH_RE.test(parsed.pathname);
+    } catch {
+      return false;
+    }
+  });
 }
 
 /** Find first-party chunks referenced by an already-loaded ChatGPT module. */
@@ -196,6 +268,8 @@ interface FirstPartyDiscoveryState {
   visited: Set<string>;
   index: number;
   lastError: Error | null;
+  partial: PartialFirstPartyModuleContract;
+  symbolAssetUrls: Partial<Record<keyof ChatGptWebFirstPartyModuleContract, string>>;
 }
 
 function discoveryError(error: unknown, fallback: string): Error {
@@ -210,10 +284,11 @@ async function collectPageAssetCandidates(page: Page): Promise<string[]> {
     ),
     resourceUrls: performance.getEntriesByType("resource").map((entry) => entry.name),
   }));
-  return collectChatGptWebFirstPartyAssetCandidates(
+  const candidates = collectChatGptWebFirstPartyAssetCandidates(
     sources.resourceUrls,
     sources.modulePreloadUrls
   );
+  return candidates;
 }
 
 async function inspectFirstPartyAsset(
@@ -252,7 +327,45 @@ async function inspectFirstPartyAsset(
     lastKnownModuleAssetUrl = assetUrl;
     return { assetUrl, contract };
   } catch (error) {
-    state.lastError = discoveryError(error, "ChatGPT module discovery failed");
+    const partial = parsePartialChatGptWebFirstPartyModuleContract(source);
+    for (const [key, value] of Object.entries(partial) as Array<
+      [keyof ChatGptWebFirstPartyModuleContract, string]
+    >) {
+      if (!state.partial[key]) {
+        state.partial[key] = value;
+        state.symbolAssetUrls[key] = assetUrl;
+      }
+    }
+
+    if (
+      state.partial.requestClient &&
+      ((state.partial.resolveIntegrity && state.partial.resolveIntegrityModule) ||
+        (state.partial.finalizeRequirements &&
+          state.partial.proofManager &&
+          state.partial.buildSentinelHeaders))
+    ) {
+      const contract: ChatGptWebFirstPartyModuleContract = {
+        finalizeRequirements: state.partial.finalizeRequirements ?? "",
+        proofManager: state.partial.proofManager ?? "",
+        turnstileManager: state.partial.turnstileManager ?? state.partial.proofManager ?? "",
+        requestClient: state.partial.requestClient,
+        buildSentinelHeaders: state.partial.buildSentinelHeaders ?? "",
+        ...(state.partial.resolveIntegrity
+          ? {
+              resolveIntegrity: state.partial.resolveIntegrity,
+              resolveIntegrityModule: state.partial.resolveIntegrityModule,
+            }
+          : {}),
+      };
+      const primaryAssetUrl = state.symbolAssetUrls.finalizeRequirements ?? assetUrl;
+      lastKnownModuleAssetUrl = primaryAssetUrl;
+      return { assetUrl: primaryAssetUrl, contract };
+    }
+
+    const found = Object.keys(state.partial);
+    state.lastError = found.length
+      ? new Error(`ChatGPT module discovery incomplete: found ${found.join(", ")}`)
+      : discoveryError(error, "ChatGPT module discovery failed");
     const references = extractChatGptWebFirstPartyAssetReferences(source, assetUrl);
     state.queue.push(...references.filter((reference) => !state.visited.has(reference)));
     return null;
@@ -277,6 +390,8 @@ async function discoverFirstPartyModule(page: Page): Promise<FirstPartyModuleRes
     visited: new Set<string>(),
     index: 0,
     lastError: null,
+    partial: {},
+    symbolAssetUrls: {},
   };
   const deadline = Date.now() + MODULE_DISCOVERY_TIMEOUT_MS;
 
@@ -300,6 +415,51 @@ function buildBridgeModuleSource(
   const urlLiteral = JSON.stringify(requireChatGptAssetUrl(assetUrl));
   const contractLiteral = JSON.stringify(contract);
   const keyLiteral = JSON.stringify(FIRST_PARTY_BRIDGE_KEY);
+  if (contract.resolveIntegrity && contract.resolveIntegrityModule) {
+    return [
+      `import * as upstream from ${urlLiteral};`,
+      `const names = ${contractLiteral};`,
+      `const modules = upstream.__webpack_modules__;`,
+      `const factory = modules?.[names.resolveIntegrityModule];`,
+      `if (typeof factory !== "function") throw new Error("ChatGPT integrity module factory is unavailable");`,
+      `const exports = {};`,
+      `const requireShim = id => {`,
+      `if (id === "TI") return { a: () => crypto.randomUUID() };`,
+      `throw new Error("Unsupported ChatGPT integrity dependency: " + id);`,
+      `};`,
+      `requireShim.d = (target, definitions) => {`,
+      `for (const [name, getter] of Object.entries(definitions)) {`,
+      `Object.defineProperty(target, name, { enumerable: true, get: getter });`,
+      `}`,
+      `};`,
+      `factory({}, exports, requireShim);`,
+      `const resolveIntegrity = exports[names.resolveIntegrity];`,
+      `if (typeof resolveIntegrity !== "function") throw new Error("ChatGPT integrity resolver is unavailable");`,
+      `const sessionPromise = fetch("/api/auth/session", { credentials: "include" }).then(async response => {`,
+      `if (!response.ok) throw new Error("ChatGPT browser session is unavailable");`,
+      `return response.json();`,
+      `});`,
+      `const requestClient = {`,
+      `safePost: async (path, options = {}) => {`,
+      `const headers = new Headers(options.additionalHeaders || {});`,
+      `const session = await sessionPromise;`,
+      `if (typeof session?.accessToken === "string" && session.accessToken) {`,
+      `headers.set("Authorization", "Bearer " + session.accessToken);`,
+      `}`,
+      `headers.set("Accept", "application/json");`,
+      `if (!headers.has("Content-Type")) headers.set("Content-Type", "application/json");`,
+      `const body = typeof options.requestBody === "string" ? options.requestBody : JSON.stringify(options.requestBody ?? {});`,
+      `const response = await fetch("/backend-api" + path, {`,
+      `method: "POST", credentials: "include", headers, body, signal: options.signal`,
+      `});`,
+      `if (options.skipJsonTransform) return response;`,
+      `if (!response.ok) throw new Error("ChatGPT request failed with status " + response.status);`,
+      `return response.json();`,
+      `}`,
+      `};`,
+      `window[${keyLiteral}] = { requestClient, resolveIntegrity };`,
+    ].join("");
+  }
   return [
     `import * as upstream from ${urlLiteral};`,
     `const names = ${contractLiteral};`,
@@ -308,7 +468,8 @@ function buildBridgeModuleSource(
     `proofManager: upstream[names.proofManager],`,
     `turnstileManager: upstream[names.turnstileManager],`,
     `requestClient: upstream[names.requestClient],`,
-    `buildSentinelHeaders: upstream[names.buildSentinelHeaders]`,
+    `buildSentinelHeaders: upstream[names.buildSentinelHeaders],`,
+    `resolveIntegrity: names.resolveIntegrity ? upstream[names.resolveIntegrity] : undefined`,
     `};`,
   ].join("");
 }
@@ -409,27 +570,29 @@ async function ensureFirstPartyBridge(page: Page): Promise<void> {
           // no reason. Captured here and folded into the rejection so it
           // survives back across the evaluate boundary.
           let cspDetail = "";
-          const onViolation = (event: SecurityPolicyViolationEvent) => {
-            if (!cspDetail) {
-              cspDetail = `${event.violatedDirective} blocked ${event.blockedURI}`;
-            }
-          };
-          document.addEventListener("securitypolicyviolation", onViolation);
-          const done = (blobUrl: string) => {
-            URL.revokeObjectURL(blobUrl);
-            document.removeEventListener("securitypolicyviolation", onViolation);
-          };
+          const violationListener = new AbortController();
+          document.addEventListener(
+            "securitypolicyviolation",
+            (event) => {
+              if (!cspDetail) {
+                cspDetail = `${event.violatedDirective} blocked ${event.blockedURI}`;
+              }
+            },
+            { signal: violationListener.signal }
+          );
           const blobUrl = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
           const script = document.createElement("script");
           script.type = "module";
           script.src = blobUrl;
           script.onload = () => {
-            done(blobUrl);
+            URL.revokeObjectURL(blobUrl);
+            violationListener.abort();
             if (typeof root[bridgeKey] === "object" && root[bridgeKey] !== null) resolve();
             else reject(new Error("ChatGPT Web first-party bridge did not initialize"));
           };
           script.onerror = () => {
-            done(blobUrl);
+            URL.revokeObjectURL(blobUrl);
+            violationListener.abort();
             reject(new Error(cspDetail ? `csp: ${cspDetail}` : "no in-page reason"));
           };
           document.head.appendChild(script);
@@ -717,6 +880,12 @@ async function storeConversationHeaders(page: Page, requestId: string): Promise<
       const root = globalThis as typeof globalThis & Record<string, unknown>;
       const bridge = root[bridgeKey] as {
         finalizeRequirements?: (cache?: boolean, source?: string) => Promise<JsonRecord>;
+        resolveIntegrity?: (
+          prepare: (proof: string) => Promise<unknown>
+        ) => Promise<{ headers?: Record<string, string> }>;
+        requestClient?: {
+          safePost(path: string, options: JsonRecord): Promise<unknown>;
+        };
         proofManager?: {
           getEnforcementToken(value: JsonRecord, options: JsonRecord): Promise<string>;
         };
@@ -730,34 +899,47 @@ async function storeConversationHeaders(page: Page, requestId: string): Promise<
           telemetry: null
         ) => Record<string, string>;
       };
-      const bridgeReady = [
+      const legacyBridgeReady = [
         bridge?.finalizeRequirements,
         bridge?.proofManager?.getEnforcementToken,
         bridge?.turnstileManager?.getEnforcementToken,
         bridge?.buildSentinelHeaders,
       ].every((member) => typeof member === "function");
-      if (!bridgeReady) {
+      const resolverReady =
+        typeof bridge?.resolveIntegrity === "function" &&
+        typeof bridge?.requestClient?.safePost === "function";
+      if (!legacyBridgeReady && !resolverReady) {
         throw new Error("ChatGPT Web first-party challenge bridge is incomplete");
       }
       const controller = (root[abortKey] as Record<string, AbortController>)?.[requestId];
       const draft = (root[requestKey] as Record<string, JsonRecord>)?.[requestId];
       if (!controller || !draft) throw new Error("ChatGPT Web request scope is unavailable");
 
-      const requirements = await bridge.finalizeRequirements!(false, "none");
-      if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
-      const [proof, turnstile] = await Promise.all([
-        bridge.proofManager!.getEnforcementToken(requirements, { forceSync: true }),
-        bridge.turnstileManager!.getEnforcementToken(requirements),
-      ]);
-      const additionalHeaders = bridge.buildSentinelHeaders!(
-        requirements,
-        turnstile,
-        proof,
-        null,
-        null,
-        null
-      );
-      draft.additionalHeaders = additionalHeaders;
+      if (resolverReady) {
+        const integrity = await bridge.resolveIntegrity!(async (proof) =>
+          bridge.requestClient!.safePost("/sentinel/chat-requirements/prepare", {
+            requestBody: { p: proof },
+            signal: controller.signal,
+          })
+        );
+        draft.additionalHeaders = integrity?.headers ?? {};
+      } else {
+        const requirements = await bridge.finalizeRequirements!(false, "none");
+        if (controller.signal.aborted) throw new DOMException("Aborted", "AbortError");
+        const [proof, turnstile] = await Promise.all([
+          bridge.proofManager!.getEnforcementToken(requirements, { forceSync: true }),
+          bridge.turnstileManager!.getEnforcementToken(requirements),
+        ]);
+        const additionalHeaders = bridge.buildSentinelHeaders!(
+          requirements,
+          turnstile,
+          proof,
+          null,
+          null,
+          null
+        );
+        draft.additionalHeaders = additionalHeaders;
+      }
     },
     {
       abortKey: FIRST_PARTY_ABORT_KEY,
@@ -793,8 +975,23 @@ async function submitConversationRequest(page: Page, requestId: string): Promise
       }
       if (!response.ok) {
         const status = response.status;
-        await response.body?.cancel().catch(() => {});
-        throw new Error(`ChatGPT Web conversation failed with status ${status}`);
+        let detail = "";
+        try {
+          const payload = (await response.json()) as JsonRecord;
+          const nested =
+            payload.detail && typeof payload.detail === "object"
+              ? (payload.detail as JsonRecord)
+              : payload.error && typeof payload.error === "object"
+                ? (payload.error as JsonRecord)
+                : payload;
+          const candidate = nested.code ?? nested.message ?? nested.type;
+          if (typeof candidate === "string") detail = candidate.slice(0, 160);
+        } catch {
+          await response.body?.cancel().catch(() => {});
+        }
+        throw new Error(
+          `ChatGPT Web conversation failed with status ${status}${detail ? ` (${detail})` : ""}`
+        );
       }
       draft.response = response;
     },

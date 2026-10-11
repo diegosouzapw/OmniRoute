@@ -1,0 +1,1 @@
+- fix(auto): `auto/subscription` now fails closed when its pool is empty instead of widening to every active provider's full catalog (#15546, complements #15813)

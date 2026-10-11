@@ -70,11 +70,40 @@ function resolveOllamaCloudConfig(providerSpecificData?: JsonRecord): OllamaClou
   return { state: "configured", cookie };
 }
 
+function stripCookieQuotes(value: string): string {
+  const v = value.trim();
+  return v.length >= 2 && v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1).trim() : v;
+}
+
+/**
+ * Accepts a bare value, `__Secure-session=<v>` (or the underscore spelling), or a full
+ * `Cookie:` header, and returns only the session cookie value (#15256).
+ */
 function normalizeOllamaCloudCookie(value: string): string {
-  const trimmed = value.trim();
-  return trimmed.toLowerCase().startsWith(`${OLLAMA_CLOUD_SESSION_COOKIE.toLowerCase()}=`)
-    ? trimmed.slice(OLLAMA_CLOUD_SESSION_COOKIE.length + 1).trim()
-    : trimmed;
+  const trimmed = value.trim().replace(/^cookie\s*:\s*/i, "");
+  if (!trimmed.includes("=")) return stripCookieQuotes(trimmed);
+  const wanted = OLLAMA_CLOUD_SESSION_COOKIE.toLowerCase().replace(/_/g, "-");
+  for (const part of trimmed.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq < 0) continue;
+    const name = part.slice(0, eq).trim().toLowerCase().replace(/_/g, "-");
+    if (name === wanted) return stripCookieQuotes(part.slice(eq + 1));
+  }
+  return stripCookieQuotes(trimmed);
+}
+
+function describeOllamaRedirect(response: Response): string {
+  const location = response.headers.get("location") || "";
+  let path = "";
+  try {
+    path = new URL(location, OLLAMA_CLOUD_USAGE_URL).pathname;
+  } catch {
+    path = "";
+  }
+  if (/^\/(sign-?in|log-?in|auth)\b/i.test(path)) {
+    return "Ollama Cloud authentication expired. Refresh the cookie.";
+  }
+  return `Ollama Cloud settings redirected (HTTP ${response.status}${path ? ` to ${path.slice(0, 80)}` : ""}).`;
 }
 
 function clampPercent(pct: number): number | null {
@@ -143,7 +172,7 @@ async function fetchOllamaCloudUsageFromSettings(
     signal: AbortSignal.timeout(10_000),
   });
   if (response.status >= 300 && response.status < 400) {
-    return { usage: null, message: "Ollama Cloud authentication expired. Refresh the cookie." };
+    return { usage: null, message: describeOllamaRedirect(response) };
   }
   if (!response.ok)
     return { usage: null, message: `Ollama Cloud settings error (${response.status}).` };

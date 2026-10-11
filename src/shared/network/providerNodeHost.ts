@@ -4,8 +4,9 @@
  * Modality routes that dispatch to provider nodes (rerank today, audio via its own
  * selection step) answer two questions before forwarding a request:
  *
- *  1. Is the node loopback (operator's machine / Docker network)? Always eligible.
- *     See `./loopbackNodeHost.ts`.
+ *  1. Is the node loopback (operator's machine / Docker network), or a hostname the
+ *     operator listed in `OMNIROUTE_LOCAL_PROVIDER_NODE_HOSTS` (e.g. a Compose service
+ *     name, #14635)? Always eligible. See `./loopbackNodeHost.ts` and `./localNodeHosts.ts`.
  *
  *  2. Otherwise, may the route dispatch to a REMOTE node (a LAN box, a Tailscale peer,
  *     a public host)? Two conditions, both required:
@@ -19,15 +20,13 @@
  *         strict `public-only`) is never routed to, whatever the flag says.
  */
 
-import { isLoopbackNodeHost } from "./loopbackNodeHost";
+import { isLocalProviderNodeHost } from "./localNodeHosts";
 import {
   parseAndValidateNonMetadataUrl,
   parseAndValidatePublicUrl,
   parseOutboundUrl,
 } from "./outboundUrlGuard";
 import { getProviderOutboundGuard } from "./outboundUrlGuardPolicy";
-
-export { isLoopbackNodeHost };
 
 /**
  * Whether a non-loopback provider-node base URL passes the provider outbound URL policy.
@@ -60,7 +59,7 @@ export function isEligibleProviderNodeHost(
   baseUrl: string,
   { allowRemote }: { allowRemote: boolean }
 ): boolean {
-  if (isLoopbackNodeHost(baseUrl)) return true;
+  if (isLocalProviderNodeHost(baseUrl)) return true;
   if (!allowRemote) return false;
   return isRemoteNodeHostAllowedByPolicy(baseUrl);
 }

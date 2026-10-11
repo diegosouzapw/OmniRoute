@@ -65,7 +65,7 @@ jobs:
     name: Validate active release branch
     # On a push, only run for release/* pushes — a push to main is handled by the
     # main-green job below. Schedule/dispatch always run (they validate the highest release).
-    if: ${{ github.event_name != 'push' || startsWith(github.ref_name, 'release/') }}
+    if: ${{ (github.event_name != 'push' || startsWith(github.ref_name, 'release/')) && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     # Dynamic runner: with USE_VPS_RUNNER=true (release window / on-demand pre-flight)
     # this runs on the dedicated VPS runner — clean env (no operator OMNIROUTE_API_KEY,
     # no local noauth CLIs => zero machine-specific false positives) and no contention.
@@ -275,7 +275,7 @@ jobs:
     name: Validate main branch
     # On a push, only run for a push to main — a push to release/* is handled by
     # release-green above. Schedule/dispatch always run (they also sweep main).
-    if: ${{ github.event_name != 'push' || github.ref_name == 'main' }}
+    if: ${{ (github.event_name != 'push' || github.ref_name == 'main') && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-build"]')) || 'ubuntu-latest' }}
     env:
       JWT_SECRET: ci-nightly-secret-with-sufficient-length-for-validation
@@ -436,7 +436,7 @@ jobs:
   # walk each time. Detection stays on push (release-green above); banking is batched.
   bank-ratchet-shrinks:
     name: Bank ratchet shrinks
-    if: ${{ github.event_name != 'push' }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -562,17 +562,16 @@ jobs:
   # ── Baseline headroom (velocity phase, 2026-08-30 → v4.0) ──────────────────────
   # The ratchets only speak when a baseline is crossed. With every baseline loosened by
   # 20% (scripts/quality/relax-baselines.mjs) the question is how fast the budget is
-  # being consumed — this job measures each gate the way CI does and posts the headroom
-  # table to one living issue, so a budget that fills in a week is visible before the
-  # first red PR. Advisory: never fails the workflow.
+  # being consumed — this job measures each gate the way CI does and publishes the
+  # headroom table in the run summary and retained artifacts. Keep recurring reports
+  # out of the issue queue; the existing quality gates still enforce their budgets.
   baseline-headroom:
     name: Baseline headroom
-    if: ${{ github.event_name != 'push' }}
+    if: ${{ github.event_name != 'push' && (github.event_name != 'schedule' || github.repository == 'diegosouzapw/OmniRoute') }}
     timeout-minutes: 60
     runs-on: ${{ (vars.USE_VPS_RUNNER == 'true' && fromJSON('["self-hosted","omni-light"]')) || 'ubuntu-latest' }}
     permissions:
       contents: read
-      issues: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -600,30 +599,3 @@ jobs:
           name: baseline-headroom-${{ github.run_id }}
           path: reports/quality/headroom.*
           retention-days: 90
-
-      - name: Post to the living issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          set -euo pipefail
-          TITLE="📈 Baseline headroom (velocity phase)"
-          BAD=$(node -e 'const r=require("./reports/quality/headroom.json").rows;console.log(r.filter(x=>x.status==="critical"||x.status==="warn").length)')
-          {
-            echo "Branch: \`${GITHUB_REF_NAME}\` · run: ${RUN_URL}"
-            echo ""
-            cat reports/quality/headroom.md
-          } > headroom-comment.md
-          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
-            --search "in:title $TITLE" --json number --jq '.[0].number' 2>/dev/null || echo "")
-          if [ -z "$EXISTING" ]; then
-            EXISTING=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$TITLE" --label quality-gate-finding \
-              --body "Living tracker for the velocity-phase baseline budget (docs/architecture/QUALITY_GATES.md → Velocity phase). One comment per nightly run; the newest comment is the current state." \
-              | grep -oE '[0-9]+$')
-          fi
-          gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file headroom-comment.md
-          if [ "$BAD" != "0" ]; then
-            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --add-label "headroom-alert" 2>/dev/null || true
-          else
-            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --remove-label "headroom-alert" 2>/dev/null || true
-          fi

@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Kitu kimeenda vibaya",
+      "description": "Kosa lisilotarajiwa limetokea. Hii imeandikwa na timu yetu itachunguza.",
+      "detailsAriaLabel": "Maelezo ya kosa",
+      "retryAriaLabel": "jaribu kupakia tena ukurasa",
+      "tryAgain": "Jaribu Tena",
+      "statusAriaLabel": "Fungua hali ya mfumo",
+      "systemStatus": "Hali ya Mfumo"
+    }
+  }
+}

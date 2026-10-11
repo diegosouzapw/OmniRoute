@@ -11,6 +11,24 @@ import {
   normalizeSessionCookieHeaders,
 } from "@/lib/providers/webCookieAuth";
 import { type ParsedMetaAiResponse, isRecord } from "./muse-spark-web/response-parser.ts";
+import {
+  _fetchFreshAccessTokenDispatch,
+  type AccessTokenResult,
+} from "./muse-spark-web/fresh-access-token.ts";
+import {
+  META_WS_CHAT_TEMPLATE_B64,
+  META_WS_HOME_TEMPLATE_B64,
+} from "./muse-spark-web/ws-templates.ts";
+import { buildWsPromptFrame, writeU24Le } from "./muse-spark-web/ws-frame.ts";
+
+export {
+  __fetchFreshAccessTokenForTesting,
+  __resetMuseSparkTokenCacheForTesting,
+  __setMuseSparkBrowserPoolForTesting,
+  __setMuseSparkFreshTokenFetcherForTesting,
+} from "./muse-spark-web/fresh-access-token.ts";
+export { META_WS_CHAT_TEMPLATE_B64, META_WS_HOME_TEMPLATE_B64 };
+export { buildWsPromptFrame, parseProtoFields } from "./muse-spark-web/ws-frame.ts";
 
 const META_AI_GRAPHQL_API = "https://www.meta.ai/api/graphql";
 // Meta rebranded "Abra" to "Ecto"; `abra_sess` became `ecto_1_sess`.
@@ -33,8 +51,6 @@ const META_WS_DGW_VERSION = "5";
 const META_WS_DGW_UUID = "0";
 const META_WS_TIER = "prod";
 const META_WS_INTRO_FRAME_TYPE = 0x0f;
-const META_WS_PROMPT_FRAME_TYPE = 0x0d;
-const META_WS_PROMPT_FRAME_FLAG = 0x80;
 const META_AI_ROOT_BRANCH_PATH = "0";
 const META_AI_USER_AGENT =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36";
@@ -612,160 +628,6 @@ function getOpenAiMessages(body: unknown): Array<Record<string, unknown>> | null
   return messages as Array<Record<string, unknown>>;
 }
 
-// ─── Protobuf WS templates ──────────────────────────────────────────────────────
-// Base64-encoded protobuf templates captured from Meta AI web client.
-// These are mutated at specific field paths to inject conversation-id,
-// prompt text, timestamps, and message IDs per conversation.
-//
-// VERIFIED against live meta.ai WS captures from TWO independent accounts
-// (2026-07-19). The following fields are confirmed STATIC (app-level
-// constants sent by Meta's own client, not per-user secrets):
-//   - 64-hex session token (e2b88f98...)
-//   - Actor numeric ID (867051314767696)
-//   - Locale (en-US)
-//   - App ID (1522763855472543)
-// The only user-variable field is the timezone (system TZ), which is
-// low-signal for anti-fraud. No fingerprint randomization is warranted.
-
-const META_WS_HOME_TEMPLATE_B64 =
-  "CrYGCsQDCiBLQURBQlJBX19IT01FX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokOGYxMjliMjUtYzNlMC00NzNiLWFlNzktNWViM2YyNGU1NjRjMAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliCRoDCOgHIgIIAWoITWFjIE9TIFhyCnVzZXJfaW5wdXR6dU1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xNDYuMC4wLjAgU2FmYXJpLzUzNy4zNoIBC2Rlc2t0b3Bfd2VimgFHCkBlMmI4OGY5ODQ2Mzc5Y2JjMjY5NjBmYTNhZTFkMjIyMDFkZmIxOWRmNzg5MGFlNmEzYWM4YTI4ODcwYmFjNjgyFQAAAEASFAi4w6XTk4/yARC4w6XTk4/yARgCGgIgASIAKg4Ix6D+ldkzGJ6g/pXZMzIkZWU3YTM1ZWItZGY4Yy00NzkzLWExYzAtMTBhZTQxNGY1ZTZlOgBKBxIFZW4tVVNScgokNTYwN2Y0YzAtYjljZi00ZjZlLWJlYTYtZTc2N2E1OGJhMjhlGiRlMDliN2FhMC1jYzYwLTQyYTktYjk2OS00YzY1YjViZGZlNGIiJDhmMTI5YjI1LWMzZTAtNDczYi1hZTc5LTVlYjNmMjRlNTY0Y3oRIg9BbWVyaWNhL0NoaWNhZ2+CAQOwAQGSAQwKBnN0b2NrcxICCAGSAQ0KB3dlYXRoZXISAggBkgEkCh5tZXRhX2tub3dsZWRnZV9zZWFyY2hfY2Fyb3VzZWwSAggBkgEiChxtZXRhX2NhdGFsb2dfc2VhcmNoX2Nhcm91c2VsEgIIAZIBEwoNbWVkaWFfZ2FsbGVyeRICCAGiAQEDEpIBCmEKJGFiOWRkNzg5LWRlOGQtNDc5MS05ODE1LWI5YjBmMTU1MDdiNBI3CiQ4ZjEyOWIyNS1jM2UwLTQ3M2ItYWU3OS01ZWIzZjI0ZTU2NGMQyKD+ldkzGKbcxozB/KuyZygBEihIZWxsbyB0aGlzIGlzIGFub3RoZXIgdGVzdCBvZiB5b3VyIHBvd2VyIgMKATA=";
-const META_WS_CHAT_TEMPLATE_B64 =
-  "CrIGCsADCiBLQURBQlJBX19DSEFUX19VTklGSUVEX0lOUFVUX0JBUhIQMTUyMjc2Mzg1NTQ3MjU0MyInNWE1Yi04ZDRlLWYwNTQtOTllZi1iMmRlLWRiMDItMGQwNS01MmM3KigqJgokYjA4Mzg1YTYtNWE1My00ZjE0LTk2NmUtMzQ3ZjI4MDg4NDU0MAU6C0hVTUFOX0FHRU5UQiIKDzg2NzA1MTMxNDc2NzY5NhIPODY3MDUxMzE0NzY3Njk2UgVFQ1RPMVoRQWJyYSBXZWIgTWFpbiBLZXliBRoDCOgHaghNYWMgT1MgWHIKdXNlcl9pbnB1dHp1TW96aWxsYS81LjAgKE1hY2ludG9zaDsgSW50ZWwgTWFjIE9TIFggMTBfMTVfNykgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzE0Ni4wLjAuMCBTYWZhcmkvNTM3LjM2ggELZGVza3RvcF93ZWKaAUcKQGUyYjg4Zjk4NDYzNzljYmMyNjk2MGZhM2FlMWQyMjIwMWRmYjE5ZGY3ODkwYWU2YTNhYzhhMjg4NzBiYWM2ODIVAAAAQBIUCLjDpdOTj/IBELjDpdOTj/IBGAIaAiABIgAqDgikgvuW2TMYoYL7ltkzMiRjNmI1ZDI2MS02NjI0LTQ5YWYtOTBjNy0wOWI0NWMwYTZiZWY6AEoHEgVlbi1VU1JyCiQxZDNjZGQzYy1jYTFhLTRlMDItODk1My1kZTBiYTM0NzI5ODkaJDcxODNhMzM0LTFiNWEtNGQyNi1iMjcxLWJjY2Y1NDY2NmJiZiIkYjA4Mzg1YTYtNWE1My00ZjE0LTk2NmUtMzQ3ZjI4MDg4NDU0ehEiD0FtZXJpY2EvQ2hpY2Fnb4IBA7ABAZIBDAoGc3RvY2tzEgIIAZIBDQoHd2VhdGhlchICCAGSASQKHm1ldGFfa25vd2xlZGdlX3NlYXJjaF9jYXJvdXNlbBICCAGSASIKHG1ldGFfY2F0YWxvZ19zZWFyY2hfY2Fyb3VzZWwSAggBkgETCg1tZWRpYV9nYWxsZXJ5EgIIAaIBAQMSlgEKfAokMTc4MDVmYjEtOTY3Zi00YmYyLTlmMjctOWRhYmRhMzYyMTJkEjcKJGIwODM4NWE2LTVhNTMtNGYxNC05NjZlLTM0N2YyODA4ODQ1NBCkgvuW2TMYxN23xoT2rbJnIhtlLjAwcHlKMUtxa3BHTmg5Sk9oWElNdnJRWlYSEWZvbGxvdyB1cCBwcm9iZSAyIgMKATI=";
-
-// ─── Proto helpers ─────────────────────────────────────────────────────────────
-
-type ProtoField = {
-  number: number;
-  wireType: number;
-  value: Uint8Array | number | bigint;
-};
-
-function encodeVarint(value: number): Uint8Array {
-  // Use BigInt arithmetic to avoid 32-bit truncation from bitwise operators.
-  let v = BigInt(value);
-  const out: number[] = [];
-  while (v >= 0x80n) {
-    out.push(Number((v & 0x7fn) | 0x80n));
-    v >>= 7n;
-  }
-  out.push(Number(v & 0x7fn));
-  return new Uint8Array(out);
-}
-
-function decodeVarint(data: Uint8Array, offset: number): [number, number] {
-  let shift = 0;
-  let value = 0;
-  let off = offset;
-  while (true) {
-    const byte = data[off++];
-    value |= (byte & 0x7f) << shift;
-    if (!(byte & 0x80)) return [value >>> 0, off];
-    shift += 7;
-    if (shift > 63) throw new Error("Varint too long");
-  }
-}
-
-function parseProtoFields(data: Uint8Array): ProtoField[] {
-  const fields: ProtoField[] = [];
-  let offset = 0;
-  while (offset < data.length) {
-    const [tag, next] = decodeVarint(data, offset);
-    offset = next;
-    const number = tag >> 3;
-    const wireType = tag & 0x07;
-    if (wireType === 0) {
-      const [value, n] = decodeVarint(data, offset);
-      offset = n;
-      fields.push({ number, wireType, value });
-    } else if (wireType === 1) {
-      const view = new DataView(data.buffer, data.byteOffset + offset, 8);
-      fields.push({ number, wireType, value: view.getBigUint64(0, true) });
-      offset += 8;
-    } else if (wireType === 2) {
-      const [len, n] = decodeVarint(data, offset);
-      offset = n;
-      fields.push({ number, wireType, value: data.slice(offset, offset + len) });
-      offset += len;
-    } else if (wireType === 5) {
-      const view = new DataView(data.buffer, data.byteOffset + offset, 4);
-      fields.push({ number, wireType, value: view.getUint32(0, true) });
-      offset += 4;
-    } else {
-      throw new Error(`Unsupported wire type: ${wireType}`);
-    }
-  }
-  return fields;
-}
-
-function serializeProtoFields(fields: ProtoField[]): Uint8Array {
-  const parts: Uint8Array[] = [];
-  for (const f of fields) {
-    const tag = (f.number << 3) | f.wireType;
-    parts.push(encodeVarint(tag));
-    if (f.wireType === 0) {
-      parts.push(encodeVarint(Number(f.value)));
-    } else if (f.wireType === 1) {
-      const buf = new Uint8Array(8);
-      if (f.value instanceof Uint8Array) {
-        throw new Error(
-          `serializeProtoFields: wire type 1 field ${f.number} has non-numeric value`
-        );
-      }
-      new DataView(buf.buffer).setBigUint64(0, BigInt(f.value), true);
-      parts.push(buf);
-    } else if (f.wireType === 2) {
-      const raw =
-        f.value instanceof Uint8Array ? f.value : new TextEncoder().encode(String(f.value));
-      parts.push(encodeVarint(raw.length));
-      parts.push(raw);
-    } else if (f.wireType === 5) {
-      const buf = new Uint8Array(4);
-      new DataView(buf.buffer).setUint32(0, Number(f.value), true);
-      parts.push(buf);
-    }
-  }
-  const total = parts.reduce((s, p) => s + p.length, 0);
-  const result = new Uint8Array(total);
-  let offset = 0;
-  for (const p of parts) {
-    result.set(p, offset);
-    offset += p.length;
-  }
-  return result;
-}
-
-function findProtoField(fields: ProtoField[], number: number): ProtoField | undefined {
-  return fields.find((f) => f.number === number);
-}
-
-function traverseAndMutate(
-  fields: ProtoField[],
-  path: number[],
-  mutator: (field: ProtoField) => void
-): boolean {
-  if (path.length === 0) return false;
-  const field = findProtoField(fields, path[0]);
-  if (!field || !(field.value instanceof Uint8Array)) return false;
-  if (path.length === 1) {
-    mutator(field);
-    return true;
-  }
-  const nested = parseProtoFields(field.value);
-  if (traverseAndMutate(nested, path.slice(1), mutator)) {
-    field.value = serializeProtoFields(nested);
-    return true;
-  }
-  return false;
-}
-
-// ─── WS frame builders ─────────────────────────────────────────────────────────
-
-function writeU24Le(value: number, arr: Uint8Array, offset: number): void {
-  arr[offset] = value & 0xff;
-  arr[offset + 1] = (value >> 8) & 0xff;
-  arr[offset + 2] = (value >> 16) & 0xff;
-}
-
 function buildWsIntroFrame(conversationId: string): Uint8Array {
   const payload = new TextEncoder().encode(
     JSON.stringify({
@@ -782,108 +644,6 @@ function buildWsIntroFrame(conversationId: string): Uint8Array {
   result.set(header);
   result.set(payload, header.length);
   return result;
-}
-
-function buildWsPromptFrame(
-  prompt: string,
-  conversationId: string,
-  opts: {
-    templateB64: string;
-    requestId?: string;
-    userMessageId?: string;
-    submittedMs?: number;
-    uniqueMessageId?: number;
-    subSessionIdx?: number;
-    messageSeq?: number;
-  }
-): Uint8Array {
-  const requestId = opts.requestId || crypto.randomUUID();
-  const userMessageId = opts.userMessageId || crypto.randomUUID();
-  const submittedMs = opts.submittedMs ?? Date.now();
-  const uniqueMessageId =
-    opts.uniqueMessageId ??
-    Number(`${submittedMs}${String(Math.floor(Math.random() * 10000)).padStart(4, "0")}`);
-
-  const raw = Buffer.from(opts.templateB64, "base64");
-  const protoFields = parseProtoFields(raw);
-
-  // Patch conversationId at [1,1,5]
-  traverseAndMutate(protoFields, [1, 1], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field5 = findProtoField(nested, 5);
-    if (field5) field5.value = new TextEncoder().encode(conversationId);
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch userMessageId at [2,1,1]
-  traverseAndMutate(protoFields, [2, 1], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field1 = findProtoField(nested, 1);
-    if (field1) field1.value = new TextEncoder().encode(userMessageId);
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch convId + timestamps at [2,1,2]
-  traverseAndMutate(protoFields, [2, 1, 2], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const f1 = findProtoField(nested, 1);
-    const f2 = findProtoField(nested, 2);
-    const f3 = findProtoField(nested, 3);
-    if (f1) f1.value = new TextEncoder().encode(conversationId);
-    if (f2) f2.value = submittedMs;
-    if (f3) f3.value = uniqueMessageId;
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch prompt text at [2,2]
-  traverseAndMutate(protoFields, [2], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field2 = findProtoField(nested, 2);
-    if (field2) field2.value = new TextEncoder().encode(prompt);
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch timestamps at [1,5]
-  traverseAndMutate(protoFields, [1, 5], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const f1 = findProtoField(nested, 1);
-    const f3 = findProtoField(nested, 3);
-    if (f1) f1.value = submittedMs + 1;
-    if (f3) f3.value = submittedMs;
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch requestId at [1,6]
-  traverseAndMutate(protoFields, [1], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field6 = findProtoField(nested, 6);
-    if (field6) field6.value = new TextEncoder().encode(requestId);
-    f.value = serializeProtoFields(nested);
-  });
-  // Patch conversationId at [1,10,4]
-  traverseAndMutate(protoFields, [1, 10], (f) => {
-    const nested = parseProtoFields(f.value instanceof Uint8Array ? f.value : new Uint8Array());
-    const field4 = findProtoField(nested, 4);
-    if (field4) field4.value = new TextEncoder().encode(conversationId);
-    f.value = serializeProtoFields(nested);
-  });
-
-  const updatedB64 = Buffer.from(serializeProtoFields(protoFields)).toString("base64");
-  const outer = JSON.stringify({ "req-id": requestId, payload: updatedB64 });
-  const inner = new TextEncoder().encode(outer);
-  const subSessionIdx = opts.subSessionIdx || 0;
-  const messageSeq = opts.messageSeq || 0;
-
-  const msgBody = new Uint8Array(2 + inner.length);
-  msgBody[0] = messageSeq;
-  msgBody[1] = META_WS_PROMPT_FRAME_FLAG;
-  msgBody.set(inner, 2);
-
-  const header = new Uint8Array(6);
-  header[0] = META_WS_PROMPT_FRAME_TYPE;
-  header[1] = subSessionIdx & 0xff;
-  header[2] = (subSessionIdx >> 8) & 0xff;
-  writeU24Le(msgBody.length, header, 3);
-
-  const frame = new Uint8Array(header.length + msgBody.length);
-  frame.set(header);
-  frame.set(msgBody, header.length);
-  return frame;
 }
 
 // ─── WS URL builder + GraphQL helper + b64 helpers ─────────────────────────────
@@ -1272,6 +1032,9 @@ export class MuseSparkWebExecutor extends BaseExecutor {
 
     // Extract the WebSocket auth token (ecto1:...) from provider-specific data
     // or from the apiKey field itself (user can paste both in the cookie field).
+    // Then try to fetch a fresh token from meta.ai — stale tokens cause the
+    // gateway to return 0x0e after 4 messages (#10727).
+    let cookieHeader = selectMetaAiCookieHeader(credentials);
     let authorization: string;
     if (
       typeof credentials.providerSpecificData?.authorization === "string" &&
@@ -1284,14 +1047,32 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     } else {
       authorization = "";
     }
-    if (!authorization) {
-      return errorResult(
-        400,
-        "Missing Authorization for Meta AI WebSocket — paste the ecto1:... WS auth token from meta.ai DevTools (Network → WS → clippy request Authorization param), alongside your ecto_1_sess cookie.",
-        "missing_authorization",
-        {},
-        body
-      );
+
+    // Attempt to fetch a fresh accessToken via headless Chromium (browserPool).
+    // Meta's gateway rejects stale ecto1 tokens with a 0x0e frame after ~4
+    // messages (#10727). The token is embedded in the server-rendered page
+    // HTML, which returns 403 to plain fetch (JS challenge), so a real
+    // browser is required. Result is cached for 4 min (token TTL ~5 min).
+    const freshToken = await _fetchFreshAccessTokenDispatch(cookieHeader, signal);
+    if (freshToken.ok) {
+      authorization = freshToken.token;
+      if (freshToken.updatedCookie) {
+        cookieHeader = freshToken.updatedCookie;
+      }
+      log?.info?.("MUSE-SPARK-WEB", "Fetched fresh WS accessToken via browser");
+    } else {
+      const freshError = (freshToken as Extract<AccessTokenResult, { ok: false }>).error;
+      log?.warn?.("MUSE-SPARK-WEB", `Fresh token fetch failed: ${freshError}; using static token`);
+      if (!authorization) {
+        // No static token and fresh fetch failed — can't proceed
+        return errorResult(
+          400,
+          `Missing Authorization for Meta AI WebSocket. Fresh token fetch failed: ${freshError}. Provide a valid ecto_1_sess cookie.`,
+          "missing_authorization",
+          {},
+          body
+        );
+      }
     }
 
     // Look up a prior meta.ai conversation we created for this caller +
@@ -1312,7 +1093,6 @@ export class MuseSparkWebExecutor extends BaseExecutor {
     const conversationContext = getConversationContext(cached);
 
     const prompt = cached ? parsedHistory.latestUserContent : parsedHistory.foldedPrompt;
-    const cookieHeader = selectMetaAiCookieHeader(credentials);
     const modelInfo = getMuseSparkModelInfo(model);
     const templateB64 = cached ? META_WS_CHAT_TEMPLATE_B64 : META_WS_HOME_TEMPLATE_B64;
 

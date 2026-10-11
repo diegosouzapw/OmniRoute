@@ -152,6 +152,7 @@ test("combo test route marks a model healthy only when it returns assistant text
   assert.equal(forwardedBody.stream, true);
   assert.equal(fetchCalls[0].init.headers["X-OmniRoute-Compression"], "off");
   assert.equal(body.testMode, "target-health-check");
+  assert.equal("reasoning_effort" in forwardedBody, false);
   assert.equal("temperature" in forwardedBody, false);
   assert.equal(body.resolvedBy, "openrouter/openai/gpt-5.4");
   assert.equal(body.results[0].status, "ok");

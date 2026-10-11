@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import { isVisionModelId } from "@/shared/constants/visionModels";
 import { MUSE_SPARK_PATTERN } from "./base/reasoningEffort.ts";
+import { ANTHROPIC_VERSION_HEADER } from "../config/anthropicHeaders.ts";
 import { REGISTRY } from "../config/providerRegistry.ts";
+import { getModelTargetFormat } from "../config/providerModels.ts";
 import {
   isResponsesShapedBody,
   projectResponsesForCli,
@@ -14,6 +16,7 @@ import {
   type ExecuteInput,
 } from "./base.ts";
 import { applyReasoningEffortRecovery } from "./base/reasoningEffortRecovery.ts";
+import { applyFieldDowngradeRecovery } from "./base/fieldDowngradeRecovery.ts";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -949,8 +952,11 @@ export class CommandCodeExecutor extends BaseExecutor {
     super(provider, REGISTRY["command-code"]);
   }
 
-  buildUrl() {
+  buildUrl(model?: string) {
     const baseUrl = (this.config.baseUrl || "https://api.commandcode.ai").replace(/\/$/, "");
+    if (model && getModelTargetFormat("command-code", model) === "claude") {
+      return `${baseUrl}/provider/v1/messages`;
+    }
     return `${baseUrl}${this.config.chatPath || "/provider/v1/chat/completions"}`;
   }
 
@@ -1006,7 +1012,7 @@ export class CommandCodeExecutor extends BaseExecutor {
       sanitizedBody,
       stream
     );
-    let cliTransformedBody: unknown = initialCliTransformedBody;
+    let cliTransformedBody = initialCliTransformedBody;
 
     let cliUpstream = await fetch(cliUrl, {
       method: "POST",
@@ -1015,18 +1021,19 @@ export class CommandCodeExecutor extends BaseExecutor {
       signal: abortSignal,
     });
 
-    // #14629: same reactive reasoning_effort recovery for the CLI fallback fetch.
+    // The CLI keeps reasoning fields in params; retries must still send the full envelope.
     const cliRecovery = await applyReasoningEffortRecovery({
       response: cliUpstream,
       url: cliUrl,
       provider: this.provider,
       model,
-      body: cliTransformedBody,
+      body: cliTransformedBody.params,
       fetchOptions: { method: "POST", headers: cliHeaders, signal: abortSignal },
       fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      serializeBody: (params) => JSON.stringify({ ...cliTransformedBody, params }),
     });
     cliUpstream = cliRecovery.response;
-    cliTransformedBody = cliRecovery.body;
+    cliTransformedBody = { ...cliTransformedBody, params: cliRecovery.body };
 
     if (!cliUpstream.ok) {
       const errorText = await cliUpstream.text().catch(() => {
@@ -1063,13 +1070,18 @@ export class CommandCodeExecutor extends BaseExecutor {
     // Route by body shape: a Responses-shaped body (targetFormat openai-responses)
     // must hit /provider/v1/responses, where `reasoning: {"effort":"none"}` is
     // honored; the chat endpoint silently drops it.
-    const url = isResponsesShapedBody(transformedBody) ? this.buildResponsesUrl() : this.buildUrl();
+    const url = isResponsesShapedBody(transformedBody)
+      ? this.buildResponsesUrl()
+      : this.buildUrl(model);
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
       Accept: stream ? "text/event-stream" : "application/json",
     };
+    if (getModelTargetFormat("command-code", model) === "claude") {
+      headers["anthropic-version"] = ANTHROPIC_VERSION_HEADER;
+    }
     mergeUpstreamExtraHeaders(headers, upstreamExtraHeaders);
 
     let upstream = await fetch(url, {
@@ -1093,6 +1105,18 @@ export class CommandCodeExecutor extends BaseExecutor {
     });
     upstream = recovery.response;
     transformedBody = recovery.body;
+
+    upstream = await applyFieldDowngradeRecovery({
+      response: upstream,
+      url,
+      provider: this.provider,
+      model,
+      body: transformedBody,
+      fetchOptions: { method: "POST", headers, signal: abortSignal },
+      fetchFn: (fetchUrl, fetchOpts) => fetch(fetchUrl, fetchOpts),
+      serializeBody: (retryBody) => JSON.stringify(retryBody),
+      strippedFields: new Set<string>(),
+    });
 
     if (upstream.ok) {
       return { response: upstream, url, headers, transformedBody };

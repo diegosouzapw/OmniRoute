@@ -36,6 +36,8 @@ jobs:
       i18n: ${{ steps.classify.outputs.i18n }}
       workflow: ${{ steps.classify.outputs.workflow }}
       testsOnly: ${{ steps.classify.outputs.testsOnly }}
+      # Exposure only (one-CI-policy step 1, RFC #8084): no job depends on it yet.
+      domains: ${{ steps.classify.outputs.domains }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -75,6 +77,7 @@ jobs:
               echo "i18n=true"
               echo "workflow=true"
               echo "testsOnly=false"
+              echo "domains=build,catalog,cli,core,db,docs,i18n,provider,routing,tests,ui,workflow"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -547,6 +550,8 @@ jobs:
           # PR acceleration is not release-candidate provenance.
           cache: ${{ github.event_name == 'pull_request' }}
       - run: node scripts/i18n/check-ui-keys-coverage.mjs --threshold=65
+      - name: i18n ICU compilation (all UI catalogs)
+        run: npm run check:ui-icu
       # Real-translation ratchet: a leaf copied verbatim from en.json passes key
       # parity above but is still English to the user (es shipped 55% English).
       # Blocking since PR-4 retranslated the verbatim-English backlog: the share of
@@ -741,6 +746,10 @@ jobs:
       - run: npm run build
         env:
           OMNIROUTE_USE_TURBOPACK: "1"
+      - name: Verify colocated compression worker
+        run: node --import tsx/esm --test tests/integration/compression-worker-standalone.int.test.ts
+        env:
+          RUN_STANDALONE_INT: "1"
       - name: Archive Next.js build for downstream jobs
         # Use tar so the archive preserves paths relative to CWD (.build/next/...).
         # upload-artifact path-stripping is ambiguous when exclude patterns are used;
@@ -1066,7 +1075,7 @@ jobs:
       - name: Upload test results to Trunk (advisory)
         if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
-        uses: trunk-io/analytics-uploader@817e1a2ec58d888825699ee15ea172809bb3f226 # v2.1.3
+        uses: trunk-io/analytics-uploader@14c0f18990953eecd01c9c5afe3cc63a73b6c371 # v2.1.5
         with:
           junit-paths: trunk-junit/**/*.xml
           org-slug: omniroute
@@ -1399,7 +1408,7 @@ jobs:
       - name: Upload test results to Trunk (advisory)
         if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
         continue-on-error: true
-        uses: trunk-io/analytics-uploader@817e1a2ec58d888825699ee15ea172809bb3f226 # v2.1.3
+        uses: trunk-io/analytics-uploader@14c0f18990953eecd01c9c5afe3cc63a73b6c371 # v2.1.5
         with:
           junit-paths: junit-e2e-results.xml
           org-slug: omniroute

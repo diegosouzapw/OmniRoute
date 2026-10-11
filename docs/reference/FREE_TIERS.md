@@ -13,6 +13,10 @@ lastUpdated: 2026-09-03
 
 ## TL;DR — how much free inference does OmniRoute actually aggregate?
 
+These figures describe separate third-party accounts and eligibility conditions across the catalog. OmniRoute does not grant this budget: you must obtain the required accounts or credentials, connect eligible providers, and respect their limits. Actual usable capacity can be lower, including zero on a fresh installation with no eligible route. Providers marked `tos: avoid` are excluded from automatic routing by default.
+
+**Checked 2026-10-08:** [Cerebras](https://www.cerebras.ai/pricing) offers a one-time $5 promotional credit requiring a payment method, expiring after 30 days. [Gemini](https://ai.google.dev/gemini-api/docs/rate-limits) publishes project/model/tier rate limits; it remains outside the quantified monthly headline.
+
 | Metric                                      | Tokens / month    | Meaning                                                                                                                                                                                                                                                                          |
 | ------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Documented recurring grant (steady)**     | **~1.62B**        | Free-tier **pools** (per-model catalog), each shared pool counted **once**. The live source behind `/api/free-tier/summary` and the dashboard's Free-Tier Budget page. **Use this number.**                                                                                      |

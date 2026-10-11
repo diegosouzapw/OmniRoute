@@ -1,0 +1,1 @@
+- fix(combo): do not hop a request-scoped streaming refusal (invalid request / context overflow) onto a family-sibling effort alias of the same model; the combo advances to the next target instead (regression from #13603)

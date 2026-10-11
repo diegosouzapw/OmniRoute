@@ -1,0 +1,1 @@
+- fix(providers): ensureThinkingBudget no longer injects a fabricated 4096 max_tokens floor when the model has no registered maxOutputTokens (#14888)

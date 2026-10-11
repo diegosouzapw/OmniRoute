@@ -207,7 +207,7 @@ describe("proxyFetch PROXY_UNREACHABLE on local-egress hostname clears the dispa
     );
   });
 
-  it("does NOT clear the dispatcher cache when a cloud-upstream hostname hits PROXY_UNREACHABLE", async () => {
+  it("evicts the cloud pool when a cloud-upstream hostname hits PROXY_UNREACHABLE", async () => {
     // Pre-populate the LOCAL pool too, to prove the cloud-path failure never touches it.
     getDefaultDispatcher("host.docker.internal");
     const cloudDispatcherBefore = getDefaultDispatcher("api.example.com");
@@ -238,10 +238,10 @@ describe("proxyFetch PROXY_UNREACHABLE on local-egress hostname clears the dispa
     assert.equal(undiciCalls, 2);
     assert.equal(nativeCalls, 1);
     assert.equal(await res.text(), "native-ok");
-    assert.equal(
+    assert.notEqual(
       getDefaultCachedDispatcher(),
       cloudDispatcherBefore,
-      "the cloud-upstream dispatcher pool must survive its own PROXY_UNREACHABLE"
+      "the cloud-upstream dispatcher pool must be rebuilt on PROXY_UNREACHABLE"
     );
     assert.notEqual(
       getLocalDefaultCachedDispatcher(),

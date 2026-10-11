@@ -1,4 +1,6 @@
 import { HTTP_STATUS, FETCH_TIMEOUT_MS } from "../config/constants.ts";
+import { getApiKeyCodexServiceTier } from "../../src/lib/providers/codexApiKeyServiceMode";
+import { resolveProviderUserAgentOverride } from "./providerUserAgentOverride.ts";
 import { getRegistryEntry, requireCompatibleBaseUrl } from "../config/providerRegistry.ts";
 import { resolveFetchStartTimeout } from "../utils/fetchStartTimeoutPolicy.ts";
 import {
@@ -43,6 +45,7 @@ import { resolveKeyForRequest } from "../services/apiKeyRotator.ts";
 import type { KeyHealth } from "../services/apiKeyRotator.ts";
 import { getOpenAICompatibleType, isClaudeCodeCompatible } from "../services/provider.ts";
 import { usesCcWireImage } from "../services/ccWireImageBuiltins.ts";
+import { getForcedReasoningEffort } from "../utils/reasoningRuleContext.ts";
 import {
   runWithOnPersist,
   getRefreshLeadMs,
@@ -95,17 +98,13 @@ import {
   mergeUpstreamExtraHeaders,
   setUserAgentHeader,
   applyConfiguredUserAgent,
+  applyHuggingFaceBillToHeader,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
 import { applyPeerTraceHeader } from "@/shared/resilience/peerRouting";
 import { applyClineProtocolHeaders } from "@/shared/utils/clineAuth";
 import { isProbeContext } from "@/shared/utils/probeOrigin";
-import {
-  parseAndValidatePublicUrl,
-  parseAndValidateNonMetadataUrl,
-} from "@/shared/network/outboundUrlGuard";
-import { getProviderValidationGuard } from "@/shared/network/outboundUrlGuardPolicy";
-import { isLocalProvider, isSelfHostedChatProvider } from "@/shared/constants/providers";
+import { assertDispatchUrlAllowed, dispatchGuarded } from "./dispatchPin.ts";
 // Header helpers extracted to a pure leaf; re-exported for external importers
 // (executors + tests) that import them from "./base.ts".
 export {
@@ -113,6 +112,7 @@ export {
   getCustomUserAgent,
   setUserAgentHeader,
   applyConfiguredUserAgent,
+  applyHuggingFaceBillToHeader,
   isOpenAICompatibleEndpoint,
   stripStainlessHeadersForOpenAICompat,
 } from "./base/headers.ts";
@@ -291,6 +291,12 @@ export type ExecutorExecuteResult =
       transport?: string;
       /** Wire model id actually sent upstream (from the serialized body). */
       model?: unknown;
+      /**
+       * Internal-only upstream failure classification (#3229) — never reaches the client.
+       * Not a place for raw bodies, headers, URLs, or provider text: producers project to a
+       * closed set of scalars/enums first (see `projectAntigravityValidationDiagnostic`).
+       */
+      upstreamDiagnostic?: Record<string, unknown>;
     };
 export class BaseExecutor {
   provider: string;
@@ -419,13 +425,7 @@ export class BaseExecutor {
    * cloud-metadata IMDS pivot. Throws on a blocked URL.
    */
   protected assertOutboundUrlAllowed(url: string): void {
-    if (!url) return;
-    if (isLocalProvider(this.provider) || isSelfHostedChatProvider(this.provider)) return;
-    if (getProviderValidationGuard() === "public-only") {
-      parseAndValidatePublicUrl(url);
-      return;
-    }
-    parseAndValidateNonMetadataUrl(url);
+    assertDispatchUrlAllowed(this.provider, url);
   }
 
   /**
@@ -496,7 +496,7 @@ export class BaseExecutor {
     const providerId = this.config?.id || this.provider;
     if (providerId) {
       const envKey = `${providerId.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_USER_AGENT`;
-      const envUA = process.env[envKey]?.trim();
+      const envUA = resolveProviderUserAgentOverride(providerId, process.env[envKey]);
       if (envUA) {
         setUserAgentHeader(headers, envUA);
       }
@@ -674,12 +674,17 @@ export class BaseExecutor {
     }
 
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(requestBody),
-        signal: activeSignal || undefined,
-      });
+      const response = await dispatchGuarded(
+        this.provider,
+        url,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(requestBody),
+          signal: activeSignal || undefined,
+        },
+        credentials
+      );
 
       const text = await response.text();
       if (!response.ok) {
@@ -829,6 +834,8 @@ export class BaseExecutor {
     // Fields already stripped by the generic 400 field-downgrade below (once each,
     // across all fallback URLs — bounded retry loop).
     const strippedFields = new Set<string>();
+    // Explicit per-key tiers are policy, not optional compatibility hints.
+    const forcedCodexTier = this.provider === "codex" && getApiKeyCodexServiceTier(credentials);
     // thinking_budget 400 clamp-and-retry below: upstream's learned max applied to
     // later retry URLs (bounded per URL); also recorded via recordLearnedThinkingCap.
     let thinkingBudgetClampedMax: number | null = null;
@@ -852,6 +859,9 @@ export class BaseExecutor {
         body
       );
       applyConfiguredUserAgent(headers, requestCredentials?.providerSpecificData);
+      if (this.provider === "huggingface") {
+        applyHuggingFaceBillToHeader(headers, requestCredentials?.providerSpecificData);
+      }
 
       // Strip OpenAI SDK (X-Stainless-*) metadata + normalize SDK-derived User-Agent
       // on OpenAI-compatible passthrough requests — some upstream gateways 403 on them.
@@ -893,7 +903,9 @@ export class BaseExecutor {
       );
       if (this.provider === "groq") {
         transformedBody = stripGroqUnsupportedFields(
-          transformedBody as Record<string, unknown>
+          transformedBody as Record<string, unknown>,
+          model,
+          getForcedReasoningEffort(requestCredentials)
         ) as typeof transformedBody;
       }
       // A previous URL in this execute() already hit a thinking_budget 400 and
@@ -924,11 +936,11 @@ export class BaseExecutor {
         capMs: this.config?.fetchStartTimeoutCapMs,
       });
       const fetchStartTimeoutMs = fetchStartTimeoutPolicy.timeoutMs;
-      if (fetchStartTimeoutPolicy.capped) {
-        log?.debug?.(
-          "TIMEOUT",
-          `fetch-start timeout capped ${fetchStartTimeoutPolicy.baseTimeoutMs}ms -> ${fetchStartTimeoutMs}ms (streaming)`
-        );
+      if (stream) {
+        const timeoutMessage = fetchStartTimeoutPolicy.capped
+          ? `fetch-start timeout capped ${fetchStartTimeoutPolicy.baseTimeoutMs}ms -> ${fetchStartTimeoutMs}ms (streaming)`
+          : `fetch-start timeout ${fetchStartTimeoutMs}ms (streaming)`;
+        log?.debug?.("TIMEOUT", timeoutMessage);
       }
 
       try {
@@ -958,11 +970,14 @@ export class BaseExecutor {
             : requestOptions;
 
           try {
+            // Strict-validation fence (tip) first, then the connect-time DNS-rebinding guard
+            // for operator-supplied base URLs (#13330) as the transport.
             return await validationFetch(
               input.validationDispatch,
               this.provider,
               model,
-              requestCredentials
+              requestCredentials,
+              (url, init) => dispatchGuarded(this.provider, url, init, requestCredentials)
             )(requestUrl, optionsWithSignal);
           } finally {
             if (timeoutId) clearTimeout(timeoutId);
@@ -1342,8 +1357,9 @@ export class BaseExecutor {
             // drop any tool_result orphaned by that strip (discussion #2410).
             const adjacent = isClaude ? fixToolPairs(fixToolAdjacency(fixed)) : fixed;
             const stripped = stripTrailingAssistantOrphanToolUse(adjacent);
-            // Some providers (e.g. Mistral) require the last message to be user
-            // or tool and reject trailing assistant text messages with 400 (#3396).
+            // Some providers (Mistral #3396, official Claude OAuth) reject a
+            // trailing text-only assistant turn with 400. Strip here so combo
+            // failover does not burn the next account on the same body.
             tb.messages = stripTrailingAssistantForProvider(stripped, this.provider);
           }
         }
@@ -1600,6 +1616,7 @@ export class BaseExecutor {
           fetchFn: fetchWithStartTimeout,
           serializeBody: serializeRetryBody,
           strippedFields,
+          protectedFields: forcedCodexTier ? ["service_tier"] : undefined,
           log,
         });
 

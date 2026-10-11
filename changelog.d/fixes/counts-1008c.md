@@ -1,0 +1,1 @@
+- Docs: sync release counts (364 providers, 200 migrations); regenerate PROVIDER_REFERENCE.md.

@@ -90,7 +90,7 @@ test("generator resolves a $ref path parameter into --id and substitutes {id} in
     // The URL must be built with {id} substitution, not sent literally.
     assert.match(
       generated,
-      /url = url\.replace\("\{id\}", encodeURIComponent\(opts\.id/,
+      /url = url\.replaceAll\("\{id\}", encodeURIComponent\(opts\.id/,
       "generated command must substitute {id} in the URL"
     );
     assert.doesNotMatch(generated, /url = "\/api\/widgets\/\{id\}";\s*\n\s*const res/);
@@ -150,7 +150,7 @@ components:
 test("real generated bin/cli/api-commands/combos.mjs has --id and --body on the PATCH combo command (#10955)", () => {
   const src = readFileSync(REAL_COMBOS, "utf8");
   const patchBlockMatch = src.match(
-    / {2}tag\.command\("patch-[^"]*"\)[\s\S]*?\n {2}(?=tag\.command\(|\})/
+    / {2}tag\s*\.command\("patch-[^"]*"\)[\s\S]*?(?=\n {2}tag\s*\.command\(|\n\})/
   );
   assert.ok(patchBlockMatch, "combos.mjs must have a generated patch-* command block");
   const patchBlock = patchBlockMatch[0];
@@ -167,7 +167,7 @@ test("real generated bin/cli/api-commands/combos.mjs has --id and --body on the 
   );
   assert.match(
     patchBlock,
-    /url = url\.replace\("\{id\}", encodeURIComponent\(opts\.id/,
+    /url = url\.replaceAll\("\{id\}", encodeURIComponent\(opts\.id/,
     "PATCH combo command must substitute {id} in the URL, not send it literally"
   );
 });
@@ -175,11 +175,11 @@ test("real generated bin/cli/api-commands/combos.mjs has --id and --body on the 
 test("real generated combo-test command accepts and forwards its required request body", () => {
   const src = readFileSync(REAL_COMBOS, "utf8");
   const testBlockMatch = src.match(
-    / {2}tag\.command\("post-api-combos-test"\)[\s\S]*?(?=\n {2}tag\.command\(|\n\})/
+    / {2}tag\s*\.command\("post-api-combos-test"\)[\s\S]*?(?=\n {2}tag\s*\.command\(|\n\})/
   );
   assert.ok(testBlockMatch, "combos.mjs must have a generated combo-test command block");
   const testBlock = testBlockMatch[0];
 
   assert.match(testBlock, /\.requiredOption\("--body <jsonOrPath>"/);
-  assert.match(testBlock, /const res = await apiFetch\(url, \{ method: "POST", body,/);
+  assert.match(testBlock, /const res = await apiFetch\(url, \{\s*method: "POST",\s*body,/);
 });

@@ -493,9 +493,10 @@ export function hasThinkingConfig(body) {
 
 // Normalize thinking config based on last message role
 // - If lastMessage is not user → remove Claude/Gemini-style thinking config
+// - Preserve an explicit Claude opt-out; it is request-level intent, not a thinking turn
 // - Keep OpenAI Chat Completions reasoning_effort as a request-level option.
 export function normalizeThinkingConfig(body) {
-  if (!isLastMessageFromUser(body)) {
+  if (!isLastMessageFromUser(body) && body.thinking?.type !== "disabled") {
     delete body.thinking;
   }
   return body;

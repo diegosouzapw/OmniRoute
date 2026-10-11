@@ -90,6 +90,8 @@ Regresyon koruması: `tests/unit/provider-cooldown-window-gate.test.ts`.
 
 **Ani yüklenme önleme koruması:** eşzamanlı hataların bekleme süresini aşırı uzatmasını veya `backoffLevel` değerini iki kez artırmasını önler.
 
+Kiro’nun boş olmayan imzalı ikili `reasoningContentEvent` çerçeveleri, akıl yürütme etkinliğini yürütücü üzerinden boş bir `reasoning_content` deltası olarak korur. İmza iletilmez. Meta veriler, tamamlanmamış çerçeveler ve boş imzalar içerik için süre bütçesini yeniden başlatmaz; etkin akışın bağımsız süre sınırı ve istemci iptali geçerliliğini korur. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Son durumlar (bekleme süreleri DEĞİLDİR):**
 
 - `banned` — yasaklı anahtar sözcük/hesap yasağı algılamasıyla (bkz. [BAN_DETECTION](../security/BAN_DETECTION.md)) ve art arda üç yukarı akış istek başına reddiyle (`request_rejected`, ör. Anthropic OAuth 403 "İsteğe izin verilmiyor" — `open-sse/services/requestRejectedStreak.ts`) ayarlanır; tek bir ret yalnızca bağlantıyı beklemeye alır

@@ -199,12 +199,13 @@ test("slow Responses handler uses comments plus sparse in_progress events", asyn
   const body = await readAll(result);
   const frames = body.split("\n\n").filter(Boolean);
   const earlyFrames = frames.slice(0, -1);
-  // #14330: the frame now carries a required `sequence_number` and `response`
-  // object so a strict Responses decoder does not abort on it.
+  // #14330 / #15202: the frame now carries a required `sequence_number`, a
+  // `response` object, and a STRING `response.id` so a strict Responses decoder
+  // does not abort on it.
   assert.deepEqual(JSON.parse(earlyFrames[0].slice("data: ".length)), {
     type: "response.in_progress",
     sequence_number: 1,
-    response: { id: null, status: "in_progress" },
+    response: { id: "resp_keepalive_omniroute", status: "in_progress" },
   });
   assert.ok(
     earlyFrames.some((frame) => frame === ": keepalive"),
@@ -216,7 +217,7 @@ test("slow Responses handler uses comments plus sparse in_progress events", asyn
     assert.deepEqual(JSON.parse(frame.slice("data: ".length)), {
       type: "response.in_progress",
       sequence_number: 1,
-      response: { id: null, status: "in_progress" },
+      response: { id: "resp_keepalive_omniroute", status: "in_progress" },
     });
     assert.doesNotMatch(frame, /output_item|reasoning|✨/);
   }

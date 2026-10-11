@@ -128,7 +128,11 @@ test("retries with a fresh session when the first reply's tool block is unparsea
   }
 });
 
-test("gives up after MAX_TOOL_PARSE_ATTEMPTS and returns the raw (still-tagged) content, not an infinite retry", async () => {
+// Policy change (this PR): a reply that still carries a malformed tool envelope after the single
+// bounded repair now fails closed with 502 instead of being surfaced as a best-effort text answer.
+// Leaking `<tool>{...` back to the client invites a downstream parser to act on a half-formed call,
+// so the envelope is treated as a hard failure. Previously this test asserted HTTP 200 + raw content.
+test("gives up after MAX_TOOL_PARSE_ATTEMPTS and fails closed instead of echoing the malformed envelope", async () => {
   const mock = installMock([TRUNCATED, TRUNCATED, TRUNCATED]);
   try {
     const executor = new DeepSeekWebExecutor();
@@ -139,15 +143,9 @@ test("gives up after MAX_TOOL_PARSE_ATTEMPTS and returns the raw (still-tagged) 
       credentials: { apiKey: "tkn-retry-exhausted" },
       signal: AbortSignal.timeout(10000),
     });
-    assert.ok(result.response.ok, "still HTTP 200 — a best-effort text answer, not a hard failure");
-    const json = JSON.parse(await result.response.text());
-    const choice = json.choices[0];
-    assert.equal(choice.finish_reason, "stop");
-    assert.ok(!choice.message.tool_calls, "no tool_calls on an unrecoverable reply");
-    assert.ok(
-      choice.message.content.includes("<tool>"),
-      "raw unparsed content is surfaced, not silently dropped"
-    );
+    assert.equal(result.response.status, 502, "unrecoverable envelope fails closed");
+    const body = await result.response.text();
+    assert.ok(!body.includes("<tool>"), "the malformed envelope is never echoed to the client");
     assert.equal(mock.calls.completions, 2, "bounded to MAX_TOOL_PARSE_ATTEMPTS (2), never more");
   } finally {
     mock.restore();

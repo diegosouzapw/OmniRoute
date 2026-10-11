@@ -389,20 +389,20 @@ Skriv enhetstester i `tests/unit/` som minst omfattar:
 
 ## Checklista för pull request
 
-- [ ] Tester godkänns (`npm test`)
-- [ ] Lintning godkänns (`npm run lint`)
+- [ ] Testerna godkänns (`npm test`)
+- [ ] Lintningen godkänns (`npm run lint`)
 - [ ] Bygget lyckas (`npm run build`)
 - [ ] TypeScript-typer har lagts till för nya publika funktioner och gränssnitt
 - [ ] Inga hårdkodade hemligheter eller reservvärden
-- [ ] Publika autentiseringsuppgifter för uppströmsresurser bäddas in via `resolvePublicCred()` (se [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), aldrig som literaler
-- [ ] Felsvar dirigeras via `buildErrorBody()` / `sanitizeErrorMessage()` — inga råa stackspårningar i svarskroppar (se [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
-- [ ] Skalkommandon (`exec` / `spawn`) skickar värden vid körning via `env`, inte via stränginterpolering
+- [ ] Publika autentiseringsuppgifter för uppströmskällor bäddas in via `resolvePublicCred()` (se [`docs/security/PUBLIC_CREDS.md`](./docs/security/PUBLIC_CREDS.md)), aldrig som literaler
+- [ ] Felsvar hanteras via `buildErrorBody()` / `sanitizeErrorMessage()` — inga råa stackspårningar i svarskroppar (se [`docs/security/ERROR_SANITIZATION.md`](./docs/security/ERROR_SANITIZATION.md))
+- [ ] Skalkommandon (`exec` / `spawn`) skickar körtidsvärden via `env`, inte via stränginterpolering
 - [ ] Alla indata valideras med Zod-scheman
-- [ ] Ett **fragment** för ändringsloggen har lagts till under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` för användarsynliga ändringar (se [`changelog.d/README.md`](./changelog.d/README.md)) — redigera **inte** `CHANGELOG.md` direkt; fragment sammanställs vid lansering och orsakar aldrig konflikter mellan pull requests
+- [ ] Ett **fragment** för ändringsloggen har lagts till under `changelog.d/{features|fixes|maintenance}/<PR>-<slug>.md` för användarsynliga ändringar (se [`changelog.d/README.md`](./changelog.d/README.md)) — redigera **inte** `CHANGELOG.md` direkt; fragmenten sammanställs vid lansering och orsakar aldrig konflikter mellan pull requests
 - [ ] Dokumentationen har uppdaterats (om tillämpligt)
-- [ ] Inga nya CodeQL-varningar eller varningar från hemlighetsskanning har skapats, alternativt har var och en avfärdats med en teknisk motivering som hänvisar till relevant dokument i `docs/security/`
-- [ ] Rutter som startar underprocesser (`/api/mcp/`, `/api/cli-tools/runtime/`) har klassificerats som `isLocalOnlyPath()` i `src/server/authz/routeGuard.ts` — se [hård regel nr 15](docs/security/ROUTE_GUARD_TIERS.md)
-- [ ] Inga `Co-Authored-By`-slutrader i commit-meddelanden — commits måste visas enbart under databasägarens Git-identitet (hård regel nr 16)
+- [ ] Inga nya CodeQL-/Secret-Scanning-varningar har skapats, eller så har var och en avfärdats med en teknisk motivering som hänvisar till relevant dokument under `docs/security/`
+- [ ] Rutter som startar underordnade processer (`/api/mcp/`, `/api/cli-tools/runtime/`) har klassificerats som `isLocalOnlyPath()` i `src/server/authz/routeGuard.ts` — se [Hård regel nr 15](docs/security/ROUTE_GUARD_TIERS.md)
+- [ ] Inga `Co-authored-by`-trailrar för AI/botar i commit-meddelanden (Hård regel nr 16) — mänskliga medarbetare vars arbete återanvänds krediteras med vanliga `Co-authored-by: Name <email>`-trailrar
 
 ---
 

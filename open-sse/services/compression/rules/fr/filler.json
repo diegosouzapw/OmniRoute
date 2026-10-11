@@ -20,19 +20,21 @@
     },
     {
       "name": "fr_hedging",
-      "pattern": "\\b(?:je pense que|je crois que|il semble que|peut etre|peut-être|probablement|possiblement)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:je pense que|je crois que|il semble que|peut etre|peut-être|probablement|possiblement)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "fr_filler_adverbs",
-      "pattern": "\\b(?:fondamentalement|essentiellement|en fait|litteralement|littéralement|simplement)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:fondamentalement|essentiellement|en fait|litteralement|littéralement|simplement)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "fr_self_reference",
@@ -44,19 +46,21 @@
     },
     {
       "name": "fr_verbose_request",
-      "pattern": "\\b(?:peux tu expliquer|pourrais tu expliquer|peux tu detailler|peux tu détailler)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:peux tu expliquer|pourrais tu expliquer|peux tu detailler|peux tu détailler)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "Explique ",
       "context": "user",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "fr_qualifiers",
-      "pattern": "\\b(?:un peu|en quelque sorte|plus ou moins|d'une certaine maniere|d'une certaine manière)\\b\\s*",
+      "pattern": "(?<![\\p{L}\\p{N}_])(?:un peu|en quelque sorte|plus ou moins|d'une certaine maniere|d'une certaine manière)(?![\\p{L}\\p{N}_])\\s*",
       "replacement": "",
       "context": "all",
       "category": "filler",
-      "minIntensity": "lite"
+      "minIntensity": "lite",
+      "flags": "giu"
     },
     {
       "name": "fr_softeners",

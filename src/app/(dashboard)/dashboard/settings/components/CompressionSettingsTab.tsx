@@ -21,12 +21,6 @@ interface CavemanConfig {
   intensity: CavemanIntensity;
 }
 
-interface CavemanOutputModeConfig {
-  enabled: boolean;
-  intensity: CavemanIntensity;
-  autoClarity: boolean;
-}
-
 interface RtkConfig {
   enabled: boolean;
   intensity: RtkIntensity;
@@ -81,7 +75,6 @@ interface CompressionConfig extends CompressionTokenSaverConfig {
   mcpDescriptionCompressionEnabled?: boolean;
   comboOverrides: Record<string, CompressionMode>;
   cavemanConfig?: CavemanConfig;
-  cavemanOutputMode?: CavemanOutputModeConfig;
   rtkConfig?: RtkConfig;
   codexResponsesConfig?: CodexResponsesConfig;
   aggressive?: AggressiveConfig;
@@ -171,6 +164,7 @@ const ROLE_OPTIONS: { value: "user" | "assistant" | "system"; labelKey: string }
 
 export default function CompressionSettingsTab() {
   const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
   const [config, setConfig] = useState<CompressionConfig>({
     enabled: false,
     defaultMode: "off",
@@ -189,7 +183,6 @@ export default function CompressionSettingsTab() {
     cavemanOutputMode: {
       enabled: false,
       intensity: "full",
-      autoClarity: true,
     },
     rtkConfig: {
       enabled: true,
@@ -228,6 +221,10 @@ export default function CompressionSettingsTab() {
   });
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  // The defaults above are not the stored settings, so the form waits for a GET that
+  // succeeds. A failed load shows a retry, which bumps loadAttempt to re-run the loads.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [status, setStatus] = useState<"" | "saved" | "error">("");
   const [ruleMetadata, setRuleMetadata] = useState<RuleMetadata[]>([]);
   // A save sends only the fields it changes, so it never writes back a stale copy of settings
@@ -249,23 +246,34 @@ export default function CompressionSettingsTab() {
   );
 
   useEffect(() => {
+    // A retry re-runs these loads; answers that arrive for the run it replaced are ignored.
+    let ignore = false;
     fetch("/api/settings/compression")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
+        if (ignore) return;
         if (data) {
           savedRef.current = data;
           setConfig(data);
         }
+        setLoadFailed(!data);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!ignore) setLoadFailed(true);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
     fetch("/api/compression/rules")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (Array.isArray(data?.rules)) setRuleMetadata(data.rules);
+        if (!ignore && Array.isArray(data?.rules)) setRuleMetadata(data.rules);
       })
       .catch(() => {});
-  }, []);
+    return () => {
+      ignore = true;
+    };
+  }, [loadAttempt]);
 
   const save = (updates: SettingsPatch<CompressionConfig>) => {
     const showQueued = () =>
@@ -345,6 +353,28 @@ export default function CompressionSettingsTab() {
     return (
       <Card className="p-6">
         <p className="text-sm text-text-muted">{t("loading")}</p>
+      </Card>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between gap-4">
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+            {t("compressionTitle")}: {tCommon("failedToLoad")}
+          </p>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setLoading(true);
+              setLoadAttempt((attempt) => attempt + 1);
+            }}
+          >
+            {t("retry")}
+          </Button>
+        </div>
       </Card>
     );
   }
@@ -615,44 +645,6 @@ export default function CompressionSettingsTab() {
               </>
             </div>
           )}
-
-        {config.enabled && config.cavemanOutputMode && (
-          <div className="space-y-3 pt-4 border-t border-border/30">
-            <div>
-              <h4 className="text-sm font-medium text-text-main">
-                {t("compressionSettingsCavemanOutputMode")}
-              </h4>
-              <p className="text-xs text-text-muted mt-0.5">
-                Injects terse response instructions without rewriting provider output. Its on/off
-                and level are set in the panel (/dashboard/context/settings).
-              </p>
-            </div>
-
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-text-muted">
-                {t("compressionSettingsAutoClarityBypass")}
-              </span>
-              <button
-                onClick={() =>
-                  save({
-                    cavemanOutputMode: {
-                      autoClarity: !config.cavemanOutputMode!.autoClarity,
-                    },
-                  })
-                }
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  config.cavemanOutputMode.autoClarity ? "bg-green-500" : "bg-border"
-                }`}
-              >
-                <span
-                  className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                    config.cavemanOutputMode.autoClarity ? "left-5" : "left-0.5"
-                  }`}
-                />
-              </button>
-            </label>
-          </div>
-        )}
 
         {config.enabled && config.defaultMode === "aggressive" && config.aggressive && (
           <div className="space-y-3 pt-4 border-t border-border/30">

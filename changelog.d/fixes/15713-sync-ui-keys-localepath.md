@@ -1,0 +1,1 @@
+- **fix(i18n):** `sync-ui-keys --locale=<code>` writes the locale catalog again instead of failing with `ReferenceError: localePath is not defined` (#15713).

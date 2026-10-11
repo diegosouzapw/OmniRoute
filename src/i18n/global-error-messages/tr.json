@@ -1,0 +1,13 @@
+{
+  "publicSystem": {
+    "globalError": {
+      "title": "Bir şeyler yanlış gitti",
+      "description": "Beklenmedik bir hata oluştu. Bu kaydedildi ve ekibimiz inceleyecektir.",
+      "detailsAriaLabel": "Hata detayları",
+      "retryAriaLabel": "Sayfayı yeniden yüklemeyi deneyin",
+      "tryAgain": "Tekrar Dene",
+      "statusAriaLabel": "Sistem durumunu açın",
+      "systemStatus": "Sistem Durumu"
+    }
+  }
+}

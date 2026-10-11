@@ -1,0 +1,1 @@
+- **fix(sse):** preserve mid-conversation system instructions for Claude Sonnet 5.5 and Haiku 5.5 instead of appending them to the top-level system prompt on each turn; retain legacy model handling and existing beta-header selection (#16127).

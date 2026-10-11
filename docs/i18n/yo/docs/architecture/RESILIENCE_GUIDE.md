@@ -96,6 +96,8 @@ Olùṣọ́ ìdènà ìfàsẹ́yìn: `tests/unit/provider-cooldown-window-gate
 
 **Ààbò lódì sí ìbẹ̀rẹ̀-pọ̀-lójú-ẹsẹ̀:** ó dènà àwọn ìkùnà tó ṣẹlẹ̀ lẹ́ẹ̀kan náà láti fa àkókò ìsinmi gùn jù tàbí láti fi kún `backoffLevel` lẹ́ẹ̀mejì.
 
+Àwọn férémù alakomeji `reasoningContentEvent` ti Kiro tí ó ní ìbuwọ́lu tí kò ṣófo ń pa ìṣẹ́ ìrònú mọ́ nípasẹ̀ olùṣe gẹ́gẹ́ bí delta `reasoning_content` tó ṣófo. A kò fi ìbuwọ́lu náà ránṣẹ́ síwájú. Metadata, férémù tí kò pé àti ìbuwọ́lu òfo kò tún àkókò ìdúró àkóónú bẹ̀rẹ̀; ààlà àkókò olómìnira fún ìṣàn tó ń ṣiṣẹ́ àti ìfagilé oníbàárà ṣì wà ní ipa. (`open-sse/executors/kiro/reasoning.ts`).
+
 **Àwọn ipò òpin (KÌ Í ṢE àwọn àkókò ìsinmi):**
 
 - `banned` — tí a ṣètò nípasẹ̀ ìṣàwárí ọ̀rọ̀ tí a fòfin dè / ìfòfindè àkọọ́lẹ̀ (wo [BAN_DETECTION](../security/BAN_DETECTION.md)), àti nípasẹ̀ ìkọ̀sílẹ̀ ìbéèrè kọ̀ọ̀kan láti upstream lẹ́ẹ̀mẹ́ta tẹ̀ léra (`request_rejected`, àpẹẹrẹ Anthropic OAuth 403 "Request not allowed" — `open-sse/services/requestRejectedStreak.ts`); ìkọ̀sílẹ̀ ẹyọ kan yóò kàn fi ìsopọ̀ náà sínú ìsinmi

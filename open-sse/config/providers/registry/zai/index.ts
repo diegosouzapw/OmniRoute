@@ -12,6 +12,10 @@ export const zaiProvider: RegistryEntry = {
   authType: "apikey",
   authHeader: "x-api-key",
   headers: getAnthropicCompatHeaders(),
+  // Discovery on this provider's Anthropic-compat /models surface omits the
+  // coding-plan glm-5.3-flash family that the OpenAI-compatible endpoint
+  // serves; see unionRegistryDispatchModels for the opt-in semantics.
+  registryDispatchUnion: true,
   // Real upstream model IDs only. GLM-5.3-family models are tagged for z.ai's
   // OpenAI-compatible Coding Plan endpoint because their documented reasoning
   // selector is `reasoning_effort` (low|high|max) and GLM-5.3-Flash supports

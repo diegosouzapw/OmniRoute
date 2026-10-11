@@ -390,6 +390,12 @@ Een mirror in de modus `dual` kan ook zonder de queryparameter worden herkend: d
 
 Clients die een modelkiezer weergeven, moeten `?prefix=alias` aanvragen — dit is wat de [OmniCopilot VS Code-extensie](../guides/VSCODE-COPILOT.md) doet.
 
+### Afzonderlijk verborgen chatmodellen
+
+Een model dat op de pagina van zijn provider als **Verborgen** is gemarkeerd, wordt uit de catalogus verwijderd en bij een expliciet verzoek geweigerd met HTTP `404` / `model_not_found`. De controle gebruikt de gevonden provider en het model, rekening houdend met provideraliasen, prefixen van compatibele providerknooppunten en de standaardwaarden van de verbinding. Een combo slaat verborgen doelen over en kan een ander zichtbaar doel gebruiken; als er geen uitvoerbaar doel overblijft, wordt dezelfde foutcode teruggegeven. Het opnieuw zichtbaar maken geldt vanaf het volgende verzoek. Zichtbaarheidsoverschrijvingen die alleen voor afbeeldingen gelden, verbergen het chatmodel met dezelfde ID niet.
+
+Deze instelling per model staat los van de [toestemmings- en blokkeerlijsten voor modelweergave](../routing/MODEL_EXPOSURE_LIST.md). Die filteren het catalogusaanbod en de kandidaten voor automatische routering, maar behouden expliciete verzending. De modelrechten van de API-sleutel blijven onafhankelijk van toepassing. De standaardmodus voor catalogusprefixen blijft `dual`.
+
 ### Modelvarianten zonder denkmodus
 
 Voor Claude-modellen die denkfunctionaliteit ondersteunen, biedt `/v1/models` ook een variant **zonder denkmodus** aan, waarvan het id wordt voorafgegaan door `claude-3-omniroute-no-thinking/`:

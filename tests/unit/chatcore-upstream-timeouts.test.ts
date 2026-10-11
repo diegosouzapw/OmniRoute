@@ -59,6 +59,25 @@ test("normalizeExecutorResult rejects malformed executor output", () => {
     /must contain a Response/
   );
 });
+
+// #3229: the executor's bounded upstream classification is the only diagnostic chatCore can
+// persist for Antigravity failures. If the normalizer drops it, the handler silently falls back
+// to logging nothing at all — the bug this seam exists to catch.
+test("normalizeExecutorResult carries upstreamDiagnostic through, and bare Responses have none", () => {
+  const diagnostic = { httpStatus: 400, validationCategory: "tool_schema" };
+  const rich = normalizeExecutorResult({
+    response: new Response("x", { status: 400 }),
+    url: "u",
+    upstreamDiagnostic: diagnostic,
+  });
+  assert.deepEqual(rich.upstreamDiagnostic, diagnostic);
+
+  assert.equal(normalizeExecutorResult(new Response("x")).upstreamDiagnostic, undefined);
+  assert.equal(
+    normalizeExecutorResult({ response: new Response("x"), url: "u" }).upstreamDiagnostic,
+    undefined
+  );
+});
 test("executeWithUpstreamStartTimeout leaves no abort listener on the client signal after a resolving execute", async () => {
   const client = new AbortController();
   const before = getEventListeners(client.signal, "abort").length;
