@@ -801,6 +801,7 @@ export function createDisconnectAwareStream(
           noteClientChunk(value);
         } catch (error) {
           if (!streamController.isConnected()) {
+            reader.cancel(new Error("Downstream disconnected")).catch(() => { });
             try {
               controller.close();
             } catch {
@@ -811,6 +812,7 @@ export function createDisconnectAwareStream(
 
           if (clientTerminalSeen) {
             streamController.handleComplete();
+            reader.cancel(new Error("Client terminal seen")).catch(() => { });
             try {
               controller.close();
             } catch {
@@ -822,7 +824,6 @@ export function createDisconnectAwareStream(
           streamController.handleError(error);
 
           // T35: Encapsulate mid-stream errors as SSE events instead of abruptly aborting
-          // This prevents TransferEncodingError on the client side
           const errorMsg = getErrorMessage(error);
           const statusCode = getErrorStatusCode(error);
 
